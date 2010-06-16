@@ -1,0 +1,3 @@
+[submodule "HardwareObjects/SpecMotor"]
+	path = HardwareObjects/SpecMotor
+	url = git://forge.epn-campus.eu/repositories/SpecMotorHO.git
