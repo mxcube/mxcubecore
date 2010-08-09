@@ -1,6 +1,0 @@
-[submodule "HardwareObjects/SpecMotor"]
-	path = HardwareObjects/SpecMotor
-	url = git://forge.epn-campus.eu/repositories/SpecMotorHO.git
-[submodule "HardwareObjects/InputOutput"]
-	path = HardwareObjects/InputOutput
-	url = git://forge.epn-campus.eu/repositories/InputOutputHO.git
