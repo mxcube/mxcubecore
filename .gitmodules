@@ -1,0 +1,3 @@
+[submodule "HardwareObjects/mxCuBE"]
+	path = HardwareObjects/mxCuBE
+	url = git://git.epn-campus.eu/repositories/hardware_objects/mxCuBE
