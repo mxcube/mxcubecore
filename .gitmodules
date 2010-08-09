@@ -1,3 +1,21 @@
 [submodule "HardwareObjects/mxCuBE"]
 	path = HardwareObjects/mxCuBE
 	url = git://git.epn-campus.eu/repositories/hardware_objects/mxCuBE
+[submodule "HardwareObjects/BeamlineComponents"]
+	path = HardwareObjects/BeamlineComponents
+	url = git://git.epn-campus.eu/repositories/hardware_objects/BeamlineComponents
+[submodule "HardwareObjects/Instruments"]
+	path = HardwareObjects/Instruments
+	url = git://git.epn-campus.eu/repositories/hardware_objects/Instruments
+[submodule "HardwareObjects/Positioning"]
+	path = HardwareObjects/Positioning
+	url = git://git.epn-campus.eu/repositories/hardware_objects/Positioning
+[submodule "HardwareObjects/Scanning"]
+	path = HardwareObjects/Scanning
+	url = git://git.epn-campus.eu/repositories/hardware_objects/Scanning
+[submodule "HardwareObjects/Utils"]
+	path = HardwareObjects/Utils
+	url = git://git.epn-campus.eu/repositories/hardware_objects/Utils
+[submodule "HardwareObjects/Spec"]
+	path = HardwareObjects/Spec
+	url = git://git.epn-campus.eu/repositories/hardware_objects/Spec
