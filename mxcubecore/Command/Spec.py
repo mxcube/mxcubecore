@@ -16,6 +16,8 @@ class SpecCommand(CommandObject, SpecCommandA):
         
 
     def replyArrived(self, reply):
+        SpecCommandA.replyArrived(self, reply)
+
         self.__cmdExecution = False
         
         if reply.error:
