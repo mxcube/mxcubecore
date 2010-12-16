@@ -189,7 +189,7 @@ class __HardwareRepositoryClient(QObject):
         self.hardwareObjects = weakref.WeakValueDictionary()
         #self.hardwareObjects = {}
         mngr = SpecConnectionsManager.SpecConnectionsManager(pollingThread = False)
-        SpecWaitObject.waitFunc = qApp.processEvents
+        #SpecWaitObject.waitFunc = qApp.processEvents
 
         self.server = mngr.getConnection(self.serverAddress)
         
