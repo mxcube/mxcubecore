@@ -189,7 +189,7 @@ class __HardwareRepositoryClient(QObject):
         self.hardwareObjects = weakref.WeakValueDictionary()
         #self.hardwareObjects = {}
         mngr = SpecConnectionsManager.SpecConnectionsManager(pollingThread = False)
-        SpecWaitObject.waitFunc = qApp.processEvents
+        #SpecWaitObject.waitFunc = qApp.processEvents
 
         self.server = mngr.getConnection(self.serverAddress)
         
@@ -234,7 +234,7 @@ class __HardwareRepositoryClient(QObject):
                 #t0=time.time()
                 if hoName in self.requiredHardwareObjects:
                     replyDict = self.requiredHardwareObjects[hoName]
-                    del self.requiredHardwareObjects[hoName]
+                    #del self.requiredHardwareObjects[hoName]
                 else:
                     replyDict = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('xml_get("%s")' % hoName, ), timeout = 3000)
             except:
@@ -313,6 +313,7 @@ class __HardwareRepositoryClient(QObject):
         try:
             del self.hardwareObjects[hoName]
             self.invalidHardwareObjects.remove(hoName)
+            del self.requiredHardwareObjects[hoName]
         except KeyError:
             pass
 
