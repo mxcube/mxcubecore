@@ -312,18 +312,16 @@ class __HardwareRepositoryClient(QObject):
         """
         try:
             del self.hardwareObjects[hoName]
+        except KeyError:
+            pass
+        try:    
             self.invalidHardwareObjects.remove(hoName)
+        except:
+            pass
+        try:
             del self.requiredHardwareObjects[hoName]
         except KeyError:
             pass
-
-        """
-        try:
-            # force emitter deletion
-            del _emitterCache[self]
-        except:
-            pass
-        """
 
         self.emit(PYSIGNAL('hardwareObjectDiscarded'), (hoName, ))
             
