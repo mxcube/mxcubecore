@@ -472,8 +472,9 @@ class TacoChannel(ChannelObject):
                 poller = TacoPoller(self.device)
                 
                 _pollerObjects[self.device.devname] = poller
-            
-            poller.addCommand(self, self.polling, self.arglist, compare=True)
+           
+            compare = kwargs.get("compare", "True") == "True" 
+            poller.addCommand(self, self.polling, self.arglist, compare=compare)
                 
 
     def valueChanged(self, deviceName, value):
