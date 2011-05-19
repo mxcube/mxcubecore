@@ -30,7 +30,9 @@ class ThreadSafeMethodsMetaClass(type):
 
 
 Dev_deb = [0]
-Dev_Exception = "TacoException"
+# Dev_Exception = "TacoException"
+Dev_Exception = RuntimeError
+
 
 #--------------------------------------------------------------
 # Tab_dev: 
@@ -152,10 +154,10 @@ def dev_init(mdevname):
          #     have to import the device and create place in dict   
          try:
                mpt = esrf_import(locname)
-         except error:
+         except:
                #         print error
                #         print "dev_init: error on importing device %s" % locname
-               raise Dev_Exception, sys.exc_value
+               raise Dev_Exception, "dev_init: error on importing device %s" % locname
          else:
                #     create in Tab_dev
                Tab_dev[locname] = { 'cobj': mpt }
@@ -189,10 +191,10 @@ def dev_initC(mdevname):
 #     have to import the device and create place in dict   
       try :
          mpt = esrf_dc_import(locname)
-      except error:
+      except:
 #         print error
 #         print "dev_initC: error on importing device %s" % locname
-         raise Dev_Exception,sys.exc_value
+         raise Dev_Exception,"dev_initC: error on importing device %s" % locname
       else:
 #     create in Tab_dev 
          Tab_dev[locname] = { 'cobj': mpt }
@@ -224,11 +226,11 @@ def dev_query(mdevname):
 
             try:
                   return esrf_query(loc_c_pt)
-            except error:
+            except:
                   pass
-                  #raise Dev_Exception,sys.exc_value
+                  #raise Dev_Exception
       else:
-            print "dev_query: no device %s defined" % mdevname
+            raise Dev_Exception, "dev_query: no device %s defined" % mdevname
 
       return {}
 
@@ -248,15 +250,12 @@ def dev_queryC(mdevname):
 #--------------------------------------------------------------
    try:
       locdict = esrf_dc_info(mdevname)
-   except error:
-#      print 
-#      print "dev_queryC: error on query for device %s" % mdevname
-      raise Dev_Exception,sys.exc_value
+   except:
+      raise Dev_Exception, "dev_queryC: error on query for device %s" % mdevname
       return {}
-      
+
    return locdict
 
-   
 #--------------------------------------------------------------
 def dev_tcpudp(mdevname,mode):
 #   input:
@@ -276,9 +275,8 @@ def dev_tcpudp(mdevname,mode):
 	 return 0
       try:
          ret = esrf_tcpudp(loc_c_pt,mode)
-      except error:
-#         print "dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname
-         raise Dev_Exception,sys.exc_value
+      except:
+         raise Dev_Exception, "dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname
 	 return 0
    else:
       print "dev_tcpudp: no device %s defined" % mdevname
@@ -306,9 +304,8 @@ def dev_timeout(mdevname,*mtime):
          print 'dev_timeout readmode '
 	 try:
 	    ret = esrf_timeout(loc_c_pt)
-	 except error:
-#	    print 'error on esrf_timeout for device ' + mdevname
-            raise Dev_Exception,sys.exc_value
+	 except:
+            raise Dev_Exception, 'error on esrf_timeout for device ' + mdevname
 	    return 0
 	 return ret
       else:
@@ -318,8 +315,7 @@ def dev_timeout(mdevname,*mtime):
 	    try:
 	       ret = esrf_timeout(loc_c_pt,itime)
 	    except:
-#	       print 'error on esrf_timeout for device ' + mdevname
-               raise Dev_Exception,sys.exc_value
+               raise Dev_Exception,  'error on esrf_timeout for device ' + mdevname
 	       return 0	    
 	    return ret
    else:
@@ -337,9 +333,8 @@ def dev_getresource(mdevname,resname):
 #--------------------------------------------------------------
    try:
       ret = esrf_getresource(mdevname,resname)
-   except error:
-#      print "dev_getresource: error for device %s on resource %s" % (mdevname,resname)
-      raise Dev_Exception,sys.exc_value
+   except:
+      raise Dev_Exception, "dev_getresource: error for device %s on resource %s" % (mdevname,resname)
       return None
    if (Dev_deb[0] == 1):
      print "string length is %s" % len(ret)
@@ -361,12 +356,11 @@ def dev_putresource(mdevname,resname,value):
       print "dev_putresource: resource value must be packed as string"
    try:
       ret = esrf_putresource(mdevname,resname,value)
-   except error:
-#      print "dev_putresource: error for device %s on resource %s" % (mdevname,resname)
-      raise Dev_Exception,sys.exc_value
+   except:
+      raise Dev_Exception,  "dev_putresource: error for device %s on resource %s" % (mdevname,resname)
       return 0
    return 1
-   
+
 #--------------------------------------------------------------
 def dev_delresource(mdevname,resname):
 #   removes a device resource
@@ -380,13 +374,11 @@ def dev_delresource(mdevname,resname):
 #--------------------------------------------------------------
    try:
       ret = esrf_delresource(mdevname,resname)
-   except error:
-#      print "dev_delresource: error for device %s on resource %s" % (mdevname,resname)
-      raise Dev_Exception,sys.exc_value
+   except:
+      raise Dev_Exception,  "dev_delresource: error for device %s on resource %s" % (mdevname,resname)
       return 0
    return 1
-   
-      
+
 def dev_io(mdevname,mdevcommand,*parin,**kw):
    #   input:
    #      	mdevname: device name in lower case
@@ -404,8 +396,7 @@ def dev_io(mdevname,mdevcommand,*parin,**kw):
    try:
       loc_c_pt = Tab_dev[mdevname]['cobj']
    except KeyError:
-      print "dev_io: no device %s defined" % mdevname
-      return
+      raise Dev_Exception,  "dev_io: no device %s defined" % mdevname
    else:
       if Dev_deb[0] == 1:
          print loc_c_pt
@@ -420,27 +411,26 @@ def dev_io(mdevname,mdevcommand,*parin,**kw):
          io_out = Tab_dev[mdevname]['cmd'][mdevcommand][2]
       except KeyError:
          raise AttributeError, "dev_io: no command %s for device %s" % (mdevcommand,mdevname)
-         #print "dev_io: no command %s for device %s" % (mdevcommand,mdevname)
       else:
          if len(parin) == 1:
 	    if type(parin[0]) == types.TupleType:
 	       parin = parin[0]
 	    elif type(parin[0]) == types.ListType:
 	       parin = tuple(parin[0])
-                  
+
          if Dev_deb[0] == 1:
 	    print 'esrf_io arg:'
             print (Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0) + (parin, )
 	    print 'esrf_io dict:'
 	    print kw
-	 
+
 	 try:
             ret = esrf_io(Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0, parin, **kw)
-	 except error:
-            raise Dev_Exception,sys.exc_value
+	 except:
+            raise Dev_Exception, "Cannot execute esrf_io %s,%s"%(mdevname, mdevcommand)
          else:
             return ret
-         
+
 #--------------------------------------------------------------
 def dev_ioC(mdevname,mdevcommand,**kw):
 #   input:
@@ -484,9 +474,8 @@ def dev_ioC(mdevname,mdevcommand,**kw):
 	    
             if Dev_deb[0] == 1:
 	    	print 'returned from esrf_io: %s' % ret	    
-	 except error:
-#	    print "esrf_ioC: error on device %s" % mdevname
-            raise Dev_Exception,sys.exc_value
+	 except:
+            raise Dev_Exception, "esrf_ioC: error on device %s" % mdevname
 	 return ret
       else:
          print "dev_ioC: no command %s for device %s" % (mdevcommand,mdevname)

@@ -193,18 +193,23 @@ class TacoPoller(qt.QThread): #(threading.Thread):
                     
                     for commandObjectRef, compiledCommandsList in self.polledCommands.iteritems():
                         for commandDict in compiledCommandsList:
-                            command = commandDict['command']
-                            oldValue = commandDict['value']
-                            compare = commandDict['compare']
+                            command   = commandDict['command']
+                            oldValue  = commandDict['value']
+                            compare   = commandDict['compare']
+                            showError = commandDict.get('showError', True)
 
                             try:
-                                exec(command)    
+                                exec(command)
                             except TacoDevice.Dev_Exception:
+                                if showError:
+                                    logging.getLogger('HWR').exception('Error while polling device %s [multiple errors of this type reported only once.]', self.device.devname)
+                                    commandDict['showError'] = False
                                 continue
                             except:
                                 logging.getLogger('HWR').exception('Error while polling device %s', self.device.devname)
                                 continue
                             else:
+                                commandDict['showError'] = True
                                 if not self.keepRunning: #self.stopEvent.isSet():
                                     break
 
