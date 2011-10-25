@@ -293,12 +293,11 @@ class TangoChannel(ChannelObject):
 
     def getValue(self):
         if self.read_as_str:
-           self.value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
-           #self.value = self.device.read_attribute_as_str(self.attributeName).value 
+           value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
         else:
-           self.value = self.device.read_attribute(self.attributeName).value
+           value = self.device.read_attribute(self.attributeName).value
             
-        return self.value
+        return value
 
     
     def setValue(self, newValue):
