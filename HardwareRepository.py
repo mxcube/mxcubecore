@@ -12,21 +12,25 @@ __version__ = 1.3
 import logging
 import weakref
 import types
-import shelve
 import sys
 import os
-import anydbm
-import whichdb
 import stat
 import time
 import sets
 
 from qt import *
 
-from SpecClient import SpecEventsDispatcher
-from SpecClient import SpecConnectionsManager
-from SpecClient import SpecWaitObject
-from SpecClient import SpecClientError
+try:
+  from SpecClient_gevent import SpecEventsDispatcher
+  from SpecClient_gevent import SpecConnectionsManager
+  from SpecClient_gevent import SpecWaitObject
+  from SpecClient_gevent import SpecClientError
+except:
+  from SpecClient import SpecEventsDispatcher
+  from SpecClient import SpecConnectionsManager
+  from SpecClient import SpecWaitObject
+  from SpecClient import SpecClientError
+  
 import HardwareObjectFileParser
 import BaseHardwareObjects
 
@@ -184,21 +188,17 @@ class __HardwareRepositoryClient(QObject):
         self.xml_source={}
         
     def connect(self):
-        #self.badHardwareObjects = []
         self.invalidHardwareObjects = sets.Set()
         self.hardwareObjects = weakref.WeakValueDictionary()
-        #self.hardwareObjects = {}
-        mngr = SpecConnectionsManager.SpecConnectionsManager(pollingThread = False)
-        #SpecWaitObject.waitFunc = qApp.processEvents
+        mngr = SpecConnectionsManager.SpecConnectionsManager() #pollingThread = False)
 
         self.server = mngr.getConnection(self.serverAddress)
         
         # install poller
-        self.timer = QTimer(self) 
-        QObject.connect(self.timer, SIGNAL('timeout()'), mngr.poll)
-        self.timer.start(0) # 0 means that timeout will occur at idle time (from Qt doc.)
-
-        SpecWaitObject.waitConnection(self.server, timeout = 3000) 	 
+        #self.timer = QTimer(self) 
+        #QObject.connect(self.timer, SIGNAL('timeout()'), mngr.poll)
+        #self.timer.start(0) # 0 means that timeout will occur at idle time (from Qt doc.)
+        SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
 
         # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
         self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
