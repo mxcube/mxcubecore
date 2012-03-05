@@ -1,6 +1,12 @@
-from SpecClient.SpecCommand import SpecCommandA
-from SpecClient.SpecVariable import SpecVariableA
-from SpecClient import SpecVariable
+try:
+  from SpecClient_gevent.SpecCommand import SpecCommandA
+  from SpecClient_gevent.SpecVariable import SpecVariableA
+  from SpecClient_gevent import SpecVariable
+except ImportError:
+  from SpecClient.SpecCommand import SpecCommandA
+  from SpecClient.SpecVariable import SpecVariableA
+  from SpecClient import SpecVariable
+
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 
 
