@@ -25,7 +25,7 @@ try:
   from SpecClient_gevent import SpecConnectionsManager
   from SpecClient_gevent import SpecWaitObject
   from SpecClient_gevent import SpecClientError
-except:
+except ImportError:
   from SpecClient import SpecEventsDispatcher
   from SpecClient import SpecConnectionsManager
   from SpecClient import SpecWaitObject
