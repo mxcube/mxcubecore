@@ -269,6 +269,7 @@ class __HardwareRepositoryClient(QObject):
 
                             try:
                                 def addChannelsAndCommands(node):
+                                  #import pdb; pdb.set_trace()
                                   if isinstance(node, BaseHardwareObjects.CommandContainer):
                                      node._addChannelsAndCommands()
                                   for child_node in node:
