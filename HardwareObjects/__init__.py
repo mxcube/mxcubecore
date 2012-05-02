@@ -1,5 +1,7 @@
 import os
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "Utils"))
+
 pathIter = os.walk(__path__[0])
 try:
     root,dirs,filesNames = pathIter.next()
