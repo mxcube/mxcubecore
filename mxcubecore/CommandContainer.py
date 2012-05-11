@@ -218,6 +218,23 @@ class CommandContainer:
                 raise ConnectionError
             except:
                 logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
+        elif channelType.lower() == "exporter":
+            if not 'exporter_address' in attributesDict:
+              try:
+                attributesDict['exporter_address'] = self.exporter_address
+              except AttributeError:
+                pass
+            host, port = attributesDict["exporter_address"].split(":")
+
+            try:
+              attributesDict["address"] = host
+              attributesDict["port"] = int(port)
+              del attributesDict["exporter_address"]
+
+              from Command.Exporter import ExporterChannel
+              newChannel = ExporterChannel(channelName, channel, **attributesDict)
+            except:
+              logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
             
         if newChannel is not None:
             if channelOnChange is not None:
@@ -329,6 +346,23 @@ class CommandContainer:
                 raise ConnectionError
             except:
                 logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+        elif cmdType.lower() == 'exporter':
+            if not 'exporter_address' in attributesDict:
+              try:
+                attributesDict['exporter_address'] = self.exporter_address
+              except AttributeError:
+                pass
+            host, port = attributesDict["exporter_address"].split(":")
+
+            try:
+              attributesDict["address"] = host
+              attributesDict["port"] = int(port)
+              del attributesDict["exporter_address"]
+
+              from Command.Exporter import ExporterCommand
+              newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
+            except:
+              logging.getLogger().exception('%s: cannot add command %s (hint: check attributes)', self.name(), commandName)
         elif cmdType.lower() == 'pool':
             if not 'tangoname' in attributesDict:
                 try:
