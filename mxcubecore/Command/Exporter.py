@@ -1,11 +1,11 @@
 import logging
 import weakref
 import new
-import qt
 import types
-import Queue
 from embl import ExporterClient
-import threading
+import time
+import gevent
+import gevent.queue
 
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
 
@@ -106,8 +106,8 @@ class Exporter(ExporterClient.ExporterClient):
 
       self.started = False
       self.callbacks = {}
-      self.timer = None #qt.QTimer()
-      self.events_queue = Queue.Queue()
+      self.events_queue = gevent.queue.Queue()
+      self.events_processing_task = None
 
     def start(self):
         self.started=True
@@ -131,29 +131,25 @@ class Exporter(ExporterClient.ExporterClient):
     def onConnected(self):
         pass
 
-    def onDisconnected(self):
-        if self.started:
-            self.reconnect()
-
     def reconnect(self):
         if self.started:
             try:
                 self.disconnect()
                 self.connect()
             except:
-                t = threading.Timer(1.0, self.onDisconnected)
-                t.start()
+                time.sleep(1.0)
+                self.reconnect()
 
     def register(self, name, cb):
        if callable(cb): 
          self.callbacks.setdefault(name, []).append(cb) 
-       if not self.timer:
-         self.timer = qt.QTimer()
-         qt.QObject.connect(self.timer, qt.SIGNAL("timeout()"), self.processEventsFromQueue)
-         self.timer.start(20)
-
+       if not self.events_processing_task:
+         self.events_processing_task = gevent.spawn(self.processEventsFromQueue)
    
     def _to_python_value(self, value):
+        if value is None:
+          return
+
         if '\x1f' in value:
           value = self.parseArray(value)
           try:
@@ -181,10 +177,9 @@ class Exporter(ExporterClient.ExporterClient):
     def processEventsFromQueue(self):
         while True:
           try:
-            name, value = self.events_queue.get_nowait()
+            name, value = self.events_queue.get()
           except:
             return
-          #logging.info("RECEIVED EVENT %s = %s", name, value)
 
           for cb in self.callbacks.get(name, []):
             try:
