@@ -128,9 +128,6 @@ class Exporter(ExporterClient.ExporterClient):
         ret = ExporterClient.ExporterClient.readProperty(self, *args, **kwargs)
         return self._to_python_value(ret)
 
-    def onConnected(self):
-        pass
-
     def reconnect(self):
         if self.started:
             try:
@@ -139,6 +136,9 @@ class Exporter(ExporterClient.ExporterClient):
             except:
                 time.sleep(1.0)
                 self.reconnect()
+
+    def onDisconnected(self):
+       self.reconnect()
 
     def register(self, name, cb):
        if callable(cb): 
