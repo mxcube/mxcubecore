@@ -5,6 +5,8 @@ import threading
 import time
 import os
 import qt
+import Queue
+import gevent
 
 """
 try:
@@ -161,12 +163,19 @@ class TacoPoller(qt.QThread): #(threading.Thread):
         
         #self.stopEvent = threading.Event()
         self.keepRunning = False
+        self.eventsQueue = Queue.Queue()
+        self.newEventSignal = gevent.get_hub().loop.async()
+        self.newEventSignal.start(self.executeCallback)
         self.mutex = qt.QMutex() #threading.Lock()
 
         self.pollingTime = 1E6
         self.device = device
         self.polledCommands = {}
     
+
+    def executeCallback(self):
+        event_receiver, event = self.eventsQueue.get()
+        event_receiver.customEvent(event)
 
     def stop(self):
         #if self.isAlive():
@@ -227,7 +236,8 @@ class TacoPoller(qt.QThread): #(threading.Thread):
                                         #print str(commandObject.name()), 'new value is', len(newValue) > 50 and newValue[0:10] or newValue
                                         #print 'posting event'
 
-                                        self.postEvent(eventReceiver(commandObject), valueChangedEvent)
+                                        self.eventsQueue.put((eventReceiver(commandObject), valueChangedEvent))
+                                        self.newEventSignal.send()
 
                                         del commandObject #just delete the reference we just created
                                 else:
@@ -237,8 +247,9 @@ class TacoPoller(qt.QThread): #(threading.Thread):
                                     commandObject = commandObjectRef()
                                     if commandObject is not None:
                                         timeoutEvent = TimeoutEvent(self.device.devname)
-                                        self.postEvent(eventReceiver(commandObject), timeoutEvent)
-                                        
+                                        self.eventsQueue.put((eventReceiver(commandObject), timeoutEvent))
+                                        self.newEventSignal.send()
+ 
                                         del commandObject #just delete the reference we just created
                         if not self.keepRunning: #self.stopEvent.isSet():
                             break
