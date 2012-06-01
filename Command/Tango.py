@@ -2,8 +2,10 @@ import logging
 import Queue
 import weakref
 import new
-import qt
+#import qt
+import time
 import types
+import gevent
 
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
 
@@ -165,11 +167,11 @@ class E:
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = Queue.Queue()
     _eventReceivers = {}
-    _tangoEventsProcessingTimer = qt.QTimer()
+    _tangoEventsProcessingTimer = gevent.get_hub().loop.async() #qt.QTimer()
 
     # start Tango events processing timer
-    qt.QObject.connect(_tangoEventsProcessingTimer, qt.SIGNAL('timeout()'), processTangoEvents)
-    _tangoEventsProcessingTimer.start(20)
+    #qt.QObject.connect(_tangoEventsProcessingTimer, qt.SIGNAL('timeout()'), processTangoEvents)
+    _tangoEventsProcessingTimer.start(processTangoEvents)
     
     def __init__(self, name, attribute_name, tangoname = None, username = None, polling=None, timeout=10000, **kwargs):
         ChannelObject.__init__(self, name, username, **kwargs)
@@ -211,9 +213,14 @@ class TangoChannel(ChannelObject):
                     return
     
                 if type(polling) == types.IntType:
-                   self.pollingTimer = qt.QTimer()
-                   self.pollingTimer.connect(self.pollingTimer, qt.SIGNAL("timeout()"), self.poll)          
-                   self.pollingTimer.start(polling)
+                   def pollTango(polling_freq_in_ms):
+                     while True:
+                       self.poll()
+                       time.sleep(polling_freq_in_ms/1000.0)
+                   
+                   self.pollingTimer = gevent.spawn(pollTango, polling) #qt.QTimer()
+                   #self.pollingTimer.connect(self.pollingTimer, qt.SIGNAL("timeout()"), self.poll)          
+                   #self.pollingTimer.start(polling)
                 else:
                    if polling=="events":
                       # try to register event
@@ -237,6 +244,7 @@ class TangoChannel(ChannelObject):
         ev = E(event)
         TangoChannel._eventReceivers[id(ev)] = BoundMethodWeakref(self.update)
 	TangoChannel._tangoEventsQueue.put(ev)
+        TangoChannel._tangoEventsProcessingTimer.send()
        
  
     def poll(self):
@@ -248,13 +256,14 @@ class TangoChannel(ChannelObject):
 	       value = self.device.read_attribute(self.attributeName).value
         except:
            logging.getLogger("HWR").exception("%s: could not poll attribute %s", str(self.name()), self.attributeName)
-
+           """
            self.pollingTimer.stop()
            if not hasattr(self, "_statePollingTimer"):
              self._statePollingTimer = qt.QTimer()
              self._statePollingTimer.connect(self._statePollingTimer, qt.SIGNAL("timeout()"), self.statePolling)
            self.device.set_timeout_millis(50)
            self._statePollingTimer.start(5000)
+           """
            value = None
            self.emit("update", (None, ))
         else:
