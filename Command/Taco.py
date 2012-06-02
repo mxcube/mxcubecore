@@ -241,6 +241,7 @@ class TacoPoller(qt.QThread): #(threading.Thread):
 
                                         del commandObject #just delete the reference we just created
                                 else:
+                                    continue
                                     #
                                     # post timeout event
                                     #
