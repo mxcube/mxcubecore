@@ -87,7 +87,8 @@ class TacoCommand(CommandObject):
         self.__valueChangedCallbackRef = saferef.safe_ref(valueChangedCallback)
         
         poll_cmd = getattr(self.device, self.command)
-        Poller.poll(poll_cmd, copy.deepcopy(self.arglist), pollingTime, self._valueChanged, self.onPollingError, compare)
+
+        Poller.poll(poll_cmd, copy.deepcopy(argumentsList), pollingTime, self._valueChanged, self.onPollingError, compare)
                 
 
     def stopPolling(self):
