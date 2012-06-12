@@ -2,12 +2,13 @@ import logging
 import Queue
 import weakref
 import new
-#import qt
 import time
 import types
 import gevent
 
 from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
+from .. import Poller
+from .. import saferef
 
 try:
     import PyTango
@@ -68,29 +69,6 @@ else:
     _DeviceProxy.subscribe_event = new.instancemethod(good_subscribe_event, None, _DeviceProxy)
     PyTango.DeviceProxy = DeviceProxy
                     
-class BoundMethodWeakref:
-    def __init__(self, bound_method):
-        self.func_ref = weakref.ref(bound_method.im_func)
-        self.obj_ref = weakref.ref(bound_method.im_self)
-
-
-    def __call__(self):
-        obj = self.obj_ref()
-        if obj is not None:
-            func = self.func_ref()
-            if func is not None:
-                return func.__get__(obj)
-
-
-    def __hash__(self):
-        return id(self)
-
-    
-    def __cmp__(self, other):
-        if other.__class__ == self.__class__:
-            return cmp( (self.func_ref, self.obj_ref), (other.func_ref, other.obj_ref) )
-        else:
-            return cmp(self, other)
 
 
 class TangoCommand(CommandObject):
@@ -167,10 +145,9 @@ class E:
 class TangoChannel(ChannelObject):
     _tangoEventsQueue = Queue.Queue()
     _eventReceivers = {}
-    _tangoEventsProcessingTimer = gevent.get_hub().loop.async() #qt.QTimer()
+    _tangoEventsProcessingTimer = gevent.get_hub().loop.async()
 
     # start Tango events processing timer
-    #qt.QObject.connect(_tangoEventsProcessingTimer, qt.SIGNAL('timeout()'), processTangoEvents)
     _tangoEventsProcessingTimer.start(processTangoEvents)
     
     def __init__(self, name, attribute_name, tangoname = None, username = None, polling=None, timeout=10000, **kwargs):
@@ -189,7 +166,27 @@ class TangoChannel(ChannelObject):
         self.read_as_str = kwargs.get("read_as_str", False)
          
         #logging.getLogger("HWR").debug("creating Tango attribute %s/%s, polling=%s, timeout=%d", self.deviceName, self.attributeName, polling, self.timeout)
- 
+        self.init_device()
+    
+        if type(polling) == types.IntType:
+            Poller.poll(self.poll,
+                        polling_period = polling,
+                        value_changed_callback = self.update,
+                        error_callback = self.pollFailed)
+        else:
+            if polling=="events":
+                # try to register event
+                try:
+                    self.pollingEvents=True
+                    #logging.getLogger("HWR").debug("subscribing to CHANGE event for %s", self.attributeName)
+                    self.device.subscribe_event(self.attributeName, PyTango.EventType.CHANGE_EVENT, self, [], True)
+                    #except PyTango.EventSystemFailed:            
+                    #   pass
+                except:
+                    logging.getLogger("HWR").exception("could not subscribe event")
+
+
+    def init_device(self):
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
         except PyTango.DevFailed, traceback:
@@ -209,29 +206,8 @@ class TangoChannel(ChannelObject):
                 # check that the attribute exists (to avoid Abort in PyTango grrr)
                 if not self.attributeName.lower() in [attr.name.lower() for attr in self.device.attribute_list_query()]:
                     logging.getLogger("HWR").error("no attribute %s in Tango device %s", self.attributeName, self.deviceName)
-                    self.device=None
-                    return
-    
-                if type(polling) == types.IntType:
-                   def pollTango(polling_freq_in_ms):
-                     while True:
-                       self.poll()
-                       time.sleep(polling_freq_in_ms/1000.0)
-                   
-                   self.pollingTimer = gevent.spawn(pollTango, polling) #qt.QTimer()
-                   #self.pollingTimer.connect(self.pollingTimer, qt.SIGNAL("timeout()"), self.poll)          
-                   #self.pollingTimer.start(polling)
-                else:
-                   if polling=="events":
-                      # try to register event
-                      try:
-                         self.pollingEvents=True
-                         #logging.getLogger("HWR").debug("subscribing to CHANGE event for %s", self.attributeName)
-                         self.device.subscribe_event(self.attributeName, PyTango.EventType.CHANGE_EVENT, self, [], True)
-                      #except PyTango.EventSystemFailed:            
-                      #   pass
-                      except:
-                         logging.getLogger("HWR").exception("could not subscribe event")
+                    self.device = None
+                
                    
     def push_event(self, event):
         #logging.getLogger("HWR").debug("%s | attr_value=%s, event.errors=%s, quality=%s", self.name(), event.attr_value, event.errors,event.attr_value is None and "N/A" or event.attr_value.quality)
@@ -242,54 +218,37 @@ class TangoChannel(ChannelObject):
           pass
           #logging.getLogger("HWR").debug("%s, receiving good event", self.name())
         ev = E(event)
-        TangoChannel._eventReceivers[id(ev)] = BoundMethodWeakref(self.update)
+        TangoChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
 	TangoChannel._tangoEventsQueue.put(ev)
         TangoChannel._tangoEventsProcessingTimer.send()
        
  
     def poll(self):
-        try:
-           if self.read_as_str:
-               value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
-               #value = self.device.read_attribute_as_str(self.attributeName).value
-           else:
-	       value = self.device.read_attribute(self.attributeName).value
-        except:
-           logging.getLogger("HWR").exception("%s: could not poll attribute %s", str(self.name()), self.attributeName)
-           """
-           self.pollingTimer.stop()
-           if not hasattr(self, "_statePollingTimer"):
-             self._statePollingTimer = qt.QTimer()
-             self._statePollingTimer.connect(self._statePollingTimer, qt.SIGNAL("timeout()"), self.statePolling)
-           self.device.set_timeout_millis(50)
-           self._statePollingTimer.start(5000)
-           """
-           value = None
-           self.emit("update", (None, ))
+        if self.read_as_str:
+            value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
+            #value = self.device.read_attribute_as_str(self.attributeName).value
         else:
-           if value != self.value:
-              self.update(value)
-  
+            value = self.device.read_attribute(self.attributeName).value
+       
+        return value
+
+
+    def pollFailed(self, e, poller_id):
+        try:
+            self.init_device()
+        except:
+            pass
+        
+        poller = Poller.get_poller(poller_id)
+        if poller is not None:
+            try:
+                poller.restart(self.poll, 1000)
+            except:
+                pass       
+
     def getInfo(self):
         return self.device.get_attribute_config(self.attributeName)
-
-    def statePolling(self):
-      """Called when polling has failed"""
-      try:
-        s = self.device.State()
-      except:
-        pass
-        #logging.getLogger("HWR").exception("Could not read State attribute")
-      else:
-        if s == PyTango.DevState.OFF:
-          return
-
-        self._statePollingTimer.stop()
-        self.device.set_timeout_millis(self.timeout)
-        logging.getLogger("HWR").info("%s: restarting polling on attribute %s", self.name(), self.attributeName)
-        self.pollingTimer.start(self.polling)
-
-
+ 
     def update(self, value = None):
         if value is None:
             value = self.getValue()
