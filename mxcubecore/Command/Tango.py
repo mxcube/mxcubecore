@@ -7,7 +7,7 @@ import time
 import types
 import gevent
 
-from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
+from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
 
 try:
     import PyTango
@@ -184,7 +184,7 @@ class TangoChannel(ChannelObject):
         self.__connections = 0
         self.__value = None
         self.pollingTimer = None
-        self.pollingEvents=False
+        self.pollingEvents = False
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
          
