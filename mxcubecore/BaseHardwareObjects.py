@@ -88,6 +88,9 @@ class HardwareObjectNode:
     
     
     def __getattr__(self, attr):
+        if attr.startswith("__"):
+            raise AttributeError, attr
+
         try:
             return self._propertySet[attr]
         except KeyError:
@@ -294,6 +297,8 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
         
     def __getattr__(self, attr):
+        if attr.startswith("__"):
+           raise AttributeError, attr
         try:
             return CommandContainer.__getattr__(self, attr)
         except AttributeError:
