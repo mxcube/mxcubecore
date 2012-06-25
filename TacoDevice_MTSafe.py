@@ -488,6 +488,9 @@ class TacoCall:
     self.devname = devname
     self.command = command
 
+  def __repr__(self):
+        return "<TacoCall object %d: device %r, cmd %r>" % (id(self), self.devname, self.command)
+
   def __call__(self, *args, **kwargs):
     try:
       _global_lock.acquire()
