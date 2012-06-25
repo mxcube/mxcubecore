@@ -118,7 +118,7 @@ class TacoChannel(ChannelObject):
             self.command.poll(self.polling, self.command.arglist, self.valueChanged)
                 
 
-    def valueChanged(self, value):
+    def valueChanged(self, deviceName, value):
         self.emit("update", value)
 
 

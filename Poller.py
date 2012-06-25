@@ -75,11 +75,9 @@ class _Poller(threading.Thread):
         res = self.queue.get()
         cb = self.value_changed_callback_ref()
         if cb is not None:
-            try:
-                #logging.info("NEW EVENT calling %s(%s)", cb, res)
-                cb(res)
-            except:
-                pass
+            # TODO: add to a queue to make sure events are processed in right order
+            # in all situations
+            gevent.spawn(cb, res)
 
     def run(self):
         self.async_watcher.start(self.new_event)
