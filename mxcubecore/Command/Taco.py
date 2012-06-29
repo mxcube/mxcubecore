@@ -78,7 +78,7 @@ class TacoCommand(CommandObject):
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             try:
-                poller.restart(getattr(self.device, self.command), 1000)
+                poller.restart(1000)
             except:
                 pass
         

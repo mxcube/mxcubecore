@@ -77,7 +77,9 @@ class TangoCommand(CommandObject):
         
         self.command = command
         self.deviceName = tangoname
-        
+        self.device = None    
+   
+    def init_device(self): 
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
         except PyTango.DevFailed, traceback:
@@ -94,19 +96,22 @@ class TangoCommand(CommandObject):
 
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
-        
-        if self.device is not None:
-            try:
-                tangoCmdObject = getattr(self.device, self.command)
-                ret = tangoCmdObject(*args) #eval('self.device.%s(*%s)' % (self.command, args))
-            except PyTango.DevFailed, error_dict:
-                logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict) 
-            except:
-                logging.getLogger('HWR').error("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
-            else:
-                self.emit('commandReplyArrived', (ret, str(self.name())))
-                return ret
-        
+        if self.device is None:
+            # TODO: emit commandFailed
+            # beware of infinite recursion with Sample Changer
+            # (because of procedure exception cleanup...)
+            self.init_device()
+
+        try:
+            tangoCmdObject = getattr(self.device, self.command)
+            ret = tangoCmdObject(*args) #eval('self.device.%s(*%s)' % (self.command, args))
+        except PyTango.DevFailed, error_dict:
+            logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict) 
+        except:
+            logging.getLogger('HWR').error("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
+        else:
+            self.emit('commandReplyArrived', (ret, str(self.name())))
+            return ret
         self.emit('commandFailed', (-1, self.name()))
 
 
@@ -158,23 +163,32 @@ class TangoChannel(ChannelObject):
         self.device = None
         self.value = None
         self.polling = polling
-        self.__connections = 0
-        self.__value = None
         self.pollingTimer = None
         self.pollingEvents = False
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
          
-        #logging.getLogger("HWR").debug("creating Tango attribute %s/%s, polling=%s, timeout=%d", self.deviceName, self.attributeName, polling, self.timeout)
-        self.init_device()
-    
-        if type(polling) == types.IntType:
-            Poller.poll(self.poll,
-                        polling_period = polling,
-                        value_changed_callback = self.update,
-                        error_callback = self.pollFailed)
+        logging.getLogger("HWR").debug("creating Tango attribute %s/%s, polling=%s, timeout=%d", self.deviceName, self.attributeName, polling, self.timeout)
+        self.init_poller = Poller.poll(self.init_device,
+                                       polling_period = 3000,
+                                       value_changed_callback = self.continue_init,
+                                       error_callback = self.init_poll_failed,
+                                       start_delay=100)
+
+    def init_poll_failed(self, e, poller_id):
+        logging.warning("%s: trying to complete init", self.name())
+        self.init_poller = self.init_poller.restart(3000)
+
+    def continue_init(self, _):
+        self.init_poller.stop()
+
+        if type(self.polling) == types.IntType:
+             Poller.poll(self.poll,
+                         polling_period = self.polling,
+                         value_changed_callback = self.update,
+                         error_callback = self.pollFailed)
         else:
-            if polling=="events":
+            if self.polling=="events":
                 # try to register event
                 try:
                     self.pollingEvents=True
@@ -235,19 +249,25 @@ class TangoChannel(ChannelObject):
 
     def pollFailed(self, e, poller_id):
         try:
+          raise e
+        except:
+          pass #logging.exception("Polling failed: %s", self.name())
+        self.value = None
+        self.emit('update', None)
+
+        try:
             self.init_device()
         except:
             pass
         
         poller = Poller.get_poller(poller_id)
         if poller is not None:
-            try:
-                poller.restart(self.poll, 1000)
-            except:
-                pass       
+            poller.restart(1000)
+
 
     def getInfo(self):
         return self.device.get_attribute_config(self.attributeName)
+
  
     def update(self, value = None):
         if value is None:
