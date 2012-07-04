@@ -6,6 +6,12 @@ import gevent
 
 POLLERS = {}
 
+class _NotInitializedValue:
+  pass
+
+NotInitializedValue = _NotInitializedValue()
+
+
 class PollingException:
   def __init__(self, e, poller_id):
     self.original_exception = e
@@ -16,7 +22,7 @@ def get_poller(poller_id):
     return POLLERS.get(poller_id)
        
 
-def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True, start_delay=0):
+def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True, start_delay=0, start_value=NotInitializedValue):
      #logging.info(">>>> %s", POLLERS)
      for _, poller in POLLERS.iteritems():
          poller_polled_call = poller.polled_call_ref()
@@ -27,6 +33,7 @@ def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_ca
             
      #logging.info(">>>>> CREATING NEW POLLER for cmd %r, args=%s, polling time=%d", polled_call, polled_call_args, polling_period)
      poller = _Poller(polled_call, polled_call_args, polling_period, value_changed_callback, error_callback, compare)
+     poller.old_res = start_value
      POLLERS[poller.get_id()] = poller
      poller.start_delayed(start_delay)
      return poller
@@ -43,9 +50,8 @@ class _Poller(threading.Thread):
         self.value_changed_callback_ref = saferef.safe_ref(value_changed_callback)
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
-        self.old_res = None
+        self.old_res = NotInitializedValue
         self.queue = Queue.Queue()
-        self.first = True
         self.delay = 0
         self.stop_event = threading.Event()
         self.async_watcher = gevent.get_hub().loop.async()
@@ -82,7 +88,7 @@ class _Poller(threading.Thread):
         value_changed_cb = self.value_changed_callback_ref()
         error_cb = self.error_callback_ref()
         if polled_call is not None:
-          return poll(polled_call, self.args, self.polling_period, value_changed_cb, error_cb, self.compare, delay)
+          return poll(polled_call, self.args, self.polling_period, value_changed_cb, error_cb, self.compare, delay, start_value=self.old_res)
 
       
     def new_event(self):
@@ -103,11 +109,13 @@ class _Poller(threading.Thread):
         self.async_watcher.start(self.new_event)
         err_callback_args = None 
         error_cb = None
+        first_run = True
  
         while not self.stop_event.is_set():
-            if self.first and self.delay:
+            if first_run and self.delay:
                 threading._sleep(self.delay / 1000.0)
-            
+            first_run = False            
+
             if self.stop_event.is_set():
                 break
                 
@@ -128,19 +136,13 @@ class _Poller(threading.Thread):
             if self.stop_event.is_set():
                 break
  
-            if self.first:
-                self.first = False
+            if self.compare and res == self.old_res:
+                # do nothing: previous value is the same as "new" value
+                pass
+            else:
                 self.old_res = res
                 self.queue.put(res)
                 self.async_watcher.send()
-            else:
-                if self.compare and res == self.old_res:
-                    # do nothing: previous value is the same as "new" value
-                    pass
-                else:
-                    self.old_res = res
-                    self.queue.put(res)
-                    self.async_watcher.send()
 
             threading._sleep(self.polling_period / 1000.0)
 
