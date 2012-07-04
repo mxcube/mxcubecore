@@ -280,6 +280,10 @@ class TangoChannel(ChannelObject):
         
 
     def getValue(self):
+        with gevent.Timeout(3):
+          while self.device is None:
+            time.sleep(0.1) 
+
         if self.read_as_str:
            value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
         else:
