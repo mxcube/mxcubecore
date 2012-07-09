@@ -57,13 +57,13 @@ def task(func):
                   return ret
             else:           
                 t._get = t.get
-                def new_get(self, *args, **kwargs):
+                def special_get(self, *args, **kwargs):
                   ret = self._get(*args, **kwargs)
                   if isinstance(ret, Exception):
                     raise ret
                   else:
                     return ret
-                setattr(t, "get", types.MethodType(new_get, t)) 
+                setattr(t, "get", types.MethodType(special_get, t)) 
                 
                 return t
         except:
