@@ -433,7 +433,7 @@ class __HardwareRepositoryClient(QObject):
           the required Hardware Object
         """
         try:
-            if len(objectName) > 0:
+            if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
             
