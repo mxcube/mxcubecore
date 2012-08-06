@@ -176,6 +176,7 @@ class TangoChannel(ChannelObject):
                                        start_delay=100)
 
     def init_poll_failed(self, e, poller_id):
+        logging.warning("%s/%s (%s): could not complete init. (hint: device server is not running, or has to be restarted)", self.deviceName, self.attributeName, self.name())
         self.init_poller = self.init_poller.restart(3000)
 
     def continue_init(self, _):
