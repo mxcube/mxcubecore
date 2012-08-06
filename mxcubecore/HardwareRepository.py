@@ -212,7 +212,7 @@ class __HardwareRepositoryClient(QObject):
             t0=time.time()
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
             if len(mnemonics) > 0:
-                self.requiredHardwareObjects = SpecWaitObject.waitReply(self.server, 'send_msg_cmd_with_return' , ('xml_getall(%s)' % mnemonics, ), timeout = 3000)
+                self.requiredHardwareObjects = SpecWaitObject.waitReply(self.server, 'send_msg_cmd_with_return' , ('xml_getall(%s)' % mnemonics, ), timeout = 3)
                 logging.getLogger("HWR").debug("Getting all the hardware objects took %s ms." % ((time.time()-t0)*1000))
         except SpecClientError.SpecClientTimeoutError:
             logging.getLogger('HWR').error("Timeout loading Hardware Objects")
@@ -236,7 +236,7 @@ class __HardwareRepositoryClient(QObject):
                     replyDict = self.requiredHardwareObjects[hoName]
                     #del self.requiredHardwareObjects[hoName]
                 else:
-                    replyDict = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('xml_get("%s")' % hoName, ), timeout = 3000)
+                    replyDict = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('xml_get("%s")' % hoName, ), timeout = 3)
             except:
                 logging.getLogger('HWR').exception('Could not load Hardware Object "%s"', hoName)
             else:
@@ -375,7 +375,7 @@ class __HardwareRepositoryClient(QObject):
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
         try:
-            completeFilesList = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('readDirectory()', ), timeout = 3000)
+            completeFilesList = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('readDirectory()', ), timeout = 3)
         except:
             logging.getLogger('HWR').error('Cannot retrieve Hardware Repository files list')
         else:
@@ -433,7 +433,7 @@ class __HardwareRepositoryClient(QObject):
           the required Hardware Object
         """
         try:
-            if len(objectName) > 0:
+            if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
             
