@@ -9,6 +9,9 @@ import fcntl
 PIPE = subprocess.PIPE
 
 class Popen(subprocess.Popen):
+    def __init__(self, *args, **kwargs):
+       subprocess.Popen.__init__(self, *args, **kwargs)
+
     def recv(self, maxsize=None):
         return self._recv('stdout', maxsize)
     
