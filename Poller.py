@@ -3,6 +3,9 @@ from . import saferef
 import threading
 import Queue
 import gevent
+import numpy
+import types
+
 
 POLLERS = {}
 
@@ -67,6 +70,10 @@ class _Poller(threading.Thread):
         #self.join()
         del POLLERS[self.get_id()]       
 
+
+    def is_stopped(self):
+        return self.stop_event.is_set()
+
  
     def get_id(self):
         return id(self)
@@ -90,19 +97,22 @@ class _Poller(threading.Thread):
         if polled_call is not None:
           return poll(polled_call, self.args, self.polling_period, value_changed_cb, error_cb, self.compare, delay, start_value=self.old_res)
 
-      
+
     def new_event(self):
-        res = self.queue.get()
-        if isinstance(res, PollingException):
-          cb = self.error_callback_ref()
-          if cb is not None:
-              gevent.spawn(cb, res.original_exception, res.poller_id)
-        else:   
-          cb = self.value_changed_callback_ref()
-          if cb is not None:
-              # TODO: add to a queue to make sure events are processed in right order
-              # in all situations
-              gevent.spawn(cb, res)
+        while True:
+            try:
+                res = self.queue.get_nowait()
+            except Queue.Empty:
+                break
+
+            if isinstance(res, PollingException):
+                cb = self.error_callback_ref()
+                if cb is not None:
+                    gevent.spawn(cb, res.original_exception, res.poller_id)
+            else:
+                cb = self.value_changed_callback_ref()
+                if cb is not None:
+                    gevent.spawn(cb, res)
 
 
     def run(self):
@@ -140,9 +150,21 @@ class _Poller(threading.Thread):
                 # do nothing: previous value is the same as "new" value
                 pass
             else:
-                self.old_res = res
-                self.queue.put(res)
-                self.async_watcher.send()
+                new_value = True
+                if self.compare:
+                  if isinstance(res, numpy.ndarray):
+                      comparison = res == self.old_res
+                      if type(comparison) == types.BooleanType:
+                          new_value = not comparison
+                      else:
+                          new_value = not all(comparison)
+                  else:
+                      new_value = res != self.old_res
+
+                if new_value:
+                  self.old_res = res
+                  self.queue.put(res)
+                  self.async_watcher.send()
 
             threading._sleep(self.polling_period / 1000.0)
 
