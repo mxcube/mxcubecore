@@ -161,7 +161,7 @@ class TangoChannel(ChannelObject):
         self.attributeName = attribute_name
         self.deviceName = tangoname
         self.device = None
-        self.value = None
+        self.value = Poller.NotInitializedValue
         self.polling = polling
         self.pollingTimer = None
         self.pollingEvents = False
@@ -248,29 +248,31 @@ class TangoChannel(ChannelObject):
 
 
     def pollFailed(self, e, poller_id):
-        try:
-          raise e
-        except:
-          pass #logging.exception("Polling failed: %s", self.name())
+        #try:
+        #  raise e
+        #except:
+        #  pass #logging.exception("Polling failed: %s", self.name())
         self.value = None
-        self.emit('update', None)
 
         try:
             self.init_device()
         except:
             pass
-        
+       
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             poller.restart(1000)
+
+        # emit at the end => can raise exceptions in callbacks
+        self.emit('update', None)
 
 
     def getInfo(self):
         return self.device.get_attribute_config(self.attributeName)
 
  
-    def update(self, value = None):
-        if value is None:
+    def update(self, value = Poller.NotInitializedValue):
+        if value == Poller.NotInitializedValue:
             value = self.getValue()
         if type(value) == types.TupleType:
           value = list(value)
