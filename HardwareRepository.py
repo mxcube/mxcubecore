@@ -18,8 +18,6 @@ import stat
 import time
 import sets
 
-from qt import *
-
 try:
   from SpecClient_gevent import SpecEventsDispatcher
   from SpecClient_gevent import SpecConnectionsManager
@@ -34,56 +32,8 @@ except ImportError:
 import HardwareObjectFileParser
 import BaseHardwareObjects
 
-
 _instance = None
 _hwrserver = None
-_emitterCache = weakref.WeakKeyDictionary()
-_timers = {}
-
-class _QObject(QObject):
-    def __init__(self, *args, **kwargs):
-        QObject.__init__(self, *args)
-
-        try:
-            self.__ho = weakref.ref(kwargs.get("ho"))
-        except:
-            self.__ho = None
-            
-    def timerEvent(self, te):
-        if self.__ho is not None:
-            ho = self.__ho()
-            if ho is not None and hasattr(ho, "timerEvent"):
-                try:
-                    ho.timerEvent(te.timerId())
-                except:
-                    logging.getLogger("HWR").exception("%s: an error occured in timerEvent", ho.name())
-                    raise
-    
-
-def emitter(ob):
-    """Returns a QObject surrogate for *ob*, to use in Qt signaling.
-
-    This function enables you to connect to and emit signals from (almost)
-    any python object with having to subclass QObject.
-
-      >>> class A(object):
-      ...   def notify(self, *args):
-      ...       QObject.emit(emitter(self), PYSIGNAL('test'), args)
-      ...
-      >>> ob = A()
-      >>> def myhandler(*args): print 'got', args
-      ...
-      >>> QObject.connect(emitter(ob), PYSIGNAL('test'), myhandler)
-      ... True
-      >>> ob.notify('hello')
-      got ('hello',)
-
-      >>> QObject.emit(emitter(ob), PYSIGNAL('test'), (42, 'abc',))
-      got (42, 'abc')
-    """
-    if ob not in _emitterCache:
-        _emitterCache[ob] = _QObject(ho=ob)
-    return _emitterCache[ob]
 
 
 def addHardwareObjectsDirs(hoDirs):
@@ -164,25 +114,13 @@ class WeakMethod:
         return self._obj is not None and self._obj() is None
 
     
-def setTimer(delay, func):
-    """func will be called periodically every delay seconds"""
-    global _timers
-
-    if callable(func):
-        func_ref = WeakMethod(func)
-        hwr = HardwareRepository()
-        _timers[hwr.startTimer(delay*1000)]=func_ref
-
-
-class __HardwareRepositoryClient(QObject):
+class __HardwareRepositoryClient:
     """Hardware Repository class
     
     Warning -- should not be instanciated directly ; call the module's level HardwareRepository() function instead
     """
     def __init__(self, serverAddress):
         """Constructor"""
-        QObject.__init__(self, None)
-
         self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
@@ -194,10 +132,6 @@ class __HardwareRepositoryClient(QObject):
 
         self.server = mngr.getConnection(self.serverAddress)
         
-        # install poller
-        #self.timer = QTimer(self) 
-        #QObject.connect(self.timer, SIGNAL('timeout()'), mngr.poll)
-        #self.timer.start(0) # 0 means that timeout will occur at idle time (from Qt doc.)
         SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
 
         # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
@@ -259,7 +193,7 @@ class __HardwareRepositoryClient(QObject):
                     else:
                         if ho is not None:
                             self.xml_source[hoName]=xmldata
-                            self.emit(PYSIGNAL('hardwareObjectLoaded'), (hoName, ))
+                            dispatcher.send('hardwareObjectLoaded', hoName, self)
 
                             def hardwareObjectDeleted(name=ho.name()):
                                 logging.getLogger("HWR").debug("%s Hardware Object has been deleted from Hardware Repository", name)
