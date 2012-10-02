@@ -77,7 +77,11 @@ class __HardwareRepositoryClient:
     Warning -- should not be instanciated directly ; call the module's level HardwareRepository() function instead
     """
     def __init__(self, serverAddress):
-        """Constructor"""
+        """Constructor
+
+        serverAddress needs to be the HWR server address (host:port) or
+        a list of paths where to find XML files locally (when server is not in use)
+        """
         self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
@@ -85,20 +89,27 @@ class __HardwareRepositoryClient:
     def connect(self):
         self.invalidHardwareObjects = sets.Set()
         self.hardwareObjects = weakref.WeakValueDictionary()
-        mngr = SpecConnectionsManager.SpecConnectionsManager() #pollingThread = False)
 
-        self.server = mngr.getConnection(self.serverAddress)
-        
-        SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+        if self.serverAddress:
+            mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
-        # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
-        self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+            self.server = mngr.getConnection(self.serverAddress)
         
+            SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+   
+            # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
+            self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+       else:
+            self.server = None
+ 
 
     def require(self, mnemonicsList):
         """Download a list of Hardware Objects in one go"""
         self.requiredHardwareObjects = {}
-        
+       
+        if not self.server:  
+            return 
+ 
         try:
             t0=time.time()
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
@@ -120,7 +131,8 @@ class __HardwareRepositoryClient:
         Return :
           the loaded Hardware Object, or None if it fails
         """
-        if self.server.isSpecConnected():
+        if self.server:
+          if self.server.isSpecConnected():
             try:
                 #t0=time.time()
                 if hoName in self.requiredHardwareObjects:
@@ -138,7 +150,22 @@ class __HardwareRepositoryClient:
                 except KeyError:
                   logging.getLogger("HWR").error("Cannot load Hardware Object %s: file does not exist.", hoName)
                   return
+          else:
+            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
+        else:
+             xmldata = ""
+             if hoName.startswith(os.path.sep):
+               hoName=hoName[1:]
+             for xml_files_path in self.serverAddress:
+               file_path = os.path.join(xml_files_path, hoName)
+               if os.path.exists(file_path):
+                 try:
+                   xmldata = open(file_path, "r").read()
+                 except:
+                   pass
+                 break 
 
+        if True:  
                 #print xmldata
                 if len(xmldata) > 0:
                     try:
@@ -189,8 +216,6 @@ class __HardwareRepositoryClient:
                             logging.getLogger("HWR").error("Failed to load Hardware Object %s", hoName)
                 else:
                     logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : file not found.', hoName)   
-        else:
-            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
 
    
     def discardHardwareObject(self, hoName):
