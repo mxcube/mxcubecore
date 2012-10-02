@@ -262,6 +262,7 @@ class __HardwareRepositoryClient:
             
 
     def update(self, name, updatesList):
+        #TODO: update without HWR server
         if self.server is not None and self.server.isSpecConnected():
             self.server.send_msg_cmd_with_return('xml_multiwrite("%s", "%s")' % (name, str(updatesList)))
         else:
@@ -269,6 +270,7 @@ class __HardwareRepositoryClient:
                   
 
     def rewrite_xml(self, name, xml):
+        #TODO: rewrite without HWR server
         if self.server is not None and self.server.isSpecConnected():    
             self.server.send_msg_cmd_with_return('xml_writefile("%s", %s)' % (name, repr(xml)))
             self.xml_source[name]=xml
@@ -290,6 +292,10 @@ class __HardwareRepositoryClient:
     
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
+        #TODO: when server is not used
+        if not self.server:
+            return
+
         try:
             completeFilesList = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('readDirectory()', ), timeout = 3)
         except:
