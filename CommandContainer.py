@@ -44,7 +44,10 @@ class CommandObject:
 
  
     def connectSignal(self, signalName, callableFunc):
-        dispatcher.disconnect(callableFunc, signalName, self) 
+        try:
+            dispatcher.disconnect(callableFunc, signalName, self) 
+        except:
+            pass
         dispatcher.connect(callableFunc, signalName, self)
 
   
@@ -55,7 +58,7 @@ class CommandObject:
             if type(args[0]) == types.TupleType:
                 args = args[0]
 
-        dispatcher.send(signal, args, self) 
+        dispatcher.send(signal, self, *args) 
       
  
     def addArgument(self, argName, argType, combo_items=None, onchange=None, valuefrom=None):
@@ -93,7 +96,10 @@ class ChannelObject:
 	return self._name
 
     def connectSignal(self, signalName, callableFunc):
-        dispatcher.disconnect(callableFunc, signalName, self) 
+        try:
+            dispatcher.disconnect(callableFunc, signalName, self) 
+        except:
+            pass
         dispatcher.connect(callableFunc, signalName, self)
 
     def connectNotify(self, signal):
@@ -107,7 +113,7 @@ class ChannelObject:
             if type(args[0]) == types.TupleType:
                 args = args[0]
 
-        dispatcher.emit(signal, args, self)
+        dispatcher.send(signal, self, *args)
 
 
     def userName(self):
