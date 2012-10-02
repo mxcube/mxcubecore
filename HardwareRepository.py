@@ -67,7 +67,11 @@ def HardwareRepository(hwrserver = None):
 
     if _instance is None:
         if _hwrserver is None:
-            setHardwareRepositoryServer(hwrserver)
+            xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
+            if xml_dirs_list:
+                setHardwareRepositoryServer(xml_dirs_list)
+            else:
+                setHardwareRepositoryServer(hwrserver)
         
         _instance = __HardwareRepositoryClient(_hwrserver)
 
