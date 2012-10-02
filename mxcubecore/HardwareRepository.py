@@ -58,7 +58,12 @@ addHardwareObjectsDirs(default_local_ho_dir)
 
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
-    _hwrserver = hwrserver
+
+    xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
+    if xml_dirs_list:
+        _hwrserver = xml_dirs_list
+    else:
+        _hwrserver = hwrserver
     
 
 def HardwareRepository(hwrserver = None):
@@ -67,11 +72,7 @@ def HardwareRepository(hwrserver = None):
 
     if _instance is None:
         if _hwrserver is None:
-            xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
-            if xml_dirs_list:
-                setHardwareRepositoryServer(xml_dirs_list)
-            else:
-                setHardwareRepositoryServer(hwrserver)
+            setHardwareRepositoryServer(hwrserver)
         
         _instance = __HardwareRepositoryClient(_hwrserver)
 
@@ -245,7 +246,7 @@ class __HardwareRepositoryClient:
         except KeyError:
             pass
 
-        self.emit(PYSIGNAL('hardwareObjectDiscarded'), (hoName, ))
+        dispatcher.send('hardwareObjectDiscarded', hoName, self)
             
         
     def parseXML(self, XMLString, hoName):
