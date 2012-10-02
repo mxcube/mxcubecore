@@ -62,9 +62,6 @@ def HardwareRepository(hwrserver = None):
     """Return the Singleton instance of the Hardware Repository."""
     global _instance        
 
-    if qApp.startingUp():
-        raise RuntimeError, "A QApplication object must be created before Hardware Repository can be used"
-
     if _instance is None:
         if _hwrserver is None:
             setHardwareRepositoryServer(hwrserver)
