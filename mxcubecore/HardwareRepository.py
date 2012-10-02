@@ -18,11 +18,14 @@ import stat
 import time
 import sets
 
-from SpecClient_gevent import SpecEventsDispatcher
-from SpecClient_gevent import SpecConnectionsManager
-from SpecClient_gevent import SpecWaitObject
-from SpecClient_gevent import SpecClientError
-  
+try:
+    from SpecClient_gevent import SpecEventsDispatcher
+    from SpecClient_gevent import SpecConnectionsManager
+    from SpecClient_gevent import SpecWaitObject
+    from SpecClient_gevent import SpecClientError
+except ImportError:
+    pass 
+ 
 import HardwareObjectFileParser
 import BaseHardwareObjects
 
@@ -90,7 +93,7 @@ class __HardwareRepositoryClient:
         self.invalidHardwareObjects = sets.Set()
         self.hardwareObjects = weakref.WeakValueDictionary()
 
-        if self.serverAddress:
+        if type(self.serverAddress)==types.StringType:
             mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
             self.server = mngr.getConnection(self.serverAddress)
@@ -99,7 +102,7 @@ class __HardwareRepositoryClient:
    
             # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
             self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
-       else:
+        else:
             self.server = None
  
 
@@ -154,10 +157,8 @@ class __HardwareRepositoryClient:
             logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
         else:
              xmldata = ""
-             if hoName.startswith(os.path.sep):
-               hoName=hoName[1:]
              for xml_files_path in self.serverAddress:
-               file_path = os.path.join(xml_files_path, hoName)
+               file_path = os.path.join(xml_files_path, hoName)+os.path.extsep+"xml"
                if os.path.exists(file_path):
                  try:
                    xmldata = open(file_path, "r").read()
@@ -354,6 +355,8 @@ class __HardwareRepositoryClient:
         Return :
           the required Hardware Object
         """
+        if objectName.startswith(os.path.sep): 
+            objectName=objectName[1:]
         try:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
