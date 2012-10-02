@@ -17,7 +17,13 @@ import logging
 
 import HardwareRepository
 
-from qt import QObject, PYSIGNAL
+try:
+  from louie import dispatcher
+  from louie import saferef
+except ImportError:
+  from pydispatch import dispatcher
+  from pydispatch import saferef
+  saferef.safe_ref = saferef.safeRef
 
 
 class ConnectionError(Exception):
@@ -30,7 +36,6 @@ class CommandObject:
         self._username = username
         self._arguments = []
         self._combo_arguments_items = {}
-        self._qobject = HardwareRepository.emitter(self)
         self._attributes = kwargs
 
 
@@ -39,21 +44,18 @@ class CommandObject:
 
  
     def connectSignal(self, signalName, callableFunc):
-        QObject.disconnect(HardwareRepository.emitter(self), PYSIGNAL(signalName), callableFunc)
-        QObject.connect(HardwareRepository.emitter(self), PYSIGNAL(signalName), callableFunc)
+        dispatcher.disconnect(callableFunc, signalName, self) 
+        dispatcher.connect(callableFunc, signalName, self)
 
   
     def emit(self, signal, *args):
         signal =  str(signal)
-        if signal[0] == '9':
-            # it is already a PYSIGNAL
-            signal = signal[1:]
 
         if len(args) == 1:
             if type(args[0]) == types.TupleType:
                 args = args[0]
 
-        QObject.emit(HardwareRepository.emitter(self), PYSIGNAL(signal), args)
+        dispatcher.send(signal, args, self) 
       
  
     def addArgument(self, argName, argType, combo_items=None, onchange=None, valuefrom=None):
@@ -91,8 +93,8 @@ class ChannelObject:
 	return self._name
 
     def connectSignal(self, signalName, callableFunc):
-        QObject.disconnect(HardwareRepository.emitter(self), PYSIGNAL(signalName), callableFunc)
-        QObject.connect(HardwareRepository.emitter(self), PYSIGNAL(signalName), callableFunc)
+        dispatcher.disconnect(callableFunc, signalName, self) 
+        dispatcher.connect(callableFunc, signalName, self)
 
     def connectNotify(self, signal):
         if signal == 'update' and self.isConnected():
@@ -100,15 +102,12 @@ class ChannelObject:
 
     def emit(self, signal, *args):
         signal =  str(signal)
-        if signal[0] == '9':
-            # it is already a PYSIGNAL
-            signal = signal[1:]
 
         if len(args) == 1:
             if type(args[0]) == types.TupleType:
                 args = args[0]
 
-        QObject.emit(HardwareRepository.emitter(self), PYSIGNAL(signal), args)
+        dispatcher.emit(signal, args, self)
 
 
     def userName(self):
