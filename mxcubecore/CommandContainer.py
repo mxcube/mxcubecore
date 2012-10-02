@@ -2,7 +2,7 @@
 
 Classes:
 - CommandContainer, a special mixin class to be used with
-QObject-derived Hardware Objects. It defines a container
+Hardware Objects. It defines a container
 for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
