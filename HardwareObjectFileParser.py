@@ -12,7 +12,7 @@ currentXML = None
 
 newObjectsClasses = { 'equipment': BaseHardwareObjects.Equipment,
                       'device': BaseHardwareObjects.Device,
-                      'procedure': BaseHardwareObjects.HardwareObject }
+                      'procedure': BaseHardwareObjects.Procedure }
 
 def parse(filename, name):
     curHandler = HardwareObjectHandler(name)

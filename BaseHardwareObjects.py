@@ -316,12 +316,12 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def emit(self, signal, *args):
         signal =  str(signal)
-            
-	if len(args) == 1:
-	    if type(args[0]) == types.TupleType:
-	        args = args[0]
-
-        dispatcher.send(signal, self, args)  
+    
+        if len(args)==1:
+          if type(args[0])==types.TupleType:
+            args=args[0]
+       
+        dispatcher.send(signal, self, *args)  
 
     
     def connect(self, sender, signal, slot=None):
@@ -388,6 +388,26 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         """Get XML source code"""
         return HardwareRepository.HardwareRepository().xml_source[self.name()]
     
+class Procedure(HardwareObject):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
+
+    def addCommand(self, *args, **kwargs):
+        return HardwareObject.addCommand(self, *args, **kwargs)
+
+
+    def userName(self):
+        uname = self.getProperty('username')
+        if uname is None:
+            return str(self.name())
+        else:
+            return uname
+
+
+    def GUI(self, parent):
+        pass
+
 
 class Device(HardwareObject):
     (NOTREADY, READY) = (0, 1)  # device states
