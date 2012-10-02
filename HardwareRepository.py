@@ -18,19 +18,14 @@ import stat
 import time
 import sets
 
-try:
-  from SpecClient_gevent import SpecEventsDispatcher
-  from SpecClient_gevent import SpecConnectionsManager
-  from SpecClient_gevent import SpecWaitObject
-  from SpecClient_gevent import SpecClientError
-except ImportError:
-  from SpecClient import SpecEventsDispatcher
-  from SpecClient import SpecConnectionsManager
-  from SpecClient import SpecWaitObject
-  from SpecClient import SpecClientError
+from SpecClient_gevent import SpecEventsDispatcher
+from SpecClient_gevent import SpecConnectionsManager
+from SpecClient_gevent import SpecWaitObject
+from SpecClient_gevent import SpecClientError
   
 import HardwareObjectFileParser
 import BaseHardwareObjects
+
 
 _instance = None
 _hwrserver = None
