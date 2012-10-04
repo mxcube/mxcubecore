@@ -44,13 +44,24 @@ def task(func):
           logging.debug("Starting %s%s", func.__name__, args)
 
         exception_callback = kwargs.get("exception_callback")
-        wait = kwargs.get("wait", True)
+        try:
+          wait = kwargs["wait"]
+        except KeyError:
+          wait = True
+        else:
+          del kwargs["wait"]
+        try:
+          timeout = kwargs["timeout"]
+        except KeyError:
+          timeout = None 
+        else:
+          del kwargs["timeout"]
 
         try:
-            t = gevent.spawn(wrap_errors(Exception, func), *args)
+            t = gevent.spawn(wrap_errors(Exception, func), *args, **kwargs)
                
-            if kwargs.get("wait", True):
-                ret = t.get(timeout = kwargs.get("timeout"))
+            if wait:
+                ret = t.get(timeout = timeout)
                 if isinstance(ret, Exception):
                   raise ret
                 else:
