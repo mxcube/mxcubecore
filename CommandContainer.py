@@ -102,6 +102,12 @@ class ChannelObject:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
+    def disconnectSignal(self, signalName, callableFunc):
+        try:
+            dispatcher.disconnect(callableFunc, signalName, self) 
+        except:
+            pass
+
     def connectNotify(self, signal):
         if signal == 'update' and self.isConnected():
            self.emit(signal, self.getValue())

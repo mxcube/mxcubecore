@@ -161,9 +161,10 @@ class __HardwareRepositoryClient:
           else:
             logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
         else:
-             xmldata = ""
-             for xml_files_path in self.serverAddress:
-               file_path = os.path.join(xml_files_path, hoName)+os.path.extsep+"xml"
+            xmldata = ""
+            for xml_files_path in self.serverAddress:
+               file_name = hoName[1:] if hoName.startswith(os.path.sep) else hoName
+               file_path = os.path.join(xml_files_path, file_name)+os.path.extsep+"xml"
                if os.path.exists(file_path):
                  try:
                    xmldata = open(file_path, "r").read()
@@ -360,8 +361,6 @@ class __HardwareRepositoryClient:
         Return :
           the required Hardware Object
         """
-        if objectName.startswith(os.path.sep): 
-            objectName=objectName[1:]
         try:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
