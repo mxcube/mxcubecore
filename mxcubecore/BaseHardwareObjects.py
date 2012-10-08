@@ -345,14 +345,26 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
             sender.connectNotify(signal)
 
 
-    def disconnect(self, sender, signal, slot):
+    def disconnect(self, sender, signal, slot=None):
+        if slot is None:
+            if type(sender) == types.StringType:
+                # provides syntactic sugar ; for
+                # self.connect(self, "signal", slot)
+                # it is possible to do
+                # self.connect("signal", slot)
+                slot = signal
+                signal = sender
+                sender = self
+            else:
+                raise ValueError, "invalid slot (None)"
+
         signal = str(signal)
             
+        dispatcher.disconnect(slot, signal, sender) 
+        
         if hasattr(sender, "disconnectNotify"):
             sender.disconnectNotify(signal)
         
-        dispatcher.disconnect(slot, signal, sender) 
-
  
     def connectNotify(self, signal):
 	pass
