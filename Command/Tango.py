@@ -263,6 +263,11 @@ class TangoChannel(ChannelObject):
         if poller is not None:
             poller.restart(1000)
 
+        try:
+          raise e
+        except:
+          logging.exception("%s: Exception happened while polling %s", self.name(), self.attributeName)
+ 
         # emit at the end => can raise exceptions in callbacks
         self.emit('update', None)
 
