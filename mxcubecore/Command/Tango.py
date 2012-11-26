@@ -252,7 +252,11 @@ class TangoChannel(ChannelObject):
         #  raise e
         #except:
         #  pass #logging.exception("Polling failed: %s", self.name())
-        self.value = None
+        emit_update = True
+        if self.value is None:
+          emit_update = False
+        else:
+          self.value = None
 
         try:
             self.init_device()
@@ -267,9 +271,10 @@ class TangoChannel(ChannelObject):
           raise e
         except:
           logging.exception("%s: Exception happened while polling %s", self.name(), self.attributeName)
- 
-        # emit at the end => can raise exceptions in callbacks
-        self.emit('update', None)
+
+        if emit_update: 
+          # emit at the end => can raise exceptions in callbacks
+          self.emit('update', None)
 
 
     def getInfo(self):
