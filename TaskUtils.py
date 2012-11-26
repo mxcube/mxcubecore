@@ -1,7 +1,7 @@
+import sys
 import types
 import logging
 import gevent
-from gevent.util import wrap_errors
 
 class cleanup:
   def __init__(self,cleanup_func,**keys) :
@@ -35,6 +35,35 @@ class error_cleanup:
           logging.exception("Exception while calling cleanup on error callback %s", error_func)
           continue
 
+class TaskException:
+    def __init__(self, exception, error_string, tb):
+        self.exception = exception
+        self.error_string = error_string
+        self.tb = tb
+
+class wrap_errors(object):
+    def __init__(self, func):
+        """Make a new function from `func', such that it catches all exceptions
+        and return it as a TaskException object
+        """
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        func = self.func
+        try:
+            return func(*args, **kwargs)
+        except:
+            return TaskException(*sys.exc_info())
+
+    def __str__(self):
+        return str(self.func)
+
+    def __repr__(self):
+        return repr(self.func)
+
+    def __getattr__(self, item):
+        return getattr(self.func, item)
+
 
 def task(func):
     def start_task(*args, **kwargs):
@@ -58,20 +87,22 @@ def task(func):
           del kwargs["timeout"]
 
         try:
-            t = gevent.spawn(wrap_errors(Exception, func), *args, **kwargs)
+            t = gevent.spawn(wrap_errors(func), *args, **kwargs)
                
             if wait:
                 ret = t.get(timeout = timeout)
-                if isinstance(ret, Exception):
-                  raise ret
+                if isinstance(ret, TaskException):
+                  sys.excepthook(ret.exception, ret.error_string, ret.tb)
+                  raise ret.exception(ret.error_string)
                 else:
                   return ret
             else:           
                 t._get = t.get
                 def special_get(self, *args, **kwargs):
                   ret = self._get(*args, **kwargs)
-                  if isinstance(ret, Exception):
-                    raise ret
+                  if isinstance(ret, TaskException):
+                    sys.excepthook(ret.exception, ret.error_string, ret.tb)
+                    raise ret.exception(ret.error_string)
                   else:
                     return ret
                 setattr(t, "get", types.MethodType(special_get, t)) 
