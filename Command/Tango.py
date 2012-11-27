@@ -135,7 +135,7 @@ def processTangoEvents():
                 receiverCb = receiverCbRef()
                 if receiverCb is not None:
                     try:
-                        receiverCb(ev.event.attr_value.value)
+                        gevent.spawn(receiverCb, ev.event.attr_value.value)
                     except AttributeError:
                         pass
             except KeyError:
