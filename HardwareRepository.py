@@ -18,72 +18,28 @@ import stat
 import time
 import sets
 
-from qt import *
-
 try:
-  from SpecClient_gevent import SpecEventsDispatcher
-  from SpecClient_gevent import SpecConnectionsManager
-  from SpecClient_gevent import SpecWaitObject
-  from SpecClient_gevent import SpecClientError
+    from SpecClient_gevent import SpecEventsDispatcher
+    from SpecClient_gevent import SpecConnectionsManager
+    from SpecClient_gevent import SpecWaitObject
+    from SpecClient_gevent import SpecClientError
 except ImportError:
-  from SpecClient import SpecEventsDispatcher
-  from SpecClient import SpecConnectionsManager
-  from SpecClient import SpecWaitObject
-  from SpecClient import SpecClientError
-  
+    pass 
+ 
 import HardwareObjectFileParser
 import BaseHardwareObjects
+
+try:
+  from louie import dispatcher
+  from louie import saferef
+except ImportError:
+  from pydispatch import dispatcher
+  from pydispatch import saferef
+  saferef.safe_ref = saferef.safeRef
 
 
 _instance = None
 _hwrserver = None
-_emitterCache = weakref.WeakKeyDictionary()
-_timers = {}
-
-class _QObject(QObject):
-    def __init__(self, *args, **kwargs):
-        QObject.__init__(self, *args)
-
-        try:
-            self.__ho = weakref.ref(kwargs.get("ho"))
-        except:
-            self.__ho = None
-            
-    def timerEvent(self, te):
-        if self.__ho is not None:
-            ho = self.__ho()
-            if ho is not None and hasattr(ho, "timerEvent"):
-                try:
-                    ho.timerEvent(te.timerId())
-                except:
-                    logging.getLogger("HWR").exception("%s: an error occured in timerEvent", ho.name())
-                    raise
-    
-
-def emitter(ob):
-    """Returns a QObject surrogate for *ob*, to use in Qt signaling.
-
-    This function enables you to connect to and emit signals from (almost)
-    any python object with having to subclass QObject.
-
-      >>> class A(object):
-      ...   def notify(self, *args):
-      ...       QObject.emit(emitter(self), PYSIGNAL('test'), args)
-      ...
-      >>> ob = A()
-      >>> def myhandler(*args): print 'got', args
-      ...
-      >>> QObject.connect(emitter(ob), PYSIGNAL('test'), myhandler)
-      ... True
-      >>> ob.notify('hello')
-      got ('hello',)
-
-      >>> QObject.emit(emitter(ob), PYSIGNAL('test'), (42, 'abc',))
-      got (42, 'abc')
-    """
-    if ob not in _emitterCache:
-        _emitterCache[ob] = _QObject(ho=ob)
-    return _emitterCache[ob]
 
 
 def addHardwareObjectsDirs(hoDirs):
@@ -99,17 +55,20 @@ def addHardwareObjectsDirs(hoDirs):
 default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
 addHardwareObjectsDirs(default_local_ho_dir)
 
+
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
-    _hwrserver = hwrserver
+
+    xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
+    if xml_dirs_list:
+        _hwrserver = xml_dirs_list
+    else:
+        _hwrserver = hwrserver
     
 
 def HardwareRepository(hwrserver = None):
     """Return the Singleton instance of the Hardware Repository."""
     global _instance        
-
-    if qApp.startingUp():
-        raise RuntimeError, "A QApplication object must be created before Hardware Repository can be used"
 
     if _instance is None:
         if _hwrserver is None:
@@ -120,69 +79,17 @@ def HardwareRepository(hwrserver = None):
     return _instance
 
 
-class _weak_callable:
-    def __init__(self,obj,func):
-        self._obj = obj
-        self._meth = func
-
-    def __call__(self,*args,**kws):
-        if self._obj is not None:
-            return self._meth(self._obj,*args,**kws)
-        else:
-            return self._meth(*args,**kws)
-
-    def __getattr__(self,attr):
-        if attr == 'im_self':
-            return self._obj
-        if attr == 'im_func':
-            return self._meth
-        raise AttributeError, attr
-
-
-class WeakMethod:
-    """ Wraps a function or, more importantly, a bound method, in
-    a way that allows a bound method's object to be GC'd, while
-    providing the same interface as a normal weak reference. """
-    def __init__(self,fn):
-        try:
-            self._obj = weakref.ref(fn.im_self)
-            self._meth = fn.im_func
-        except AttributeError:
-            # It's not a bound method.
-            self._obj = None
-            self._meth = fn
-
-    def __call__(self):
-        if self._dead(): return None
-        
-        if self._obj is not None:
-            return _weak_callable(self._obj(),self._meth)
-        else:
-            return _weak_callable(self._obj, self._meth)
-        
-    def _dead(self):
-        return self._obj is not None and self._obj() is None
-
-    
-def setTimer(delay, func):
-    """func will be called periodically every delay seconds"""
-    global _timers
-
-    if callable(func):
-        func_ref = WeakMethod(func)
-        hwr = HardwareRepository()
-        _timers[hwr.startTimer(delay*1000)]=func_ref
-
-
-class __HardwareRepositoryClient(QObject):
+class __HardwareRepositoryClient:
     """Hardware Repository class
     
     Warning -- should not be instanciated directly ; call the module's level HardwareRepository() function instead
     """
     def __init__(self, serverAddress):
-        """Constructor"""
-        QObject.__init__(self, None)
+        """Constructor
 
+        serverAddress needs to be the HWR server address (host:port) or
+        a list of paths where to find XML files locally (when server is not in use)
+        """
         self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
@@ -190,24 +97,27 @@ class __HardwareRepositoryClient(QObject):
     def connect(self):
         self.invalidHardwareObjects = sets.Set()
         self.hardwareObjects = weakref.WeakValueDictionary()
-        mngr = SpecConnectionsManager.SpecConnectionsManager() #pollingThread = False)
 
-        self.server = mngr.getConnection(self.serverAddress)
-        
-        # install poller
-        #self.timer = QTimer(self) 
-        #QObject.connect(self.timer, SIGNAL('timeout()'), mngr.poll)
-        #self.timer.start(0) # 0 means that timeout will occur at idle time (from Qt doc.)
-        SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+        if type(self.serverAddress)==types.StringType:
+            mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
-        # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
-        self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+            self.server = mngr.getConnection(self.serverAddress)
         
+            SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+   
+            # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
+            self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+        else:
+            self.server = None
+ 
 
     def require(self, mnemonicsList):
         """Download a list of Hardware Objects in one go"""
         self.requiredHardwareObjects = {}
-        
+       
+        if not self.server:  
+            return 
+ 
         try:
             t0=time.time()
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
@@ -229,7 +139,8 @@ class __HardwareRepositoryClient(QObject):
         Return :
           the loaded Hardware Object, or None if it fails
         """
-        if self.server.isSpecConnected():
+        if self.server:
+          if self.server.isSpecConnected():
             try:
                 #t0=time.time()
                 if hoName in self.requiredHardwareObjects:
@@ -247,7 +158,21 @@ class __HardwareRepositoryClient(QObject):
                 except KeyError:
                   logging.getLogger("HWR").error("Cannot load Hardware Object %s: file does not exist.", hoName)
                   return
+          else:
+            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
+        else:
+            xmldata = ""
+            for xml_files_path in self.serverAddress:
+               file_name = hoName[1:] if hoName.startswith(os.path.sep) else hoName
+               file_path = os.path.join(xml_files_path, file_name)+os.path.extsep+"xml"
+               if os.path.exists(file_path):
+                 try:
+                   xmldata = open(file_path, "r").read()
+                 except:
+                   pass
+                 break 
 
+        if True:  
                 #print xmldata
                 if len(xmldata) > 0:
                     try:
@@ -259,7 +184,7 @@ class __HardwareRepositoryClient(QObject):
                     else:
                         if ho is not None:
                             self.xml_source[hoName]=xmldata
-                            self.emit(PYSIGNAL('hardwareObjectLoaded'), (hoName, ))
+                            dispatcher.send('hardwareObjectLoaded', hoName, self)
 
                             def hardwareObjectDeleted(name=ho.name()):
                                 logging.getLogger("HWR").debug("%s Hardware Object has been deleted from Hardware Repository", name)
@@ -298,8 +223,6 @@ class __HardwareRepositoryClient(QObject):
                             logging.getLogger("HWR").error("Failed to load Hardware Object %s", hoName)
                 else:
                     logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : file not found.', hoName)   
-        else:
-            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
 
    
     def discardHardwareObject(self, hoName):
@@ -324,7 +247,7 @@ class __HardwareRepositoryClient(QObject):
         except KeyError:
             pass
 
-        self.emit(PYSIGNAL('hardwareObjectDiscarded'), (hoName, ))
+        dispatcher.send('hardwareObjectDiscarded', hoName, self)
             
         
     def parseXML(self, XMLString, hoName):
@@ -346,6 +269,7 @@ class __HardwareRepositoryClient(QObject):
             
 
     def update(self, name, updatesList):
+        #TODO: update without HWR server
         if self.server is not None and self.server.isSpecConnected():
             self.server.send_msg_cmd_with_return('xml_multiwrite("%s", "%s")' % (name, str(updatesList)))
         else:
@@ -353,6 +277,7 @@ class __HardwareRepositoryClient(QObject):
                   
 
     def rewrite_xml(self, name, xml):
+        #TODO: rewrite without HWR server
         if self.server is not None and self.server.isSpecConnected():    
             self.server.send_msg_cmd_with_return('xml_writefile("%s", %s)' % (name, repr(xml)))
             self.xml_source[name]=xml
@@ -374,6 +299,10 @@ class __HardwareRepositoryClient(QObject):
     
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
+        #TODO: when server is not used
+        if not self.server:
+            return
+
         try:
             completeFilesList = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('readDirectory()', ), timeout = 3)
         except:
@@ -650,192 +579,3 @@ class __HardwareRepositoryClient(QObject):
                     logging.getLogger("HWR").exception("an error occured while calling timer function")
         except:
             logging.getLogger("HWR").exception("an error occured inside the timerEvent")
-                                             
-
-class HardwareRepositoryBrowser(QVBox):
-    folderClosed = ["16 16 9 1",
-                    "g c #808080",
-                    "b c #c0c000",
-                    "e c #c0c0c0",
-                    "# c #000000",
-                    "c c #ffff00",
-                    ". c None",
-                    "a c #585858",
-                    "f c #a0a0a4",
-                    "d c #ffffff",
-                    "..###...........",
-                    ".#abc##.........",
-                    ".#daabc#####....",
-                    ".#ddeaabbccc#...",
-                    ".#dedeeabbbba...",
-                    ".#edeeeeaaaab#..",
-                    ".#deeeeeeefe#ba.",
-                    ".#eeeeeeefef#ba.",
-                    ".#eeeeeefeff#ba.",
-                    ".#eeeeefefff#ba.",
-                    ".##geefeffff#ba.",
-                    "...##gefffff#ba.",
-                    ".....##fffff#ba.",
-                    ".......##fff#b##",
-                    ".........##f#b##",
-                    "...........####."]
-    
-
-    folderOpened = ["16 16 11 1",
-                    "# c #000000",
-                    "g c #c0c0c0",
-                    "e c #303030",
-                    "a c #ffa858",
-                    "b c #808080",
-                    "d c #a0a0a4",
-                    "f c #585858",
-                    "c c #ffdca8",
-                    "h c #dcdcdc",
-                    "i c #ffffff",
-                    ". c None",
-                    "....###.........",
-                    "....#ab##.......",
-                    "....#acab####...",
-                    "###.#acccccca#..",
-                    "#ddefaaaccccca#.",
-                    "#bdddbaaaacccab#",
-                    ".eddddbbaaaacab#",
-                    ".#bddggdbbaaaab#",
-                    "..edgdggggbbaab#",
-                    "..#bgggghghdaab#",
-                    "...ebhggghicfab#",
-                    "....#edhhiiidab#",
-                    "......#egiiicfb#",
-                    "........#egiibb#",
-                    "..........#egib#",
-                    "............#ee#"]
-
-    
-    def __init__(self, parent):
-        QVBox.__init__(self, parent)
-        
-        self.treeNodes = {}
-        self.root = None
-        self.itemStates= {}
-
-        self.hardwareObjectsTree = QListView(self)
-        self.setMargin(3)
-        self.setSpacing(5)
-        
-        self.connect(self.hardwareObjectsTree, SIGNAL('expanded( QListViewItem * )'), self.expanded)
-        self.connect(self.hardwareObjectsTree, SIGNAL('collapsed( QListViewItem * )'), self.collapsed)
-        self.connect(self.hardwareObjectsTree, SIGNAL('clicked( QListViewItem * )'), self.hardwareObjectClicked)
-   
-        self.hardwareObjectsTree.addColumn('Hardware Objects')
-        self.hardwareObjectsTree.addColumn('Type')
-        self.hardwareObjectsTree.addColumn('name', QListView.Manual)
-        self.hardwareObjectsTree.addColumn('file', QListView.Manual)
-        self.hardwareObjectsTree.hideColumn(2)
-        self.hardwareObjectsTree.hideColumn(3)
-        
-        self.fill()
-
-        QObject.connect(_instance, PYSIGNAL('hardwareObjectLoaded'), self.hardwareObjectLoaded)
-        QObject.connect(_instance, PYSIGNAL('hardwareObjectDiscarded'), self.hardwareObjectDiscarded)
-        
-
-    def expanded(self, item):
-        item.setPixmap(0, QPixmap(self.folderOpened))
-
-
-    def collapsed(self, item):
-        item.setPixmap(0, QPixmap(self.folderClosed))
-
-        
-    def hardwareObjectClicked(self, item):
-        try:
-            #item could be None
-            name = str(item.text(2))
-        except:
-            return
-        else:
-            if len(name) == 0:
-                return
-        
-        if item.isOn() and not self.itemStates[name]:
-            _instance.loadHardwareObject(name)
-        elif not item.isOn() and self.itemStates[name]:
-            _instance.discardHardwareObject(name)
-
-        self.itemStates[name] = item.isOn()
-        
-
-    def hardwareObjectLoaded(self, name):
-        child = self.hardwareObjectsTree.firstChild()
-        
-        while child:
-            if str(child.text(2)) == name:
-                child.setOn(True)
-                self.itemStates[name] = True
-                break
-
-            child = child.firstChild() or child.nextSibling() or child.parent().nextSibling()
-      
-
-    def hardwareObjectDiscarded(self, name):
-        child = self.hardwareObjectsTree.firstChild()
-        
-        while child:
-            if str(child.text(2)) == name:
-                child.setOn(False)
-                self.itemStates[name] = False
-                break
-
-            child = child.firstChild() or child.nextSibling() or child.parent().nextSibling()
-        
-
-    def fill(self):
-        #
-        # fill Hardware Objects tree
-        #
-        self.treeNodes = {}
-        self.itemStates = {}
-
-        self.hardwareObjectsTree.clear()
-        self.root = QListViewItem(self.hardwareObjectsTree, 'Hardware Repository')
-
-        if _instance is not None:
-            filesgen = _instance.getHardwareRepositoryFiles()
-            
-            for name, file in filesgen:
-                #
-                # every name begins with '/'
-                #
-                dirnames = name.split('/')[1:]
-                objectName = dirnames.pop()
-
-                parent = self.root
-                for dir in dirnames:
-                    if dir in self.treeNodes:
-                        parent = self.treeNodes[dir]
-                    else:
-                        newNode =  QListViewItem(parent, dir)
-                        self.treeNodes[dir] = newNode
-                        newNode.setPixmap(0, QPixmap(self.folderClosed))
-                        parent = newNode
-
-                newLeaf = QCheckListItem(parent, objectName, QCheckListItem.CheckBox)
-                newLeaf.setText(2, name)
-                    
-                if _instance.hasHardwareObject(name):
-                    newLeaf.setOn(True)
-                    self.itemStates[name] = True
-
-                    if _instance.isDevice(name):
-                        newLeaf.setText(1, 'Device')
-                    elif _instance.isEquipment(name):
-                        newLeaf.setText(1, 'Equipment')
-                    elif _instance.isProcedure(name):
-                        newLeaf.setText(1, 'Procedure')
-                else:
-                    self.itemStates[name] = False
-                        
-            self.root.setOpen(True)
-            self.hardwareObjectsTree.sort()
-        else:
-            logging.getLogger('HWR').error('Cannot get Hardware Repository files : not connected to server.')
