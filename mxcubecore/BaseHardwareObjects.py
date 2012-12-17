@@ -1,7 +1,13 @@
 import logging
 import types
 
-import qt
+try:
+  from louie import dispatcher
+  from louie import saferef
+except ImportError:
+  from pydispatch import dispatcher
+  from pydispatch import saferef
+  saferef.safe_ref = saferef.safeRef
 
 from CommandContainer import CommandContainer
 import HardwareRepository
@@ -310,15 +316,12 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def emit(self, signal, *args):
         signal =  str(signal)
-        if signal[0] == '9':
-            # it is already a PYSIGNAL
-            signal = signal[1:]
-            
-	if len(args) == 1:
-	    if type(args[0]) == types.TupleType:
-	        args = args[0]
-
-        qt.QObject.emit(HardwareRepository.emitter(self), qt.PYSIGNAL(signal), args) 
+    
+        if len(args)==1:
+          if type(args[0])==types.TupleType:
+            args=args[0]
+       
+        dispatcher.send(signal, self, *args)  
 
     
     def connect(self, sender, signal, slot=None):
@@ -335,37 +338,33 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 raise ValueError, "invalid slot (None)"
 
         signal = str(signal)
-        if signal[0] == '9':
-            # it is already a PYSIGNAL
-            signal = signal[1:]
             
-        if not isinstance(sender, qt.QObject):
-	   _sender = HardwareRepository.emitter(sender)
-        else:
-           _sender = sender
-    
-        qt.QObject.connect(_sender, qt.PYSIGNAL(signal), slot)
+        dispatcher.connect(slot, signal, sender)
  
-        # workaround for PyQt lapse
         if hasattr(sender, "connectNotify"):
             sender.connectNotify(signal)
 
 
-    def disconnect(self, sender, signal, slot):
+    def disconnect(self, sender, signal, slot=None):
+        if slot is None:
+            if type(sender) == types.StringType:
+                # provides syntactic sugar ; for
+                # self.connect(self, "signal", slot)
+                # it is possible to do
+                # self.connect("signal", slot)
+                slot = signal
+                signal = sender
+                sender = self
+            else:
+                raise ValueError, "invalid slot (None)"
+
         signal = str(signal)
-        if signal[0] == '9':
-            # it is already a PYSIGNAL
-            signal = signal[1:]
             
-        # workaround for PyQt lapse
+        dispatcher.disconnect(slot, signal, sender) 
+        
         if hasattr(sender, "disconnectNotify"):
             sender.disconnectNotify(signal)
         
-        if not isinstance(sender, qt.QObject):
-            sender = HardwareRepository.emitter(sender)
-
-        qt.QObject.disconnect(sender, qt.PYSIGNAL(signal), slot) 
-
  
     def connectNotify(self, signal):
 	pass
@@ -401,6 +400,26 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         """Get XML source code"""
         return HardwareRepository.HardwareRepository().xml_source[self.name()]
     
+class Procedure(HardwareObject):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
+
+    def addCommand(self, *args, **kwargs):
+        return HardwareObject.addCommand(self, *args, **kwargs)
+
+
+    def userName(self):
+        uname = self.getProperty('username')
+        if uname is None:
+            return str(self.name())
+        else:
+            return uname
+
+
+    def GUI(self, parent):
+        pass
+
 
 class Device(HardwareObject):
     (NOTREADY, READY) = (0, 1)  # device states
@@ -430,28 +449,6 @@ class Device(HardwareObject):
             return str(self.name())
         else:
             return uname
-
-
-class Procedure(HardwareObject):
-    def __init__(self, name):
-        HardwareObject.__init__(self, name)
-    
-     
-    def addCommand(self, *args, **kwargs):
-        return HardwareObject.addCommand(self, *args, **kwargs)
-
- 
-    def userName(self):
-        uname = self.getProperty('username')
-        if uname is None:
-            return str(self.name())
-        else:
-            return uname
-
-
-    def GUI(self, parent):
-        #BAD!!!! Should be changed...
-        return qt.QWidget(parent)
 
 
 class DeviceContainer:
