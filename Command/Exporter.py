@@ -2,7 +2,7 @@ import logging
 import weakref
 import new
 import types
-from embl import ExporterClient
+from .embl import ExporterClient
 import time
 import gevent
 import gevent.queue
