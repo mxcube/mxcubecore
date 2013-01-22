@@ -93,7 +93,7 @@ def task(func):
                 ret = t.get(timeout = timeout)
                 if isinstance(ret, TaskException):
                   sys.excepthook(ret.exception, ret.error_string, ret.tb)
-                  raise ret.exception(ret.error_string)
+                  raise ret.exception, ret.error_string
                 else:
                   return ret
             else:           
@@ -102,7 +102,7 @@ def task(func):
                   ret = self._get(*args, **kwargs)
                   if isinstance(ret, TaskException):
                     sys.excepthook(ret.exception, ret.error_string, ret.tb)
-                    raise ret.exception(ret.error_string)
+                    raise ret.exception, ret.error_string
                   else:
                     return ret
                 setattr(t, "get", types.MethodType(special_get, t)) 
