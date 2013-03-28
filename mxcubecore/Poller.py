@@ -1,11 +1,10 @@
 import logging
 from . import saferef
-import threading
-import Queue
+from gevent import _threading 
 import gevent
+import gevent.monkey
 import numpy
 import types
-
 
 POLLERS = {}
 
@@ -42,11 +41,8 @@ def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_ca
      return poller
      
 
-class _Poller(threading.Thread):
+class _Poller:
     def __init__(self, polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True):
-        threading.Thread.__init__(self)
-
-        self.daemon = True #would like to get rid of that
         self.polled_call_ref = saferef.safe_ref(polled_call)
         self.args = polled_call_args
         self.polling_period = polling_period
@@ -54,20 +50,19 @@ class _Poller(threading.Thread):
         self.error_callback_ref = saferef.safe_ref(error_callback)
         self.compare = compare
         self.old_res = NotInitializedValue
-        self.queue = Queue.Queue()
+        self.queue = _threading.Queue() #Queue.Queue()
         self.delay = 0
-        self.stop_event = threading.Event()
+        self.stop_event = _threading.Event()
         self.async_watcher = gevent.get_hub().loop.async()
 
 
     def start_delayed(self, delay):
         self.delay = delay
-        self.start()
+        _threading.start_new_thread(self.run, ()) #self.start()
 
 
     def stop(self):
         self.stop_event.set()
-        #self.join()
         del POLLERS[self.get_id()]       
 
 
@@ -102,7 +97,7 @@ class _Poller(threading.Thread):
         while True:
             try:
                 res = self.queue.get_nowait()
-            except Queue.Empty:
+            except _threading.Empty:
                 break
 
             if isinstance(res, PollingException):
@@ -116,6 +111,8 @@ class _Poller(threading.Thread):
 
 
     def run(self):
+        sleep = gevent.monkey._get_original("time", ["sleep"])[0]
+
         self.async_watcher.start(self.new_event)
         err_callback_args = None 
         error_cb = None
@@ -123,7 +120,7 @@ class _Poller(threading.Thread):
  
         while not self.stop_event.is_set():
             if first_run and self.delay:
-                threading._sleep(self.delay / 1000.0)
+                sleep(self.delay / 1000.0)
             first_run = False            
 
             if self.stop_event.is_set():
@@ -166,7 +163,7 @@ class _Poller(threading.Thread):
                   self.queue.put(res)
                   self.async_watcher.send()
 
-            threading._sleep(self.polling_period / 1000.0)
+            sleep(self.polling_period / 1000.0)
 
         if error_cb is not None:
             self.async_watcher.send()
