@@ -5,6 +5,7 @@ import new
 import time
 import types
 import gevent
+import gevent.event
 
 from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
 from .. import Poller
@@ -167,6 +168,7 @@ class TangoChannel(ChannelObject):
         self.pollingEvents = False
         self.timeout = int(timeout)
         self.read_as_str = kwargs.get("read_as_str", False)
+        self._device_initialized = gevent.event.Event()
          
         logging.getLogger("HWR").debug("creating Tango attribute %s/%s, polling=%s, timeout=%d", self.deviceName, self.attributeName, polling, self.timeout)
         self.init_poller = Poller.poll(self.init_device,
@@ -176,6 +178,7 @@ class TangoChannel(ChannelObject):
                                        start_delay=100)
 
     def init_poll_failed(self, e, poller_id):
+        self._device_initialized.clear()
         logging.warning("%s/%s (%s): could not complete init. (hint: device server is not running, or has to be restarted)", self.deviceName, self.attributeName, self.name())
         self.init_poller = self.init_poller.restart(3000)
 
@@ -198,6 +201,7 @@ class TangoChannel(ChannelObject):
                     #   pass
                 except:
                     logging.getLogger("HWR").exception("could not subscribe event")
+        self._device_initialized.set()
 
 
     def init_device(self):
@@ -248,10 +252,6 @@ class TangoChannel(ChannelObject):
 
 
     def pollFailed(self, e, poller_id):
-        #try:
-        #  raise e
-        #except:
-        #  pass #logging.exception("Polling failed: %s", self.name())
         emit_update = True
         if self.value is None:
           emit_update = False
@@ -278,6 +278,7 @@ class TangoChannel(ChannelObject):
 
 
     def getInfo(self):
+        self._device_initialized.wait(timeout=3)
         return self.device.get_attribute_config(self.attributeName)
 
  
@@ -292,9 +293,7 @@ class TangoChannel(ChannelObject):
         
 
     def getValue(self):
-        with gevent.Timeout(3):
-          while self.device is None:
-            time.sleep(0.1) 
+        self._device_initialized.wait(timeout=3)
 
         if self.read_as_str:
            value = self.device.read_attribute(self.attributeName, PyTango.DeviceAttribute.ExtractAs.String).value
