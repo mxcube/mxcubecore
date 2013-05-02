@@ -1,8 +1,367 @@
 """
- Abstract base classes for instruments
+ Abstract base classes for beamline components
 """
 
 import abc
+
+class AbstractShutter(object):
+    """
+    Abstract base class for Shutter objects. The shutter has eight states 
+    which are defined as::
+
+     0 -- 'unknown',
+     3 -- 'closed',
+     4 -- 'opened',
+     9 -- 'moving',
+     17 -- 'automatic',
+     23 -- 'fault',
+     46 -- 'disabled',
+     -1 -- 'error'
+
+    """
+
+    __metaclass__ = abc.ABCMeta
+
+    
+    @abc.abstractmethod
+    def __init__(self, name):
+        """
+        :parame name: The name of the hardware object.
+        :type name: str
+        """
+        return
+
+
+    @abc.abstractmethod
+    def value_changed(self, device_name, value):
+        """
+        Signals "listening" objects that the value of the device has changed.
+
+        :param device_name: The name of the device that the value coresponds to
+        :type device_name: str
+
+        :param value: The new value
+        :type value: object
+        """
+        return
+
+
+    @abc.abstractmethod
+    def get_state(self):
+        """
+ 
+        :returns: The current state, one of the following strings:
+
+        'unknown',
+        'closed',
+        'opened',
+        'moving',
+        'automatic',
+        'fault',
+        'disabled',
+        'error'
+
+        :rtype: str
+
+        """
+        return
+
+ 
+    @abc.abstractmethod
+    def is_ok(self):
+        """ Checks if the shutter is in one of its predefined states """
+        return
+
+
+    @abc.abstractmethod
+    def open(self):
+        return
+
+    
+    @abc.abstractmethod
+    def close(self):
+        return
+
+
+class AbstractAttenuators(object):
+    """
+    Abstract Attenuators class.
+    """
+
+    __metaclass__ = abc.ABCMeta
+
+    
+    @abc.abstractmethod
+    def __init__(self, name):
+        return
+
+
+    @abc.abstractmethod
+    def get_state(self):
+        """
+        :returns: The current state.
+        :rtype: int
+        """
+        return
+
+
+    @abc.abstractmethod
+    def get_factor(self):
+        """
+        :returns: The attenuation factor
+        :rtype: object
+        """
+        return
+
+
+    @abc.abstractmethod
+    def connect(self):
+        return
+
+
+    @abc.abstractmethod
+    def disconnect(self):
+       return
+
+
+    @abc.abstractmethod
+    def state_changed(self, value):
+        """
+        :param value: The new state
+        :type value: int
+        """
+        return
+
+
+    @abc.abstractmethod
+    def factor_changed(self, value):
+        """
+        :param value: The new factor
+        :type value: float
+        """
+        return
+
+
+class AbstractFrontend(object):
+    """
+    Abstract base class for Frontend (shutter) Objects. 
+    The shutter has eight states which are defined as::
+
+     0 -- 'unknown',
+     3 -- 'closed',
+     4 -- 'opened',
+     9 -- 'moving',
+     17 -- 'automatic',
+     23 -- 'fault',
+     46 -- 'disabled',
+     -1 -- 'error'
+
+    """
+
+    __metaclass__  = abc.ABCMeta
+
+
+    @abc.abstractmethod
+    def __init__(self, name):
+        return
+
+
+    @abc.abstractmethod
+    def get_name(self):
+        """
+        :returns: The device name.
+        :rtype: str
+        """
+        return
+
+
+    @abc.abstractmethod
+    def value_changed(self, device_name, value):
+        """
+        Signals "listening" objects that the value of the device has changed.
+        Emits the signal 'shutterStateChanged'.
+
+        :param device_name: The name of the device that the value coresponds to
+        :type device_name: str
+
+        :param value: The new value
+        :type value: object
+        """
+        return
+
+
+    @abc.abstractmethod
+    def get_state(self):
+        """
+        :returns: The current state.
+
+        'unknown',
+        'closed',
+        'opened',
+        'moving',
+        'automatic',
+        'fault',
+        'disabled',
+        'error'
+        
+        :rtype: str
+        """
+        return
+
+
+    @abc.abstractmethod
+    def get_automatic_method_time_left(self):
+        """
+        :return: Automatic mode time left
+        :rtype: object
+        """
+        return
+
+
+    @abc.abstractmethod
+    def open(self):
+        return
+
+
+    @abc.abstractmethod
+    def close(self):
+        return
+
+
+class AbstractHutchTrigger(object):
+    """
+    Abstract base class for hutch triggers.
+    """
+
+    __metaclass__ = abc.ABCMeta
+
+
+    @abc.abstractmethod
+    def __init__(self, name):
+        return
+
+
+    @abc.abstractmethod
+    def is_connected(self):
+        """
+        :returns: Connection status
+        :rtype: boolean
+        """
+        return
+
+
+    @abc.abstractmethod
+    def connect(self):
+        """
+        Connects the device.
+        Emits the signal 'connect'
+        """
+        return
+
+
+    @abc.abstractmethod
+    def disconnect(self):
+        """
+        Disconnects the device.
+        Emits the signal 'disconnnected'
+        """
+        return
+
+
+    @abc.abstractmethod
+    def started(self):
+        """
+        Emits the signal 'macroStarted'
+        """
+        return
+
+
+    @abc.abstractmethod
+    def done(self):
+        """
+        Emits the signal 'macroDone'
+        """
+        return
+
+
+    @abc.abstractmethod
+    def failed(self):
+        """
+        Emits the signal 'macroFailed'
+        """
+        return
+
+
+    @abc.abstractmethod
+    def abort(self):
+        return
+
+
+    @abc.abstractmethod
+    def msg_changed(self, msg):
+        """
+        Emits the signal 'msgChanged' with the argument msg
+
+        :param msg: The new message.
+        :type msg: str
+        """
+        return
+
+
+    @abc.abstractmethod
+    def status_changed(self, status):
+        """
+        Emits the signal 'statusChanged' with the argument status
+
+        :param status: The new status
+        :type status: object
+        """
+        return
+
+
+    @abc.abstractmethod
+    def value_changed(self, device_name, value):
+        return
+
+
+class AbstractInOut(object):
+    """
+    Abstract base class for InOut objects. Can be any ojects that have the two
+    states 'in' and 'out'.
+    """
+
+    __metaclass__ = abc.ABCMeta
+
+
+    @abc.abstractmethod
+    def __init__(self, name):
+        return
+
+    @abc.abstractmethod
+    def connect_notify(self, signal):
+        return
+
+    @abc.abstractmethod
+    def value_changed(self, value):
+        return
+
+    @abc.abstractmethod
+    def get_state(self):
+        return
+
+    @abc.abstractmethod
+    def in_(self):
+        return
+
+    @abc.abstractmethod
+    def out(self):
+        return
+
+    
+
+"""
+ Abstract base classes for instruments
+"""
 
 class AbstractAdscTemperature(object):
     """

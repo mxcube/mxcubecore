@@ -1,5 +1,10 @@
-from SpecClient import SpecEventsDispatcher
-from SpecClient import SpecConnectionsManager
+try:
+  from SpecClient_gevent import SpecEventsDispatcher
+  from SpecClient_gevent import SpecConnectionsManager
+except ImportError:
+  from SpecClient import SpecEventsDispatcher
+  from SpecClient import SpecConnectionsManager
+
 from HardwareRepository.BaseHardwareObjects import Procedure
 
 
