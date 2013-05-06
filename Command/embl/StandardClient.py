@@ -7,7 +7,7 @@
   Copyright 2009 by European Molecular Biology Laboratory - Grenoble
 """
 import gevent
-import gevent.coros
+import gevent.lock
 import time
 import socket
 import sys
@@ -38,7 +38,7 @@ class StandardClient:
         self.protocol=protocol
         self.error=None
         self.msg_received_event = gevent.event.Event()
-        self._lock = gevent.coros.Semaphore()
+        self._lock = gevent.lock.Semaphore()
         self.__msg_index__=-1
         self.__sock__=None
         self.__CONSTANT_LOCAL_PORT__=True
@@ -217,7 +217,7 @@ class StandardClient:
 
 
     def sendReceive(self,cmd, timeout=-1):
-        self._lock.acquire() # = gevent.coros.Semaphore()
+        self._lock.acquire() 
         try:
             if ((timeout is None) or (timeout >= 0)):
                 self.setTimeout(timeout)
