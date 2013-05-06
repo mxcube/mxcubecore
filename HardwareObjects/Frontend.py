@@ -4,6 +4,7 @@ Example XML:
   <username>label for users</username>
   <tangoname>orion:10000/fe/id(or d)/xx</tangoname>
   <command type="tango" name="Open">Automatic</command>
+  <command type="tango" name="Manual">Manual</command>
   <command type="tango" name="Close">Close</command>
   <channel type="tango" name="State" polling="2000">State</channel>
   <channel type="tango" name="AutoModeTime" polling="2000">Auto_Mode_Time</channel>
@@ -56,7 +57,6 @@ class Frontend(BaseHardwareObjects.Device):
         self.shutterStateValue = value
         self.automaticModeTimeLeft = self.getChannelObject('AutoModeTime').getValue()
         self.emit('shutterStateChanged', (self.shutterState[self.shutterStateValue], self.automaticModeTimeLeft, ))
-
         
     def getShutterState(self):
         return self.shutterState[self.shutterStateValue] 
@@ -67,6 +67,9 @@ class Frontend(BaseHardwareObjects.Device):
     def openShutter(self):
         self.getCommandObject("Open")()
         
+    def manualShutter(self):
+        self.getCommandObject("Manual")()
+
     def closeShutter(self):
         self.getCommandObject("Close")()
 
