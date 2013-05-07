@@ -489,9 +489,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_undulators_gaps(self):
         und_gaps = [None]*3
         i = 0
-        for undulator_cfg in self.bl_config.undulators:
-            und_gaps[i]=self.bl_control.undulators.getUndulatorGap(undulator_cfg.getProperty("type"))
-            i+=1
+        try:
+            for undulator_cfg in self.bl_config.undulators:
+                und_gaps[i]=self.bl_control.undulators.getUndulatorGap(undulator_cfg.getProperty("type"))
+                i+=1
+        except:
+            logging.getLogger("HWR").exception("Could not get undulator gaps")
+        
         return und_gaps
 
 
