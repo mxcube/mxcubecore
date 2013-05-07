@@ -35,7 +35,8 @@ class QueueController(HardwareObject, QueueEntryContainer):
                                              str(entry.get_data_model()))
 
         if self.is_paused():
-            logging.getLogger('user_level_log').info('Queue paused, waiting ...')
+            logging.getLogger('user_level_log').info('Queue paused,' +\
+                                                     'waiting ...')
             entry.get_view().setText(1, 'Queue paused, waiting')
 
         self.wait_for_pause_event()
@@ -62,9 +63,9 @@ class QueueController(HardwareObject, QueueEntryContainer):
             try:
                 self.__execute_entry(child)
             except:
-                # Same as above, definetly not good state, but call post_execute
-                # in anyways, there might be code that cleans up things
-                # done in _pre_execute, _excute or in any thing done in
+                # Same as above, definetly not good state, but call
+                # post_execut in anyways, there might be code that cleans up
+                # things done in _pre_execute, _excute or in any thing done in
                 # the excute of the children already executed.
                 entry.post_execute()
                 raise
@@ -82,7 +83,8 @@ class QueueController(HardwareObject, QueueEntryContainer):
                 except gevent.GreenletExit:
                     pass
 
-                logging.getLogger('user_level_log').error('Error executing queue: ' + ex.message)
+                logging.getLogger('user_level_log').error('Error executing ' +\
+                                                          'queue' + ex.message)
                 raise ex
         
         self.emit('queue_execution_finished', (None,))
