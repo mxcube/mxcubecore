@@ -52,7 +52,8 @@ class QueueEntryContainer(object):
         logging.getLogger('queue_exec').info('Enqueue called with: ' + \
                                              str(queue_entry))
         logging.getLogger('queue_exec').info('Queue is :' + \
-                                             str(queue_entry.get_queue_controller()))
+                                             str(queue_entry.\
+                                                 get_queue_controller()))
 
 
     def dequeue(self, queue_entry):
