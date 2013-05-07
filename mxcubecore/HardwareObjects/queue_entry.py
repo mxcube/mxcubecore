@@ -123,6 +123,8 @@ class QueueEntryContainer(object):
 class BaseQueueEntry(QueueEntryContainer):
     def __init__(self, view = None, data_model = None):
         QueueEntryContainer.__init__(self)
+        self._data_model = None
+        self._view = None
         self.set_data_model(data_model)
         self.set_view(view)
         self._checked_for_exec = False
