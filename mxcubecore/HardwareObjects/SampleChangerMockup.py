@@ -24,7 +24,7 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
 
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
-        self.current_sample = None
+        self.current_sample = (1,1)
 
 #    def __init__(self):
 #        Equipment.__init__(self)
@@ -60,7 +60,7 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
 
     def getLoadedSampleLocation(self):
         if self.current_sample:
-            return (self.current_sample[1], self.current_sample[2])
+            return self.current_sample
         else:
             return (None, None)
 
