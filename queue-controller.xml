@@ -1,0 +1,8 @@
+<object class = "QueueController" role = "QueueController">
+  <object href="/sc" role="sample_changer"/>    
+  <object href="/minidiff" role="diffractometer"/>
+  <object href="/energyscan" role="energy"/>
+  <object href="/mxlocal" role="beamline_configuration"/>
+  <object href="/data-analysis" role="data_analysis"/>
+  <object href="/mxcollect" role="collect"/>
+</object>
