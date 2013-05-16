@@ -40,6 +40,9 @@ class XMLRPCServer(HardwareObject):
 
 
     def init(self):
+        """
+        Method inherited from HardwareObject, called by framework-2. 
+        """
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
         self._server = SimpleXMLRPCServer((socket.gethostname(), int(self.port)),
@@ -66,10 +69,10 @@ class XMLRPCServer(HardwareObject):
 
         :param set_on: Mark TaskNode as activated if True and as inactivated
                        if false.
-        :type set_on: Boolean
+        :type set_on: bool
 
         :returns: True on success otherwise False
-        :rtype: Boolean
+        :rtype: bool
         """
         
         # The exception is re raised so that it will
@@ -89,7 +92,7 @@ class XMLRPCServer(HardwareObject):
         Starts the queue execution.
 
         :returns: True on success otherwise False
-        :rtype: Boolean
+        :rtype: bool
         """
         try:
             self.emit('start_queue')
@@ -114,7 +117,7 @@ class XMLRPCServer(HardwareObject):
         :type parent: str
 
         :returns: True on success otherwise False
-        :rtype: Boolean
+        :rtype: bool
         """ 
         status = True
         
