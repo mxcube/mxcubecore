@@ -1,3 +1,17 @@
+"""
+Containes the classes: QueueuEntryContainer, BaseQueueEntry, DummyQueueEntry,
+TaskGroupQueueEntry, SampleQueueEntry, SampleCentringQueueEntry,
+DataCollectionQueueEntry, CharacterisationQueueEntry, EnergyScanQueueEntry.
+
+All queue entries inherits the baseclass BaseQueueEntry which inturn inherits
+QueueEntryContainer. This makes it possible to arrange and execute queue
+entries in a hierarchical maner.
+
+The rest of the classes: DummyQueueEntry, TaskGroupQueueEntry, SampleQueueEntry,
+SampleCentringQueueEntry, DataCollectionQueueEntry, CharacterisationQueueEntry,
+EnergyScanQueueEntry are concrete implementations of tasks.
+"""
+
 import gevent
 import gevent.event
 import logging
@@ -8,21 +22,6 @@ import copy
 import pprint
 
 
-logger = logging.getLogger('queue_exec')
-try:
-    formatter = \
-              logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr = logging.FileHandler('/users/blissadm/log/queue_exec.log')
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-except:
-    pass
-
-logger.setLevel(logging.INFO)
-logger = logging.getLogger('queue_exec').\
-         info("Module load, probably application start")
-
-
 from queue_model import COLLECTION_ORIGIN
 from queue_model import STRATEGY_COMPLEXITY
 from queue_model import EXPERIMENT_TYPE
@@ -30,7 +29,22 @@ from queue_model import STRATEGY_OPTION
 from queue_model import COLLECTION_ORIGIN_STR
 
 
+__author__ = "Marcus Oskarsson"
+__copyright__ = "Copyright 2012, ESRF"
+__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
+
+__version__ = "0.1"
+__maintainer__ = "Marcus Oskarsson"
+__email__ = "marcus.oscarsson@esrf.fr"
+__status__ = "Beta"
+
+
 class QueueEntryContainer(object):
+    """
+    A QueueEntryContainer has a list of queue entries, classes inheriting
+    BaseQueueEntry, and a QueueController object. The QueueControllerObject
+    controls/handles the execution of the queue entries.
+    """
     def __init__(self):
         object.__init__(self)
         self._queue_entry_list = []
