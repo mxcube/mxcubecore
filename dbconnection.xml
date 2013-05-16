@@ -2,7 +2,7 @@
   <ws_root>
     http://ispyb.esrf.fr:8080/ispyb-ejb3/ispybWS/
   </ws_root>
-
+  <beamline_name>IDXX</beamline_name>
   <proposals>
     <proposal>
       <code>ifx</code>
