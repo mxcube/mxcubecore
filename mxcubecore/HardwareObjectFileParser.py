@@ -2,7 +2,6 @@ import new
 import imp
 import logging
 import xml.sax
-from sets import Set
 from xml.sax.handler import ContentHandler
 
 import BaseHardwareObjects
@@ -304,7 +303,7 @@ class HardwareObjectHandler(ContentHandler):
 
 class XMLStructure:
     def __init__(self):
-        self.xmlpaths = Set()
+        self.xmlpaths = set()
         self.attributes = {}
 
 
@@ -337,7 +336,7 @@ class XMLStructureRetriever(ContentHandler):
 
         self.path = ''
         self.previousPath = ''
-        self.currentAttributes = Set()
+        self.currentAttributes = set()
         self.structure = XMLStructure()
     
 

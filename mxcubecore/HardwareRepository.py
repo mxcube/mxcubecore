@@ -16,7 +16,6 @@ import sys
 import os
 import stat
 import time
-import sets
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher
@@ -95,7 +94,7 @@ class __HardwareRepositoryClient:
         self.xml_source={}
         
     def connect(self):
-        self.invalidHardwareObjects = sets.Set()
+        self.invalidHardwareObjects = set()
         self.hardwareObjects = weakref.WeakValueDictionary()
 
         if type(self.serverAddress)==types.StringType:
