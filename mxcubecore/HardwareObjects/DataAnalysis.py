@@ -66,10 +66,15 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
     def init(self):
         self.collect_obj = self.getObjectByRole("collect")
 
-        self.getChannelObject('jobSuccess').connectSignal('update', self.success_cb)
-        self.getChannelObject('jobFailure').connectSignal('update', self.failure_cb)
-        self.startJob = self.getCommandObject("startJob")
-        self.getJobOutput = self.getCommandObject("getJobOutput")
+        try:
+            self.getChannelObject('jobSuccess').connectSignal('update', self.success_cb)
+            self.getChannelObject('jobFailure').connectSignal('update', self.failure_cb)
+            self.startJob = self.getCommandObject("startJob")
+            self.getJobOutput = self.getCommandObject("getJobOutput")
+        except KeyError as ex:
+            loging.getLogger('HWR').exception('Could most likely not connect'+\
+                                              ' to tagno device server' +\
+                                              str(ex))
 
 
     def success_cb(self, value):
