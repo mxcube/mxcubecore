@@ -653,12 +653,6 @@ class AbstractMultiCollect(object):
         # data collection
         self.data_collection_hook(data_collect_parameters)
         
-        if 'resolution' in data_collect_parameters:
-          resolution = data_collect_parameters["resolution"]["upper"]
-          self.set_resolution(resolution)
-        elif 'detdistance' in oscillation_parameters:
-          self.move_detector(oscillation_parameters["detdistance"])
-        
         if 'transmission' in data_collect_parameters:
           self.set_transmission(data_collect_parameters["transmission"])
 
@@ -666,6 +660,12 @@ class AbstractMultiCollect(object):
           self.set_wavelength(data_collect_parameters["wavelength"])
         elif 'energy' in data_collect_parameters:
           self.set_energy(data_collect_parameters["energy"])
+        
+        if 'resolution' in data_collect_parameters:
+          resolution = data_collect_parameters["resolution"]["upper"]
+          self.set_resolution(resolution)
+        elif 'detdistance' in oscillation_parameters:
+          self.move_detector(oscillation_parameters["detdistance"])
           
         self.close_fast_shutter()
 
