@@ -247,7 +247,7 @@ class ISPyBClient2(HardwareObject):
                     res_sessions = self.__collection.service.\
                         findSessionsByCodeAndNumberAndBeamLine(proposal_code,
                                                                proposal_number,
-                                                               os.environ["SMIS_BEAMLINE_NAME"])
+                                                               self.beamline_name)
                     sessions = []
 
                     # Handels a list of sessions
@@ -573,7 +573,7 @@ class ISPyBClient2(HardwareObject):
             try:
                 response_samples = self.__tools_ws.service.\
                     findSampleInfoLightForProposal(proposal_id, 
-                                                   os.environ["SMIS_BEAMLINE_NAME"])
+                                                   self.beamline_name) 
             except WebFault, e:
                 logging.getLogger("ispyb_client").exception(e.message)
             except URLError:
@@ -621,7 +621,7 @@ class ISPyBClient2(HardwareObject):
             try:
                 response_samples = self.__tools_ws.service.\
                     findSampleInfoLightForProposal(proposal_id, 
-                                                   os.environ["SMIS_BEAMLINE_NAME"])
+                                                   self.beamline_name)
 
             except WebFault, e:
                 logging.getLogger("ispyb_client").exception(e.message)
