@@ -72,6 +72,18 @@ class QueueEntryContainer(object):
 
 
     def dequeue(self, queue_entry):
+        """
+        Dequeues the QueueEntry <queue_entry> and returns the
+        dequeued entry.
+
+        Throws ValueError if the queue_entry is not in the queue.
+
+        :param queue_entry: The queue entry to dequeue/remove.
+        :type queue_entry: QueueEntry
+
+        :returns: The dequeued entry.
+        :rtype: QueueEntry
+        """
         result = None
         index = None
         queue_entry.set_queue_controller(None)
@@ -94,6 +106,19 @@ class QueueEntryContainer(object):
 
 
     def swap(self, queue_entry_a, queue_entry_b):
+        """
+        Swaps places between the two queue entries <queue_entry_a> and
+        <queue_entry_b>.
+
+        Throws a ValueError if one of the entries does not exist in the
+        queue.
+
+        :param queue_entry: Queue entry to swap
+        :type queue_entry: QueueEntry
+
+        :param queue_entry: Queue entry to swap
+        :type queue_entry: QueueEntry
+        """
         index_a = None
         index_b = None
         
@@ -783,8 +808,8 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
                 for edna_dc in edna_collections:
                     edna_dc.set_name(characterisation.get_name()[4:])
-                    
-                #     edna_dc.acquisitions[0].acquisition_parameters.\
+
+#     edna_dc.acquisitions[0].acquisition_parameters.\
 #                         centred_position = reference_image_collection.acquisitions[0].\
 #                         acquisition_parameters.centred_position
                                                                                                       
