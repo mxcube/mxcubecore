@@ -13,14 +13,12 @@ EnergyScanQueueEntry are concrete implementations of tasks.
 """
 
 import gevent
-import gevent.event
 import logging
-import ShapeHistory as shape_history
 import time
 import queue_model
 import copy
 import pprint
-
+import os
 
 from queue_model import COLLECTION_ORIGIN
 from queue_model import STRATEGY_COMPLEXITY
@@ -887,8 +885,60 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         result = self.energy_scan_task.get()
         self.energy_scan_hwobj.ready_event.wait()
+        self.energy_scan_hwobj.ready_event.clear()
 
 
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+
+        self.energy_scan_hwobj = self.get_queue_controller().\
+                                 getObjectByRole("energy_scan")
+
+        qc = self.get_queue_controller()
+        
+        qc.connect(self.energy_scan_hwobj, 'scanStatusChanged', 
+                   self.energy_scan_status_changed)
+        
+        qc.connect(self.energy_scan_hwobj, 'energyScanStarted', 
+                   self.energy_scan_started)
+
+        qc.connect(self.energy_scan_hwobj, 'energyScanFinished',
+                   self.energy_scan_finished)
+
+        qc.connect(self.energy_scan_hwobj, 'energyScanFailed',
+                   self.energy_scan_failed)
+                   
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+        qc = self.get_queue_controller()
+
+        qc.disconnect(self.energy_scan_hwobj, 'scanStatusChanged', 
+                      self.energy_scan_status_changed)
+        
+        qc.disconnect(self.energy_scan_hwobj, 'energyScanStarted', 
+                      self.energy_scan_started)
+        
+        qc.disconnect(self.energy_scan_hwobj, 'energyScanFinished',
+                      self.energy_scan_finished)
+
+        qc.disconnect(self.energy_scan_hwobj, 'energyScanFailed',
+                      self.energy_scan_failed)
+        
+        self.get_view().setHighlighted(True)
+        self.get_view().setOn(False)
+
+
+    def energy_scan_status_changed(self, msg):
+        logging.getLogger("user_level_log").info(msg)
+
+
+    def energy_scan_started(self):
+        logging.getLogger("user_level_log").info("Energy scan started.")
+
+
+    def energy_scan_finished(self, scan_info):
+        energy_scan = self.get_data_model()
         scan_file_path = os.path.join(energy_scan.path_template.directory,
                                       energy_scan.path_template.prefix)
 
@@ -918,29 +968,5 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                   sample.energy_scan_result.inflection))
 
 
-    def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-        self.energy_scan_hwobj = self.get_queue_controller().\
-                                 getObjectByRole("energy_scan")
-
-        
-        qc = self.get_queue_controller()
-        
-        qc.connect(self.energy_scan_hwobj, 'scanStatusChanged', 
-                   self.energy_scan_status_changed)
-        
-        qc.connect(self.energy_scan_hwobj, 'energyScanStarted', 
-                   self.energy_scan_started)
-
-
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
-
-        qc.disconnect(self.energy_scan_hwobj, 'scanStatusChanged', 
-                      self.energy_scan_status_changed)
-        
-        qc.disconnect(self.energy_scan_hwobj, 'energyScanStarted', 
-                      self.energy_scan_started)
-        
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
+    def energy_scan_failed(self):
+        logging.getLogger("user_level_log").info("Energy scan failed.")
