@@ -12,6 +12,7 @@ import gevent
 
 class EnergyScan(Equipment):
     def init(self):
+        self.ready_event = gevent.event.Event()
         self.scanning = None
         self.moving = None
         self.energyMotor = None
@@ -218,6 +219,7 @@ class EnergyScan(Equipment):
     def cancelEnergyScan(self, *args):
         if self.scanning:
             self.doEnergyScan.abort()
+            self.ready_event.set()
     def scanCommandReady(self):
         if not self.scanning:
             self.emit('energyScanReady', (True,))
@@ -233,8 +235,10 @@ class EnergyScan(Equipment):
         self.scanning = False
         self.storeEnergyScan()
         self.emit('energyScanFailed', ())
+        self.ready_event.set()
     def scanCommandAborted(self, *args):
-        pass
+        self.emit('energyScanFailed', ())
+        self.ready_event.set()
     def scanCommandFinished(self,result, *args):
         self.scanInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         logging.getLogger("HWR").debug("EnergyScan: energy scan result is %s" % result)
@@ -287,9 +291,9 @@ class EnergyScan(Equipment):
             self.thEdge=float(result['theoreticalEdge'])/1000.0
         except:
             pass
-
+        
         self.emit('energyScanFinished', (self.scanInfo,))
-
+        self.ready_event.set()
 
     def doChooch(self, scanObject, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
         archiveRawScanFile=os.path.extsep.join((scanArchiveFilePrefix, "raw"))
