@@ -889,7 +889,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
 
     def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
+        BaseQueueEntry.pre_execute(self)        
 
         self.energy_scan_hwobj = self.get_queue_controller().\
                                  getObjectByRole("energy_scan")
@@ -945,18 +945,19 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         scan_file_archive_path = os.path.join(queue_model.QueueModelFactory.get_context().\
                                               get_archive_directory(energy_scan.path_template),
                                               energy_scan.path_template.prefix)
-        
+
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-         self.energy_scan_hwobj.doChooch(None, energy_scan.symbol, energy_scan.edge,
+        self.energy_scan_hwobj.doChooch(None, energy_scan.symbol, energy_scan.edge,
                                          scan_file_archive_path, scan_file_path)
 
-        scan_info = self.energy_scan_hwobj.scanInfo
 
+        scan_info = self.energy_scan_hwobj.scanInfo
+        
         # This does not always apply, update model so
         # that its possible to access the sample directly from
         # the EnergyScan object.
-        sample = get_view().parent().parent().get_data()
+        sample = self.get_view().parent().parent().get_model()
         sample.energy_scan_result.peak = float(pk)
         sample.energy_scan_result.inflection = float(ip)
         sample.energy_scan_result.first_remote = float(rm)
