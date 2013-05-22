@@ -299,30 +299,45 @@ class EnergyScan(Equipment):
         archiveRawScanFile=os.path.extsep.join((scanArchiveFilePrefix, "raw"))
         rawScanFile=os.path.extsep.join((scanFilePrefix, "raw"))
         scanFile=os.path.extsep.join((scanFilePrefix, "efs"))
+
         if not os.path.exists(os.path.dirname(scanArchiveFilePrefix)):
-          os.mkdir(os.path.dirname(scanArchiveFilePrefix))
+            os.makedirs(os.path.dirname(scanArchiveFilePrefix))
         
         try:
-          f=open(rawScanFile, "w")
-          pyarch_f=open(archiveRawScanFile, "w")
+            f=open(rawScanFile, "w")
+            pyarch_f=open(archiveRawScanFile, "w")
         except:
-          logging.getLogger("HWR").exception("could not create raw scan files")
-          self.storeEnergyScan()
-          self.emit("energyScanFailed", ())
-          return
+            logging.getLogger("HWR").exception("could not create raw scan files")
+            self.storeEnergyScan()
+            self.emit("energyScanFailed", ())
+            return
         else:
-          scanData = []
-          for i in range(len(scanObject.x)):
-            x = float(scanObject.x[i])
-            x = x < 1000 and x*1000.0 or x 
-            y = float(scanObject.y[i])
-            scanData.append((x, y))
-            f.write("%f,%f\r\n" % (x, y))
-            pyarch_f.write("%f,%f\r\n"% (x, y)) 
-          f.close()
-          pyarch_f.close()
-          self.scanInfo["scanFileFullPath"]=str(archiveRawScanFile)
+            scanData = []
+            
+            if scanObject is None:                
+                raw_data_file = os.path.join(os.path.dirname(scanFilePrefix), 'data.raw')
+                raw_file = open(raw_data_file, 'r')
 
+                for line in raw_file.readlines()[2:]:
+                    (x, y) = line.split('\t')
+                    x = float(x.strip())
+                    y = float(y.strip())
+                    x = x < 1000 and x*1000.0 or x
+                    scanData.append((x, y))
+                    f.write("%f,%f\r\n" % (x, y))
+                    pyarch_f.write("%f,%f\r\n"% (x, y))
+            else:
+                for i in range(len(scanObject.x)):
+                    x = float(scanObject.x[i])
+                    x = x < 1000 and x*1000.0 or x 
+                    y = float(scanObject.y[i])
+                    scanData.append((x, y))
+                    f.write("%f,%f\r\n" % (x, y))
+                    pyarch_f.write("%f,%f\r\n"% (x, y)) 
+
+            f.close()
+            pyarch_f.close()
+            self.scanInfo["scanFileFullPath"]=str(archiveRawScanFile)
 
         pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = PyChooch.calc(scanData, elt, edge, scanFile)
         rm=(pk+30)/1000.0
@@ -331,6 +346,7 @@ class EnergyScan(Equipment):
         ip=ip/1000.0
         comm = ""
         logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
+
         if math.fabs(self.thEdge - ip) > self.thEdgeThreshold:
           pk = 0
           ip = 0
