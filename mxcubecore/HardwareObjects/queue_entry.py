@@ -20,6 +20,11 @@ import copy
 import pprint
 import os
 
+
+import edna_test_data
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+
+
 from queue_model import COLLECTION_ORIGIN
 from queue_model import STRATEGY_COMPLEXITY
 from queue_model import EXPERIMENT_TYPE
@@ -472,7 +477,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         logging.getLogger("user_level_log").info("Collection done")
         
-        if self.shape_history.get_drawing_event_handler():
+        if self.shape_history:
             self.shape_history.get_drawing_event_handler().de_select_all()
 
 
@@ -691,6 +696,41 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
                  view_set_queue_entry = True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+
+        characterisation = self.get_data_model()
+        reference_image_collection = characterisation.\
+                                     reference_image_collection
+        characterisation_parameters = characterisation.\
+                                      characterisation_parameters
+
+        # Enqueue the reference collection and the characterisation
+        # routine.
+        dc_qe = DataCollectionQueueEntry(self.get_view(),
+                                         reference_image_collection,
+                                         view_set_queue_entry = False)
+        dc_qe.set_enabled(True)
+        self.enqueue(dc_qe)
+
+        characterisation_qe = CharacterisationQueueEntry(self.get_view(), characterisation,
+                                                         view_set_queue_entry = False)
+        characterisation_qe.set_enabled(True)
+        self.enqueue(characterisation_qe)
+
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+
+        self.get_view().setHighlighted(True)
+        self.get_view().setOn(False)
+
+
 class CharacterisationQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None, 
                  view_set_queue_entry = True):
@@ -700,130 +740,64 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = None
         self.beamline_config_hwobj = None
         self.edna_result = None
-        self.collect_task = None
-
-        # Reusing the collect policy for collecting reference images.
-        # which is not very elegant, however it is better than re-implementing
-        # the collect sequence. We should consider to implement a characterisation
-        # as two sub-tasks.
-        self._collect_queue_entry = None
 
 
     def execute(self):
         BaseQueueEntry.execute(self)
-       
+        self.get_view().setText(1, "Characterising")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
         characterisation_parameters = characterisation.characterisation_parameters
 
-        if reference_image_collection and not \
-                characterisation.is_executed():
-
-            # Save the current view so that we can restore it after execute
-            # of the DataCollection entry. 
-            
-            temp_view = self.get_view()
-            
-            self._collect_queue_entry = DataCollectionQueueEntry(self.get_view(),
-                                                                 reference_image_collection)
-            self._collect_queue_entry.set_queue_controller(self.get_queue_controller())
-            self._collect_queue_entry.set_enabled(True)
-            # Call execute manually
-            try:
-                self._collect_queue_entry.execute()
-            except:
-                raise
-            finally:
-                # Restore the view
-                self.set_view(temp_view)
-            
-        else:
-            pass
-            # raise Exception("queu_item: Trying to call collect on " + \
-            #                 "collect hw-object without DataCollection object.")
-
-        #reference_image_collection.collected = True        
         edna_xml_output = None
 
         if self.data_analysis_hwobj is not None:
-            logging.getLogger('queue_exec').info("Generating EDNA-input")
+            self.edna_result = self.data_analysis_hwobj.\
+                characterise(XSDataInputMXCuBE.\
+                                 parseString(edna_test_data.EDNA_TEST_DATA))
 
-            path_template = reference_image_collection.\
-                            previous_acquisition.path_template
-
-            self.data_analysis_hwobj.collect_obj = self.collect_hwobj
-            edna_input = self.data_analysis_hwobj.\
-                         from_params(reference_image_collection,
-                                     characterisation_parameters,
-                                     queue_model.QueueModelFactory().get_context().\
-                                     build_image_path(path_template))
-
-            logging.getLogger('queue_exec').info(edna_input)
-
-            try:
-                self.get_view().setText(1, "Characterising")
-                logging.getLogger('queue_exec').\
-                    info('Calling EDNA with input: ' + edna_input.marshal())
-
-                logging.getLogger("user_level_log").\
-                    info("Characterising, please wait.")
-
-                if self.data_analysis_hwobj is not None:
-                    edna_result = self.data_analysis_hwobj.characterise(edna_input)
-            except:
-                logging.exception('Could not start characterisation')
-                logging.getLogger("user_level_log").\
-                    error("Could not start characterisation, please contact local contact")
-                raise
-        else:
-            logging.getLogger("user_level_log").\
-                error("Could not start characterisation, the chracterisation software" + \
-                      " is not running or is not configured correctly.")
-
-        if edna_result:
+        if self.edna_result:
             logging.getLogger("user_level_log").\
                 info("Characterisation successful.")
           
             characterisation.html_report = self.data_analysis_hwobj.\
-                                           get_html_report(edna_result)
+                                           get_html_report(self.edna_result)
             
             collection_plan = None
 
             try:
-                collection_plan = edna_result.getCharacterisationResult().\
+                collection_plan = self.edna_result.getCharacterisationResult().\
                                   getStrategyResult().getCollectionPlan()
             except:
                 pass
 
             if collection_plan:
-                # Really ugly, need to do this in a better way.
-                char_dcg_name = characterisation.get_parent().get_name()
+                dcg_model = characterisation.get_parent()
+
+                char_dcg_name = dcg_model().get_name()
+                # Get only the name portion, and not the number.
                 num = char_dcg_name.split('-')[1]
-
-                dcg_name = 'Diffraction plan'
-                dcg_name = self.get_view().parent().\
-                           parent().get_next_free_name(dcg_name)
-
-                dcg = queue_model.QueueModelFactory.create(queue_model.TaskNode)
-                dcg.set_name(dcg_name)
 
                 sample_data_model = self.get_view().parent().parent().get_model()
 
+                new_dcg_name = 'Diffraction plan'
+                new_dcg_name = self.get_view().parent().\
+                    parent().get_next_free_name(dcg_name)
+
+                new_dcg_model = queue_model.TaskGroup(sample_data_model)
+                new_dcg_model.set_name(dcg_name)
+
                 edna_collections = queue_model.QueueModelFactory.\
-                                   dc_from_edna_output(edna_result,                   
+                                   dc_from_edna_output(self.edna_result,                   
                                                        reference_image_collection,
-                                                       dcg, sample_data_model)
+                                                       new_dcg_model, sample_data_model)
 
                 for edna_dc in edna_collections:
                     edna_dc.set_name(characterisation.get_name()[4:])
 
-#     edna_dc.acquisitions[0].acquisition_parameters.\
-#                         centred_position = reference_image_collection.acquisitions[0].\
-#                         acquisition_parameters.centred_position
-                                                                                                      
-                    
-                self.get_view().listView().parent().add_task_node([dcg], self.get_view().parent().parent(),
-                                                                  set_on = False)
+                self.get_view().listView().parent().\
+                    add_to_queue([new_dcg_model], self.get_view().parent().parent(),
+                                 set_on = False)
 
             else:  
                 logging.getLogger('queue_exec').\
@@ -854,8 +828,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.collect_hwobj = self.get_queue_controller().\
-                             getObjectByRole("collect")
 
         self.data_analysis_hwobj = self.get_queue_controller().\
                                    getObjectByRole("data_analysis")
