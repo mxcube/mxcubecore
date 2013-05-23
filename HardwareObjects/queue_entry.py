@@ -160,12 +160,12 @@ class QueueEntryContainer(object):
 
 
 class BaseQueueEntry(QueueEntryContainer):
-    def __init__(self, view = None, data_model = None):
+    def __init__(self, view = None, data_model = None, view_set_queue_entry = True):
         QueueEntryContainer.__init__(self)
         self._data_model = None
         self._view = None
         self.set_data_model(data_model)
-        self.set_view(view)
+        self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
 
         
@@ -182,10 +182,12 @@ class BaseQueueEntry(QueueEntryContainer):
         return self._data_model
 
 
-    def set_view(self, view):
+    def set_view(self, view, view_set_queue_entry = True):
         if view:
             self._view = view
-            view.set_queue_entry(self)
+
+            if view_set_queue_entry:
+                view.set_queue_entry(self)
 
 
     def get_view(self):
@@ -447,8 +449,11 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
 
 class DataCollectionQueueEntry(BaseQueueEntry):
-    def __init__(self, view = None, data_model = None):
-        BaseQueueEntry.__init__(self, view, data_model)
+    def __init__(self, view = None, data_model = None, 
+                 view_set_queue_entry = True):
+
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+
         self.collect_hwobj = None
         self.diffractometer_hwobj = None
         self.collect_task = None
@@ -681,11 +686,16 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
         
 
+class CharacterisationGroupQueueEntry(BaseQueueEntry):
+    def __init__(self, view = None, data_model = None, 
+                 view_set_queue_entry = True):
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
 class CharacterisationQueueEntry(BaseQueueEntry):
-    def __init__(self, view = None, data_model = None):
-        BaseQueueEntry.__init__(self, view, data_model)
-        self.collect_hwobj = None
+    def __init__(self, view = None, data_model = None, 
+                 view_set_queue_entry = True):
+
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.data_analysis_hwobj = None
         self.diffractometer_hwobj = None
         self.beamline_config_hwobj = None
