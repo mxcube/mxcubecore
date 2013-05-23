@@ -876,6 +876,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         if self.energy_scan_hwobj:
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
+
             self.energy_scan_task = \
                 gevent.spawn(self.energy_scan_hwobj.startEnergyScan,
                              energy_scan.symbol,
@@ -953,20 +954,23 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
 
         scan_info = self.energy_scan_hwobj.scanInfo
-        
+
+
         # This does not always apply, update model so
         # that its possible to access the sample directly from
         # the EnergyScan object.
         sample = self.get_view().parent().parent().get_model()
-        sample.energy_scan_result.peak = float(pk)
-        sample.energy_scan_result.inflection = float(ip)
-        sample.energy_scan_result.first_remote = float(rm)
-        sample.second_remote = float(0)
+        sample.crystals[0].energy_scan_result.peak = float(12)
+        sample.crystals[0].energy_scan_result.inflection = float(13)
+        sample.crystals[0].energy_scan_result.first_remote = float(14)
+        sample.crystals[0].second_remote = float(15)
         
         logging.getLogger("user_level_log").\
-            info("Energy scan, reuslt: peak: %.4f, inflection: %.4f" %
-                 (sample.energy_scan_result.peak,
-                  sample.energy_scan_result.inflection))
+            info("Energy scan, result: peak: %.4f, inflection: %.4f" %
+                 (sample.crystals[0].energy_scan_result.peak,
+                  sample.crystals[0].energy_scan_result.inflection))
+        
+        self.get_view().setText(1, "Done")
 
 
     def energy_scan_failed(self):
