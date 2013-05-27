@@ -72,9 +72,9 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
             self.startJob = self.getCommandObject("startJob")
             self.getJobOutput = self.getCommandObject("getJobOutput")
         except KeyError as ex:
-            loging.getLogger('HWR').exception('Could most likely not connect'+\
-                                              ' to tagno device server' +\
-                                              str(ex))
+            logging.getLogger('HWR').exception('Could most likely not connect'+\
+                                               ' to tagno device server' +\
+                                               str(ex))
 
 
     def success_cb(self, value):
@@ -191,7 +191,6 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
         # Characterisation type - SAD
-
         if queue_model.EXPERIMENT_TYPE[char_params.experiment_type] is queue_model.EXPERIMENT_TYPE.SAD:
             diff_plan.setAnomalousData(XSDataBoolean(True))
         else:
