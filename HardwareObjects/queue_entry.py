@@ -67,11 +67,11 @@ class QueueEntryContainer(object):
             
         queue_entry.set_container(self)
         self._queue_entry_list.append(queue_entry)
-        logging.getLogger('queue_exec').info('Enqueue called with: ' + \
-                                             str(queue_entry))
-        logging.getLogger('queue_exec').info('Queue is :' + \
-                                             str(queue_entry.\
-                                                 get_queue_controller()))
+        #logging.getLogger('queue_exec').info('Enqueue called with: ' + \
+        #                                     str(queue_entry))
+        #logging.getLogger('queue_exec').info('Queue is :' + \
+        #                                     str(queue_entry.\
+        #                                         get_queue_controller()))
 
 
     def dequeue(self, queue_entry):
@@ -149,6 +149,8 @@ class QueueEntryContainer(object):
 
 
     def set_queue_controller(self, queue_controller):
+        """
+        """
         self._queue_controller = queue_controller
 
 
@@ -494,6 +496,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         self.shape_history = self.get_queue_controller().\
                              getObjectByRole("shape_history")
+
+        self.session = self.get_queue_controller().\
+                       getObjectByRole("session")
         
         qc = self.get_queue_controller()
 
@@ -540,8 +545,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def collect_dc(self, data_collection, list_item):
         if self.collect_hwobj:
             param_list = queue_model.\
-                to_collect_dict(data_collection,
-                                queue_model.QueueModelFactory.get_context())
+                to_collect_dict(data_collection, self.session)
 
             try:
                 if data_collection.experiment_type is queue_model.EXPERIMENT_TYPE.HELICAL:
@@ -624,9 +628,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             prefix = path_template.prefix
             directory = path_template.directory
         
-            new_run_number = queue_model.QueueModelFactory.\
-                             get_context().get_free_run_number(prefix,
-                                                           directory)
+            new_run_number = self.session.get_free_run_number(prefix,
+                                                              directory)
 
             acq = data_collection.acquisitions[0]
             data_collection.previous_acquisition = copy.deepcopy(acq)
@@ -787,10 +790,12 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 new_dcg_model = queue_model.TaskGroup(sample_data_model)
                 new_dcg_model.set_name(dcg_name)
 
-                edna_collections = queue_model.QueueModelFactory.\
+                edna_collections = queue_model.\
                                    dc_from_edna_output(self.edna_result,                   
                                                        reference_image_collection,
-                                                       new_dcg_model, sample_data_model)
+                                                       new_dcg_model,
+                                                       sample_data_model,
+                                                       self.session)
 
                 for edna_dc in edna_collections:
                     edna_dc.set_name(characterisation.get_name()[4:])
@@ -925,14 +930,16 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         scan_file_path = os.path.join(energy_scan.path_template.directory,
                                       energy_scan.path_template.prefix)
 
-        scan_file_archive_path = os.path.join(queue_model.QueueModelFactory.get_context().\
-                                              get_archive_directory(energy_scan.path_template),
+        scan_file_archive_path = os.path.join(energy_scan.path_template.\
+                                              get_archive_directory(),
                                               energy_scan.path_template.prefix)
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-        self.energy_scan_hwobj.doChooch(None, energy_scan.symbol, energy_scan.edge,
-                                         scan_file_archive_path, scan_file_path)
+        self.energy_scan_hwobj.doChooch(None, energy_scan.symbol,
+                                        energy_scan.edge,
+                                        scan_file_archive_path,
+                                        scan_file_path)
 
 
         scan_info = self.energy_scan_hwobj.scanInfo

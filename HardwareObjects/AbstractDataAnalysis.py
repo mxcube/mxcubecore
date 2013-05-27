@@ -93,7 +93,8 @@ The resulting EDNA XML can be handled with a function similair to this.
 It has to be adapted to the specific representation of a collection that
 you have.
 """
-def dc_from_edna_output(edna_output, sample, dcg,  char_params = None):
+def dc_from_edna_output(edna_output, sample, dcg, session,
+                        char_params = None):
     data_collections = []
 
     edna_result = XSDataResultMXCuBE.parseString(edna_output)
@@ -136,7 +137,7 @@ def dc_from_edna_output(edna_output, sample, dcg,  char_params = None):
             dc = DataCollection()
             data_collections.append(dc)
 
-            dc.parameters.prefix = QueueModelFactory.get_context().get_prefix(dc.parameters)
+            dc.parameters.prefix = session.get_prefix(dc.parameters)
 
             if run_number:
                 dc.parameters.run_number = run_number
@@ -202,8 +203,7 @@ def dc_from_edna_output(edna_output, sample, dcg,  char_params = None):
 
             dc.sample = sample
 
-            dc.parameters.directory = QueueModelFactory.collect_context.\
-                get_image_directory(sub_dir = dcg.name.lower().replace(' ',''))
+            dc.parameters.directory = session.get_image_directory(sub_dir = dcg.name.lower().replace(' ',''))
 
         if char_params:
             dc.char_params = char_params
