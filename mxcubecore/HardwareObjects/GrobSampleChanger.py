@@ -1,11 +1,8 @@
 """Sample Changer Hardware Object
 """
-from qt import *
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-import time
-import types
-
+import gevent
 
 class GrobSampleChanger(Equipment):
     (FLAG_SC_IN_USE,FLAG_MINIDIFF_CAN_MOVE,FLAG_SC_CAN_LOAD,FLAG_SC_NEVER) = (1,2,4,8)
@@ -18,7 +15,6 @@ class GrobSampleChanger(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        #self.transfer_is_pending = False     
         self._procedure = ""
         self._successCallback = None
         self._failureCallback = None
@@ -33,66 +29,25 @@ class GrobSampleChanger(Equipment):
           basket = int((sample_num-1) / 10)+1
           vial = 1+((sample_num-1) % 10)
           self.matrix_codes.append(("HA%d" % sample_num,  basket, vial, "A%d" % basket, 0))      
+        
+        grob = self.getObjectByRole("grob")
+        self.grob = grob.controller 
+        self.connect(self.grob, "transfer_state", self.sampleChangerStateChanged)
+        self.connect(self.grob, "io_bits", self.ioBitsChanged)
+        self.connect(self.grob, "mounted_sample", self.mountedSampleChanged)
+        self.connect(self.grob, "samples_map", self.samplesMapChanged)
  
-        self.stateChan = self.getChannelObject("state")
-        self.stateChan.connectSignal("update", self.sampleChangerStateChanged)
-        self.ioChan = self.getChannelObject("io_bits")
-        self.ioChan.connectSignal("update", self.ioBitsChanged)
-
-        self.mountedSampleChan = self.getChannelObject("mounted_sample")
-        self.mountedSampleChan.connectSignal("update", self.mountedSampleChanged)
-        self.samplesMapChan = self.getChannelObject("samples_map")
-        self.samplesMapChan.connectSignal("update", self.samplesMapChanged)
-
-        self.mountSampleCmd = self.getCommandObject("mount_sample")
-        self.mountSampleCmd.connectSignal("commandReplyArrived", self.sampleTransferDone)
-        self.mountSampleCmd.connectSignal("connected", self.serverConnected)
-        self.mountSampleCmd.connectSignal("disconnected", self.serverDisconnected)
-        self.unmountSampleCmd = self.getCommandObject("unmount_sample")
-        self.unmountSampleCmd.connectSignal("commandReplyArrived", self.sampleUnmounted)
-        self.unmountMountSampleCmd = self.getCommandObject("unmount_mount_sample")
-        self.unmountMountSampleCmd.connectSignal("commandReplyArrived", self.sampleTransferDone)
-
-        self.prepareTransferCmd = self.getCommandObject("prepare_transfer")
-        self.prepareTransferCmd.connectSignal("commandBeginWaitReply", self._setMovingState)
-        self.prepareTransferCmd.connectSignal("commandReplyArrived", self._readyForTransfer)
-        self.prepareTransferCmd.connectSignal("commandFailed", self._cancelTransfer)
-        self.prepareTransferCmd.connectSignal("connected", self.serverConnected)
-        self.prepareTransferCmd.connectSignal("disconnected", self.serverDisconnected)
-        self.prepareCentringCmd = self.getCommandObject("prepare_centring")
-        self.prepareCentringCmd.connectSignal("commandBeginWaitReply", self._setMovingState)
-        self.prepareCentringCmd.connectSignal("commandReplyArrived",self.centringPrepared)
-        self.prepareCentringCmd.connectSignal("commandFailed", self._cancelTransfer)
-    
-        if self.mountSampleCmd.isConnected():
-          self.serverConnected()
-        else:
-          self.serverDisconnected()
- 
-    def serverDisconnected(self):
-        self.sampleChangerStateChanged("DISABLE")
-
-    def serverConnected(self):
-        if self.prepareTransferCmd.isConnected() and self.mountSampleCmd.isConnected():
-          self.sampleChangerStateChanged(self.getState())
-          self.samplesMapChanged(self.getSamplesMap())
-        else:
-          self.serverDisconnected()
-
     def connectNotify(self, signal):
         logging.info("%s: connectNotify %s", self.name(), signal)
         if signal == "stateChanged":
           self.sampleChangerStateChanged(self.getState())
         elif signal == "loadedSampleChanged":
-          if self.mountedSampleChan.isConnected():
-            self.mountedSampleChanged(self.mountedSampleChan.getValue())
-          else:
-            self.mountedSampleChanged(-1) 
+          self.mountedSampleChanged(self._getLoadedSampleNum())
         elif signal == "samplesMapChanged":
           self.samplesMapChanged(self.getSamplesMap())
 
     def getState(self):
-      return self.stateChan.getValue()
+      return self.grob.transfer_state()
 
     def ioBitsChanged(self, bits):
       bits, output_bits=map(int, bits.split())
@@ -112,8 +67,6 @@ class GrobSampleChanger(Equipment):
       return self.samples_map
 
     def mountedSampleChanged(self, sample_num=None):
-      logging.info("%s: mounted sample is number %d", self.name(), sample_num)
-      
       self.emit("sampleIsLoaded", (sample_num > 0, ))
 
       if sample_num > 0:
@@ -121,7 +74,6 @@ class GrobSampleChanger(Equipment):
         vial = 1+((sample_num-1) % 10)
 
     def sampleChangerStateChanged(self, state):
-      logging.info("%s: sample changer state changed to %s", self.name(), state)
       self.emit("stateChanged", (state,))
 
     def _callSuccessCallback(self):
@@ -138,21 +90,18 @@ class GrobSampleChanger(Equipment):
         except:
            logging.exception("%s: exception while calling failure callback", self.name())
 
-    def sampleUnmounted(self,status):
+    def _sampleTransferDone(self, transfer_greenlet):
+      status = transfer_greenlet.get()
       if status=="READY":
+        self.prepareCentring()
+        self.sampleChangerStateChanged("READY")
         self._callSuccessCallback()
       else:
-        self._callFailureCallback()
-
-    def sampleTransferDone(self, status):
-      if status=="READY":
-        self.prepareCentringCmd()
-      else:
+        self.sampleChangerStateChanged("ERROR")
         self._callFailureCallback() 
 
-    def centringPrepared(self):
-      self.sampleChangerStateChanged("READY")
-      self._callSuccessCallback()
+    def prepareCentring(self):
+      pass
 
     def getLoadedSample(self):
       return self.loaded_sample_dict
@@ -160,34 +109,21 @@ class GrobSampleChanger(Equipment):
     def _setMovingState(self):
       self.sampleChangerStateChanged("MOVING")
 
-    def _readyForTransfer(self):
-      logging.info("ready for transfer, continuing")
-      self.continueTransfer(True)
-
-    def _cancelTransfer(self):
-      self.continueTransfer(False)
-
     def _getLoadedSampleNum(self):
       samples_map = self.getSamplesMap()
       for i in range(30):
         if samples_map[i]=="on_axis":
           return i+1
 
-    def unloadMountedSample(self, successCallback=None, failureCallback=None):
+    def unloadMountedSample(self, holderLength, sample_id = None, sample_location = None, sampleIsUnloadedCallback = None, failureCallback = None):
       self._procedure = "UNLOAD"
 
-      self._successCallback = successCallback
+      self._successCallback = sampleIsUnloadedCallback
       self._failureCallback = failureCallback
 
-      self.prepareTransferCmd()
-
-    def unloadSample(self, holderLength, sample_id = None, sample_location = None, sampleIsUnloadedCallback = None, failureCallback = None):
-       self.unloadMountedSample(sampleIsUnloadedCallback, failureCallback)
+      gevent.spawn(self.continueTransfer, self.prepareTransfer()).link(self._sampleTransferDone)
 
     def loadSample(self, holderLength, sample_id=None, sample_location=None, successCallback=None, failureCallback=None, prepareCentring=None, prepareCentringMotors={}, prepare_centring=None, prepare_centring_motors=None):
-      logging.debug("%s: in loadSample", self.name())
-
-      #self.transfer_is_pending = True
       self._successCallback = successCallback
       self._failureCallback = failureCallback
       self._holderlength = holderLength
@@ -199,7 +135,10 @@ class GrobSampleChanger(Equipment):
       else:
         self._procedure = "LOAD"
       
-      self.prepareTransferCmd()
+      gevent.spawn(self.continueTransfer, self.prepareTransfer()).link(self._sampleTransferDone)
+
+    def prepareTransfer(self):
+      return True
 
     def continueTransfer(self, ok):
       if not ok:
@@ -212,15 +151,16 @@ class GrobSampleChanger(Equipment):
 
       if self._procedure == "LOAD": 
         logging.info("asking robot to load sample %d", sample_num)
-        self.mountSampleCmd(sample_num)       
+        return self.grob.mount(sample_num)       
       elif self._procedure == "UNLOAD_LOAD":
         sample_to_unload_num = self._getLoadedSampleNum()
         logging.info("asking robot to unload sample %d and to load sample %d", sample_to_unload_num, sample_num)
-        self.unmountMountSampleCmd(sample_to_unload_num, sample_num)
+        self.grob.unmount(sample_to_unload_num)
+        return self.grob.mount(sample_num)
       elif self._procedure == "UNLOAD":
         sample_num = self._getLoadedSampleNum()
         logging.info("asking robot to unload sample %d", sample_num)
-        self.unmountSampleCmd(sample_num) 
+        return self.grob.unmount(sample_num) 
    
     def isMicrodiff(self):
       return False
@@ -237,7 +177,7 @@ class GrobSampleChanger(Equipment):
       return (basket, vial)
 
     def getLoadedHolderLength(self):
-      return 22
+      return self._holderlength
 
     def getMatrixCodes(self):
       return self.matrix_codes
@@ -255,3 +195,10 @@ class GrobSampleChanger(Equipment):
               already_loaded=True
 
         return (True, already_loaded)
+
+    def open_dewar(self, callback):
+        gevent.spawn(self.grob.open_dewar).link(callback)
+
+    def close_dewar(self, callback):
+        gevent.spawn(self.grob.close_dewar).link(callback)
+
