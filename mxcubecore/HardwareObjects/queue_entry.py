@@ -15,7 +15,7 @@ EnergyScanQueueEntry are concrete implementations of tasks.
 import gevent
 import logging
 import time
-import queue_model
+import queue_model_objects_v1 as queue_model_objects
 import copy
 import pprint
 import os
@@ -25,11 +25,11 @@ import edna_test_data
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 
-from queue_model import COLLECTION_ORIGIN
-from queue_model import STRATEGY_COMPLEXITY
-from queue_model import EXPERIMENT_TYPE
-from queue_model import STRATEGY_OPTION
-from queue_model import COLLECTION_ORIGIN_STR
+from queue_model_objects_v1 import COLLECTION_ORIGIN
+from queue_model_objects_v1 import STRATEGY_COMPLEXITY
+from queue_model_objects_v1 import EXPERIMENT_TYPE
+from queue_model_objects_v1 import STRATEGY_OPTION
+from queue_model_objects_v1 import COLLECTION_ORIGIN_STR
 
 
 __author__ = "Marcus Oskarsson"
@@ -64,14 +64,14 @@ class QueueEntryContainer(object):
             queue_entry.set_queue_controller(queue_controller)
         else:
             queue_entry.set_queue_controller(self)
-            
+
         queue_entry.set_container(self)
         self._queue_entry_list.append(queue_entry)
-        #logging.getLogger('queue_exec').info('Enqueue called with: ' + \
-        #                                     str(queue_entry))
-        #logging.getLogger('queue_exec').info('Queue is :' + \
-        #                                     str(queue_entry.\
-        #                                         get_queue_controller()))
+        logging.getLogger('queue_exec').info('Enqueue called with: ' + \
+                                             str(queue_entry))
+        logging.getLogger('queue_exec').info('Queue is :' + \
+                                             str(queue_entry.\
+                                                 get_queue_controller()))
 
 
     def dequeue(self, queue_entry):
@@ -150,24 +150,50 @@ class QueueEntryContainer(object):
 
     def set_queue_controller(self, queue_controller):
         """
+        Sets the queue controller, the object that controls execution
+        of this QueueEntryContainer.
+
+        :param queue_controller: The queue controller object.
+        :type queue_controller: QueueController
         """
         self._queue_controller = queue_controller
 
 
     def get_queue_controller(self):
+        """
+        :returns: The queue controller
+        :type queue_controller: QueueController
+        """
         return self._queue_controller
 
 
     def set_container(self, queue_entry_container):
+        """
+        Sets the parent queue entry to <queue_entry_container>
+
+        :param queue_entry_container:
+        :type queue_entry_container: QueueEntryContainer
+        """
+        
         self._parent_container = queue_entry_container
 
 
     def get_container(self):
+        """
+        :returns: The parent QueueEntryContainer.
+        :rtype: QueueEntryContainer
+        """
         return self._parent_container
 
 
 class BaseQueueEntry(QueueEntryContainer):
-    def __init__(self, view = None, data_model = None, view_set_queue_entry = True):
+    """
+    Base class for queue entry objects. Defines the overall
+    interface and behaviour for a queue entry.
+    """
+    
+    def __init__(self, view = None, data_model = None,
+                 view_set_queue_entry = True):
         QueueEntryContainer.__init__(self)
         self._data_model = None
         self._view = None
@@ -175,21 +201,47 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
 
-        
+
     def enqueue(self, queue_entry):
+        """
+        Method inherited from QueueEntryContainer, a derived class
+        should newer need to override this method.
+        """
         QueueEntryContainer.\
             enqueue(self, queue_entry, self.get_queue_controller())
 
 
     def set_data_model(self, data_model):
+        """
+        Sets the model node of this queue entry to <data_model>
+
+        :param data_model: The data model node.
+        :type data_model: TaskNode        
+        """
         self._data_model = data_model
 
 
     def get_data_model(self):
+        """
+        :returns: The data model of this queue entry.
+        :rtype: TaskNode
+        """
         return self._data_model
 
 
     def set_view(self, view, view_set_queue_entry = True):
+        """
+        Sets the view of this queue entry to <view>. Makes the
+        correspodning bi-directional connection if view_set_queue_entry
+        is set to True. Which is normaly case, it can be usefull with
+        'uni-directional' connection in some rare cases.
+
+        :param view: The view to associate with this entry
+        :type view: ViewItem
+
+        :param view_set_queue_entry: Bi- or uni-directional connection to view.
+        :type view_set_queue_entry: bool
+        """
         if view:
             self._view = view
 
@@ -198,33 +250,67 @@ class BaseQueueEntry(QueueEntryContainer):
 
 
     def get_view(self):
+        """
+        :returns the view:
+        :rtype: ViewItem
+        """
         return self._view
 
 
     def is_enabled(self):
+        """
+        :returns: True if this item is enabled.
+        :rtype: bool
+        """
         return self._checked_for_exec
 
 
     def set_enabled(self, state):
+        """
+        Enables or disables this entry, controls wether this item
+        should be executed (enabled) or not (disabled)
+
+        :param state: Enabled if state is True otherwise disabled.
+        :type state: bool
+        """
         self._checked_for_exec = state
 
 
     def execute(self):
+        """
+        Execute method, should be overriden my subclasses, defines
+        the main body of the procedure to be performed when the entry
+        is executed.
+
+        The default executer calls excute on all child entries after this
+        method but before post_execute.     
+        """
         logging.getLogger('queue_exec').\
             info('Calling execute on: ' + str(self))
     
 
     def pre_execute(self):
+        """
+        Procedure to be done before execute.
+        """
         logging.getLogger('queue_exec').\
             info('Calling pre_execute on: ' + str(self))
 
 
     def post_execute(self):
+        """
+        Procedure to be done after execute, and execute of all children of
+        this entry.
+        """
         logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
 
 
     def stop(self):
+        """
+        Stops the execution of this entry, should free external resources,
+        cancel all pending processes and so on.
+        """
         self.get_view().setText(1, 'Stopped')
         logging.getLogger('queue_exec').\
             info('Calling stop on: ' + str(self))
@@ -333,18 +419,18 @@ class SampleQueueEntry(BaseQueueEntry):
                             centring_method = \
                                 self._view.listView().parent().centring_method
 
-                            if centring_method == queue_model.CENTRING_METHOD.MANUAL:
+                            if centring_method == queue_model_objects.CENTRING_METHOD.MANUAL:
                                 logging.getLogger("user_level_log").\
                                     warning("Manual centring used, please center sample")
                                 self.diffractometer_hwobj.start3ClickCentring()
-                            elif centring_method == queue_model.CENTRING_METHOD.LOOP:
+                            elif centring_method == queue_model_objects.CENTRING_METHOD.LOOP:
                                 logging.getLogger("user_level_log").\
                                     info("Centring sample, please wait.")
                                 self.diffractometer_hwobj.\
                                     startAutoCentring(loop_only = True)
                                 logging.getLogger("user_level_log").\
                                     warning("Please save or reject the centring")
-                            elif centring_method == queue_model.CENTRING_METHOD.CRYSTAL:
+                            elif centring_method == queue_model_objects.CENTRING_METHOD.CRYSTAL:
                                 logging.getLogger("user_level_log").\
                                     info("Centring sample, please wait.")
                                 self.diffractometer_hwobj.startAutoCentring()
@@ -417,7 +503,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
                 warning("No centred position selected, using current position.")
 
             pos_dict = self.diffractometer_hwobj.getPositions()
-            cpos = queue_model.CentredPosition(pos_dict)
+            cpos = queue_model_objects.CentredPosition(pos_dict)
             pos = shape_history.Point(None, cpos, None)
 
         if pos:
@@ -544,11 +630,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_dc(self, data_collection, list_item):
         if self.collect_hwobj:
-            param_list = queue_model.\
+            param_list = queue_model_objects.\
                 to_collect_dict(data_collection, self.session)
 
             try:
-                if data_collection.experiment_type is queue_model.EXPERIMENT_TYPE.HELICAL:
+                if data_collection.experiment_type is queue_model_objects.EXPERIMENT_TYPE.HELICAL:
                     self.collect_hwobj.getChannelObject("helical").setValue(1)
 
                     start_cpos = data_collection.acquisitions[0].\
@@ -787,10 +873,10 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 new_dcg_name = self.get_view().parent().\
                     parent().get_next_free_name(dcg_name)
 
-                new_dcg_model = queue_model.TaskGroup(sample_data_model)
+                new_dcg_model = queue_model_objects.TaskGroup(sample_data_model)
                 new_dcg_model.set_name(dcg_name)
 
-                edna_collections = queue_model.\
+                edna_collections = queue_model_objects.\
                                    dc_from_edna_output(self.edna_result,                   
                                                        reference_image_collection,
                                                        new_dcg_model,
@@ -964,3 +1050,12 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
     def energy_scan_failed(self):
         logging.getLogger("user_level_log").info("Energy scan failed.")
+
+
+MODEL_QUEUE_ENTRY_MAPPINGS = \
+    {queue_model_objects.DataCollection: DataCollectionQueueEntry,
+     queue_model_objects.Characterisation: CharacterisationQueueEntry,
+     queue_model_objects.EnergyScan: EnergyScanQueueEntry,
+     queue_model_objects.SampleCentring: SampleCentringQueueEntry,
+     queue_model_objects.Sample: SampleQueueEntry,
+     queue_model_objects.TaskGroup: TaskGroupQueueEntry}
