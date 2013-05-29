@@ -115,7 +115,7 @@ class Session(HardwareObject):
         """
          
         directory = None
-        sample_name = self._sample_name(sample_data_node)
+        sample_name = self._sample_name_path(sample_data_node)
         directory = os.path.join(self.get_base_image_directory(), 
                                  sample_name)
         
@@ -142,7 +142,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         directory = None
-        sample_name = self._sample_name(sample_data_node)
+        sample_name = self._sample_name_path(sample_data_node)
         directory = os.path.join(self.get_base_process_directory(), 
                                  sample_name)
 
@@ -249,35 +249,32 @@ class Session(HardwareObject):
     #     return paths
 
 
-    # UNUSED ?
-    # def add_path_template(self, path_template):
-    #     if path_template.prefix in self._path_template_dict:
-    #         self._path_template_dict[path_template.prefix].\
-    #             append(path_template)
-    #     else:
-    #         self._path_template_dict[path_template.prefix] = []
-    #         self._path_template_dict[path_template.prefix].\
-    #             append(path_template)
+    def add_path_template(self, path_template):
+        if path_template.prefix in self._path_template_dict:
+            self._path_template_dict[path_template.prefix].\
+                append(path_template)
+        else:
+            self._path_template_dict[path_template.prefix] = []
+            self._path_template_dict[path_template.prefix].\
+                append(path_template)
 
 
-    # UNUSED ?
-    # def remove_path_template(self, path_template):
-    #     if path_template.prefix in self._path_template_dict:
-    #         pt_list = self._path_template_dict[path_template.prefix]
-    #         del pt_list[pt_list.index(path_template)]
+    def remove_path_template(self, path_template):
+        if path_template.prefix in self._path_template_dict:
+            pt_list = self._path_template_dict[path_template.prefix]
+            del pt_list[pt_list.index(path_template)]
             
 
-    # UNUSED ?
-    # def get_free_run_number(self, prefix, directory):
-    #     path_template_list = self._path_template_dict.get(prefix,
-    #                                                       [])
-    #     largest = 0
-    #     for path_template in path_template_list:
-    #         if path_template.directory == directory:
-    #             if path_template.run_number > largest:
-    #                 largest = path_template.run_number
+    def get_free_run_number(self, prefix, directory):
+        path_template_list = self._path_template_dict.get(prefix,
+                                                           [])
+        largest = 0
+        for path_template in path_template_list:
+            if path_template.directory == directory:
+                if path_template.run_number > largest:
+                    largest = path_template.run_number
 
-    #     return largest + 1
+        return largest + 1
 
 
     def _sample_name_path(self, sample_data_node):
