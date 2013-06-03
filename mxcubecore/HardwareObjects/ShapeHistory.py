@@ -2,7 +2,7 @@ import logging
 import qtcanvas
 import qt
 import traceback
-import queue_model
+import queue_model_objects_v1 as queue_model_objects
 
 from qt import Qt
 
@@ -390,7 +390,7 @@ class Point(Shape):
         self.qub_point = None
         
         if centred_position is None:
-            self.centred_position = queue_model.CentredPosition()
+            self.centred_position = queue_model_objects.CentredPosition()
             self.centred_position.centring_method = False
         else:
             self.centred_position = centred_position
