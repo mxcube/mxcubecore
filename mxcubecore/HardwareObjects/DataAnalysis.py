@@ -14,7 +14,7 @@ Example XML config. file:
 import logging
 import gevent.event
 import time
-import queue_model
+import queue_model_objects_v1 as queue_model_objects
 
 from AbstractDataAnalysis import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -146,7 +146,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
         diff_plan.setComplexity(XSDataString(\
-                queue_model.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
+                queue_model_objects.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
 
 
         if char_params.use_permitted_rotation:
@@ -191,7 +191,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
         # Characterisation type - SAD
-        if queue_model.EXPERIMENT_TYPE[char_params.experiment_type] is queue_model.EXPERIMENT_TYPE.SAD:
+        if queue_model_objects..EXPERIMENT_TYPE[char_params.experiment_type] is queue_model_objects.EXPERIMENT_TYPE.SAD:
             diff_plan.setAnomalousData(XSDataBoolean(True))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
