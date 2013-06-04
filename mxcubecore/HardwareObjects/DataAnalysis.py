@@ -191,7 +191,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
         # Characterisation type - SAD
-        if queue_model_objects..EXPERIMENT_TYPE[char_params.experiment_type] is queue_model_objects.EXPERIMENT_TYPE.SAD:
+        if queue_model_objects.EXPERIMENT_TYPE[char_params.experiment_type] is queue_model_objects.EXPERIMENT_TYPE.SAD:
             diff_plan.setAnomalousData(XSDataBoolean(True))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
