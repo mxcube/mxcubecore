@@ -22,6 +22,7 @@ class Resolution(BaseHardwareObjects.Equipment):
 	self.getradius = self.getCommandObject("detector_radius")
    	self.detector_diameter_chan = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"detector_radius"}, "MXBCM_PARS/detector_radius")
         self.detector_diameter = 0
+        self.det_radius = 0
         self.beam_centre_channel = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"beam_centre"}, "MXBCM_PARS/beam")   
         self.beam_centre_channel.connectSignal("update", self.beam_centre_updated)
 
@@ -45,6 +46,7 @@ class Resolution(BaseHardwareObjects.Equipment):
               self.wavelengthChanged()     
           else:
             self.connect(self.energy, "positionChanged", self.energyChanged)
+
 
     def beam_centre_updated(self, beam_pos_dict):
         if self.detector_diameter == 0:
@@ -84,6 +86,9 @@ class Resolution(BaseHardwareObjects.Equipment):
             return None
 
     def dist2res(self, dist=None):
+        if not self.det_radius:
+            return
+        
         if dist is None:
             dist = self.dtox.getPosition()
             
