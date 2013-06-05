@@ -103,7 +103,7 @@ class QueueModel(HardwareObject):
             self._re_emit(child_node)
             
 
-    def add_child(self, parent, child):
+    def add_child(self, parent, child, set_on = True):
         """
         Adds the child node <child>. Raises the exception TypeError 
         if child is not of type TaskNode.
@@ -120,7 +120,7 @@ class QueueModel(HardwareObject):
             child._parent = parent
             parent._children.append(child)
             child._set_name(child._name)
-            self.emit('child_added', (parent, child))
+            self.emit('child_added', (parent, child, set_on))
         else:
             raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
 
@@ -171,7 +171,7 @@ class QueueModel(HardwareObject):
             child._parent = parent
 
 
-    def view_created(self, view_item, task_model):
+    def view_created(self, view_item, task_model, set_on):
         """
         Method that should be called by the routne that adds
         the view <view_item> for the model <task_model>
@@ -188,6 +188,7 @@ class QueueModel(HardwareObject):
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
+        view_item.setOn(set_on)
 
         if isinstance(task_model, queue_model_objects.Sample):
             self.queue_controller_hwobj.enqueue(qe)
