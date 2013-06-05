@@ -39,7 +39,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
             else:
                 self.emit(signal, (positionName, pos))
         else:
-            return MicrodiffMotor.MicrodiffMotor.connectNotify(self, signal)
+            return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
 
     def getLimits(self):
         return (1,self.nb)
