@@ -60,6 +60,15 @@ class TaskNode(object):
         self._executed = False
         self._parent = None
         self._names = {}
+        self._enabled = False
+
+
+    def is_enabled(self):
+        return self._enabled
+
+
+    def set_enabled(self, state):
+        self._enabled = state
 
 
     def get_children(self):
