@@ -697,8 +697,11 @@ class SampleChanger(Equipment):
                 
         logging.getLogger("HWR").debug("%s: unloading position reached", self.name())
 
-        self.executeJavaDeviceServerTask("UnLoadSample")
-             
+        try:
+          self.executeJavaDeviceServerTask("UnLoadSample")
+        except:
+          pass
+     
         self.unlockMinidiffMotors(wait=True)
 
         #logging.getLogger("HWR").debug("%s: sample is %s", self.name(), self.sampleIsLoaded() and "loaded" or "unloaded")
