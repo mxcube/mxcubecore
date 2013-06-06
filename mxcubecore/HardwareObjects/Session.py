@@ -115,9 +115,9 @@ class Session(HardwareObject):
         """
          
         directory = None
-        sample_name = self._sample_name_path(sample_data_node)
-        directory = os.path.join(self.get_base_image_directory(), 
-                                 sample_name)
+        #sample_name = self._sample_name_path(sample_data_node)
+        directory = os.path.join(self.get_base_image_directory())#, 
+        #                         sample_name)
         
         if sub_dir:
             directory = os.path.join(directory, sub_dir)
@@ -142,9 +142,9 @@ class Session(HardwareObject):
         :rtype: str
         """
         directory = None
-        sample_name = self._sample_name_path(sample_data_node)
-        directory = os.path.join(self.get_base_process_directory(), 
-                                 sample_name)
+        #sample_name = self._sample_name_path(sample_data_node)
+        directory = os.path.join(self.get_base_process_directory())#, 
+        #sample_name)
 
         if sub_dir:
             directory = os.path.join(directory, sub_dir)
@@ -172,13 +172,8 @@ class Session(HardwareObject):
             proposal = "local-user"
         
         if sample_data_node.has_lims_data():
-            if type_str is  '':
-                prefix = sample_data_node.crystals[0].protein_acronym + \
-                    '-' + sample_data_node.name     
-            else:
-                prefix = type_str + '-' + sample_data_node.\
-                    crystals[0].protein_acronym + '-' + sample_data_node.name
-
+            prefix = sample_data_node.crystals[0].protein_acronym + \
+                '-' + sample_data_node.name     
         else:
             prefix = proposal
             
