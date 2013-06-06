@@ -97,27 +97,25 @@ class Session(HardwareObject):
                             'PROCESSED_DATA')
 
 
-    def get_image_directory(self, sample_data_node, sub_dir = None):
+    def get_image_directory(self, data_node):
         """
-        Returns the full path to images, using sample data such as protein
-        acronym and sample name as components in the path.
+        Returns the full path to images, using the name of each of
+        data_nodes parents as sub directories.
 
-        :param sample_data_node: The sample data node to get additional
-                                 information from, (which will be added
-                                 to the path).
-        :type sample_data_node: Sample
-
-        :param sub_dir: Aditional sub dir to append to the final path.
-        :type sub_dir: str
+        :param data_node: The data node to get additional
+                          information from, (which will be added
+                          to the path). 
+        :type data_node: TaskNode
 
         :returns: The full path to images.
         :rtype: str
         """
-         
-        directory = None
-        #sample_name = self._sample_name_path(sample_data_node)
-        directory = os.path.join(self.get_base_image_directory())#, 
-        #                         sample_name)
+
+        sub_dir = data_node.get_full_name()[0:-1]
+        sub_dir.reverse()
+        sub_dir = os.path.join(*sub_dir)
+        sub_dir = sub_dir.lower().replace(' ','').replace(':','-')
+        directory = self.get_base_image_directory()
         
         if sub_dir:
             directory = os.path.join(directory, sub_dir)
@@ -125,27 +123,25 @@ class Session(HardwareObject):
         return directory
 
 
-    def get_process_directory(self, sample_data_node, sub_dir = None):
+    def get_process_directory(self, data_node, sub_dir = None):
         """
-        Returns the full path to processed data, using sample data such
-        as protein acronym and sample name as components in the path.
+        Returns the full path to processed data, using the name of each of
+        data_nodes parents as sub directories.
 
-        :param sample_data_node: The sample data node to get additional
-                                 information from, (which will be added
-                                 to the path).
-        :type sample_data_node: Sample
-
-        :param sub_dir: Aditional sub dir to append to the final path.
-        :type sub_dir: str
+        :param data_node: The data node to get additional
+                          information from, (which will be added
+                          to the path). 
+        :type data_node: TaskNode
 
         :returns: The full path to images.
-        :rtype: str
         """
-        directory = None
-        #sample_name = self._sample_name_path(sample_data_node)
-        directory = os.path.join(self.get_base_process_directory())#, 
-        #sample_name)
 
+        sub_dir = data_node.get_full_name()[0:-1]
+        sub_dir.reverse()
+        sub_dir = os.path.join(*sub_dir)
+        sub_dir = sub_dir.lower().replace(' ','').replace(':','-')
+        directory = self.get_base_image_directory()
+       
         if sub_dir:
             directory = os.path.join(directory, sub_dir)
 
@@ -157,7 +153,7 @@ class Session(HardwareObject):
         Returns the default prefix, using sample data such as the acronym
         as parts in the prefix.
 
-        :param sample_data_node: The sample data node to get additional
+        :param sample_data_node: The data node to get additional
                                  information from, (which will be added
                                  to the prefix).
         :type sample_data_node: Sample
