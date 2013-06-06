@@ -365,8 +365,8 @@ class DataCollection(TaskNode):
                 'snapshot': self.acquisitions[0].acquisition_parameters.centred_position.snapshot_image}
 
 
-    def rename(self, name):
-        self._name = name
+    def get_name(self):
+        return '%s_%i' % (self._name, self._number)
 
         
     def is_collected(self):
@@ -457,6 +457,10 @@ class Characterisation(TaskNode):
         
         self.html_report = None
         self.characterisation_software = None
+
+
+   def get_name(self):
+       return '%s_%i' % (self._name, self._number)
 
 
    def get_run_number(self):
