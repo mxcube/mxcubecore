@@ -101,6 +101,19 @@ class TaskNode(object):
         return '%s - %i' % (self._name, self._number)
 
 
+    def get_full_name(self):
+        name_list = [self.get_name()]
+        parent = self._parent
+        root = self
+
+        while(parent):
+            name_list.append(parent.get_name())
+            root = parent
+            parent = parent._parent
+
+        return name_list
+
+
     def get_run_number(self):
         return None
 
@@ -153,6 +166,7 @@ class TaskNode(object):
 
 class RootNode(TaskNode):
     def __init__(self):
+        self._name = 'root'
         TaskNode.__init__(self)
 
 
