@@ -166,8 +166,8 @@ class TaskNode(object):
 
 class RootNode(TaskNode):
     def __init__(self):
-        self._name = 'root'
         TaskNode.__init__(self)
+        self._name = 'root'
 
 
 class TaskGroup(TaskNode):
@@ -557,14 +557,14 @@ class EnergyScan(TaskNode):
         self.edge = None
 
         if not sample:
-            self.sample = sample
+            self.sample = Sample()
         else:
-            self.sampel = Sample()
+            self.sampel = sample
             
         if not path_template:
-            self.path_template = path_template
-        else:
             self.path_template = PathTemplate()
+        else:
+            self.path_template = path_template
         
         self.result = EnergyScanResult()
 
@@ -682,9 +682,9 @@ class PathTemplate(object):
         template = "%s_%s_%%" + self.precision + "d.%s"
 
         if suffix:
-            file_name = template % (self.prefix, self.run_number, suffix)
+            file_name = template % (self.get_prefix(), self.run_number, suffix)
         else:
-            file_name = template % (self.prefix, self.run_number, self.suffix)
+            file_name = template % (self.get_prefix(), self.run_number, self.suffix)
 
         return file_name
 
