@@ -60,7 +60,7 @@ class TaskNode(object):
         self._executed = False
         self._parent = None
         self._names = {}
-        self._enabled = False
+        self._enabled = True
 
 
     def is_enabled(self):
