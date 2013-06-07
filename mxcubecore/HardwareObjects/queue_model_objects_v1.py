@@ -617,7 +617,7 @@ class Acquisition(object):
         self.acquisition_parameters = AcquisitionParameters()
 
 
-    def get_preview_image_paths(self, acquisition):
+    def get_preview_image_paths(self):
         """
         Returns the full paths, including the filename, to preview/thumbnail
         images stored in the archive directory.
