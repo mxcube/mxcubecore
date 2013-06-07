@@ -166,8 +166,8 @@ class TaskNode(object):
 
 class RootNode(TaskNode):
     def __init__(self):
-        self._name = 'root'
         TaskNode.__init__(self)
+        self._name = 'root'
 
 
 class TaskGroup(TaskNode):
@@ -365,8 +365,8 @@ class DataCollection(TaskNode):
                 'snapshot': self.acquisitions[0].acquisition_parameters.centred_position.snapshot_image}
 
 
-    def rename(self, name):
-        self._name = name
+    def get_name(self):
+        return '%s_%i' % (self._name, self._number)
 
         
     def is_collected(self):
@@ -457,6 +457,10 @@ class Characterisation(TaskNode):
         
         self.html_report = None
         self.characterisation_software = None
+
+
+   def get_name(self):
+       return '%s_%i' % (self._name, self._number)
 
 
    def get_run_number(self):
@@ -553,14 +557,14 @@ class EnergyScan(TaskNode):
         self.edge = None
 
         if not sample:
-            self.sample = sample
+            self.sample = Sample()
         else:
-            self.sampel = Sample()
+            self.sampel = sample
             
         if not path_template:
-            self.path_template = path_template
-        else:
             self.path_template = PathTemplate()
+        else:
+            self.path_template = path_template
         
         self.result = EnergyScanResult()
 
@@ -678,9 +682,9 @@ class PathTemplate(object):
         template = "%s_%s_%%" + self.precision + "d.%s"
 
         if suffix:
-            file_name = template % (self.prefix, self.run_number, suffix)
+            file_name = template % (self.get_prefix(), self.run_number, suffix)
         else:
-            file_name = template % (self.prefix, self.run_number, self.suffix)
+            file_name = template % (self.get_prefix(), self.run_number, self.suffix)
 
         return file_name
 
