@@ -634,8 +634,8 @@ class Acquisition(object):
                        self.acquisition_parameters.num_images + \
                        self.acquisition_parameters.first_image):
 
-            path = os.path.join(selfpath_template.get_archive_directory(),
-                                acquisition.path_template.get_image_file_name(\
+            path = os.path.join(self.path_template.get_archive_directory(),
+                                self.path_template.get_image_file_name(\
                                     suffix = 'thumb.jpeg') % i)
 
             paths.append(path)
