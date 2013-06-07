@@ -699,8 +699,9 @@ class PathTemplate(object):
         :rtype: str
         """
         folders = self.directory.split('/')
+        endstation_name = folders[2]
         folders[2] = 'pyarch'
-        folders[3] = self.endstation_name
+        folders[3] = endstation_name
         archive_directory = '/' +os.path.join(*folders[1:])
 
         return archive_directory
