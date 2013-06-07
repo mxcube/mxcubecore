@@ -552,6 +552,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.collect_task = None
         self.beamline_config_hwobj = None
         self.shape_history = None
+        self.sesison = None
 
 
     def execute(self):

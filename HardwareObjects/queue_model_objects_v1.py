@@ -60,7 +60,7 @@ class TaskNode(object):
         self._executed = False
         self._parent = None
         self._names = {}
-        self._enabled = False
+        self._enabled = True
 
 
     def is_enabled(self):
@@ -621,7 +621,7 @@ class Acquisition(object):
         self.acquisition_parameters = AcquisitionParameters()
 
 
-    def get_preview_image_paths(self, acquisition):
+    def get_preview_image_paths(self):
         """
         Returns the full paths, including the filename, to preview/thumbnail
         images stored in the archive directory.
@@ -638,8 +638,8 @@ class Acquisition(object):
                        self.acquisition_parameters.num_images + \
                        self.acquisition_parameters.first_image):
 
-            path = os.path.join(selfpath_template.get_archive_directory(),
-                                acquisition.path_template.get_image_file_name(\
+            path = os.path.join(self.path_template.get_archive_directory(),
+                                self.path_template.get_image_file_name(\
                                     suffix = 'thumb.jpeg') % i)
 
             paths.append(path)
@@ -703,8 +703,9 @@ class PathTemplate(object):
         :rtype: str
         """
         folders = self.directory.split('/')
+        endstation_name = folders[2]
         folders[2] = 'pyarch'
-        folders[3] = self.endstation_name
+        folders[3] = endstation_name
         archive_directory = '/' +os.path.join(*folders[1:])
 
         return archive_directory
