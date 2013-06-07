@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<beamline_pars>
+<object class="BeamlineConfiguration" role="BeamlineConfiguration">
   <COLLECT_PARS>
     <escan_dir>/data/id14eh4/inhouse/opid144/20120904/RAW_DATA</escan_dir>
     <escan_prefix>opid144</escan_prefix>
@@ -54,7 +54,7 @@
       <device_uri>//aries/id/id/14</device_uri>
       <gap_index>2</gap_index>
     </undulator>
-     <undulator>
+    <undulator>
       <type>u24</type>
       <device_uri>//aries/id/id/14</device_uri>
       <gap_index>4</gap_index>
@@ -82,10 +82,10 @@
     <minimum_phi_oscillation>0.01</minimum_phi_oscillation>
     <maximum_phi_speed>100</maximum_phi_speed>
     <maximum_radiation_exposure>200</maximum_radiation_exposure>
-    <tunable_wavelength>False</tunable_wavelength>
+    <tunable_wavelength>True</tunable_wavelength>
     <hutch>id14eh1</hutch>
   </BCM_PARS>
- <VALIDATE_PARS>
+  <VALIDATE_PARS>
     <exposure_time>0.05,100</exposure_time>
     <start_angle>-1000,1000</start_angle>
     <range>0.0,10</range>
@@ -94,17 +94,17 @@
     <run_number>0,10000</run_number>
     <overlap>-90,0.99</overlap>
     <number_of_images>1,10000</number_of_images>
- </VALIDATE_PARS>
- <EXTRAVALIDATE_PARS>
+  </VALIDATE_PARS>
+  <EXTRAVALIDATE_PARS>
     <rotation_speed>0.01,100</rotation_speed>
- </EXTRAVALIDATE_PARS>
- <INHOUSE_USERS>
-   <proposal>
-     <code>opid</code>
-     <number>141</number>
-   </proposal>
-   <proposal>
-     <code>mxihr</code>
-   </proposal>
- </INHOUSE_USERS>
-</beamline_pars>
+  </EXTRAVALIDATE_PARS>
+  <INHOUSE_USERS>
+    <proposal>
+      <code>opid</code>
+      <number>141</number>
+    </proposal>
+    <proposal>
+      <code>mxihr</code>
+    </proposal>
+  </INHOUSE_USERS>
+</object>

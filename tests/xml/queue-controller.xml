@@ -1,4 +1,4 @@
-<object class = "QueueController" role = "QueueController">
+<object class="QueueController" role="QueueController">
   <object href="/sc" role="sample_changer"/>    
   <object href="/minidiff" role="diffractometer"/>
   <object href="/energyscan" role="energy"/>
