@@ -654,7 +654,7 @@ class PathTemplate(object):
         self.directory = str()
         self.process_directory = str()
 
-        self.prefix = str()
+        #self.prefix = str()
         self.base_prefix = str()
         self.mad_prefix = str()
         self.reference_image_prefix = str()
