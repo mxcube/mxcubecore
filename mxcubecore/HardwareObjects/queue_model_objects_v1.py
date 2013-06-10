@@ -36,6 +36,10 @@ EDNA_NUM_REF_IMAGES = EDNARefImages(0, 1, 2, 3)
 CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'CRYSTAL'])
 CENTRING_METHOD = CentringMethod(0, 1, 2)
 
+WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
+WORKFLOW_TYPE = WorkflowType(0, 1, 2)
+
+
 logger = logging.getLogger('queue_model')
 try:
     formatter = \
@@ -99,6 +103,17 @@ class TaskNode(object):
         
     def get_name(self):
         return '%s - %i' % (self._name, self._number)
+
+
+    def get_next_number_for_name(self, name):
+        num = self._names.get(name)
+
+        if num:
+            num += 1
+        else:
+            num = 1
+
+        return num
 
 
     def get_full_name(self):
@@ -818,6 +833,21 @@ class CentredPosition(object):
                     'phiz': str(self.phiz),
                     'phiy': str(self.phiy),
                     'zoom': str(self.zoom)})
+
+
+class Workflow(TaskNode):    
+    def __init__(self):
+        TaskNode.__init__(self)
+        self.path_template = PathTemplate()
+        self._type = int()
+
+
+    def set_type(self, workflow_type):
+        self._type = workflow_type
+
+
+    def get_type(self):
+        return self._type
 
 
 #

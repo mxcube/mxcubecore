@@ -1053,10 +1053,17 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Energy scan failed.")
 
 
+class GenericWorkflowQueueEntry(BaseQueueEntry):
+    def __init__(self, view = None, data_model = None):
+        BaseQueueEntry.__init__(self, view, data_model)
+
+
+
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
      queue_model_objects.Characterisation: CharacterisationQueueEntry,
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
-     queue_model_objects.TaskGroup: TaskGroupQueueEntry}
+     queue_model_objects.TaskGroup: TaskGroupQueueEntry,
+     queue_model_objects.Workflow: GenericWorkflowQueueEntry}
