@@ -16,8 +16,6 @@ import gevent
 import queue_entry
 import socket
 import jsonpickle
-import queue_model
-
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from queue_entry import QueueEntryContainer
