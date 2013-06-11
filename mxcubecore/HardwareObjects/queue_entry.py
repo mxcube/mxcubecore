@@ -953,10 +953,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
             self.energy_scan_task = \
                 gevent.spawn(self.energy_scan_hwobj.startEnergyScan,
-                             energy_scan.symbol,
+                             energy_scan.element_symbol,
                              energy_scan.edge,
                              energy_scan.path_template.directory,
-                             energy_scan.path_template.prefix)
+                             energy_scan.path_template.get_prefix())
 
         result = self.energy_scan_task.get()
         self.energy_scan_hwobj.ready_event.wait()
@@ -1015,15 +1015,15 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def energy_scan_finished(self, scan_info):
         energy_scan = self.get_data_model()
         scan_file_path = os.path.join(energy_scan.path_template.directory,
-                                      energy_scan.path_template.prefix)
+                                      energy_scan.path_template.get_prefix())
 
         scan_file_archive_path = os.path.join(energy_scan.path_template.\
                                               get_archive_directory(),
-                                              energy_scan.path_template.prefix)
+                                              energy_scan.path_template.get_prefix())
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-        self.energy_scan_hwobj.doChooch(None, energy_scan.symbol,
+        self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
                                         energy_scan.edge,
                                         scan_file_archive_path,
                                         scan_file_path)
@@ -1036,10 +1036,12 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         # that its possible to access the sample directly from
         # the EnergyScan object.
         sample = self.get_view().parent().parent().get_model()
-        sample.crystals[0].energy_scan_result.peak = float(12)
-        sample.crystals[0].energy_scan_result.inflection = float(13)
-        sample.crystals[0].energy_scan_result.first_remote = float(14)
-        sample.crystals[0].second_remote = float(15)
+        sample.crystals[0].energy_scan_result.peak = pk
+        sample.crystals[0].energy_scan_result.inflection = ip
+        sample.crystals[0].energy_scan_result.first_remote = rm
+        sample.crystals[0].second_remote = None
+
+        energy_scan.result = sample.crystals[0].energy_scan_result
         
         logging.getLogger("user_level_log").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
