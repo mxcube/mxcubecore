@@ -1,9 +1,9 @@
-<object class="ISPyBClient2">
+<object class="ISPyBClient2Mockup">
   <ws_root>
     http://ispyb.esrf.fr:8080/ispyb-ejb3/ispybWS/
   </ws_root>
 
-  <beamline_name>ID:OSCARSSON</beamline_name>
+  <beamline_name>ID:TEST</beamline_name>
 
   <proposals>
     <proposal>
@@ -15,8 +15,8 @@
 
   <inhouse>
     <proposal>
-      <code>opid</code>
-      <number>231</number>
+      <code>idtest</code>
+      <number>000</number>
     </proposal>
   </inhouse>
 </object>

@@ -3,6 +3,8 @@
     8000
   </port>
 
+  <object href="/queue-controller" role="queue_controller"/>
+  <object href="/queue-model" role="queue_model"/>
   <object href="/minidiff" role="diffractometer"/>
   <object href="/mxlocal" role="beamline_configuration"/>
 </object>

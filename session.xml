@@ -5,15 +5,15 @@
     
   <inhouse_users>
     <proposal>
-      <code>opid</code>
-      <number>141</number>
+      <code>idtest</code>
+      <number>000</number>
     </proposal>
     <proposal>
       <code>mxihr</code>
     </proposal>
   </inhouse_users>
 
-  <endstation_name>id14eh1</endstation_name>
+  <endstation_name>id-test-eh1</endstation_name>
 
   <file_info>
     <file_suffix>img</file_suffix>
