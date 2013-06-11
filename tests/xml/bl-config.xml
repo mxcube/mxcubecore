@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<beamline_pars>
+<object class="BeamlineConfiguration" role="BeamlineConfiguration">
   <COLLECT_PARS>
     <escan_dir>/data/id23eh1/inhouse/opid231/20120504/RAW_DATA</escan_dir>
     <escan_prefix>opid231</escan_prefix>
@@ -102,11 +102,11 @@
    <proposal>
      <code>mxihr</code>
    </proposal>
- </INHOUSE_USERS>
- <FASTCENTRING_PARS>
+  </INHOUSE_USERS>
+  <FASTCENTRING_PARS>
     <enable>False</enable>
     <light_factor>4.25</light_factor> 
     <nb_of_images>7</nb_of_images>
     <angle_between_images>45</angle_between_images>
- </FASTCENTRING_PARS>
-</beamline_pars>
+  </FASTCENTRING_PARS>
+</object>
