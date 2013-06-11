@@ -67,11 +67,11 @@ class QueueEntryContainer(object):
 
         queue_entry.set_container(self)
         self._queue_entry_list.append(queue_entry)
-        logging.getLogger('queue_exec').info('Enqueue called with: ' + \
-                                             str(queue_entry))
-        logging.getLogger('queue_exec').info('Queue is :' + \
-                                             str(queue_entry.\
-                                                 get_queue_controller()))
+        #logging.getLogger('queue_exec').info('Enqueue called with: ' + \
+        #                                     str(queue_entry))
+        #logging.getLogger('queue_exec').info('Queue is :' + \
+        #                                     str(queue_entry.\
+        #                                         get_queue_controller()))
 
 
     def dequeue(self, queue_entry):
@@ -559,7 +559,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         data_collection = self.get_data_model()
         
-        if data_collection:
+        if data_collection and self.collect_hwobj:
             self.collect_dc(data_collection, self.get_view())
         else:
             pass
