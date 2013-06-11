@@ -132,12 +132,37 @@ class QueueModel(HardwareObject):
 
 
     def add_child_at_id(self, _id, child):
+        """
+        Adds a child <child> at the node with the node id <_id>
+
+        :param _id: The id of the parent node.
+        :type _id: int
+
+        :param child: The child node to add.
+        :type child: TaskNode
+
+        :returns: The id of the child.
+        :rtype: int
+        
+        """
         parent = self.get_node(_id)
         self.add_child(parent, child)
         return child._node_id
 
 
     def get_node(self, _id, parent = None):
+        """
+        Retrieves the node with the node id <_id>
+
+        :param _id: The id of the node to retrieve.
+        :type _id: int
+
+        :param parent: parent node to search in.
+        :type parent: TaskNode
+
+        :returns: The node with the id <_id>
+        :rtype: TaskNode
+        """
         if parent is None:
             parent = self._selected_model 
         
