@@ -65,7 +65,8 @@ class TaskNode(object):
         self._parent = None
         self._names = {}
         self._enabled = True
-
+        self._node_id = None
+        
 
     def is_enabled(self):
         return self._enabled
@@ -183,6 +184,7 @@ class RootNode(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
         self._name = 'root'
+        self._total_node_count = 0
 
 
 class TaskGroup(TaskNode):
