@@ -16,7 +16,7 @@ import gevent
 import queue_entry
 import socket
 import jsonpickle
-import queue_model
+import queue_model_objects_v1
 
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -37,12 +37,14 @@ __status__ = "Draft"
 class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+        self.queue_model_hwobj = None
+        self.queue_controller_hwobj = None
 
 
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
-        """
+        """        
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
         self._server = SimpleXMLRPCServer((socket.gethostname(), int(self.port)),
@@ -51,10 +53,15 @@ class XMLRPCServer(HardwareObject):
         self._server.register_introspection_functions()
         self._server.register_function(self.add_to_queue)
         self._server.register_function(self.start_queue)
-        self._server.register_function(self.log_message)          
+        self._server.register_function(self.log_message)
+        self._server.register_function(self.model_add_child)
+        self._server.register_function(self.model_get_node)
+        self._server.register_function(self.is_queue_executing)          
 
+        self.queue_model_hwobj = self.getObjectByRole("queue_model")
+        self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-        
+
 
     def add_to_queue(self, json_task_node, set_on = True):
         """
@@ -74,12 +81,14 @@ class XMLRPCServer(HardwareObject):
         :returns: True on success otherwise False
         :rtype: bool
         """
+
         
         # The exception is re raised so that it will
         # be sent to the client.
         try:
             task = jsonpickle.decode(json_task_node)
             self.emit('add_to_queue', (task, None, set_on))
+            
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
@@ -131,5 +140,60 @@ class XMLRPCServer(HardwareObject):
             status = False
       
         return status
+
+
+    def model_add_child(self, parent_id, child):
+        """
+        Adds the model node <child> to parent_id.
+
+        :param parent_id: The id of the parent.
+        :type parent_id: int
+
+        :param child: The TaskNode object to add.
+        :type child: TaskNode
+
+        :returns: The id of the added TaskNode object.
+        :rtype: int
+        """
         
+        task = jsonpickle.decode(child)
+
+        try:
+            node_id = self.queue_model_hwobj.add_child_at_id(parent_id, task)
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return node_id
+
+
+    def model_get_node(self, node_id):
+        """
+        :returns the TaskNode object with the node id <node_id>
+        :rtype: TaskNode
+        """
+        
+        try:
+            node = self.queue_model_hwobj.get_node(node_id)
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return jsonpickle.encode(node)
+
+
+    def is_queue_executing(self):
+        """
+        :returns: True if the queue is executing otherwise False
+        :rtype: bool
+        """
+        try:
+            return self.queue_controller_hwobj.is_executing() 
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        
+        
+        
+
     
