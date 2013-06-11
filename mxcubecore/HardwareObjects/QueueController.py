@@ -58,6 +58,7 @@ class QueueController(HardwareObject, QueueEntryContainer):
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
         self._current_queue_entry = None
+        self._running = False
 
 
     def enqueue(self, queue_entry):
@@ -81,7 +82,17 @@ class QueueController(HardwareObject, QueueEntryContainer):
         self._root_task = gevent.spawn(self.__execute_task)
 
 
+    def is_executing(self):
+        """
+        :returns: True if the queue is executing otherwise False
+        :rtype: bool
+        """
+        return self._running
+
+
     def __execute_task(self):
+        self._running = True
+        
         for queue_entry in self._queue_entry_list:
             try:
                 self.__execute_entry(queue_entry)
@@ -94,7 +105,9 @@ class QueueController(HardwareObject, QueueEntryContainer):
                 logging.getLogger('user_level_log').error('Error executing ' +\
                                                           'queue' + ex.message)
                 raise ex
-        
+            finally:
+                self._running = False
+
         self.emit('queue_execution_finished', (None,))
  
 
