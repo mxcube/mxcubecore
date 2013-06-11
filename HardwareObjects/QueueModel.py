@@ -19,8 +19,12 @@ class QueueModel(HardwareObject):
         HardwareObject.__init__(self, name)
         
         ispyb_model = queue_model_objects.RootNode()
+        ispyb_model._node_id = 0
+        free_pin_model = queue_model_objects.RootNode()
+        free_pin_model._node_id = 0
+        
         self._models = {'ispyb': ispyb_model,
-                        'free-pin': queue_model_objects.RootNode()}
+                        'free-pin': free_pin_model}
 
         self._selected_model = ispyb_model
 
@@ -117,13 +121,35 @@ class QueueModel(HardwareObject):
         :rtype: None
         """
         if isinstance(child, queue_model_objects.TaskNode):
+            self._selected_model._total_node_count += 1
             child._parent = parent
+            child._node_id = self._selected_model._total_node_count
             parent._children.append(child)
             child._set_name(child._name)
             self.emit('child_added', (parent, child))
         else:
             raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
 
+
+    def add_child_at_id(self, _id, child):
+        parent = self.get_node(_id)
+        self.add_child(parent, child)
+        return child._node_id
+
+
+    def get_node(self, _id, parent = None):
+        if parent is None:
+            parent = self._selected_model 
+        
+        for node in parent._children:
+            if node._node_id is _id:
+                return node
+            else:
+                result = self.get_node(_id, node)
+                
+                if result:
+                    return result
+                
 
     def del_child(self, parent, child):
         """
