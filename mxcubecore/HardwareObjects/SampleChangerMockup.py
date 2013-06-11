@@ -67,3 +67,23 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
 
     def abort(self):
         return True
+
+
+    def isMicrodiff(self):
+        return False
+
+
+    def getStatus(self):
+        return 'READY'
+
+
+    def getState(self):
+        return 'READY'
+
+
+    def sampleChangerInUse(self):
+        return False
+
+
+    def sampleChangerCanLoad(self):
+        return True
