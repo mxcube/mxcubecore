@@ -115,7 +115,7 @@ class GrobSampleChanger(Equipment):
         if samples_map[i]=="on_axis":
           return i+1
 
-    def unloadMountedSample(self, holderLength, sample_id = None, sample_location = None, sampleIsUnloadedCallback = None, failureCallback = None):
+    def unloadMountedSample(self, holderLength=None, sample_id = None, sample_location = None, sampleIsUnloadedCallback = None, failureCallback = None):
       self._procedure = "UNLOAD"
 
       self._successCallback = sampleIsUnloadedCallback
