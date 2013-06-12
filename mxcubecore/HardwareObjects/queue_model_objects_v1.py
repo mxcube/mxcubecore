@@ -4,7 +4,6 @@
 import pprint
 import os
 import time
-import logging
 import copy
 import traceback
 
@@ -38,21 +37,6 @@ CENTRING_METHOD = CentringMethod(0, 1, 2)
 
 WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
 WORKFLOW_TYPE = WorkflowType(0, 1, 2)
-
-
-logger = logging.getLogger('queue_model')
-try:
-    formatter = \
-              logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr = logging.FileHandler('/users/blissadm/log/queue_model.log')
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-except:
-    pass
-
-logger.setLevel(logging.INFO)
-logger = logging.getLogger('queue_model').info("Module load, probably application start")
-
 
 class TaskNode(object):
     def __init__(self):
