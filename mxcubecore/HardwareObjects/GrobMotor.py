@@ -35,7 +35,9 @@ class GrobMotor(Device):
         if state is None:
             state = self.motor.state()
             if isinstance(self.motor, self.grob.SampleTableMotor):
-                if self.motor.is_moving(state):
+                if self.motor.is_unusable():
+                    state = "UNUSABLE"
+                elif self.motor.is_moving(state):
                     state = "MOVING"
                 elif self.motor.is_on_limit(state):
                     state = "ONLIMIT"
