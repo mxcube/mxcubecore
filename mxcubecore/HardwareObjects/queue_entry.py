@@ -713,7 +713,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             data_collection.set_collected(True)
 
             path_template = data_collection.acquisitions[0].path_template
-            prefix = path_template.prefix
+            prefix = path_template.get_prefix()
             directory = path_template.directory
         
             new_run_number = self.session.get_free_run_number(prefix,
@@ -725,7 +725,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 centred_position = data_collection.acquisitions[0].\
                                    acquisition_parameters.centred_position
             
-            dc_name = acq.path_template.prefix + '_' + \
+            dc_name = acq.path_template.get_prefix() + '_' + \
                       str(acq.path_template.run_number)
         
             data_collection.set_name(dc_name)
