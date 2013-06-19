@@ -736,6 +736,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             list_item.setText(0, dc_name)
             
         else:
+            logging.getLogger("user_level_log").\
+                error("Could not call the data collection routine, check the beamline configuration")
             list_item.setText(1, 'Failed')
 
 
@@ -761,6 +763,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_failed(self, owner, state, message, *args):
         self.get_view().setText(1, "Failed")
+        logging.getLogger("user_level_log").error(message.replace('\n', ' '))
 
 
     def collect_osc_started(self, owner, blsampleid, barcode, location,
