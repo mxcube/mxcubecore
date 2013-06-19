@@ -716,8 +716,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             prefix = path_template.get_prefix()
             directory = path_template.directory
         
-            new_run_number = self.session.get_free_run_number(prefix,
-                                                              directory)
+            new_run_number = data_collection.get_parent().\
+                get_next_number_for_name(self._path_template.get_prefix())
+
 
             acq = data_collection.acquisitions[0]
             data_collection.previous_acquisition = copy.deepcopy(acq)
