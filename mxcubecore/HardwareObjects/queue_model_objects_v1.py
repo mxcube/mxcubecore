@@ -343,7 +343,7 @@ class DataCollection(TaskNode):
 
 
     def as_dict(self):
-        return {'prefix': self.acquisitions[0].path_template.prefix,
+        return {'prefix': self.acquisitions[0].path_template.get_prefix(),
                 'run_number' : self.acquisitions[0].path_template.run_number,
                 'template' : self.acquisitions[0].path_template.template,
                 'first_image' : self.acquisitions[0].acquisition_parameters.first_image,
@@ -383,7 +383,7 @@ class DataCollection(TaskNode):
     
 
     def get_prefix(self):
-        return self.acquisitions[0].path_template.prefix
+        return self.acquisitions[0].path_template.get_prefix()
 
 
     def get_files_to_be_written(self):
@@ -575,7 +575,7 @@ class EnergyScan(TaskNode):
            
 
     def get_prefix(self):
-        return self.path_template.prefix
+        return self.path_template.get_prefix()
 
 
     def next_available_run_number(self):
@@ -883,7 +883,7 @@ def to_collect_dict(data_collection, session):
              'motors': {},
              'take_snapshots': acq_params.take_snapshots,
              'fileinfo': {'directory': acquisition.path_template.directory,
-                          'prefix': acquisition.path_template.prefix,
+                          'prefix': acquisition.path_template.get_prefix(),
                           'run_number': acquisition.path_template.run_number,
                           'process_directory': acquisition.path_template.process_directory},
              'in_queue': 0,
