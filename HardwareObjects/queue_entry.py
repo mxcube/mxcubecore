@@ -572,6 +572,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        
         self.collect_hwobj = self.get_queue_controller().\
                              getObjectByRole("collect")
 
@@ -579,7 +580,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                     getObjectByRole("diffractometer")
 
         self.beamline_config_hwobj = self.get_queue_controller().\
-                                     getObjectByRole("beamline_config")
+                                     getObjectByRole("beamline_configuration")
 
         self.shape_history = self.get_queue_controller().\
                              getObjectByRole("shape_history")
