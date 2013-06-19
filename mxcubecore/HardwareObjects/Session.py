@@ -24,8 +24,8 @@ class Session(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.session_id = None
-        self.prop_code = None
-        self.prop_number = None
+        self.proposal_code = None
+        self.proposal_number = None
         self.proposal_id = None
         self.in_house_users = []
         self._is_inhouse = None
