@@ -249,6 +249,42 @@ class QueueController(HardwareObject, QueueEntryContainer):
         return self._current_queue_entry
 
 
+    def get_entry_with_model(self, model, root_queue_entry = None):
+        """
+        Find the entry with the data model model.
+
+        :param model: The model to look for.
+        :type model: TaskNode
+
+        :returns: The QueueEntry with the model <model>
+        :rtype: QueueEntry
+        """
+        if not root_queue_entry:
+            root_queue_entry = self
+
+        for queue_entry in root_queue_entry._queue_entry_list:
+            if queue_entry.get_data_model() is model:
+                return queue_entry
+            else:
+                result = self.get_entry_with_model(model, queue_entry)
+
+                if result:
+                    return result
+
+
+    def execute_entry(self, entry):
+        """
+        Executes the queue entry <entry>.
+
+        :param entry: The entry to execute.
+        :type entry: QueueEntry
+
+        :returns: None
+        :rtype: NoneType
+        """
+        return self.__execute_entry(entry)
+
+
     def clear(self):
         """
         Clears the queue (removes all entries).

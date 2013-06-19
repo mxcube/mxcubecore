@@ -56,7 +56,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.log_message)
         self._server.register_function(self.model_add_child)
         self._server.register_function(self.model_get_node)
-        self._server.register_function(self.is_queue_executing)          
+        self._server.register_function(self.is_queue_executing)
+        self._server.register_function(self.queue_execute_entry_with_id)
 
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
@@ -172,7 +173,6 @@ class XMLRPCServer(HardwareObject):
         :returns the TaskNode object with the node id <node_id>
         :rtype: TaskNode
         """
-        
         try:
             node = self.queue_model_hwobj.get_node(node_id)
         except Exception as ex:
@@ -181,6 +181,29 @@ class XMLRPCServer(HardwareObject):
         else:
             return jsonpickle.encode(node)
 
+
+    def queue_execute_entry_with_id(self, node_id):
+        """
+        Execute the entry that has the model with node id <node_id>.
+
+        :param node_id: The node id of the model to find.
+        :type node_id: int
+        """
+        import pdb
+        pdb.set_trace()
+
+        try:
+            model = self.queue_model_hwobj.get_node(node_id)
+            entry = self.queue_controller_hwobj.get_entry_with_model(model)
+
+            if entry:
+                self.queue_controller_hwobj.execute_entry(entry)
+                
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return True
 
     def is_queue_executing(self):
         """
