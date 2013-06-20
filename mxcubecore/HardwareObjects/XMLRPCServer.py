@@ -189,9 +189,6 @@ class XMLRPCServer(HardwareObject):
         :param node_id: The node id of the model to find.
         :type node_id: int
         """
-        import pdb
-        pdb.set_trace()
-
         try:
             model = self.queue_model_hwobj.get_node(node_id)
             entry = self.queue_controller_hwobj.get_entry_with_model(model)
