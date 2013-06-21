@@ -58,9 +58,11 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.model_get_node)
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
+        self._server.register_function(self.shape_history_get_grid)
 
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
+        self.shape_history_hwobj = self.getObjectByRole("shape_history")
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
@@ -189,9 +191,6 @@ class XMLRPCServer(HardwareObject):
         :param node_id: The node id of the model to find.
         :type node_id: int
         """
-        import pdb
-        pdb.set_trace()
-
         try:
             model = self.queue_model_hwobj.get_node(node_id)
             entry = self.queue_controller_hwobj.get_entry_with_model(model)
@@ -205,6 +204,7 @@ class XMLRPCServer(HardwareObject):
         else:
             return True
 
+
     def is_queue_executing(self):
         """
         :returns: True if the queue is executing otherwise False
@@ -216,7 +216,26 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('HWR').exception(str(ex))
             raise
         
-        
-        
 
+    def queue_status(self):
+        pass
     
+
+    def shape_history_get_grid(self):
+        """
+        :returns: The currently selected grid
+        :rtype: dict
+
+        Format of the returned dictionary:
+
+        {'dx_mm': float,
+         'dy_mm': float,
+         'steps_x': int,
+         'steps_y': int,
+         'x1': float,
+         'y1': float,
+         'angle': float}
+         
+        """
+        return self.shape_history_hwobj.get_grid()
+        

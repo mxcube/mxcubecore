@@ -717,7 +717,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             directory = path_template.directory
         
             new_run_number = data_collection.get_parent().\
-                get_next_number_for_name(self._path_template.get_prefix())
+                get_next_number_for_name(path_template.get_prefix())
 
 
             acq = data_collection.acquisitions[0]
