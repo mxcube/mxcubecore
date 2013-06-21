@@ -93,14 +93,14 @@ class QueueController(HardwareObject, QueueEntryContainer):
     def __execute_task(self):
         self._running = True
         
-        for queue_entry in self._queue_entry_list:
+        for queue_entry in self._queue_entry_list:            
             try:
                 self.__execute_entry(queue_entry)
             except Exception as ex:
                 try:
                     self.stop()
                 except gevent.GreenletExit:
-                    pass
+                    raise
 
                 logging.getLogger('user_level_log').error('Error executing ' +\
                                                           'queue' + ex.message)
@@ -165,11 +165,12 @@ class QueueController(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
+        self._root_task.kill(block = False)
         self.get_current_entry().stop()
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
-        self._root_task.kill(block = True)
+
 
 
     def set_pause(self, state):
