@@ -24,6 +24,7 @@ class ShapeHistory(HardwareObject):
         self._drawing_event = DrawingEvent(self)
         self.shapes = {}
         self.selected_shapes = {}
+        self._current_grid = {}
 
 
     def set_drawing(self, drawing):
@@ -115,7 +116,15 @@ class ShapeHistory(HardwareObject):
         self.shapes.clear()
         self.selected_shapes.clear()
 
-    
+
+    def add_grid(self, grid_dict):
+        self._current_grid = grid_dict
+
+
+    def get_grid(self):
+        return self._current_grid
+            
+
 class DrawingEvent(QubDrawingEvent):
     def __init__(self, qub_helper):
         QubDrawingEvent.__init__(self)
