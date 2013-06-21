@@ -248,6 +248,10 @@ class DrawingEvent(QubDrawingEvent):
         self.current_shape = None
 
 
+    def set_selected(self, shape):
+        self.current_shape = shape
+        self.select_current()
+        
         
 class Shape(object):
     def __init__(self):
