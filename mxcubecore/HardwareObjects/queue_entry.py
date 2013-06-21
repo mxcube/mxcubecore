@@ -563,8 +563,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.collect_dc(data_collection, self.get_view())
         else:
             pass
-
-        logging.getLogger("user_level_log").info("Collection done")
         
         if self.shape_history:
             self.shape_history.get_drawing_event_handler().de_select_all()
@@ -625,7 +623,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         qc.disconnect(self.collect_hwobj, 'collectNumberOfFrames', 
                      self.collect_number_of_frames)
 
-        
         self.get_view().setHighlighted(True)
         self.get_view().setOn(False)
 
@@ -700,7 +697,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 logging.getLogger('queue_exec').\
                     exception("Collection stopped by user.")
                 logging.getLogger("user_level_log").\
-                    error("Collection stopped by user.")
+                    warning("Collection stopped by user.")
                 list_item.setText(1, 'Stopped')
                 raise
             except Exception as ex:
