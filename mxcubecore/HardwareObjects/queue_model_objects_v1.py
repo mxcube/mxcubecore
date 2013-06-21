@@ -859,7 +859,7 @@ class Workflow(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
         self.path_template = PathTemplate()
-        self._type = int()
+        self._type = str()
 
 
     def set_type(self, workflow_type):
