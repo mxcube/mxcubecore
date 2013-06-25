@@ -1060,7 +1060,28 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None):
         BaseQueueEntry.__init__(self, view, data_model)
+        self.rpc_server_hwobj = None
 
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        self.get_queue_controller().emit('show_workflow_tab', (self.get_data_model(),))
+        logging.getLogger("user_level_log").info("Executing workflow, waiting for user input.")
+
+
+        #if self.rpc_server_hwobj.wokflow_in_progress:
+        #    time.sleep(1)
+        
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+        self.rpc_server_hwobj = self.get_queue_controller().\
+                                 getObjectByRole("xml_rpc_server")
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+        self.get_view().setHighlighted(True)
+        self.get_view().setOn(False)
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
