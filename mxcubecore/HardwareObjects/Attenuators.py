@@ -53,6 +53,10 @@ class Attenuators(Device):
         return value
 
 
+    def get_value(self):
+        return self.getAttFactor()
+
+
     def connected(self):
         self.setIsReady(True)
  
