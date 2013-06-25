@@ -39,6 +39,7 @@ class XMLRPCServer(HardwareObject):
         HardwareObject.__init__(self, name)
         self.queue_model_hwobj = None
         self.queue_controller_hwobj = None
+        self.beamline_setup_hwobj = None
 
 
     def init(self):
@@ -59,10 +60,12 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
         self._server.register_function(self.shape_history_get_grid)
+        self._server.register_function(self.beamline_setup_read)
 
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
         self.shape_history_hwobj = self.getObjectByRole("shape_history")
+        self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
@@ -238,4 +241,12 @@ class XMLRPCServer(HardwareObject):
          
         """
         return self.shape_history_hwobj.get_grid()
+
+
+    def beamline_setup_read(self, path):
+        try:
+            return self.beamline_setup_hwobj.read_value(path)
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
         
