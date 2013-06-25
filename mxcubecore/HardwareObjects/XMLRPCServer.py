@@ -40,6 +40,7 @@ class XMLRPCServer(HardwareObject):
         self.queue_model_hwobj = None
         self.queue_controller_hwobj = None
         self.beamline_setup_hwobj = None
+        self.wokflow_in_progress = True
 
 
     def init(self):
@@ -249,4 +250,11 @@ class XMLRPCServer(HardwareObject):
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
+
+
+    def workflow_set_in_progress(self, state):
+        if state:
+            self.wokflow_in_progress = True
+        else:
+            self.wokflow_in_progress = False
         
