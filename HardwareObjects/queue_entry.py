@@ -19,7 +19,7 @@ import queue_model_objects_v1 as queue_model_objects
 import copy
 import pprint
 import os
-
+import ShapeHistory as shape_history
 
 import edna_test_data
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
@@ -378,9 +378,9 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-      
+
         if not self.free_pin_mode:
-            if self.sample_changer_hwobj:
+            if self.sample_changer_hwobj is not None:
                 loaded_sample_location = \
                     (self.sample_changer_hwobj.currentBasket,
                      self.sample_changer_hwobj.currentSample)
@@ -405,11 +405,10 @@ class SampleQueueEntry(BaseQueueEntry):
                     else:
                         logging.getLogger('queue_exec').\
                             info("Sample loaded")
-                        self._view.setText(1, "Sample loaded")
 
-                    self._view.update_pin_icon()
+                    #self._view.update_pin_icon()
 
-                    if self.diffractometer_hwobj:
+                    if self.diffractometer_hwobj is not None:
                         try:
                             self.diffractometer_hwobj.connect("centringAccepted",
                                                                 self.centring_done)
