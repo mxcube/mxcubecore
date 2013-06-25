@@ -452,7 +452,7 @@ class EnergyScan(Equipment):
         return None
 
 
-    def getValue(self):
+    def get_value(self):
         return self.getCurrentEnergy()
     
     

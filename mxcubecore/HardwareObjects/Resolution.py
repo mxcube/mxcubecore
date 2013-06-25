@@ -116,6 +116,9 @@ class Resolution(BaseHardwareObjects.Equipment):
         if self.currentResolution is None:
           self.recalculateResolution()
         return self.currentResolution
+
+    def get_value(self):
+        return self.getPosition()
     
     def newResolution(self, res):
         self.currentResolution = res
@@ -180,6 +183,4 @@ class Resolution(BaseHardwareObjects.Equipment):
         except:
             pass
 
-
-    def getValue(self):
-        return self.getPosition()
+    
