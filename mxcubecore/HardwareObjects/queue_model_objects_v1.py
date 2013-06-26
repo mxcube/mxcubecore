@@ -964,132 +964,126 @@ def next_available_run_number(parent_node, prefix):
 
 
 def dc_from_edna_output(edna_result, reference_image_collection,
-                        dcg_model, sample_data_model, session,
-                        char_params = None):
-        data_collections = []
+                        dcg_model, sample_data_model, session_hwobj,
+                        char_params = None):    
+    data_collections = []
 
-        crystal = copy.deepcopy(reference_image_collection.crystal)
-        processing_parameters = copy.deepcopy(reference_image_collection.\
-                                              processing_parameters)
+    crystal = copy.deepcopy(reference_image_collection.crystal)
+    processing_parameters = copy.deepcopy(reference_image_collection.\
+                                          processing_parameters)
+
+    try:
+        char_results = edna_result.getCharacterisationResult()
+        edna_strategy = char_results.getStrategyResult()
+        collection_plan = edna_strategy.getCollectionPlan()[0]
+        wedges = collection_plan.getCollectionStrategy().getSubWedge()
+    except:
+        pass
+    else:
+        try:
+            run_number = collection_plan.getCollectionPlanNumber().getValue()
+        except AttributeError:
+            run_number = 1
 
         try:
-            char_results = edna_result.getCharacterisationResult()
-            edna_strategy = char_results.getStrategyResult()
-            collection_plan = edna_strategy.getCollectionPlan()[0]
-            wedges = collection_plan.getCollectionStrategy().getSubWedge()
-        except:
-            pass
-        else:
-            try:
-                run_number = collection_plan.getCollectionPlanNumber().getValue()
-            except AttributeError:
-                run_number = 1
+            resolution = collection_plan.getStrategySummary().\
+                getResolution().getValue()
+        except AttributeError:
+            resolution = None
+
+        try: 
+            transmission = collection_plan.getStrategySummary().\
+               getAttenuation().getValue()
+        except AttributeError:
+            transmission = None
+
+        try:
+            screening_id = edna_result.getScreeningId().getValue()
+        except AttributeError:
+            screening_id = None
+
+        for wedge in wedges:
+            exp_condition = wedge.getExperimentalCondition()
+            goniostat = exp_condition.getGoniostat()
+            beam = exp_condition.getBeam()
+
+            acq = Acquisition()
+            acquisition_parameters = acq.acquisition_parameters
+
+            acquisition_parameters.centred_position =\
+                reference_image_collection.previous_acquisition.\
+                acquisition_parameters.centred_position
+
+            data_directory = session_hwobj.get_image_directory(dcg_model)
+            proc_directory = session_hwobj.get_process_directory(dcg_model)
+
+            acq.path_template.directory = data_directory
+            acq.path_template.process_directory = proc_directory
+            acq.path_template.base_prefix = session_hwobj.\
+                                            get_default_prefix(dcg_model.get_parent())
+
+            if run_number:
+                acquisition_parameters.run_number = run_number
+
+            if resolution:
+                acquisition_parameters.resolution = resolution
+
+            if transmission:
+                acquisition_parameters.transmission = transmission
+
+            if screening_id:
+                acquisition_parameters.screening_id = screening_id
 
             try:
-                resolution = collection_plan.getStrategySummary().\
-                    getResolution().getValue()
+                acquisition_parameters.osc_start = goniostat.\
+                    getRotationAxisStart().getValue()
             except AttributeError:
-                resolution = None
+                pass
+
+            try:
+                acquisition_parameters.osc_end = goniostat.\
+                    getRotationAxisEnd().getValue()
+            except AttributeError:
+                pass
+
+            try:
+                acquisition_parameters.osc_width = goniostat.\
+                    getOscillationWidth().getValue()
+            except AttributeError:
+                pass
+
+            try:
+                acquisition_parameters.num_images = \
+                    int(abs(acquisition_parameters.osc_end - \
+                            acquisition_parameters.osc_start) / acquisition_parameters.osc_width)
+            except AttributeError:
+                pass
+
+            try:
+                acquisition_parameters.transmission = beam.getTransmission().getValue()
+            except AttributeError:
+                pass
 
             try: 
-                transmission = collection_plan.getStrategySummary().\
-                   getAttenuation().getValue()
+                acquisition_parameters.energy = \
+                    int(123984.0/beam.getWavelength().getValue())/10000.0
             except AttributeError:
-                transmission = None
+                pass
 
             try:
-                screening_id = edna_result.getScreeningId().getValue()
+                acquisition_parameters.exp_time = beam.getExposureTime().getValue()
             except AttributeError:
-                screening_id = None
-
-            for wedge in wedges:
-                exp_condition = wedge.getExperimentalCondition()
-                goniostat = exp_condition.getGoniostat()
-                beam = exp_condition.getBeam()
-                
-                acq = Acquisition()
-                acquisition_parameters = acq.acquisition_parameters
-
-                acquisition_parameters.centred_position =\
-                    reference_image_collection.previous_acquisition.\
-                    acquisition_parameters.centred_position
-
-                sub_dir = dcg_model.get_name().lower().replace(' ','')
-
-                data_directory = session.get_image_directory(sample_data_model,
-                                                             sub_dir = sub_dir)
-                
-                proc_directory = session.get_process_directory(sample_data_model,
-                                                               sub_dir = sub_dir)
-                
-                acq.path_template.directory = data_directory
-                acq.path_template.process_directory = proc_directory
-                
-                acq.path_template.prefix = reference_image_collection.acquisitions[0].\
-                                           path_template.prefix[4:]
-                
-                if run_number:
-                    acquisition_parameters.run_number = run_number
-
-                name = acq.path_template.prefix + '_' + str(run_number)
-
-                if resolution:
-                    acquisition_parameters.resolution = resolution
-
-                if transmission:
-                    acquisition_parameters.transmission = transmission
-
-                if screening_id:
-                    acquisition_parameters.screening_id = screening_id
-
-                try:
-                    acquisition_parameters.osc_start = goniostat.\
-                        getRotationAxisStart().getValue()
-                except AttributeError:
-                    pass
-
-                try:
-                    acquisition_parameters.osc_end = goniostat.\
-                        getRotationAxisEnd().getValue()
-                except AttributeError:
-                    pass
-
-                try:
-                    acquisition_parameters.osc_width = goniostat.\
-                        getOscillationWidth().getValue()
-                except AttributeError:
-                    pass
-
-                try:
-                    acquisition_parameters.num_images = \
-                        int(abs(acquisition_parameters.osc_end - \
-                                acquisition_parameters.osc_start) / acquisition_parameters.osc_width)
-                except AttributeError:
-                    pass
-
-                try:
-                    acquisition_parameters.transmission = beam.getTransmission().getValue()
-                except AttributeError:
-                    pass
-
-                try: 
-                    acquisition_parameters.energy = \
-                        int(123984.0/beam.getWavelength().getValue())/10000.0
-                except AttributeError:
-                    pass
-
-                try:
-                    acquisition_parameters.exp_time = beam.getExposureTime().getValue()
-                except AttributeError:
-                    pass
+                pass
 
 
-                # dc.parameters.comments = enda_result.comments
-                # dc.parametets.path = enda_result.directory
-                # dc.parameters.centred_positions = enda_result.centred_positions
+            # dc.parameters.comments = enda_result.comments
+            # dc.parametets.path = enda_result.directory
+            # dc.parameters.centred_positions = enda_result.centred_positions
 
-                dc = DataCollection(dcg_model, [acq], crystal,
-                                    processing_parameters, name = name)
-                data_collections.append(dc)
+            dc = DataCollection([acq], crystal, processing_parameters)
+            dc.set_name(acq.path_template.get_prefix())
+            dc.set_number(run_number)
             
-        return data_collections
+            data_collections.append(dc)
+
+    return data_collections
