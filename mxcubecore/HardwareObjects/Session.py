@@ -140,7 +140,7 @@ class Session(HardwareObject):
         sub_dir.reverse()
         sub_dir = os.path.join(*sub_dir)
         sub_dir = sub_dir.lower().replace(' ','').replace(':','-')
-        directory = self.get_base_image_directory()
+        directory = self.get_base_process_directory()
        
         if sub_dir:
             directory = os.path.join(directory, sub_dir)
