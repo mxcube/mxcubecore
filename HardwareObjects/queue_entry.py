@@ -688,10 +688,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 #logging.getLogger("user_level_log").\
                 #    info("Collecting: " + str(data_collection))
                     
-                self.collect_task = self.collect_hwobj.\
-                                    collect(COLLECTION_ORIGIN_STR.MXCUBE, 
-                                            param_list)
-                self.collect_task.get()                
+                #self.collect_task = self.collect_hwobj.\
+                #                    collect(COLLECTION_ORIGIN_STR.MXCUBE, 
+                #                            param_list)
+                #self.collect_task.get()                
             except gevent.GreenletExit:
                 logging.getLogger('queue_exec').\
                     exception("Collection stopped by user.")
@@ -711,10 +711,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             path_template = data_collection.acquisitions[0].path_template
             prefix = path_template.get_prefix()
             directory = path_template.directory
-        
-            new_run_number = data_collection.get_parent().\
-                get_next_number_for_name(path_template.get_prefix())
 
+            new_run_number = self.get_view().parent().get_model().\
+                get_next_number_for_name(path_template.get_prefix())
 
             acq = data_collection.acquisitions[0]
             data_collection.previous_acquisition = copy.deepcopy(acq)
@@ -794,7 +793,6 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.\
                                      reference_image_collection
@@ -830,11 +828,14 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.data_analysis_hwobj = None
         self.diffractometer_hwobj = None
         self.beamline_config_hwobj = None
+        self.queue_model_hwobj = None
+        self.session_hwobj = None
         self.edna_result = None
 
 
     def execute(self):
         BaseQueueEntry.execute(self)
+        
         self.get_view().setText(1, "Characterising")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
@@ -843,6 +844,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         edna_xml_output = None
 
         if self.data_analysis_hwobj is not None:
+
+            edna_input = self.data_analysis_hwobj.from_params(reference_image_collection,
+                                                              characterisation_parameters)
             self.edna_result = self.data_analysis_hwobj.\
                 characterise(XSDataInputMXCuBE.\
                                  parseString(edna_test_data.EDNA_TEST_DATA))
@@ -865,32 +869,32 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             if collection_plan:
                 dcg_model = characterisation.get_parent()
 
-                char_dcg_name = dcg_model().get_name()
+                char_dcg_name = dcg_model._name
                 # Get only the name portion, and not the number.
-                num = char_dcg_name.split('-')[1]
+                num = dcg_model._number
 
-                sample_data_model = self.get_view().parent().parent().get_model()
+                sample_data_model = dcg_model.get_parent()
 
                 new_dcg_name = 'Diffraction plan'
-                new_dcg_name = self.get_view().parent().\
-                    parent().get_next_free_name(dcg_name)
+                new_dcg_num = dcg_model.get_parent().\
+                              get_next_number_for_name(new_dcg_name)
 
-                new_dcg_model = queue_model_objects.TaskGroup(sample_data_model)
-                new_dcg_model.set_name(dcg_name)
-
+                new_dcg_model = queue_model_objects.TaskGroup()
+                new_dcg_model.set_enabled(False)
+                new_dcg_model.set_name(new_dcg_name)
+                new_dcg_model.set_number(new_dcg_num)
+                self.queue_model_hwobj.add_child(sample_data_model, new_dcg_model)
+                
                 edna_collections = queue_model_objects.\
                                    dc_from_edna_output(self.edna_result,                   
                                                        reference_image_collection,
                                                        new_dcg_model,
                                                        sample_data_model,
-                                                       self.session)
+                                                       self.session_hwobj)
 
                 for edna_dc in edna_collections:
-                    edna_dc.set_name(characterisation.get_name()[4:])
-
-                self.get_view().listView().parent().\
-                    add_to_queue([new_dcg_model], self.get_view().parent().parent(),
-                                 set_on = False)
+                    edna_dc.set_enabled(False)
+                    self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
 
             else:  
                 logging.getLogger('queue_exec').\
@@ -928,8 +932,13 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = self.get_queue_controller().\
                                     getObjectByRole("diffractometer")
 
-        self.beamline_config__hwobj = self.get_queue_controller().\
-                                      getObjectByRole("beamline_config")
+        self.beamline_config_hwobj = self.get_queue_controller().\
+                                     getObjectByRole("beamline_configuration")
+
+        self.queue_model_hwobj = self.get_view().listView().parent().queue_model_hwobj
+
+        self.session_hwobj = self.get_queue_controller().\
+                             getObjectByRole("session")
 
 
     def post_execute(self):
@@ -1085,7 +1094,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
-     queue_model_objects.Characterisation: CharacterisationQueueEntry,
+     queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
