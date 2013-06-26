@@ -103,7 +103,7 @@ class QueueController(HardwareObject, QueueEntryContainer):
                     raise
 
                 logging.getLogger('user_level_log').error('Error executing ' +\
-                                                          'queue' + ex.message)
+                                                          'queue ' + ex.message)
                 raise ex
             finally:
                 self._running = False
