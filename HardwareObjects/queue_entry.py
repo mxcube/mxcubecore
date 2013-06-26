@@ -401,7 +401,8 @@ class SampleQueueEntry(BaseQueueEntry):
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         logging.getLogger('user_level_log').\
-                            info("Error loading sample: " + e.message) 
+                            error("Error loading sample, please check sample changer: " + e.message)
+                        raise
                     else:
                         logging.getLogger('queue_exec').\
                             info("Sample loaded")
@@ -685,13 +686,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                 logging.getLogger('queue_exec').\
                     info("Calling collect hw-object with: " + str(data_collection))
-                #logging.getLogger("user_level_log").\
-                #    info("Collecting: " + str(data_collection))
+                logging.getLogger("user_level_log").\
+                    info("Collecting: " + str(data_collection))
                     
-                #self.collect_task = self.collect_hwobj.\
-                #                    collect(COLLECTION_ORIGIN_STR.MXCUBE, 
-                #                            param_list)
-                #self.collect_task.get()                
+                self.collect_task = self.collect_hwobj.\
+                                    collect(COLLECTION_ORIGIN_STR.MXCUBE, 
+                                            param_list)
+                self.collect_task.get()                
             except gevent.GreenletExit:
                 logging.getLogger('queue_exec').\
                     exception("Collection stopped by user.")
@@ -848,9 +849,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
             edna_input = self.data_analysis_hwobj.from_params(reference_image_collection,
                                                               characterisation_parameters)
-            self.edna_result = self.data_analysis_hwobj.\
-                characterise(XSDataInputMXCuBE.\
-                                 parseString(edna_test_data.EDNA_TEST_DATA))
+            #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
+            
+            self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
         if self.edna_result:
             logging.getLogger("user_level_log").\
@@ -899,7 +900,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
             else:  
                 logging.getLogger('queue_exec').\
-                   info('EDNA-Characterisation completed successfully but without collection plan.')
+                    info('EDNA-Characterisation completed successfully but without collection plan.')
                 logging.getLogger("user_level_log").\
                     warning("Characterisation completed successfully but without collection plan.")
                 
@@ -917,7 +918,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 logging.getLogger('queue_exec').\
                     error('EDNA-Characterisation completed with a failure.')
                 logging.getLogger("user_level_log").\
-                    error("Characterisation completed with errors, contact your local contact.")
+                    error("Characterisation completed with errors.")
 
 
         characterisation.set_executed(True)
@@ -926,6 +927,8 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        self.get_view().setOn(True)
+        self.get_view().setHighlighted(False)
 
         self.data_analysis_hwobj = self.get_queue_controller().\
                                    getObjectByRole("data_analysis")
