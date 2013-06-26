@@ -434,10 +434,11 @@ class DataCollection(TaskNode):
         file_locations = []
         
         path_template = self.acquisitions[0].path_template
+        acq_params = self.acquisitions[0].acquisition_parameters
         file_name_template = path_template.get_image_file_name()
 
-        for i in range(path_template.start_num, 
-                       path_template.start_num + path_template.num_files):
+        for i in range(acq_params.first_image, 
+                       acq_params.first_image + acq_params.num_images):
                     
             file_locations.append(os.path.join(path_template.directory,
                                                file_name_template % i))
@@ -521,10 +522,15 @@ class Characterisation(TaskNode):
         
         path_template = self.reference_image_collection.acquisitions[0].\
                         path_template
+
+        # Quick fix beacuse of bug, remove ASAP
+        acq_params = self.reference_image_collection.acquisitions[0].\
+                     acquisition_parameters
+        
         file_name_template = path_template.get_image_file_name()
 
-        for i in range(path_template.start_num, 
-                       path_template.start_num + path_template.num_files):
+        for i in range(acq_params.first_image, 
+                       acq_params.first_image + acq_params.num_images):
                     
             file_locations.append(os.path.join(path_template.directory,
                                                file_name_template % i))
