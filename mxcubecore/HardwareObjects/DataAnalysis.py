@@ -14,6 +14,7 @@ Example XML config. file:
 import logging
 import gevent.event
 import time
+import os
 import queue_model_objects_v1 as queue_model_objects
 
 from AbstractDataAnalysis import *
@@ -103,7 +104,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         return html_report
 
 
-    def from_params(self, data_collection, char_params, path_str):
+    def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(EDNA_DEFAULT_INPUT)
 
         if data_collection.id:
@@ -199,8 +200,10 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         
         #Data set
         data_set = XSDataMXCuBEDataSet()
-        acquisition_parameters = data_collection.acquisitions[0].\
-                                 acquisition_parameters
+        acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
+        path_str = os.path.join(data_collection.acquisitions[0].path_template.directory,
+                                data_collection.acquisitions[0].path_template.get_image_file_name())
+        
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
             path = XSDataString()
