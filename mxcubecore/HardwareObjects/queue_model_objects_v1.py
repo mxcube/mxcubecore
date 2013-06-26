@@ -308,7 +308,7 @@ class Sample(TaskNode):
             self.lims_id = lims_sample.sampleId
         
         if hasattr(lims_sample, 'sampleName'):
-            self.name = lims_sample.sampleName
+            self.name = str(lims_sample.sampleName)
             
         if hasattr(lims_sample, 'containerSampleChangerLocation') and\
                 hasattr(lims_sample, 'sampleLocation'):
@@ -328,6 +328,16 @@ class Sample(TaskNode):
         
                 self.loc_str = str(str(self.lims_location[0]) +\
                                    ':' + str(self.lims_location[1]))
+
+        name = ''
+
+        if self.crystals[0].protein_acronym:
+            name += self.crystals[0].protein_acronym
+
+        if self.name:
+            name += '-' + self.name
+            
+        self.set_name(name)
 
 
 class DataCollection(TaskNode):
@@ -693,6 +703,7 @@ class PathTemplate(object):
         self.base_prefix = str()
         self.mad_prefix = str()
         self.reference_image_prefix = str()
+        self.wedge_prefix = str()
         self.template = str()
         self.run_number = 1
         self.suffix = 'img'
@@ -709,6 +720,9 @@ class PathTemplate(object):
 
         if self.reference_image_prefix:
             prefix = self.reference_image_prefix + '-' + prefix
+
+        if self.wedge_prefix:
+            prefix = prefix + '_' + self.wedge_prefix
 
         return prefix
 
@@ -1002,7 +1016,8 @@ def dc_from_edna_output(edna_result, reference_image_collection,
         except AttributeError:
             screening_id = None
 
-        for wedge in wedges:
+        for i in range(0, len(wedges)):
+            wedge = wedges[i]
             exp_condition = wedge.getExperimentalCondition()
             goniostat = exp_condition.getGoniostat()
             beam = exp_condition.getBeam()
@@ -1021,6 +1036,8 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             acq.path_template.process_directory = proc_directory
             acq.path_template.base_prefix = session_hwobj.\
                                             get_default_prefix(dcg_model.get_parent())
+
+            acq.path_template.wedge_prefix = 'w' + str(i)
 
             if run_number:
                 acquisition_parameters.run_number = run_number
