@@ -3,6 +3,13 @@
     8000
   </port>
 
+  <apis>
+    <api>
+     <module>NativeJson</module>
+     <recurse>True</recurse>
+   </api>
+  </apis>
+
   <object href="/queue-controller" role="queue_controller"/>
   <object href="/queue-model" role="queue_model"/>
   <object href="/minidiff" role="diffractometer"/>
