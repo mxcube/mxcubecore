@@ -12,17 +12,20 @@ configuration XML below.
 """
 
 import logging
+import sys
+import inspect
+import pkgutil
+import types
 import gevent
-import queue_entry
+#import queue_entry
 import socket
-import jsonpickle
-import queue_model_objects_v1
+#import queue_model_objects_v1
 
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from queue_entry import QueueEntryContainer
+#from queue_entry import QueueEntryContainer
 from SimpleXMLRPCServer import SimpleXMLRPCServer
-from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+#from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
 __author__ = "Marcus Oskarsson, Matias Guijarro"
 __copyright__ = "Copyright 2012, ESRF"
@@ -41,6 +44,7 @@ class XMLRPCServer(HardwareObject):
         self.queue_controller_hwobj = None
         self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
+        self.xmlrpc_prefixes = set()
 
 
     def init(self):
@@ -53,15 +57,22 @@ class XMLRPCServer(HardwareObject):
                                           logRequests = False)
         
         self._server.register_introspection_functions()
-        self._server.register_function(self.add_to_queue)
         self._server.register_function(self.start_queue)
         self._server.register_function(self.log_message)
-        self._server.register_function(self.model_add_child)
-        self._server.register_function(self.model_get_node)
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.beamline_setup_read)
+
+        # Register functions from modules specified in <apis> element
+        if self.hasObject("apis"):
+            apis = next(self.getObjects("apis"))
+            for api in apis.getObjects("api"):
+                recurse = api.getProperty("recurse")
+                if recurse is None:
+                    recurse = True
+                    
+                self._register_module_functions(api.module, recurse=recurse)
 
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
@@ -70,15 +81,15 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
-    def add_to_queue(self, json_task_node, set_on = True):
+    def _add_to_queue(self, task, set_on = True):
         """
-        Adds the TaskNode objects contained in the json seralized
-        list of TaskNodes passed in <json_task_node>.
+        Adds the TaskNode objects contained in the
+        list of TaskNodes passed in <task>.
         
         The TaskNodes are marked as activated in the queue if <set_on>
         is True and to inactivated if False.
 
-        :param json_task_node: TaskNode object to add to queue
+        :param task: TaskNode object to add to queue
         :type parent: TaskNode
 
         :param set_on: Mark TaskNode as activated if True and as inactivated
@@ -93,7 +104,6 @@ class XMLRPCServer(HardwareObject):
         # The exception is re raised so that it will
         # be sent to the client.
         try:
-            task = jsonpickle.decode(json_task_node)
             self.emit('add_to_queue', (task, None, set_on))
             
         except Exception as ex:
@@ -149,9 +159,9 @@ class XMLRPCServer(HardwareObject):
         return status
 
 
-    def model_add_child(self, parent_id, child):
+    def _model_add_child(self, parent_id, child):
         """
-        Adds the model node <child> to parent_id.
+        Adds the model node task to parent_id.
 
         :param parent_id: The id of the parent.
         :type parent_id: int
@@ -163,10 +173,9 @@ class XMLRPCServer(HardwareObject):
         :rtype: int
         """
         
-        task = jsonpickle.decode(child)
 
         try:
-            node_id = self.queue_model_hwobj.add_child_at_id(parent_id, task)
+            node_id = self.queue_model_hwobj.add_child_at_id(parent_id, child)
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
@@ -174,7 +183,7 @@ class XMLRPCServer(HardwareObject):
             return node_id
 
 
-    def model_get_node(self, node_id):
+    def _model_get_node(self, node_id):
         """
         :returns the TaskNode object with the node id <node_id>
         :rtype: TaskNode
@@ -185,7 +194,7 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('HWR').exception(str(ex))
             raise
         else:
-            return jsonpickle.encode(node)
+            return node
 
 
     def queue_execute_entry_with_id(self, node_id):
@@ -258,3 +267,47 @@ class XMLRPCServer(HardwareObject):
         else:
             self.wokflow_in_progress = False
         
+    def _register_module_functions(self, module_name, recurse=True, prefix=""):
+    
+        log = logging.getLogger("HWR")
+        
+        log.info('Registering functions in module %s with XML-RPC server' %
+                            module_name)
+        __import__(module_name)
+        module = sys.modules[module_name]
+
+        if not hasattr(module, 'xmlrpc_prefix'):
+            log.error( ('Module %s  has no attribute "xmlrpc_prefix": cannot ' + 
+            'register its functions. Skipping') % module_name)
+        else:
+            prefix += module.xmlrpc_prefix
+            if prefix[-1] != '_':
+                prefix += '_'
+
+            if prefix in self.xmlrpc_prefixes:
+                msg = "Prefix %s already used: cannot register for module %s" % \
+                (prefix, module_name)
+                log.eror(msg)
+                raise Exception(msg)
+            self.xmlrpc_prefixes.add(prefix)
+                
+            for f in inspect.getmembers(module, inspect.isfunction):
+                if f[0][0] != '_':
+                    xmlrpc_name = prefix + f[0]
+                    log.info('Registering function %s.%s as XML-RPC function %s' %
+                        (module_name, f[1].__name__, xmlrpc_name) )
+        
+                    # Bind method to this XMLRPCServer instance but don't set attribute
+                    # This is sufficient to register it as an xmlrpc function. 
+                    bound_method = types.MethodType(f[1], self, self.__class__)
+                    self._server.register_function(bound_method, xmlrpc_name)
+
+            if recurse:
+                sub_modules = pkgutil.iter_modules(module.__path__)
+                try:
+                    sub_module = next(sub_modules)
+                    self._register_module_functions( module_name + '.' + sub_module[1],
+                        recurse=True, prefix=prefix)
+                except StopIteration:
+                    pass
+
