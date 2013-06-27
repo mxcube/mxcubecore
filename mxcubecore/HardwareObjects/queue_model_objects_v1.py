@@ -78,7 +78,7 @@ class TaskNode(object):
         
         self._children = []
         self._name = str()
-        self._number = int()
+        self._number = 0
         self._executed = False
         self._parent = None
         self._names = {}
@@ -106,17 +106,22 @@ class TaskNode(object):
         self._name = name
 
 
-    def set_number(self, number):
+    def set_number(self, number):        
         self._number = number
         
 
     def _set_name(self, name):
         if name in self.get_parent()._names:
-            self.get_parent()._names[name] += 1
+            if self.get_parent()._names[name] < self._number:
+                self.get_parent()._names[name] = self._number
+            else:
+                self.get_parent()._names[name] += 1
         else:
-            self.get_parent()._names[name] = 1
+            if self._number:
+                self.get_parent()._names[name] = self._number
+            else:
+                self.get_parent()._names[name] = 1
 
-        self._number = self.get_parent()._names[name]
         self._name = name
 
         
@@ -220,7 +225,7 @@ class Sample(TaskNode):
         self.name = str()
         self.lims_sample_location = -1
         self.lims_container_location = -1
-        
+        self.free_pin_mode = False        
         self.loc_str = str()
 
         # A pair <basket_number, sample_number>
@@ -709,11 +714,11 @@ class PathTemplate(object):
         self.reference_image_prefix = str()
         self.wedge_prefix = str()
         self.template = str()
-        self.run_number = 1
-        self.suffix = 'img'
-        self.precision = '04'
-        self.start_num = 1
-        self.num_files = 1
+        self.run_number = int()
+        self.suffix = str()
+        self.precision = str()
+        self.start_num = int()
+        self.num_files = int()
 
         
     def get_prefix(self):
@@ -768,13 +773,13 @@ class AcquisitionParameters(object):
     def __init__(self):
         object.__init__(self)
         
-        self.first_image = int(1)
-        self.num_images = int(1)
+        self.first_image = int()
+        self.num_images = int()
         self.osc_start = float()
-        self.osc_range = 2.0e-1
+        self.osc_range = float()
         self.overlap = float()
-        self.exp_time = 1.0e-1
-        self.num_passes = int(1)
+        self.exp_time = float()
+        self.num_passes = int()
         self.energy = int()
         self.centred_position = CentredPosition()
         self.resolution = float()
@@ -784,6 +789,7 @@ class AcquisitionParameters(object):
         self.take_snapshots = True
         self.take_dark_current = True
         self.skip_existing_images = False
+        self.detector_mode = str()
 
 
 class Crystal(object):
@@ -931,15 +937,15 @@ def to_collect_dict(data_collection, session):
     proc_params = data_collection.processing_parameters
            
     return [{'comment': '',
-             'helical': 0,
-             'motors': {},
+             #'helical': 0,
+             #'motors': {},
              'take_snapshots': acq_params.take_snapshots,
              'fileinfo': {'directory': acquisition.path_template.directory,
                           'prefix': acquisition.path_template.get_prefix(),
                           'run_number': acquisition.path_template.run_number,
                           'process_directory': acquisition.path_template.process_directory},
-             'in_queue': 0,
-             'detector_mode': 0,
+             #'in_queue': 0,
+             'detector_mode': acq_params.detector_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,
              'do_inducedraddam': False,
@@ -948,24 +954,24 @@ def to_collect_dict(data_collection, session):
              'processing': str(proc_params.process_data and True),
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
-             'scan4d': 0,
+             #'scan4d': 0,
              'resolution': {'upper': acq_params.resolution},
              'transmission': acq_params.transmission,
              'energy': acq_params.energy,
-             'input_files': 1,
+             #'input_files': 1,
              'oscillation_sequence': [{'exposure_time': acq_params.exp_time,
-                                       'kappaStart': 0.0,
-                                       'phiStart': 0.0,
+                                       #'kappaStart': 0.0,
+                                       #'phiStart': 0.0,
                                        'start_image_number': acq_params.first_image,
                                        'number_of_images': acq_params.num_images,
                                        'overlap': acq_params.overlap,
                                        'start': acq_params.osc_start,
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
-             'nb_sum_images': 0,
-             'EDNA_files_dir': '',
+             #'nb_sum_images': 0,
+             #'EDNA_files_dir': '',
              'anomalous': proc_params.anomalous,
-             'file_exists': 0,
+             #'file_exists': 0,
              'experiment_type': EXPERIMENT_TYPE_STR[data_collection.experiment_type],
              'skip_images': acq_params.skip_existing_images}]
 
