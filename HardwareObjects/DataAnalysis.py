@@ -200,9 +200,9 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         
         #Data set
         data_set = XSDataMXCuBEDataSet()
-        acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
-        path_str = os.path.join(data_collection.acquisitions[0].path_template.directory,
-                                data_collection.acquisitions[0].path_template.get_image_file_name())
+        acquisition_parameters = data_collection.previous_acquisition.acquisition_parameters
+        path_str = os.path.join(data_collection.previous_acquisition.path_template.directory,
+                                data_collection.previous_acquisition.path_template.get_image_file_name())
         
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
