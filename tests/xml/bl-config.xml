@@ -109,4 +109,13 @@
     <nb_of_images>7</nb_of_images>
     <angle_between_images>45</angle_between_images>
   </FASTCENTRING_PARS>
+  <DEFAULT_VALUES>
+    <start_image_number>1</start_image_number>
+    <number_of_images>1</number_of_images>
+    <start_angle>0.0</start_angle>
+    <range>0.5</range>
+    <overlap>0.0</overlap>
+    <exposure_time>0.5</exposure_time>
+    <number_of_passes>1</number_of_passes>
+  </DEFAULT_VALUES>
 </object>
