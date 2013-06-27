@@ -189,8 +189,11 @@ class InstanceServer(Procedure):
         local_hostname=socket.gethostname()
         local_full_hostname=socket.getfqdn(local_hostname)
 
-        if self.getProperty('host') is not None:
-            host_full_hostname=socket.getfqdn(self.getProperty('host'))
+       host_property = self.getProperty('host')
+       if host_property is not None:
+           if host_property == 'localhost' or host_property == '127.0.0.1':
+               return True
+            host_full_hostname=socket.getfqdn(host_property)
             if host_full_hostname!=local_full_hostname:
                 return False
 
