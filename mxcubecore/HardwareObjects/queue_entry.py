@@ -372,14 +372,13 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
-        self.free_pin_mode = False
         self.sample_centring_result = None
 
 
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if not self.free_pin_mode:
+        if not self._data_model.free_pin_mode:
             if self.sample_changer_hwobj is not None:
                 loaded_sample_location = \
                     (self.sample_changer_hwobj.currentBasket,
@@ -688,7 +687,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     info("Calling collect hw-object with: " + str(data_collection))
                 logging.getLogger("user_level_log").\
                     info("Collecting: " + str(data_collection))
-                    
+
                 self.collect_task = self.collect_hwobj.\
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE, 
                                             param_list)
