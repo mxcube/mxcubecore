@@ -936,7 +936,7 @@ def to_collect_dict(data_collection, session):
     acq_params = acquisition.acquisition_parameters
     proc_params = data_collection.processing_parameters
            
-    return [{#'comment': '',
+    return [{'comment': '',
              #'helical': 0,
              #'motors': {},
              'take_snapshots': acq_params.take_snapshots,
