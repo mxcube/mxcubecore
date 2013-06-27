@@ -750,8 +750,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         num_images = str(self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images)
         
-        self.get_view().setText(1, "Collecting  "\
-                                + str(image_number) + "/" + num_images)
+        self.get_view().setText(1, str(image_number) + "/" + num_images)
    
 
     def preparing_collect(self, number_images=0):
@@ -770,6 +769,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_finished(self, owner, state, message, *args):
         self.get_view().setText(1, "Collection done")
+        logging.getLogger("user_level_log").info('Collection completed')
 
 
     def stop(self):
