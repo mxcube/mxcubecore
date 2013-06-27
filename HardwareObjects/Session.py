@@ -30,7 +30,7 @@ class Session(HardwareObject):
         self.in_house_users = []
         self._is_inhouse = None
         self.default_precision = '04'
-        self.suffix = 'img'
+        self.suffix = 'cbf'
         self._path_template_dict = {}
         
         self.endstation_name = None

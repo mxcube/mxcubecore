@@ -220,7 +220,7 @@ class Sample(TaskNode):
         self.name = str()
         self.lims_sample_location = -1
         self.lims_container_location = -1
-        
+        self.free_pin_mode = False        
         self.loc_str = str()
 
         # A pair <basket_number, sample_number>
