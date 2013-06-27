@@ -78,7 +78,7 @@ class TaskNode(object):
         
         self._children = []
         self._name = str()
-        self._number = int()
+        self._number = 0
         self._executed = False
         self._parent = None
         self._names = {}
@@ -106,17 +106,22 @@ class TaskNode(object):
         self._name = name
 
 
-    def set_number(self, number):
+    def set_number(self, number):        
         self._number = number
         
 
     def _set_name(self, name):
         if name in self.get_parent()._names:
-            self.get_parent()._names[name] += 1
+            if self.get_parent()._names[name] < self._number:
+                self.get_parent()._names[name] = self._number
+            else:
+                self.get_parent()._names[name] += 1
         else:
-            self.get_parent()._names[name] = 1
+            if self._number:
+                self.get_parent()._names[name] = self._number
+            else:
+                self.get_parent()._names[name] = 1
 
-        self._number = self.get_parent()._names[name]
         self._name = name
 
         
