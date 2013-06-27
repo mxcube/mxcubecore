@@ -73,14 +73,14 @@ class BeamlineConfiguration(HardwareObject):
                                          getProperty('start_image_number'))
         acq_parameters.num_images = int(self["DEFAULT_VALUES"].\
                                     getProperty('number_of_images'))
-        acq_parameters.osc_start = float(self["DEFAULT_VALUES"].\
-                                       getProperty('start_angle'))
-        acq_parameters.osc_range = float(self["DEFAULT_VALUES"].\
-                                       getProperty('range'))
-        acq_parameters.overlap = float(self["DEFAULT_VALUES"].\
-                                     getProperty('overlap'))
-        acq_parameters.exp_time = float(self["DEFAULT_VALUES"].\
-                                      getProperty('exposure_time'))
+        acq_parameters.osc_start = round(float(self["DEFAULT_VALUES"].\
+                                               getProperty('start_angle')), 2)
+        acq_parameters.osc_range = round(float(self["DEFAULT_VALUES"].\
+                                               getProperty('range')), 2)
+        acq_parameters.overlap = round(float(self["DEFAULT_VALUES"].\
+                                             getProperty('overlap')), 2)
+        acq_parameters.exp_time = round(float(self["DEFAULT_VALUES"].\
+                                              getProperty('exposure_time')), 2)
         acq_parameters.num_passes = int(self["DEFAULT_VALUES"].\
                                         getProperty('number_of_passes'))
         acq_parameters.energy = float()
@@ -93,6 +93,9 @@ class BeamlineConfiguration(HardwareObject):
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = True
 
+        acq_parameters.detector_mode = int(self["DEFAULT_VALUES"].\
+                                           getProperty('detector_mode'))
+        
         return acq_parameters
 
     def get_default_path_template(self):
