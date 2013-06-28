@@ -351,14 +351,23 @@ class DummyQueueEntry(BaseQueueEntry):
 class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None):
         BaseQueueEntry.__init__(self, view, data_model)
-
+        self.lims_client_hwobj = None
+        self._lims_group_id = 0
+        self.session_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
+        group_data = {'sessionId': self.session_hwobj.session_id}
+        self.get_data_model().lims_group_id = self.lims_client_hwobj.\
+                                              _store_data_collection_group(group_data)
 
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        self.lims_client_hwobj = self.get_queue_controller().\
+                                 getObjectByRole("lims_client")
+        self.session_hwobj = self.get_queue_controller().\
+                             getObjectByRole("session")
 
 
     def post_execute(self):
@@ -601,6 +610,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                    self.image_taken)
         qc.connect(self.collect_hwobj, 'collectNumberOfFrames', 
                    self.collect_number_of_frames)
+
+
+        if self.get_data_model().get_parent():
+            self.get_data_model().lims_group_id = self.get_data_model().\
+                                                  get_parent().lims_group_id
         
 
     def post_execute(self):
@@ -799,6 +813,8 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         characterisation_parameters = characterisation.\
                                       characterisation_parameters
 
+        reference_image_collection.lims_group_id = self.get_data_model().\
+                                                   get_parent().lims_group_id
         # Enqueue the reference collection and the characterisation
         # routine.
         dc_qe = DataCollectionQueueEntry(self.get_view(),
