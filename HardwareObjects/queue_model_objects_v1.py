@@ -19,7 +19,6 @@ EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
 EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD','MAD - Inverse Beam',
                                      'OSC','Helical','Characterization', 'OSC')
 
-
 StrategyOption = namedtuple('StrategyOption', ['AVG'])
 STRATEGY_OPTION = StrategyOption(0)
 
@@ -213,6 +212,7 @@ class RootNode(TaskNode):
 class TaskGroup(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
+        self.lims_group_id = None
 
 
 class Sample(TaskNode):
@@ -389,6 +389,7 @@ class DataCollection(TaskNode):
         self.experiment_type = EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
+        self.lims_group_id = None
 
 
     def as_dict(self):
@@ -968,6 +969,7 @@ def to_collect_dict(data_collection, session):
                                        'start': acq_params.osc_start,
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
+             'group_id': data_collection.lims_group_id,
              #'nb_sum_images': 0,
              #'EDNA_files_dir': '',
              'anomalous': proc_params.anomalous,
