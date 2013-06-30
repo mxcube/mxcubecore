@@ -80,7 +80,7 @@ class BeamlineConfiguration(HardwareObject):
         acq_parameters.overlap = round(float(self["DEFAULT_VALUES"].\
                                              getProperty('overlap')), 2)
         acq_parameters.exp_time = round(float(self["DEFAULT_VALUES"].\
-                                              getProperty('exposure_time')), 2)
+                                              getProperty('exposure_time')), 4)
         acq_parameters.num_passes = int(self["DEFAULT_VALUES"].\
                                         getProperty('number_of_passes'))
         acq_parameters.energy = float()
