@@ -642,6 +642,20 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_dc(self, data_collection, list_item):
         if self.collect_hwobj:
+
+            if data_collection.is_collected():
+                path_template = data_collection.acquisitions[0].path_template
+                acq = data_collection.acquisitions[0]
+                new_run_number = self.get_view().parent().get_model().\
+                                 get_next_number_for_name(path_template.get_prefix())
+                
+                data_collection.set_name(acq.path_template.get_prefix())
+                data_collection.set_number(new_run_number)
+                path_template.run_number = new_run_number
+                
+                list_item.setText(0, data_collection.get_name())
+                
+            
             param_list = queue_model_objects.\
                 to_collect_dict(data_collection, self.session)
 
@@ -722,29 +736,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
             data_collection.set_collected(True)
 
-            path_template = data_collection.acquisitions[0].path_template
-            prefix = path_template.get_prefix()
-            directory = path_template.directory
-
-            new_run_number = self.get_view().parent().get_model().\
-                get_next_number_for_name(path_template.get_prefix())
+            #path_template = data_collection.acquisitions[0].path_template
+            #prefix = path_template.get_prefix()
+            #directory = path_template.directory
 
             acq = data_collection.acquisitions[0]
             data_collection.previous_acquisition = copy.deepcopy(acq)
             data_collection.previous_acquisition.acquisition_parameters.\
                 centred_position = data_collection.acquisitions[0].\
                                    acquisition_parameters.centred_position
-            
-            dc_name = acq.path_template.get_prefix() + '_' + \
-                      str(acq.path_template.run_number)
-        
-            data_collection.set_name(dc_name)
-            
-            data_collection.acquisitions[0].\
-                path_template.run_number = new_run_number
-
-            list_item.setText(0, dc_name)
-            
         else:
             logging.getLogger("user_level_log").\
                 error("Could not call the data collection routine, check the beamline configuration")
