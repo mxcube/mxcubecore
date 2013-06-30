@@ -118,8 +118,6 @@ class TaskNode(object):
         else:
             if self._number:
                 self.get_parent()._names[name] = self._number
-            else:
-                self.get_parent()._names[name] = 1
 
         self._name = name
 
