@@ -107,6 +107,11 @@ class TaskNode(object):
 
     def set_number(self, number):        
         self._number = number
+
+        if self.get_parent():
+            # Bumb the run number for nodes with this name
+            if self.get_parent()._names[self._name] < number:
+                self.get_parent()._names[self._name] = number
         
 
     def _set_name(self, name):
