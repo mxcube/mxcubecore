@@ -642,10 +642,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_dc(self, data_collection, list_item):
         if self.collect_hwobj:
+            acq = data_collection.acquisitions[0]
+            path_template = data_collection.acquisitions[0].path_template
 
+            # Increase the run-number if it is a re-collect
             if data_collection.is_collected():
-                path_template = data_collection.acquisitions[0].path_template
-                acq = data_collection.acquisitions[0]
                 new_run_number = self.get_view().parent().get_model().\
                                  get_next_number_for_name(path_template.get_prefix())
                 
@@ -668,11 +669,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     end_cpos = data_collection.acquisitions[1].\
                                acquisition_parameters.centred_position
 
-                    # Always move omega (phi) to zero before starting to collect,
-                    # to avoid phi winding for a VERY long time
-                    start_cpos.phi = 0
-                    end_cpos.phi = 0
-
                     helical_oscil_pars = {'nb_pos': 2,
                                           'udiff': 0}
 
@@ -686,7 +682,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         setValue(helical_oscil_pars)     
 
                     logging.getLogger("user_level_log").\
-                        info("Helical data collection with start position: " + \
+                        info("Helical data collection with start position: " +\
                              str(pprint.pformat(start_cpos)) + \
                             " and end position: " + str(pprint.pformat(end_cpos)))
                     logging.getLogger("user_level_log").\
@@ -697,18 +693,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.diffractometer_hwobj.moveToCentredPosition(start_cpos, wait = True)
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)                
-                    cpos = data_collection.acquisitions[0].acquisition_parameters.centred_position
+                    cpos = data_collection.acquisitions[0].\
+                           acquisition_parameters.centred_position
                     logging.getLogger('queue_exec').\
                         info("Moving to centred position: " + str(cpos))
                     logging.getLogger("user_level_log").\
                         info("Moving to centred position: " + str(cpos))
 
                     list_item.setText(1, "Moving sample")
-
-                    # Always move omega (phi) to zero before starting to collect,
-                    # to avoid phi winding for a VERY long time
-                    cpos.phi = 0
-
                     self.diffractometer_hwobj.moveToCentredPosition(cpos, wait = True)
 
                 logging.getLogger('queue_exec').\
@@ -735,16 +727,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 raise
 
             data_collection.set_collected(True)
-
-            #path_template = data_collection.acquisitions[0].path_template
-            #prefix = path_template.get_prefix()
-            #directory = path_template.directory
-
-            acq = data_collection.acquisitions[0]
             data_collection.previous_acquisition = copy.deepcopy(acq)
             data_collection.previous_acquisition.acquisition_parameters.\
-                centred_position = data_collection.acquisitions[0].\
-                                   acquisition_parameters.centred_position
+                centred_position = acq.acquisition_parameters.centred_position
         else:
             logging.getLogger("user_level_log").\
                 error("Could not call the data collection routine, check the beamline configuration")
