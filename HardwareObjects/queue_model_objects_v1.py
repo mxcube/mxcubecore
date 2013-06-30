@@ -671,6 +671,10 @@ class SampleCentring(TaskNode):
 
     def get_task(self):
         return self._task
+
+
+    def get_name(self):
+        return self._name
     
 
 class Acquisition(object):
