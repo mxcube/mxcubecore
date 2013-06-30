@@ -644,19 +644,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.collect_hwobj:
             acq = data_collection.acquisitions[0]
             path_template = data_collection.acquisitions[0].path_template
-
-            # Increase the run-number if it is a re-collect
-            if data_collection.is_collected():
-                new_run_number = self.get_view().parent().get_model().\
-                                 get_next_number_for_name(path_template.get_prefix())
-                
-                data_collection.set_name(acq.path_template.get_prefix())
-                data_collection.set_number(new_run_number)
-                path_template.run_number = new_run_number
-                
-                list_item.setText(0, data_collection.get_name())
-                
-            
+ 
             param_list = queue_model_objects.\
                 to_collect_dict(data_collection, self.session)
 
@@ -727,6 +715,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 raise
 
             data_collection.set_collected(True)
+            # Increase the run-number for re-collect
+            new_run_number = self.get_view().parent().get_model().\
+                             get_next_number_for_name(path_template.get_prefix())
+
+            data_collection.set_name(acq.path_template.get_prefix())
+            data_collection.set_number(new_run_number)
+            path_template.run_number = new_run_number
+            list_item.setText(0, data_collection.get_name())
+
             data_collection.previous_acquisition = copy.deepcopy(acq)
             data_collection.previous_acquisition.acquisition_parameters.\
                 centred_position = acq.acquisition_parameters.centred_position
