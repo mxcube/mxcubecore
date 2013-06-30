@@ -838,7 +838,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         
         self.get_view().setText(1, "Characterising")
-        logging.getLogger("user_level_log").info("Characterising, plese wait, can take up to three minutes.")
+        logging.getLogger("user_level_log").info("Characterising, please wait, can take up to three minutes.")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
         characterisation_parameters = characterisation.characterisation_parameters
