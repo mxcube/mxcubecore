@@ -32,7 +32,7 @@ class InstanceServer(Procedure):
         self.serverPort=self.getProperty('port')
         self.serverHost=self.getProperty('host')
         if self.serverHost is None:
-            self.serverHost=os.uname()[1]
+            self.serverHost=socket.getfqdn("")
         self.asyncServer=None
         self.instanceClient=None
         self.guiConfiguration=None
@@ -143,9 +143,8 @@ class InstanceServer(Procedure):
                 self.connectToServer()
             else:
                 self.asyncServer=async_server
-                logging.getLogger("HWR").debug('InstanceServer: listening to connections on %s:%d' % (self.serverHost,self.serverPort))
-                server_hostname=socket.getfqdn(self.serverHost)
-                server_hostname=server_hostname.split(".")[0]
+                server_hostname=self.serverHost.split('.')[0]
+                logging.getLogger("HWR").debug('InstanceServer: listening to connections on %s:%d' % (server_hostname,self.serverPort))
 
                 self.serverId2[0]=server_hostname
                 self.controlId2=list(self.serverId2)
@@ -186,28 +185,13 @@ class InstanceServer(Procedure):
             send_data_to_server(self.instanceClient, data)
 
     def isLocal(self):    
-        local_hostname=socket.gethostname()
-        local_full_hostname=socket.getfqdn(local_hostname)
-
-        if self.getProperty('host') is not None:
-            host_full_hostname=socket.getfqdn(self.getProperty('host'))
-            if host_full_hostname!=local_full_hostname:
-                return False
-
         try:
-            display=os.environ["DISPLAY"]
-        except KeyError:
-            return False
-        try:
-            display_hostname=display.split(":")[0]
+            display=os.environ["DISPLAY"].split(":")[0]
         except:
             return False
-        if not len(display_hostname):
+        if not display:
             return True
-        display_full_hostname=socket.getfqdn(display_hostname)
-        if display_full_hostname==local_full_hostname:
-            return True
-        return False
+        return socket.getfqdn(display)==self.serverHost
 
     def isServer(self):
         return self.asyncServer is not None
