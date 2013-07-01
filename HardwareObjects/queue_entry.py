@@ -351,14 +351,23 @@ class DummyQueueEntry(BaseQueueEntry):
 class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None):
         BaseQueueEntry.__init__(self, view, data_model)
-
+        self.lims_client_hwobj = None
+        self._lims_group_id = 0
+        self.session_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
+        group_data = {'sessionId': self.session_hwobj.session_id}
+        self.get_data_model().lims_group_id = self.lims_client_hwobj.\
+                                              _store_data_collection_group(group_data)
 
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        self.lims_client_hwobj = self.get_queue_controller().\
+                                 getObjectByRole("lims_client")
+        self.session_hwobj = self.get_queue_controller().\
+                             getObjectByRole("session")
 
 
     def post_execute(self):
@@ -601,6 +610,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                    self.image_taken)
         qc.connect(self.collect_hwobj, 'collectNumberOfFrames', 
                    self.collect_number_of_frames)
+
+
+        if self.get_data_model().get_parent():
+            self.get_data_model().lims_group_id = self.get_data_model().\
+                                                  get_parent().lims_group_id
         
 
     def post_execute(self):
@@ -628,6 +642,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_dc(self, data_collection, list_item):
         if self.collect_hwobj:
+            acq = data_collection.acquisitions[0]
+            path_template = data_collection.acquisitions[0].path_template
+ 
             param_list = queue_model_objects.\
                 to_collect_dict(data_collection, self.session)
 
@@ -639,11 +656,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                  acquisition_parameters.centred_position
                     end_cpos = data_collection.acquisitions[1].\
                                acquisition_parameters.centred_position
-
-                    # Always move omega (phi) to zero before starting to collect,
-                    # to avoid phi winding for a VERY long time
-                    start_cpos.phi = 0
-                    end_cpos.phi = 0
 
                     helical_oscil_pars = {'nb_pos': 2,
                                           'udiff': 0}
@@ -658,7 +670,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         setValue(helical_oscil_pars)     
 
                     logging.getLogger("user_level_log").\
-                        info("Helical data collection with start position: " + \
+                        info("Helical data collection with start position: " +\
                              str(pprint.pformat(start_cpos)) + \
                             " and end position: " + str(pprint.pformat(end_cpos)))
                     logging.getLogger("user_level_log").\
@@ -669,18 +681,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.diffractometer_hwobj.moveToCentredPosition(start_cpos, wait = True)
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)                
-                    cpos = data_collection.acquisitions[0].acquisition_parameters.centred_position
+                    cpos = data_collection.acquisitions[0].\
+                           acquisition_parameters.centred_position
                     logging.getLogger('queue_exec').\
                         info("Moving to centred position: " + str(cpos))
                     logging.getLogger("user_level_log").\
                         info("Moving to centred position: " + str(cpos))
 
                     list_item.setText(1, "Moving sample")
-
-                    # Always move omega (phi) to zero before starting to collect,
-                    # to avoid phi winding for a VERY long time
-                    cpos.phi = 0
-
                     self.diffractometer_hwobj.moveToCentredPosition(cpos, wait = True)
 
                 logging.getLogger('queue_exec').\
@@ -707,30 +715,18 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 raise
 
             data_collection.set_collected(True)
-
-            path_template = data_collection.acquisitions[0].path_template
-            prefix = path_template.get_prefix()
-            directory = path_template.directory
-
+            # Increase the run-number for re-collect
             new_run_number = self.get_view().parent().get_model().\
-                get_next_number_for_name(path_template.get_prefix())
+                             get_next_number_for_name(path_template.get_prefix())
 
-            acq = data_collection.acquisitions[0]
+            data_collection.set_name(acq.path_template.get_prefix())
+            data_collection.set_number(new_run_number)
+            path_template.run_number = new_run_number
+            list_item.setText(0, data_collection.get_name())
+
             data_collection.previous_acquisition = copy.deepcopy(acq)
             data_collection.previous_acquisition.acquisition_parameters.\
-                centred_position = data_collection.acquisitions[0].\
-                                   acquisition_parameters.centred_position
-            
-            dc_name = acq.path_template.get_prefix() + '_' + \
-                      str(acq.path_template.run_number)
-        
-            data_collection.set_name(dc_name)
-            
-            data_collection.acquisitions[0].\
-                path_template.run_number = new_run_number
-
-            list_item.setText(0, dc_name)
-            
+                centred_position = acq.acquisition_parameters.centred_position
         else:
             logging.getLogger("user_level_log").\
                 error("Could not call the data collection routine, check the beamline configuration")
@@ -799,6 +795,8 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         characterisation_parameters = characterisation.\
                                       characterisation_parameters
 
+        reference_image_collection.lims_group_id = self.get_data_model().\
+                                                   get_parent().lims_group_id
         # Enqueue the reference collection and the characterisation
         # routine.
         dc_qe = DataCollectionQueueEntry(self.get_view(),
@@ -837,7 +835,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         
         self.get_view().setText(1, "Characterising")
-        logging.getLogger("user_level_log").info("Characterising, plese wait, can take up to three minutes.")
+        logging.getLogger("user_level_log").info("Characterising, please wait, can take up to three minutes.")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
         characterisation_parameters = characterisation.characterisation_parameters

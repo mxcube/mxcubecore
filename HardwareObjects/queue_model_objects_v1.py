@@ -19,7 +19,6 @@ EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
 EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD','MAD - Inverse Beam',
                                      'OSC','Helical','Characterization', 'OSC')
 
-
 StrategyOption = namedtuple('StrategyOption', ['AVG'])
 STRATEGY_OPTION = StrategyOption(0)
 
@@ -108,6 +107,11 @@ class TaskNode(object):
 
     def set_number(self, number):        
         self._number = number
+
+        if self.get_parent():
+            # Bumb the run number for nodes with this name
+            if self.get_parent()._names[self._name] < number:
+                self.get_parent()._names[self._name] = number
         
 
     def _set_name(self, name):
@@ -119,8 +123,6 @@ class TaskNode(object):
         else:
             if self._number:
                 self.get_parent()._names[name] = self._number
-            else:
-                self.get_parent()._names[name] = 1
 
         self._name = name
 
@@ -213,6 +215,7 @@ class RootNode(TaskNode):
 class TaskGroup(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
+        self.lims_group_id = None
 
 
 class Sample(TaskNode):
@@ -389,6 +392,7 @@ class DataCollection(TaskNode):
         self.experiment_type = EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
+        self.lims_group_id = None
 
 
     def as_dict(self):
@@ -667,6 +671,10 @@ class SampleCentring(TaskNode):
 
     def get_task(self):
         return self._task
+
+
+    def get_name(self):
+        return self._name
     
 
 class Acquisition(object):
@@ -968,8 +976,9 @@ def to_collect_dict(data_collection, session):
                                        'start': acq_params.osc_start,
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
+             'group_id': data_collection.lims_group_id,
              #'nb_sum_images': 0,
-             #'EDNA_files_dir': '',
+             'EDNA_files_dir': '',
              'anomalous': proc_params.anomalous,
              #'file_exists': 0,
              'experiment_type': EXPERIMENT_TYPE_STR[data_collection.experiment_type],
