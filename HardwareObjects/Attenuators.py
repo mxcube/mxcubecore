@@ -9,7 +9,8 @@ class Attenuators(Device):
         self.labels  = []
         self.bits    = []
         self.attno   = 0
-        
+        self.getValue = self.get_value 
+       
 
     def init(self):
         cmdToggle = self.getCommandObject('toggle')
