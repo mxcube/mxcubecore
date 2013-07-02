@@ -51,9 +51,17 @@ class XMLRPCServer(HardwareObject):
         """
         Method inherited from HardwareObject, called by framework-2. 
         """        
+        
+        # Listen on all interfaces if <all_interfaces>True</all_interfaces>
+        # otherwise only on the interface corresponding to socket.gethostname()
+        if hasattr(self, "all_interfaces") and self.all_interfaces:
+            host = ''
+        else:
+            host = socket.gethostname()
+        
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
-        self._server = SimpleXMLRPCServer((socket.gethostname(), int(self.port)),
+        self._server = SimpleXMLRPCServer((host, int(self.port)),
                                           logRequests = False)
         
         self._server.register_introspection_functions()
