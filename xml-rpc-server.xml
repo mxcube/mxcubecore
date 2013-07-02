@@ -1,4 +1,11 @@
 <object class = "XMLRPCServer" role = "XMLRPCServer">
+
+  <!-- Should XML-RPC server listen on all interfaces?
+       False (the default) means listen only on the interface given
+       by socket.gethostname()-->
+  <all_interfaces> 
+    True
+  </all_interfaces>
   <port>
     8000
   </port>
