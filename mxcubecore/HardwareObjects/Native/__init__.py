@@ -5,17 +5,23 @@ import inspect
 import logging
 import queue_model_objects_v1 as queue_model_objects
 
-xmlrpc_prefix = "native_json"
+xmlrpc_prefix = "native"
 
-def add_to_queue(server_hwobj, json_task_node, set_on=True):
+def use_backend(self, backend):
+    if backend.lower() == "json":
+        return True
+    else:
+        raise ValueError("Unknown backend type '%s'" % backend)
+
+def add_to_queue(server_hwobj, task_node, set_on=True):
     """
     Adds the TaskNode objects contained in the json seralized
-    list of TaskNodes passed in <json_task_node>.
+    list of TaskNodes passed in <task_node>.
     
     The TaskNodes are marked as activated in the queue if <set_on>
     is True and to inactivated if False.
 
-    :param json_task_node: TaskNode object to add to queue
+    :param task_node: TaskNode object to add to queue
     :type parent: TaskNode
 
     :param set_on: Mark TaskNode as activated if True and as inactivated
@@ -27,7 +33,7 @@ def add_to_queue(server_hwobj, json_task_node, set_on=True):
     """
 
     try:
-        task = jsonpickle.decode(json_task_node)
+        task = jsonpickle.decode(task_node)
     except Exception as ex:
         logging.getLogger('HWR').exception(str(ex))
         raise
@@ -35,7 +41,7 @@ def add_to_queue(server_hwobj, json_task_node, set_on=True):
     server_hwobj._add_to_queue(task, set_on)
     return True
 
-def add_child(server_hwobj, parent_id, json_child):
+def add_child(server_hwobj, parent_id, child):
 
     """
     Adds the model node task to parent_id.
@@ -43,7 +49,7 @@ def add_child(server_hwobj, parent_id, json_child):
     :param parent_id: The id of the parent.
     :type parent_id: int
 
-    :param json_child: The TaskNode object to add.
+    :param child: The TaskNode object to add.
     :type child: TaskNode
 
     :returns: The id of the added TaskNode object.
@@ -51,7 +57,7 @@ def add_child(server_hwobj, parent_id, json_child):
     """
 
     try:
-        task = jsonpickle.decode(json_child)
+        task = jsonpickle.decode(child)
     except Exception as ex:
         logging.getLogger('HWR').exception(str(ex))
         raise
@@ -75,7 +81,7 @@ def get_queue_model_code(server_hwobj):
 
     The client can compile and use the queue model as follows:
 
-        for (module_name, module_code) in server.native_json_get_queue_model_code():
+        for (module_name, module_code) in server.native_get_queue_model_code():
             queue_model_objects = imp.new_module(module_name)
             exec module_code in queue_model_objects.__dict__
             sys.modules[module_name] = queue_model_objects
