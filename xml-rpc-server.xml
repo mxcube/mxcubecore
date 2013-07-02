@@ -12,7 +12,7 @@
 
   <apis>
     <api>
-     <module>NativeJson</module>
+     <module>Native</module>
      <recurse>True</recurse>
    </api>
   </apis>
