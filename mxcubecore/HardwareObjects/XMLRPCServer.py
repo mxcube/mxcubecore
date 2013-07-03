@@ -291,7 +291,7 @@ class XMLRPCServer(HardwareObject):
             'register its functions. Skipping') % module_name)
         else:
             prefix += module.xmlrpc_prefix
-            if prefix[-1] != '_':
+            if len(prefix) > 0 and prefix[-1] != '_':
                 prefix += '_'
 
             if prefix in self.xmlrpc_prefixes:
