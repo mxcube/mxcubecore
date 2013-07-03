@@ -281,7 +281,9 @@ class XMLRPCServer(HardwareObject):
         
         log.info('Registering functions in module %s with XML-RPC server' %
                             module_name)
-        __import__(module_name)
+        
+        if not sys.modules.has_key(module_name):
+            __import__(module_name)
         module = sys.modules[module_name]
 
         if not hasattr(module, 'xmlrpc_prefix'):
@@ -310,12 +312,14 @@ class XMLRPCServer(HardwareObject):
                     bound_method = types.MethodType(f[1], self, self.__class__)
                     self._server.register_function(bound_method, xmlrpc_name)
 
-            if recurse:
-                sub_modules = pkgutil.iter_modules(module.__path__)
+            # TODO: Still need to test with deeply-nested modules, in particular that
+            # modules and packages are both handled correctly in complex cases.
+            if recurse and hasattr(module, "__path__"):
+                sub_modules = pkgutil.walk_packages(module.__path__)
                 try:
                     sub_module = next(sub_modules)
                     self._register_module_functions( module_name + '.' + sub_module[1],
-                        recurse=True, prefix=prefix)
+                        recurse=False, prefix=prefix)
                 except StopIteration:
                     pass
 
