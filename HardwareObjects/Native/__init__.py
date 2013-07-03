@@ -5,15 +5,25 @@ import inspect
 import logging
 import queue_model_objects_v1 as queue_model_objects
 
-xmlrpc_prefix = "native"
+xmlrpc_prefix = ""
 
-def use_backend(self, backend):
+def queue_set_serialisation(self, backend):
     if backend.lower() == "json":
         return True
     else:
         raise ValueError("Unknown backend type '%s'" % backend)
 
-def add_to_queue(server_hwobj, task_node, set_on=True):
+def queue_get_serialisation(self):
+    return "json"
+
+def queue_get_available_serialisations(self):
+    """
+    Returns a tuple of the available serialisation methods for
+    native queue objects
+    """
+    return ("json",) 
+
+def queue_add_node(server_hwobj, task_node, set_on=True):
     """
     Adds the TaskNode objects contained in the json seralized
     list of TaskNodes passed in <task_node>.
@@ -41,7 +51,7 @@ def add_to_queue(server_hwobj, task_node, set_on=True):
     server_hwobj._add_to_queue(task, set_on)
     return True
 
-def add_child(server_hwobj, parent_id, child):
+def queue_add_child(server_hwobj, parent_id, child):
 
     """
     Adds the model node task to parent_id.
@@ -66,7 +76,7 @@ def add_child(server_hwobj, parent_id, child):
     return node_id
     
     
-def get_node(server_hwobj, node_id):
+def queue_get_node(server_hwobj, node_id):
     """
     :returns the TaskNode object with the node id <node_id>
     :rtype: TaskNode
@@ -75,7 +85,7 @@ def get_node(server_hwobj, node_id):
     node = server_hwobj._model_get_node(node_id)
     return jsonpickle.encode(node)
 
-def get_queue_model_code(server_hwobj):
+def queue_get_model_code(server_hwobj):
     """
     returns a list of tuples of (name of queue model module, source code of queue model).
 
