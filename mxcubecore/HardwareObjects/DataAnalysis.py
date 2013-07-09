@@ -13,6 +13,8 @@ Example XML config. file:
 """
 import logging
 import gevent.event
+import threading
+import subprocess
 import time
 import os
 import queue_model_objects_v1 as queue_model_objects
@@ -50,49 +52,40 @@ from edna_test_data import EDNA_TEST_DATA
 from collections import namedtuple
 
 
-class DataAnalysis(AbstractDataAnalysis, HardwareObject):
+class EdnaProcessingThread(threading.Thread):
+    def __init__(self, edna_cmd, edna_input_file, edna_output_file, base_dir, processing_done_event):
+        threading.Thread.__init__(self)
+        
+        self.edna_cmd = edna_cmd
+        self.edna_input_file = edna_input_file
+        self.edna_output_file = edna_output_file
+        self.base_dir = base_dir
+        self.edna_processing_done = processing_done_event
+        self.edna_processing_watcher = gevent.get_hub().loop.async()
+        
+    def run(self):
+        self.edna_processing_watcher.start(self.edna_processing_done.set)
+        subprocess.call("%s %s %s %s" % (self.edna_cmd, self.edna_input_file, self.edna_output_file, self.base_dir), shell=True)
+        self.edna_processing_watcher.send()
 
-    TANGO_SUBSCRIBE_MSG = 'Hello Tango world'
-    
+    def join(self):
+        # this has to be called from the main thread
+        self.edna_processing_done.wait()
+
+
+class DataAnalysis(AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.collect_obj = None
-        self.success = None
-        self.failure = None
         self.result = None
-        self.job_id = None
-        self.job_success_event = gevent.event.Event()
+        self.processing_done_event = gevent.event.Event()
 
         
     def init(self):
         self.collect_obj = self.getObjectByRole("collect")
+        self.start_edna_command = self.getProperty("edna_command")
 
-        try:
-            self.getChannelObject('jobSuccess').connectSignal('update', self.success_cb)
-            self.getChannelObject('jobFailure').connectSignal('update', self.failure_cb)
-            self.startJob = self.getCommandObject("startJob")
-            self.getJobOutput = self.getCommandObject("getJobOutput")
-        except KeyError as ex:
-            logging.getLogger('HWR').exception('Could most likely not connect'+\
-                                               ' to tagno device server' +\
-                                               str(ex))
-
-
-    def success_cb(self, value):
-        if value != DataAnalysis.TANGO_SUBSCRIBE_MSG:
-            self.success = value
-            logging.info(self.success)
-            self.result = self.getJobOutput(value)
-            self.job_success_event.set()
-
-
-    def failure_cb(self, value):
-        if value != DataAnalysis.TANGO_SUBSCRIBE_MSG:
-            self.failure = value
-            logging.info(self.failure)
-            self.job_success_event.set()
-
-
+  
     def get_html_report(self, edna_result):
         html_report = None
 
@@ -212,35 +205,51 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
-
+        
+        edna_input.process_directory = data_collection.acquisitions[0].path_template.process_directory
+        
         return edna_input
 
     
     def characterise(self, edna_input):
-        #edna_plugin = "EDPluginControlInterfaceToMXCuBEv1_3"
-        edna_plugin = "EDPluginControlMXCuBEWrapperv1_3"
-        edna_result = None
+        process_directory_path = edna_input.process_directory
+        
+        # if there is no data collection id, the id will be a random number
+        # this is to give a unique number to the EDNA input and result files;
+        # something more clever might be done to give a more significant
+        # name, if there is no dc id.
+        try:
+          dc_id = edna_input.getDataCollectionId().getValue()
+        except:
+          dc_id = id(edna_input)
+        
+        if hasattr(edna_input, "process_directory"):
+          edna_input_file = os.path.join(process_directory_path,"EDNAInput_%s.xml" % dc_id)
+          edna_input.exportToFile(edna_input_file)
+          edna_results_file = os.path.join(process_directory_path, "EDNAOutput_%s.xml" % dc_id)
 
+          if not os.path.isdir(process_directory_path):
+              os.makedirs(path)
+        else:
+          raise RuntimeError, "No process directory specified in edna_input"
 
-        self.job_success_event.clear()
-        self.job_id = self.startJob([edna_plugin, 
-                                     edna_input.marshal()])
-        logging.info("Running %s" % edna_plugin)
+        logging.getLogger("queue_exec").info("Starting EDNA using xml file %r", edna_input_file)
 
-        self.job_success_event.wait(timeout = 180)
-
-        if self.result is not None:
-            if self.result.find("CharacterisationResult.xml") != -1:
-
-                logging.getLogger('queue_exec').\
-                    info('EDNA-Characterisation completed successfully')
-                logging.getLogger('queue_exec').\
-                    info('with result ' + self.result)
-                
-                edna_result = XSDataResultMXCuBE.parseString(self.result)
-                
-        return edna_result
-
+        self.processing_done_event.clear()
+        
+        edna_processing_thread = EdnaProcessingThread(self.start_edna_command, \
+                                                      edna_input_file, \
+                                                      edna_results_file,\
+                                                      process_directory_path, \
+                                                      self.processing_done_event)
+        edna_processing_thread.start()
+        # the join method will set the self.processing_done_event in a thread-safe manner
+        edna_processing_thread.join()
+        
+        self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
+        
+        return self.result
+       
 
     def is_running(self):
-        return not self.job_success_event.isSet()
+        return not self.processing_done_event.is_set()
