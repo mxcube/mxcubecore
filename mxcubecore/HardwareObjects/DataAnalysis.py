@@ -64,7 +64,8 @@ class EdnaProcessingThread(threading.Thread):
     def start(self):
         self.edna_processing_watcher = gevent.get_hub().loop.async()
         self.edna_processing_done = gevent.event.Event()
-        return threading.Thread.start(self)
+        threading.Thread.start(self)
+        return self.edna_processing_done
         
     def run(self):
         self.edna_processing_watcher.start(self.edna_processing_done.set)
@@ -126,7 +127,6 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         diff_plan.setAimedIOverSigmaAtHighestResolution(\
             XSDataDouble(char_params.aimed_i_sigma))
 
-
         diff_plan.setAimedCompleteness(XSDataDouble(char_params.\
                                                     aimed_completness))
 
@@ -137,10 +137,8 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         if char_params.use_aimed_resolution:
             diff_plan.setAimedResolution(XSDataDouble(char_params.aimed_resolution))
 
-
         diff_plan.setComplexity(XSDataString(\
                 queue_model_objects.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
-
 
         if char_params.use_permitted_rotation:
             diff_plan.setUserDefinedRotationStart(XSDataAngle(char_params.\
