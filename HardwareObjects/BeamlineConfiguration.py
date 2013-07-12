@@ -91,7 +91,7 @@ class BeamlineConfiguration(HardwareObject):
                                           getProperty('has_shutterless'))
         acq_parameters.take_snapshots = True
         acq_parameters.take_dark_current = True
-        acq_parameters.skip_existing_images = True
+        acq_parameters.skip_existing_images = False
 
         acq_parameters.detector_mode = int(self["DEFAULT_VALUES"].\
                                            getProperty('detector_mode'))
