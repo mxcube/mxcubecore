@@ -715,6 +715,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 raise
 
             data_collection.set_collected(True)
+            data_collection.previous_acquisition = copy.deepcopy(acq)
+            data_collection.previous_acquisition.acquisition_parameters.\
+                centred_position = acq.acquisition_parameters.centred_position
+
             # Increase the run-number for re-collect
             new_run_number = self.get_view().parent().get_model().\
                              get_next_number_for_name(path_template.get_prefix())
@@ -723,10 +727,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             data_collection.set_number(new_run_number)
             path_template.run_number = new_run_number
             list_item.setText(0, data_collection.get_name())
-
-            data_collection.previous_acquisition = copy.deepcopy(acq)
-            data_collection.previous_acquisition.acquisition_parameters.\
-                centred_position = acq.acquisition_parameters.centred_position
         else:
             logging.getLogger("user_level_log").\
                 error("Could not call the data collection routine, check the beamline configuration")
