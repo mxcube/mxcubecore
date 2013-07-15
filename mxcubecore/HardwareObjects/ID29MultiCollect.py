@@ -15,13 +15,13 @@ class ID29MultiCollect(ESRFMultiCollect):
 
       data_collect_parameters["dark"] = 0
       # are we doing shutterless ?
-      if oscillation_parameters["overlap"] != 0:
-        shutterless = False
-      else:
-        shutterless = data_collect_parameters.get("shutterless")
+      #if oscillation_parameters["overlap"] != 0:
+      #  shutterless = False
+      #else:
+      #  shutterless = data_collect_parameters.get("shutterless")
       
-      self._detector.shutterless = True if shutterless else False
-      self.getChannelObject("shutterless").setValue(1 if shutterless else 0)
+      #self._detector.shutterless = True if shutterless else False
+      #self.getChannelObject("shutterless").setValue(1 if shutterless else 0)
 
       self.getChannelObject("parameters").setValue(data_collect_parameters)
       self.execute_command("build_collect_seq")
