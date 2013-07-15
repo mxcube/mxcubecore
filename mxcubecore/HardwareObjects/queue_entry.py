@@ -797,6 +797,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
 
         reference_image_collection.lims_group_id = self.get_data_model().\
                                                    get_parent().lims_group_id
+        
         # Enqueue the reference collection and the characterisation
         # routine.
         dc_qe = DataCollectionQueueEntry(self.get_view(),
