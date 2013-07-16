@@ -782,6 +782,17 @@ class PathTemplate(object):
         return archive_directory
 
 
+    def get_files_to_be_written(self):
+        file_locations = []
+        file_name_template = self.get_image_file_name()
+
+        for i in range(self.start_num,
+                       self.start_num + self.num_files):
+           
+            file_locations.append(os.path.join(self.directory,
+                                               file_name_template % i))
+
+        return file_locations
 class AcquisitionParameters(object):
     def __init__(self):
         object.__init__(self)
