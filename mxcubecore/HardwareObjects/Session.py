@@ -34,17 +34,15 @@ class Session(HardwareObject):
         self._path_template_dict = {}
         
         self.endstation_name = None
-
-        self.beamline_config_hwobj = self.getObjectByRole("mxlocal")
-
-
+      
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
-    def init(self):        
-        self.suffix = self["file_info"].getProperty('file_suffix')
-        self.endstation_name = self.getProperty('endstation_name')
+    def init(self):
+        self.bl_config_hwobj = self.getObjectByRole("bl_config")
+        self.suffix = self.bl_config_hwobj["file_info"].getProperty('file_suffix')
+        self.endstation_name = self.bl_config_hwobj.getProperty('endstation_name')
 
-        inhouse_proposals = self["inhouse_users"]["proposal"]
+        inhouse_proposals = self.bl_config_hwobj["inhouse_users"]["proposal"]
 
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
