@@ -95,7 +95,7 @@ class QueueModel(HardwareObject):
         if name in self._models:
             raise KeyError('The key %s is already registered' % name)
         else:
-            self._models[name]        
+            self._models[name]     
 
 
     def _re_emit(self, parent_node):
@@ -245,3 +245,40 @@ class QueueModel(HardwareObject):
             self.queue_controller_hwobj.enqueue(qe)
         else:
             view_item.parent().get_queue_entry().enqueue(qe)
+
+
+    def get_run_number(self, new_path_template, exclude_task = None):
+        all_path_templates = self.get_path_templates()
+        conflicting_path_templates = [0]
+
+        for pt in all_path_templates:
+            if pt[1] is not new_path_template:
+               if pt[1] == new_path_template:
+                   conflicting_path_templates.append(pt[1].run_number)
+
+        return max(conflicting_path_templates) + 1
+
+
+    def get_path_templates(self):
+        return self._get_path_templates_rec(self.get_model_root())
+    
+
+    def _get_path_templates_rec(self, parent_node):
+        path_template_list = []
+        
+        for child_node in parent_node.get_children():
+            path_template = child_node.get_path_template()
+
+            if path_template:
+                path_template_list.append((child_node, path_template))
+
+            child_path_template_list = self._get_path_templates_rec(child_node)
+
+            if child_path_template_list:
+                path_template_list.extend(child_path_template_list)
+
+        return path_template_list
+
+
+    
+    
