@@ -650,16 +650,6 @@ class EnergyScan(TaskNode):
         return self.path_template.get_prefix()
 
 
-    def next_available_run_number(self):
-        parent_node = self.get_parent()
-        largest = 1
-
-        for task_node in parent_node.get_children():
-            if task_node.get_prefix() == self.get_prefix():
-                if task_node.get_run_number() > largest:
-                    largest = task_node.get_run_number()
-
-        return int(largest)
     def get_path_template(self):
         return self.path_template
 
