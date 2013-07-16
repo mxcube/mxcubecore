@@ -793,6 +793,20 @@ class PathTemplate(object):
                                                file_name_template % i))
 
         return file_locations
+
+
+    def __eq__(self, path_template):
+        result = False
+
+        if self.get_prefix() == path_template.get_prefix() and \
+           self.directory == path_template.directory:
+            result = True
+
+        return result
+
+
+
+
 class AcquisitionParameters(object):
     def __init__(self):
         object.__init__(self)
