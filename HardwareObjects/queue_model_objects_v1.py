@@ -163,6 +163,10 @@ class TaskNode(object):
         return None
 
 
+    def get_path_template(self):
+        return []
+
+
     def get_files_to_be_written(self):
         return []
 
@@ -439,6 +443,10 @@ class DataCollection(TaskNode):
         return self.acquisitions[0].path_template.get_prefix()
 
 
+    def get_path_template(self):
+        return self.acquisitions[0].path_template
+
+
     def get_files_to_be_written(self):
         file_locations = []
         
@@ -524,6 +532,11 @@ class Characterisation(TaskNode):
 
    def get_prefix(self):
        return self.reference_image_collection.get_prefix()
+
+
+   def get_path_template(self):
+       return self.reference_image_collection.acquisitions[0].\
+              path_template
 
 
    def get_files_to_be_written(self):
@@ -647,6 +660,8 @@ class EnergyScan(TaskNode):
                     largest = task_node.get_run_number()
 
         return int(largest)
+    def get_path_template(self):
+        return self.path_template
 
 
 class EnergyScanResult(object):
@@ -900,6 +915,10 @@ class Workflow(TaskNode):
 
     def get_type(self):
         return self._type
+
+
+    def get_path_template(self):
+        return self.path_template
 
 
 #
