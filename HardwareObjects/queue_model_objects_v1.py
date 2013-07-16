@@ -448,17 +448,8 @@ class DataCollection(TaskNode):
 
 
     def get_files_to_be_written(self):
-        file_locations = []
-        
         path_template = self.acquisitions[0].path_template
-        acq_params = self.acquisitions[0].acquisition_parameters
-        file_name_template = path_template.get_image_file_name()
-
-        for i in range(acq_params.first_image, 
-                       acq_params.first_image + acq_params.num_images):
-                    
-            file_locations.append(os.path.join(path_template.directory,
-                                               file_name_template % i))
+        file_locations = path_template.get_files_to_be_written()
 
         return file_locations
 
@@ -540,22 +531,10 @@ class Characterisation(TaskNode):
 
 
    def get_files_to_be_written(self):
-        file_locations = []
-        
         path_template = self.reference_image_collection.acquisitions[0].\
                         path_template
 
-        # Quick fix beacuse of bug, remove ASAP
-        acq_params = self.reference_image_collection.acquisitions[0].\
-                     acquisition_parameters
-        
-        file_name_template = path_template.get_image_file_name()
-
-        for i in range(acq_params.first_image, 
-                       acq_params.first_image + acq_params.num_images):
-                    
-            file_locations.append(os.path.join(path_template.directory,
-                                               file_name_template % i))
+        file_locations = path_template.get_files_to_be_written()
 
         return file_locations
 
@@ -803,6 +782,7 @@ class PathTemplate(object):
             result = True
 
         return result
+
 
 
 
