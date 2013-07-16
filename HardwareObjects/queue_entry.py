@@ -200,6 +200,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_data_model(data_model)
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
+        self.beamline_setup = None
 
 
     def enqueue(self, queue_entry):
@@ -295,6 +296,8 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         logging.getLogger('queue_exec').\
             info('Calling pre_execute on: ' + str(self))
+        self.beamline_setup = self.get_queue_controller().\
+                              getObjectByRole("beamline_setup")
 
 
     def post_execute(self):
@@ -364,10 +367,9 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.lims_client_hwobj = self.get_queue_controller().\
-                                 getObjectByRole("lims_client")
-        self.session_hwobj = self.get_queue_controller().\
-                             getObjectByRole("session")
+        
+        self.lims_client_hwobj = self.beamline_setup.lims_client_hwobj
+        self.session_hwobj = self.beamline_setup.session_hwobj
 
 
     def post_execute(self):
@@ -469,14 +471,10 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.sample_changer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("sample_changer")
 
-        self.diffractometer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("diffractometer")
-
-        self.shape_history = self.get_queue_controller().\
-                             getObjectByRole("shape_history")
+        self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.shape_history = self.beamline_setup.shape_history_hwobj
         
             
     def post_execute(self):
@@ -532,15 +530,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
 
     def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-        self.sample_changer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("sample_changer")
-
-        self.diffractometer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("diffractometer")
-
-        self.shape_history = self.get_queue_controller().\
-                             getObjectByRole("shape_history")
+        BaseQueueEntry.pre_execute(self)        
+        self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.shape_history = self.beamline_setup.shape_history_hwobj
 
 
     def post_execute(self):
@@ -579,20 +572,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         
-        self.collect_hwobj = self.get_queue_controller().\
-                             getObjectByRole("collect")
-
-        self.diffractometer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("diffractometer")
-
-        self.beamline_config_hwobj = self.get_queue_controller().\
-                                     getObjectByRole("beamline_configuration")
-
-        self.shape_history = self.get_queue_controller().\
-                             getObjectByRole("shape_history")
-
-        self.session = self.get_queue_controller().\
-                       getObjectByRole("session")
+        self.collect_hwobj = self.beamline_setup.collect_hwobj
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.beamline_config_hwobj = self.beamline_setup.bl_config_hwobj
+        self.shape_history = self.beamline_setup.shape_history_hwobj
+        self.session = self.beamline_setup.session_hwobj
         
         qc = self.get_queue_controller()
 
@@ -928,19 +912,11 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.get_view().setOn(True)
         self.get_view().setHighlighted(False)
 
-        self.data_analysis_hwobj = self.get_queue_controller().\
-                                   getObjectByRole("data_analysis")
-        
-        self.diffractometer_hwobj = self.get_queue_controller().\
-                                    getObjectByRole("diffractometer")
-
-        self.beamline_config_hwobj = self.get_queue_controller().\
-                                     getObjectByRole("beamline_configuration")
-
+        self.data_analysis_hwobj = self.beamline_setup.data_analysis_hwobj
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.beamline_config_hwobj = self.beamline_setup.bl_config_hwobj
         self.queue_model_hwobj = self.get_view().listView().parent().queue_model_hwobj
-
-        self.session_hwobj = self.get_queue_controller().\
-                             getObjectByRole("session")
+        self.session_hwobj = self.beamline_setup.session_hwobj
 
 
     def post_execute(self):
@@ -977,9 +953,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)        
-
-        self.energy_scan_hwobj = self.get_queue_controller().\
-                                 getObjectByRole("energy_scan")
+        self.energy_scan_hwobj = self.beamline_setup.energy_hwobj
 
         qc = self.get_queue_controller()
         
@@ -1085,8 +1059,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.rpc_server_hwobj = self.get_queue_controller().\
-                                 getObjectByRole("xml_rpc_server")
+        self.rpc_server_hwobj = self.beamline_setup.rpc_server_hwobj
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
