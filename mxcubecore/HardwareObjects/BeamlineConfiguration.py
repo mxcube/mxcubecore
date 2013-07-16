@@ -32,8 +32,7 @@ class BeamlineConfiguration(HardwareObject):
         shutter_less = False
         
         try:
-            shutter_less = self["BCM_PARS"]['detector'].\
-                           getProperty('has_shutterless')
+            shutter_less = self['detector'].getProperty('has_shutterless')
 
             if shutter_less is None:
                 shutter_less = False
@@ -52,7 +51,7 @@ class BeamlineConfiguration(HardwareObject):
         tw = False
         
         try:
-            tw = self["BCM_PARS"].getProperty('tunable_wavelength')
+            tw = self.getProperty('tunable_wavelength')
             
             if tw is None:
                 tw = False
@@ -69,31 +68,30 @@ class BeamlineConfiguration(HardwareObject):
         """
         acq_parameters = queue_model_objects.AcquisitionParameters()
         
-        acq_parameters.first_image = int(self["DEFAULT_VALUES"].\
+        acq_parameters.first_image = int(self["default_values"].\
                                          getProperty('start_image_number'))
-        acq_parameters.num_images = int(self["DEFAULT_VALUES"].\
+        acq_parameters.num_images = int(self["default_values"].\
                                     getProperty('number_of_images'))
-        acq_parameters.osc_start = round(float(self["DEFAULT_VALUES"].\
+        acq_parameters.osc_start = round(float(self["default_values"].\
                                                getProperty('start_angle')), 2)
-        acq_parameters.osc_range = round(float(self["DEFAULT_VALUES"].\
+        acq_parameters.osc_range = round(float(self["default_values"].\
                                                getProperty('range')), 2)
-        acq_parameters.overlap = round(float(self["DEFAULT_VALUES"].\
+        acq_parameters.overlap = round(float(self["default_values"].\
                                              getProperty('overlap')), 2)
-        acq_parameters.exp_time = round(float(self["DEFAULT_VALUES"].\
+        acq_parameters.exp_time = round(float(self["default_values"].\
                                               getProperty('exposure_time')), 4)
-        acq_parameters.num_passes = int(self["DEFAULT_VALUES"].\
+        acq_parameters.num_passes = int(self["default_values"].\
                                         getProperty('number_of_passes'))
         acq_parameters.energy = float()
         acq_parameters.resolution = float()
         acq_parameters.transmission = float()
         acq_parameters.inverse_beam = False
-        acq_parameters.shutterless = bool(self["BCM_PARS"]['detector'].\
-                                          getProperty('has_shutterless'))
+        acq_parameters.shutterless = bool(self['detector'].getProperty('has_shutterless'))
         acq_parameters.take_snapshots = True
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
 
-        acq_parameters.detector_mode = int(self["DEFAULT_VALUES"].\
+        acq_parameters.detector_mode = int(self["default_values"].\
                                            getProperty('detector_mode'))
         
         return acq_parameters
@@ -108,13 +106,13 @@ class BeamlineConfiguration(HardwareObject):
         path_template.reference_image_prefix = ''
         path_template.wedge_prefix = ''
         path_template.template = str()
-        path_template.run_number = self["DEFAULT_VALUES"].\
+        path_template.run_number = self["default_values"].\
                                    getProperty('run_number')
-        path_template.suffix = self["BCM_PARS"].getProperty('file_suffix')
+        path_template.suffix = self["file_info"].getProperty('file_suffix')
         path_template.precision = '04'
-        path_template.start_num = int(self["DEFAULT_VALUES"].\
+        path_template.start_num = int(self["default_values"].\
                                       getProperty('start_image_number'))
-        path_template.num_files = int(self["DEFAULT_VALUES"].\
+        path_template.num_files = int(self["default_values"].\
                                       getProperty('number_of_images'))
 
         return path_template
