@@ -2,7 +2,7 @@ import logging
 import qtcanvas
 import qt
 import traceback
-import queue_model
+import queue_model_objects_v1 as queue_model_objects
 
 from qt import Qt
 
@@ -24,6 +24,7 @@ class ShapeHistory(HardwareObject):
         self._drawing_event = DrawingEvent(self)
         self.shapes = {}
         self.selected_shapes = {}
+        self._current_grid = {}
 
 
     def set_drawing(self, drawing):
@@ -115,7 +116,15 @@ class ShapeHistory(HardwareObject):
         self.shapes.clear()
         self.selected_shapes.clear()
 
-    
+
+    def add_grid(self, grid_dict):
+        self._current_grid = grid_dict
+
+
+    def get_grid(self):
+        return self._current_grid
+            
+
 class DrawingEvent(QubDrawingEvent):
     def __init__(self, qub_helper):
         QubDrawingEvent.__init__(self)
@@ -239,6 +248,10 @@ class DrawingEvent(QubDrawingEvent):
         self.current_shape = None
 
 
+    def set_selected(self, shape):
+        self.current_shape = shape
+        self.select_current()
+        
         
 class Shape(object):
     def __init__(self):
@@ -390,7 +403,7 @@ class Point(Shape):
         self.qub_point = None
         
         if centred_position is None:
-            self.centred_position = queue_model.CentredPosition()
+            self.centred_position = queue_model_objects.CentredPosition()
             self.centred_position.centring_method = False
         else:
             self.centred_position = centred_position
