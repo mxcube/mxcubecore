@@ -1,5 +1,5 @@
-#$Id: __init__.py,v 1.1 2004/09/30 13:40:14 guijarro Exp guijarro $
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 
@@ -32,8 +32,6 @@ if len(logging.root.handlers) == 0:
     #
     # log to stdout
     #
-    import sys
-
     _hdlr = logging.StreamHandler(sys.stdout)
     _hdlr.setFormatter(_formatter)
     _logger.addHandler(_hdlr)
@@ -71,8 +69,6 @@ def setLogFile(filename):
     #
     # log to rotating files
     #
-    from logging.handlers import RotatingFileHandler
-
     hdlr = RotatingFileHandler(filename, 'a', 1048576, 5) #1 MB by file, 5 files max.           
     hdlr.setFormatter(_formatter)
     
