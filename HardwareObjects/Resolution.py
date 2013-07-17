@@ -22,8 +22,7 @@ class Resolution(BaseHardwareObjects.Equipment):
 	self.getradius = self.getCommandObject("detector_radius")
    	self.detector_diameter_chan = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"detector_radius"}, "MXBCM_PARS/detector_radius")
         self.detector_diameter = 0
-        self.beam_centre_channel = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"beam_centre"}, "MXBCM_PARS/beam")   
-        self.beam_centre_channel.connectSignal("update", self.beam_centre_updated)
+        self.det_radius = 0
 
         if self.wavelength is None:
           self.energy = self.getDeviceByRole("energy")
@@ -35,6 +34,7 @@ class Resolution(BaseHardwareObjects.Equipment):
                logging.error("%s: cannot determine wavelength", self.name())
 
         self.connect(self.detm, "stateChanged", self.detmStateChanged)
+        self.connect(self.detm, "positionChanged", self.detmPositionChanged) 
         if self.wavelength is not None:
           self.connect(self.wavelength, "positionChanged", self.wavelengthChanged)
         else:
@@ -45,6 +45,11 @@ class Resolution(BaseHardwareObjects.Equipment):
               self.wavelengthChanged()     
           else:
             self.connect(self.energy, "positionChanged", self.energyChanged)
+
+        self.beam_centre_channel = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"beam_centre"}, "MXBCM_PARS/beam")   
+        self.beam_centre_channel.connectSignal("update", self.beam_centre_updated)
+        self.beam_centre_updated(self.beam_centre_channel.getValue())
+
 
     def beam_centre_updated(self, beam_pos_dict):
         if self.detector_diameter == 0:
@@ -84,6 +89,7 @@ class Resolution(BaseHardwareObjects.Equipment):
             return None
 
     def dist2res(self, dist=None):
+        
         if dist is None:
             dist = self.dtox.getPosition()
             
@@ -110,6 +116,9 @@ class Resolution(BaseHardwareObjects.Equipment):
         if self.currentResolution is None:
           self.recalculateResolution()
         return self.currentResolution
+
+    def get_value(self):
+        return self.getPosition()
     
     def newResolution(self, res):
         self.currentResolution = res
@@ -136,6 +145,12 @@ class Resolution(BaseHardwareObjects.Equipment):
         else:
           self.detm.motorState = self.detm.READY
           self.detm.motorStateChanged(self.detm.motorState)
+
+    def detmPositionChanged(self, pos):
+        if self.motorIsMoving():
+          return
+        else:
+          self.detmStateChanged(self.detm.READY)
 
     def getLimits(self, callback=None, error_callback=None):
         low, high = self.detm.getLimits()
@@ -168,6 +183,4 @@ class Resolution(BaseHardwareObjects.Equipment):
         except:
             pass
 
-
-    def getValue(self):
-        return self.getPosition()
+    

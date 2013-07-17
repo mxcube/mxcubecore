@@ -385,6 +385,7 @@ class ISPyBClient2(HardwareObject):
                 exception("Error in store_data_collection: could not connect" + \
                           " to server")
 
+
     @trace
     def store_beamline_setup(self, session_id, beamline_setup):
         """
@@ -1091,6 +1092,15 @@ class ISPyBClient2(HardwareObject):
                        storeOrUpdateDataCollectionGroup(group)
 
             return group_id
+
+
+    def _store_data_collection_group(self, group_data):
+        """
+        """
+        group_id = self.__collection.service.\
+                   storeOrUpdateDataCollectionGroup(group_data)
+
+        return group_id
 
 
     # Bindings to methods called from older bricks.

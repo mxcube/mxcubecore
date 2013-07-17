@@ -58,6 +58,7 @@ class QueueController(HardwareObject, QueueEntryContainer):
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
         self._current_queue_entry = None
+        self._running = False
 
 
     def enqueue(self, queue_entry):
@@ -81,20 +82,32 @@ class QueueController(HardwareObject, QueueEntryContainer):
         self._root_task = gevent.spawn(self.__execute_task)
 
 
+    def is_executing(self):
+        """
+        :returns: True if the queue is executing otherwise False
+        :rtype: bool
+        """
+        return self._running
+
+
     def __execute_task(self):
-        for queue_entry in self._queue_entry_list:
+        self._running = True
+        
+        for queue_entry in self._queue_entry_list:            
             try:
                 self.__execute_entry(queue_entry)
             except Exception as ex:
                 try:
                     self.stop()
                 except gevent.GreenletExit:
-                    pass
+                    raise
 
                 logging.getLogger('user_level_log').error('Error executing ' +\
-                                                          'queue' + ex.message)
+                                                          'queue ' + ex.message)
                 raise ex
-        
+            finally:
+                self._running = False
+
         self.emit('queue_execution_finished', (None,))
  
 
@@ -152,11 +165,12 @@ class QueueController(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
+        self._root_task.kill(block = False)
         self.get_current_entry().stop()
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
-        self._root_task.kill(block = True)
+
 
 
     def set_pause(self, state):
@@ -234,6 +248,42 @@ class QueueController(HardwareObject, QueueEntryContainer):
         :rtype: QueueEntry
         """
         return self._current_queue_entry
+
+
+    def get_entry_with_model(self, model, root_queue_entry = None):
+        """
+        Find the entry with the data model model.
+
+        :param model: The model to look for.
+        :type model: TaskNode
+
+        :returns: The QueueEntry with the model <model>
+        :rtype: QueueEntry
+        """
+        if not root_queue_entry:
+            root_queue_entry = self
+
+        for queue_entry in root_queue_entry._queue_entry_list:
+            if queue_entry.get_data_model() is model:
+                return queue_entry
+            else:
+                result = self.get_entry_with_model(model, queue_entry)
+
+                if result:
+                    return result
+
+
+    def execute_entry(self, entry):
+        """
+        Executes the queue entry <entry>.
+
+        :param entry: The entry to execute.
+        :type entry: QueueEntry
+
+        :returns: None
+        :rtype: NoneType
+        """
+        return self.__execute_entry(entry)
 
 
     def clear(self):
