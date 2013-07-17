@@ -1166,7 +1166,18 @@ class PathTemplate(object):
         return result
 
 
+    def is_part_of(self, path_template):
+        result = False
+        
+        if self == path_template and \
+               self.run_number == path_template.run_number:
+            if self.start_num >= path_template.start_num and \
+               path_template.start_num <= self.start_num + self.num_files:
+                result = True
+        else:
+            result = False
 
+        return result
 
 class AcquisitionParameters(object):
     def __init__(self):
