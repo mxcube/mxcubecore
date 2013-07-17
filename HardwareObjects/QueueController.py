@@ -59,6 +59,7 @@ class QueueController(HardwareObject, QueueEntryContainer):
         self._paused_event.set()
         self._current_queue_entry = None
         self._running = False
+        self._disable_collect = False
 
 
     def enqueue(self, queue_entry):
@@ -79,7 +80,8 @@ class QueueController(HardwareObject, QueueEntryContainer):
         """
         Starts execution of the queue.
         """
-        self._root_task = gevent.spawn(self.__execute_task)
+        if not self.is_disabled():
+            self._root_task = gevent.spawn(self.__execute_task)
 
 
     def is_executing(self):
@@ -226,6 +228,29 @@ class QueueController(HardwareObject, QueueEntryContainer):
         """
         self._paused_event.wait()
 
+
+    def disable(self, state):
+        """
+        Sets the disable state to <state>, disables the possibility to call execute
+        if True enables if False.
+
+        :param state: The disabled state, True, False.
+        :type state: bool
+
+        :returns: None
+        :rtype: NoneType
+        
+        """
+        self._disable_collect = state
+
+
+    def is_disabled(self):
+        """
+        :returns: True if the queue is disabled, (calling execute will do nothing).
+        :rtype: bool
+        """
+        return self._disable_collect
+        
 
     def set_current_entry(self, entry):
         """
