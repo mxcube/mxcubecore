@@ -280,5 +280,14 @@ class QueueModel(HardwareObject):
         return path_template_list
 
 
-    
-    
+    def check_for_path_collisions(self, new_path_template):
+        result = False
+        path_template_list = self.get_path_templates()
+
+        for pt in path_template_list:
+            if pt[1] is not new_path_template:
+                if new_path_template.is_part_of(pt[1]):
+                    result =  True
+
+        return result
+                    
