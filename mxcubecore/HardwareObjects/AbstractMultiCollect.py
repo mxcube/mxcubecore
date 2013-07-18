@@ -418,36 +418,26 @@ class AbstractMultiCollect(object):
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
 
-        if self.bl_control.sample_changer is not None:
-              #sample_location = self.bl_control.sample_changer.getLoadedSampleLocation()
-              try:
-                  sample_location = (self.bl_control.sample_changer.currentBasket,
-                                    self.bl_control.sample_changer.currentSample)
-              except:
-                  sample_location = None
-        else:
-            sample_id = None
-            sample_location = None
-            sample_code = None
 
+	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
 
-        try:
-            data_collect_parameters["actualSampleBarcode"] = \
+
+        if self.bl_control.sample_changer is not None:
+	    data_collect_parameters["actualSampleBarcode"] = \
                 self.bl_control.sample_changer.getLoadedSampleDataMatrix()
             data_collect_parameters["actualContainerBarcode"] = \
                 self.bl_control.sample_changer.currentBasketDataMatrix
-        except:
+
+            basket, vial = (self.bl_control.sample_changer.currentBasket,
+            		    self.bl_control.sample_changer.currentSample)
+
+            data_collect_parameters["actualSampleSlotInContainer"] = vial
+            data_collect_parameters["actualContainerSlotInSC"] = basket
+
+	else:
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
-
-        try:
-            basket, vial = sample_location
-        except:
-            basket, vial = (None, None)
-
-        data_collect_parameters["actualSampleSlotInContiner"] = vial
-        data_collect_parameters["actualContainerSlotInSC"] = basket
 
         try:
             # why .get() is not working as expected?

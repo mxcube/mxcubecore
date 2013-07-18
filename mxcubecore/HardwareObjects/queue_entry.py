@@ -553,17 +553,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.collect_task = None
         self.beamline_config_hwobj = None
         self.shape_history = None
-        self.sesison = None
+        self.session = None
 
 
     def execute(self):
         BaseQueueEntry.execute(self)
         data_collection = self.get_data_model()
         
-        if data_collection and self.collect_hwobj:
+        if data_collection:
             self.collect_dc(data_collection, self.get_view())
-        else:
-            pass
         
         if self.shape_history:
             self.shape_history.get_drawing_event_handler().de_select_all()

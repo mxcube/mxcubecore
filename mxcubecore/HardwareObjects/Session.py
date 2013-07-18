@@ -29,24 +29,35 @@ class Session(HardwareObject):
         self.proposal_id = None
         self.in_house_users = []
         self._is_inhouse = None
-        self.default_precision = '04'
-        self.suffix = 'cbf'
-        self._path_template_dict = {}
         
         self.endstation_name = None
+
+        self.default_precision = '04'
+        self.suffix = None
+        self.base_directory = None
+        self.base_process_directory = None
+        self.raw_data_folder_name = None
+        self.processed_data_folder_name = None
+
       
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
         self.bl_config_hwobj = self.getObjectByRole("bl_config")
+        self.endstation_name = self.bl_config_hwobj.getProperty('endstation_name')  
         self.suffix = self.bl_config_hwobj["file_info"].getProperty('file_suffix')
-        self.endstation_name = self.bl_config_hwobj.getProperty('endstation_name')
+        self.base_directory = self.bl_config_hwobj["file_info"].getProperty('base_directory')
+        self.base_process_directory = self.bl_config_hwobj["file_info"].getProperty('processed_data_base_directory')
+        self.raw_data_folder_name = self.bl_config_hwobj["file_info"].getProperty('raw_data_folder_name')
+        self.processed_data_folder_name = self.bl_config_hwobj["file_info"].getProperty('processed_data_folder_name')
 
         inhouse_proposals = self.bl_config_hwobj["inhouse_users"]["proposal"]
 
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
                                         prop.getProperty('number')))
+
+
 
 
     def get_base_data_directory(self):
@@ -63,13 +74,13 @@ class Session(HardwareObject):
         
         if self.is_inhouse():
             user_category = 'inhouse'
-            directory = os.path.join('/data',
+            directory = os.path.join(self.base_directory,
                                      self.endstation_name,
                                      user_category, self.get_proposal(),
                                      time.strftime("%Y%m%d"))
         else:
             user_category = 'visitor' 
-            directory = os.path.join('/data',
+            directory = os.path.join(self.base_directory,
                                      user_category, self.get_proposal(),
                                      self.endstation_name,
                                      time.strftime("%Y%m%d"))
@@ -83,7 +94,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            'RAW_DATA')
+                            self.raw_data_folder_name)
 
 
     def get_base_process_directory(self):
@@ -92,7 +103,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            'PROCESSED_DATA')
+                            self.processed_data_folder_name)
 
 
     def get_image_directory(self, data_node):
