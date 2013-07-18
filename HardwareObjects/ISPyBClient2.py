@@ -214,12 +214,11 @@ class ISPyBClient2(HardwareObject):
         :rtype: dict
         """
         if self.__shipping:
-        
             try:         
                 try:
                     person = self.__shipping.service.\
-                             findPersonByCodeAndNumber(proposal_code, 
-                                                       proposal_number)
+                             findPersonByProposal(proposal_code, 
+                                                  proposal_number)
 
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
@@ -227,8 +226,8 @@ class ISPyBClient2(HardwareObject):
  
                 try: 
                     proposal = self.__shipping.service.\
-                        findProposalByCodeAndNumber(proposal_code, 
-                                                    proposal_number)
+                        findProposal(proposal_code, 
+                                     proposal_number)
 
                     proposal.code = proposal_code
                 except WebFault, e:
@@ -237,17 +236,17 @@ class ISPyBClient2(HardwareObject):
 
                 try: 
                     lab = self.__shipping.service.\
-                        findLaboratoryByCodeAndNumber(proposal_code, 
-                                                      proposal_number)
+                        findLaboratoryByProposal(proposal_code, 
+                                                 proposal_number)
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     lab = {}
 
                 try:
                     res_sessions = self.__collection.service.\
-                        findSessionsByCodeAndNumberAndBeamLine(proposal_code,
-                                                               proposal_number,
-                                                               self.beamline_name)
+                        findSessionsByProposalAndBeamLine(proposal_code,
+                                                          proposal_number,
+                                                          self.beamline_name)
                     sessions = []
 
                     # Handels a list of sessions

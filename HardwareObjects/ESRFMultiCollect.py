@@ -242,8 +242,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       auto_processing_server = self.getProperty("auto_processing_server"),
                                       input_files_server = self.getProperty("input_files_server"))
   
-        self.bl_control.diffractometer.connect("centringAccepted", self.sample_centring_done)
-
 	self.getChannelObject("spec_messages").connectSignal("update", self.log_message_from_spec)
 
         self._detector.getCommandObject = self.getCommandObject

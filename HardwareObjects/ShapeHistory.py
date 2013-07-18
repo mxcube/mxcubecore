@@ -50,14 +50,19 @@ class ShapeHistory(HardwareObject):
 
 
     def get_snapshot(self, qub_objects):
-        matrix = self._drawing.matrix()
+        qimg = None
 
-        zoom = 1
-        if matrix is not None:
-            zoom = matrix.m11()
+        try:
+            matrix = self._drawing.matrix()
+        except AttributeError:
+            qimg = None
+        else:
+            zoom = 1
+            if matrix is not None:
+                zoom = matrix.m11()
 
-        img = self._drawing.getPPP()
-        qimg = self.get_qimage(img, qub_objects, zoom)
+            img = self._drawing.getPPP()
+            qimg = self.get_qimage(img, qub_objects, zoom)
 
         return qimg
 
