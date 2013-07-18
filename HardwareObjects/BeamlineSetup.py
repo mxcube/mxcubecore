@@ -15,7 +15,6 @@ class BeamlineSetup(HardwareObject):
         self.shape_history_hwobj = self.getObjectByRole('shape_history')
         self.session_hwobj = self.getObjectByRole('session')        
         self.bl_config_hwobj = self.getObjectByRole('beamline_configuration')
-        self.rpc_server_hwobj = self.getObjectByRole('rpc_server')
 
         self.data_analysis_hwobj = self.getObjectByRole('data_analysis')
         self.workflow_hwobj = self.getObjectByRole('workflow')
