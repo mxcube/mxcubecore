@@ -30,7 +30,7 @@ class ID30MultiCollect(ESRFMultiCollect):
         
     @task
     def do_oscillation(self, start, end, exptime, npass):
-        pass
+        self.getObjectByRole("diffractometer").oscillate(end-start, exptime, npass)
 
     def get_flux(self):
         return -1
@@ -40,6 +40,9 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     def get_transmission(self):
         return 100
+
+    def get_cryo_temperature(self):
+        return 0
 
 
 
