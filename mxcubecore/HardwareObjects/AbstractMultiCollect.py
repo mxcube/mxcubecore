@@ -7,7 +7,6 @@ import errno
 import abc
 import collections
 import gevent
-from gevent.event import AsyncResult
 import xmlrpclib
 from HardwareRepository.TaskUtils import *
 
@@ -63,7 +62,6 @@ class AbstractMultiCollect(object):
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*12)
         self.bl_config = BeamlineConfig(*[None]*28)
-        self.sample_centring_result = AsyncResult()
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -276,13 +274,6 @@ class AbstractMultiCollect(object):
       pass
     
 
-    def sample_centring_done(self, success, centring_info):
-        if success:
-            self.sample_centring_result.set(centring_info)
-        else:
-            self.sample_centring_result.set_exception(RuntimeError("centring failed !"))
-    
-
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""
         sample_info = parameters.get("sample_reference")
@@ -322,30 +313,6 @@ class AbstractMultiCollect(object):
                 if e.errno != errno.EEXIST:
                     raise
      
-    @task
-    def load_sample(self, sample_location, sample_code = None, sample_id = None):
-        if sample_id is not None:
-            # try to find more sample info from lims
-            if self.bl_control.lims:
-              try:
-                sample_info = self.bl_control.lims.get_bl_sample(sample_id)
-                self.current_lims_sample = sample_info
-              except:
-                logging.getLogger("HWR").exception("Could not store retrieve sample from LIMS")
-        else:
-          sample_info = {}
-
-        try:
-          holder_length = float(sample_info['holderLength'])
-        except:
-          holder_length = 22
-
-        self.emit("collectMountingSample", (sample_code, sample_location, False))
-
-        self.bl_control.sample_changer.load_sample(holder_length, sample_code, sample_location, sample_info)
-
-        self.emit("collectMountingSample", (sample_code, sample_location, True))
-
 
     @abc.abstractmethod
     @task
@@ -401,7 +368,7 @@ class AbstractMultiCollect(object):
         pass
 
     @task
-    def do_collect(self, owner, data_collect_parameters, sample_loading_timeout = None, sample_centring_timeout = None, in_multicollect=False):
+    def do_collect(self, owner, data_collect_parameters, in_multicollect=False):
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -451,32 +418,13 @@ class AbstractMultiCollect(object):
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
 
-        # sample loading
-        sample_was_loaded = False
         if self.bl_control.sample_changer is not None:
-            sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)            
-
-            if sample_location is not None:
-                loaded_sample_location = self.bl_control.sample_changer.getLoadedSampleLocation()
-
-                if loaded_sample_location != sample_location:
-                  self.emit("collectMountingSample", (sample_code, sample_location, None))
-                  try:
-                    self.load_sample(sample_location, sample_id, timeout = sample_loading_timeout)
-                  except:
-                    self.emit("collectMountingSample", (sample_code, sample_location, False))
-                    raise
-                  else:
-                    self.emit("collectMountingSample", (sample_code, sample_location, True))
-
-                  sample_was_loaded = True
-                  
-            else:
               #sample_location = self.bl_control.sample_changer.getLoadedSampleLocation()
-              sample_location = (self.bl_control.sample_changer.currentBasket,
-                                 self.bl_control.sample_changer.currentSample)
-
-              
+              try:
+                  sample_location = (self.bl_control.sample_changer.currentBasket,
+                                    self.bl_control.sample_changer.currentSample)
+              except:
+                  sample_location = None
         else:
             sample_id = None
             sample_location = None
@@ -490,40 +438,30 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualContainerBarcode"] = \
                 self.bl_control.sample_changer.currentBasketDataMatrix
         except:
-          data_collect_parameters["actualSampleBarcode"] = None
-          data_collect_parameters["actualContainerBarcode"] = None
+            data_collect_parameters["actualSampleBarcode"] = None
+            data_collect_parameters["actualContainerBarcode"] = None
 
         try:
-          basket, vial = sample_location
+            basket, vial = sample_location
         except:
-          basket, vial = (None, None)
+            basket, vial = (None, None)
 
         data_collect_parameters["actualSampleSlotInContiner"] = vial
         data_collect_parameters["actualContainerSlotInSC"] = basket
 
-        # Sample centring
-        self.sample_centring_result = AsyncResult()
-        
-        if sample_was_loaded:
-          self.emit("collectValidateCentring", (True, file_parameters))
-
-          logging.getLogger("HWR").info("Waiting for sample to be centred")
-
-          centring_info = self.sample_centring_result.get(timeout = None)
-               
         try:
-          # why .get() is not working as expected?
-          # got KeyError anyway!
-          if data_collect_parameters["take_snapshots"]:
-            self.take_crystal_snapshots()
+            # why .get() is not working as expected?
+            # got KeyError anyway!
+            if data_collect_parameters["take_snapshots"]:
+              self.take_crystal_snapshots()
         except KeyError:
-          pass
+            pass
 
+        centring_info = {}
         try:
             centring_status = self.diffractometer().getCentringStatus()
-            centring_info = None
         except:
-            centring_info = None
+            pass
         else:
             if centring_status["valid"]: # Check if valid
                 try:
@@ -533,22 +471,10 @@ class AbstractMultiCollect(object):
                 if centring_accepted:
                     centring_info = dict(centring_status)
 
-        #centring_info = data_collect_parameters.get("centring_status", {})
-        if not centring_info:
-          try:
-            centring_info = self.sample_centring_result.get_nowait()
-          except:
-            centring_info = {}
-          #data_collect_parameters["centring_status"] = {'images': '...'}
-
-        # reset async result
-        self.sample_centring_result = AsyncResult()   
-
         #Save sample centring positions
         motors = centring_info.get("motors", {})
         extra_motors = centring_info.get("extraMotors", {})
 
-        #positions_str = "sessionId=%s" % sessionid
         positions_str = ""
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
