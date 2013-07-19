@@ -24,13 +24,13 @@ import ShapeHistory as shape_history
 import edna_test_data
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
-
 from queue_model_objects_v1 import COLLECTION_ORIGIN
 from queue_model_objects_v1 import STRATEGY_COMPLEXITY
 from queue_model_objects_v1 import EXPERIMENT_TYPE
 from queue_model_objects_v1 import STRATEGY_OPTION
 from queue_model_objects_v1 import COLLECTION_ORIGIN_STR
 
+from BlissFramework.Utils import widget_colors
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
@@ -307,6 +307,9 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
+        self.get_view().setBackgroundColor(widget_colors.LIGHT_GREEN)
+        self.get_view().setHighlighted(True)
+        self.get_view().setOn(False)
 
 
     def stop(self):
@@ -317,6 +320,11 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_view().setText(1, 'Stopped')
         logging.getLogger('queue_exec').\
             info('Calling stop on: ' + str(self))
+
+
+    def handle_exception(self, ex):
+        if self.get_view():
+            self.get_view().setBackgroundColor(widget_colors.LIGHT_RED)
 
 
     def __str__(self):
@@ -348,7 +356,6 @@ class DummyQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self._view.setHighlighted(True)
 
 
 class TaskGroupQueueEntry(BaseQueueEntry):
@@ -374,8 +381,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
         
 
 class SampleQueueEntry(BaseQueueEntry):
@@ -413,9 +418,6 @@ class SampleQueueEntry(BaseQueueEntry):
                         logging.getLogger('user_level_log').\
                             error("Error loading sample, please check sample changer: " + e.message)
                         raise
-                    else:
-                        logging.getLogger('queue_exec').\
-                            info("Sample loaded")
 
                     #self._view.update_pin_icon()
 
@@ -454,7 +456,6 @@ class SampleQueueEntry(BaseQueueEntry):
                 else:
                     logging.getLogger('queue_exec').\
                         info("Sample already mounted")
-                    self._view.setText(1, "Sample loaded")
             else:
                 logging.getLogger('queue_exec'). \
                     info("SampleQueuItemPolicy does not have any " +\
@@ -479,7 +480,6 @@ class SampleQueueEntry(BaseQueueEntry):
             
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.get_view().setOn(False)
 
 
 class SampleCentringQueueEntry(BaseQueueEntry):
@@ -538,9 +538,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
-
 
 class DataCollectionQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None, 
@@ -617,9 +614,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                      self.image_taken)
         qc.disconnect(self.collect_hwobj, 'collectNumberOfFrames', 
                      self.collect_number_of_frames)
-
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
 
 
     def collect_dc(self, data_collection, list_item):
@@ -797,9 +791,6 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
 
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
-
 
 class CharacterisationQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None, 
@@ -919,8 +910,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
                
 
 class EnergyScanQueueEntry(BaseQueueEntry):
@@ -984,9 +973,6 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         qc.disconnect(self.energy_scan_hwobj, 'energyScanFailed',
                       self.energy_scan_failed)
         
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
-
 
     def energy_scan_status_changed(self, msg):
         logging.getLogger("user_level_log").info(msg)
@@ -1061,9 +1047,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        self.get_view().setHighlighted(True)
-        self.get_view().setOn(False)
-
+        
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
