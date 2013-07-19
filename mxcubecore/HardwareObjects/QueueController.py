@@ -106,6 +106,9 @@ class QueueController(HardwareObject, QueueEntryContainer):
 
                 logging.getLogger('user_level_log').error('Error executing ' +\
                                                           'queue ' + ex.message)
+
+                queue_entry.handle_exception(ex)
+                
                 raise ex
             finally:
                 self._running = False
