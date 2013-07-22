@@ -55,7 +55,7 @@ class Session(HardwareObject):
 
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
-                                        prop.getProperty('number')))
+                                        str(prop.getProperty('number'))))
 
 
 
@@ -71,6 +71,8 @@ class Session(HardwareObject):
         """
         user_category = ''
         directory = ''
+
+        #import sys; sys.stdout = sys.__stdout__;import pdb; pdb.set_trace()
         
         if self.is_inhouse():
             user_category = 'inhouse'
