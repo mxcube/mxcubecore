@@ -1039,11 +1039,6 @@ def dc_from_edna_output(edna_result, reference_image_collection,
         pass
     else:
         try:
-            run_number = collection_plan.getCollectionPlanNumber().getValue()
-        except AttributeError:
-            run_number = 1
-
-        try:
             resolution = collection_plan.getStrategySummary().\
                 getResolution().getValue()
         except AttributeError:
@@ -1070,7 +1065,7 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             acquisition_parameters = acq.acquisition_parameters
 
             acquisition_parameters.centred_position =\
-                reference_image_collection.previous_acquisition.\
+                reference_image_collection.acquisitions[0].\
                 acquisition_parameters.centred_position
 
             data_directory = session_hwobj.get_image_directory(dcg_model)
@@ -1080,12 +1075,9 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             acq.path_template.process_directory = proc_directory
             acq.path_template.base_prefix = session_hwobj.\
                                             get_default_prefix(dcg_model.get_parent())
-
+            acq.path_template.suffix = session_hwobj.suffix
             acq.path_template.wedge_prefix = 'w' + str(i)
-
-            if run_number:
-                acquisition_parameters.run_number = run_number
-
+            
             if resolution:
                 acquisition_parameters.resolution = resolution
 
@@ -1108,15 +1100,17 @@ def dc_from_edna_output(edna_result, reference_image_collection,
                 pass
 
             try:
-                acquisition_parameters.osc_width = goniostat.\
+                acquisition_parameters.osc_range = goniostat.\
                     getOscillationWidth().getValue()
             except AttributeError:
                 pass
 
             try:
-                acquisition_parameters.num_images = int(abs(acquisition_parameters.osc_end - \
-                                                            acquisition_parameters.osc_start) / acquisition_parameters.osc_width)
-                acq.path_template.num_files = acquisition_parameters.num_images
+                num_images = int(abs(acquisition_parameters.osc_end - \
+                                     acquisition_parameters.osc_start) / acquisition_parameters.osc_width)
+
+                acquisition_parameters.num_images = num_images
+                acq.path_template.num_files = num_images
                 
             except AttributeError:
                 pass
@@ -1143,9 +1137,6 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             # dc.parameters.centred_positions = enda_result.centred_positions
 
             dc = DataCollection([acq], crystal, processing_parameters)
-            dc.set_name(acq.path_template.get_prefix())
-            dc.set_number(run_number)
-            
             data_collections.append(dc)
 
     return data_collections
