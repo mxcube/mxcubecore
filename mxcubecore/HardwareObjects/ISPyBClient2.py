@@ -219,6 +219,8 @@ class ISPyBClient2(HardwareObject):
                     person = self.__shipping.service.\
                              findPersonByProposal(proposal_code, 
                                                   proposal_number)
+                    if not person:
+                        person = {}
 
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
@@ -229,7 +231,15 @@ class ISPyBClient2(HardwareObject):
                         findProposal(proposal_code, 
                                      proposal_number)
 
-                    proposal.code = proposal_code
+                    if proposal:
+                        proposal.code = proposal_code
+                    else:
+                        return {'Proposal': {}, 
+                                'Person': {}, 
+                                'Laboratory': {}, 
+                                'Session': {}, 
+                                'status': {'code':'error'}}
+
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     proposal = {}
@@ -238,10 +248,13 @@ class ISPyBClient2(HardwareObject):
                     lab = self.__shipping.service.\
                         findLaboratoryByProposal(proposal_code, 
                                                  proposal_number)
+
+                    if not lab:
+                        lab = {}
+                    
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     lab = {}
-
                 try:
                     res_sessions = self.__collection.service.\
                         findSessionsByProposalAndBeamLine(proposal_code,
