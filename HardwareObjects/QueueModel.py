@@ -18,15 +18,15 @@ class QueueModel(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         
-        ispyb_model = queue_model_objects.RootNode()
-        ispyb_model._node_id = 0
-        free_pin_model = queue_model_objects.RootNode()
-        free_pin_model._node_id = 0
+        self._ispyb_model = queue_model_objects.RootNode()
+        self._ispyb_model._node_id = 0
+        self._free_pin_model = queue_model_objects.RootNode()
+        self._free_pin_model._node_id = 0
         
-        self._models = {'ispyb': ispyb_model,
-                        'free-pin': free_pin_model}
+        self._models = {'ispyb': self._ispyb_model,
+                        'free-pin': self._free_pin_model}
 
-        self._selected_model = ispyb_model
+        self._selected_model = self._ispyb_model
 
 
     # Framework-2 method, inherited from HardwareObject and called
