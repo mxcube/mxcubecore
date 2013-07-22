@@ -42,6 +42,13 @@ __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Beta"
 
 
+
+class QueueExecutionException(Exception):
+    def __init__(self, message, origin):
+        Exception.__init__(self, message, origin) 
+        self.origin = origin 
+
+
 class QueueEntryContainer(object):
     """
     A QueueEntryContainer has a list of queue entries, classes inheriting
@@ -201,6 +208,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
         self.beamline_setup = None
+        self._execution_failed = False
 
 
     def enqueue(self, queue_entry):
@@ -310,6 +318,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.get_view().setBackgroundColor(widget_colors.LIGHT_GREEN)
         self.get_view().setHighlighted(True)
         self.get_view().setOn(False)
+        self.get_data_model().set_executed(True)
 
 
     def stop(self):
@@ -324,7 +333,9 @@ class BaseQueueEntry(QueueEntryContainer):
 
     def handle_exception(self, ex):
         if self.get_view():
-            self.get_view().setBackgroundColor(widget_colors.LIGHT_RED)
+            if isinstance(ex, QueueExecutionException):
+                if ex.origin is self:
+                    self.get_view().setBackgroundColor(widget_colors.LIGHT_RED)
 
 
     def __str__(self):
@@ -405,9 +416,8 @@ class SampleQueueEntry(BaseQueueEntry):
                 logging.getLogger('queue_exec').\
                     info("Loading sample " +  self._data_model.loc_str)
 
-                self._view.setText(1, "Loading sample")
-
                 if loaded_sample_location != location:
+                    self._view.setText(1, "Loading sample")
                     self.shape_history.clear_all()
                     try:
                         self.sample_changer_hwobj.load_sample(holder_length,
@@ -417,7 +427,7 @@ class SampleQueueEntry(BaseQueueEntry):
                         self._view.setText(1, "Error loading")
                         logging.getLogger('user_level_log').\
                             error("Error loading sample, please check sample changer: " + e.message)
-                        raise
+                        raise QueueExecutionException(e.message. self)
 
                     #self._view.update_pin_icon()
 
@@ -480,7 +490,7 @@ class SampleQueueEntry(BaseQueueEntry):
             
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-
+        self._view.setText(1, "")
 
 class SampleCentringQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None):
@@ -682,31 +692,30 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 logging.getLogger("user_level_log").\
                     warning("Collection stopped by user.")
                 list_item.setText(1, 'Stopped')
-                raise
+                raise QueueExecutionException('Queue stopped', self)
+            
             except Exception as ex:
-                logging.getLogger("user_level_log").\
-                    error("Could not perform data collection, contact the local contact")
-                logging.getLogger("user_level_log").\
-                    error("Cause of error: " + ex.message)
-                raise
+                raise QueueExecutionException(ex.message, self)
 
-            data_collection.set_collected(True)
-            data_collection.previous_acquisition = copy.deepcopy(acq)
-            data_collection.previous_acquisition.acquisition_parameters.\
-                centred_position = acq.acquisition_parameters.centred_position
+            #data_collection.set_collected(True)
+            #data_collection.previous_acquisition = copy.deepcopy(acq)
+            #data_collection.previous_acquisition.acquisition_parameters.\
+            #    centred_position = acq.acquisition_parameters.centred_position
 
             # Increase the run-number for re-collect
-            new_run_number = self.get_view().parent().get_model().\
-                             get_next_number_for_name(path_template.get_prefix())
+            #new_run_number = self.get_view().parent().get_model().\
+            #                 get_next_number_for_name(path_template.get_prefix())
 
-            data_collection.set_name(acq.path_template.get_prefix())
-            data_collection.set_number(new_run_number)
-            path_template.run_number = new_run_number
-            list_item.setText(0, data_collection.get_name())
+            #data_collection.set_name(acq.path_template.get_prefix())
+            #data_collection.set_number(new_run_number)
+            #path_template.run_number = new_run_number
+            #list_item.setText(0, data_collection.get_name())
         else:
             logging.getLogger("user_level_log").\
                 error("Could not call the data collection routine, check the beamline configuration")
             list_item.setText(1, 'Failed')
+            raise QueueExecutionException("Could not call the data collection" +\
+                                          " routine, check the beamline configuration", self)
 
 
     def collect_started(self, owner, num_oscillations):
@@ -730,8 +739,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_failed(self, owner, state, message, *args):
         self.get_view().setText(1, "Failed")
+        #self.get_view().setBackgroundColor(widget_colors.LIGHT_RED)
         logging.getLogger("user_level_log").error(message.replace('\n', ' '))
-
+        raise QueueExecutionException(message.replace('\n', ' '), self)
 
     def collect_osc_started(self, owner, blsampleid, barcode, location,
                             collect_dict, osc_id):
@@ -809,7 +819,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         
         self.get_view().setText(1, "Characterising")
-        logging.getLogger("user_level_log").info("Characterising, please wait, can take up to three minutes.")
+        logging.getLogger("user_level_log").info("Characterising, please wait, might take a while.")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
         characterisation_parameters = characterisation.characterisation_parameters
@@ -817,10 +827,11 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         edna_xml_output = None
 
         if self.data_analysis_hwobj is not None:
-
             edna_input = self.data_analysis_hwobj.from_params(reference_image_collection,
                                                               characterisation_parameters)
             #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
+            edna_input.process_directory = reference_image_collection.acquisitions[0].\
+                                           path_template.process_directory
             
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
@@ -866,7 +877,13 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                                                        self.session_hwobj)
 
                 for edna_dc in edna_collections:
+                    path_template = edna_dc.acquisitions[0].path_template
+                    run_number = self.queue_model_hwobj.get_next_run_number(path_template)
+                    path_template.run_number = run_number
+
                     edna_dc.set_enabled(False)
+                    edna_dc.set_name(path_template.get_prefix())
+                    edna_dc.set_number(path_template.run_number)
                     self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
 
             else:  
@@ -1037,7 +1054,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Executing workflow, waiting for user input.")
 
 
-        #if self.rpc_server_hwobj.wokflow_in_progress:
+        #if self.rpc_server_hwobj.wokflow_in_prress:
         #    time.sleep(1)
         
 
