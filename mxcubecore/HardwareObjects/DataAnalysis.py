@@ -190,9 +190,9 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         
         #Data set
         data_set = XSDataMXCuBEDataSet()
-        acquisition_parameters = data_collection.previous_acquisition.acquisition_parameters
-        path_str = os.path.join(data_collection.previous_acquisition.path_template.directory,
-                                data_collection.previous_acquisition.path_template.get_image_file_name())
+        acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
+        path_str = os.path.join(data_collection.acquisitions[0].path_template.directory,
+                                data_collection.acquisitions[0].path_template.get_image_file_name())
         
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
@@ -202,7 +202,6 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
-        
         edna_input.process_directory = data_collection.acquisitions[0].path_template.process_directory
         
         return edna_input
@@ -216,19 +215,19 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         # something more clever might be done to give a more significant
         # name, if there is no dc id.
         try:
-          dc_id = edna_input.getDataCollectionId().getValue()
+            dc_id = edna_input.getDataCollectionId().getValue()
         except:
-          dc_id = id(edna_input)
+            dc_id = id(edna_input)
         
         if hasattr(edna_input, "process_directory"):
-          edna_input_file = os.path.join(process_directory_path,"EDNAInput_%s.xml" % dc_id)
-          edna_input.exportToFile(edna_input_file)
-          edna_results_file = os.path.join(process_directory_path, "EDNAOutput_%s.xml" % dc_id)
+            edna_input_file = os.path.join(process_directory_path,"EDNAInput_%s.xml" % dc_id)
+            edna_input.exportToFile(edna_input_file)
+            edna_results_file = os.path.join(process_directory_path, "EDNAOutput_%s.xml" % dc_id)
 
-          if not os.path.isdir(process_directory_path):
-              os.makedirs(path)
+            if not os.path.isdir(process_directory_path):
+                os.makedirs(path)
         else:
-          raise RuntimeError, "No process directory specified in edna_input"
+            raise RuntimeError, "No process directory specified in edna_input"
 
         logging.getLogger("queue_exec").info("Starting EDNA using xml file %r", edna_input_file)
 
