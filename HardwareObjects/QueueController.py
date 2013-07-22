@@ -105,10 +105,7 @@ class QueueController(HardwareObject, QueueEntryContainer):
                     raise
 
                 logging.getLogger('user_level_log').error('Error executing ' +\
-                                                          'queue ' + ex.message)
-
-                queue_entry.handle_exception(ex)
-                
+                                                          'queue ' + ex.message)  
                 raise ex
             finally:
                 self._running = False
@@ -140,25 +137,27 @@ class QueueController(HardwareObject, QueueEntryContainer):
 
         try:
             entry.execute()
-        except:
+        except Exception as ex:
             # This is definetly not good state, but call post_execute
             # in anyways, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
             entry.post_execute()
-            raise
+            entry.handle_exception(ex)
+            raise ex
 
         
         # Call execute on the children of this node
         for child in entry._queue_entry_list:
             try:
                 self.__execute_entry(child)
-            except:
+            except Exception as ex:
                 # Same as above, definetly not good state, but call
                 # post_execut in anyways, there might be code that cleans up
                 # things done in _pre_execute, _excute or in any thing done in
                 # the excute of the children already executed.
                 entry.post_execute()
-                raise
+                entry.handle_exception(ex)
+                raise ex
             
         entry.post_execute()
         
