@@ -247,14 +247,18 @@ class QueueModel(HardwareObject):
             view_item.parent().get_queue_entry().enqueue(qe)
 
 
-    def get_run_number(self, new_path_template, exclude_task = None):
+    def get_next_run_number(self, new_path_template, exclude_current = True):
         all_path_templates = self.get_path_templates()
         conflicting_path_templates = [0]
 
         for pt in all_path_templates:
-            if pt[1] is not new_path_template:
-               if pt[1] == new_path_template:
-                   conflicting_path_templates.append(pt[1].run_number)
+            if exclude_current:
+                if pt[1] is not new_path_template:
+                    if pt[1] == new_path_template:
+                        conflicting_path_templates.append(pt[1].run_number)
+            else:
+                if pt[1] == new_path_template:
+                    conflicting_path_templates.append(pt[1].run_number)
 
         return max(conflicting_path_templates) + 1
 
