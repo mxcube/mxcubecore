@@ -341,10 +341,10 @@ class Sample(TaskNode):
                 self.loc_str = str(str(self.lims_location[0]) +\
                                    ':' + str(self.lims_location[1]))
 
-        name = ''
+        name = self.loc_str
 
         if self.crystals[0].protein_acronym:
-            name += self.crystals[0].protein_acronym
+            name += ' - ' + self.crystals[0].protein_acronym
 
         if self.name:
             name += '-' + self.name
