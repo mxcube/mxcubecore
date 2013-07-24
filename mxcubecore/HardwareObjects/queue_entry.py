@@ -729,6 +729,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def image_taken(self, image_number):
         num_images = str(self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images)
+
+        first_image = self.get_data_model().acquisitions[0].\
+                      acquisition_parameters.first_image 
+
+        if first_image != 0:
+            image_number = image_number - first_image + 1
         
         self.get_view().setText(1, str(image_number) + "/" + num_images)
    
