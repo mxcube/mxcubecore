@@ -125,7 +125,7 @@ class Session(HardwareObject):
         sub_dir = data_node.get_full_name()[0:-1]
         sub_dir.reverse()
         sub_dir = os.path.join(*sub_dir)
-        sub_dir = sub_dir.lower().replace(' ','').replace(':','-')
+        sub_dir = sub_dir.replace(' ','').replace(':','-')
         directory = self.get_base_image_directory()
         
         if sub_dir:
@@ -150,7 +150,7 @@ class Session(HardwareObject):
         sub_dir = data_node.get_full_name()[0:-1]
         sub_dir.reverse()
         sub_dir = os.path.join(*sub_dir)
-        sub_dir = sub_dir.lower().replace(' ','').replace(':','-')
+        sub_dir = sub_dir.replace(' ','').replace(':','-')
         directory = self.get_base_process_directory()
        
         if sub_dir:
