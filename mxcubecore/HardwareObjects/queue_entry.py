@@ -379,8 +379,13 @@ class TaskGroupQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
         group_data = {'sessionId': self.session_hwobj.session_id}
-        self.get_data_model().lims_group_id = self.lims_client_hwobj.\
-                                              _store_data_collection_group(group_data)
+
+        try:
+            self.get_data_model().lims_group_id = self.lims_client_hwobj.\
+                                                  _store_data_collection_group(group_data)
+        except Exception as ex:
+             raise QueueExecutionException('Could not create the data collection group' + \
+                                           ' in lims. Reason: ' + ex.message, self)
 
 
     def pre_execute(self):
@@ -729,6 +734,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def image_taken(self, image_number):
         num_images = str(self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images)
+
+        first_image = self.get_data_model().acquisitions[0].\
+                      acquisition_parameters.first_image 
+
+        if first_image != 0:
+            image_number = image_number - first_image + 1
         
         self.get_view().setText(1, str(image_number) + "/" + num_images)
    

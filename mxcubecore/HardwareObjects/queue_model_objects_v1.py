@@ -341,10 +341,10 @@ class Sample(TaskNode):
                 self.loc_str = str(str(self.lims_location[0]) +\
                                    ':' + str(self.lims_location[1]))
 
-        name = self.loc_str
+        name = ''
 
         if self.crystals[0].protein_acronym:
-            name += ' - ' + self.crystals[0].protein_acronym
+            name += self.crystals[0].protein_acronym
 
         if self.name:
             name += '-' + self.name
@@ -553,7 +553,7 @@ class CharacterisationParameters(object):
         self.aimed_multiplicity = 4
         self.aimed_i_sigma = 3.0
         self.aimed_completness = 9.9e-01
-        self.strategy_complexity = 1
+        self.strategy_complexity = 0
         self.induce_burn = False
         self.use_permitted_rotation = False
         self.permitted_phi_start = 0.0
