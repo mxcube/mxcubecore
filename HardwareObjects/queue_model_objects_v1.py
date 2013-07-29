@@ -789,8 +789,9 @@ class PathTemplate(object):
         
         if self == path_template and \
                self.run_number == path_template.run_number:
-            if self.start_num >= path_template.start_num and \
-               path_template.start_num <= self.start_num + self.num_files:
+            if path_template.start_num >= self.start_num and \
+               path_template.num_files + path_template.start_num <= self.num_files + self.start_num:
+                
                 result = True
         else:
             result = False
