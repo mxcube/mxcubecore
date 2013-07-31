@@ -1,3 +1,4 @@
+import copy
 import queue_entry
 import queue_model_objects_v1 as queue_model_objects
 
@@ -295,4 +296,15 @@ class QueueModel(HardwareObject):
 
         return result
 
+
+    def copy_node(self, node):
+        new_node = copy.deepcopy(node)
+
+        if node.get_path_template():
+            pt = new_node.get_path_template()
+            new_run_number = self.get_next_run_number(pt)
+            pt.run_number = new_run_number
+            new_node.set_number(new_run_number)
+
+        return new_node
                     
