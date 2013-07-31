@@ -291,7 +291,8 @@ class QueueModel(HardwareObject):
         for pt in path_template_list:
             if pt[1] is not new_path_template:
                 if new_path_template.is_part_of(pt[1]):
-                    result =  True
+                    result = True
 
         return result
+
                     
