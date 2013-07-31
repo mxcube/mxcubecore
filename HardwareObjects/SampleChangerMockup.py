@@ -87,3 +87,10 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
 
     def sampleChangerCanLoad(self):
         return True
+
+
+    def is_mounted_sample(self, sample_model):
+      if sample_model.location == self.getLoadedSampleLocation():
+        return True
+      else:
+        return False
