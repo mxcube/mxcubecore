@@ -47,9 +47,15 @@ class Session(HardwareObject):
         self.endstation_name = self.bl_config_hwobj.getProperty('endstation_name')  
         self.suffix = self.bl_config_hwobj["file_info"].getProperty('file_suffix')
         self.base_directory = self.bl_config_hwobj["file_info"].getProperty('base_directory')
-        self.base_process_directory = self.bl_config_hwobj["file_info"].getProperty('processed_data_base_directory')
-        self.raw_data_folder_name = self.bl_config_hwobj["file_info"].getProperty('raw_data_folder_name')
-        self.processed_data_folder_name = self.bl_config_hwobj["file_info"].getProperty('processed_data_folder_name')
+        
+        self.base_process_directory = self.bl_config_hwobj["file_info"].\
+                                      getProperty('processed_data_base_directory')
+
+        self.raw_data_folder_name = self.bl_config_hwobj["file_info"].\
+                                    getProperty('raw_data_folder_name')
+
+        self.processed_data_folder_name = self.bl_config_hwobj["file_info"].\
+                                          getProperty('processed_data_folder_name')
 
         inhouse_proposals = self.bl_config_hwobj["inhouse_users"]["proposal"]
 
