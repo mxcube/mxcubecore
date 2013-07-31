@@ -114,7 +114,7 @@ class Session(HardwareObject):
                             self.processed_data_folder_name)
 
 
-    def get_image_directory(self, data_node):
+    def get_image_directory(self, sub_dir):
         """
         Returns the full path to images, using the name of each of
         data_nodes parents as sub directories.
@@ -127,10 +127,6 @@ class Session(HardwareObject):
         :returns: The full path to images.
         :rtype: str
         """
-
-        sub_dir = data_node.get_full_name()[0:-1]
-        sub_dir.reverse()
-        sub_dir = os.path.join(*sub_dir)
         sub_dir = sub_dir.replace(' ','').replace(':','-')
         directory = self.get_base_image_directory()
         
@@ -140,7 +136,7 @@ class Session(HardwareObject):
         return directory
 
 
-    def get_process_directory(self, data_node, sub_dir = None):
+    def get_process_directory(self,  sub_dir = None):
         """
         Returns the full path to processed data, using the name of each of
         data_nodes parents as sub directories.
@@ -152,10 +148,6 @@ class Session(HardwareObject):
 
         :returns: The full path to images.
         """
-
-        sub_dir = data_node.get_full_name()[0:-1]
-        sub_dir.reverse()
-        sub_dir = os.path.join(*sub_dir)
         sub_dir = sub_dir.replace(' ','').replace(':','-')
         directory = self.get_base_process_directory()
        
