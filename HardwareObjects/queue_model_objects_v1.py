@@ -458,13 +458,8 @@ class DataCollection(TaskNode):
         s = '<%s object at %s>' % (
             self.__class__.__name__,
             hex(id(self))
-        )
-        
+        )        
         return s
-
-
-    def __str__(self):
-        return super(DataCollection, self).__str__()
 
 
     def _print(self):
