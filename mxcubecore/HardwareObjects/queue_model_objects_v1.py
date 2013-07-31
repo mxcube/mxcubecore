@@ -164,7 +164,7 @@ class TaskNode(object):
 
 
     def get_path_template(self):
-        return []
+        return None
 
 
     def get_files_to_be_written(self):
@@ -249,8 +249,7 @@ class Sample(TaskNode):
         s = '<%s object at %s>' % (
             self.__class__.__name__,
             hex(id(self))
-            )
-
+        )
         return s
 
 
@@ -751,7 +750,7 @@ class PathTemplate(object):
         endstation_name = folders[2]
         folders[2] = 'pyarch'
         folders[3] = endstation_name
-        archive_directory = '/' +os.path.join(*folders[1:])
+        archive_directory = '/' + os.path.join(*folders[1:])
 
         return archive_directory
 
