@@ -916,8 +916,7 @@ class SampleChanger(Equipment):
         if flag & 8:
           return (basket, vial)
       return (None, None)
-
-
+    
 
     def getLoadedHolderLength(self):
         try:
@@ -1012,6 +1011,7 @@ class SampleChanger(Equipment):
             return False
         return True
 
+
     def sampleChangerToLoadingPosition(self):
         try:
             r=self._moveToLoadingPosition()
@@ -1020,13 +1020,23 @@ class SampleChanger(Equipment):
             return False
         return True
 
+
     def basketTransferModeChanged(self, basket_transfer):
         logging.info(basket_transfer and "Sample Changer switched to basket transfer mode" or "Sample Changer switched to sample transfer mode")
         self.emit("sampleChangerBasketTransferModeChanged", (basket_transfer and True or False, ))
 
+
     def getBasketTransferMode(self):
         return self.getChannelObject("transferMode").getValue()
+
 
     def switchToSampleTransferMode(self):
         self.getCommandObject("switchTransferMode")(False)
         self.basketTransferModeChanged(False)
+
+
+    def is_mounted_sample(self, sample_model):
+      if sample_model.location == self.getLoadedSampleLocation():
+        return True
+      else:
+        return False
