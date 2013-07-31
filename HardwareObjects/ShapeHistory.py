@@ -1,3 +1,7 @@
+"""
+ShapeHistory
+"""
+
 import logging
 import qtcanvas
 import qt
@@ -15,6 +19,19 @@ from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 from Qub.Tools import QubImageSave
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+__author__ = "Marcus Oskarsson"
+__copyright__ = "Copyright 2012, ESRF"
+__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
+
+__version__ = "0.1"
+__maintainer__ = "Marcus Oskarsson"
+__email__ = "marcus.oscarsson@esrf.fr"
+__status__ = "Beta"
+
+
+SELECTED_COLOR = qt.Qt.green
+NORMAL_COLOR = qt.Qt.yellow
 
 
 class ShapeHistory(HardwareObject):
@@ -335,12 +352,12 @@ class Line(Shape):
             qub_line.show()
             qub_line.setPoints(self.start_qub_p._x, self.start_qub_p._y,
                                 self.end_qub_p._x, self.end_qub_p._y)
-            qub_line.setColor(Qt.green)
+            qub_line.setColor(NORMAL_COLOR)
 
             pen = qt.QPen(self.start_qub_p.\
                            _drawingObjects[0].pen())
             pen.setWidth(1)
-            pen.setColor(qt.Qt.green)
+            pen.setColor(NORMAL_COLOR)
             qub_line.setPen(pen)
         except:
             logging.getLogger('HWR').\
@@ -376,7 +393,7 @@ class Line(Shape):
             highlighted_pen = qt.QPen(self.qub_line.\
                                        _drawingObjects[0].pen())
             highlighted_pen.setWidth(3)
-            highlighted_pen.setColor(qt.Qt.blue)
+            highlighted_pen.setColor(SELECTED_COLOR)
             self.qub_line.setPen(highlighted_pen)
         except:
             logging.getLogger('HWR').exception('Could not higlight line')
@@ -388,7 +405,7 @@ class Line(Shape):
             normal_pen = qt.QPen(self.qub_line.\
                                   _drawingObjects[0].pen())
             normal_pen.setWidth(1)
-            normal_pen.setColor(qt.Qt.green)
+            normal_pen.setColor(NORMAL_COLOR)
             self.qub_line.setPen(normal_pen)
         except:
             logging.getLogger('HWR').exception('Could not un-higlight line') 
@@ -444,7 +461,7 @@ class Point(Shape):
                                           QubCanvasTarget)
             qub_point.show()
             qub_point.setPoint(screen_pos[0], screen_pos[1])
-            qub_point.setColor(Qt.green)
+            qub_point.setColor(NORMAL_COLOR)
         
         except:
             logging.getLogger('HWR').\
@@ -470,7 +487,7 @@ class Point(Shape):
             highlighted_pen = qt.QPen(self.qub_point.\
                                        _drawingObjects[0].pen())
             highlighted_pen.setWidth(2)
-            highlighted_pen.setColor(qt.Qt.blue)
+            highlighted_pen.setColor(SELECTED_COLOR)
             self.qub_point.setPen(highlighted_pen)
         except:
             logging.getLogger('HWR').exception('Could not higlight point')
@@ -482,7 +499,7 @@ class Point(Shape):
             normal_pen = qt.QPen(self.qub_point.\
                                   _drawingObjects[0].pen())
             normal_pen.setWidth(1)
-            normal_pen.setColor(qt.Qt.green)
+            normal_pen.setColor(NORMAL_COLOR)
             self.qub_point.setPen(normal_pen)
         except:
             logging.getLogger('HWR').exception('Could not un-higlight point') 

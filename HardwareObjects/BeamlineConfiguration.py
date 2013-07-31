@@ -62,6 +62,25 @@ class BeamlineConfiguration(HardwareObject):
         return tw
 
 
+    def disable_num_passes(self):
+        """
+        :returns: Returns True if it is possible to use the number of passes collection parameter.
+        :rtype: bool
+        """
+        disable_num_passes = False
+        
+        try:
+            disable_num_passes = self.getProperty('disable_num_passes')
+            
+            if disable_num_passes is None:
+                disable_num_passes = False
+                
+        except:
+            disable_num_passes = False
+        
+        return disable_num_passes
+
+
     def get_default_acquisition_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
@@ -96,7 +115,11 @@ class BeamlineConfiguration(HardwareObject):
         
         return acq_parameters
 
+
     def get_default_path_template(self):
+        """
+        :returns: A PathTemplate object with default parameters.
+        """
         path_template = queue_model_objects.PathTemplate()
 
         path_template.directory = str()
