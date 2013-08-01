@@ -249,6 +249,19 @@ class QueueModel(HardwareObject):
 
 
     def get_next_run_number(self, new_path_template, exclude_current = True):
+        """
+        Iterates through all the path templates of the tasks
+        in the model and returns the next available run number
+        for the path template <new_path_template>.
+        
+        :param new_path_template: PathTempalte to match with.
+        :type new_path_template: PathTemplate
+        :param exclude_current: Skips it self when iterating through the model, default Tree.
+        :type exlcude_current: bool
+
+        :returns: The next available run number for the given path_template.
+        :rtype: int
+        """
         all_path_templates = self.get_path_templates()
         conflicting_path_templates = [0]
 
@@ -265,10 +278,16 @@ class QueueModel(HardwareObject):
 
 
     def get_path_templates(self):
+        """
+        Retrievies a list of all the path templates in the model.
+        """
         return self._get_path_templates_rec(self.get_model_root())
     
 
     def _get_path_templates_rec(self, parent_node):
+        """
+        Recursive part of get_path_templates.
+        """
         path_template_list = []
         
         for child_node in parent_node.get_children():
@@ -286,6 +305,12 @@ class QueueModel(HardwareObject):
 
 
     def check_for_path_collisions(self, new_path_template):
+        """
+        Returns True if there is a path template (task) in the model,
+        that produces the same files as this one.
+        
+        :returns: True if there is a potential path collision.
+        """
         result = False
         path_template_list = self.get_path_templates()
 
@@ -298,6 +323,15 @@ class QueueModel(HardwareObject):
 
 
     def copy_node(self, node):
+        """
+        Copys the node <node> and returns it.
+
+        :param node: The node to copy.
+        :type node: TaskModel
+
+        :returns: A copy of the node.
+        :rtype: TaskModel
+        """
         new_node = copy.deepcopy(node)
 
         if node.get_path_template():
