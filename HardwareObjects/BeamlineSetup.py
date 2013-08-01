@@ -1,3 +1,13 @@
+__author__ = "Marcus Oskarsson"
+__copyright__ = "Copyright 2012, ESRF"
+__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
+
+__version__ = "0.1"
+__maintainer__ = "Marcus Oskarsson"
+__email__ = "marcus.oscarsson@esrf.fr"
+__status__ = "Beta"
+
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 class BeamlineSetup(HardwareObject):
@@ -14,7 +24,6 @@ class BeamlineSetup(HardwareObject):
         
         self.shape_history_hwobj = self.getObjectByRole('shape_history')
         self.session_hwobj = self.getObjectByRole('session')        
-        self.bl_config_hwobj = self.getObjectByRole('beamline_configuration')
 
         self.data_analysis_hwobj = self.getObjectByRole('data_analysis')
         self.workflow_hwobj = self.getObjectByRole('workflow')
@@ -38,3 +47,119 @@ class BeamlineSetup(HardwareObject):
         return hwobj.get_value()
             
         
+
+    def detector_has_shutterless(self):
+        """
+        :returns: True if the detector is capable of shuterless.
+        :rtype: bool
+        """
+        shutter_less = False
+        
+        try:
+            shutter_less = self['detector'].getProperty('has_shutterless')
+
+            if shutter_less is None:
+                shutter_less = False
+
+        except:
+            shutter_less = False
+            
+        return shutter_less
+
+
+    def tunable_wavelength(self):
+        """
+        :returns: Returns True if the beamline has tunable wavelength.
+        :rtype: bool
+        """
+        tw = False
+        
+        try:
+            tw = self.getProperty('tunable_wavelength')
+            
+            if tw is None:
+                tw = False
+                
+        except:
+            shutter_less = False
+        
+        return tw
+
+
+    def disable_num_passes(self):
+        """
+        :returns: Returns True if it is possible to use the number of passes collection parameter.
+        :rtype: bool
+        """
+        disable_num_passes = False
+        
+        try:
+            disable_num_passes = self.getProperty('disable_num_passes')
+            
+            if disable_num_passes is None:
+                disable_num_passes = False
+                
+        except:
+            disable_num_passes = False
+        
+        return disable_num_passes
+
+
+    def get_default_acquisition_parameters(self):
+        """
+        :returns: A AcquisitionParameters object with all default parameters.
+        """
+        acq_parameters = queue_model_objects.AcquisitionParameters()
+        
+        acq_parameters.first_image = int(self["default_values"].\
+                                         getProperty('start_image_number'))
+        acq_parameters.num_images = int(self["default_values"].\
+                                    getProperty('number_of_images'))
+        acq_parameters.osc_start = round(float(self["default_values"].\
+                                               getProperty('start_angle')), 2)
+        acq_parameters.osc_range = round(float(self["default_values"].\
+                                               getProperty('range')), 2)
+        acq_parameters.overlap = round(float(self["default_values"].\
+                                             getProperty('overlap')), 2)
+        acq_parameters.exp_time = round(float(self["default_values"].\
+                                              getProperty('exposure_time')), 4)
+        acq_parameters.num_passes = int(self["default_values"].\
+                                        getProperty('number_of_passes'))
+        acq_parameters.energy = float()
+        acq_parameters.resolution = float()
+        acq_parameters.transmission = float()
+        acq_parameters.inverse_beam = False
+        acq_parameters.shutterless = bool(self['detector'].getProperty('has_shutterless'))
+        acq_parameters.take_snapshots = True
+        acq_parameters.take_dark_current = True
+        acq_parameters.skip_existing_images = False
+
+        acq_parameters.detector_mode = int(self["default_values"].\
+                                           getProperty('detector_mode'))
+        
+        return acq_parameters
+
+
+    def get_default_path_template(self):
+        """
+        :returns: A PathTemplate object with default parameters.
+        """
+        path_template = queue_model_objects.PathTemplate()
+
+        path_template.directory = str()
+        path_template.process_directory = str()
+        path_template.base_prefix = str()
+        path_template.mad_prefix = ''
+        path_template.reference_image_prefix = ''
+        path_template.wedge_prefix = ''
+        path_template.template = str()
+        path_template.run_number = self["default_values"].\
+                                   getProperty('run_number')
+        path_template.suffix = self["file_info"].getProperty('file_suffix')
+        path_template.precision = '04'
+        path_template.start_num = int(self["default_values"].\
+                                      getProperty('start_image_number'))
+        path_template.num_files = int(self["default_values"].\
+                                      getProperty('number_of_images'))
+
+        return path_template
