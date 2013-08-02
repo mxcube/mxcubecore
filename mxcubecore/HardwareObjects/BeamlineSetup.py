@@ -7,7 +7,6 @@ __maintainer__ = "Marcus Oskarsson"
 __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Beta"
 
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 class BeamlineSetup(HardwareObject):
@@ -24,6 +23,7 @@ class BeamlineSetup(HardwareObject):
         
         self.shape_history_hwobj = self.getObjectByRole('shape_history')
         self.session_hwobj = self.getObjectByRole('session')        
+        self.bl_config_hwobj = self.getObjectByRole('beamline_configuration')
 
         self.data_analysis_hwobj = self.getObjectByRole('data_analysis')
         self.workflow_hwobj = self.getObjectByRole('workflow')
@@ -37,6 +37,16 @@ class BeamlineSetup(HardwareObject):
 
 
     def read_value(self, path):
+        """
+        Reads the value of the hardware object at the given path. The
+        hardware object must have the get_value method.
+
+        :param path: Path to a hardware object.
+        :type path: str
+
+        :returns: The 'value' of the hardware object.
+        :rtype: Return type of get_value of the hardware object.
+        """
         hwobj = None
 
         try:
