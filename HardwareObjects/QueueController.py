@@ -169,8 +169,8 @@ class QueueController(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        self._root_task.kill(block = False)
         self.get_current_entry().stop()
+        self._root_task.kill(block = False)
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
