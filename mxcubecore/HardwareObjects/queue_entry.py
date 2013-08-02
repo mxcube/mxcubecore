@@ -768,7 +768,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         BaseQueueEntry.stop(self)
 
         if self.collect_task:
-            self.collect_task.kill(block = True)
+            self.collect_task.kill(block = False)
         
         self.get_view().setText(1, 'Stopped')
         logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
