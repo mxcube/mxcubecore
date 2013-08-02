@@ -575,14 +575,16 @@ class MiniDiff(Equipment):
           self.emitProgressMessage("")
 
 
-    def moveToCentredPosition(self, centred_position, wait = False):
+    def moveToCentredPosition(self, centred_position, wait = False, get_task = False):
       try:
         motor_pos = {self.sampleXMotor: centred_position.sampx,
                      self.sampleYMotor: centred_position.sampy,
                      self.phiMotor: centred_position.phi,
                      self.phiyMotor: centred_position.phiy,
                      self.phizMotor: centred_position.phiz}
-
+        if get_task:
+          return gevent.spawn(move_to_centred_position, motor_pos)
+        
         if wait:
           gevent.spawn(move_to_centred_position, motor_pos).get()
         else:
