@@ -1,5 +1,17 @@
 """
-ShapeHistory
+Contains The classes ShapeHistory, DrawingEvent, Shape, Point and Line.
+
+ShapeHistory keeps track of the current shapes the user has created. The
+shapes handled are any that inherits the Shape base class. There are currently
+two shapes implemented Point and Line.
+
+Point is the graphical representation of a centred position. A point can be
+stored and managed by the ShapeHistory.
+
+Line is a line between two Point objects.
+
+DrawingEvent is an extension of Qub and handles mouse and keyboard events for
+the Qub canvas. It handles selection and some manipulation of the Shape objects.
 """
 
 import logging
@@ -35,6 +47,11 @@ NORMAL_COLOR = qt.Qt.yellow
 
 
 class ShapeHistory(HardwareObject):
+    """
+    Keeps track of the current shapes the user has created. The
+    shapes handled are any that inherits the Shape base class.
+    """
+    
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._drawing = None
@@ -45,6 +62,14 @@ class ShapeHistory(HardwareObject):
 
 
     def set_drawing(self, drawing):
+        """
+        Sets the drawing the Shape objects that are managed are drawn on.
+
+        :param drawing: The drawing that the shapes are drawn on.
+        :type drawing: QubDrawing (used by Qub)
+
+        :returns: None
+        """
         if self._drawing:
             logging.getLogger('HWR').info('Setting previous drawing:' + \
                                           str(self._drawing) + ' to ' + \
@@ -55,14 +80,18 @@ class ShapeHistory(HardwareObject):
 
 
     def get_drawing(self):
+        """
+        :returns: Returns the drawing of the shapes.
+        :rtype: QubDrawing
+        """
         return self._drawing
 
 
-    def get_centred_positions(self):
-        return self.qub_points.keys()
-
-
     def get_drawing_event_handler(self):
+        """
+        :returns: The event handler of the drawing.
+        :rtype: QubDrawingEvent
+        """
         return self._drawing_event
 
 
@@ -192,7 +221,6 @@ class DrawingEvent(QubDrawingEvent):
     def mousePressed(self, x, y):
         modifier = None
         
-        #for (cpos, qub_point) in self.qub_helper.qub_points.iteritems():
         for shape in self.qub_helper.get_shapes():            
             modifier = shape.get_hit(x, y)
 
