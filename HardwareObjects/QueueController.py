@@ -95,18 +95,23 @@ class QueueController(HardwareObject, QueueEntryContainer):
     def __execute_task(self):
         self._running = True
         
-        for queue_entry in self._queue_entry_list:            
+        for qe in self._queue_entry_list:            
             try:
-                self.__execute_entry(queue_entry)
-            except Exception as ex:
+                self.__execute_entry(qe)
+            except (queue_entry.QueueAbortedException, Exception) as ex:
                 try:
+                    qe.handle_exception(ex)
                     self.stop()
                 except gevent.GreenletExit:
-                    raise
+                    pass
 
-                logging.getLogger('user_level_log').error('Error executing ' +\
-                                                          'queue ' + ex.message)  
+                if isinstance(ex, queue_entry.QueueAbortedException):
+                    logging.getLogger('user_level_log').warning('Queue execution was stopped. ' + ex.message)
+                else:
+                    logging.getLogger('user_level_log').error('Queue execution failed with: ' + ex.message)
+
                 raise ex
+
             finally:
                 self._running = False
 
@@ -131,35 +136,29 @@ class QueueController(HardwareObject, QueueEntryContainer):
 
         self.wait_for_pause_event()
         
-        # Procedure to be done before main implmentation
-        # of task.
-        entry.pre_execute()
-
         try:
+            # Procedure to be done before main implmentation
+            # of task.
+            entry.pre_execute()
             entry.execute()
-        except Exception as ex:
-            # This is definetly not good state, but call post_execute
+
+            for child in entry._queue_entry_list:
+                self.__execute_entry(child)
+
+        except queue_entry.QueueSkippEntryException:
+            # Queue entry, failed, skipp.
+            pass
+        except (queue_entry.QueueAbortedException, Exception) as ex:
+            # Queue entry was aborted in a controlled, way.
+            # or in the exception case:
+            # Definetly not good state, but call post_execute
             # in anyways, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
             entry.post_execute()
             entry.handle_exception(ex)
             raise ex
-
-        
-        # Call execute on the children of this node
-        for child in entry._queue_entry_list:
-            try:
-                self.__execute_entry(child)
-            except Exception as ex:
-                # Same as above, definetly not good state, but call
-                # post_execut in anyways, there might be code that cleans up
-                # things done in _pre_execute, _excute or in any thing done in
-                # the excute of the children already executed.
-                entry.post_execute()
-                entry.handle_exception(ex)
-                raise ex
-            
-        entry.post_execute()
+        else:
+            entry.post_execute()
         
 
     def stop(self):
@@ -169,7 +168,11 @@ class QueueController(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        self.get_current_entry().stop()
+        try:
+            self.get_current_entry().stop()
+        except queue_entry.QueueAbortedException:
+            pass
+
         self._root_task.kill(block = False)
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)

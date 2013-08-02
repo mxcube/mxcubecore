@@ -46,7 +46,19 @@ __status__ = "Beta"
 class QueueExecutionException(Exception):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin) 
-        self.origin = origin 
+        self.origin = origin
+
+
+class QueueAbortedException(QueueExecutionException):
+    def __init__(self, message, origin):
+        Exception.__init__(self, message, origin)
+        self.origin = origin
+
+
+class QueueSkippEntryException(QueueExecutionException):
+    def __init__(self, message, origin):
+        Exception.__init__(self, message, origin)
+        self.origin = origin
 
 
 class QueueEntryContainer(object):
@@ -563,6 +575,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.collect_hwobj = None
         self.diffractometer_hwobj = None
         self.collect_task = None
+        self.centring_task = None
         self.beamline_config_hwobj = None
         self.shape_history = None
         self.session = None
@@ -668,8 +681,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         info("Moving to start position: " + str(pprint.pformat(start_cpos)))
 
                     list_item.setText(1, "Moving sample")
-
-                    self.diffractometer_hwobj.moveToCentredPosition(start_cpos, wait = True)
+                    cpos = start_cpos
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)                
                     cpos = data_collection.acquisitions[0].\
@@ -680,8 +692,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                         info("Moving to centred position: " + str(cpos))
 
                     list_item.setText(1, "Moving sample")
-                    self.diffractometer_hwobj.moveToCentredPosition(cpos, wait = True)
 
+                self.centring_task = self.diffractometer_hwobj.\
+                    moveToCentredPosition(cpos, get_task = True)
+                self.centring_task.get()
+                
                 logging.getLogger('queue_exec').\
                     info("Calling collect hw-object with: " + str(data_collection))
                 logging.getLogger("user_level_log").\
@@ -697,7 +712,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 logging.getLogger("user_level_log").\
                     warning("Collection stopped by user.")
                 list_item.setText(1, 'Stopped')
-                raise QueueExecutionException('Queue stopped', self)
+                raise QueueAbortedException('Queue stopped', self)
             
             except Exception as ex:
                 raise QueueExecutionException(ex.message, self)
@@ -767,11 +782,21 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def stop(self):
         BaseQueueEntry.stop(self)
 
-        if self.collect_task:
-            self.collect_task.kill(block = False)
+        try:
+            self.get_view().setText(1, 'Stopping ...')
+            if self.collect_task:
+                self.collect_task.kill(block = False)
+
+            if self.centring_task:
+                self.centring_task.kill(block = False)
+
+        except gevent.GreenletExit:
+            raise
         
         self.get_view().setText(1, 'Stopped')
         logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+
+        raise QueueAbortedException('Queue stopped', self)
         
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
