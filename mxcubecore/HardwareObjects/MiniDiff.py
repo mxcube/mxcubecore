@@ -6,12 +6,12 @@ import numpy
 import math
 import os
 import time
-import HardwareRepository.TaskUtils
 
 from HardwareRepository import HardwareRepository
 from gevent.event import AsyncResult
 from Qub.Tools import QubImageSave
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import *
 from qt import *
 
 USER_CLICKED_EVENT = AsyncResult()
@@ -68,7 +68,7 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, i
     raise
 
 
-@TaskUtils.task
+@task
 def move_to_centred_position(centred_pos):  
   for motor, pos in centred_pos.iteritems():
     motor.move(pos)
