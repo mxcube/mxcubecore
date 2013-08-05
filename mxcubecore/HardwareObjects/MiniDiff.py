@@ -1,16 +1,18 @@
-from qt import *
 import gevent
-from gevent.event import AsyncResult
-from Qub.Tools import QubImageSave
-from HardwareRepository.BaseHardwareObjects import Equipment
+import copy
 import tempfile
 import logging
 import numpy
 import math
 import os
 import time
+import HardwareRepository.TaskUtils
+
 from HardwareRepository import HardwareRepository
-import copy
+from gevent.event import AsyncResult
+from Qub.Tools import QubImageSave
+from HardwareRepository.BaseHardwareObjects import Equipment
+from qt import *
 
 USER_CLICKED_EVENT = AsyncResult()
 
@@ -66,6 +68,7 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, i
     raise
 
 
+@TaskUtils.task
 def move_to_centred_position(centred_pos):  
   for motor, pos in centred_pos.iteritems():
     motor.move(pos)
@@ -564,7 +567,7 @@ class MiniDiff(Equipment):
           self.emitProgressMessage("Moving sample to centred position...")
           self.emitCentringMoving()
           try:
-            gevent.spawn(move_to_centred_position, motor_pos).get()
+            move_to_centred_position(motor_pos, wait = True)
           except:
             logging.exception("Could not move to centred position")
             self.emitCentringFailed()
@@ -575,24 +578,16 @@ class MiniDiff(Equipment):
           self.emitProgressMessage("")
 
 
-    def moveToCentredPosition(self, centred_position, wait = False, get_task = False):
-      try:
+    def moveToCentredPosition(self, centred_position):
         motor_pos = {self.sampleXMotor: centred_position.sampx,
                      self.sampleYMotor: centred_position.sampy,
                      self.phiMotor: centred_position.phi,
                      self.phiyMotor: centred_position.phiy,
                      self.phizMotor: centred_position.phiz}
-        if get_task:
-          return gevent.spawn(move_to_centred_position, motor_pos)
         
-        if wait:
-          gevent.spawn(move_to_centred_position, motor_pos).get()
-        else:
-          gevent.spawn(move_to_centred_position, motor_pos)
-      except:
-        logging.exception("Could not move to centred position")
+        return move_to_centred_position(motor_pos, wait = False)
 
-
+        
     def autoCentringDone(self, auto_centring_procedure):
         try:
           motor_pos = auto_centring_procedure.get()
