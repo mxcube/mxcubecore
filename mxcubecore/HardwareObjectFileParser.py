@@ -13,9 +13,6 @@ newObjectsClasses = { 'equipment': BaseHardwareObjects.Equipment,
                       'device': BaseHardwareObjects.Device,
                       'procedure': BaseHardwareObjects.Procedure }
 
-_instanciated_classes = []
-
-
 def parse(filename, name):
     curHandler = HardwareObjectHandler(name)
 
@@ -198,11 +195,6 @@ class HardwareObjectHandler(ContentHandler):
                 moduleName = str(attrs['class'])
                 className = moduleName.split('.')[-1]
 
-                if className in _instanciated_classes:
-                    return
-                else:
-                    _instanciated_classes.append(className)
-
                 newObject = instanciateClass(moduleName, className, objectName)
                 
                 if newObject is None:
@@ -232,11 +224,6 @@ class HardwareObjectHandler(ContentHandler):
                 if attrs.has_key('class'):
                     moduleName = str(attrs['class'])
                     className = moduleName.split('.')[-1]
-
-                    if className in _instanciated_classes:
-                        return
-                    else:
-                        _instanciated_classes.append(className)
 
                     newObject = instanciateClass(moduleName, className, objectName)
                 
