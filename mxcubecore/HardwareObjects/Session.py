@@ -28,7 +28,6 @@ class Session(HardwareObject):
         self.proposal_number = None
         self.proposal_id = None
         self.in_house_users = []
-        self._is_inhouse = None
         
         self.endstation_name = None
 
@@ -62,8 +61,6 @@ class Session(HardwareObject):
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
                                         str(prop.getProperty('number'))))
-
-
 
 
     def get_base_data_directory(self):
@@ -228,60 +225,3 @@ class Session(HardwareObject):
 
     def get_inhouse_user(self):
         return self.in_house_users[0]
-
-
-    def set_inhouse(self, state):
-        if state:
-            self.is_inhouse = True
-        else:
-            self.is_inhouse = False
-
-
-    # UNUSED ?
-    # def get_image_paths(self, acquisition):
-    #     paths = []
-                            
-    #     for i in range(acquisition.first_image, 
-    #                    acquisition.num_images + acquisition.first_image):
-            
-    #         paths.append(self.build_image_path(parameters) % i)
-
-    #     return paths
-
-
-#     def add_path_template(self, path_template):
-#         if path_template.prefix in self._path_template_dict:
-#             self._path_template_dict[path_template.prefix].\
-#                 append(path_template)
-#         else:
-#             self._path_template_dict[path_template.prefix] = []
-#             self._path_template_dict[path_template.prefix].\
-#                 append(path_template)
-
-
-#     def remove_path_template(self, path_template):
-#         if path_template.prefix in self._path_template_dict:
-#             pt_list = self._path_template_dict[path_template.prefix]
-#             del pt_list[pt_list.index(path_template)]
-            
-
-#     def get_free_run_number(self, prefix, directory):
-#         path_template_list = self._path_template_dict.get(prefix,
-#                                                            [])
-#         largest = 0
-#         for path_template in path_template_list:
-#             if path_template.directory == directory:
-#                 if path_template.run_number > largest:
-#                     largest = path_template.run_number
-
-#         return largest + 1
-
-
-#     def _sample_name_path(self, sample_data_node):
-#         path = sample_data_node.loc_str.replace(':', '-')
-
-#         if sample_data_node.has_lims_data():
-#             path = os.path.join(sample_data_node.crystals[0].\
-#                                 protein_acronym, sample_data_node.name)
-        
-#         return path

@@ -9,6 +9,7 @@ __status__ = "Beta"
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 class BeamlineSetup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -16,8 +17,7 @@ class BeamlineSetup(HardwareObject):
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
                            'resolution', 'shape_history', 'session',
                            'beamline_configuration', 'data_analysis',
-                           'workflow', 'lims_client', 'collect', 'energy',
-                           'xml_rpc_server']
+                           'workflow', 'lims_client', 'collect', 'energy']
 
 
     def init(self):        
