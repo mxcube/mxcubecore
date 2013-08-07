@@ -254,7 +254,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def log_message_from_spec(self, msg):
-        logging.getLogger("HWR").info(msg)        
+        logging.getLogger("user_level_log").info(msg)      
 
 
     @task
