@@ -16,6 +16,7 @@ import gevent
 import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
+import queue_model_enumerables_v1 as queue_model_enumerables
 import copy
 import pprint
 import os
@@ -24,11 +25,11 @@ import ShapeHistory as shape_history
 import edna_test_data
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
-from queue_model_objects_v1 import COLLECTION_ORIGIN
-from queue_model_objects_v1 import STRATEGY_COMPLEXITY
-from queue_model_objects_v1 import EXPERIMENT_TYPE
-from queue_model_objects_v1 import STRATEGY_OPTION
-from queue_model_objects_v1 import COLLECTION_ORIGIN_STR
+from queue_model_enumerables_v1 import COLLECTION_ORIGIN
+from queue_model_enumerables_v1 import STRATEGY_COMPLEXITY
+from queue_model_enumerables_v1 import EXPERIMENT_TYPE
+from queue_model_enumerables_v1 import STRATEGY_OPTION
+from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
 
 from BlissFramework.Utils import widget_colors
 
