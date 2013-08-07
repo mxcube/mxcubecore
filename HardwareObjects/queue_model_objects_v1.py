@@ -1,77 +1,31 @@
 """
+This module contains objects that combined make up the data model.
+Any object that inherhits from TaskNode can be added to and handled by
+the QueueModel.
 """
 
-import pprint
 import os
-import time
 import copy
-import traceback
 
-from collections import namedtuple
+from queue_model_enumerables_v1 import *
 
-StrategyComplexity = namedtuple('StrategyComplexity', ['SINGLE','FEW','MANY'])
-STRATEGY_COMPLEXITY = StrategyComplexity('none', 'min', 'full')
 
-ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD', 
-                                               'MAD_INV', 'NATIVE','HELICAL', 'EDNA_REF', 'OSC'])
-EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
+__author__ = "Marcus Oskarsson"
+__copyright__ = "Copyright 2012, ESRF"
+__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
 
-EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD','MAD - Inverse Beam',
-                                     'OSC','Helical','Characterization', 'OSC')
+__version__ = "0.1"
+__maintainer__ = "Marcus Oskarsson"
+__email__ = "marcus.oscarsson@esrf.fr"
+__status__ = "Beta"
 
-StrategyOption = namedtuple('StrategyOption', ['AVG'])
-STRATEGY_OPTION = StrategyOption(0)
-
-CollectionOrigin = namedtuple('CollectionOrigin',['MXCUBE', 
-                                                  'EDNA', 'WORKFLOW'])
-COLLECTION_ORIGIN = CollectionOrigin(0, 1, 2)
-
-COLLECTION_ORIGIN_STR = CollectionOrigin('mxcube', 'edna', 'workflow')
-
-EDNARefImages = namedtuple('EDNARefImages', ['FOUR', 'TWO', 'ONE', 'NONE'])
-EDNA_NUM_REF_IMAGES = EDNARefImages(0, 1, 2, 3)
-
-CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'CRYSTAL'])
-CENTRING_METHOD = CentringMethod(0, 1, 2)
-
-WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
-WORKFLOW_TYPE = WorkflowType(0, 1, 2)
-
-XTAL_SPACEGROUPS = ['', 'P1', 'P2 ', 'P21', 'C2', 'P222 ', 'P2221 ', 'P21212',
-                    'P212121', 'C222 ', 'C2221', 'F222', 'I222', 'I212121',
-                    'P4', 'P41', 'P42', 'P43', 'P422', 'P4212', 'P4122',
-                    'P41212', 'P4222', 'P42212', 'P4322', 'P43212', 'I4',
-                    'I41', 'I422', 'I4122', 'P3', 'P31', 'P32', 'P312',
-                    'P321', 'P3112', 'P3121', 'P3212', 'P3221', 'P6', 'P61',
-                    'P65', 'P62', 'P64', 'P63', 'P622', 'P6122', 'P6522',
-                    'P6222', 'P6422', 'P6322', 'R3', 'R32', 'P23', 'P213',
-                    'P432', 'P4232', 'P4332', 'P4132', 'F23', 'F432',
-                    'F4132', 'I23', 'I213', 'I432', 'I4132']
-
-ORIG_EDNA_SPACEGROUPS = {'I4132': '214', 'P21212': '18', 'P432': '207',
-                         'P43212': '96', 'P6222': '180', 'P3': '143',
-                         'C2': '5', 'P6422': '181', 'P212121': '19',
-                         'F432': '209', 'P4132': '213', 'R32': '155',
-                         'P23' : '195', 'I23': '197', 'I212121': '24',
-                         'P3112': '151', 'P1': '1', 'P42212': '94',
-                         'P321': '150', 'P63': '173', 'I422': '97',
-                         'P41': '76', 'P6122': '178', 'P65 ': '170',
-                         'I41': '80', 'P32 ': '145', 'I432 ': '211',
-                         'C222': '21', 'F4132': '210', 'F23 ': '196',
-                         'I222': '23', 'P42 ': '77', 'I213 ': '199',
-                         'P2': '3', 'R3 ': '146', 'P213 ': '198',
-                         'I4122': '98', 'P61': '169', 'P312 ': '149',
-                         'I4': '79', 'P64': '172', 'P222 ': '16',
-                         'P41212': '92', 'P3212 ': '153', 'P21': '4',
-                         'P6': '168', 'P4322 ': '95', 'C2221': '20',
-                         'P422': '89', 'F222': '22', 'P62 ': '171',
-                         'P6322': '182', 'P4 ': '75', 'P31 ': '144',
-                         'P3221': '154', 'P4122 ': '91', 'P6522 ': '179',
-                         'P4212': '90', 'P2221 ': '17', 'P622': '177',
-                         'P43': '78', 'P4222 ': '93', 'P3121 ': '152',
-                         'P4232': '208', 'P4332': '212'}
 
 class TaskNode(object):
+    """
+    Objects that inherit TaskNode can be added to and handled by 
+    the QueueModel object.
+    """
+
     def __init__(self):
         object.__init__(self)
         
@@ -86,26 +40,61 @@ class TaskNode(object):
         
 
     def is_enabled(self):
+        """
+        :returns: True if enabled and False if disabled
+        """
         return self._enabled
 
 
     def set_enabled(self, state):
+        """
+        Sets the enabled state, True represents enabled (executable) and
+        false disabled (not executable).
+
+        :param state: The state, True or False
+        :type state: bool
+        """
         self._enabled = state
 
 
     def get_children(self):
+        """
+        :returns: The children of this node.
+        :rtype: List of TaskNode objects.
+        """
         return self._children
 
         
     def get_parent(self):
+        """
+        :returns: The parent of this node.
+        :rtype: TaskNode
+        """
         return self._parent
 
 
-    def set_name(self, name):    
+    def set_name(self, name):
+        """
+        Sets the name.
+
+        :param name: The new name.
+        :type name: str
+
+        :returns: none
+        """
         self._name = name
 
 
-    def set_number(self, number):        
+    def set_number(self, number):
+        """
+        Sets the number of this node. The number can be used
+        to give the task a unique number when for instance,
+        the name is not unique for this node.
+
+        :param number: number
+        :type number: int
+        """
+
         self._number = number
 
         if self.get_parent():
@@ -155,14 +144,6 @@ class TaskNode(object):
         return name_list
 
 
-    def get_run_number(self):
-        return None
-
-
-    def get_prefix(self):
-        return None
-
-
     def get_path_template(self):
         return None
 
@@ -177,15 +158,6 @@ class TaskNode(object):
 
     def set_executed(self, executed):
         self._executed = executed
-
-
-    def pprint(self, indent = 0):
-        s = indent * "\t" + str(self).replace('\n', '\n' + indent * "\t")  + "\n"
-
-        for child in self._children:
-            s += child.pprint(indent+1) 
-
-        return s
 
 
     def get_root(self):
@@ -225,6 +197,7 @@ class TaskGroup(TaskNode):
 class Sample(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
+       
         self.code = str()
         self.lims_code = str()
         self.holder_length = 22.0
@@ -434,12 +407,12 @@ class DataCollection(TaskNode):
         return self.set_executed(collected)
 
 
-    def get_run_number(self):
-        return self.acquisitions[0].path_template.run_number
+    # def get_run_number(self):
+    #     return self.acquisitions[0].path_template.run_number
     
 
-    def get_prefix(self):
-        return self.acquisitions[0].path_template.get_prefix()
+    # def get_prefix(self):
+    #     return self.acquisitions[0].path_template.get_prefix()
 
 
     def get_path_template(self):
@@ -461,8 +434,8 @@ class DataCollection(TaskNode):
         return s
 
 
-    def _print(self):
-        print "data collection: " + pprint.pformat(self.parameters)
+    # def _print(self):
+    #     print "data collection: " + pprint.pformat(self.parameters)
 
 
 class ProcessingParameters():  
@@ -511,12 +484,12 @@ class Characterisation(TaskNode):
        return '%s_%i' % (self._name, self._number)
 
 
-   def get_run_number(self):
-       return  self.reference_image_collection.get_run_number()
+   # def get_run_number(self):
+   #     return  self.reference_image_collection.get_run_number()
 
 
-   def get_prefix(self):
-       return self.reference_image_collection.get_prefix()
+   # def get_prefix(self):
+   #     return self.reference_image_collection.get_prefix()
 
 
    def get_path_template(self):
@@ -1005,15 +978,15 @@ def to_collect_dict(data_collection, session):
              'skip_images': acq_params.skip_existing_images}]
 
 
-def next_available_run_number(parent_node, prefix):
-    largest = 0
+# def next_available_run_number(parent_node, prefix):
+#     largest = 0
 
-    for task_node in parent_node.get_children():
-        if task_node.get_prefix() == prefix:
-            if task_node.get_run_number() > largest:
-                largest = task_node.get_run_number()
+#     for task_node in parent_node.get_children():
+#         if task_node.get_prefix() == prefix:
+#             if task_node.get_run_number() > largest:
+#                 largest = task_node.get_run_number()
 
-    return int(largest)
+#     return int(largest)
 
 
 def dc_from_edna_output(edna_result, reference_image_collection,

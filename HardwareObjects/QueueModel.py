@@ -1,3 +1,9 @@
+"""
+Handels interaction with the data model(s). Adding, removing and retreiving 
+nodes are all done via this object. It is possbile to handle several models
+by using register_model and select_model.
+"""
+
 import copy
 import queue_entry
 import queue_model_objects_v1 as queue_model_objects
@@ -40,7 +46,7 @@ class QueueModel(HardwareObject):
         You should normaly not need to call this method.
         
         """
-        self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
+        self.queue_hwobj = self.getObjectByRole("queue")
 
 
     def select_model(self, name):
@@ -54,7 +60,7 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         self._selected_model = self._models[name]
-        self.queue_controller_hwobj.clear()
+        self.queue_hwobj.clear()
         self._re_emit(self._selected_model)
 
 
@@ -77,7 +83,7 @@ class QueueModel(HardwareObject):
         :rtype: NoneType    
         """
         self._models[name] = queue_model_objects.RootNode()
-        self.queue_controller_hwobj.clear()
+        self.queue_hwobj.clear()
 
 
     def register_model(self, name, root_node):
@@ -243,7 +249,7 @@ class QueueModel(HardwareObject):
         view_item.setOn(task_model.is_enabled())
 
         if isinstance(task_model, queue_model_objects.Sample):
-            self.queue_controller_hwobj.enqueue(qe)
+            self.queue_hwobj.enqueue(qe)
         else:
             view_item.parent().get_queue_entry().enqueue(qe)
 

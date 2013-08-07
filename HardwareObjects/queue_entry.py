@@ -64,7 +64,7 @@ class QueueSkippEntryException(QueueExecutionException):
 class QueueEntryContainer(object):
     """
     A QueueEntryContainer has a list of queue entries, classes inheriting
-    BaseQueueEntry, and a QueueController object. The QueueControllerObject
+    BaseQueueEntry, and a Queue object. The Queue object
     controls/handles the execution of the queue entries.
     """
     def __init__(self):
@@ -565,6 +565,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+
 
 class DataCollectionQueueEntry(BaseQueueEntry):
     def __init__(self, view = None, data_model = None, 

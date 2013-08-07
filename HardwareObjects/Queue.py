@@ -1,9 +1,9 @@
 """
-QueueController, handles the execution of the MxCuBE queue. It is implemented
+Queue, handles the execution of the MxCuBE queue. It is implemented
 as a hardware object and is configured by an XML file. See the example of the
 XML configuration below for more details.
 
-<object class = "QueueController" role = "QueueController">
+<object class = "Queue" role = "Queue">
   <object href="/sc" role="sample_changer"/>    
   <object href="/minidiff" role="diffractometer"/>
   <object href="/energyscan" role="energy"/>
@@ -12,7 +12,7 @@ XML configuration below for more details.
   <object href="/mxcollect" role="collect"/>
 </object>
 
-The QueueController acts as both the controller of execution and as the root/
+The Queue acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
@@ -50,7 +50,7 @@ logger = logging.getLogger('queue_exec').\
          info("Module load, probably application start")
 
 
-class QueueController(HardwareObject, QueueEntryContainer):
+class Queue(HardwareObject, QueueEntryContainer):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)

@@ -17,15 +17,12 @@ import inspect
 import pkgutil
 import types
 import gevent
-#import queue_entry
 import socket
-#import queue_model_objects_v1
 
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-#from queue_entry import QueueEntryContainer
 from SimpleXMLRPCServer import SimpleXMLRPCServer
-#from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+
 
 __author__ = "Marcus Oskarsson, Matias Guijarro"
 __copyright__ = "Copyright 2012, ESRF"
@@ -41,7 +38,7 @@ class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.queue_model_hwobj = None
-        self.queue_controller_hwobj = None
+        self.queue_hwobj = None
         self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
@@ -82,10 +79,10 @@ class XMLRPCServer(HardwareObject):
                     
                 self._register_module_functions(api.module, recurse=recurse)
 
-        self.queue_model_hwobj = self.getObjectByRole("queue_model")
-        self.queue_controller_hwobj = self.getObjectByRole("queue_controller")
-        self.shape_history_hwobj = self.getObjectByRole("shape_history")
+        self.queue_hwobj = self.getObjectByRole("queue")
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
+        self.shape_history_hwobj =  self.beamline_setup_hwobj.shape_hisotry_hwobj
+        self.queue_model_hwobj =  self.beamline_setup_hwobj.queue_model_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
@@ -214,10 +211,10 @@ class XMLRPCServer(HardwareObject):
         """
         try:
             model = self.queue_model_hwobj.get_node(node_id)
-            entry = self.queue_controller_hwobj.get_entry_with_model(model)
+            entry = self.queue_hwobj.get_entry_with_model(model)
 
             if entry:
-                self.queue_controller_hwobj.execute_entry(entry)
+                self.queue_hwobj.execute_entry(entry)
                 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
@@ -232,7 +229,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
         try:
-            return self.queue_controller_hwobj.is_executing() 
+            return self.queue_hwobj.is_executing() 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
@@ -274,6 +271,7 @@ class XMLRPCServer(HardwareObject):
             self.wokflow_in_progress = True
         else:
             self.wokflow_in_progress = False
+
         
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
     
