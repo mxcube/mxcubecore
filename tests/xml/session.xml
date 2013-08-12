@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <object class = "Session" role = "session">  
-  <object href="/mxlocal" role="config"/>
-    
+  <endstation_name>id-test-eh1</endstation_name>
+
   <inhouse_users>
     <proposal>
       <code>idtest</code>
@@ -12,8 +12,6 @@
       <code>mxihr</code>
     </proposal>
   </inhouse_users>
-
-  <endstation_name>id-test-eh1</endstation_name>
 
   <file_info>
     <file_suffix>img</file_suffix>

@@ -17,8 +17,6 @@
    </api>
   </apis>
 
-  <object href="/queue-controller" role="queue_controller"/>
-  <object href="/queue-model" role="queue_model"/>
-  <object href="/minidiff" role="diffractometer"/>
-  <object href="/mxlocal" role="beamline_configuration"/>
+  <object href="/beamline-setup" role="beamline_setup"/>
+  <object href="/queue" role="queue"/>
 </object>
