@@ -1,16 +1,3 @@
-"""ESRF implementation of AbstractDataAnalysis targetting EDNA
-
-Example XML config. file:
-
-<object class="DataAnalysis">
-  <object href="/mxcollect" role="collect"/>
-  <tangoname>id14eh1/das/1</tangoname>
-  <channel type="tango" name="jobSuccess" polling="events">jobSuccess</channel>
-  <channel type="tango" name="jobFailure" polling="events">jobFailure</channel>
-  <command type="tango" name="getJobOutput">getJobOutput</command>
-  <command type="tango" name="startJob">startJob</command>
-</object>
-"""
 import logging
 import gevent.event
 import threading
