@@ -108,7 +108,8 @@ class ISPyBClient2(HardwareObject):
         self.__tools_ws = None
         self.__translations = {}
         self.__disabled = False
-
+        self.beamline_name = False
+        
         logger = logging.getLogger('ispyb_client')
         
         try:
@@ -127,6 +128,8 @@ class ISPyBClient2(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
+        bl_setup = self.getHardwareObjectByRole('beamline_setup')
+        
         try:
             # ws_root is a property in the configuration xml file
             if self.ws_root:
@@ -160,7 +163,9 @@ class ISPyBClient2(HardwareObject):
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
-            for proposal in self['proposals']:
+            proposals = bl_setup.session_hwobj.proposals
+            
+            for proposal in proposals:
                 code = proposal.code
                 self.__translations[code] = {}
                 try:
@@ -178,6 +183,7 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
+        self.beamline_name = bl_setup.beamline_name
 
     def translate(self, code, what):  
         """
