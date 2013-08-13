@@ -25,10 +25,8 @@ from qt import Qt
 from Qub.Objects.QubDrawingEvent import QubDrawingEvent
 from Qub.Objects.QubDrawingManager import QubLineDrawingMgr
 from Qub.Objects.QubDrawingManager import QubPointDrawingMgr
-from Qub.Objects.QubDrawingManager import Qub2PointSurfaceDrawingMgr
 from Qub.Objects.QubDrawingManager import QubAddDrawing
 from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
-from Qub.Tools import QubImageSave
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
