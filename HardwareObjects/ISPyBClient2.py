@@ -3,21 +3,18 @@ A client for ISPyB Webservices.
 """
 
 import logging
-import os
-import time
 import gevent
 import suds; logging.getLogger("suds").setLevel(logging.INFO)
 
-from suds.transport.http import HttpAuthenticated
+#from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 from suds import WebFault
 from suds.sudsobject import asdict
 from urllib2 import URLError
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from datetime import datetime
 from collections import namedtuple
-from pprint import pformat, pprint
+from pprint import pformat
 
 
 # Production web-services:    http://160.103.210.1:8080/ispyb-ejb3/ispybWS/
