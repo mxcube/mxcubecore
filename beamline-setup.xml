@@ -12,11 +12,11 @@
   <object href="/session" role="session"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
-  <object href="/workflow-mockup" role="workflow"/>
+  <!--<object href="/workflow-mockup" role="workflow"/> -->
  
   <!-- Procedures and routines -->
-  <object href="/collect-mockup" role="collect"/>
   <object href="/energyscan-mockup" role="energy"/>
+  <!-- <object href="/collect-mockup" role="collect"/> -->
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->
@@ -25,9 +25,6 @@
   <!-- Disables or enables the number of passes input box, used
   for acquisitions.-->
   <disable_num_passes>True</disable_num_passes>
-
-  <!-- Name of the beamline -->
-  <beamline_name>ID:TEST</beamline_name>
 
   <!-- Should be moved to a detector object in the future -->
   <detector>
