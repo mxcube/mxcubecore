@@ -9,7 +9,7 @@ import os
 import itertools
 import time
 
-from suds.transport.http import HttpAuthenticated
+#from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 from suds import WebFault
 from suds.sudsobject import asdict
