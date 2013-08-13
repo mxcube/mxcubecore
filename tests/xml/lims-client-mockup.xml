@@ -1,9 +1,10 @@
 <object class="ISPyBClient2Mockup">
 
-  <object href="/beamline-setup" role="beamline_setup"/>
-
   <ws_root>
     http://ispyb.esrf.fr:8080/ispyb-ejb3/ispybWS/
   </ws_root>
+
+  <!-- Name of the beamline -->
+  <beamline_name>ID:TEST</beamline_name>
 
 </object>
