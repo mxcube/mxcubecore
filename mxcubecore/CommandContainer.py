@@ -10,20 +10,17 @@ for command launchers and channels (see Command package).
 __author__ = 'Matias Guijarro'
 __version__ = 1.0
 
-import new
 import types
 import weakref
 import logging
 
-import HardwareRepository
 
 try:
-  from louie import dispatcher
-  from louie import saferef
+    from louie import dispatcher
+    from louie import saferef
 except ImportError:
-  from pydispatch import dispatcher
-  from pydispatch import saferef
-  saferef.safe_ref = saferef.safeRef
+    from pydispatch import saferef
+    saferef.safe_ref = saferef.safeRef
 
 
 class ConnectionError(Exception):
