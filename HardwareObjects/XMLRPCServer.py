@@ -81,8 +81,8 @@ class XMLRPCServer(HardwareObject):
 
         self.queue_hwobj = self.getObjectByRole("queue")
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
-        self.shape_history_hwobj =  self.beamline_setup_hwobj.shape_hisotry_hwobj
-        self.queue_model_hwobj =  self.beamline_setup_hwobj.queue_model_hwobj
+        self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
+        self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
