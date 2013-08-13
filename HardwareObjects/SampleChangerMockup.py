@@ -21,26 +21,18 @@ LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1),
 
 
 class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
-
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.current_sample = (1,1)
 
-#    def __init__(self):
-#        Equipment.__init__(self)
-#        AbstractSampleChanger.__init__(self)
-
-
     def getMatrixCodes(self, codes = None):
         return LOADED_SAMPLES
-
 
     def sampleIsLoaded(self):
         if self.current_sample:
             return True
         else:
             return False
-
 
     def loadSample(self, holderLength, sample_id=None, sample_location=None, 
                    sampleIsLoadedCallback=None, failureCallback=None, 
@@ -57,40 +49,41 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
                 self.current_sample = sample
                 break
                 
-
     def getLoadedSampleLocation(self):
         if self.current_sample:
             return self.current_sample
         else:
             return (None, None)
 
+    def getLoadedSample(self):
+        return self.current_sample
 
     def abort(self):
         return True
 
-
     def isMicrodiff(self):
         return False
-
 
     def getStatus(self):
         return 'READY'
 
-
     def getState(self):
         return 'READY'
-
 
     def sampleChangerInUse(self):
         return False
 
-
     def sampleChangerCanLoad(self):
         return True
-
 
     def is_mounted_sample(self, sample_model):
       if sample_model.location == self.getLoadedSampleLocation():
         return True
       else:
+        return False
+
+    def minidiffCanMove(self):
+        return True
+
+    def getBasketTransferMode(self):
         return False
