@@ -1,5 +1,11 @@
 """
-Contains The classes ShapeHistory, DrawingEvent, Shape, Point and Line.
+Contains The classes
+
+* ShapeHistory
+* DrawingEvent
+* Shape
+* Point
+* Line.
 
 ShapeHistory keeps track of the current shapes the user has created. The
 shapes handled are any that inherits the Shape base class. There are currently
@@ -49,7 +55,6 @@ class ShapeHistory(HardwareObject):
     Keeps track of the current shapes the user has created. The
     shapes handled are any that inherits the Shape base class.
     """
-    
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._drawing = None
@@ -57,7 +62,6 @@ class ShapeHistory(HardwareObject):
         self.shapes = {}
         self.selected_shapes = {}
         self._current_grid = {}
-
 
     def set_drawing(self, drawing):
         """
@@ -76,14 +80,12 @@ class ShapeHistory(HardwareObject):
         self._drawing = drawing
         self._drawing.addDrawingEvent(self._drawing_event)
 
-
     def get_drawing(self):
         """
         :returns: Returns the drawing of the shapes.
         :rtype: QubDrawing
         """
         return self._drawing
-
 
     def get_drawing_event_handler(self):
         """
@@ -92,8 +94,17 @@ class ShapeHistory(HardwareObject):
         """
         return self._drawing_event
 
-
     def get_snapshot(self, qub_objects):
+        """
+        Get a snapshot of the video stream and overlay the objects
+        in qub_objects.
+
+        :param qub_objects: The QCanvas object to add on top of the video.
+        :type qub_objects: QCanvas
+
+        :returns: The snapshot
+        :rtype: QImage
+        """
         qimg = None
 
         try:
@@ -110,8 +121,23 @@ class ShapeHistory(HardwareObject):
 
         return qimg
 
-
     def get_qimage(self, image, canvas,  zoom = 1):
+        """
+        Gets the QImage from a parent widget.
+
+        :param image: The QWidget that contains the image to extract
+        :type image: QWidget
+
+        :param canvas: The QCanvas obejct to add as overlay
+        :type canvas: QCanvas
+
+        :param zoom: Zoom level
+        :type zoom: int.
+
+        :returns: The QImage contained in the parent widget.
+        :rtype: QImage
+        
+        """
         if canvas is not None and image is not None:
             device = qt.QPixmap(image)
             painter = qt.QPainter(device)    
@@ -137,47 +163,79 @@ class ShapeHistory(HardwareObject):
 
         return img
 
-
     def get_shapes(self):
+        """
+        :returns: All the shapes currently handled.
+        """
         return self.shapes.values()
 
-
     def add_shape(self, shape):
+        """
+        Adds the shape <shape> to the list of handled objects.
+
+        :param shape: Shape to add.
+        :type shape: Shape object.
+        
+        """
         self.shapes[shape] = shape
 
         self.get_drawing_event_handler().de_select_all()
         self.get_drawing_event_handler().set_selected(shape)
 
-
     def delete_shape(self, shape):
+        """
+        Removes the shape <shape> from the list of handled shapes.
+
+        :param shape: The shape to remove
+        :type shape: Shape object.
+        """
         del self.shapes[shape] 
 
-
     def move_shape(self, shape, new_positions):
+        """
+        Moves the shape <shape> to the position <new_position>
+
+        :param shape: The shape to move
+        :type shape: Shape
+
+        :param new_position: A tuple (X, Y)
+        :type new_position: <int, int>
+        """
         self.shapes[shape].move(new_positions)
 
-
-    def get_shapes(self):
-        return self.shapes.values()
-
-
     def clear_all(self):
+        """
+        Clear the shape history, remove all contents.
+        """
+        
         if self._drawing_event:
             self._drawing_event.de_select_all()
         
         self.shapes.clear()
         self.selected_shapes.clear()
 
-
     def add_grid(self, grid_dict):
+        """
+        Adds a grid object to the shape history. The grid/mesh
+        is not yet handled as a Shape object but will be in the future.
+
+        This method will disapear when that transition has been made.
+        """
         self._current_grid = grid_dict
 
-
     def get_grid(self):
+        """
+        Returns the current grid object.
+        """
         return self._current_grid
             
 
 class DrawingEvent(QubDrawingEvent):
+    """
+    Extension of Qub that handles mouse and keyboard events for the
+    Qub canvas. Handles selection and some manipulation of the
+    Shape objects.
+    """
     def __init__(self, qub_helper):
         QubDrawingEvent.__init__(self)
         self.qub_helper = qub_helper
@@ -188,13 +246,18 @@ class DrawingEvent(QubDrawingEvent):
         self.deletion_cb = None
         self.move_to_centred_position_cb = None
 
-
     def rawKeyPressed(self, keyevent):
+        """
+        Method defined by QubDrawingEvent. Called on key press.
+        """
         self.current_key_event = keyevent
         self.current_key = keyevent.key()
 
-
     def rawKeyReleased(self, keyevent):
+        """
+        Method defined by QubDrawingEvent. Called on key release.
+        Handles removal of a selected shape when delete is pressed.
+        """
         if keyevent.key() == Qt.Key_Delete or \
                 keyevent.key() == Qt.Key_Backspace:
 
@@ -203,8 +266,12 @@ class DrawingEvent(QubDrawingEvent):
         self.current_key_event = None
         self.current_key = None
 
-
-    def mouseDblClick(self,x,y):
+    def mouseDblClick(self, x ,y):
+        """
+        Method defined by QubDrawingEvent. Called on mouse click.
+        Checks if a shape is selected and 'moves to' the selected
+        position.
+        """
         clicked_shape = None
         for shape in self.qub_helper.get_shapes():            
             modifier = shape.get_hit(x, y)
@@ -215,8 +282,11 @@ class DrawingEvent(QubDrawingEvent):
             
         self.move_to_centred_position_cb(clicked_shape.\
                                          get_centred_positions()[0])
-        
     def mousePressed(self, x, y):
+        """
+        Selects the shape the mouse is over when clicked, de selects
+        everything if nothing was under the mouse.
+        """
         modifier = None
         
         for shape in self.qub_helper.get_shapes():            
@@ -229,8 +299,11 @@ class DrawingEvent(QubDrawingEvent):
         if not modifier:
             self.de_select_all()
             
-
     def mouseReleased(self, x, y):
+        """
+        Handles the type of selection, multiple shapes or
+        only one.
+        """
         if self.current_shape:
             modifier = self.current_shape.get_hit(x, y)
 
@@ -261,8 +334,10 @@ class DrawingEvent(QubDrawingEvent):
 
         self.current_shape = None
 
-
     def de_select_all(self):
+        """
+        De selects all shapes.
+        """
         for shape in self.qub_helper.selected_shapes.values():
             shape.unhighlight()
 
@@ -271,7 +346,6 @@ class DrawingEvent(QubDrawingEvent):
         if callable(self.selection_cb):
             self.selection_cb(self.qub_helper.selected_shapes.values())
 
-
     def de_select_current(self):
         self.current_shape.unhighlight()
         del self.qub_helper.selected_shapes[self.current_shape]
@@ -279,8 +353,10 @@ class DrawingEvent(QubDrawingEvent):
         if callable(self.selection_cb):
             self.selection_cb(self.qub_helper.selected_shapes.values())
 
-
     def select_current(self):
+        """
+        Select the shape referenced by self._current_shape.
+        """
         self.current_shape.highlight()
         self.qub_helper.selected_shapes[self.current_shape] = \
             self.current_shape
@@ -288,8 +364,10 @@ class DrawingEvent(QubDrawingEvent):
         if callable(self.selection_cb):
             self.selection_cb(self.qub_helper.selected_shapes.values())
 
-
     def delete_selected(self):
+        """
+        Delete the selected shape.
+        """
         for shape in self.qub_helper.selected_shapes.values():
             if callable(self.deletion_cb):
                 self.deletion_cb(shape)
@@ -298,59 +376,88 @@ class DrawingEvent(QubDrawingEvent):
         self.de_select_all()
         self.current_shape = None
 
-
     def set_selected(self, shape):
+        """
+        Select the shape <shape> (programmatically).
+
+        :param shape: The shape to select.
+        :type shape: Shape
+        """
         self.current_shape = shape
         self.select_current()
         
         
 class Shape(object):
+    """
+    Base class for shapes.
+    """
     def __init__(self):
         object.__init__(self)
         self._drawing = None
 
-
     def get_drawing(self):
+        """
+        :returns: The drawing on which the shape is drawn.
+        :rtype: QDrawing
+        """
         return self._drawing
 
-
     def draw(self):
+        """
+        Draws the shape on its drawing.
+        """
         pass
-
 
     def get_centred_positions(self):
+        """
+        :returns: The centred position(s) associated with the shape.
+        :rtype: List of CentredPosition objects.
+        """
         pass
-
 
     def hide(self):
+        """
+        Hides the shape.
+        """
         pass
-
 
     def show(self):
+        """
+        Shows the shape.
+        """
         pass
-
 
     def update_position(self):
         pass
-
         
-    def move(self, new_positions):        
+    def move(self, new_positions):
+        """
+        Moves the shape to the position <new_position>
+        """
         pass
-
 
     def highlight(self):
+        """
+        Highlights the shape
+        """
         pass
-
 
     def unhighlight(self):
+        """
+        Removes highlighting.
+        """
         pass
-
 
     def get_hit(self, x, y):
+        """
+        :returns: True if the shape was hit by the mouse.
+        """
         pass
 
-
     def get_qub_objects(self):
+        """
+        :returns: A list of qub objects.
+        """
         pass
 
 
@@ -367,7 +474,6 @@ class Line(Shape):
         self.qub_line = None
 
         self.qub_line = self.draw()
-
 
     def draw(self):
         qub_line = None
@@ -391,28 +497,22 @@ class Line(Shape):
 
         return qub_line
 
-
     def get_centred_positions(self):
         return [self.start_cpos, self.end_cpos]
-
 
     def hide(self):
         self.qub_line.hide()
 
-
     def show(self):
         self.qub_line.show()
-
 
     def update_position(self):
         self.qub_line.moveFirstPoint(self.start_qub_p._x, self.start_qub_p._y)
         self.qub_line.moveSecondPoint(self.start_qub_p._x, self.start_qub_p._y)
-
-        
+    
     def move(self, new_positions):        
         self.qub_line.moveFirstPoint(new_positions[0][0], new_positions[0][1])
         self.qub_line.moveSecondPoint(new_positions[1][0], new_positions[1][1])
-
 
     def highlight(self):
         try:
@@ -425,7 +525,6 @@ class Line(Shape):
             logging.getLogger('HWR').exception('Could not higlight line')
             traceback.print_exc()
 
-
     def unhighlight(self):
         try:
             normal_pen = qt.QPen(self.qub_line.\
@@ -437,11 +536,9 @@ class Line(Shape):
             logging.getLogger('HWR').exception('Could not un-higlight line') 
             traceback.print_exc()
 
-
     def get_hit(self, x, y):
         return None
         #return self.qub_line.getModifyClass(x, y)
-
 
     def get_qub_objects(self):
         return [self.start_qub_p, self.end_qub_p, self.qub_line]
@@ -463,19 +560,15 @@ class Point(Shape):
 
         self.qub_point = self.draw(screen_pos)
 
-
     def get_qub_point(self):
         return self.qub_point
 
-
     def get_centred_positions(self):
         return [self.centred_position]
-
     
     def get_hit(self, x, y):
         return self.qub_point.getModifyClass(x, y)
         
-
     def draw(self, screen_pos):
         """
         Draws a qub point in the sample video.
@@ -495,18 +588,14 @@ class Point(Shape):
             
         return qub_point
         
-
     def show(self):
         self.qub_point.show()
-
 
     def hide(self):
         self.qub_point.hide()
 
-
     def move(self, new_positions):
         self.qub_point.move(new_positions[0][0], new_positions[0][1])
-
 
     def highlight(self):
         try:
@@ -519,7 +608,6 @@ class Point(Shape):
             logging.getLogger('HWR').exception('Could not higlight point')
             traceback.print_exc()
 
-
     def unhighlight(self):
         try:
             normal_pen = qt.QPen(self.qub_point.\
@@ -530,7 +618,6 @@ class Point(Shape):
         except:
             logging.getLogger('HWR').exception('Could not un-higlight point') 
             traceback.print_exc()
-
 
     def get_qub_objects(self):
           return [self.qub_point]
