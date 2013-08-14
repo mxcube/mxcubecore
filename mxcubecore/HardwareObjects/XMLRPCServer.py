@@ -2,13 +2,7 @@
 XMLRPC-Server that makes it possbile to access core features of MXCuBE like
 the queue from external applications. The Server is implemented as a
 hardware object and is configured with an XML-file. See the example
-configuration XML below.
-
-<object class="XMLRPCServer" role="XMLRPCServer">
-  <port>
-    8000
-  </port>
-</object>
+configuration XML for more information.
 """
 
 import logging

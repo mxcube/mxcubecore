@@ -1,16 +1,7 @@
 """
 Queue, handles the execution of the MxCuBE queue. It is implemented
 as a hardware object and is configured by an XML file. See the example of the
-XML configuration below for more details.
-
-<object class = "Queue" role = "Queue">
-  <object href="/sc" role="sample_changer"/>    
-  <object href="/minidiff" role="diffractometer"/>
-  <object href="/energyscan" role="energy"/>
-  <object href="/mxlocal" role="beamline_configuration"/>
-  <object href="/data-analysis" role="data_analysis"/>
-  <object href="/mxcollect" role="collect"/>
-</object>
+XML configuration for more details.
 
 The Queue acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
