@@ -125,7 +125,7 @@ class ISPyBClient2(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        bl_setup = self.getHardwareObjectByRole('beamline_setup')
+        bl_setup = self.getObjectByRole('beamline_setup')
         
         try:
             # ws_root is a property in the configuration xml file
