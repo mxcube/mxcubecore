@@ -636,7 +636,7 @@ class PathTemplate(object):
         prefix = self.base_prefix
 
         if self.mad_prefix:
-            prefix = self.mad_prefix + '-' + self.base_prefix
+            prefix = self.base_prefix  + '-' + self.mad_prefix
 
         if self.reference_image_prefix:
             prefix = self.reference_image_prefix + '-' + prefix
