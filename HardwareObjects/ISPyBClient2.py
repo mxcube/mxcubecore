@@ -160,7 +160,7 @@ class ISPyBClient2(HardwareObject):
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
-            proposals = session_hwobj.proposals
+            proposals = session_hwobj['proposals']
             
             for proposal in proposals:
                 code = proposal.code
