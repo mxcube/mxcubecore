@@ -125,7 +125,7 @@ class ISPyBClient2(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        bl_setup = self.getObjectByRole('beamline_setup')
+        session_hwobj = self.getObjectByRole('session')
         
         try:
             # ws_root is a property in the configuration xml file
@@ -160,7 +160,7 @@ class ISPyBClient2(HardwareObject):
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
-            proposals = bl_setup.session_hwobj.proposals
+            proposals = session_hwobj.proposals
             
             for proposal in proposals:
                 code = proposal.code
@@ -180,7 +180,7 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
-        self.beamline_name = bl_setup.beamline_name
+        self.beamline_name = session_hwobj.endstation_name
 
     def translate(self, code, what):  
         """
