@@ -572,7 +572,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = None
         self.collect_task = None
         self.centring_task = None
-        self.beamline_config_hwobj = None
         self.shape_history = None
         self.session = None
 
@@ -590,10 +589,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+
+        #import sys; sys.stdout = sys.__stdout__
+        #import pdb; pdb.set_trace()
         
         self.collect_hwobj = self.beamline_setup.collect_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.beamline_config_hwobj = self.beamline_setup.bl_config_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
         self.session = self.beamline_setup.session_hwobj
         
@@ -649,7 +650,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 to_collect_dict(data_collection, self.session)
 
             try:
-                if data_collection.experiment_type is queue_model_objects.EXPERIMENT_TYPE.HELICAL:
+                if data_collection.experiment_type is queue_model_enumerables.EXPERIMENT_TYPE.HELICAL:
                     self.collect_hwobj.getChannelObject("helical").setValue(1)
 
                     start_cpos = data_collection.acquisitions[0].\
@@ -690,7 +691,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     list_item.setText(1, "Moving sample")
 
                 self.centring_task = self.diffractometer_hwobj.\
-                    moveToCentredPosition(cpos, get_task = True)
+                    moveToCentredPosition(cpos)
                 self.centring_task.get()
                 
                 logging.getLogger('queue_exec').\
@@ -841,7 +842,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.data_analysis_hwobj = None
         self.diffractometer_hwobj = None
-        self.beamline_config_hwobj = None
         self.queue_model_hwobj = None
         self.session_hwobj = None
         self.edna_result = None
@@ -952,7 +952,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
         self.data_analysis_hwobj = self.beamline_setup.data_analysis_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.beamline_config_hwobj = self.beamline_setup.bl_config_hwobj
         self.queue_model_hwobj = self.get_view().listView().parent().queue_model_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
 
