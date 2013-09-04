@@ -1,18 +1,22 @@
 import gevent
-import copy
+from gevent.event import AsyncResult
+from Qub.Tools import QubImageSave
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import *
+import Image
 import tempfile
 import logging
 import numpy
 import math
 import os
 import time
-
 from HardwareRepository import HardwareRepository
-from gevent.event import AsyncResult
-from Qub.Tools import QubImageSave
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
-from qt import *
+import copy
+try:
+  import lucid
+except ImportError:
+  logging.warning("lucid cannot load: automatic centring is disabled")
+
 
 USER_CLICKED_EVENT = AsyncResult()
 
@@ -52,17 +56,11 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, i
     beam_yc_real = beam_yc / float(pixelsPerMmZ)
     y = yc / float(pixelsPerMmZ)
     x = sum(X) / 3.0 / float(pixelsPerMmY)
-    """
-    centredPosRel = { sampx: float(dx),\
-                      sampy: float(dy),\
-                      phiy: phiy_direction * (x-beam_xc_real),\
-                      phiz: y-beam_yc_real}
-    """
     centredPos = { sampx: sampx.getPosition() + float(dx),
                    sampy: sampy.getPosition() + float(dy),
                    phiy: phiy.getPosition() + phiy_direction * (x - beam_xc_real),
                    phiz: phiz.getPosition() + (y - beam_yc_real) }
-    return centredPos #Rel
+    return centredPos
   except:
     phi.move(phiSavedPosition)    
     raise
@@ -112,66 +110,6 @@ def take_snapshots(light, phi, zoom, drawing):
   centredImages.reverse() # snapshot order must be according to positive rotation direction
 
   return centredImages
-
-
-class AutoCentringMsgHandler:
-  def init(self, progressMessage, centring_finished_event, minidiff_ho, loopCentringOnly):
-    self.loopCentringOnly = loopCentringOnly
-    self.progressMessage = progressMessage
-    self.centring_finished_event = centring_finished_event
-    self.minidiff = minidiff_ho
-
-  def __call__(self, msg):
-    if msg=="Tango message":
-      return
-
-    if len(msg)>10:
-      sub=msg[:10]
-      kind=sub.strip()
-      msg=msg[10:]
-
-      if kind=="ERROR":
-        logging.getLogger("HWR").error(msg)
-        if callable(self.progressMessage):
-            self.progressMessage(msg)
-        self.centring_finished_event.set_exception(RuntimeError("Centring failed"))
-      elif kind=="DEBUG":
-        logging.getLogger("HWR").debug(msg)
-      elif kind=="WARNING":
-        logging.getLogger("HWR").warning(msg)
-      elif kind=="SUCCESS":
-        if self.loopCentringOnly:
-          msg = "Loop pre-centring has finished. Please continue manually"
-        else:
-          msg = "Sample centred successfully"
-        centred_pos = { self.minidiff.sampleXMotor: self.minidiff.sampleXMotor.getPosition(),
-                        self.minidiff.sampleYMotor: self.minidiff.sampleYMotor.getPosition(),
-                        self.minidiff.phizMotor: self.minidiff.phizMotor.getPosition(),
-                        self.minidiff.phiyMotor: self.minidiff.phiyMotor.getPosition() }
-        self.centring_finished_event.set(centred_pos)
-      
-      if callable(self.progressMessage):
-        logging.getLogger("HWR").info(msg)
-        self.progressMessage(msg)
-
-
-def auto_centring(search_cmd, abort_cmd, message_chan, error_chan, minidiff_ho, sample_info, progressMessage=None, loopCentringOnly=False, autoCentringMsg={"handler":None}):
-  if autoCentringMsg["handler"] is None:
-    autoCentringMsg["handler"] = AutoCentringMsgHandler()
-  
-  centring_finished_event = AsyncResult()  
-  autoCentringMsg["handler"].init(progressMessage, centring_finished_event, minidiff_ho, loopCentringOnly)
-
-  message_chan.connectSignal("update", autoCentringMsg["handler"])
-
-  try:
-     blsampleid=int(sample_info["blsampleid"])
-  except:
-     blsampleid=None
-
-  search_cmd(repr({ "blsampleid": blsampleid, "loopcentringonly": loopCentringOnly}))
-
-  return centring_finished_event.get()
 
 
 class MiniDiff(Equipment):
@@ -225,6 +163,8 @@ class MiniDiff(Equipment):
         self.sampleXMotor = self.getDeviceByRole('sampx')
         self.sampleYMotor = self.getDeviceByRole('sampy')
         self.camera = self.getDeviceByRole('camera')
+
+        self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         sc_prop=self.getProperty("samplechanger")
         if sc_prop is not None:
@@ -322,6 +262,7 @@ class MiniDiff(Equipment):
         # with automatic centring brick, otherwise we should not start auto loop centring
         # (for example: if we have been imported in Automatic Centring server, or in
         # mxCuBE hutch version with no automatic centring brick...) 
+        from qt import QApplication
         continue_auto_centring = False
         for w in QApplication.allWidgets():
           if callable(w.name) and str(w.name()) == 'autocentring':
@@ -578,63 +519,177 @@ class MiniDiff(Equipment):
           self.emitProgressMessage("")
 
 
-    def moveToCentredPosition(self, centred_position):
+    def moveToCentredPosition(self, centred_position, wait = False):
+      try:
         motor_pos = {self.sampleXMotor: centred_position.sampx,
                      self.sampleYMotor: centred_position.sampy,
                      self.phiMotor: centred_position.phi,
                      self.phiyMotor: centred_position.phiy,
                      self.phizMotor: centred_position.phiz}
-        
-        return move_to_centred_position(motor_pos, wait = False)
 
-        
+        return move_to_centred_position(motor_pos, wait=wait)
+      except:
+        logging.exception("Could not move to centred position")
+
+
     def autoCentringDone(self, auto_centring_procedure):
-        try:
-          motor_pos = auto_centring_procedure.get()
-          if isinstance(motor_pos, gevent.GreenletExit):
-            # BUG IN GEVENT?
-            raise motor_pos
-        except:
-          try:
-            self._abort_cmd()
-          except:
-            pass
-          logging.exception("Could not complete automatic centring")
-          self.emitCentringFailed()
-        else:
-          self.emitProgressMessage("Moving sample to centred position...")
-          self.emitCentringMoving()
-         
-          self.emitCentringSuccessful()
-          self.emitProgressMessage("")
+        self.emitProgressMessage("")
+        self.emit("newAutomaticCentringPoint", (-1,-1))
 
+        if auto_centring_procedure.get():
+            self.emitCentringSuccessful()
+        else:
+            logging.error("Could not complete automatic centring")
+            self.emitCentringFailed()
+      
+
+    def do_auto_centring(self, phi, phiy, phiz, sampx, sampy, zoom, camera, phiy_direction):
+        if not lucid:
+          return
+
+        imgWidth = camera.getWidth()
+        imgHeight = camera.getHeight()
+
+        def find_loop(pixels_per_mm_horizontal, show_point=True):
+          #img_array = numpy.fromstring(camera.getChannelObject("image").getValue(), numpy.uint8)
+          rgbImgChan    = camera.addChannel({ 'type': 'tango', 'name': 'rgbimage', "read_as_str": 1 }, "RgbImage")
+          raw_data = rgbImgChan.getValue()
+          snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
+          Image.fromstring("RGB", (imgWidth, imgHeight), raw_data).save(snapshot_filename)
+
+          info, x, y = lucid.find_loop(snapshot_filename, pixels_per_mm_horizontal=pixels_per_mm_horizontal)
+          
+          self.emitProgressMessage("Loop found: %s (%d, %d)" % (info, x, y))
+          logging.debug("Loop found: %s (%d, %d)" % (info, x, y))
+          if show_point:
+              self.emit("newAutomaticCentringPoint", (x,y))
+          return x,y
+        
+        def centre_loop(pixelsPerMmY, pixelsPerMmZ): #, lastCoord=(-1, -1)):
+          X = []
+          Y = []
+          phiSavedDialPosition = phi.getDialPosition()
+         
+          self.emitProgressMessage("Doing automatic centring")
+          a = 0
+          for angle in (0, 90, 90):
+            a+=1
+            self.emitProgressMessage("%d: moving at angle %f" % (a, phi.getPosition()+angle))
+            phi.syncMoveRelative(angle)
+            x, y = find_loop(pixelsPerMmY) 
+            if x < 0 or y < 0:
+              for i in range(1,5):
+                logging.debug("loop not found - moving back") 
+                phi.syncMoveRelative(-20)
+                x, y = find_loop(pixelsPerMmY)
+                if x >=0:
+                  if y < imgHeight/2:
+                    y = 0
+                    self.emit("newAutomaticCentringPoint", (x,y))
+                    X.append(x); Y.append(y)
+                    break
+                  else:
+                    y = imgHeight
+                    self.emit("newAutomaticCentringPoint", (x,y))
+                    X.append(x); Y.append(y)
+                    break
+                if i == 4:
+                  if X and Y:
+                    logging.debug("loop not found - trying with last coordinates")
+                    self.emit("newAutomaticCentringPoint", (X[-1],Y[-1]))
+                    X.append(X[-1]); Y.append(Y[-1])
+                  else:
+                    # should never happen in normal conditions!
+                    return
+              phi.syncMoveRelative(i*20)
+            else:
+              X.append(x); Y.append(y)
+              
+          beam_xc = imgWidth / 2
+          beam_yc = imgHeight / 2
+          yc = (Y[0]+Y[2]) / 2
+          y =  Y[0] - yc
+          x =  yc - Y[1]
+          b1 = -math.radians(phiSavedDialPosition)
+          rotMatrix = numpy.matrix([math.cos(b1), -math.sin(b1), math.sin(b1), math.cos(b1)])
+          rotMatrix.shape = (2,2)
+          dx, dy = numpy.dot(numpy.array([x,y]), numpy.array(rotMatrix))/pixelsPerMmY
+
+          beam_xc_real = beam_xc / float(pixelsPerMmY)
+          beam_yc_real = beam_yc / float(pixelsPerMmZ)
+          y = yc / float(pixelsPerMmZ)
+          x = sum(X) / 3.0 / float(pixelsPerMmY)
+          centredPos = { sampx: sampx.getPosition() + float(dx),
+                         sampy: sampy.getPosition() + float(dy),
+                         phiy: phiy.getPosition() + phiy_direction * (x - beam_xc_real),
+                         phiz: phiz.getPosition() + (y - beam_yc_real) }
+          return centredPos
+
+        def check_centring(pixels_per_mm_horizontal):
+          centring_results = []
+          lastCoord = [] 
+          for angle in (0,-90,-90):
+            phi.syncMoveRelative(angle)
+            self.emit("newAutomaticCentringPoint", (-1,-1))
+            logging.debug("checking centring at angle %d", phi.getPosition())
+            x, y = find_loop(pixels_per_mm_horizontal)
+            lastCoord.append((x,y))
+            centring_results.append(x > imgWidth*0.35 and x < imgWidth*0.65 and y > imgHeight*0.35 and y < imgHeight*0.65)
+            logging.debug("  centring is %s", "ok" if centring_results[-1] else "bad")
+          
+          return all(centring_results),lastCoord
+         
+ 
+        #check if loop is there at the beginning
+        i = 0
+        while -1 in find_loop(self.pixelsPerMmY):
+          phi.syncMoveRelative(90)
+          i+=1
+          if i>4:
+            return
+        lastCoord = []
+        centred = True #False
+        for i in range(2): #was 4
+          motor_pos = centre_loop(self.pixelsPerMmY, self.pixelsPerMmZ)
+          move_to_centred_position(motor_pos)
+          #checked,lastCoord = check_centring()
+          #if not checked:
+          #  continue
+          #else:
+          #  centred = True
+          #  break
+
+        if centred:
+          # move zoom
+          self.emit("newAutomaticCentringPoint", (-1,-1))
+          positions = zoom.getPredefinedPositionsList()
+          i = len(positions) / 2
+          zoom.moveToPosition(positions[i-1])
+
+          #be sure zoom stop moving
+          while zoom.motorIsMoving():
+              time.sleep(0.1)
+
+          self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(zoom.getPosition())
+
+          # last centring
+          #motor_pos = centre_loop(self.pixelsPerMmY, self.pixelsPerMmZ) 
+          #move_to_centred_position(motor_pos)         
+ 
+          return motor_pos
 
     def startAutoCentring(self,sample_info=None, loop_only=False):
-        # sample info is the BL sample ID for the moment (None or an integer) 
-        # in the future, this could be a dictionary
-        try:
-            centring_server = self["autoCentering"].centring_server
-        except:
-            logging.getLogger("HWR").error("%s: no automatic centring script", self.name())
-            self.cancelCentringMethod()
-        else:        
-            if not hasattr(self, "_search_cmd"): 
-                self._search_cmd=self.addCommand({"type":"tango", "tangoname":centring_server, "name":"search" }, "Search")
-                self._abort_cmd=self.addCommand({"type":"tango", "tangoname":centring_server, "name":"abort" }, "Abort")
-                self._message_chan=self.addChannel({"type":"tango", "tangoname":centring_server,"name":"message", "polling":"events"}, "Message")
-                self._error_chan=self.addChannel({"type":"tango", "tangoname":centring_server,"name":"error", "polling":"events"}, "Error")
-
-        try:
-            centring_server = self["autoCentering"].centring_server
-            self.currentCentringProcedure = gevent.spawn(auto_centring, self._search_cmd, self._abort_cmd, self._message_chan, self._error_chan, self, sample_info,
-                                                                  progressMessage=self.emitProgressMessage,
-                                                                  loopCentringOnly=loop_only)
-            self.currentCentringProcedure.link(self.autoCentringDone)
-            self.emitProgressMessage("Starting automatic centring procedure...")
-        except:
-            logging.getLogger("HWR").error("Autocentring will not start because the server is not responding")
-            self.cancelCentringMethod()
-
+        self.currentCentringProcedure = gevent.spawn(self.do_auto_centring, self.phiMotor,
+                                                     self.phiyMotor,
+                                                     self.phizMotor,
+                                                     self.sampleXMotor,
+                                                     self.sampleYMotor,
+                                                     self.zoomMotor,
+                                                     self.camera,
+                                                     self.phiy_direction)
+        self.currentCentringProcedure.link(self.autoCentringDone)
+	self.emitProgressMessage("Starting automatic centring procedure...")
+        
 
     def imageClicked(self, x, y, xi, yi):
         USER_CLICKED_EVENT.set((x,y))
