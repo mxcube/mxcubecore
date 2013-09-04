@@ -510,7 +510,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = None
         self.shape_history = None
 
-
     def execute(self):
         BaseQueueEntry.execute(self)
         self.get_view().setText(1, 'Waiting for input')
@@ -534,18 +533,21 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             pos = shape_history.Point(None, cpos, None)
 
         if pos:
-            self.get_data_model().get_task().acquisitions[0].\
-                acquisition_parameters.centred_position = pos.get_centred_positions()[0]
+            data_collections =  self.get_data_model().get_tasks()
 
-            if pos.qub_point is not None:
-                snapshot = self.shape_history.\
-                           get_snapshot([pos.qub_point])
-            else:
-                snapshot = self.shape_history.\
-                           get_snapshot([])
+            for dc in data_collections:
+                dc.acquisitions[0].acquisition_parameters.\
+                    centred_position = pos.get_centred_positions()[0]
 
-            self.get_data_model().get_task().acquisitions[0].\
-                acquisition_parameters.centred_position.snapshot_image = snapshot
+                if pos.qub_point is not None:
+                    snapshot = self.shape_history.\
+                               get_snapshot([pos.qub_point])
+                else:
+                    snapshot = self.shape_history.\
+                               get_snapshot([])
+
+                dc.acquisitions[0].acquisition_parameters.\
+                    centred_position.snapshot_image = snapshot
 
         self.get_view().setText(1, 'Input accepted')
 
