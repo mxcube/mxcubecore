@@ -10,12 +10,9 @@ for command launchers and channels (see Command package).
 __author__ = 'Matias Guijarro'
 __version__ = 1.0
 
-import new
 import types
 import weakref
 import logging
-
-import HardwareRepository
 
 try:
   from louie import dispatcher
