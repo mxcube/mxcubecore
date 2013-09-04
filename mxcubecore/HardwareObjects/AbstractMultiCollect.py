@@ -561,6 +561,10 @@ class AbstractMultiCollect(object):
               else:
                 # images have to be consecutive
                 break
+
+        if nframes == 0:
+            return
+            
         # write back to the dictionary to make macros happy... TODO: remove this once macros are removed!
         oscillation_parameters["start_image_number"] = start_image_number
         oscillation_parameters["number_of_images"] = nframes
