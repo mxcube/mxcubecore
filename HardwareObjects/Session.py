@@ -39,7 +39,7 @@ class Session(HardwareObject):
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
-        self.endstation_name = self.getProperty('endstation_name')
+        self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].\
                               getProperty('base_directory')
