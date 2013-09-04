@@ -570,13 +570,13 @@ class EnergyScanResult(object):
 class SampleCentring(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
-        self._task = None
+        self._tasks = []
 
-    def set_task(self, task_node):
-        self._task = task_node
+    def add_task(self, task_node):
+        self._tasks.append(task_node)
 
-    def get_task(self):
-        return self._task
+    def get_tasks(self):
+        return self._tasks
 
     def get_name(self):
         return self._name
