@@ -16,6 +16,7 @@ import gevent
 import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
+import queue_model_enumerables_v1 as queue_model_enumerables
 import pprint
 import os
 import ShapeHistory as shape_history
@@ -438,7 +439,7 @@ class SampleQueueEntry(BaseQueueEntry):
                         self._view.setText(1, "Error loading")
                         logging.getLogger('user_level_log').\
                             error("Error loading sample, please check sample changer: " + e.message)
-                        raise QueueExecutionException(e.message. self)
+                        raise QueueExecutionException(e.message, self)
 
                     #self._view.update_pin_icon()
 
@@ -452,18 +453,16 @@ class SampleQueueEntry(BaseQueueEntry):
                             centring_method = \
                                 self._view.listView().parent().centring_method
 
-                            if centring_method == queue_model_objects.CENTRING_METHOD.MANUAL:
+                            if centring_method == queue_model_enumerables.CENTRING_METHOD.MANUAL:
                                 logging.getLogger("user_level_log").\
-                                    warning("Manual centring used, please center sample")
+                                    warning("Manual centring used, waiting fo user to center sample")
                                 self.diffractometer_hwobj.start3ClickCentring()
-                            elif centring_method == queue_model_objects.CENTRING_METHOD.LOOP:
-                                logging.getLogger("user_level_log").\
-                                    info("Centring sample, please wait.")
+                            elif centring_method == queue_model_enumerables.CENTRING_METHOD.LOOP:
                                 self.diffractometer_hwobj.\
                                     startAutoCentring(loop_only = True)
                                 logging.getLogger("user_level_log").\
-                                    warning("Please save or reject the centring")
-                            elif centring_method == queue_model_objects.CENTRING_METHOD.CRYSTAL:
+                                    warning("Centring in progress. Please save the suggested centring or re-center")
+                            elif centring_method == queue_model_enumerables.CENTRING_METHOD.CRYSTAL:
                                 logging.getLogger("user_level_log").\
                                     info("Centring sample, please wait.")
                                 self.diffractometer_hwobj.startAutoCentring()
