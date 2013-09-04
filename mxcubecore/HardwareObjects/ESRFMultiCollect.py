@@ -305,7 +305,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def move_motors(self, motor_position_dict):
         for motor in motor_position_dict.keys(): #iteritems():
             position = motor_position_dict[motor]
-            if type(motor) == types.StringType:
+            if isinstance(motor, str) or isinstance(motor, unicode):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
                 motor = self.bl_control.diffractometer.getDeviceByRole(motor_role)
