@@ -5,6 +5,7 @@ import subprocess
 import time
 import os
 import queue_model_objects_v1 as queue_model_objects
+import queue_model_enumerables_v1 as queue_model_enumerables
 
 from AbstractDataAnalysis import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -125,7 +126,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
             diff_plan.setAimedResolution(XSDataDouble(char_params.aimed_resolution))
 
         diff_plan.setComplexity(XSDataString(\
-                queue_model_objects.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
+                queue_model_enumerables.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
 
         if char_params.use_permitted_rotation:
             diff_plan.setUserDefinedRotationStart(XSDataAngle(char_params.\
@@ -169,7 +170,8 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
         # Characterisation type - SAD
-        if queue_model_objects.EXPERIMENT_TYPE[char_params.experiment_type] is queue_model_objects.EXPERIMENT_TYPE.SAD:
+        if queue_model_enumerables.EXPERIMENT_TYPE[char_params.experiment_type] is \
+               queue_model_enumerables.EXPERIMENT_TYPE.SAD:
             diff_plan.setAnomalousData(XSDataBoolean(True))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
