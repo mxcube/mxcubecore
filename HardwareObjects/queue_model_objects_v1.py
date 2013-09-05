@@ -937,7 +937,7 @@ def to_collect_dict(data_collection, session):
 
 
 def dc_from_edna_output(edna_result, reference_image_collection,
-                        dcg_model, sample_data_model, session_hwobj,
+                        dcg_model, sample_data_model, beamline_setup_hwobj,
                         char_params = None):
     data_collections = []
 
@@ -983,14 +983,16 @@ def dc_from_edna_output(edna_result, reference_image_collection,
                 reference_image_collection.acquisitions[0].\
                 acquisition_parameters.centred_position
 
-            data_directory = session_hwobj.get_image_directory(dcg_model)
-            proc_directory = session_hwobj.get_process_directory(dcg_model)
+            acq.path_template = beamline_setup_hwobj.get_default_path_template()
+
+            data_directory = beamline_setup_hwobj.session_hwobj.get_image_directory(sample_data_model.get_name())
+            proc_directory = beamline_setup_hwobj.session_hwobj.get_process_directory(sample_data_model.get_name())
 
             acq.path_template.directory = data_directory
             acq.path_template.process_directory = proc_directory
-            acq.path_template.base_prefix = session_hwobj.\
-                get_default_prefix(dcg_model.get_parent())
-            acq.path_template.suffix = session_hwobj.suffix
+            acq.path_template.base_prefix = beamline_setup_hwobj.session_hwobj.\
+                get_default_prefix(sample_data_model)
+            acq.path_template.suffix = beamline_setup_hwobj.session_hwobj.suffix
             acq.path_template.wedge_prefix = 'w' + str(i)
 
             if resolution:
@@ -1022,10 +1024,12 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
             try:
                 num_images = int(abs(acquisition_parameters.osc_end - \
-                                     acquisition_parameters.osc_start) / acquisition_parameters.osc_width)
-
+                                     acquisition_parameters.osc_start) / acquisition_parameters.osc_range)
+                
+                acquisition_parameters.first_image = 1
                 acquisition_parameters.num_images = num_images
                 acq.path_template.num_files = num_images
+                acq.path_template.start_num = 1
                 
             except AttributeError:
                 pass
