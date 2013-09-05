@@ -21,8 +21,8 @@ import pprint
 import os
 import ShapeHistory as shape_history
 
-#import edna_test_data
-#from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+import edna_test_data
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
 from BlissFramework.Utils import widget_colors
@@ -846,12 +846,11 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.edna_result = None
 
-
     def execute(self):
         BaseQueueEntry.execute(self)
         
         self.get_view().setText(1, "Characterising")
-        logging.getLogger("user_level_log").info("Characterising, please wait, might take a while.")
+        logging.getLogger("user_level_log").info("Characterising, please wait ...")
         characterisation = self.get_data_model()
         reference_image_collection = characterisation.reference_image_collection
         characterisation_parameters = characterisation.characterisation_parameters
@@ -862,8 +861,8 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             edna_input = self.data_analysis_hwobj.from_params(reference_image_collection,
                                                               characterisation_parameters)
             #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
-            edna_input.process_directory = reference_image_collection.acquisitions[0].\
-                                           path_template.process_directory
+            #edna_input.process_directory = reference_image_collection.acquisitions[0].\
+            #                                path_template.process_directory
             
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
@@ -906,7 +905,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                                                        reference_image_collection,
                                                        new_dcg_model,
                                                        sample_data_model,
-                                                       self.session_hwobj)
+                                                       self.beamline_setup)
 
                 for edna_dc in edna_collections:
                     path_template = edna_dc.acquisitions[0].path_template
