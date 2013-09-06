@@ -351,7 +351,6 @@ class DataCollection(TaskNode):
 
         return {'prefix': acq.path_template.get_prefix(),
                 'run_number': path_template.run_number,
-                'template': path_template.template,
                 'first_image': parameters.first_image,
                 'num_images': parameters.num_images,
                 'osc_start': parameters.osc_start,
@@ -625,7 +624,6 @@ class PathTemplate(object):
         self.mad_prefix = str()
         self.reference_image_prefix = str()
         self.wedge_prefix = str()
-        self.template = str()
         self.run_number = int()
         self.suffix = str()
         self.precision = str()
