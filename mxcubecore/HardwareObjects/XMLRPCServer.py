@@ -41,7 +41,7 @@ class XMLRPCServer(HardwareObject):
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
-        """        
+        """
         
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
@@ -54,6 +54,9 @@ class XMLRPCServer(HardwareObject):
         # file. The initialization is done by the baseclass HardwareObject.
         self._server = SimpleXMLRPCServer((host, int(self.port)),
                                           logRequests = False)
+
+        logging.getLogger("HWR").\
+            info('XML-RPC server listening on: %s:%s' % (host, self.port))
         
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
@@ -74,9 +77,9 @@ class XMLRPCServer(HardwareObject):
                 self._register_module_functions(api.module, recurse=recurse)
 
         self.queue_hwobj = self.getObjectByRole("queue")
+        self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
-        self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
 
@@ -268,7 +271,6 @@ class XMLRPCServer(HardwareObject):
 
         
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
-    
         log = logging.getLogger("HWR")
         
         log.info('Registering functions in module %s with XML-RPC server' %
