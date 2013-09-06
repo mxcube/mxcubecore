@@ -2,6 +2,7 @@
 
 <object class = "Session" role = "session">  
   <endstation_name>id-test-eh1</endstation_name>
+  <beamline_name>id-test</beamline_name>
 
   <inhouse_users>
     <proposal>
