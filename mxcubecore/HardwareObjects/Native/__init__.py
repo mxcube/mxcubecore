@@ -4,6 +4,7 @@ import jsonpickle
 import inspect
 import logging
 import queue_model_objects_v1 as queue_model_objects
+import queue_model_enumerables_v1 as queue_model_enumerables
 
 xmlrpc_prefix = ""
 
@@ -110,6 +111,8 @@ def queue_get_model_code(server_hwobj):
     # standard Python modules, so we only need to send over the code for the
     # queue model itself
 
-    return [ (queue_model_objects.__name__,
-        inspect.getsource(queue_model_objects) ) ]
+    return [(queue_model_enumerables.__name__,
+             inspect.getsource(queue_model_enumerables) ),
+            (queue_model_objects.__name__,
+             inspect.getsource(queue_model_objects) ) ]
 
