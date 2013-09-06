@@ -170,7 +170,6 @@ class BeamlineSetup(HardwareObject):
         path_template.mad_prefix = ''
         path_template.reference_image_prefix = ''
         path_template.wedge_prefix = ''
-        path_template.template = str()
         path_template.run_number = self["default_values"].\
                                    getProperty('run_number')
         path_template.suffix = self.session_hwobj["file_info"].\
