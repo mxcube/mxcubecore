@@ -180,7 +180,7 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
-        self.beamline_name = session_hwobj.endstation_name
+        self.beamline_name = session_hwobj.beamline_name
 
     def translate(self, code, what):  
         """
