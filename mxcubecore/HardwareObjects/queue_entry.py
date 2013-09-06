@@ -690,9 +690,21 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                     list_item.setText(1, "Moving sample")
 
-                self.centring_task = self.diffractometer_hwobj.\
-                    moveToCentredPosition(cpos)
-                self.centring_task.get()
+                if cpos:
+                    self.centring_task = self.diffractometer_hwobj.\
+                                         moveToCentredPosition(cpos)
+                    self.centring_task.get()
+                else:
+                    pos_dict = self.diffractometer_hwobj.getPositions()
+                    cpos = queue_model_objects.CentredPosition(pos_dict)
+                    pos = shape_history.Point(None, cpos, None)
+                    snapshot = self.shape_history.get_snapshot([])
+
+                    data_collection.acquisitions[0].acquisition_parameters.\
+                        centred_position = cpos
+                    data_collection.acquisitions[0].acquisition_parameters.\
+                        centred_position.snapshot_image = snapshot
+                    
                 
                 logging.getLogger('queue_exec').\
                     info("Calling collect hw-object with: " + str(data_collection))
