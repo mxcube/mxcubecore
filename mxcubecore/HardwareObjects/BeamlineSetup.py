@@ -1,4 +1,5 @@
 import logging
+import jsonpickle
 
 import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -59,14 +60,22 @@ class BeamlineSetup(HardwareObject):
         :returns: The 'value' of the hardware object.
         :rtype: Return type of get_value of the hardware object.
         """
-        hwobj = None
+        value = None
 
-        try:
-            hwobj = self._object_by_path[path]
-        except KeyError:
-            raise KeyError('Invalid path')
+        if path == '/beamline/default-acquisition-parameters/':
+            value = jsonpickle.encode(self.get_default_acquisition_parameters())
+        elif path == '/beamline/default-path-template/':
+            value = jsonpickle.encode(self.get_default_path_template())
+        else:
+            hwobj = None
 
-        return hwobj.get_value()
+            try:
+                hwobj = self._object_by_path[path]
+                value = hwobj.get_value()
+            except KeyError:
+                raise KeyError('Invalid path')
+
+        return value
 
     def detector_has_shutterless(self):
         """
