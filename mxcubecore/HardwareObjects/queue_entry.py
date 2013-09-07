@@ -419,19 +419,17 @@ class SampleQueueEntry(BaseQueueEntry):
 
         if not self._data_model.free_pin_mode:
             if self.sample_changer_hwobj is not None:
-                loaded_sample_location = \
-                    (self.sample_changer_hwobj.currentBasket,
-                     self.sample_changer_hwobj.currentSample)
-                location = self._data_model.location
-                holder_length = self._data_model.holder_length
-
                 logging.getLogger('queue_exec').\
                     info("Loading sample " +  self._data_model.loc_str)
 
-                if loaded_sample_location != location:
+                if not self.sample_changer_hwobj.\
+                        is_mounted_sample(self._data_model):
                     self._view.setText(1, "Loading sample")
                     self.shape_history.clear_all()
                     try:
+                        location = self._data_model.location
+                        holder_length = self._data_model.holder_length
+
                         self.sample_changer_hwobj.load_sample(holder_length,
                                                               sample_location = location,
                                                               wait = True)
