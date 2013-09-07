@@ -975,6 +975,8 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             beam = exp_condition.getBeam()
 
             acq = Acquisition()
+            acq.acquisition_parameters = beamline_setup_hwobj.\
+                get_default_acquisition_parameters()
             acquisition_parameters = acq.acquisition_parameters
 
             acquisition_parameters.centred_position =\
@@ -990,8 +992,7 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             acq.path_template.process_directory = proc_directory
             acq.path_template.base_prefix = beamline_setup_hwobj.session_hwobj.\
                 get_default_prefix(sample_data_model)
-            acq.path_template.suffix = beamline_setup_hwobj.session_hwobj.suffix
-            acq.path_template.wedge_prefix = 'w' + str(i)
+            acq.path_template.wedge_prefix = 'w' + str(i + 1)
 
             if resolution:
                 acquisition_parameters.resolution = resolution
