@@ -996,6 +996,19 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self.energy_scan_hwobj.ready_event.wait()
         self.energy_scan_hwobj.ready_event.clear()
 
+        # sample = self.get_view().parent().parent().get_model()
+        # sample.crystals[0].energy_scan_result.peak = 12
+        # sample.crystals[0].energy_scan_result.inflection = 13
+        # sample.crystals[0].energy_scan_result.first_remote = 14
+        # sample.crystals[0].second_remote = None
+
+        # logging.getLogger("user_level_log").\
+        #     info("Energy scan, result: peak: %.4f, inflection: %.4f" %
+        #          (sample.crystals[0].energy_scan_result.peak,
+        #           sample.crystals[0].energy_scan_result.inflection))
+        
+        # self.get_view().setText(1, "Done")
+
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)        
