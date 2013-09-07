@@ -95,7 +95,11 @@ class Resolution(BaseHardwareObjects.Equipment):
             
         try:
             ttheta = math.atan(self.det_radius / dist)
-            return self.current_wavelength / (2*math.sin(ttheta/2))
+            
+            if ttheta != 0:
+                return self.current_wavelength / (2*math.sin(ttheta/2))
+            else:
+                return None
         except:
             logging.getLogger().exception("error while calculating resolution")
             return None
