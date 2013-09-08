@@ -18,7 +18,7 @@ __status__ = "Beta"
 StrategyComplexity = namedtuple('StrategyComplexity', ['SINGLE','FEW','MANY'])
 STRATEGY_COMPLEXITY = StrategyComplexity('none', 'min', 'full')
 
-ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD', 
+ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD',
                                                'MAD_INV', 'NATIVE','HELICAL', 'EDNA_REF', 'OSC'])
 EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
 
@@ -43,7 +43,7 @@ CENTRING_METHOD = CentringMethod(0, 1, 2)
 WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
 WORKFLOW_TYPE = WorkflowType(0, 1, 2)
 
-XTAL_SPACEGROUPS = ['', 'P1', 'P2 ', 'P21', 'C2', 'P222 ', 'P2221 ', 'P21212',
+XTAL_SPACEGROUPS = ['', 'P1', 'P2', 'P21', 'C2', 'P222', 'P2221', 'P21212',
                     'P212121', 'C222 ', 'C2221', 'F222', 'I222', 'I212121',
                     'P4', 'P41', 'P42', 'P43', 'P422', 'P4212', 'P4122',
                     'P41212', 'P4222', 'P42212', 'P4322', 'P43212', 'I4',
