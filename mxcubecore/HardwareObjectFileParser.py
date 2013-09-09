@@ -1,17 +1,18 @@
-import new
 import imp
 import logging
 import xml.sax
 from xml.sax.handler import ContentHandler
 
 import BaseHardwareObjects
-import HardwareRepository
 
 currentXML = None
 
-newObjectsClasses = { 'equipment': BaseHardwareObjects.Equipment,
-                      'device': BaseHardwareObjects.Device,
-                      'procedure': BaseHardwareObjects.Procedure }
+try:
+    newObjectsClasses = { 'equipment': BaseHardwareObjects.Equipment,
+                          'device': BaseHardwareObjects.Device,
+                          'procedure': BaseHardwareObjects.Procedure }
+except AttributeError:
+    pass
 
 def parse(filename, name):
     curHandler = HardwareObjectHandler(name)
