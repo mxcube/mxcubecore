@@ -22,7 +22,7 @@ class Lakeshore(TacoDevice.TacoDevice):
             logging.getLogger("HWR").debug("%s: serial line device server imported, going on", self.name())
 
             self.device.DevSerFlush(2)
-            self.device.DevSerSetParameter([3,64,4,1,5,1,6,0,7,9600,8,10])
+            self.device.DevSerSetParameter([3,500, 4,1, 5,1, 6,0, 7,9600, 8,13])
             self.ident = self.putget("*IDN?")
 
             if len(self.ident):
@@ -79,7 +79,7 @@ class Lakeshore(TacoDevice.TacoDevice):
 
         self.device.DevSerWriteString("%s\r\n" % cmd)
 
-        time.sleep(0.05)
+        time.sleep(0.1)
 
         recv = "" 
         ret = ""
