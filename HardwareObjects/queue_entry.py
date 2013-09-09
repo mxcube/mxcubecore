@@ -615,14 +615,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     end_cpos = acq_2.acquisition_parameters.\
                                centred_position.as_dict()
 
-                    helical_oscil_pars = {'nb_pos': 2, 'udiff': 0}
-                    helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
+                    # Helical pars is not used with the new
+                    # helical macros.
+                    #helical_oscil_pars = {'nb_pos': 2, 'udiff': 0}
+                    #self.collect_hwobj.getChannelObject('helical_pars').\
+                    #    setValue(helical_oscil_pars)
 
+                    helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
                     self.collect_hwobj.getChannelObject('helical_pos').\
                         setValue(helical_oscil_pos)
-
-                    self.collect_hwobj.getChannelObject('helical_pars').\
-                        setValue(helical_oscil_pars)
 
                     msg = "Helical data collection with start" +\
                           "position: " + str(pprint.pformat(start_cpos)) + \
@@ -991,11 +992,21 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.rpc_server_hwobj = None
+        self.workflow_running = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
         self.get_queue_controller().emit('show_workflow_tab', (self.get_data_model(),))
         logging.getLogger("user_level_log").info("Executing workflow, waiting for user input.")
+
+    def workflow_state_handler(self, state, actor):
+        if isinstance(state, tuple):
+            state = str(state[0])
+
+        if state == 'ON':
+            self.workflow_running = False
+        else:
+            self.workflow_running = True
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
