@@ -993,11 +993,20 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
         self.rpc_server_hwobj = None
         self.workflow_running = False
+        self.workflow_started = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
+
         self.get_queue_controller().emit('show_workflow_tab', (self.get_data_model(),))
         logging.getLogger("user_level_log").info("Executing workflow, waiting for user input.")
+
+        # Waiting for user to start workflow
+        while not self.workflow_started:
+            time.sleep(1)
+
+        while self.workflow_running:
+            time.sleep(1)
 
     def workflow_state_handler(self, state, actor):
         if isinstance(state, tuple):
@@ -1005,8 +1014,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
         if state == 'ON':
             self.workflow_running = False
-        else:
-            self.workflow_running = True
+        elif state == 'RUNNING':
+            self.workflow_started = True
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -1014,6 +1023,9 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+        # reset state
+        self.workflow_started = False
+        self.workflow_running = False
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
