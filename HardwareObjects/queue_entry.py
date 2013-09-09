@@ -992,6 +992,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.rpc_server_hwobj = None
+        self.workflow_hwobj = None
         self.workflow_running = False
         self.workflow_started = False
 
@@ -1019,10 +1020,18 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        qc = self.get_queue_controller()
         self.rpc_server_hwobj = self.beamline_setup.rpc_server_hwobj
+        self.workflow_hwobj = self.beamline_setup.workflow_hwobj
+
+        qc.connect(self.workflow_hwobj, 'stateChanged',
+                   self.workflow_state_handler)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+        qc = self.get_queue_controller()
+        qc.disconnect(self.workflow_hwobj, 'stateChanged',
+                      self.workflow_state_handler)
         # reset state
         self.workflow_started = False
         self.workflow_running = False
