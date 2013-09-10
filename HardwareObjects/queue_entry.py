@@ -604,6 +604,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                          to_collect_dict(dc, self.session)
             log = logging.getLogger("user_level_log")
             acq_1 = dc.acquisitions[0]
+            cpos = acq_1.acquisition_parameters.centred_position
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -631,8 +632,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
                     log.info("Moving to centred position: " + str(cpos))
                     list_item.setText(1, "Moving sample")
-
-                cpos = acq_1.acquisition_parameters.centred_position
 
                 if cpos:
                     self.centring_task = self.diffractometer_hwobj.\
