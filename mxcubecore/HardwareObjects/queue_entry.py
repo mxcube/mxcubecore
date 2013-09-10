@@ -615,12 +615,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     end_cpos = acq_2.acquisition_parameters.\
                                centred_position.as_dict()
 
-                    # Helical pars is not used with the new
-                    # helical macros.
-                    #helical_oscil_pars = {'nb_pos': 2, 'udiff': 0}
-                    #self.collect_hwobj.getChannelObject('helical_pars').\
-                    #    setValue(helical_oscil_pars)
-
                     helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
                     self.collect_hwobj.getChannelObject('helical_pos').\
                         setValue(helical_oscil_pos)
@@ -633,12 +627,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                              str(pprint.pformat(start_cpos)))
 
                     list_item.setText(1, "Moving sample")
-                    cpos = start_cpos
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
-                    cpos = acq_1.acquisition_parameters.centred_position
                     log.info("Moving to centred position: " + str(cpos))
                     list_item.setText(1, "Moving sample")
+
+                cpos = acq_1.acquisition_parameters.centred_position
 
                 if cpos:
                     self.centring_task = self.diffractometer_hwobj.\
