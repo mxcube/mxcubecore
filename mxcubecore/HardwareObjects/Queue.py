@@ -12,7 +12,7 @@ import logging
 import gevent
 import queue_entry
 
-
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from queue_entry import QueueEntryContainer
 
@@ -109,7 +109,7 @@ class Queue(HardwareObject, QueueEntryContainer):
         self.emit('queue_execution_finished', (None,))
  
 
-    def __execute_entry(self, entry):
+    def __execute_entry(self, entry): 
         self.set_current_entry(entry)
 
         if not entry.is_enabled():
@@ -294,6 +294,7 @@ class Queue(HardwareObject, QueueEntryContainer):
                     return result
 
 
+    @task
     def execute_entry(self, entry):
         """
         Executes the queue entry <entry>.

@@ -76,7 +76,7 @@ class TaskNode(object):
 
         :returns: none
         """
-        self._name = name
+        self._name = str(name)
 
     def set_number(self, number):
         """

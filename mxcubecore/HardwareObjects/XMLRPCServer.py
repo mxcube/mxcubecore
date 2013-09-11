@@ -36,6 +36,8 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
+        self.node_list = []
+        self.current_entry_task = None
 
 
     def init(self):
@@ -121,14 +123,16 @@ class XMLRPCServer(HardwareObject):
 
         :returns: True on success otherwise False
         :rtype: bool
-        """
-        try:
-            self.emit('start_queue')
-        except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
-            raise
-        else:
-            return True
+        """ 
+        return self.queue_execute_entry_with_id(self.node_list.pop(), wait=False)
+        
+#         try:
+#             self.emit('start_queue')
+#         except Exception as ex:
+#             logging.getLogger('HWR').exception(str(ex))
+#             raise
+#         else:
+#             return True
 
 
     def log_message(self, message, level = 'info'):
@@ -182,6 +186,7 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('HWR').exception(str(ex))
             raise
         else:
+            self.node_list.append(node_id)
             return node_id
 
 
@@ -199,7 +204,7 @@ class XMLRPCServer(HardwareObject):
             return node
 
 
-    def queue_execute_entry_with_id(self, node_id):
+    def queue_execute_entry_with_id(self, node_id, wait = True):
         """
         Execute the entry that has the model with node id <node_id>.
 
@@ -211,7 +216,7 @@ class XMLRPCServer(HardwareObject):
             entry = self.queue_hwobj.get_entry_with_model(model)
 
             if entry:
-                self.queue_hwobj.execute_entry(entry)
+                self.current_entry_task = self.queue_hwobj.execute_entry(entry, wait = wait)
                 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
@@ -225,11 +230,15 @@ class XMLRPCServer(HardwareObject):
         :returns: True if the queue is executing otherwise False
         :rtype: bool
         """
-        try:
-            return self.queue_hwobj.is_executing() 
-        except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
-            raise
+        if self.current_entry_task:
+            return not self.current_entry_task.ready()
+        else:
+            return False
+      ##   try:
+##             return self.queue_hwobj.is_executing() 
+##         except Exception as ex:
+##             logging.getLogger('HWR').exception(str(ex))
+##             raise
         
 
     def queue_status(self):
