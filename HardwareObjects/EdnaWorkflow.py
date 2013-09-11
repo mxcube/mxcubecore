@@ -1,6 +1,4 @@
-import qt
 from HardwareRepository.BaseHardwareObjects import Device
-from PyTango import DevState
 import logging
 from lxml import etree
 import types
@@ -29,9 +27,10 @@ class EdnaWorkflow(Device):
         self.get_available_workflows_command = self.getCommandObject('get_available_workflows')
         
     def state_changed(self, new_value):
+        new_value = str(new_value)
         logging.getLogger("HWR").debug('%s: state changed to %r', str(self.name()), new_value)
         self.emit('stateChanged', (new_value, ))
-        if new_value == DevState.OPEN:
+        if new_value == "OPEN":
             params = self.get_parameters()
             self.emit('parametersNeeded', (params, ))
     def current_actor_changed(self, new_value):

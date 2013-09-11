@@ -640,11 +640,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    pos = shape_history.Point(None, cpos, None)
                     snapshot = self.shape_history.get_snapshot([pos])
-
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
+                    
                 log.info("Calling collect hw-object with: " + str(dc))
                 log.info("Collecting: " + str(dc))
                 self.collect_task = self.collect_hwobj.\
@@ -992,19 +991,19 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        self.get_queue_controller().emit('show_workflow_tab', (self.get_data_model(),))
-        logging.getLogger("user_level_log").info("Executing workflow, waiting for user input.")
-
-        # Waiting for user to start workflow
-        while not self.workflow_started:
-            time.sleep(1)
+        #self.workflow_hwobj.abort()
+        workflow_params = self.get_data_model().params_list
+        self.workflow_running = True
+        self.workflow_hwobj.start(workflow_params)
 
         while self.workflow_running:
             time.sleep(1)
 
-    def workflow_state_handler(self, state, actor):
+    def workflow_state_handler(self, state):
         if isinstance(state, tuple):
             state = str(state[0])
+        else:
+            state = str(state)
 
         if state == 'ON':
             self.workflow_running = False
@@ -1013,12 +1012,12 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
+        
         qc = self.get_queue_controller()
-        self.rpc_server_hwobj = self.beamline_setup.rpc_server_hwobj
         self.workflow_hwobj = self.beamline_setup.workflow_hwobj
 
         qc.connect(self.workflow_hwobj, 'stateChanged',
-                   self.workflow_state_handler)
+                  self.workflow_state_handler)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
