@@ -252,7 +252,6 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('HWR').exception(str(ex))
             raise
 
-
     def workflow_set_in_progress(self, state):
         if state:
             self.wokflow_in_progress = True
