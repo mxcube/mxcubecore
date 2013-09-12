@@ -475,6 +475,7 @@ class MiniDiff(Equipment):
 
   
     def motor_positions_to_screen(self, centred_positions_dict):
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
         phi_angle = math.radians(-self.phiMotor.getPosition()) #centred_positions_dict["phi"])
         #logging.info("CENTRED POS DICT = %r", centred_positions_dict)
         sampx = centred_positions_dict["sampx"]-self.sampleXMotor.getPosition()
