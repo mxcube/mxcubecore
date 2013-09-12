@@ -318,6 +318,10 @@ class Queue(HardwareObject, QueueEntryContainer):
         self._queue_entry_list = []
 
 
+    def show_workflow_tab(self):
+        self.emit('show_workflow_tab')
+
+
     def __str__(self):
         s = '['
         
