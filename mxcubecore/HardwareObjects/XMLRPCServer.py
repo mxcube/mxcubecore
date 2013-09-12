@@ -39,19 +39,18 @@ class XMLRPCServer(HardwareObject):
         self.node_list = []
         self.current_entry_task = None
 
-
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
         """
-        
+
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
         if hasattr(self, "all_interfaces") and self.all_interfaces:
             host = ''
         else:
             host = socket.gethostname()
-        
+
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
         self._server = SimpleXMLRPCServer((host, int(self.port)),
@@ -59,7 +58,7 @@ class XMLRPCServer(HardwareObject):
 
         logging.getLogger("HWR").\
             info('XML-RPC server listening on: %s:%s' % (host, self.port))
-        
+
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
         self._server.register_function(self.log_message)
@@ -75,7 +74,7 @@ class XMLRPCServer(HardwareObject):
                 recurse = api.getProperty("recurse")
                 if recurse is None:
                     recurse = True
-                    
+
                 self._register_module_functions(api.module, recurse=recurse)
 
         self.queue_hwobj = self.getObjectByRole("queue")
@@ -84,12 +83,11 @@ class XMLRPCServer(HardwareObject):
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
-
     def _add_to_queue(self, task, set_on = True):
         """
         Adds the TaskNode objects contained in the
         list of TaskNodes passed in <task>.
-        
+
         The TaskNodes are marked as activated in the queue if <set_on>
         is True and to inactivated if False.
 
@@ -104,18 +102,16 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
 
-        
         # The exception is re raised so that it will
         # be sent to the client.
         try:
             self.emit('add_to_queue', (task, None, set_on))
-            
+
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
         else:
             return True
-
 
     def start_queue(self):
         """
@@ -123,17 +119,14 @@ class XMLRPCServer(HardwareObject):
 
         :returns: True on success otherwise False
         :rtype: bool
-        """ 
-        return self.queue_execute_entry_with_id(self.node_list.pop(), wait=False)
-        
-#         try:
-#             self.emit('start_queue')
-#         except Exception as ex:
-#             logging.getLogger('HWR').exception(str(ex))
-#             raise
-#         else:
-#             return True
-
+        """
+        try:
+            self.emit('start_queue')
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return True
 
     def log_message(self, message, level = 'info'):
         """
@@ -150,9 +143,9 @@ class XMLRPCServer(HardwareObject):
 
         :returns: True on success otherwise False
         :rtype: bool
-        """ 
+        """
         status = True
-        
+
         if level == 'info':
             logging.getLogger('user_level_log').info(message)
         elif level == 'warning':
@@ -161,9 +154,8 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('user_level_log').error(message)
         else:
             status = False
-      
-        return status
 
+        return status
 
     def _model_add_child(self, parent_id, child):
         """
@@ -187,7 +179,6 @@ class XMLRPCServer(HardwareObject):
             self.node_list.append(node_id)
             return node_id
 
-
     def _model_get_node(self, node_id):
         """
         :returns the TaskNode object with the node id <node_id>
@@ -201,7 +192,6 @@ class XMLRPCServer(HardwareObject):
         else:
             return node
 
-
     def queue_execute_entry_with_id(self, node_id, wait = True):
         """
         Execute the entry that has the model with node id <node_id>.
@@ -214,34 +204,28 @@ class XMLRPCServer(HardwareObject):
             entry = self.queue_hwobj.get_entry_with_model(model)
 
             if entry:
-                self.current_entry_task = self.queue_hwobj.execute_entry(entry, wait = wait)
-                
+                self.current_entry_task = self.queue_hwobj.\
+                                          execute_entry(entry, wait = wait)
+
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
         else:
             return True
 
-
-    def is_queue_executing(self):
+    def is_queue_executing(self, node_id=None):
         """
         :returns: True if the queue is executing otherwise False
         :rtype: bool
         """
-        if self.current_entry_task:
-            return not self.current_entry_task.ready()
-        else:
-            return False
-      ##   try:
-##             return self.queue_hwobj.is_executing() 
-##         except Exception as ex:
-##             logging.getLogger('HWR').exception(str(ex))
-##             raise
-        
+        try:
+            return self.queue_hwobj.is_executing(node_id=None)
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
 
     def queue_status(self):
         pass
-    
 
     def shape_history_get_grid(self):
         """
@@ -257,10 +241,9 @@ class XMLRPCServer(HardwareObject):
          'x1': float,
          'y1': float,
          'angle': float}
-         
+
         """
         return self.shape_history_hwobj.get_grid()
-
 
     def beamline_setup_read(self, path):
         try:
@@ -276,38 +259,35 @@ class XMLRPCServer(HardwareObject):
         else:
             self.wokflow_in_progress = False
 
-        
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        
         log.info('Registering functions in module %s with XML-RPC server' %
                             module_name)
-        
+
         if not sys.modules.has_key(module_name):
             __import__(module_name)
         module = sys.modules[module_name]
 
         if not hasattr(module, 'xmlrpc_prefix'):
-            log.error( ('Module %s  has no attribute "xmlrpc_prefix": cannot ' + 
-            'register its functions. Skipping') % module_name)
+            log.error(('Module %s  has no attribute "xmlrpc_prefix": cannot ' + 
+                       'register its functions. Skipping') % module_name)
         else:
             prefix += module.xmlrpc_prefix
             if len(prefix) > 0 and prefix[-1] != '_':
                 prefix += '_'
 
             if prefix in self.xmlrpc_prefixes:
-                msg = "Prefix %s already used: cannot register for module %s" % \
-                (prefix, module_name)
+                msg = "Prefix %s already used: cannot register for module %s" % (prefix, module_name)
                 log.eror(msg)
                 raise Exception(msg)
             self.xmlrpc_prefixes.add(prefix)
-                
+
             for f in inspect.getmembers(module, inspect.isfunction):
                 if f[0][0] != '_':
                     xmlrpc_name = prefix + f[0]
                     log.info('Registering function %s.%s as XML-RPC function %s' %
                         (module_name, f[1].__name__, xmlrpc_name) )
-        
+
                     # Bind method to this XMLRPCServer instance but don't set attribute
                     # This is sufficient to register it as an xmlrpc function. 
                     bound_method = types.MethodType(f[1], self, self.__class__)
