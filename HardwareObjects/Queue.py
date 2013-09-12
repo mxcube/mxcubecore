@@ -52,7 +52,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         self._running = False
         self._disable_collect = False
 
-
     def enqueue(self, queue_entry):
         """
         Method inherited from QueueEntryContainer, enqueues the QueueEntry
@@ -65,7 +64,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         :rtype: NoneType
         """
         QueueEntryContainer.enqueue(self, queue_entry)
-        
 
     def execute(self):
         """
@@ -75,18 +73,23 @@ class Queue(HardwareObject, QueueEntryContainer):
             self._root_task = gevent.spawn(self.__execute_task)
 
 
-    def is_executing(self):
+    def is_executing(self, node_id=None):
         """
         :returns: True if the queue is executing otherwise False
         :rtype: bool
         """
-        return self._running
+        status = self._running
 
+        if node_id:
+            if self._current_queue_entry._node_id == node_id:
+                status = True
+
+        return status
 
     def __execute_task(self):
         self._running = True
-        
-        for qe in self._queue_entry_list:            
+
+        for qe in self._queue_entry_list:
             try:
                 self.__execute_entry(qe)
             except (queue_entry.QueueAbortedException, Exception) as ex:
@@ -97,17 +100,17 @@ class Queue(HardwareObject, QueueEntryContainer):
                     pass
 
                 if isinstance(ex, queue_entry.QueueAbortedException):
-                    logging.getLogger('user_level_log').warning('Queue execution was stopped. ' + ex.message)
+                    logging.getLogger('user_level_log').\
+                        warning('Queue execution was stopped. ' + ex.message)
                 else:
-                    logging.getLogger('user_level_log').error('Queue execution failed with: ' + ex.message)
-
+                    logging.getLogger('user_level_log').\
+                        error('Queue execution failed with: ' + ex.message)
                 raise ex
 
             finally:
                 self._running = False
 
         self.emit('queue_execution_finished', (None,))
- 
 
     def __execute_entry(self, entry): 
         self.set_current_entry(entry)
@@ -126,7 +129,7 @@ class Queue(HardwareObject, QueueEntryContainer):
             entry.get_view().setText(1, 'Queue paused, waiting')
 
         self.wait_for_pause_event()
-        
+
         try:
             # Procedure to be done before main implmentation
             # of task.
@@ -150,7 +153,6 @@ class Queue(HardwareObject, QueueEntryContainer):
             raise ex
         else:
             entry.post_execute()
-        
 
     def stop(self):
         """
@@ -169,8 +171,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
 
-
-
     def set_pause(self, state):
         """
         Sets the queue in paused state <state>. Emits the signal queue_paused
@@ -188,7 +188,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         else:
             self._paused_event.set()
 
-
     def is_paused(self):
         """
         Returns the pause state, see the method set_pause().
@@ -198,7 +197,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         """
         return not self._paused_event.is_set()
 
-
     def pause(self, state):
         """
         Sets the queue in paused state <state> (and waits), paused if True
@@ -206,13 +204,12 @@ class Queue(HardwareObject, QueueEntryContainer):
 
         :param state: Paused if True running if False
         :type state: bool
-        
+
         :returns: None
         :rtype: NoneType
         """
         self.set_pause(state)
         self._paused_event.wait()
-
 
     def wait_for_pause_event(self):
         """
@@ -224,29 +221,27 @@ class Queue(HardwareObject, QueueEntryContainer):
         """
         self._paused_event.wait()
 
-
     def disable(self, state):
         """
-        Sets the disable state to <state>, disables the possibility to call execute
-        if True enables if False.
+        Sets the disable state to <state>, disables the possibility
+        to call execute if True enables if False.
 
         :param state: The disabled state, True, False.
         :type state: bool
 
         :returns: None
         :rtype: NoneType
-        
+
         """
         self._disable_collect = state
 
-
     def is_disabled(self):
         """
-        :returns: True if the queue is disabled, (calling execute will do nothing).
+        :returns: True if the queue is disabled, (calling execute
+                  will do nothing).
         :rtype: bool
         """
         return self._disable_collect
-        
 
     def set_current_entry(self, entry):
         """
@@ -260,7 +255,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         """
         self._current_queue_entry = entry
 
-
     def get_current_entry(self):
         """
         Gets the currently executing QueueEntry.
@@ -269,7 +263,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         :rtype: QueueEntry
         """
         return self._current_queue_entry
-
 
     def get_entry_with_model(self, model, root_queue_entry = None):
         """
@@ -293,8 +286,6 @@ class Queue(HardwareObject, QueueEntryContainer):
                 if result:
                     return result
 
-
-    @task
     def execute_entry(self, entry):
         """
         Executes the queue entry <entry>.
@@ -305,8 +296,7 @@ class Queue(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        return self.__execute_entry(entry)
-
+        self.__execute_entry(entry)
 
     def clear(self):
         """
@@ -317,16 +307,14 @@ class Queue(HardwareObject, QueueEntryContainer):
         """
         self._queue_entry_list = []
 
-
     def show_workflow_tab(self):
         self.emit('show_workflow_tab')
 
 
     def __str__(self):
         s = '['
-        
+
         for entry in self._queue_entry_list:
             s += str(entry)
 
         return s + ']'
-        
