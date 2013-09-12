@@ -88,7 +88,7 @@ class TaskNode(object):
         :type number: int
         """
 
-        self._number = number
+        self._number = int(number)
 
         if self.get_parent():
             # Bumb the run number for nodes with this name
@@ -102,8 +102,7 @@ class TaskNode(object):
             else:
                 self.get_parent()._names[name] += 1
         else:
-            if self._number:
-                self.get_parent()._names[name] = self._number
+            self.get_parent()._names[name] = self._number
 
         self._name = name
 
