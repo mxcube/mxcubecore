@@ -178,8 +178,6 @@ class XMLRPCServer(HardwareObject):
         :returns: The id of the added TaskNode object.
         :rtype: int
         """
-        
-
         try:
             node_id = self.queue_model_hwobj.add_child_at_id(parent_id, child)
         except Exception as ex:
