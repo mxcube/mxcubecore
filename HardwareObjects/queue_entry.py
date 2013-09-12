@@ -790,8 +790,13 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             char.html_report = self.data_analysis_hwobj.\
                                get_html_report(self.edna_result)
 
-            collection_plan = self.edna_result.getCharacterisationResult().\
-                              getStrategyResult().getCollectionPlan()
+            strategy_result = self.edna_result.getCharacterisationResult().\
+                              getStrategyResult()
+
+            if strategy_result:
+                collection_plan = strategy_result.getCollectionPlan()
+            else:
+                collection_plan = None
 
             if collection_plan:
                 dcg_model = char.get_parent()
@@ -827,7 +832,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
             else:
                 self.get_view().setText(1, "No result")
-                log.info("EDNA-Characterisation completed" +\
+                log.info("EDNA-Characterisation completed " +\
                          "successfully but without collection plan.")
                 log.warning("Characterisation completed" +\
                             "successfully but without collection plan.")
@@ -1009,6 +1014,10 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_running = False
         elif state == 'RUNNING':
             self.workflow_started = True
+        elif state == 'OPEN':
+            qc = self.get_queue_controller().\
+                 show_workflow_tab() 
+            
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -1027,6 +1036,13 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         # reset state
         self.workflow_started = False
         self.workflow_running = False
+
+
+    def stop(self):
+        BaseQueueEntry.stop(self)
+        self.workflow_hwobj.abort()
+        self.get_view().setText(1, 'Stopped')
+        raise QueueAbortedException('Queue stopped', self)
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
