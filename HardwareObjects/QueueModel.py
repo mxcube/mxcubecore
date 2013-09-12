@@ -245,6 +245,7 @@ class QueueModel(HardwareObject):
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
+        view_item.setText(0, task_model.get_name())
         view_item.setOn(task_model.is_enabled())
 
         if isinstance(task_model, queue_model_objects.Sample):
