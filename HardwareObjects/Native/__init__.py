@@ -53,7 +53,6 @@ def queue_add_node(server_hwobj, task_node, set_on=True):
     return True
 
 def queue_add_child(server_hwobj, parent_id, child):
-
     """
     Adds the model node task to parent_id.
 
@@ -75,16 +74,24 @@ def queue_add_child(server_hwobj, parent_id, child):
 
     node_id = server_hwobj._model_add_child(parent_id, task)
     return node_id
-    
-    
+
 def queue_get_node(server_hwobj, node_id):
     """
     :returns the TaskNode object with the node id <node_id>
     :rtype: TaskNode
     """
-
     node = server_hwobj._model_get_node(node_id)
     return jsonpickle.encode(node)
+
+def queue_update_result(server_hwobj, node_id, html_report):
+    result = False
+    node = server_hwobj._model_get_node(node_id)
+
+    if isinstance(node, queue_model_objects.DataCollection):
+        node.html_report = str(html_report)
+        result = True
+
+    return result
 
 def queue_get_model_code(server_hwobj):
     """
@@ -115,4 +122,3 @@ def queue_get_model_code(server_hwobj):
              inspect.getsource(queue_model_enumerables) ),
             (queue_model_objects.__name__,
              inspect.getsource(queue_model_objects) ) ]
-
