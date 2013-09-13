@@ -72,7 +72,6 @@ class Queue(HardwareObject, QueueEntryContainer):
         if not self.is_disabled():
             self._root_task = gevent.spawn(self.__execute_task)
 
-
     def is_executing(self, node_id=None):
         """
         :returns: True if the queue is executing otherwise False
@@ -81,8 +80,15 @@ class Queue(HardwareObject, QueueEntryContainer):
         status = self._running
 
         if node_id:
-            if self._current_queue_entry._node_id == node_id:
-                status = True
+            qe = self._current_queue_entry
+
+            if qe:
+                if qe.get_data_model()._node_id == node_id:
+                    status = True
+                else:
+                    status = False
+            else:
+                status = False
 
         return status
 
@@ -105,11 +111,10 @@ class Queue(HardwareObject, QueueEntryContainer):
                 else:
                     logging.getLogger('user_level_log').\
                         error('Queue execution failed with: ' + ex.message)
-                raise ex
-
-            finally:
                 self._running = False
-
+                raise ex
+               
+        self._running = False    
         self.emit('queue_execution_finished', (None,))
 
     def __execute_entry(self, entry): 
@@ -153,6 +158,8 @@ class Queue(HardwareObject, QueueEntryContainer):
             raise ex
         else:
             entry.post_execute()
+
+        self.set_current_entry(None)
 
     def stop(self):
         """
