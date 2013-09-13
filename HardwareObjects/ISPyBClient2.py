@@ -6,7 +6,7 @@ import logging
 import gevent
 import suds; logging.getLogger("suds").setLevel(logging.INFO)
 
-#from suds.transport.http import HttpAuthenticated
+from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 from suds import WebFault
 from suds.sudsobject import asdict
@@ -25,6 +25,8 @@ _WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
 _WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
+_WS_USERNAME = 'mx415'
+_WS_PASSWORD = 'pimx415'
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
                         "the server is running and that your " + \
@@ -143,11 +145,23 @@ class ISPyBClient2(HardwareObject):
                     'ToolsForShippingWebService?wsdl'
                 _WS_COLLECTION_URL = _WSDL_ROOT + \
                     'ToolsForCollectionWebService?wsdl'
+
+                t1 = HttpAuthenticated(username = _WS_USERNAME, 
+                                      password = _WS_PASSWORD)
+                
+                t2 = HttpAuthenticated(username = _WS_USERNAME, 
+                                      password = _WS_PASSWORD)
+                
+                t3 = HttpAuthenticated(username = _WS_USERNAME, 
+                                      password = _WS_PASSWORD)
                 
                 try: 
-                    self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3)
-                    self.__collection = Client(_WS_COLLECTION_URL, timeout = 3)
-                    self.__tools_ws = Client(_WS_BL_SAMPLE_URL, timeout = 3)
+                    self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3,
+                                             transport = t1, cache = None)
+                    self.__collection = Client(_WS_COLLECTION_URL, timeout = 3,
+                                               transport = t2, cache = None)
+                    self.__tools_ws = Client(_WS_BL_SAMPLE_URL, timeout = 3,
+                                             transport = t3, cache = None)
                     
                 except URLError:
                     logging.getLogger("ispyb_client")\
