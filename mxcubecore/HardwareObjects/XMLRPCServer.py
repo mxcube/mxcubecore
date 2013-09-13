@@ -36,7 +36,6 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj = None
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
-        self.node_list = []
         self.current_entry_task = None
 
     def init(self):
@@ -176,7 +175,6 @@ class XMLRPCServer(HardwareObject):
             logging.getLogger('HWR').exception(str(ex))
             raise
         else:
-            self.node_list.append(node_id)
             return node_id
 
     def _model_get_node(self, node_id):
@@ -192,7 +190,7 @@ class XMLRPCServer(HardwareObject):
         else:
             return node
 
-    def queue_execute_entry_with_id(self, node_id, wait = True):
+    def queue_execute_entry_with_id(self, node_id):
         """
         Execute the entry that has the model with node id <node_id>.
 
@@ -205,7 +203,7 @@ class XMLRPCServer(HardwareObject):
 
             if entry:
                 self.current_entry_task = self.queue_hwobj.\
-                                          execute_entry(entry, wait = wait)
+                                          execute_entry(entry)
 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
@@ -219,7 +217,7 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
         try:
-            return self.queue_hwobj.is_executing(node_id=None)
+            return self.queue_hwobj.is_executing(node_id)
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
             raise
