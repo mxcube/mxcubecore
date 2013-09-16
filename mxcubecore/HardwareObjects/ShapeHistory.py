@@ -579,8 +579,10 @@ class Point(Shape):
             qub_point, _ = QubAddDrawing(self._drawing, QubPointDrawingMgr, 
                                           QubCanvasTarget)
             qub_point.show()
-            qub_point.setPoint(screen_pos[0], screen_pos[1])
-            qub_point.setColor(NORMAL_COLOR)
+
+            if screen_pos:
+                qub_point.setPoint(screen_pos[0], screen_pos[1])
+                qub_point.setColor(NORMAL_COLOR)
         
         except:
             logging.getLogger('HWR').\
