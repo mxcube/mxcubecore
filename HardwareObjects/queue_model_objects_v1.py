@@ -154,6 +154,10 @@ class TaskNode(object):
 
         return root
 
+    def copy(self):
+        new_node = copy.deepcopy(self)
+        return new_node
+
     def __repr__(self):
         s = '<%s object at %s>' % (
              self.__class__.__name__,
@@ -380,12 +384,6 @@ class DataCollection(TaskNode):
     def set_collected(self, collected):
         return self.set_executed(collected)
 
-    # def get_run_number(self):
-    #     return self.acquisitions[0].path_template.run_number
-
-    # def get_prefix(self):
-    #     return self.acquisitions[0].path_template.get_prefix()
-
     def get_path_template(self):
         return self.acquisitions[0].path_template
 
@@ -401,10 +399,22 @@ class DataCollection(TaskNode):
             hex(id(self)))
         return s
 
+    def copy(self):
+        new_node = copy.deepcopy(self)
 
-    # def _print(self):
-    #     print "data collection: " + pprint.pformat(self.parameters)
+        cpos = self.acquisitions[0].acquisition_parameters.\
+               centred_position
 
+        if cpos:
+            snapshot_image = self.acquisitions[0].acquisition_parameters.\
+                             centred_position.snapshot_image
+
+            if snapshot_image:
+                snapshot_image_copy = snapshot_image.copy()
+                acq_parameters = new_node.acquisitions[0].acquisition_parameters
+                acq_parameters.centred_position.snapshot_image = image_copy
+
+        return new_node
 
 class ProcessingParameters():
     def __init__(self):
@@ -467,6 +477,11 @@ class Characterisation(TaskNode):
 
         return file_locations
 
+    def copy(self):
+        new_node = copy.deepcopy(self)
+        new_node.reference_image_collection = self.reference_image_collection.copy()
+
+        return new_node
 
 class CharacterisationParameters(object):
     def __init__(self):
