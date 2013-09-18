@@ -107,7 +107,7 @@ class Queue(HardwareObject, QueueEntryContainer):
 
                 if isinstance(ex, queue_entry.QueueAbortedException):
                     logging.getLogger('user_level_log').\
-                        warning('Queue execution was stopped. ' + ex.message)
+                        warning('Queue execution was aborted, queue stopped. ' + ex.message)
                 else:
                     logging.getLogger('user_level_log').\
                         error('Queue execution failed with: ' + ex.message)
