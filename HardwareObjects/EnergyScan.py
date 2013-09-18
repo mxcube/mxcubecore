@@ -21,6 +21,8 @@ class EnergyScan(Equipment):
         self.storeScanThread = None
         self.energy2WavelengthConstant=None
         self.defaultWavelength=None
+        self._element = None
+        self._edge = None
         try:
             self.defaultWavelengthChannel=self.getChannelObject('default_wavelength')
         except KeyError:
@@ -176,6 +178,8 @@ class EnergyScan(Equipment):
             return False
         return self.doEnergyScan is not None
     def startEnergyScan(self,element,edge,directory,prefix,session_id=None,blsample_id=None):
+        self._element = element
+        self._edge = edge
         self.scanInfo={"sessionId":session_id,"blSampleId":blsample_id,"element":element,"edgeEnergy":edge}
         if self.fluodetectorHO is not None:
             self.scanInfo['fluorescenceDetector']=self.fluodetectorHO.userName()
@@ -295,7 +299,16 @@ class EnergyScan(Equipment):
         self.emit('energyScanFinished', (self.scanInfo,))
         self.ready_event.set()
 
+
     def doChooch(self, scanObject, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
+        symbol = "_".join((elt, edge))
+        scanArchiveFilePrefix = "_".join((scanArchiveFilePrefix, symbol))
+
+        i = 1
+        while os.path.isfile(os.path.extsep.join((scanArchiveFilePrefix + str(i), "raw"))):
+            i = i + 1
+
+        scanArchiveFilePrefix = scanArchiveFilePrefix + str(i) 
         archiveRawScanFile=os.path.extsep.join((scanArchiveFilePrefix, "raw"))
         rawScanFile=os.path.extsep.join((scanFilePrefix, "raw"))
         scanFile=os.path.extsep.join((scanFilePrefix, "efs"))
@@ -419,6 +432,7 @@ class EnergyScan(Equipment):
         self.scanInfo=None
 
         logging.getLogger("HWR").info("<chooch> returning" )
+        self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title
 
     def scanStatusChanged(self,status):

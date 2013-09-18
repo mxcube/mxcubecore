@@ -76,7 +76,10 @@ class TaskNode(object):
 
         :returns: none
         """
-        self._name = str(name)
+        if self.get_parent():
+            self._set_name(str(name))
+        else:
+            self._name = str(name)
 
     def set_number(self, number):
         """
@@ -87,7 +90,6 @@ class TaskNode(object):
         :param number: number
         :type number: int
         """
-
         self._number = int(number)
 
         if self.get_parent():
