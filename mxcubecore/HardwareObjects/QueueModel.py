@@ -338,13 +338,12 @@ class QueueModel(HardwareObject):
         :returns: A copy of the node.
         :rtype: TaskModel
         """
-        new_node = copy.deepcopy(node)
+        new_node = node.copy()
 
-        if node.get_path_template():
+        if new_node.get_path_template():
             pt = new_node.get_path_template()
             new_run_number = self.get_next_run_number(pt)
             pt.run_number = new_run_number
             new_node.set_number(new_run_number)
 
         return new_node
-                    
