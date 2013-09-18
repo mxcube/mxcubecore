@@ -630,17 +630,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     list_item.setText(1, "Moving sample")
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
-                    log.info("Moving to centred position: " + str(cpos))
-                    list_item.setText(1, "Moving sample")
 
                 if cpos:
+                    log.info("Moving to centred position: " + str(cpos))
+                    list_item.setText(1, "Moving sample")
                     self.centring_task = self.diffractometer_hwobj.\
                                          moveToCentredPosition(cpos)
                     self.centring_task.get()
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_snapshot([pos])
+                    snapshot = self.shape_history.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
                     
