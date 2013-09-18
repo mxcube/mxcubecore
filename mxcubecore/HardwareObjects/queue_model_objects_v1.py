@@ -1283,6 +1283,13 @@ class CentredPosition(object):
     def get_kappa_phi_value(self):
         return self.kappa_phi
 
+    def __eq__(self, cpos):
+        result = (self.sampx == cpos.sampx) and (self.sampy == cpos.sampy) and \
+                 (self.phi == cpos.phi) and (self.phiz == cpos.phiz) and \
+                 (self.phiy == cpos.phiy) and (self.zoom == cpos.zoom)
+
+        return result
+
 
 class Workflow(TaskNode):
     def __init__(self):
