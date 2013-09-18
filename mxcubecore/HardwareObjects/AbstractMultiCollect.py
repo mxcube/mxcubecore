@@ -397,23 +397,19 @@ class AbstractMultiCollect(object):
             data_collect_parameters["collection_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
             if self.bl_control.machine_current is not None:
                 data_collect_parameters["synchrotronMode"] = self.get_machine_fill_mode()
-            try:
-              data_collect_parameters["status"] = "failed"
+            data_collect_parameters["status"] = "failed"
 
-              (group_id, self.collection_id, detector_id) = \
-                         self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
+            (group_id, self.collection_id, detector_id) = \
+                       self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
               
-              data_collect_parameters['collection_id'] = self.collection_id
+            data_collect_parameters['collection_id'] = self.collection_id
 
-              if group_id:
-                  data_collect_parameters['group_id'] = group_id
+            if group_id:
+                data_collect_parameters['group_id'] = group_id
 
-              if detector_id:
-                  data_collect_parameters['detector_id'] = detector_id
+            if detector_id:
+                data_collect_parameters['detector_id'] = detector_id
               
-            except:
-              logging.getLogger("HWR").exception("Could not store data collection")
-
         # Creating the directory for images and processing information
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])

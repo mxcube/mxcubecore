@@ -358,7 +358,20 @@ class ISPyBClient2(HardwareObject):
             return {}
 
     @trace
-    def store_data_collection(self, mx_collection, beamline_setup = None):
+    def store_data_collection(self, *args, **kwargs):
+        try:
+          return self._store_data_collection(*args, **kwargs)
+        except gevent.GreenletExit:
+          # aborted by user ('kill')
+          raise
+        except:
+          # if anything else happens, let upper level process continue
+          # (not a fatal error), but display exception still
+          logging.exception("Could not store data collection")
+          return (0,0,0)
+          
+
+    def _store_data_collection(self, mx_collection, beamline_setup = None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
