@@ -871,6 +871,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.energy_scan_hwobj = None
+        self.session_hwobj = None
         self.energy_scan_task = None
         self._failed = False
 
@@ -886,7 +887,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                              energy_scan.element_symbol,
                              energy_scan.edge,
                              energy_scan.path_template.directory,
-                             energy_scan.path_template.get_prefix())
+                             energy_scan.path_template.get_prefix(),
+                             self.session_hwobj.session_id,
+                             self.None)
 
         self.energy_scan_task.get()
         self.energy_scan_hwobj.ready_event.wait()
@@ -910,6 +913,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
         self.energy_scan_hwobj = self.beamline_setup.energy_hwobj
+        self.session_hwobj = self.beamline_setup.session_hwobj
 
         qc = self.get_queue_controller()
 
