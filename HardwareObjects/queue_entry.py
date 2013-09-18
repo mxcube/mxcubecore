@@ -882,6 +882,15 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
+            sample_model = self.get_data_model().\
+                           get_parent().get_parent()
+
+            sample_lims_id = sample_model.lims_id
+
+            # No sample id, pass None to startEnergyScan
+            if sample_lims_id == -1:
+                sample_lims_id = None
+
             self.energy_scan_task = \
                 gevent.spawn(self.energy_scan_hwobj.startEnergyScan,
                              energy_scan.element_symbol,
@@ -889,7 +898,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                              energy_scan.path_template.directory,
                              energy_scan.path_template.get_prefix(),
                              self.session_hwobj.session_id,
-                             self.None)
+                             sample_lims_id)
 
         self.energy_scan_task.get()
         self.energy_scan_hwobj.ready_event.wait()
