@@ -145,7 +145,7 @@ class Session(HardwareObject):
 
         return directory
 
-    def get_default_prefix(self, sample_data_node):
+    def get_default_prefix(self, sample_data_node = None, generic_name = False):
         """
         Returns the default prefix, using sample data such as the
         acronym as parts in the prefix.
@@ -164,11 +164,14 @@ class Session(HardwareObject):
         if not proposal:
             proposal = "local-user"
 
-        if sample_data_node.has_lims_data():
-            prefix = sample_data_node.crystals[0].protein_acronym + \
-                '-' + sample_data_node.name
-        else:
-            prefix = proposal
+        prefix = proposal
+
+        if sample_data_node:
+            if sample_data_node.has_lims_data():
+                prefix = sample_data_node.crystals[0].protein_acronym + \
+                         '-' + sample_data_node.name
+        elif generic_name:
+            prefix = '<acronym>-<name>'
 
         return prefix
 
