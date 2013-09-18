@@ -412,7 +412,7 @@ class DataCollection(TaskNode):
             if snapshot_image:
                 snapshot_image_copy = snapshot_image.copy()
                 acq_parameters = new_node.acquisitions[0].acquisition_parameters
-                acq_parameters.centred_position.snapshot_image = image_copy
+                acq_parameters.centred_position.snapshot_image = snapshot_image_copy
 
         return new_node
 
