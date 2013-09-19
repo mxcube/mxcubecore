@@ -220,7 +220,7 @@ class QueueModel(HardwareObject):
 
         :returns: None
         :rtype: None
-        """
+        """        
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
