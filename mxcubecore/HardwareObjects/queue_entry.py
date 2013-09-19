@@ -27,6 +27,7 @@ import queue_model_objects_v1 as queue_model_objects
 import pprint
 import os
 import ShapeHistory as shape_history
+from HardwareRepository.HardwareRepository import dispatcher
 
 #import edna_test_data
 #from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
@@ -668,7 +669,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        pass
+        # this is to work around the remote access problem
+        dispatcher.send("collect_started")
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
@@ -689,6 +691,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, "Collecting")
 
     def collect_failed(self, owner, state, message, *args):
+        # this is to work around the remote access problem
+        dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         logging.getLogger("user_level_log").error(message.replace('\n', ' '))
         raise QueueExecutionException(message.replace('\n', ' '), self)
@@ -698,6 +702,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, "Preparing")
 
     def collect_finished(self, owner, state, message, *args):
+        # this is to work around the remote access problem
+        dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
         logging.getLogger("user_level_log").info('Collection completed')
 
@@ -717,6 +723,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         self.get_view().setText(1, 'Stopped')
         logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+        # this is to work around the remote access problem
+        dispatcher.send("collect_finished")
 
         raise QueueAbortedException('Queue stopped', self)
 
