@@ -210,9 +210,10 @@ class ShapeHistory(HardwareObject):
         
         if self._drawing_event:
             self._drawing_event.de_select_all()
-        
+
         self.shapes.clear()
         self.selected_shapes.clear()
+        self.current_shape = None
 
     def add_grid(self, grid_dict):
         """
