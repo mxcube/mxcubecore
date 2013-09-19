@@ -448,7 +448,8 @@ class SampleQueueEntry(BaseQueueEntry):
                     log.info("Centring sample, please wait.")
                     dm.startAutoCentring()
                     log.warning("Please save or reject the centring")
-
+                    
+                self._view.setText(1, "Centring !")
                 self.sample_centring_result.get()
             finally:
                 dm.disconnect("centringAccepted", self.centring_done)
@@ -644,8 +645,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
                     
-                log.info("Calling collect hw-object with: " + str(dc))
-                log.info("Collecting: " + str(dc))
+                #log.info("Calling collect hw-object with: " + str(dc.as_dict()))
+
+                #log.info("Collecting: " + str(dc.as_dict()))
                 self.collect_task = self.collect_hwobj.\
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
                                             param_list)
