@@ -9,7 +9,7 @@ import os
 import queue_model_enumerables_v1 as queue_model_enumerables
 
 
-__author__ = "Marcus Oskarsson"
+__author__ = "Marcus OskarSsson"
 __copyright__ = "Copyright 2012, ESRF"
 __credits__ = ["My great coleagues", "The MxCuBE colaboration"]
 
@@ -800,7 +800,7 @@ class CentredPosition(object):
                 pass
 
             try:
-                self.phi = motor_dict['phi'] % 360
+                self.phi = motor_dict['phi']
             except KeyError:
                 pass
 
@@ -842,6 +842,9 @@ class CentredPosition(object):
 
         return result
 
+
+    def __ne__(self, cpos):
+        return not (self == cpos)
 
 class Workflow(TaskNode):
     def __init__(self):
