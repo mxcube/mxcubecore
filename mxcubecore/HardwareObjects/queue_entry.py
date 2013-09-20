@@ -633,7 +633,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
 
-                if cpos:
+                empty_cpos = queue_model_objects.CentredPosition()
+
+                if cpos != empty_cpos:
                     log.info("Moving to centred position: " + str(cpos))
                     list_item.setText(1, "Moving sample")
                     self.centring_task = self.diffractometer_hwobj.\
