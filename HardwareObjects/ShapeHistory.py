@@ -25,9 +25,11 @@ import qtcanvas
 import qt
 import traceback
 import queue_model_objects_v1 as queue_model_objects
+import types
 
 from qt import Qt
 
+from Qub.Objects.QubEventMgr import QubEventMgr
 from Qub.Objects.QubDrawingEvent import QubDrawingEvent
 from Qub.Objects.QubDrawingManager import QubLineDrawingMgr
 from Qub.Objects.QubDrawingManager import QubPointDrawingMgr
@@ -579,6 +581,18 @@ class Point(Shape):
         try:
             qub_point, _ = QubAddDrawing(self._drawing, QubPointDrawingMgr, 
                                           QubCanvasTarget)
+            # patch Qub event manager not to respond to Shift key
+            # to prevent moving the point
+            evmgr_ref = qub_point._eventMgr
+            evmgr = evmgr_ref()
+            if evmgr:
+              for method_name in ("_mouseMove", "_mousePressed", "_mouseRelease"):
+                def prevent_shift(self, event, mgr=None, method_name=method_name):
+                  if event.state() & qt.Qt.ShiftButton:
+                    return
+                  return getattr(QubEventMgr, method_name)(self,event,mgr) 
+                setattr(evmgr, method_name, types.MethodType(prevent_shift, evmgr)) 
+             
             qub_point.show()
 
             if screen_pos:
