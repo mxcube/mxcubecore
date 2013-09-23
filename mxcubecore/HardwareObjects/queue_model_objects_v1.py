@@ -507,7 +507,7 @@ class CharacterisationParameters(object):
         # Crystal
         self.max_crystal_vdim = 1e-01
         self.min_crystal_vdim = 1e-01
-        self.max_crystal_vphi = 360
+        self.max_crystal_vphi = 90
         self.min_crystal_vphi = 0.0
         self.space_group = ""
 
