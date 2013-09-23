@@ -132,25 +132,26 @@ class BeamlineSetup(HardwareObject):
 
         return disable_num_passes
 
-    def get_default_acquisition_parameters(self):
+    def get_default_characterisation_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
         acq_parameters = queue_model_objects.AcquisitionParameters()
+        parent_key = "default_characterisation_values"
 
-        acq_parameters.first_image = int(self["default_values"].\
-                                         getProperty('start_image_number'))
-        acq_parameters.num_images = int(self["default_values"].\
+        acq_parameters.first_image = int(self[parent_key].\
+                                             getProperty('start_image_number'))
+        acq_parameters.num_images = int(self[parent_key].\
                                     getProperty('number_of_images'))
-        acq_parameters.osc_start = round(float(self["default_values"].\
+        acq_parameters.osc_start = round(float(self[parent_key].\
                                                getProperty('start_angle')), 2)
-        acq_parameters.osc_range = round(float(self["default_values"].\
+        acq_parameters.osc_range = round(float(self[parent_key].\
                                                getProperty('range')), 2)
-        acq_parameters.overlap = round(float(self["default_values"].\
+        acq_parameters.overlap = round(float(self[parent_key].\
                                              getProperty('overlap')), 2)
-        acq_parameters.exp_time = round(float(self["default_values"].\
+        acq_parameters.exp_time = round(float(self[parent_key].\
                                               getProperty('exposure_time')), 4)
-        acq_parameters.num_passes = int(self["default_values"].\
+        acq_parameters.num_passes = int(self[parent_key].\
                                         getProperty('number_of_passes'))
         acq_parameters.energy = float()
         acq_parameters.resolution = float()
@@ -162,7 +163,44 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
 
-        acq_parameters.detector_mode = int(self["default_values"].\
+        acq_parameters.detector_mode = int(self[parent_key].\
+                                           getProperty('detector_mode'))
+
+        return acq_parameters
+
+    def get_default_acquisition_parameters(self):
+        """
+        :returns: A AcquisitionParameters object with all default parameters.
+        """
+        acq_parameters = queue_model_objects.AcquisitionParameters()
+        parent_key = "default_acquisition_values"
+
+
+        acq_parameters.first_image = int(self[parent_key].\
+                                         getProperty('start_image_number'))
+        acq_parameters.num_images = int(self[parent_key].\
+                                    getProperty('number_of_images'))
+        acq_parameters.osc_start = round(float(self[parent_key].\
+                                               getProperty('start_angle')), 2)
+        acq_parameters.osc_range = round(float(self[parent_key].\
+                                               getProperty('range')), 2)
+        acq_parameters.overlap = round(float(self[parent_key].\
+                                             getProperty('overlap')), 2)
+        acq_parameters.exp_time = round(float(self[parent_key].\
+                                              getProperty('exposure_time')), 4)
+        acq_parameters.num_passes = int(self[parent_key].\
+                                        getProperty('number_of_passes'))
+        acq_parameters.energy = float()
+        acq_parameters.resolution = float()
+        acq_parameters.transmission = float()
+        acq_parameters.inverse_beam = False
+        acq_parameters.shutterless = bool(self['detector'].\
+                                          getProperty('has_shutterless'))
+        acq_parameters.take_snapshots = True
+        acq_parameters.take_dark_current = True
+        acq_parameters.skip_existing_images = False
+
+        acq_parameters.detector_mode = int(self[parent_key].\
                                            getProperty('detector_mode'))
 
         return acq_parameters
@@ -172,6 +210,7 @@ class BeamlineSetup(HardwareObject):
         :returns: A PathTemplate object with default parameters.
         """
         path_template = queue_model_objects.PathTemplate()
+        parent_key = "default_acquisition_values"
 
         path_template.directory = str()
         path_template.process_directory = str()
@@ -179,14 +218,14 @@ class BeamlineSetup(HardwareObject):
         path_template.mad_prefix = ''
         path_template.reference_image_prefix = ''
         path_template.wedge_prefix = ''
-        path_template.run_number = self["default_values"].\
+        path_template.run_number = self[parent_key].\
                                    getProperty('run_number')
         path_template.suffix = self.session_hwobj["file_info"].\
                                getProperty('file_suffix')
         path_template.precision = '04'
-        path_template.start_num = int(self["default_values"].\
+        path_template.start_num = int(self[parent_key].\
                                       getProperty('start_image_number'))
-        path_template.num_files = int(self["default_values"].\
+        path_template.num_files = int(self[parent_key].\
                                       getProperty('number_of_images'))
 
         return path_template
