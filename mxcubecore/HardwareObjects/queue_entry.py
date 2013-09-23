@@ -400,7 +400,16 @@ class SampleQueueEntry(BaseQueueEntry):
                 sample_mounted = self.sample_changer_hwobj.\
                                  is_mounted_sample(self._data_model)
                 if not sample_mounted:
-                    self.mount_sample()
+                    self.sample_centring_result = gevent.event.AsyncResult()
+                    try:
+                        mount_sample(self.beamline_setup, self._view, self._data_model,
+                                     self.centring_done, self.sample_centring_result)
+                    except Exception as e:
+                        self._view.setText(1, "Error loading")
+                        msg = "Error loading sample, please check" +\
+                              " sample changer: " + e.message
+                        log.error(msg)
+                        raise QueueExecutionException(e.message, self)
                 else:
                     log.info("Sample already mounted")
             else:
@@ -408,52 +417,6 @@ class SampleQueueEntry(BaseQueueEntry):
                       "sample changer hardware object, cannot " +\
                       "mount sample"
                 log.info(msg)
-
-    def mount_sample(self):
-        self._view.setText(1, "Loading sample")
-        self.shape_history.clear_all()
-        log = logging.getLogger("user_level_log")
-
-        try:
-            loc = self._data_model.location
-            holder_length = self._data_model.holder_length
-            self.sample_changer_hwobj.load_sample(holder_length,
-                                                  sample_location=loc,
-                                                  wait=True)
-        except Exception as e:
-            self._view.setText(1, "Error loading")
-            msg = "Error loading sample, please check" +\
-                  " sample changer: " + e.message
-            logging.getLogger('user_level_log').error(msg)
-            raise QueueExecutionException(e.message, self)
-
-        dm = self.diffractometer_hwobj
-
-        if dm is not None:
-            try:
-                dm.connect("centringAccepted", self.centring_done)
-                self.sample_centring_result = gevent.event.AsyncResult()
-
-                centring_method = self._view.listView().parent().\
-                                  centring_method
-
-                if centring_method == CENTRING_METHOD.MANUAL:
-                    log.warning("Manual centring used, waiting for" +\
-                                " user to center sample")
-                    dm.start3ClickCentring()
-                elif centring_method == CENTRING_METHOD.LOOP:
-                    dm.startAutoCentring(loop_only=True)
-                    log.warning("Centring in progress. Please save" +\
-                                " the suggested centring or re-center")
-                elif centring_method == CENTRING_METHOD.CRYSTAL:
-                    log.info("Centring sample, please wait.")
-                    dm.startAutoCentring()
-                    log.warning("Please save or reject the centring")
-                    
-                self._view.setText(1, "Centring !")
-                self.sample_centring_result.get()
-            finally:
-                dm.disconnect("centringAccepted", self.centring_done)
 
     def centring_done(self, success, centring_info):
         if success:
@@ -1074,6 +1037,44 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.workflow_hwobj.abort()
         self.get_view().setText(1, 'Stopped')
         raise QueueAbortedException('Queue stopped', self)
+
+def mount_sample(beamline_setup_hwobj, view, data_model,
+                 centring_done_cb, async_result):
+    view.setText(1, "Loading sample")
+    beamline_setup_hwobj.shape_history_hwobj.clear_all()
+    log = logging.getLogger("user_level_log")
+
+    loc = data_model.location
+    holder_length = data_model.holder_length
+    beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
+                                                          sample_location=loc,
+                                                          wait=True)
+
+    dm = beamline_setup_hwobj.diffractometer_hwobj
+
+    if dm is not None:
+        try:
+            dm.connect("centringAccepted", centring_done_cb)
+            centring_method = view.listView().parent().\
+                              centring_method
+
+            if centring_method == CENTRING_METHOD.MANUAL:
+                log.warning("Manual centring used, waiting for" +\
+                            " user to center sample")
+                dm.start3ClickCentring()
+            elif centring_method == CENTRING_METHOD.LOOP:
+                dm.startAutoCentring(loop_only=True)
+                log.warning("Centring in progress. Please save" +\
+                            " the suggested centring or re-center")
+            elif centring_method == CENTRING_METHOD.CRYSTAL:
+                log.info("Centring sample, please wait.")
+                dm.startAutoCentring()
+                log.warning("Please save or reject the centring")
+
+            view.setText(1, "Centring !")
+            async_result.get()
+        finally:
+            dm.disconnect("centringAccepted", centring_done_cb)
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
