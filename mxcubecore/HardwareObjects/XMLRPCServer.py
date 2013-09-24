@@ -38,7 +38,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-
+      
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
@@ -53,10 +53,25 @@ class XMLRPCServer(HardwareObject):
 
         self.host = host    
 
+        try:
+            self.open()
+        except:
+            logging.getLogger("HWR").debug("Can't start XML-RPC server")
+        
+
+    def close(self):
+        try:
+          self.xmlrpc_server_task.kill()
+          self._server.server_close()
+        except AttributeError:
+          pass
+        logging.getLogger("HWR").info('XML-RPC server closed')
+
+    def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
-        self._server = SimpleXMLRPCServer((host, int(self.port)),
-                                          logRequests = False)
+        self.xmlrpc_prefixes = set()
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False)
 
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
@@ -84,17 +99,6 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-
-    def close(self):
-        self.xmlrpc_server_task.kill()
-        self._server.server_close()
-        logging.getLogger("HWR").info('XML-RPC server closed')
-
-    def open(self):
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False)
-        self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-        msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
-        logging.getLogger("HWR").info(msg)
 
     def _add_to_queue(self, task, set_on = True):
         """
@@ -289,7 +293,7 @@ class XMLRPCServer(HardwareObject):
 
             if prefix in self.xmlrpc_prefixes:
                 msg = "Prefix %s already used: cannot register for module %s" % (prefix, module_name)
-                log.eror(msg)
+                log.error(msg)
                 raise Exception(msg)
             self.xmlrpc_prefixes.add(prefix)
 
