@@ -26,6 +26,7 @@ import qt
 import traceback
 import queue_model_objects_v1 as queue_model_objects
 import types
+import gc
 
 from qt import Qt
 
@@ -191,7 +192,16 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
-        del self.shapes[shape] 
+
+        if shape in self.selected_shapes:
+            del self.selected_shapes[shape]
+
+        if shape is self._drawing_event.current_shape:
+            self._drawing_event.current_shape = None
+        
+        del self.shapes[shape]
+
+        temp = gc.get_referrers(shape)
 
     def move_shape(self, shape, new_positions):
         """
@@ -215,7 +225,7 @@ class ShapeHistory(HardwareObject):
 
         self.shapes.clear()
         self.selected_shapes.clear()
-        self.current_shape = None
+        self._drawing_event.current_shape = None
 
     def add_grid(self, grid_dict):
         """
@@ -355,6 +365,8 @@ class DrawingEvent(QubDrawingEvent):
 
         if callable(self.selection_cb):
             self.selection_cb(self.qub_helper.selected_shapes.values())
+
+        self.current_shape = None
 
     def select_current(self):
         """
