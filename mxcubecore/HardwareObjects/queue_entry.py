@@ -805,15 +805,13 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     edna_dc.set_number(path_template.run_number)
                     self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
 
+                self.get_view().setText(1, "Done")
             else:
                 self.get_view().setText(1, "No result")
                 log.info("EDNA-Characterisation completed " +\
                          "successfully but without collection plan.")
                 log.warning("Characterisation completed" +\
                             "successfully but without collection plan.")
-
-            self.get_view().setText(1, "Done")
-
         else:
             self.get_view().setText(1, "Charact. Failed")
 
