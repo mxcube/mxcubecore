@@ -27,15 +27,16 @@ import queue_model_objects_v1 as queue_model_objects
 import pprint
 import os
 import ShapeHistory as shape_history
-from HardwareRepository.HardwareRepository import dispatcher
 
 #import edna_test_data
 #from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
+from collections import namedtuple
 from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
 from queue_model_enumerables_v1 import CENTRING_METHOD
 from queue_model_enumerables_v1 import EXPERIMENT_TYPE
 from BlissFramework.Utils import widget_colors
+from HardwareRepository.HardwareRepository import dispatcher
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
@@ -45,6 +46,11 @@ __version__ = "0.1"
 __maintainer__ = "Marcus Oskarsson"
 __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Beta"
+
+
+status_list = ['SUCCESS','WARNING', 'FAILED']
+QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
+QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,)
 
 
 class QueueExecutionException(Exception):
@@ -210,6 +216,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self._checked_for_exec = False
         self.beamline_setup = None
         self._execution_failed = False
+        self.status = QUEUE_ENTRY_STATUS.SUCCESS
 
     def enqueue(self, queue_entry):
         """
@@ -308,7 +315,14 @@ class BaseQueueEntry(QueueEntryContainer):
         logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
-        view.setBackgroundColor(widget_colors.LIGHT_GREEN)
+
+        if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
+            view.setBackgroundColor(widget_colors.LIGHT_GREEN)
+        elif self.status == QUEUE_ENTRY_STATUS.WARNING:
+            view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
+        elif self.status == QUEUE_ENTRY_STATUS.FAILED:
+            view.setBackgroundColor(widget_colors.LIGHT_RED)
+            
         view.setHighlighted(True)
         view.setOn(False)
         self.get_data_model().set_executed(True)
@@ -698,6 +712,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None,
                  view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+        self.char_qe = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -722,8 +737,10 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
                                              view_set_queue_entry=False)
         char_qe.set_enabled(True)
         self.enqueue(char_qe)
+        self.char_qe = char_qe
 
     def post_execute(self):
+        self.status = self.char_qe.status
         BaseQueueEntry.post_execute(self)
 
 
@@ -808,6 +825,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 self.get_view().setText(1, "Done")
             else:
                 self.get_view().setText(1, "No result")
+                self.status = QUEUE_ENTRY_STATUS.WARNING
                 log.info("EDNA-Characterisation completed " +\
                          "successfully but without collection plan.")
                 log.warning("Characterisation completed" +\
@@ -1059,9 +1077,9 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             if centring_method == CENTRING_METHOD.MANUAL:
                 log.warning("Manual centring used, waiting for" +\
                             " user to center sample")
-                dm.start3ClickCentring()
+                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
             elif centring_method == CENTRING_METHOD.LOOP:
-                dm.startAutoCentring(loop_only=True)
+                dm.startCentringMethod(dm.C3D_MODE)
                 log.warning("Centring in progress. Please save" +\
                             " the suggested centring or re-center")
             elif centring_method == CENTRING_METHOD.CRYSTAL:

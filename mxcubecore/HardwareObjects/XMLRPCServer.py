@@ -37,7 +37,8 @@ class XMLRPCServer(HardwareObject):
         self.wokflow_in_progress = True
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
-
+        self.host = None
+      
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
@@ -50,13 +51,30 @@ class XMLRPCServer(HardwareObject):
         else:
             host = socket.gethostname()
 
+        self.host = host    
+
+        try:
+            self.open()
+        except:
+            logging.getLogger("HWR").debug("Can't start XML-RPC server")
+        
+
+    def close(self):
+        try:
+          self.xmlrpc_server_task.kill()
+          self._server.server_close()
+        except AttributeError:
+          pass
+        logging.getLogger("HWR").info('XML-RPC server closed')
+
+    def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
-        self._server = SimpleXMLRPCServer((host, int(self.port)),
-                                          logRequests = False)
+        self.xmlrpc_prefixes = set()
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False)
 
-        logging.getLogger("HWR").\
-            info('XML-RPC server listening on: %s:%s' % (host, self.port))
+        msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
+        logging.getLogger("HWR").info(msg)
 
         self._server.register_introspection_functions()
         self._server.register_function(self.start_queue)
@@ -275,7 +293,7 @@ class XMLRPCServer(HardwareObject):
 
             if prefix in self.xmlrpc_prefixes:
                 msg = "Prefix %s already used: cannot register for module %s" % (prefix, module_name)
-                log.eror(msg)
+                log.error(msg)
                 raise Exception(msg)
             self.xmlrpc_prefixes.add(prefix)
 
