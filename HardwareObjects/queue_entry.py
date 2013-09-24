@@ -1059,9 +1059,9 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             if centring_method == CENTRING_METHOD.MANUAL:
                 log.warning("Manual centring used, waiting for" +\
                             " user to center sample")
-                dm.start3ClickCentring()
+                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
             elif centring_method == CENTRING_METHOD.LOOP:
-                dm.startAutoCentring(loop_only=True)
+                dm.startCentringMethod(dm.C3D_MODE)
                 log.warning("Centring in progress. Please save" +\
                             " the suggested centring or re-center")
             elif centring_method == CENTRING_METHOD.CRYSTAL:

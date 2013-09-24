@@ -238,12 +238,12 @@ class MiniDiff(Equipment):
             self.connect(self.aperture, 'predefinedPositionChanged', self.apertureChanged)
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
  
-        try:
-          self.auto_loop_centring = self.getChannelObject("auto_centring_flag")
-        except KeyError:
-          logging.getLogger("HWR").warning("MiniDiff: automatic loop centring will not auto start after SC loading")
-        else:
-          self.auto_loop_centring.connectSignal("update", self.do_auto_loop_centring)
+#         try:
+#           self.auto_loop_centring = self.getChannelObject("auto_centring_flag")
+#         except KeyError:
+#           logging.getLogger("HWR").warning("MiniDiff: automatic loop centring will not auto start after SC loading")
+#         else:
+#           self.auto_loop_centring.connectSignal("update", self.do_auto_loop_centring)
 
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
@@ -251,45 +251,45 @@ class MiniDiff(Equipment):
     def emitDiffractometerMoved(self, *args):
       self.emit("diffractometerMoved", ())
         
-    def do_auto_loop_centring(self, n, old={"n":None}):
-        if n == old["n"]: 
-          return
-        old["n"]=n
-        if n < 0:
-          return
+#     def do_auto_loop_centring(self, n, old={"n":None}):
+#         if n == old["n"]: 
+#           return
+#         old["n"]=n
+#         if n < 0:
+#           return
 
-        # this is a terrible hack... we have to know if we are running within mxCuBE
-        # with automatic centring brick, otherwise we should not start auto loop centring
-        # (for example: if we have been imported in Automatic Centring server, or in
-        # mxCuBE hutch version with no automatic centring brick...) 
-        from qt import QApplication
-        continue_auto_centring = False
-        for w in QApplication.allWidgets():
-          if callable(w.name) and str(w.name()) == 'autocentring':
-            continue_auto_centring = w.isInstanceModeMaster()
-            break
-        if not continue_auto_centring:
-          return
+#         # this is a terrible hack... we have to know if we are running within mxCuBE
+#         # with automatic centring brick, otherwise we should not start auto loop centring
+#         # (for example: if we have been imported in Automatic Centring server, or in
+#         # mxCuBE hutch version with no automatic centring brick...) 
+#         from qt import QApplication
+#         continue_auto_centring = False
+#         for w in QApplication.allWidgets():
+#           if callable(w.name) and str(w.name()) == 'autocentring':
+#             continue_auto_centring = w.isInstanceModeMaster()
+#             break
+#         if not continue_auto_centring:
+#           return
 
-        try:
-              if self.currentCentringProcedure is not None:
-                return
+#         try:
+#               if self.currentCentringProcedure is not None:
+#                 return
 
-              if str(self.getChannelObject("auto_crystal_centring_enabled").getValue())=='1':
-                loop_only=False
-              else:
-                loop_only=True
-              if loop_only and str(self.getChannelObject("auto_loop_centring_enabled").getValue())=='0':
-                return
-              if str(self.getChannelObject("playback_centring_enabled").getValue())=='1':
-                sample_info=self.currentSampleInfo
-              else:
-                sample_info=None
+#               if str(self.getChannelObject("auto_crystal_centring_enabled").getValue())=='1':
+#                 loop_only=False
+#               else:
+#                 loop_only=True
+#               if loop_only and str(self.getChannelObject("auto_loop_centring_enabled").getValue())=='0':
+#                 return
+#               if str(self.getChannelObject("playback_centring_enabled").getValue())=='1':
+#                 sample_info=self.currentSampleInfo
+#               else:
+#                 sample_info=None
 
-              self.emitCentringStarted(MiniDiff.C3D_MODE)
-              self.startAutoCentring(sample_info=sample_info, loop_only=loop_only)
-        except:  
-           logging.getLogger("HWR").warning("MiniDiff: automatic centring fails to start (hint: is the centring server running?)")
+#               self.emitCentringStarted(MiniDiff.C3D_MODE)
+#               self.startAutoCentring(sample_info=sample_info, loop_only=loop_only)
+#         except:  
+#            logging.getLogger("HWR").warning("MiniDiff: automatic centring fails to start (hint: is the centring server running?)")
 
 
     def isReady(self):
@@ -500,7 +500,6 @@ class MiniDiff(Equipment):
         try:
           motor_pos = manual_centring_procedure.get()
           if isinstance(motor_pos, gevent.GreenletExit):
-            # BUG IN GEVENT?
             raise motor_pos
         except:
           logging.exception("Could not complete manual centring")
@@ -536,13 +535,15 @@ class MiniDiff(Equipment):
     def autoCentringDone(self, auto_centring_procedure):
         self.emitProgressMessage("")
         self.emit("newAutomaticCentringPoint", (-1,-1))
+        
+        res = auto_centring_procedure.get()
 
-        if auto_centring_procedure.get():
-            self.emitCentringSuccessful()
+        if isinstance(res, gevent.GreenletExit):
+          logging.error("Could not complete automatic centring")
+          self.emitCentringFailed()
         else:
-            logging.error("Could not complete automatic centring")
-            self.emitCentringFailed()
-      
+          self.emitCentringSuccessful()
+              
 
     def do_auto_centring(self, phi, phiy, phiz, sampx, sampy, zoom, camera, phiy_direction):
         if not lucid:
