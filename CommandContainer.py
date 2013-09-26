@@ -368,7 +368,7 @@ class CommandContainer:
               from Command.Exporter import ExporterCommand
               newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
             except:
-              logging.getLogger().exception('%s: cannot add command %s (hint: check attributes)', self.name(), commandName)
+              logging.getLogger().exception('%s: cannot add command %s (hint: check attributes)', self.name(), cmdName)
         elif cmdType.lower() == "epics":
             try:
               from Command.Epics import EpicsCommand
