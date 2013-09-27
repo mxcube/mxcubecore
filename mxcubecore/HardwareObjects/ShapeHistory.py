@@ -255,7 +255,7 @@ class ShapeHistory(HardwareObject):
 
 
         # Temporary fix the bug that 
-        for shape in shapes:
+        for shape in self.shapes:
             shape.hide()
 
         self.shapes.clear()
