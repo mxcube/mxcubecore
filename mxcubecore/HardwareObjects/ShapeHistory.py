@@ -192,6 +192,9 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
+        
+        # Another quick and ugly fix:
+        #shape.hide()
 
         if shape in self.selected_shapes:
             del self.selected_shapes[shape]
@@ -200,8 +203,6 @@ class ShapeHistory(HardwareObject):
             self._drawing_event.current_shape = None
         
         del self.shapes[shape]
-
-        temp = gc.get_referrers(shape)
 
     def move_shape(self, shape, new_positions):
         """
