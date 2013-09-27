@@ -26,7 +26,6 @@ import qt
 import traceback
 import queue_model_objects_v1 as queue_model_objects
 import types
-import gc
 
 from qt import Qt
 
@@ -226,7 +225,7 @@ class ShapeHistory(HardwareObject):
 
 
         # Temporary fix the bug that 
-        for shape in shapes:
+        for shape in self.shapes:
             shape.hide()
 
         self.shapes.clear()
