@@ -223,6 +223,11 @@ class ShapeHistory(HardwareObject):
         if self._drawing_event:
             self._drawing_event.de_select_all()
 
+
+        # Temporary fix the bug that 
+        for shape in shapes:
+            shape.hide()
+
         self.shapes.clear()
         self.selected_shapes.clear()
         self._drawing_event.current_shape = None
