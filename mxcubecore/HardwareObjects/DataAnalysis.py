@@ -85,6 +85,17 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
         return html_report
 
 
+    def execute_command(self, command_name, *args, **kwargs): 
+        wait = kwargs.get("wait", True)
+        cmd_obj = self.getCommandObject(command_name)
+        return cmd_obj(*args, wait=wait)
+
+
+    def get_beam_size(self):
+        return (self.execute_command("get_beam_size_x"),
+                self.execute_command("get_beam_size_y"))
+
+
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(EDNA_DEFAULT_INPUT)
 
@@ -106,6 +117,14 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
         try:
             beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+        except AttributeError:
+            pass
+
+        try:
+            beamsize = self.get_beam_size()
+            if not None in beamsize:
+                beam.setSize(XSDataSize(x=XSDataLength(float(beamsize[0])),
+                                        y=XSDataLength(float(beamsize[1]))))
         except AttributeError:
             pass
 
