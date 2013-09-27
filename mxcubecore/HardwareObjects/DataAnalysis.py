@@ -88,6 +88,17 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         beam_info = self.getObjectByRole("beam")
         return beam_info.get_beam_size()
 
+    def execute_command(self, command_name, *args, **kwargs): 
+        wait = kwargs.get("wait", True)
+        cmd_obj = self.getCommandObject(command_name)
+        return cmd_obj(*args, wait=wait)
+
+
+    def get_beam_size(self):
+        return (self.execute_command("get_beam_size_x"),
+                self.execute_command("get_beam_size_y"))
+
+
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
 
