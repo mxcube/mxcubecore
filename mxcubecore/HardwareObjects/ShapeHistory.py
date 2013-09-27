@@ -253,6 +253,11 @@ class ShapeHistory(HardwareObject):
         for shape in self.shapes:
             self._delete_shape(shape)
 
+
+        # Temporary fix the bug that 
+        for shape in shapes:
+            shape.hide()
+
         self.shapes.clear()
         self.point_index = 0
 
