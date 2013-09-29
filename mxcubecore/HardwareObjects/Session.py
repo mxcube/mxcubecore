@@ -94,7 +94,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.raw_data_folder_name)
+                            self.raw_data_folder_name) + '/'
 
     def get_base_process_directory(self):
         """
@@ -102,7 +102,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.processed_data_folder_name)
+                            self.processed_data_folder_name)+ '/'
 
     def get_image_directory(self, sub_dir):
         """
@@ -117,11 +117,11 @@ class Session(HardwareObject):
         :returns: The full path to images.
         :rtype: str
         """
-        sub_dir = sub_dir.replace(' ', '').replace(':', '-')
         directory = self.get_base_image_directory()
 
         if sub_dir:
-            directory = os.path.join(directory, sub_dir)
+            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
+            directory = os.path.join(directory, sub_dir) + '/'
 
         return directory
 
@@ -137,11 +137,11 @@ class Session(HardwareObject):
 
         :returns: The full path to images.
         """
-        sub_dir = sub_dir.replace(' ', '').replace(':', '-')
         directory = self.get_base_process_directory()
 
         if sub_dir:
-            directory = os.path.join(directory, sub_dir)
+            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
+            directory = os.path.join(directory, sub_dir) + '/'
 
         return directory
 
