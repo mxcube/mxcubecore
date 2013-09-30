@@ -40,7 +40,7 @@ from HardwareRepository.HardwareRepository import dispatcher
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
+__credits__ = ["My great colleagues", "The MxCuBE colaboration"]
 
 __version__ = "0.1"
 __maintainer__ = "Marcus Oskarsson"
@@ -582,8 +582,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             param_list = queue_model_objects.\
                          to_collect_dict(dc, self.session)
             log = logging.getLogger("user_level_log")
-            acq_1 = dc.acquisitions[0]
-            cpos = acq_1.acquisition_parameters.centred_position
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -596,8 +594,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                centred_position.as_dict()
 
                     helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
-                    self.collect_hwobj.getChannelObject('helical_pos').\
-                        setValue(helical_oscil_pos)
+                    chan = self.collect_hwobj.getChannelObject('helical_pos')
+                    chan.setValue(helical_oscil_pos)
 
                     msg = "Helical data collection with start" +\
                           "position: " + str(pprint.pformat(start_cpos)) + \
@@ -610,23 +608,24 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
 
-                empty_cpos = queue_model_objects.CentredPosition()
+                    acq_1 = dc.acquisitions[0]
+                    cpos = acq_1.acquisition_parameters.centred_position
+                    empty_cpos = queue_model_objects.CentredPosition()
 
-                if cpos != empty_cpos:
-                    log.info("Moving to centred position: " + str(cpos))
-                    list_item.setText(1, "Moving sample")
-                    self.centring_task = self.diffractometer_hwobj.\
-                                         moveToCentredPosition(cpos)
-                    self.centring_task.get()
-                else:
-                    pos_dict = self.diffractometer_hwobj.getPositions()
-                    cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_snapshot([])
-                    acq_1.acquisition_parameters.centred_position = cpos
-                    acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
-                    
+                    if cpos != empty_cpos:
+                        log.info("Moving to centred position: " + str(cpos))
+                        list_item.setText(1, "Moving sample")
+                        self.centring_task = self.diffractometer_hwobj.\
+                                             moveToCentredPosition(cpos)
+                        self.centring_task.get()
+                    else:
+                        pos_dict = self.diffractometer_hwobj.getPositions()
+                        cpos = queue_model_objects.CentredPosition(pos_dict)
+                        snapshot = self.shape_history.get_snapshot([])
+                        acq_1.acquisition_parameters.centred_position = cpos
+                        acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
+
                 #log.info("Calling collect hw-object with: " + str(dc.as_dict()))
-
                 #log.info("Collecting: " + str(dc.as_dict()))
                 self.collect_task = self.collect_hwobj.\
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
