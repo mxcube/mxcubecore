@@ -604,8 +604,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                           "position: " + str(pprint.pformat(start_cpos)) + \
                           " and end position: " + str(pprint.pformat(end_cpos))
                     log.info(msg)
-                    log.info("Moving to start position: " + \
-                             str(pprint.pformat(start_cpos)))
+                    #log.info("Moving to start position: " + \
+                    #         str(pprint.pformat(start_cpos)))
 
                     list_item.setText(1, "Moving sample")
                 else:
@@ -614,7 +614,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 empty_cpos = queue_model_objects.CentredPosition()
 
                 if cpos != empty_cpos:
-                    log.info("Moving to centred position: " + str(cpos))
+                    log.info("Moving to: " + str(cpos))
                     list_item.setText(1, "Moving sample")
                     self.shape_history.select_shape_with_cpos(cpos)
                     self.centring_task = self.diffractometer_hwobj.\
