@@ -37,6 +37,7 @@ from Qub.Objects.QubDrawingManager import QubAddDrawing
 from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareRepository import dispatcher
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
@@ -63,7 +64,6 @@ class ShapeHistory(HardwareObject):
         self._drawing_event = DrawingEvent(self)
         self.shapes = {}
         self.selected_shapes = {}
-        self._current_grid = {}
 
     def set_drawing(self, drawing):
         """
@@ -232,20 +232,14 @@ class ShapeHistory(HardwareObject):
         self.selected_shapes.clear()
         self._drawing_event.current_shape = None
 
-    def add_grid(self, grid_dict):
-        """
-        Adds a grid object to the shape history. The grid/mesh
-        is not yet handled as a Shape object but will be in the future.
-
-        This method will disapear when that transition has been made.
-        """
-        self._current_grid = grid_dict
 
     def get_grid(self):
         """
         Returns the current grid object.
         """
-        return self._current_grid
+        grid_dict = dict()
+        dispatcher.send("grid", self, grid_dict)
+        return grid_dict
             
 
 class DrawingEvent(QubDrawingEvent):
