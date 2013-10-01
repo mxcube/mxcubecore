@@ -579,11 +579,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_dc(self, dc, list_item):
         if self.collect_hwobj:
-            param_list = queue_model_objects.\
-                         to_collect_dict(dc, self.session)
             log = logging.getLogger("user_level_log")
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
+            acq_1.acquisition_parameters.take_snapshots = True
+            param_list = queue_model_objects.\
+                to_collect_dict(dc, self.session)
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
