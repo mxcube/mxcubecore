@@ -449,13 +449,7 @@ class AbstractMultiCollect(object):
         except:
             pass
         else:
-            if centring_status["valid"]: # Check if valid
-                try:
-                    centring_accepted = centring_status['accepted']
-                except:
-                    centring_accepted = False
-                if centring_accepted:
-                    centring_info = dict(centring_status)
+            centring_info = dict(centring_status)
 
         #Save sample centring positions
         motors = centring_info.get("motors", {})
@@ -832,8 +826,13 @@ class AbstractMultiCollect(object):
         do_inducedraddam = do_inducedraddam == "True"      
       if type(residues) == types.StringType:
         try:
-          residues = int(residues)      
+          residues = int(residues)
         except:
+          residues = 200
+
+      # residues = zero should be interpreted as if no value was provided
+      # use default of 200
+      if residues == 0:
           residues = 200
 
       try:
