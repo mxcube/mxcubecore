@@ -724,19 +724,15 @@ class PathTemplate(object):
 
         return result
 
-    def is_part_of(self, path_template):
+    def is_part_of(self, rh_pt):
         result = False
 
-        if self == path_template and \
-               self.run_number == path_template.run_number:
-            if path_template.start_num >= self.start_num and \
-               path_template.num_files + path_template.start_num <= \
-               self.num_files + self.start_num:
+        lh_set = set(self.get_files_to_be_written())
+        rh_set = set(rh_pt.get_files_to_be_written())
 
-                result = True
-        else:
-            result = False
-
+        if rh_set.intersection(lh_set):
+            result = True
+    
         return result
 
 
