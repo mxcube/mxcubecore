@@ -3,7 +3,6 @@ Handels interaction with the data model(s). Adding, removing and retreiving
 nodes are all done via this object. It is possbile to handle several models
 by using register_model and select_model.
 """
-
 import copy
 import queue_entry
 import queue_model_objects_v1 as queue_model_objects
