@@ -160,10 +160,6 @@ class Session(HardwareObject):
         :rtype: str
         """
         proposal = self.get_proposal()
-
-        if not proposal:
-            proposal = "local-user"
-
         prefix = proposal
 
         if sample_data_node:
