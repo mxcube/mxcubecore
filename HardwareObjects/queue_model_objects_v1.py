@@ -426,7 +426,7 @@ class ProcessingParameters():
         self.cell_c = 0
         self.cell_gamma = 0
         self.protein_acronym = ""
-        self.num_residues = 0
+        self.num_residues = 200
         self.process_data = True
         self.anomalous = False
         self.pdb_code = None
