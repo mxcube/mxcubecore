@@ -717,9 +717,11 @@ class PathTemplate(object):
 
     def __eq__(self, path_template):
         result = False
+        lh_dir = os.path.normpath(self.directory)
+        rh_dir = os.path.normpath(path_template.directory)
 
         if self.get_prefix() == path_template.get_prefix() and \
-                os.path.samefile(self.directory,path_template.directory):
+                lh_dir == rh_dir:
             result = True
 
         return result
