@@ -426,7 +426,7 @@ class ProcessingParameters():
         self.cell_c = 0
         self.cell_gamma = 0
         self.protein_acronym = ""
-        self.num_residues = 0
+        self.num_residues = 200
         self.process_data = True
         self.anomalous = False
         self.pdb_code = None
@@ -717,26 +717,24 @@ class PathTemplate(object):
 
     def __eq__(self, path_template):
         result = False
+        lh_dir = os.path.normpath(self.directory)
+        rh_dir = os.path.normpath(path_template.directory)
 
         if self.get_prefix() == path_template.get_prefix() and \
-           self.directory == path_template.directory:
+                lh_dir == rh_dir:
             result = True
 
         return result
 
-    def is_part_of(self, path_template):
+    def is_part_of(self, rh_pt):
         result = False
 
-        if self == path_template and \
-               self.run_number == path_template.run_number:
-            if path_template.start_num >= self.start_num and \
-               path_template.num_files + path_template.start_num <= \
-               self.num_files + self.start_num:
+        lh_set = set(self.get_files_to_be_written())
+        rh_set = set(rh_pt.get_files_to_be_written())
 
-                result = True
-        else:
-            result = False
-
+        if rh_set.intersection(lh_set):
+            result = True
+    
         return result
 
 

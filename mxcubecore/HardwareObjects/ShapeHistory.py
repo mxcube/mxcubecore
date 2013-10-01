@@ -182,7 +182,22 @@ class ShapeHistory(HardwareObject):
         self.shapes[shape] = shape
 
         self.get_drawing_event_handler().de_select_all()
-        self.get_drawing_event_handler().set_selected(shape)
+        self.get_drawing_event_handler().set_selected(shape, call_cb = False)
+
+    def _delete_shape(self, shape):
+        shape.unhighlight()
+        
+        if shape in self.selected_shapes:
+            del self.selected_shapes[shape]
+
+            if callable(self._drawing_event.selection_cb):
+                self._drawing_event.selection_cb(self.selected_shapes.values())
+
+        if shape is self._drawing_event.current_shape:
+            self._drawing_event.current_shape = None
+        
+        if callable(self._drawing_event.deletion_cb):
+            self._drawing_event.deletion_cb(shape)
 
     def delete_shape(self, shape):
         """
@@ -191,16 +206,7 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
-        
-        # Another quick and ugly fix:
-        #shape.hide()
-
-        if shape in self.selected_shapes:
-            del self.selected_shapes[shape]
-
-        if shape is self._drawing_event.current_shape:
-            self._drawing_event.current_shape = None
-        
+        self._delete_shape(shape)
         del self.shapes[shape]
 
     def move_shape(self, shape, new_positions):
@@ -219,18 +225,21 @@ class ShapeHistory(HardwareObject):
         """
         Clear the shape history, remove all contents.
         """
-        
-        if self._drawing_event:
-            self._drawing_event.de_select_all()
-
-
-        # Temporary fix the bug that 
         for shape in self.shapes:
-            shape.hide()
+            self._delete_shape(shape)
 
         self.shapes.clear()
-        self.selected_shapes.clear()
-        self._drawing_event.current_shape = None
+
+    def de_select_all(self):
+        self._drawing_event.de_select_all()
+
+    def select_shape_with_cpos(self, cpos):
+        self._drawing_event.de_select_all()
+
+        for shape in self.get_shapes():
+            if isinstance(shape, Point):
+                if shape.get_centred_positions()[0] == cpos:
+                    self._drawing_event.set_selected(shape, call_cb = False)    
 
 
     def get_grid(self):
@@ -367,7 +376,7 @@ class DrawingEvent(QubDrawingEvent):
 
         self.current_shape = None
 
-    def select_current(self):
+    def select_current(self, call_cb = True):
         """
         Select the shape referenced by self._current_shape.
         """
@@ -375,22 +384,19 @@ class DrawingEvent(QubDrawingEvent):
         self.qub_helper.selected_shapes[self.current_shape] = \
             self.current_shape
 
-        if callable(self.selection_cb):
+        if callable(self.selection_cb) and call_cb:
             self.selection_cb(self.qub_helper.selected_shapes.values())
 
     def delete_selected(self):
         """
-        Delete the selected shape.
+        Delete all the selected shapes.
         """
         for shape in self.qub_helper.selected_shapes.values():
-            if callable(self.deletion_cb):
-                self.deletion_cb(shape)
-                
             self.qub_helper.delete_shape(shape)
-        self.de_select_all()
-        self.current_shape = None
 
-    def set_selected(self, shape):
+        #self.current_shape = None
+
+    def set_selected(self, shape, call_cb = True):
         """
         Select the shape <shape> (programmatically).
 
@@ -398,7 +404,7 @@ class DrawingEvent(QubDrawingEvent):
         :type shape: Shape
         """
         self.current_shape = shape
-        self.select_current()
+        self.select_current(call_cb)
         
         
 class Shape(object):

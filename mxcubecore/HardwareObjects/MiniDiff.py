@@ -705,9 +705,7 @@ class MiniDiff(Equipment):
     def acceptCentring(self):
         self.centringStatus["valid"]=True
         self.centringStatus["accepted"]=True
-        # accept signal is emitted after snapshots are taken
-        self.takeSnapshots()
-
+        self.emit('centringAccepted', (True,self.getCentringStatus()))
 
     def rejectCentring(self):
         if self.currentCentringProcedure:
@@ -775,21 +773,21 @@ class MiniDiff(Equipment):
     def takeSnapshots(self, wait=False):
         self.camera.forceUpdate = True
         
-        try:
-            centring_valid=self.centringStatus["valid"]
-        except:
-            centring_valid=False
-        if not centring_valid:
-            logging.getLogger("HWR").error("MiniDiff: you must centre the crystal before taking the snapshots")
-        else:
-            snapshotsProcedure = gevent.spawn(take_snapshots, self.lightWago,self.phiMotor,self.zoomMotor,self._drawing)
-            self.emit('centringSnapshots', (None,))
-            self.emitProgressMessage("Taking snapshots")
-            self.centringStatus["images"]=[]
-            snapshotsProcedure.link(self.snapshotsDone)
-            
-            if wait:
-              self.centringStatus["images"] = snapshotsProcedure.get()
+        # try:
+        #     centring_valid=self.centringStatus["valid"]
+        # except:
+        #     centring_valid=False
+        # if not centring_valid:
+        #     logging.getLogger("HWR").error("MiniDiff: you must centre the crystal before taking the snapshots")
+        # else:
+        snapshotsProcedure = gevent.spawn(take_snapshots, self.lightWago,self.phiMotor,self.zoomMotor,self._drawing)
+        self.emit('centringSnapshots', (None,))
+        self.emitProgressMessage("Taking snapshots")
+        self.centringStatus["images"]=[]
+        snapshotsProcedure.link(self.snapshotsDone)
+
+        if wait:
+          self.centringStatus["images"] = snapshotsProcedure.get()
 
  
     def snapshotsDone(self, snapshotsProcedure):
