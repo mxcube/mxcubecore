@@ -1160,7 +1160,7 @@ class PathTemplate(object):
         result = False
 
         if self.get_prefix() == path_template.get_prefix() and \
-           self.directory == path_template.directory:
+                os.path.samefile(self.directory,path_template.directory):
             result = True
 
         return result
