@@ -182,7 +182,7 @@ class ShapeHistory(HardwareObject):
         self.shapes[shape] = shape
 
         self.get_drawing_event_handler().de_select_all()
-        self.get_drawing_event_handler().set_selected(shape, call_cb = False)
+        self.get_drawing_event_handler().set_selected(shape, call_cb = True)
 
     def _delete_shape(self, shape):
         shape.unhighlight()
@@ -241,7 +241,6 @@ class ShapeHistory(HardwareObject):
                 if shape.get_centred_positions()[0] == cpos:
                     self._drawing_event.set_selected(shape, call_cb = False)    
 
-
     def get_grid(self):
         """
         Returns the current grid object.
@@ -249,7 +248,6 @@ class ShapeHistory(HardwareObject):
         grid_dict = dict()
         dispatcher.send("grid", self, grid_dict)
         return grid_dict
-            
 
 class DrawingEvent(QubDrawingEvent):
     """
