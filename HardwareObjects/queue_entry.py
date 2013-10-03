@@ -582,7 +582,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             log = logging.getLogger("user_level_log")
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-            acq_1.acquisition_parameters.take_snapshots = True
+            #acq_1.acquisition_parameters.take_snapshots = True
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session)
 
