@@ -10,6 +10,7 @@ __author__ = 'Matias Guijarro'
 __version__ = 1.3
 
 import logging
+import gevent
 import weakref
 import types
 import sys
@@ -101,8 +102,11 @@ class __HardwareRepositoryClient:
             mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
             self.server = mngr.getConnection(self.serverAddress)
-        
-            SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+      
+            with gevent.Timeout(3): 
+                while not self.server.isSpecConnected():
+                    time.sleep(0.5) 
+            #SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
    
             # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
             self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
