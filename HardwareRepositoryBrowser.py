@@ -1,14 +1,6 @@
 from qt import *
 from HardwareRepository import HardwareRepository
-
-try:
-  from louie import dispatcher
-  from louie import saferef
-except ImportError:
-  from pydispatch import dispatcher
-  from pydispatch import saferef
-  saferef.safe_ref = saferef.safeRef
-
+from .dispatcher import *
 
 class HardwareRepositoryBrowser(QVBox):
     folderClosed = ["16 16 9 1",

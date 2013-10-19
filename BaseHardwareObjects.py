@@ -1,14 +1,6 @@
 import logging
 import types
-
-try:
-  from louie import dispatcher
-  from louie import saferef
-except ImportError:
-  from pydispatch import dispatcher
-  from pydispatch import saferef
-  saferef.safe_ref = saferef.safeRef
-
+from .dispatcher import *
 from CommandContainer import CommandContainer
 import HardwareRepository
 
@@ -320,7 +312,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         if len(args)==1:
           if type(args[0])==types.TupleType:
             args=args[0]
-       
+    
         dispatcher.send(signal, self, *args)  
 
     

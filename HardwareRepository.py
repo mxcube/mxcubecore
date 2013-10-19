@@ -28,15 +28,7 @@ except ImportError:
  
 import HardwareObjectFileParser
 import BaseHardwareObjects
-
-try:
-  from louie import dispatcher
-  from louie import saferef
-except ImportError:
-  from pydispatch import dispatcher
-  from pydispatch import saferef
-  saferef.safe_ref = saferef.safeRef
-
+from .dispatcher import *
 
 _instance = None
 _hwrserver = None
