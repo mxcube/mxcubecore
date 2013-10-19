@@ -40,21 +40,8 @@ def parseString(XMLHardwareObject, name):
 
 
 def loadModule(hardwareObjectName):
-    fp = None
-    try:
-        fp, pathname, description = imp.find_module(hardwareObjectName, None)
+    return __import__(hardwareObjectName, globals(), locals(), [""])
 
-        mod = imp.load_module(hardwareObjectName, fp, pathname, description)
-    except:
-        if fp:
-            fp.close()
-
-        logging.getLogger("HWR").exception('Cannot import module %s', hardwareObjectName)
-                
-        return None
-    else:
-        return mod
-            
 
 def instanciateClass(moduleName, className, objectName):
     module = loadModule(moduleName)
