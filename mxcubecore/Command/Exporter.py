@@ -9,14 +9,17 @@ import gevent.queue
 
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
 
-# at the moment, there is only 1 exporter client for all 
-exporter_client = None
+exporter_clients = {}
 
 def start_exporter(address, port, timeout=3, retries=1):
-  global exporter_client
-  if exporter_client is None:
-     exporter_client = Exporter(address, port, timeout)
-     exporter_client.start()
+  global exporter_clients
+  if not (address, port) in exporter_clients:
+    client = Exporter(address, port, timeout)
+    exporter_clients[(address, port)] = client
+    client.start()
+    return client
+  else:
+    return exporter_clients[(address, port)]
 
 """
 class BoundMethodWeakref:
@@ -50,14 +53,14 @@ class ExporterCommand(CommandObject):
         
         self.command = command
        
-        start_exporter(address, port, timeout) 
+        self.__exporter = start_exporter(address, port, timeout) 
 
 
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
         
         try:
-            ret = exporter_client.execute(self.command, args, kwargs.get("timeout", -1))
+            ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
         except:
             logging.getLogger('HWR').exception("%s: an error occured when calling Exporter command %s", str(self.name()), self.command)
         else:
@@ -73,10 +76,10 @@ class ExporterCommand(CommandObject):
         
 
     def get_state(self):
-        return exporter_client.get_state()
+        return self.__exporter.get_state()
 
     def isConnected(self):
-        return exporter_client.isConnected()
+        return self.__exporter.isConnected()
 
     
 class Exporter(ExporterClient.ExporterClient):
@@ -193,12 +196,12 @@ class ExporterChannel(ChannelObject):
     def __init__(self, name, attribute_name, username = None, address = None, port = None, timeout=3, **kwargs):
         ChannelObject.__init__(self, name, username, **kwargs)
 
-        start_exporter(address, port, timeout)
+        self.__exporter = start_exporter(address, port, timeout)
 
         self.attributeName = attribute_name
         self.value = None
 
-        exporter_client.register(attribute_name, self.update)        
+        self.__exporter.register(attribute_name, self.update)        
 
         self.update()
 
@@ -214,15 +217,15 @@ class ExporterChannel(ChannelObject):
         
 
     def getValue(self):
-        value = exporter_client.readProperty(self.attributeName) 
+        value = self.__exporter.readProperty(self.attributeName) 
             
         return value
 
     
     def setValue(self, newValue):
-        exporter_client.writeProperty(self.attributeName, newValue)
+        self.__exporter.writeProperty(self.attributeName, newValue)
        
  
     def isConnected(self):
-        return exporter_client.isConnected()
+        return self.__exporter.isConnected()
 
