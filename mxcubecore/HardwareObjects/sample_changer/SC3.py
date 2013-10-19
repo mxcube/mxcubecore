@@ -3,13 +3,11 @@ from GenericSampleChanger import *
 import xml.sax
 from xml.sax import SAXParseException
 from xml.sax.handler import ContentHandler
-import PyTango
-import string
 
 
 class Pin(Sample):        
     def __init__(self,basket,basket_no,sample_no):
-        super(Pin, self).__init__(basket, Pin._getSampleAddress(basket_no,sample_no), True)
+        super(Pin, self).__init__(basket, Pin.getSampleAddress(basket_no,sample_no), True)
         self._setHolderLength(22.0)
 
     def getBasketNo(self):
@@ -19,20 +17,20 @@ class Pin(Sample):
         return self.getIndex()+1
 
     @staticmethod
-    def _getSampleAddress(basket_number, sample_number):
+    def getSampleAddress(basket_number, sample_number):
         return str(basket_number) + ":" + "%02d" % (sample_number)
 
 
 class Basket(Container):
     __TYPE__ = "Puck"    
     def __init__(self,container,number):
-        super(Basket, self).__init__(self.__TYPE__,container,Basket._getBasketAddress(number),True)
+        super(Basket, self).__init__(self.__TYPE__,container,Basket.getBasketAddress(number),True)
         for i in range(10):
             slot = Pin(self,number,i+1)
             self._addComponent(slot)
                             
     @staticmethod
-    def _getBasketAddress(basket_number):
+    def getBasketAddress(basket_number):
         return str(basket_number)
             
             
@@ -96,25 +94,16 @@ class SC3(SampleChanger):
             basket = Basket(self,i+1)
             self._addComponent(basket)
             
-    def init(self):                 
-        self._state = self.addChannel({"type":self.channel_type, "name":self.channel_state}, self.channel_state)        
-        self._selected_basket = self.addChannel({"type":self.channel_type, "name":self.channel_selected_basket}, self.channel_selected_basket)
-        self._selected_sample = self.addChannel({"type":self.channel_type, "name":self.channel_selected_sample}, self.channel_selected_sample)
-        
-        self._abort = self.addCommand({"type":self.channel_type, "name":self.command_abort}, self.command_abort)
-        self._getInfo = self.addCommand({"type":self.channel_type, "name":self.command_info}, self.command_info)
-        self._is_task_running = self.addCommand({"type":self.channel_type, "name":self.command_is_task_running}, self.command_is_task_running)
-        self._check_task_result = self.addCommand({"type":self.channel_type, "name":self.command_check_task_result}, self.command_check_task_result)
-        self._load = self.addCommand({"type":self.channel_type, "name":self.command_load}, self.command_load)
-        self._unload = self.addCommand({"type":self.channel_type, "name":self.command_unload}, self.command_unload)
-        self._chained_load = self.addCommand({"type":self.channel_type, "name":self.command_chained_load}, self.command_chained_load)
-        self._set_sample_charge = self.addCommand({"type":self.channel_type, "name":self.command_set_sample_charge}, self.command_set_sample_charge)        
-        self._scan_basket = self.addCommand({"type":self.channel_type, "name":self.command_scan_basket}, self.command_scan_basket)
-        self._scan_samples = self.addCommand({"type":self.channel_type, "name":self.command_scan_samples}, self.command_scan_samples)
-        self._select_sample = self.addCommand({"type":self.channel_type, "name":self.command_select_sample}, self.command_select_sample)
-        self._select_basket = self.addCommand({"type":self.channel_type, "name":self.command_select_basket}, self.command_select_basket)
-        self._reset = self.addCommand({"type":self.channel_type, "name":self.command_reset}, self.command_reset)
-                
+    def init(self):      
+        for channel_name in ("_state", "_selected_basket", "_selected_sample"):
+            setattr(self, channel_name, self.getChannelObject(channel_name))
+           
+        for command_name in ("_abort", "_getInfo", "_is_task_running", \
+                             "_check_task_result", "_load", "_unload",\
+                             "_chained_load", "_set_sample_charge", "_scan_basket",\
+                             "_scan_samples", "_select_sample", "_select_basket", "_reset"):
+            setattr(self, command_name, self.getCommandObject(command_name))
+
         SampleChanger.init(self)   
             
             
@@ -160,7 +149,7 @@ class SC3(SampleChanger):
             scanned =   present
             loaded =   (flags & 8) != 0
             has_been_loaded =   (flags & 16) != 0
-            sample = self.getComponentByAddress(Pin._getSampleAddress(s[1], s[2]))
+            sample = self.getComponentByAddress(Pin.getSampleAddress(s[1], s[2]))
             sample._setInfo(present,datamatrix,scanned)     
             sample._setLoaded(loaded,has_been_loaded)
             sample._setHolderLength(s[4])            
@@ -239,40 +228,34 @@ class SC3(SampleChanger):
                 gevent.sleep(0.1)            
             try:
                 ret = self._check_task_result(task_id)                
-            except PyTango.DevFailed, traceback:
-                task_error = traceback[0]
-                error_msg = str(task_error.desc).replace("Task error: ", "")
-                raise Exception(error_msg) 
             except Exception,err:
                 raise Exception(str(err)) 
             #self._updateState()
         return ret
 
     def _updateState(self):
-        state = self._readState()
-                     
-        if state is None: 
-            self._setState(SampleChangerState.Unknown)
-        else:
-            if state == PyTango.DevState.ALARM: self._setState(SampleChangerState.Alarm)
-            if state == PyTango.DevState.FAULT: self._setState(SampleChangerState.Fault)                        
-            if not self.isExecutingTask():
-                if state == PyTango.DevState.MOVING: self._setState(SampleChangerState.Charging)
-                if state == PyTango.DevState.STANDBY:   self._setState(SampleChangerState.Ready)
-                if state == PyTango.DevState.RUNNING:   self._setState(SampleChangerState.Moving)                        
-                if state == PyTango.DevState.INIT: self._setState(SampleChangerState.Initializing)
-                    
-
+        state = self._readState()                     
+        self._setState(state)
+       
     def _readState(self):
-        return  self._state.getValue()
-         
+        state = str(self._state.getValue() or "").upper()
+        state_converter = { "ALARM": SampleChangerState.Alarm,
+                            "FAULT": SampleChangerState.Fault,
+                            "MOVING": SampleChangerState.Charging,
+                            "STANDBY": SampleChangerState.Ready,
+                            "READY": SampleChangerState.Ready,
+                            "RUNNING": SampleChangerState.Moving,
+                            "LOADING": SampleChangerState.Charging,
+                            "INIT": SampleChangerState.Initializing }
+        return state_converter.get(state, SampleChangerState.Unknown)
+                        
     def _isDeviceBusy(self):
         state = self._readState()
-        return state in (PyTango.DevState.RUNNING, PyTango.DevState.INIT)              
+        return state in (SampleChangerState.Moving, SampleChangerState.Initializing)              
 
     def _isDeviceReady(self):
         state = self._readState()
-        return state in (PyTango.DevState.STANDBY, PyTango.DevState.MOVING)              
+        return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
 
     def _waitDeviceReady(self,timeout=-1):
         start=time.clock()
@@ -288,10 +271,10 @@ class SC3(SampleChanger):
         basket=None
         sample=None
         if basket_no is not None and basket_no>0 and basket_no <=5:
-            basket = self.getComponentByAddress(Basket._getBasketAddress(basket_no))
+            basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             sample_no = self._selected_sample.getValue()
             if sample_no is not None and sample_no>0 and sample_no <=10:
-                sample = self.getComponentByAddress(Pin._getSampleAddress(basket_no, sample_no))            
+                sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
                 
