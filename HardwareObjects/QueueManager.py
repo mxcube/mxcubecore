@@ -1,9 +1,9 @@
 """
-Queue, handles the execution of the MxCuBE queue. It is implemented
+QueueManager, handles the execution of the MxCuBE queue. It is implemented
 as a hardware object and is configured by an XML file. See the example of the
 XML configuration for more details.
 
-The Queue acts as both the controller of execution and as the root/
+The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
@@ -41,7 +41,7 @@ logger = logging.getLogger('queue_exec').\
          info("Module load, probably application start")
 
 
-class Queue(HardwareObject, QueueEntryContainer):
+class QueueManager(HardwareObject, QueueEntryContainer):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         QueueEntryContainer.__init__(self)
