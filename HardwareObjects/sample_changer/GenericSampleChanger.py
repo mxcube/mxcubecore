@@ -7,6 +7,7 @@ import abc
 import logging
 import time
 import gevent
+import types
 
 class SampleChangerState:
     """
@@ -29,6 +30,28 @@ class SampleChangerState:
     Fault       = 14
     Initializing= 15
     Closing     = 16
+
+    STATE_DESC = { Ready: "Ready",
+                   Loaded:"Loaded",
+                   Alarm:"Alarm",
+                   Charging:"Charging",
+                   Disabled:"Disabled",
+                   Fault:"Fault",
+                   Loading:"Loading",
+                   Resetting:"Resetting",
+                   Scanning:"Scanning",
+                   Selecting:"Selecting",
+                   Unloading:"Unloading",
+                   Moving:"Moving",
+                   ChangingMode:"Changing Mode",
+                   StandBy:"StandBy",
+                   Initializing:"Initializing",
+                   Closing:"Closing" }
+
+    @staticmethod
+    def tostring(state):
+        return SampleChangerState.STATE_DESC.get(state, "Unknown")
+
     
         
 class SampleChangerMode: 
@@ -178,7 +201,7 @@ class SampleChanger(Container,Equipment):
 
     def assertCanExecuteTask(self):        
         if not self.isReady():
-            raise Exception("Cannot execute task: bad state ("+ self._getDefaultStatus(self.state)+")")                
+            raise Exception("Cannot execute task: bad state ("+ SampleChangerState.tostring(self.state)+")")                
 
     def isTaskFinished(self):
         """
@@ -284,13 +307,21 @@ class SampleChanger(Container,Equipment):
             self._setState(SampleChangerState.Disabled)        
         return self._executeTask(SampleChangerState.ChangingMode,wait,self._doChangeMode,mode)
     
-    def scan(self, component=None, recursive=False, wait=True):
+    @task
+    def scan(self, component=None, recursive=False):
+        if type(component) == types.ListType:
+            for c in component:
+                self._scan_one(c, recursive)     
+        else:
+            return self._scan_one(component, recursive)
+
+    def _scan_one(self, component, recursive):
         self.assertNotCharging()
         if (component==None):
             component=self
         component = self._resolveComponent(component)
         component.assertIsScannable()
-        return self._executeTask(SampleChangerState.Scanning,wait,self._doScan,component, recursive)
+        return self._executeTask(SampleChangerState.Scanning,True,self._doScan,component, recursive)
                 
     def select(self, component, wait=True):
         component = self._resolveComponent(component)
@@ -388,7 +419,7 @@ class SampleChanger(Container,Equipment):
 
     def _executeTask(self,task,wait,method,*args):        
         self.assertCanExecuteTask()
-        logging.debug("Start "+ self._getDefaultStatus(task))
+        logging.debug("Start "+ SampleChangerState.tostring(task))
         self.task=task
         self.task_error=None 
         self._setState(task)
@@ -445,7 +476,7 @@ class SampleChanger(Container,Equipment):
             former=self.state;
             self.state=state
             if status is None:
-                status=self._getDefaultStatus(state)
+                status=SampleChangerState.tostring(state)
             self._triggerStateChangedEvent(former)
         
         if (status is not None) and (self.status!=status):
@@ -479,27 +510,6 @@ class SampleChanger(Container,Equipment):
             self._triggerSelectionChangedEvent()      
 #########################           PRIVATE           #########################
 
-    def _getDefaultStatus(self,state):
-        if state==SampleChangerState.Ready: return "Ready"
-        elif state==SampleChangerState.Loaded: return "Loaded"
-        elif state==SampleChangerState.Alarm: return "Alarm"
-        elif state==SampleChangerState.Charging: return "Charging"
-        elif state==SampleChangerState.Disabled: return "Disabled"
-        elif state==SampleChangerState.Fault: return "Fault"
-        elif state==SampleChangerState.Loading: return "Loading"
-        elif state==SampleChangerState.Resetting: return "Resetting"
-        elif state==SampleChangerState.Scanning: return "Scanning"
-        elif state==SampleChangerState.Selecting: return "Selecting"
-        elif state==SampleChangerState.Unloading: return "Unloading"
-        elif state==SampleChangerState.Moving: return "Moving"        
-        elif state==SampleChangerState.ChangingMode: return "Changing Mode"
-        elif state==SampleChangerState.StandBy: return "StandBy"        
-        elif state==SampleChangerState.Initializing: return "Initializing"
-        elif state==SampleChangerState.Closing: return "Closing"
-
-        return "Unknown"
-    
-            
     def _triggerStateChangedEvent(self,former):
         self.emit(self.__STATE_CHANGED_EVENT__, (self.state,former))
     
