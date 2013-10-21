@@ -72,12 +72,8 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
 
-        try:
-            f = open(self.edna_default_file, 'r')
+        with open(self.edna_default_file, 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
-        finally:
-            if f:
-                f.close()
   
     def get_html_report(self, edna_result):
         html_report = None
