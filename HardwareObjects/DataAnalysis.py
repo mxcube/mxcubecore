@@ -2,42 +2,40 @@ import logging
 import gevent.event
 import threading
 import subprocess
-import time
+import AbstractDataAnalysis
 import os
-import queue_model_objects_v1 as queue_model_objects
+
 import queue_model_enumerables_v1 as queue_model_enumerables
 
-from AbstractDataAnalysis import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
-from XSDataCommon import XSData
 from XSDataCommon import XSDataAngle
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
 from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataFloat
-from XSDataCommon import XSDataInput
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataMatrixDouble
-from XSDataCommon import XSDataResult
-from XSDataCommon import XSDataSize
-from XSDataCommon import XSDataString
-from XSDataCommon import XSDataImage
-from XSDataCommon import XSDataAbsorbedDoseRate
-from XSDataCommon import XSDataAngularSpeed
 from XSDataCommon import XSDataFlux
 from XSDataCommon import XSDataLength
 from XSDataCommon import XSDataTime
 from XSDataCommon import XSDataWavelength
+from XSDataCommon import XSDataInteger
+from XSDataCommon import XSDataSize
+from XSDataCommon import XSDataString
+
+#from XSDataCommon import XSDataFloat
+#from XSDataCommon import XSDataInput
+#from XSDataCommon import XSDataMatrixDouble
+#from XSDataCommon import XSDataResult
+#from XSDataCommon import XSDataImage
+#from XSDataCommon import XSDataAbsorbedDoseRate
+#from XSDataCommon import XSDataAngularSpeed
+#from XSDataCommon import XSData
 
 from edna_test_data import EDNA_DEFAULT_INPUT
-from edna_test_data import EDNA_TEST_DATA
-
-from collections import namedtuple
+#from edna_test_data import EDNA_TEST_DATA
 
 
 class EdnaProcessingThread(threading.Thread):
@@ -61,7 +59,7 @@ class EdnaProcessingThread(threading.Thread):
         self.edna_processing_watcher.send()
 
 
-class DataAnalysis(AbstractDataAnalysis, HardwareObject):
+class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.collect_obj = None
@@ -72,7 +70,14 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
     def init(self):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
+        self.edna_default_file = self.getProperty("edna_default_file")
 
+        try:
+            f = open(self.edna_default_file, 'r')
+            self.edna_default_input = ''.join(f.readlines())
+        finally:
+            if f:
+                f.close()
   
     def get_html_report(self, edna_result):
         html_report = None
@@ -97,7 +102,7 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
 
 
     def from_params(self, data_collection, char_params):
-        edna_input = XSDataInputMXCuBE.parseString(EDNA_DEFAULT_INPUT)
+        edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
 
         if data_collection.id:
             edna_input.setDataCollectionId(XSDataInteger(data_collection.id))
@@ -233,16 +238,16 @@ class DataAnalysis(AbstractDataAnalysis, HardwareObject):
             edna_results_file = os.path.join(process_directory_path, "EDNAOutput_%s.xml" % dc_id)
 
             if not os.path.isdir(process_directory_path):
-                os.makedirs(path)
+                os.makedirs(process_directory_path)
         else:
             raise RuntimeError, "No process directory specified in edna_input"
 
         logging.getLogger("queue_exec").info("Starting EDNA using xml file %r", edna_input_file)
 
-        edna_processing_thread = EdnaProcessingThread(self.start_edna_command, \
-                                                      edna_input_file, \
-                                                      edna_results_file,\
-                                                      process_directory_path)
+        edna_processing_thread = \
+            EdnaProcessingThread(self.start_edna_command, edna_input_file, \
+                                 edna_results_file, process_directory_path)
+
         self.processing_done_event = edna_processing_thread.start()
         self.processing_done_event.wait()
         
