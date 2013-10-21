@@ -1,9 +1,8 @@
 """
-Handels interaction with the data model(s). Adding, removing and retreiving 
-nodes are all done via this object. It is possbile to handle several models
-by using register_model and select_model.
+Handels interaction with the data model(s). Adding, removing and
+retreiving nodes are all done via this object. It is possbile to
+handle several models by using register_model and select_model.
 """
-import copy
 import queue_entry
 import queue_model_objects_v1 as queue_model_objects
 
@@ -22,17 +21,16 @@ __status__ = "Beta"
 class QueueModel(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
-        
+
         self._ispyb_model = queue_model_objects.RootNode()
         self._ispyb_model._node_id = 0
         self._free_pin_model = queue_model_objects.RootNode()
         self._free_pin_model._node_id = 0
-        
+
         self._models = {'ispyb': self._ispyb_model,
                         'free-pin': self._free_pin_model}
 
         self._selected_model = self._ispyb_model
-
 
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
@@ -42,10 +40,8 @@ class QueueModel(HardwareObject):
         by the framework after the object has been initialized.
 
         You should normaly not need to call this method.
-        
         """
         self.queue_hwobj = self.getObjectByRole("queue")
-
 
     def select_model(self, name):
         """
@@ -61,14 +57,12 @@ class QueueModel(HardwareObject):
         self.queue_hwobj.clear()
         self._re_emit(self._selected_model)
 
-
     def get_model_root(self):
         """
         :returns: The selected model root.
         :rtype: TaskNode
         """
         return self._selected_model
-
 
     def clear_model(self, name):
         """
@@ -78,11 +72,10 @@ class QueueModel(HardwareObject):
         :type name: str
 
         :returns: None
-        :rtype: NoneType    
+        :rtype: NoneType
         """
         self._models[name] = queue_model_objects.RootNode()
         self.queue_hwobj.clear()
-
 
     def register_model(self, name, root_node):
         """
@@ -95,13 +88,12 @@ class QueueModel(HardwareObject):
         :type root_node: RootNode
 
         :returns: None
-        :rtype: NoneType        
+        :rtype: NoneType
         """
         if name in self._models:
             raise KeyError('The key %s is already registered' % name)
         else:
-            self._models[name]     
-
+            self._models[name]
 
     def _re_emit(self, parent_node):
         """
@@ -110,7 +102,6 @@ class QueueModel(HardwareObject):
         for child_node in parent_node.get_children():
             self.emit('child_added', (parent_node, child_node))
             self._re_emit(child_node)
-            
 
     def add_child(self, parent, child):
         """
@@ -133,7 +124,8 @@ class QueueModel(HardwareObject):
             child._set_name(child._name)
             self.emit('child_added', (parent, child))
         else:
-            raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
+            raise TypeError("Expected type TaskNode, got %s "\
+                            % str(type(child)))
 
 
     def add_child_at_id(self, _id, child):
@@ -148,12 +140,10 @@ class QueueModel(HardwareObject):
 
         :returns: The id of the child.
         :rtype: int
-        
         """
         parent = self.get_node(_id)
         self.add_child(parent, child)
         return child._node_id
-
 
     def get_node(self, _id, parent = None):
         """
@@ -170,16 +160,15 @@ class QueueModel(HardwareObject):
         """
         if parent is None:
             parent = self._selected_model 
-        
+
         for node in parent._children:
             if node._node_id is _id:
                 return node
             else:
                 result = self.get_node(_id, node)
-                
+
                 if result:
                     return result
-                
 
     def del_child(self, parent, child):
         """
@@ -191,15 +180,14 @@ class QueueModel(HardwareObject):
         :returns: None
         :rtype: None
         """
-        if child in parent._children:     
+        if child in parent._children:
             parent._children.remove(child)
             self.emit('child_removed', (parent, child))
-            
 
     def _detach_child(self, parent, child):
         """
         Detaches the child <child>
-        
+
         :param child: Child to detach.
         :type child: TaskNode
 
@@ -208,7 +196,6 @@ class QueueModel(HardwareObject):
         """
         child = parent._children.pop(child)
         return child
-
 
     def set_parent(self, parent, child):
         """
@@ -226,10 +213,9 @@ class QueueModel(HardwareObject):
         else:
             child._parent = parent
 
-
     def view_created(self, view_item, task_model):
         """
-        Method that should be called by the routne that adds
+        Method that should be called by the routine that adds
         the view <view_item> for the model <task_model>
 
         :param view_item: The view item that was added.
@@ -237,10 +223,10 @@ class QueueModel(HardwareObject):
 
         :param task_model: The associated task model.
         :type task_model: TaskModel
-        
+
         :returns: None
         :rtype: None
-        """        
+        """
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
@@ -252,16 +238,16 @@ class QueueModel(HardwareObject):
         else:
             view_item.parent().get_queue_entry().enqueue(qe)
 
-
     def get_next_run_number(self, new_path_template, exclude_current = True):
         """
         Iterates through all the path templates of the tasks
         in the model and returns the next available run number
         for the path template <new_path_template>.
-        
+
         :param new_path_template: PathTempalte to match with.
         :type new_path_template: PathTemplate
-        :param exclude_current: Skips it self when iterating through the model, default Tree.
+        :param exclude_current: Skips it self when iterating through
+                                the model, default Tree.
         :type exlcude_current: bool
 
         :returns: The next available run number for the given path_template.
@@ -281,20 +267,18 @@ class QueueModel(HardwareObject):
 
         return max(conflicting_path_templates) + 1
 
-
     def get_path_templates(self):
         """
         Retrievies a list of all the path templates in the model.
         """
         return self._get_path_templates_rec(self.get_model_root())
-    
 
     def _get_path_templates_rec(self, parent_node):
         """
         Recursive part of get_path_templates.
         """
         path_template_list = []
-        
+
         for child_node in parent_node.get_children():
             path_template = child_node.get_path_template()
 
@@ -308,12 +292,11 @@ class QueueModel(HardwareObject):
 
         return path_template_list
 
-
     def check_for_path_collisions(self, new_path_template):
         """
         Returns True if there is a path template (task) in the model,
         that produces the same files as this one.
-        
+
         :returns: True if there is a potential path collision.
         """
         result = False
@@ -325,7 +308,6 @@ class QueueModel(HardwareObject):
                     result = True
 
         return result
-
 
     def copy_node(self, node):
         """
