@@ -223,7 +223,7 @@ class SC3(SampleChanger):
             while self._isDeviceBusy():
                 gevent.sleep(0.1)
         else:
-            while self._is_task_running(task_id): #If sync end with task_id must sync start with state        
+            while str(self._is_task_running(task_id)).lower() == 'true': #If sync end with task_id must sync start with state        
             #while self._isDeviceBusy():  
                 gevent.sleep(0.1)            
             try:
@@ -234,14 +234,16 @@ class SC3(SampleChanger):
         return ret
 
     def _updateState(self):
-        state = self._readState()                     
+        state = self._readState()
+        if state == SampleChangerState.Moving and self._isDeviceBusy(state):
+            return                     
         self._setState(state)
        
     def _readState(self):
         state = str(self._state.getValue() or "").upper()
         state_converter = { "ALARM": SampleChangerState.Alarm,
                             "FAULT": SampleChangerState.Fault,
-                            "MOVING": SampleChangerState.Charging,
+                            "MOVING": SampleChangerState.Moving,
                             "STANDBY": SampleChangerState.Ready,
                             "READY": SampleChangerState.Ready,
                             "RUNNING": SampleChangerState.Moving,
@@ -249,9 +251,11 @@ class SC3(SampleChanger):
                             "INIT": SampleChangerState.Initializing }
         return state_converter.get(state, SampleChangerState.Unknown)
                         
-    def _isDeviceBusy(self):
-        state = self._readState()
-        return state in (SampleChangerState.Moving, SampleChangerState.Initializing)              
+    def _isDeviceBusy(self, state=None):
+        if state is None:
+            state = self._readState()
+        return state not in (SampleChangerState.Ready, SampleChangerState.Loaded, SampleChangerState.Alarm, 
+                             SampleChangerState.Disabled, SampleChangerState.Fault, SampleChangerState.StandBy)
 
     def _isDeviceReady(self):
         state = self._readState()
