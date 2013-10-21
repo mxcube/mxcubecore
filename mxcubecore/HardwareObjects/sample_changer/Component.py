@@ -33,6 +33,17 @@ class Component(object):
         :rtype: str
         """        
         return self.address
+
+    def getCoords(self):
+        coords_list = [self.getIndex()+1]
+        x = self.getContainer()
+	while x:
+          coords_list.append(x.getIndex()+1)
+          x = x.getContainer()        
+        del coords_list[-1]
+        coords_list.reverse()
+        import pdb;pdb.set_trace()
+        return tuple(coords_list) 
     
     def getIndex(self):
         """
