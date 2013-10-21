@@ -448,13 +448,14 @@ class SampleChanger(Container,Equipment):
             self._setState(SampleChangerState.Ready)            
         """
         exception=None
-        ret=None        
+        ret=None    
         try:            
             ret=method(*args)
         except Exception as ex:        
             exception=ex
         if self.getState()==self.task:            
             self._setState(SampleChangerState.Ready)
+	self.updateInfo()
         task=self.task
         self.task=None
         self.task_proc=None
@@ -463,8 +464,7 @@ class SampleChanger(Container,Equipment):
             raise exception
         return ret
                                 
-    def _onTaskEnded(self, task):
-        self.updateInfo()
+    def _onTaskEnded(self, task):        
         try:                
             e = task.get()
             logging.debug ("Task ended. Return value: " + str(e))

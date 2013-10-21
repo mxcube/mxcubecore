@@ -40,9 +40,7 @@ class Component(object):
 	while x:
           coords_list.append(x.getIndex()+1)
           x = x.getContainer()        
-        del coords_list[-1]
         coords_list.reverse()
-        import pdb;pdb.set_trace()
         return tuple(coords_list) 
     
     def getIndex(self):
