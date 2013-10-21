@@ -190,9 +190,29 @@ class BeamlineSetup(HardwareObject):
                                               getProperty('exposure_time')), 4)
         acq_parameters.num_passes = int(self[parent_key].\
                                         getProperty('number_of_passes'))
-        acq_parameters.energy = float()
-        acq_parameters.resolution = float()
-        acq_parameters.transmission = float()
+
+        try:
+            transmission = self.transmission_hwobj.getAttFactor()
+            transmission = round(float(transmission), 1)
+        except AttributeError:
+            transmission = 0
+
+        try:
+            resolution = self.resolution_hwobj.getPosition()
+            resolution = round(float(resolution), 4)
+        except AttributeError:
+            resolution = 0
+
+        try:
+            energy = self.energy_hwobj.getCurrentEnergy()
+            energy = round(float(energy), 2)
+        except AttributeError:
+            energy = 0
+
+        acq_parameters.resolution = resolution
+        acq_parameters.energy = energy
+        acq_parameters.transmission = transmission
+                                        
         acq_parameters.inverse_beam = False
         acq_parameters.shutterless = bool(self['detector'].\
                                           getProperty('has_shutterless'))
