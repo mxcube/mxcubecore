@@ -53,6 +53,7 @@ class wrap_errors(object):
         try:
             return func(*args, **kwargs)
         except:
+            sys.excepthook(*sys.exc_info())
             return TaskException(*sys.exc_info())
 
     def __str__(self):
@@ -64,7 +65,6 @@ class wrap_errors(object):
     def __getattr__(self, item):
         return getattr(self.func, item)
 
-
 def task(func):
     def start_task(*args, **kwargs):
         if args and type(args[0]) == types.InstanceType:
@@ -72,7 +72,6 @@ def task(func):
         else:
           logging.debug("Starting %s%s", func.__name__, args)
 
-        exception_callback = kwargs.get("exception_callback")
         try:
           wait = kwargs["wait"]
         except KeyError:
