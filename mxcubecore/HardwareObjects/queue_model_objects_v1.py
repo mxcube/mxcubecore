@@ -1093,3 +1093,34 @@ def dc_from_edna_output(edna_result, reference_image_collection,
             data_collections.append(dc)
 
     return data_collections
+
+
+def create_subwedges(total_num_images, subwedge_size,
+                     osc_range, osc_offset):
+    """
+    Creates n subwedges where n = total_num_images / subwedge_size.
+
+    :param total_num_images: The total number of images
+    :type total_num_images: int
+
+    :param subwedge_size: Number of images in each subwedge
+    :type subwedge_size: int
+
+    :param osc_range: Oscillation range for each image
+    :type osc_range: double
+
+    :param osc_offset: The start angle/offset of the oscillation
+    :osc_offset: double
+    
+    :returns: List of tuples with the format:
+              (start image number, number of images, oscilation start)
+    """
+    number_of_subwedges = total_num_images / subwedge_size
+    subwedges = []
+
+    for subwedge_num in range(0, number_of_subwedges):
+        osc_start = osc_offset + (osc_range * subwedge_size * subwedge_num)
+        subwedges.append((subwedge_num * subwedge_size + 1,
+                        subwedge_size, osc_start))
+
+    return subwedges
