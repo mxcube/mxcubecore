@@ -1027,9 +1027,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         elif state == 'RUNNING':
             self.workflow_started = True
         elif state == 'OPEN':
-            qc = self.get_queue_controller().\
-                 show_workflow_tab() 
-            
+            self.get_queue_controller().show_workflow_tab() 
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
