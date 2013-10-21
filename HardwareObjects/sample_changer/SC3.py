@@ -235,8 +235,8 @@ class SC3(SampleChanger):
 
     def _updateState(self):
         state = self._readState()
-        if state == SampleChangerState.Moving and self._isDeviceBusy(state):
-            return                     
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+            return          
         self._setState(state)
        
     def _readState(self):
@@ -261,13 +261,10 @@ class SC3(SampleChanger):
         state = self._readState()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
 
-    def _waitDeviceReady(self,timeout=-1):
-        start=time.clock()
-        while not self._isDeviceReady():
-            if timeout>0:
-                if (time.clock() - start) > timeout:
-                    raise Exception("Timeout waiting device ready")
-            gevent.sleep(0.01)
+    def _waitDeviceReady(self,timeout=None):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self._isDeviceReady():
+                gevent.sleep(0.01)
             
     def _updateSelection(self):    
         basket_no = self._selected_basket.getValue()                    
