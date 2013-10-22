@@ -26,7 +26,6 @@ class CommandObject:
         self._username = username
         self._arguments = []
         self._combo_arguments_items = {}
-        self._attributes = kwargs
 
 
     def name(self):
@@ -434,9 +433,9 @@ class CommandContainer:
         self.__commandsToAdd = []
 
         
-    def executeCommand(self, cmdName, *args):
+    def executeCommand(self, cmdName, *args, **kwargs):
         if cmdName in self.__commands:
-            return self.__commands[cmdName](*args)
+            return self.__commands[cmdName](*args, **kwargs)
         else:
             raise AttributeError
 

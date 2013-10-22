@@ -4,18 +4,23 @@ import logging
 import gevent
 
 class cleanup:
-  def __init__(self,cleanup_func,**keys) :
-    self.cleanup_func = cleanup_func
+  def __init__(self,*args,**keys) :
+    self.cleanup_funcs = args
     self.keys = keys
     
   def __enter__(self):
     pass
 
   def __exit__(self,*args):
-    if self.cleanup_func is not None:
-      logging.debug("Doing cleanup")
-      self.cleanup_func(**self.keys)
-
+    if self.cleanup_funcs:
+      for cleanup_func in self.cleanup_funcs:
+        if not callable(cleanup_func):
+          continue
+        try:
+          cleanup_func(**self.keys)
+        except:
+          logging.exception("Exception while calling cleanup callback %s", cleanup_func)
+          continue
 
 class error_cleanup:
   def __init__(self,*args,**keys) :
@@ -29,10 +34,12 @@ class error_cleanup:
     if args[0] is not None and self.error_funcs:
       logging.debug("Doing error cleanup")
       for error_func in self.error_funcs:
+        if not callable(error_func):
+          continue
         try:
           error_func(**self.keys)
         except:
-          logging.exception("Exception while calling cleanup on error callback %s", error_func)
+          logging.exception("Exception while calling error cleanup callback %s", error_func)
           continue
 
 class TaskException:
