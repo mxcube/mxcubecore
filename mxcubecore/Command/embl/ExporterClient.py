@@ -71,6 +71,8 @@ class ExporterClient(StandardClient):
         cmd=CMD_SYNC_CALL + " " + method + " "
         if pars is not None:
             for par in pars:
+                if type(par) is list or  type(par) is tuple:
+                    par=self.createArrayParameter(par)
                 cmd += (str(par) + PARAMETER_SEPARATOR)
         ret = self.sendReceive(cmd,timeout)
         return self.__processReturn(ret)
@@ -93,6 +95,8 @@ class ExporterClient(StandardClient):
         return self.send(cmd)
 
     def writeProperty(self,property,value,timeout=-1):
+        if type(value) is list or  type(value) is tuple:
+            value=self.createArrayParameter(value)
         cmd=CMD_PROPERTY_WRITE + " " + property + " " + str(value)
         ret = self.sendReceive(cmd,timeout)
         return self.__processReturn(ret)
@@ -128,6 +132,17 @@ class ExporterClient(StandardClient):
             return []
         value=value.lstrip(ARRAY_SEPARATOR).rstrip(ARRAY_SEPARATOR)
         return value.split(ARRAY_SEPARATOR)
+
+    def createArrayParameter(self,value):
+        ret=""+ARRAY_SEPARATOR
+        if not value is None:
+            if type(value) is list or  type(value) is tuple:
+                for item in value:
+                    ret=ret+str(item)
+                    ret=ret+ARRAY_SEPARATOR
+            else:
+                ret=ret+str(value)
+        return ret        
 
     def onEvent(self, name, value, timestamp):
         pass
