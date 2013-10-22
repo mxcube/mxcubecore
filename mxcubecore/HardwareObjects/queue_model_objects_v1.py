@@ -961,25 +961,14 @@ def to_collect_dict(data_collection, session):
              'skip_images': acq_params.skip_existing_images}]
 
 
-# def next_available_run_number(parent_node, prefix):
-#     largest = 0
-
-#     for task_node in parent_node.get_children():
-#         if task_node.get_prefix() == prefix:
-#             if task_node.get_run_number() > largest:
-#                 largest = task_node.get_run_number()
-
-#     return int(largest)
-
-
 def dc_from_edna_output(edna_result, reference_image_collection,
                         dcg_model, sample_data_model, beamline_setup_hwobj,
                         char_params = None):
     data_collections = []
 
     crystal = copy.deepcopy(reference_image_collection.crystal)
-    processing_parameters = copy.deepcopy(reference_image_collection.\
-                                          processing_parameters)
+    ref_proc_params = reference_image_collection.processing_parameters
+    processing_parameters = copy.deepcopy(ref_proc_params)
 
     try:
         char_results = edna_result.getCharacterisationResult()
@@ -1023,15 +1012,14 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
             acq.path_template = beamline_setup_hwobj.get_default_path_template()
 
-            data_directory = beamline_setup_hwobj.session_hwobj.get_image_directory(sample_data_model.get_name())
-            proc_directory = beamline_setup_hwobj.session_hwobj.get_process_directory(sample_data_model.get_name())
-
-            acq.path_template.directory = data_directory
-            acq.path_template.process_directory = proc_directory
-            acq.path_template.base_prefix = beamline_setup_hwobj.session_hwobj.\
-                get_default_prefix(sample_data_model)
+            # Use the same path tempalte as the reference_collection
+            # and update the members the needs to be changed. Keeping
+            # the directories of the reference collection.
+            ref_pt= reference_image_collection.acquisitions[0].path_template
+            acq.path_template = copy.deepcopy(ref_pt)
             acq.path_template.wedge_prefix = 'w' + str(i + 1)
-
+            acq.path_template.reference_image_prefix = str()
+            
             if resolution:
                 acquisition_parameters.resolution = resolution
 
