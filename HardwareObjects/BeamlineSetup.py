@@ -193,19 +193,19 @@ class BeamlineSetup(HardwareObject):
 
         try:
             transmission = self.transmission_hwobj.getAttFactor()
-            transmission = round(float(transmission), 1)
+            transmission = round(float(transmission), 2)
         except AttributeError:
             transmission = 0
 
         try:
             resolution = self.resolution_hwobj.getPosition()
-            resolution = round(float(resolution), 4)
+            resolution = round(float(resolution), 3)
         except AttributeError:
             resolution = 0
 
         try:
             energy = self.energy_hwobj.getCurrentEnergy()
-            energy = round(float(energy), 2)
+            energy = round(float(energy), 4)
         except AttributeError:
             energy = 0
 
