@@ -2,7 +2,6 @@
 """
 from HardwareRepository.TaskUtils import *
 from sample_changer import SC3
-import gevent 
 import functools
 
 class ESRFSC3(SC3.SC3):
@@ -12,9 +11,6 @@ class ESRFSC3(SC3.SC3):
     def __init__(self, *args, **kwargs):
         SC3.SC3.__init__(self, *args, **kwargs)
 
-        self.loadSampleProcedure = None
-        self.unloadSampleProcedure = None
-        self.failureCallback = None
         self.lastOperationalFlags = ESRFSC3.FLAG_SC_NEVER
 
     def init(self):
@@ -209,6 +205,7 @@ class ESRFSC3(SC3.SC3):
             return False
         return True
 
+    """
     def sampleChangerToLoadingPosition(self):
         try:
             r=self._moveToLoadingPosition()
@@ -216,3 +213,4 @@ class ESRFSC3(SC3.SC3):
             logging.getLogger("HWR").exception("%s: error moving sample changer to loading position" % self.name())
             return False
         return True
+    """
