@@ -1009,6 +1009,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
 
         #self.workflow_hwobj.abort()
+        msg = "Starting workflow (%s)" % (self.get_model()._type)
+        logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
         self.workflow_running = True
         self.workflow_hwobj.start(workflow_params)
@@ -1027,6 +1029,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         elif state == 'RUNNING':
             self.workflow_started = True
         elif state == 'OPEN':
+            msg = "Workflow waiting for input"
+            logging.getLogger("user_level_log").warning(msg)
             self.get_queue_controller().show_workflow_tab() 
 
     def pre_execute(self):
