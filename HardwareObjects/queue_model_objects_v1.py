@@ -137,6 +137,12 @@ class TaskNode(object):
     def get_files_to_be_written(self):
         return []
 
+    def get_centred_positions(self):
+        return []
+
+    def set_centred_positions(self, cp):
+        pass
+
     def is_executed(self):
         return self._executed
 
@@ -393,6 +399,12 @@ class DataCollection(TaskNode):
 
         return file_locations
 
+    def get_centred_positions(self):
+        return [self.acquisitions[0].acquisition_parameters.centred_position]
+
+    def set_centred_positions(self, cp):
+        self.acquisitions[0].acquisition_parameters.centred_position = cp
+
     def __str__(self):
         s = '<%s object at %s>' % (
             self.__class__.__name__,
@@ -476,6 +488,14 @@ class Characterisation(TaskNode):
         file_locations = path_template.get_files_to_be_written()
 
         return file_locations
+
+    def get_centred_positions(self):
+        return [self.reference_image_collection.acquisitions[0].\
+                acquisition_parameters.centred_position]
+
+    def set_centred_positions(self, cp):
+        self.reference_image_collection.acquisitions[0].\
+            acquisition_parameters.centred_position = cp
 
     def copy(self):
         new_node = copy.deepcopy(self)
