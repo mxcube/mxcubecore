@@ -1,7 +1,7 @@
 import logging
 import jsonpickle
-
 import queue_model_objects_v1 as queue_model_objects
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Marcus Oskarsson"
@@ -153,9 +153,11 @@ class BeamlineSetup(HardwareObject):
                                               getProperty('exposure_time')), 4)
         acq_parameters.num_passes = int(self[parent_key].\
                                         getProperty('number_of_passes'))
-        acq_parameters.energy = float()
-        acq_parameters.resolution = float()
-        acq_parameters.transmission = float()
+
+        acq_parameters.resolution = self._get_resolution()
+        acq_parameters.energy = self._get_energy()
+        acq_parameters.transmission = self._get_transmission()
+          
         acq_parameters.inverse_beam = False
         acq_parameters.shutterless = bool(self['detector'].\
                                           getProperty('has_shutterless'))
@@ -191,27 +193,9 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.num_passes = int(self[parent_key].\
                                         getProperty('number_of_passes'))
 
-        try:
-            transmission = self.transmission_hwobj.getAttFactor()
-            transmission = round(float(transmission), 2)
-        except AttributeError:
-            transmission = 0
-
-        try:
-            resolution = self.resolution_hwobj.getPosition()
-            resolution = round(float(resolution), 3)
-        except AttributeError:
-            resolution = 0
-
-        try:
-            energy = self.energy_hwobj.getCurrentEnergy()
-            energy = round(float(energy), 4)
-        except AttributeError:
-            energy = 0
-
-        acq_parameters.resolution = resolution
-        acq_parameters.energy = energy
-        acq_parameters.transmission = transmission
+        acq_parameters.resolution = self._get_resolution()
+        acq_parameters.energy = self._get_energy()
+        acq_parameters.transmission = self._get_transmission()
                                         
         acq_parameters.inverse_beam = False
         acq_parameters.shutterless = bool(self['detector'].\
@@ -249,3 +233,30 @@ class BeamlineSetup(HardwareObject):
                                       getProperty('number_of_images'))
 
         return path_template
+
+    def _get_energy(self):
+        try:
+            energy = self.energy_hwobj.getCurrentEnergy()
+            energy = round(float(energy), 4)
+        except AttributeError:
+            energy = 0
+
+        return energy
+
+    def _get_transmission(self):
+        try:
+            transmission = self.transmission_hwobj.getAttFactor()
+            transmission = round(float(transmission), 2)
+        except AttributeError:
+            transmission = 0
+
+        return transmission
+
+    def _get_resolution(self):
+        try:
+            resolution = self.resolution_hwobj.getPosition()
+            resolution = round(float(resolution), 3)
+        except AttributeError:
+            resolution = 0
+
+        return resolution
