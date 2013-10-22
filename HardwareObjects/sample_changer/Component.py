@@ -38,7 +38,9 @@ class Component(object):
         coords_list = [self.getIndex()+1]
         x = self.getContainer()
 	while x:
-          coords_list.append(x.getIndex()+1)
+          idx = x.getIndex()
+          if idx is not None:
+            coords_list.append(idx+1)
           x = x.getContainer()        
         coords_list.reverse()
         return tuple(coords_list) 

@@ -126,7 +126,6 @@ class SC3(SampleChanger):
             sample_list = handler.dataMatrixList
             basket_list = handler.basketDataMatrixList
         except Exception,ex:
-            logging.error("Error retrieving sample info: %s" % str(ex))
             basket_list= [('',4)] * 5
             sample_list=[]
             for b in range(5):
@@ -152,7 +151,7 @@ class SC3(SampleChanger):
             sample = self.getComponentByAddress(Pin.getSampleAddress(s[1], s[2]))
             sample._setInfo(present,datamatrix,scanned)     
             sample._setLoaded(loaded,has_been_loaded)
-            sample._setHolderLength(s[4])            
+            sample._setHolderLength(s[4])    
         self._updateSelection()
         self._updateState()               
                     
@@ -234,7 +233,10 @@ class SC3(SampleChanger):
         return ret
 
     def _updateState(self):
-        state = self._readState()
+        try:
+          state = self._readState()
+        except:
+          state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return          
         self._setState(state)
@@ -267,17 +269,20 @@ class SC3(SampleChanger):
                 gevent.sleep(0.01)
             
     def _updateSelection(self):    
-        basket_no = self._selected_basket.getValue()                    
-        changed=False
         basket=None
         sample=None
-        if basket_no is not None and basket_no>0 and basket_no <=5:
+        try:
+          basket_no = self._selected_basket.getValue()                    
+          if basket_no is not None and basket_no>0 and basket_no <=5:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             sample_no = self._selected_sample.getValue()
             if sample_no is not None and sample_no>0 and sample_no <=10:
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
+        except:
+          pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
+      
                 
                             
                 
