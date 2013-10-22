@@ -583,9 +583,12 @@ class EnergyScanResult(object):
 
 
 class SampleCentring(TaskNode):
-    def __init__(self):
+    def __init__(self, name = None):
         TaskNode.__init__(self)
         self._tasks = []
+
+        if name:
+            self.set_name(name)
 
     def add_task(self, task_node):
         self._tasks.append(task_node)
@@ -958,25 +961,14 @@ def to_collect_dict(data_collection, session):
              'skip_images': acq_params.skip_existing_images}]
 
 
-# def next_available_run_number(parent_node, prefix):
-#     largest = 0
-
-#     for task_node in parent_node.get_children():
-#         if task_node.get_prefix() == prefix:
-#             if task_node.get_run_number() > largest:
-#                 largest = task_node.get_run_number()
-
-#     return int(largest)
-
-
 def dc_from_edna_output(edna_result, reference_image_collection,
                         dcg_model, sample_data_model, beamline_setup_hwobj,
                         char_params = None):
     data_collections = []
 
     crystal = copy.deepcopy(reference_image_collection.crystal)
-    processing_parameters = copy.deepcopy(reference_image_collection.\
-                                          processing_parameters)
+    ref_proc_params = reference_image_collection.processing_parameters
+    processing_parameters = copy.deepcopy(ref_proc_params)
 
     try:
         char_results = edna_result.getCharacterisationResult()
@@ -1020,15 +1012,14 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
             acq.path_template = beamline_setup_hwobj.get_default_path_template()
 
-            data_directory = beamline_setup_hwobj.session_hwobj.get_image_directory(sample_data_model.get_name())
-            proc_directory = beamline_setup_hwobj.session_hwobj.get_process_directory(sample_data_model.get_name())
-
-            acq.path_template.directory = data_directory
-            acq.path_template.process_directory = proc_directory
-            acq.path_template.base_prefix = beamline_setup_hwobj.session_hwobj.\
-                get_default_prefix(sample_data_model)
+            # Use the same path tempalte as the reference_collection
+            # and update the members the needs to be changed. Keeping
+            # the directories of the reference collection.
+            ref_pt= reference_image_collection.acquisitions[0].path_template
+            acq.path_template = copy.deepcopy(ref_pt)
             acq.path_template.wedge_prefix = 'w' + str(i + 1)
-
+            acq.path_template.reference_image_prefix = str()
+            
             if resolution:
                 acquisition_parameters.resolution = resolution
 
@@ -1094,9 +1085,7 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
     return data_collections
 
-
-def create_subwedges(total_num_images, subwedge_size,
-                     osc_range, osc_offset):
+def create_subwedges(total_num_images, sw_size, osc_range, osc_start):
     """
     Creates n subwedges where n = total_num_images / subwedge_size.
 
@@ -1109,18 +1098,56 @@ def create_subwedges(total_num_images, subwedge_size,
     :param osc_range: Oscillation range for each image
     :type osc_range: double
 
-    :param osc_offset: The start angle/offset of the oscillation
-    :osc_offset: double
+    :param osc_start: The start angle/offset of the oscillation
+    :type osc_start: double
     
     :returns: List of tuples with the format:
               (start image number, number of images, oscilation start)
     """
-    number_of_subwedges = total_num_images / subwedge_size
+    number_of_subwedges = total_num_images / sw_size
     subwedges = []
 
-    for subwedge_num in range(0, number_of_subwedges):
-        osc_start = osc_offset + (osc_range * subwedge_size * subwedge_num)
-        subwedges.append((subwedge_num * subwedge_size + 1,
-                        subwedge_size, osc_start))
+    for sw_num in range(0, number_of_subwedges):
+        _osc_start = osc_start + (osc_range * sw_size * sw_num)
+        subwedges.append((sw_num * sw_size + 1, sw_size, _osc_start))
 
+    return subwedges
+
+def create_inverse_beam_sw(num_images, sw_size, osc_range,
+                           osc_start, run_number):
+    """
+    Creates subwedges for inverse beam, and interleves the result.
+    Wedges W1 and W2 are created 180 degres apart, the result is
+    interleaved and given on the form:
+    (W1_1, W2_1), ... (W1_n-1, W2_n-1), (W1_n, W2_n)
+
+    :param num_images: The total number of images
+    :type num_images: int
+
+    :param sw_size: Number of images in each subwedge
+    :type sw_size: int
+
+    :param osc_range: Oscillation range for each image
+    :type osc_range: double
+
+    :param osc_start: The start angle/offset of the oscillation
+    :type osc_start: double
+
+    :param run_number: Run number for the first wedge (W1), the run number
+                       of the second wedge will be run_number + 1.
+
+    :returns: A list of tuples containing the swb wedges.
+              The tuples are on the form:
+              (start_image, num_images, osc_start, run_number)
+
+    :rtype: List [(...), (...)]
+    """
+    w1 = create_subwedges(num_images, sw_size, osc_range, osc_start)
+    w2 = create_subwedges(num_images, sw_size, osc_range, 180 + osc_start)
+    w1 = [pair + (run_number,) for pair in w1]
+    w2 = [pair + (run_number + 1,) for pair in w2]
+
+    # Interlave subwedges
+    subwedges = [sw_pair for pair in zip(w1, w2) for sw_pair in pair]
+    
     return subwedges
