@@ -42,6 +42,7 @@ class StandardClient:
         self.__msg_index__=-1
         self.__sock__=None
         self.__CONSTANT_LOCAL_PORT__=True
+        self._isConnected = False
 
     def __createSocket__(self):
         if self.protocol==PROTOCOL.DATAGRAM:
@@ -55,14 +56,17 @@ class StandardClient:
             self.__sock__.close()
         except:
             pass
-        self.__sock__=None
-        self.received_msg=None
+        self._isConnected = False
+        self.__sock__ = None
+        self.received_msg = None
 
     def connect(self):
         if self.protocol==PROTOCOL.DATAGRAM:
             return
-        if self.__sock__==None: self.__createSocket__()
+        if self.__sock__ is None: 
+            self.__createSocket__()
         self.__sock__.connect((self.server_ip, self.server_port))
+        self._isConnected = True
         self.error=None
         self.received_msg=None
         self.receiving_greenlet = gevent.spawn(self.recv_thread) #thread.start_new_thread(self.recv_thread,())
@@ -72,17 +76,12 @@ class StandardClient:
             return False
         if self.__sock__ is None:
             return False
-        try:
-            p=self.__sock__.getpeername()
-        except:
-            return False
-        return True
+        return self._isConnected
 
     def disconnect(self):
         if self.isConnected():
-            self.__sock__.shutdown(socket.SHUT_RDWR)
+          self.receiving_greenlet.kill()
         self.__closeSocket__()
-
 
     def __sendReceiveDatagramSingle__(self,cmd):
         try:
@@ -153,18 +152,20 @@ class StandardClient:
         self.received_msg=msg
         self.msg_received_event.set()
 
+
     def recv_thread(self):
         try:
             self.onConnected()
         except:
             pass
-        try:            
-            buffer=""
-            mReceivedSTX=False
-            while True:
-                ret=self.__sock__.recv(4096)
-                if ret=="" or self.isConnected()==False:
+        buffer=""
+        mReceivedSTX=False
+        while True:
+                ret = self.__sock__.recv(4096)
+                if not ret: 
+                    # connection reset by peer
                     self.error = "Disconnected"
+                    self.__closeSocket__()
                     break
                 for b in ret:
                     if (b==STX):
@@ -182,10 +183,6 @@ class StandardClient:
                 if (len(buffer)>MAX_SIZE_STREAM_MSG):
                     mReceivedSTX=False;
                     buffer="";
-        except:
-            self.error=str(sys.exc_info()[1])
-            self.__closeSocket__()
-            
         try:
             self.onDisconnected()
         except:
@@ -193,14 +190,15 @@ class StandardClient:
 
 
     def __sendStream__(self,cmd):
-        if self.isConnected()==False:
+        if not self.isConnected():
             self.connect()
 
         try:
             pack=STX+cmd+ETX
             self.__sock__.send(pack)
-        except:
-            raise SocketError,"Socket error:" + str(sys.exc_info()[1])
+        except SocketError:
+            self.disconnect()
+            #raise SocketError,"Socket error:" + str(sys.exc_info()[1])
 
     def __sendReceiveStream__(self,cmd):
         self.error=None
