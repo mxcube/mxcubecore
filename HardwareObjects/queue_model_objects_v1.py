@@ -782,6 +782,7 @@ class AcquisitionParameters(object):
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
+        self.induce_burn = False
 
 
 class Crystal(object):
@@ -951,7 +952,7 @@ def to_collect_dict(data_collection, session):
              'detector_mode': acq_params.detector_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,
-             'do_inducedraddam': False,
+             'do_inducedraddam': acq_params.induce_burn,
              'sample_reference': {'spacegroup': proc_params.space_group,
                                   'cell': proc_params.get_cell_str()},
              'processing': str(proc_params.process_data and True),
