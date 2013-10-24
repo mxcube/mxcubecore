@@ -1144,6 +1144,13 @@ class ISPyBClient2(HardwareObject):
 
         return group_id
 
+    def _store_motor_position(self, mpos_dict):
+        """
+        """
+        pos_id = self.__collection.service.\
+          storeOrUpdateMotorPosition(mpos_dict)
+
+        return pos_id
 
     # Bindings to methods called from older bricks.
     getProposal = get_proposal
