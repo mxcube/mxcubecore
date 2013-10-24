@@ -1007,7 +1007,13 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        #self.workflow_hwobj.abort()
+        if str(self.workflow_hwobj.state.value) != 'ON':
+            self.workflow_hwobj.abort()
+            time.sleep(3)
+
+            while str(self.workflow_hwobj.state.value) != 'ON':
+                time.sleep(0.5)
+
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
