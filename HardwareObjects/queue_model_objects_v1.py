@@ -974,7 +974,7 @@ def to_collect_dict(data_collection, session):
                                        'number_of_passes': acq_params.num_passes}],
              'group_id': data_collection.lims_group_id,
              #'nb_sum_images': 0,
-             'EDNA_files_dir': '',
+             'EDNA_files_dir': acquisition.path_template.process_directory,
              'anomalous': proc_params.anomalous,
              #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
