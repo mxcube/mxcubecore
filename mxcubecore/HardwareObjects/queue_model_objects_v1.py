@@ -1087,7 +1087,7 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
             try: 
                 acquisition_parameters.energy = \
-                    int(123984.0/beam.getWavelength().getValue())/10000.0
+                   round((123984.0/beam.getWavelength().getValue())/10000.0, 4)
             except AttributeError:
                 pass
 
