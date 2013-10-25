@@ -62,12 +62,13 @@ class ExporterCommand(CommandObject):
         try:
             ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
         except:
-            logging.getLogger('HWR').exception("%s: an error occured when calling Exporter command %s", str(self.name()), self.command)
+            #logging.getLogger('HWR').exception("%s: an error occured when calling Exporter command %s", str(self.name()), self.command)
+            self.emit('commandFailed', (-1, self.name()))
+            raise
         else:
             self.emit('commandReplyArrived', (ret, str(self.name())))
             return ret
         
-        self.emit('commandFailed', (-1, self.name()))
 
 
     def abort(self):
