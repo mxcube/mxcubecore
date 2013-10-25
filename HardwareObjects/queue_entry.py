@@ -481,11 +481,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             cpos = queue_model_objects.CentredPosition(pos_dict)
             pos = shape_history.Point(None, cpos, None)
 
-        data_collections = self.get_data_model().get_tasks()
+        tasks = self.get_data_model().get_tasks()
 
-        for dc in data_collections:
-            dc.acquisitions[0].acquisition_parameters.\
-                centred_position = pos.get_centred_positions()[0]
+        for task in tasks:
+            cpos = pos.get_centred_positions()[0]
 
             if pos.qub_point is not None:
                 snapshot = self.shape_history.\
@@ -493,8 +492,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             else:
                 snapshot = self.shape_history.get_snapshot([])
 
-            dc.acquisitions[0].acquisition_parameters.\
-                centred_position.snapshot_image = snapshot
+            cpos.snapshot_image = snapshot 
+            task.set_centred_positions(cpos)
 
         self.get_view().setText(1, 'Input accepted')
 
@@ -1008,8 +1007,14 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        #self.workflow_hwobj.abort()
-        msg = "Starting workflow (%s)" % (self.get_model()._type)
+        if str(self.workflow_hwobj.state.value) != 'ON':
+            self.workflow_hwobj.abort()
+            time.sleep(3)
+
+            while str(self.workflow_hwobj.state.value) != 'ON':
+                time.sleep(0.5)
+
+        msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
         self.workflow_running = True

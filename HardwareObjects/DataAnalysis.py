@@ -172,15 +172,12 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         diff_plan.setForcedSpaceGroup(XSDataString(char_params.\
                                                    space_group))
 
-
         # Characterisation type - Routine DC
         if char_params.use_min_dose:
             pass
 
         if char_params.use_min_time:
-            diff_plan.setMaxExposureTimePerDataCollection(XSDataTime(char_params.\
-                                                                     min_time))
-
+            diff_plan.setMaxExposureTimePerDataCollection(XSDataTime(char_params.min_time))
         
         # Account for radiation damage
         if char_params.induce_burn:
@@ -188,10 +185,8 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         else:
             diff_plan.setStrategyOption(None)
 
-
         # Characterisation type - SAD
-        if queue_model_enumerables.EXPERIMENT_TYPE[char_params.experiment_type] is \
-               queue_model_enumerables.EXPERIMENT_TYPE.SAD:
+        if char_params.opt_sad:
             diff_plan.setAnomalousData(XSDataBoolean(True))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))

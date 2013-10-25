@@ -137,6 +137,12 @@ class TaskNode(object):
     def get_files_to_be_written(self):
         return []
 
+    def get_centred_positions(self):
+        return []
+
+    def set_centred_positions(self, cp):
+        pass
+
     def is_executed(self):
         return self._executed
 
@@ -393,6 +399,12 @@ class DataCollection(TaskNode):
 
         return file_locations
 
+    def get_centred_positions(self):
+        return [self.acquisitions[0].acquisition_parameters.centred_position]
+
+    def set_centred_positions(self, cp):
+        self.acquisitions[0].acquisition_parameters.centred_position = cp
+
     def __str__(self):
         s = '<%s object at %s>' % (
             self.__class__.__name__,
@@ -476,6 +488,14 @@ class Characterisation(TaskNode):
         file_locations = path_template.get_files_to_be_written()
 
         return file_locations
+
+    def get_centred_positions(self):
+        return [self.reference_image_collection.acquisitions[0].\
+                acquisition_parameters.centred_position]
+
+    def set_centred_positions(self, cp):
+        self.reference_image_collection.acquisitions[0].\
+            acquisition_parameters.centred_position = cp
 
     def copy(self):
         new_node = copy.deepcopy(self)
@@ -762,6 +782,7 @@ class AcquisitionParameters(object):
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
+        self.induce_burn = False
 
 
 class Crystal(object):
@@ -931,7 +952,7 @@ def to_collect_dict(data_collection, session):
              'detector_mode': acq_params.detector_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,
-             'do_inducedraddam': False,
+             'do_inducedraddam': acq_params.induce_burn,
              'sample_reference': {'spacegroup': proc_params.space_group,
                                   'cell': proc_params.get_cell_str()},
              'processing': str(proc_params.process_data and True),
@@ -953,7 +974,7 @@ def to_collect_dict(data_collection, session):
                                        'number_of_passes': acq_params.num_passes}],
              'group_id': data_collection.lims_group_id,
              #'nb_sum_images': 0,
-             'EDNA_files_dir': '',
+             'EDNA_files_dir': acquisition.path_template.process_directory,
              'anomalous': proc_params.anomalous,
              #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
@@ -1066,7 +1087,7 @@ def dc_from_edna_output(edna_result, reference_image_collection,
 
             try: 
                 acquisition_parameters.energy = \
-                    int(123984.0/beam.getWavelength().getValue())/10000.0
+                   round((123984.0/beam.getWavelength().getValue())/10000.0, 4)
             except AttributeError:
                 pass
 
