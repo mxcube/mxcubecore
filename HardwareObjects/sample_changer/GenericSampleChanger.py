@@ -239,6 +239,13 @@ class SampleChanger(Container,Equipment):
         """           
         return self.getLoadedSample() is not None
               
+    
+    def is_mounted_sample(self, sample_location):
+        try:
+            return self.getLoadedSample().getCoords() == sample_location
+        except AttributeError:
+            return False
+
 
     def abort(self):
         """
