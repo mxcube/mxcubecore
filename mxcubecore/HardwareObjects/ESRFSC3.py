@@ -144,7 +144,6 @@ class ESRFSC3(SC3.SC3):
  
         return not self.hasLoadedSample()
 
-
     def moveCryoIn(self):
         cryoDevice = self.getDeviceByRole("Cryo")
         if cryoDevice is not None:
