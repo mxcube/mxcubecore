@@ -1,4 +1,4 @@
-from GenericSampleChanger import *
+from .GenericSampleChanger import *
 
 import xml.sax
 from xml.sax import SAXParseException
@@ -222,14 +222,12 @@ class SC3(SampleChanger):
             while self._isDeviceBusy():
                 gevent.sleep(0.1)
         else:
-            while str(self._is_task_running(task_id)).lower() == 'true': #If sync end with task_id must sync start with state        
-            #while self._isDeviceBusy():  
+            while str(self._is_task_running(task_id)).lower() == 'true': 
                 gevent.sleep(0.1)            
             try:
                 ret = self._check_task_result(task_id)                
             except Exception,err:
-                raise Exception(str(err)) 
-            #self._updateState()
+                raise 
         return ret
 
     def _updateState(self):
@@ -313,8 +311,6 @@ if __name__ == "__main__":
     sc.command_select_basket="MoveBasketLocation"
     sc.command_reset="Reset"
 
-    
-    
     sc.connect(sc, sc.STATE_CHANGED_EVENT, onStateChanged)
     sc.connect(sc, sc.INFO_CHANGED_EVENT, onInfoChanged)
     sc.init()
