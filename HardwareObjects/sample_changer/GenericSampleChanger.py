@@ -450,8 +450,8 @@ class SampleChanger(Container,Equipment):
             ret=method(*args)
         except Exception as ex:        
             exception=ex
-        if self.getState()==self.task:            
-            self._setState(SampleChangerState.Ready)
+        #if self.getState()==self.task:            
+        #    self._setState(SampleChangerState.Ready)
 	self.updateInfo()
         task=self.task
         self.task=None
