@@ -98,7 +98,11 @@ class ESRFSC3(SC3.SC3):
         else:
           raise RuntimeError("spec is not connected")
 
-        SC3.SC3.load(self, sample, wait=True)
+        try:
+            SC3.SC3.load(self, sample, wait=True)
+        except Exception, err:
+            self.emit("statusChanged", str(err))
+            raise
 
         return self.getLoadedSample() == sample
 
