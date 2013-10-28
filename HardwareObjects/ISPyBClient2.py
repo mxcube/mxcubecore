@@ -1144,11 +1144,27 @@ class ISPyBClient2(HardwareObject):
 
         return group_id
 
-    def _store_motor_position(self, mpos_dict):
+    def store_centred_position(self, cpos):
         """
         """
-        pos_id = self.__collection.service.\
-          storeOrUpdateMotorPosition(mpos_dict)
+        pos_id = -1
+        mpos_dict = {'omega' : cpos.phi,
+                     'phi': 0,
+                     'phiX': 0, 
+                     'phiY': cpos.phiy,
+                     'phiZ': cpos.phiz,
+                     'sampX': cpos.sampx,
+                     'sampY': cpos.sampy}
+
+        msg = 'Storing position in lims: %s' % mpos_dict
+        logging.getLogger("user_level_log").info(msg)
+        
+        try:
+            pos_id = self.__collection.service.\
+                     storeOrUpdateMotorPosition(mpos_dict)
+        except ex:
+            msg = 'Could not store centred position in lims: %s' % ex.message
+            logging.getLogger("ispyb_client").exception(msg)
 
         return pos_id
 
@@ -1620,8 +1636,13 @@ class ISPyBValueFactory():
                          strptime(start_time , "%Y-%m-%d %H:%M:%S")
             data_collection.startTime = start_time
         except:
-            pass 
+            pass
 
+        if mx_collect_dict.has_key('lims_start_pos_id'):
+            data_collection.startPositionId = mx_collect_dict['lims_start_pos_id']
+
+        if mx_collect_dict.has_key('lims_end_pos_id'):
+            data_collection.endPositionId = mx_collect_dict['lims_end_pos_id']
 
         data_collection.endTime = datetime.now()
 

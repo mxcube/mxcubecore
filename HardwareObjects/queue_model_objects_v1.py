@@ -353,6 +353,8 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
+        self.lims_start_pos_id = None
+        self.lims_end_pos_id = None
 
     def as_dict(self):
 
@@ -973,6 +975,8 @@ def to_collect_dict(data_collection, session):
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
              'group_id': data_collection.lims_group_id,
+             'lims_start_pos_id': data_collection.lims_start_pos_id,
+             'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'anomalous': proc_params.anomalous,
