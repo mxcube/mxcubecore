@@ -517,6 +517,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.centring_task = None
         self.shape_history = None
         self.session = None
+        self.lims_client_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -531,6 +532,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
+        self.lims_client_hwobj = self.beamline_setup.lims_client_hwobj
         self.collect_hwobj = self.beamline_setup.collect_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
@@ -581,6 +583,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             log = logging.getLogger("user_level_log")
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
+            
             #acq_1.acquisition_parameters.take_snapshots = True
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session)
@@ -594,6 +597,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                  centred_position.as_dict()
                     end_cpos = acq_2.acquisition_parameters.\
                                centred_position.as_dict()
+
+                    dc.lims_end_pos_id = self.lims_client_hwobj.\
+                                         store_centred_position(end_cpos)
 
                     helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
                     self.collect_hwobj.getChannelObject('helical_pos').\
@@ -625,14 +631,18 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     snapshot = self.shape_history.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
+
+                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                     
                 #log.info("Calling collect hw-object with: " + str(dc.as_dict()))
 
                 #log.info("Collecting: " + str(dc.as_dict()))
                 self.collect_task = self.collect_hwobj.\
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
-                                            param_list)
+                                            param_list)                
                 self.collect_task.get()
+                dc.id = param_list[0]['collection_id']
+                
             except gevent.GreenletExit:
                 log.exception("Collection stopped by user.")
                 log.warning("Collection stopped by user.")
