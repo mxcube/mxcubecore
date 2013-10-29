@@ -186,7 +186,7 @@ class ShapeHistory(HardwareObject):
 
     def _delete_shape(self, shape):
         shape.unhighlight()
-        
+  
         if shape in self.selected_shapes:
             del self.selected_shapes[shape]
 
@@ -206,6 +206,15 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
+        #Remove related shapes first
+        for s in self.get_shapes():
+            if s != shape:
+                for s_qub_obj in s.get_qub_objects():
+                    if  s_qub_obj in shape.get_qub_objects():
+                        self._delete_shape(s)
+                        del self.shapes[s]
+                        break
+
         self._delete_shape(shape)
         del self.shapes[shape]
 
