@@ -301,10 +301,10 @@ class QueueModel(HardwareObject):
         """
         result = False
         path_template_list = self.get_path_templates()
-
+        
         for pt in path_template_list:
             if pt[1] is not new_path_template:
-                if new_path_template.is_part_of(pt[1]):
+                if new_path_template.intersection(pt[1]):
                     result = True
 
         return result
