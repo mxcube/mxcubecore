@@ -653,13 +653,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        # this is to work around the remote access problem
-        dispatcher.send("collect_started")
+        pass
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
 
     def image_taken(self, image_number):
+        # this is to work around the remote access problem
+        dispatcher.send("collect_started")
         num_images = str(self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images)
 
