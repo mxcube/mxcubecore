@@ -1149,8 +1149,9 @@ class ISPyBClient2(HardwareObject):
         """
         pos_id = -1
         mpos_dict = {'omega' : cpos.phi,
-                     'phi': 0,
-                     'phiX': 0, 
+                     'phi': cpos.kappa_phi,
+                     'kappa': cpos.kappa,
+                     'phiX': cpos.phix, 
                      'phiY': cpos.phiy,
                      'phiZ': cpos.phiz,
                      'sampX': cpos.sampx,

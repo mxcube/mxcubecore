@@ -817,8 +817,11 @@ class CentredPosition(object):
         self.sampx = int()
         self.sampy = int()
         self.phi = int()
+        self.phix = int()
         self.phiz = int()
         self.phiy = int()
+        self.kappa = int()
+        self.kappa_phi = int()
         self.zoom = int()
         self.snapshot_image = None
         self.centring_method = True
@@ -838,6 +841,16 @@ class CentredPosition(object):
                 self.phi = motor_dict['phi']
             except KeyError:
                 pass
+            
+            try:
+                self.phix = motor_dict['focus']
+            except KeyError:
+                pass
+
+            try:
+                self.phiy = motor_dict['phiy']
+            except KeyError:
+                pass
 
             try:
                 self.phiz = motor_dict['phiz']
@@ -845,7 +858,12 @@ class CentredPosition(object):
                 pass
 
             try:
-                self.phiy = motor_dict['phiy']
+                self.kappa = motor_dict['kappa']
+            except KeyError:
+                pass
+
+            try:
+                self.kappa_phi = motor_dict['kappa_phi']
             except KeyError:
                 pass
 
@@ -858,16 +876,21 @@ class CentredPosition(object):
         return {'sampx': self.sampx,
                 'sampy': self.sampy,
                 'phi': self.phi,
-                'phiz': self.phiz,
+                'phix': self.phix,
                 'phiy': self.phiy,
+                'phiz': self.phiz,
+                'kappa': self.kappa,
+                'kappa_phi': self.kappa_phi,
                 'zoom': self.zoom}
 
     def __repr__(self):
         return str({'sampx': str(self.sampx),
                     'sampy': str(self.sampy),
-                    'phi': str(self.phi),
+                    'omega': str(self.phi),
                     'phiz': str(self.phiz),
                     'phiy': str(self.phiy),
+                    'kappa': str(self.kappa),
+                    'kappa_phi': str(self.kappa_phi),
                     'zoom': str(self.zoom)})
 
     def __eq__(self, cpos):
