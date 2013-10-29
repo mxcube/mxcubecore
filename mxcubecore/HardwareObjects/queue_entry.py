@@ -593,25 +593,19 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     self.collect_hwobj.getChannelObject("helical").setValue(1)
 
-                    start_cpos = acq_1.acquisition_parameters.\
-                                 centred_position.as_dict()
-                    end_cpos = acq_2.acquisition_parameters.\
-                               centred_position.as_dict()
+                    start_cpos = acq_1.acquisition_parameters.centred_position
+                    end_cpos = acq_2.acquisition_parameters.centred_position
 
                     dc.lims_end_pos_id = self.lims_client_hwobj.\
                                          store_centred_position(end_cpos)
 
-                    helical_oscil_pos = {'1': start_cpos, '2': end_cpos}
-                    self.collect_hwobj.getChannelObject('helical_pos').\
-                        setValue(helical_oscil_pos)
+                    helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict()}
+                    self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
 
                     msg = "Helical data collection with start" +\
                           "position: " + str(pprint.pformat(start_cpos)) + \
                           " and end position: " + str(pprint.pformat(end_cpos))
                     log.info(msg)
-                    #log.info("Moving to start position: " + \
-                    #         str(pprint.pformat(start_cpos)))
-
                     list_item.setText(1, "Moving sample")
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
