@@ -240,6 +240,8 @@ class BeamlineSetup(HardwareObject):
             energy = round(float(energy), 4)
         except AttributeError:
             energy = 0
+        except TypeError:
+            energy = 0
 
         return energy
 
@@ -249,6 +251,8 @@ class BeamlineSetup(HardwareObject):
             transmission = round(float(transmission), 2)
         except AttributeError:
             transmission = 0
+        except TypeError:
+            transmission = 0
 
         return transmission
 
@@ -257,6 +261,8 @@ class BeamlineSetup(HardwareObject):
             resolution = self.resolution_hwobj.getPosition()
             resolution = round(float(resolution), 3)
         except AttributeError:
+            resolution = 0
+        except TypeError:
             resolution = 0
 
         return resolution
