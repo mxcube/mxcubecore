@@ -22,20 +22,23 @@ class MicrodiffMotor(Device):
         self.motor_pos_attr_suffix = "Position"
 
     def init(self): 
-        self.motorState = MicrodiffMotor.NOTINITIALIZED
-        self.position_attr = self.addChannel({"type":"exporter", "name":"position"  }, self.motor_name+self.motor_pos_attr_suffix)
-        self.position_attr.connectSignal("update", self.motorPositionChanged)
-        self.state_attr = self.addChannel({"type":"exporter", "name":"state" }, "State")
-        #self.state_attr.connectSignal("update", self.globalStateChanged)
-        self.motors_state_attr = self.addChannel({"type":"exporter", "name":"motor_states"}, "MotorStates")
-        self.motors_state_attr.connectSignal("update", self.updateMotorState)
-        self._motor_abort = self.addCommand( {"type":"exporter", "name":"abort" }, "abort")
-        #TODO: dynamic limits
-        #self.motor_limits_attr = self.addChannel({"type":"exporter", "name":"limits"}, self.motor_name+"DynamicLimits" )
-        self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
-
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.motor_name
+
+        self.motorState = MicrodiffMotor.NOTINITIALIZED
+
+        self.position_attr = self.addChannel({"type":"exporter", "name":"position"  }, self.motor_name+self.motor_pos_attr_suffix)
+        if self.position_attr is not None:
+          self.position_attr.connectSignal("update", self.motorPositionChanged)
+          self.state_attr = self.addChannel({"type":"exporter", "name":"state" }, "State")
+          #self.state_attr.connectSignal("update", self.globalStateChanged)
+          self.motors_state_attr = self.addChannel({"type":"exporter", "name":"motor_states"}, "MotorStates")
+          self.motors_state_attr.connectSignal("update", self.updateMotorState)
+          self._motor_abort = self.addCommand( {"type":"exporter", "name":"abort" }, "abort")
+          #TODO: dynamic limits
+          #self.motor_limits_attr = self.addChannel({"type":"exporter", "name":"limits"}, self.motor_name+"DynamicLimits" )
+          self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
+
 
     def connectNotify(self, signal):
         if signal == 'positionChanged':
@@ -63,7 +66,10 @@ class MicrodiffMotor(Device):
 
     def getState(self):
         if self.motorState == MicrodiffMotor.NOTINITIALIZED:
-          self.updateMotorState(self.motors_state_attr.getValue())
+          try:
+            self.updateMotorState(self.motors_state_attr.getValue())
+          except:
+            return MicrodiffMotor.NOTINITIALIZED
         return self.motorState
     
     def motorLimitsChanged(self):
@@ -87,13 +93,15 @@ class MicrodiffMotor(Device):
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
-        return self.position_attr.getValue()
+        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+          return self.position_attr.getValue()
 
     def getDialPosition(self):
         return self.getPosition()
 
     def move(self, absolutePosition):
-        self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
+        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+          self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -121,4 +129,5 @@ class MicrodiffMotor(Device):
         return self.motor_name
 
     def stop(self):
-        self._motor_abort()
+        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+          self._motor_abort()
