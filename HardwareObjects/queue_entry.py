@@ -788,8 +788,12 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             char.html_report = self.data_analysis_hwobj.\
                                get_html_report(self.edna_result)
 
-            strategy_result = self.edna_result.getCharacterisationResult().\
-                              getStrategyResult()
+            try:
+                strategy_result = self.edna_result.getCharacterisationResult().\
+                                  getStrategyResult()
+            except:
+                strategy_result = None
+                
 
             if strategy_result:
                 collection_plan = strategy_result.getCollectionPlan()
