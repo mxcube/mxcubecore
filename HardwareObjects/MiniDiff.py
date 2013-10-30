@@ -809,7 +809,7 @@ class MiniDiff(Equipment):
            self.emit('centringSnapshots', (True,))
            self.emitProgressMessage("")
         self.emitProgressMessage("Sample is centred!")
-        self.emit('centringAccepted', (True,self.getCentringStatus()))
+        #self.emit('centringAccepted', (True,self.getCentringStatus()))
 
 
 
