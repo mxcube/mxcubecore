@@ -1,5 +1,6 @@
 from qt import *
 from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import *
 import logging
 import PyChooch
 from matplotlib.figure import Figure
@@ -18,7 +19,6 @@ class EnergyScan(Equipment):
         self.energyMotor = None
         self.energyScanArgs = None
         self.archive_prefix = None
-        self.storeScanThread = None
         self.energy2WavelengthConstant=None
         self.defaultWavelength=None
         self._element = None
@@ -244,60 +244,60 @@ class EnergyScan(Equipment):
         self.emit('energyScanFailed', ())
         self.ready_event.set()
     def scanCommandFinished(self,result, *args):
-        self.scanInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
-        logging.getLogger("HWR").debug("EnergyScan: energy scan result is %s" % result)
-        self.scanning = False
-        if result==-1:
-            self.storeEnergyScan()
-            self.emit('energyScanFailed', ())
-            return
+        with cleanup(self.ready_event.set):
+            self.scanInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+            logging.getLogger("HWR").debug("EnergyScan: energy scan result is %s" % result)
+            self.scanning = False
+            if result==-1:
+                self.storeEnergyScan()
+                self.emit('energyScanFailed', ())
+                return
 
-        try:
-          t = float(result["transmissionFactor"])
-        except:
-          pass
-        else:
-          self.scanInfo["transmissionFactor"]=t
-        try:
-            et=float(result['exposureTime'])
-        except:
-            pass
-        else:
-            self.scanInfo["exposureTime"]=et
-        try:
-            se=float(result['startEnergy'])
-        except:
-            pass
-        else:
-            self.scanInfo["startEnergy"]=se
-        try:
-            ee=float(result['endEnergy'])
-        except:
-            pass
-        else:
-            self.scanInfo["endEnergy"]=ee
+            try:
+              t = float(result["transmissionFactor"])
+            except:
+              pass
+            else:
+              self.scanInfo["transmissionFactor"]=t
+            try:
+                et=float(result['exposureTime'])
+            except:
+                pass
+            else:
+                self.scanInfo["exposureTime"]=et
+            try:
+                se=float(result['startEnergy'])
+            except:
+                pass
+            else:
+                self.scanInfo["startEnergy"]=se
+            try:
+                ee=float(result['endEnergy'])
+            except:
+                pass
+            else:
+                self.scanInfo["endEnergy"]=ee
 
-        try:
-            bsX=float(result['beamSizeHorizontal'])
-        except:
-            pass
-        else:
-            self.scanInfo["beamSizeHorizontal"]=bsX
+            try:
+                bsX=float(result['beamSizeHorizontal'])
+            except:
+                pass
+            else:
+                self.scanInfo["beamSizeHorizontal"]=bsX
 
-        try:
-            bsY=float(result['beamSizeVertical'])
-        except:
-            pass
-        else:
-            self.scanInfo["beamSizeVertical"]=bsY
+            try:
+                bsY=float(result['beamSizeVertical'])
+            except:
+                pass
+            else:
+                self.scanInfo["beamSizeVertical"]=bsY
 
-        try:
-            self.thEdge=float(result['theoreticalEdge'])/1000.0
-        except:
-            pass
-        
-        self.emit('energyScanFinished', (self.scanInfo,))
-        self.ready_event.set()
+            try:
+                self.thEdge=float(result['theoreticalEdge'])/1000.0
+            except:
+                pass
+
+            self.emit('energyScanFinished', (self.scanInfo,))
 
 
     def doChooch(self, scanObject, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
@@ -329,8 +329,13 @@ class EnergyScan(Equipment):
             
             if scanObject is None:                
                 raw_data_file = os.path.join(os.path.dirname(scanFilePrefix), 'data.raw')
-                raw_file = open(raw_data_file, 'r')
-
+                try:
+                    raw_file = open(raw_data_file, 'r')
+                except:
+                    self.storeEnergyScan()
+                    self.emit("energyScanFailed", ())
+                    return
+                
                 for line in raw_file.readlines()[2:]:
                     (x, y) = line.split('\t')
                     x = float(x.strip())
@@ -444,8 +449,8 @@ class EnergyScan(Equipment):
             session_id=int(self.scanInfo['sessionId'])
         except:
             return
-        self.storeScanThread=StoreEnergyScanThread(self.dbConnection,self.scanInfo)
-        self.storeScanThread.start()
+        gevent.spawn(StoreEnergyScanThread, self.dbConnection,self.scanInfo)
+        #self.storeScanThread.start()
 
     def updateEnergyScan(self,scan_id,jpeg_scan_filename):
         pass
@@ -631,21 +636,18 @@ class EnergyScan(Equipment):
             pass
         return energies
 
-class StoreEnergyScanThread(QThread):
-    def __init__(self,db_conn,scan_info):
-        QThread.__init__(self)
-        self.dbConnection=db_conn
-        self.scanInfo=dict(scan_info)
-
-    def run(self):
-        blsampleid=self.scanInfo['blSampleId']
-        self.scanInfo.pop('blSampleId')
-        db_status=self.dbConnection.storeEnergyScan(self.scanInfo)
-        if blsampleid is not None:
-            try:
-                energyscanid=int(db_status['energyScanId'])
-            except:
-                pass
-            else:
-                asoc={'blSampleId':blsampleid, 'energyScanId':energyscanid}
-                self.dbConnection.associateBLSampleAndEnergyScan(asoc)
+def StoreEnergyScanThread(db_conn, scan_info):
+    scanInfo = dict(scan_info)
+    dbConnection = db_conn
+    
+    blsampleid = scanInfo['blSampleId']
+    scanInfo.pop('blSampleId')
+    db_status=dbConnection.storeEnergyScan(scanInfo)
+    if blsampleid is not None:
+        try:
+            energyscanid=int(db_status['energyScanId'])
+        except:
+            pass
+        else:
+            asoc={'blSampleId':blsampleid, 'energyScanId':energyscanid}
+            dbConnection.associateBLSampleAndEnergyScan(asoc)
