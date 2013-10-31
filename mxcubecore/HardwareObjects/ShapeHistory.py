@@ -206,17 +206,25 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
-        #Remove related shapes first
-        for s in self.get_shapes():
-            if s != shape:
-                for s_qub_obj in s.get_qub_objects():
-                    if  s_qub_obj in shape.get_qub_objects():
-                        self._delete_shape(s)
-                        del self.shapes[s]
-                        break
+        related_points = []
+        
+        #If a point remove related line first
+        if isinstance(shape, Point):
+            for s in self.get_shapes():
+                if isinstance(s, Line):
+                    for s_qub_obj in s.get_qub_objects():
+                        if  s_qub_obj in shape.get_qub_objects():
+                            self._delete_shape(s)
+                            related_points.append(s)
+                            break
 
         self._delete_shape(shape)
         del self.shapes[shape]
+
+        # Delete the related shapes after self._delete_shapes so that
+        # related object still exists when calling delete call back.
+        for point in related_points:
+            del self.shapes[point]
 
     def move_shape(self, shape, new_positions):
         """
