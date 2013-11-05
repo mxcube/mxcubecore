@@ -412,7 +412,7 @@ class SampleQueueEntry(BaseQueueEntry):
             if self.sample_changer_hwobj is not None:
                 log.info("Loading sample " + self._data_model.loc_str)
                 sample_mounted = self.sample_changer_hwobj.\
-                                 is_mounted_sample(self._data_model)
+                                 is_mounted_sample(self._data_model.location)
                 if not sample_mounted:
                     self.sample_centring_result = gevent.event.AsyncResult()
                     try:
