@@ -421,16 +421,14 @@ class AbstractMultiCollect(object):
 
         if self.bl_control.sample_changer is not None:
 	    data_collect_parameters["actualSampleBarcode"] = \
-                self.bl_control.sample_changer.getLoadedSampleDataMatrix()
+                self.bl_control.sample_changer.getLoadedSample().getID()
             data_collect_parameters["actualContainerBarcode"] = \
-                self.bl_control.sample_changer.currentBasketDataMatrix
+                self.bl_control.sample_changer.getLoadedSample().getContainer().getID()
 
-            basket, vial = (self.bl_control.sample_changer.currentBasket,
-            		    self.bl_control.sample_changer.currentSample)
+            basket, vial = self.bl_control.sample_changer.getLoadedSample().getCoords()
 
             data_collect_parameters["actualSampleSlotInContainer"] = vial
             data_collect_parameters["actualContainerSlotInSC"] = basket
-
 	else:
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
