@@ -7,13 +7,12 @@ import errno
 import abc
 import collections
 import gevent
-import xmlrpclib
+import autoprocessing
 from HardwareRepository.TaskUtils import *
 
 BeamlineControl = collections.namedtuple('BeamlineControl',
                                          ['diffractometer',
                                           'sample_changer',
-                                          #'slitbox',
                                           'lims',
                                           'safety_shutter',
                                           'machine_current',
@@ -52,7 +51,6 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'beam_divergence_vertical',
                                          'beam_divergence_horizontal',
                                          'polarisation',
-                                         'auto_processing_server',
                                          'input_files_server'])
 
 
@@ -61,7 +59,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*12)
-        self.bl_config = BeamlineConfig(*[None]*28)
+        self.bl_config = BeamlineConfig(*[None]*27)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -821,7 +819,7 @@ class AbstractMultiCollect(object):
       if type(anomalous) == types.StringType:
         anomalous = anomalous == "True"      
       if type(do_inducedraddam) == types.StringType:
-        do_inducedraddam = do_inducedraddam == "True"      
+        do_inducedraddam = do_inducedraddam == "True" 
       if type(residues) == types.StringType:
         try:
           residues = int(residues)
@@ -833,49 +831,34 @@ class AbstractMultiCollect(object):
       if residues == 0:
           residues = 200
 
+      processAnalyseParams = {}
+      processAnalyseParams['EDNA_files_dir'] = EDNA_files_dir
+
       try:
-         server = self.bl_config.auto_processing_server
-         if server is None:
-           return
-      except:
-        return
+        if type(xds_dir) == types.ListType:
+            processAnalyseParams["collections_params"] = xds_dir
+        else:
+            processAnalyseParams['datacollect_id'] = self.collection_id
+            processAnalyseParams['xds_dir'] = xds_dir
+        processAnalyseParams['anomalous'] = anomalous
+        processAnalyseParams['residues'] = residues
+        processAnalyseParams['inverse_beam']= inverse_beam
+        processAnalyseParams["in_multicollect"]=in_multicollect
+        processAnalyseParams["spacegroup"]=spacegroup
+        processAnalyseParams["cell"]=cell
+      except Exception,msg:
+        logging.getLogger().exception("DataCollect:processing: %r" % msg)
       else:
-           processAnalyseParams = {}
-           processAnalyseParams['EDNA_files_dir'] = EDNA_files_dir
-
-           try:
-             if type(xds_dir) == types.ListType:
-                 processAnalyseParams["collections_params"] = xds_dir
-             else:
-                 processAnalyseParams['datacollect_id'] = self.collection_id
-                 processAnalyseParams['xds_dir'] = xds_dir
-             processAnalyseParams['anomalous'] = anomalous
-             processAnalyseParams['residues'] = residues
-             processAnalyseParams['inverse_beam']= inverse_beam
-             processAnalyseParams["in_multicollect"]=in_multicollect
-             processAnalyseParams["spacegroup"]=spacegroup
-             processAnalyseParams["cell"]=cell
-           except Exception,msg:
-             logging.getLogger().exception("DataCollect:processing: %r" % msg)
-           else:
-             logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %s, %s", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
-             
-             try:
-                   server_proxy = xmlrpclib.Server("http://%s" % server,allow_none=True)
-             except:
-                   logging.exception("Cannot create XML-RPC server instance")
-
-             try: 
-               server_proxy.startProcessing(process_event, processAnalyseParams)
-             except Exception,msg:
-               logging.getLogger().exception("Error starting processing, is the autoprocessing server correctly configured?: %r" % msg)
-
-             if process_event=="after" and do_inducedraddam:
-                 #str(self.persistentValues["arguments"]["do_inducedraddam"]) == 'True':
-                 try:
-                     #logging.info("executing: server_proxy.startInducedRadDam(%r)", processAnalyseParams)
-                     server_proxy.startInducedRadDam(processAnalyseParams)
-                 except Exception, msg:
-                     logging.exception("Error starting induced rad.dam: %s", msg)
-             
+        logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
+            
+        try: 
+            autoprocessing.start(self["auto_processing"], process_event, processAnalyseParams)
+        except:
+            logging.getLogger().exception("Error starting processing")
+          
+        if process_event=="after" and do_inducedraddam:
+            try:
+              autoprocessing.startInducedRadDam(processAnalyseParams)
+            except:
+              logging.exception("Error starting induced rad.dam")
                
