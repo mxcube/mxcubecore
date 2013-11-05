@@ -32,6 +32,10 @@ class Basket(Container):
     @staticmethod
     def getBasketAddress(basket_number):
         return str(basket_number)
+
+    def clearInfo(self):
+	self.getContainer()._reset_basket_info(self.getIndex()+1)
+        self.getContainer()._triggerInfoChangedEvent()
             
             
 class XMLDataMatrixReadingHandler(ContentHandler):
@@ -101,7 +105,7 @@ class SC3(SampleChanger):
         for command_name in ("_abort", "_getInfo", "_is_task_running", \
                              "_check_task_result", "_load", "_unload",\
                              "_chained_load", "_set_sample_charge", "_scan_basket",\
-                             "_scan_samples", "_select_sample", "_select_basket", "_reset"):
+                             "_scan_samples", "_select_sample", "_select_basket", "_reset", "_reset_basket_info"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         SampleChanger.init(self)   
@@ -212,6 +216,11 @@ class SC3(SampleChanger):
 
     def _doReset(self):
         self._executeServerTask(self._reset)
+
+    def clearBasketInfo(self, basket):
+	self._reset_basket_info(basket)
+
+
         
 #########################           PRIVATE           #########################        
     def _executeServerTask(self, method, *args):

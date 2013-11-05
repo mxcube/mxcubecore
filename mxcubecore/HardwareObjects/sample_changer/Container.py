@@ -125,6 +125,11 @@ class Container(Component):
             if c.isSelected():
                 return c
         return None            
+
+    def clearInfo(self):
+        Component._resetDirty(self)
+        for c in self.getComponents():
+            c.clearInfo()  	
     
     #########################           PROTECTED           #########################
     
