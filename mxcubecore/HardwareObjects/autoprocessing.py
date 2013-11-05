@@ -18,20 +18,10 @@ def start(programs,processEvent,paramsDict):
         else:
             cell_opt = ''
 
-        # only process if the event matches one or more of the program events
-        continueProcess = False
-
-        import pdb;pdb.set_trace()
-        for program in programs.keys():
-            if programs[program].has_key('processEvent'):
-                if programs[program]['processEvent']==processEvent:
-                    continueProcess = True
-        
-        for program in programs.keys():
-            if program is not None:
+        for program in programs["program"]:
                 try:
-                    if programs[program]['processEvent'] == processEvent:
-                        executable = programs[program]['executable']
+                    if program.getProperty('processEvent') == processEvent:
+                        executable = program.getProperty('executable')
                         opts = "-path"
                         if os.path.isfile(executable):
                             if processEvent == "end_multicollect":
@@ -61,8 +51,6 @@ def start(programs,processEvent,paramsDict):
                             logging.getLogger().error("No program to execute found (%s)",executable)
                 except Exception,msg:
                     logging.getLogger().error("An error occurred (%r)" % msg)
-            else:
-                logging.getLogger().error("No program to execute, check configuration") 
 
 
 def startInducedRadDam(datacollect_params, old={"xds_dir":None}):
