@@ -266,6 +266,15 @@ class ShapeHistory(HardwareObject):
         dispatcher.send("grid", self, grid_dict)
         return grid_dict
 
+    def select_shape(self, shape):
+        """
+        Select the shape <shape> (programmatically).
+
+        :param shape: The shape to select.
+        :type shape: Shape
+        """
+        self._drawing_event.set_selected(shape, call_cb = False)
+
 class DrawingEvent(QubDrawingEvent):
     """
     Extension of Qub that handles mouse and keyboard events for the
