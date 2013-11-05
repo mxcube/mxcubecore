@@ -239,7 +239,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       beam_divergence_vertical = bcm_pars.getProperty('beam_divergence_vertical'),
                                       beam_divergence_horizontal = bcm_pars.getProperty('beam_divergence_horizontal'),     
                                       polarisation = bcm_pars.getProperty('polarisation'),
-                                      auto_processing_server = self.getProperty("auto_processing_server"),
                                       input_files_server = self.getProperty("input_files_server"))
   
 	self.getChannelObject("spec_messages").connectSignal("update", self.log_message_from_spec)
