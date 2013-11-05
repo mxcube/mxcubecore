@@ -277,8 +277,8 @@ if __name__ == "__main__":
         print "Info Changed"
         
     sc = PMSC()    
-    sc.connect(sc, sc.__STATE_CHANGED_EVENT__, onStateChanged)
-    sc.connect(sc, sc.__INFO_CHANGED_EVENT__, onInfoChanged)
+    sc.connect(sc, sc.STATE_CHANGED_EVENT, onStateChanged)
+    sc.connect(sc, sc.INFO_CHANGED_EVENT, onInfoChanged)
     
     #<username>PMSC</username>
   
