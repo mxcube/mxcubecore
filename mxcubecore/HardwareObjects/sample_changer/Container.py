@@ -98,7 +98,7 @@ class Container(Component):
         :rtype: Component 
         """        
         for c in self.getComponents():
-            if c.getId() == id:
+            if c.getID() == id:
                 return c            
             if  isinstance(c,Container):
                 aux=c.getComponentById(id)
@@ -125,6 +125,11 @@ class Container(Component):
             if c.isSelected():
                 return c
         return None            
+
+    def clearInfo(self):
+        Component._resetDirty(self)
+        for c in self.getComponents():
+            c.clearInfo()  	
     
     #########################           PROTECTED           #########################
     
@@ -150,14 +155,11 @@ class Container(Component):
                 s._setSelected(False)
     
     def _setSelectedComponent(self, component):
-        """
-        for c in self.getComponents():
-            if c==component:
-                c._setSelected(True)    
-            else:
-                c._setSelected(False)
-        """
-        component._setSelected(True)
+        if component is None:
+          for c in self.getComponents():
+            c._setSelected(False)
+        else:
+          component._setSelected(True)
     
                 
     def _setSelected(self, selected):

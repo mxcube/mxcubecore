@@ -51,7 +51,6 @@ class SampleChangerState:
     @staticmethod
     def tostring(state):
         return SampleChangerState.STATE_DESC.get(state, "Unknown")
-
     
         
 class SampleChangerMode: 
@@ -68,17 +67,15 @@ class SampleChanger(Container,Equipment):
     """
     Abstract base class for sample changers
     """
-
     __metaclass__ = abc.ABCMeta
 
-    
 #########################           EVENTS           #########################             
-    __STATE_CHANGED_EVENT__="stateChanged"
-    __STATUS_CHANGED_EVENT__="statusChanged"
-    __INFO_CHANGED_EVENT__="infoChanged"
-    __LOADED_SAMPLE_CHANGED_EVENT__="loadedSampleChanged"
-    __SELECTION_CHANGED_EVENT__="selectionChanged"    
-    __TASK_FINISHED_EVENT__="taskFinished"
+    STATE_CHANGED_EVENT="stateChanged"
+    STATUS_CHANGED_EVENT="statusChanged"
+    INFO_CHANGED_EVENT="infoChanged"
+    LOADED_SAMPLE_CHANGED_EVENT="loadedSampleChanged"
+    SELECTION_CHANGED_EVENT="selectionChanged"    
+    TASK_FINISHED_EVENT="taskFinished"
     
                 
     def __init__(self,type,scannable, *args, **kwargs):
@@ -242,6 +239,13 @@ class SampleChanger(Container,Equipment):
         """           
         return self.getLoadedSample() is not None
               
+    
+    def is_mounted_sample(self, sample_location):
+        try:
+            return self.getLoadedSample().getCoords() == sample_location
+        except AttributeError:
+            return False
+
 
     def abort(self):
         """
@@ -448,13 +452,14 @@ class SampleChanger(Container,Equipment):
             self._setState(SampleChangerState.Ready)            
         """
         exception=None
-        ret=None        
+        ret=None    
         try:            
             ret=method(*args)
         except Exception as ex:        
             exception=ex
-        if self.getState()==self.task:            
-            self._setState(SampleChangerState.Ready)
+        #if self.getState()==self.task:            
+        #    self._setState(SampleChangerState.Ready)
+	self.updateInfo()
         task=self.task
         self.task=None
         self.task_proc=None
@@ -463,8 +468,7 @@ class SampleChanger(Container,Equipment):
             raise exception
         return ret
                                 
-    def _onTaskEnded(self, task):
-        self.updateInfo()
+    def _onTaskEnded(self, task):        
         try:                
             e = task.get()
             logging.debug ("Task ended. Return value: " + str(e))
@@ -511,20 +515,20 @@ class SampleChanger(Container,Equipment):
 #########################           PRIVATE           #########################
 
     def _triggerStateChangedEvent(self,former):
-        self.emit(self.__STATE_CHANGED_EVENT__, (self.state,former))
+        self.emit(self.STATE_CHANGED_EVENT, (self.state,former))
     
     def _triggerStatusChangedEvent(self):
-        self.emit(self.__STATUS_CHANGED_EVENT__, (str(self.status), ))    
+        self.emit(self.STATUS_CHANGED_EVENT, (str(self.status), ))    
     
     def _triggerLoadedSampleChangedEvent(self,sample):
-        self.emit(self.__LOADED_SAMPLE_CHANGED_EVENT__, (sample, ))
+        self.emit(self.LOADED_SAMPLE_CHANGED_EVENT, (sample, ))
     
     def _triggerSelectionChangedEvent(self):
-        self.emit(self.__SELECTION_CHANGED_EVENT__, ())
+        self.emit(self.SELECTION_CHANGED_EVENT, ())
     
     def _triggerInfoChangedEvent(self):
-        self.emit(self.__INFO_CHANGED_EVENT__, ())    
+        self.emit(self.INFO_CHANGED_EVENT, ())    
 
     def _triggerTaskFinishedEvent(self,task,ret,exception):
-        self.emit(self.__TASK_FINISHED_EVENT__, (task, ret, exception))
+        self.emit(self.TASK_FINISHED_EVENT, (task, ret, exception))
                 

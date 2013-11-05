@@ -1,4 +1,4 @@
-from GenericSampleChanger import *
+from .GenericSampleChanger import *
 
 import xml.sax
 from xml.sax import SAXParseException
@@ -32,6 +32,10 @@ class Basket(Container):
     @staticmethod
     def getBasketAddress(basket_number):
         return str(basket_number)
+
+    def clearInfo(self):
+	self.getContainer()._reset_basket_info(self.getIndex()+1)
+        self.getContainer()._triggerInfoChangedEvent()
             
             
 class XMLDataMatrixReadingHandler(ContentHandler):
@@ -101,7 +105,7 @@ class SC3(SampleChanger):
         for command_name in ("_abort", "_getInfo", "_is_task_running", \
                              "_check_task_result", "_load", "_unload",\
                              "_chained_load", "_set_sample_charge", "_scan_basket",\
-                             "_scan_samples", "_select_sample", "_select_basket", "_reset"):
+                             "_scan_samples", "_select_sample", "_select_basket", "_reset", "_reset_basket_info"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         SampleChanger.init(self)   
@@ -126,7 +130,6 @@ class SC3(SampleChanger):
             sample_list = handler.dataMatrixList
             basket_list = handler.basketDataMatrixList
         except Exception,ex:
-            logging.error("Error retrieving sample info: %s" % str(ex))
             basket_list= [('',4)] * 5
             sample_list=[]
             for b in range(5):
@@ -152,7 +155,7 @@ class SC3(SampleChanger):
             sample = self.getComponentByAddress(Pin.getSampleAddress(s[1], s[2]))
             sample._setInfo(present,datamatrix,scanned)     
             sample._setLoaded(loaded,has_been_loaded)
-            sample._setHolderLength(s[4])            
+            sample._setHolderLength(s[4])    
         self._updateSelection()
         self._updateState()               
                     
@@ -213,6 +216,11 @@ class SC3(SampleChanger):
 
     def _doReset(self):
         self._executeServerTask(self._reset)
+
+    def clearBasketInfo(self, basket):
+	self._reset_basket_info(basket)
+
+
         
 #########################           PRIVATE           #########################        
     def _executeServerTask(self, method, *args):
@@ -223,25 +231,28 @@ class SC3(SampleChanger):
             while self._isDeviceBusy():
                 gevent.sleep(0.1)
         else:
-            while self._is_task_running(task_id): #If sync end with task_id must sync start with state        
-            #while self._isDeviceBusy():  
+            while str(self._is_task_running(task_id)).lower() == 'true': 
                 gevent.sleep(0.1)            
             try:
                 ret = self._check_task_result(task_id)                
             except Exception,err:
-                raise Exception(str(err)) 
-            #self._updateState()
+                raise 
         return ret
 
     def _updateState(self):
-        state = self._readState()                     
+        try:
+          state = self._readState()
+        except:
+          state = SampleChangerState.Unknown
+        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+            return          
         self._setState(state)
        
     def _readState(self):
         state = str(self._state.getValue() or "").upper()
         state_converter = { "ALARM": SampleChangerState.Alarm,
                             "FAULT": SampleChangerState.Fault,
-                            "MOVING": SampleChangerState.Charging,
+                            "MOVING": SampleChangerState.Moving,
                             "STANDBY": SampleChangerState.Ready,
                             "READY": SampleChangerState.Ready,
                             "RUNNING": SampleChangerState.Moving,
@@ -249,34 +260,36 @@ class SC3(SampleChanger):
                             "INIT": SampleChangerState.Initializing }
         return state_converter.get(state, SampleChangerState.Unknown)
                         
-    def _isDeviceBusy(self):
-        state = self._readState()
-        return state in (SampleChangerState.Moving, SampleChangerState.Initializing)              
+    def _isDeviceBusy(self, state=None):
+        if state is None:
+            state = self._readState()
+        return state not in (SampleChangerState.Ready, SampleChangerState.Loaded, SampleChangerState.Alarm, 
+                             SampleChangerState.Disabled, SampleChangerState.Fault, SampleChangerState.StandBy)
 
     def _isDeviceReady(self):
         state = self._readState()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
 
-    def _waitDeviceReady(self,timeout=-1):
-        start=time.clock()
-        while not self._isDeviceReady():
-            if timeout>0:
-                if (time.clock() - start) > timeout:
-                    raise Exception("Timeout waiting device ready")
-            gevent.sleep(0.01)
+    def _waitDeviceReady(self,timeout=None):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self._isDeviceReady():
+                gevent.sleep(0.01)
             
     def _updateSelection(self):    
-        basket_no = self._selected_basket.getValue()                    
-        changed=False
         basket=None
         sample=None
-        if basket_no is not None and basket_no>0 and basket_no <=5:
+        try:
+          basket_no = self._selected_basket.getValue()                    
+          if basket_no is not None and basket_no>0 and basket_no <=5:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             sample_no = self._selected_sample.getValue()
             if sample_no is not None and sample_no>0 and sample_no <=10:
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
+        except:
+          pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
+      
                 
                             
                 
@@ -307,10 +320,8 @@ if __name__ == "__main__":
     sc.command_select_basket="MoveBasketLocation"
     sc.command_reset="Reset"
 
-    
-    
-    sc.connect(sc, sc.__STATE_CHANGED_EVENT__, onStateChanged)
-    sc.connect(sc, sc.__INFO_CHANGED_EVENT__, onInfoChanged)
+    sc.connect(sc, sc.STATE_CHANGED_EVENT, onStateChanged)
+    sc.connect(sc, sc.INFO_CHANGED_EVENT, onInfoChanged)
     sc.init()
 
     while(True):

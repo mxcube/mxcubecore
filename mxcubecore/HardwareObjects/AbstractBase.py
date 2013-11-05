@@ -1410,7 +1410,7 @@ class AbstractSampleChanger(object):
 
 
     @abc.abstractmethod
-    def sample_load_state_changed(slef, laoded):
+    def sample_load_state_changed(self, loaded, *args):
         return
 
 
