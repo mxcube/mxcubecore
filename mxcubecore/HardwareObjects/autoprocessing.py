@@ -18,9 +18,11 @@ def start(programs,processEvent,paramsDict):
         else:
             cell_opt = ''
 
+        #import pdb;pdb.set_trace()
         for program in programs["program"]:
-                try:
-                    if program.getProperty('processEvent') == processEvent:
+             try:
+                allowed_events = program.getProperty("event").split(" ")
+                if processEvent in allowed_events:
                         executable = program.getProperty('executable')
                         opts = "-path"
                         if os.path.isfile(executable):
@@ -46,11 +48,11 @@ def start(programs,processEvent,paramsDict):
 
                             logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 
-                            subprocess.Popen(str(lineToExecute))
+                            subprocess.Popen(str(lineToExecute), shell=True)
                         else:
                             logging.getLogger().error("No program to execute found (%s)",executable)
-                except Exception,msg:
-                    logging.getLogger().error("An error occurred (%r)" % msg)
+             except:
+                    logging.exception("autoprocessing: an error occurred")
 
 
 def startInducedRadDam(datacollect_params, old={"xds_dir":None}):
