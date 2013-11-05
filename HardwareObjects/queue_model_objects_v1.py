@@ -353,6 +353,8 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
+        self.lims_start_pos_id = None
+        self.lims_end_pos_id = None
 
     def as_dict(self):
 
@@ -749,14 +751,16 @@ class PathTemplate(object):
 
         return result
 
-    def is_part_of(self, rh_pt):
+    def intersection(self, rh_pt):
         result = False
 
-        lh_set = set(self.get_files_to_be_written())
-        rh_set = set(rh_pt.get_files_to_be_written())
+        #Only do the intersection if there is possibilty for
+        #Collision, that is directories are the same.
+        if (self == rh_pt) and (self.run_number == rh_pt.run_number):
+            if self.start_num <= (rh_pt.start_num + rh_pt.num_files) and \
+               rh_pt.start_num <= (self.start_num + self.num_files):
 
-        if rh_set.intersection(lh_set):
-            result = True
+               result = True
     
         return result
 
@@ -815,8 +819,11 @@ class CentredPosition(object):
         self.sampx = int()
         self.sampy = int()
         self.phi = int()
+        self.phix = int()
         self.phiz = int()
         self.phiy = int()
+        self.kappa = int()
+        self.kappa_phi = int()
         self.zoom = int()
         self.snapshot_image = None
         self.centring_method = True
@@ -836,6 +843,16 @@ class CentredPosition(object):
                 self.phi = motor_dict['phi']
             except KeyError:
                 pass
+            
+            try:
+                self.phix = motor_dict['focus']
+            except KeyError:
+                pass
+
+            try:
+                self.phiy = motor_dict['phiy']
+            except KeyError:
+                pass
 
             try:
                 self.phiz = motor_dict['phiz']
@@ -843,7 +860,12 @@ class CentredPosition(object):
                 pass
 
             try:
-                self.phiy = motor_dict['phiy']
+                self.kappa = motor_dict['kappa']
+            except KeyError:
+                pass
+
+            try:
+                self.kappa_phi = motor_dict['kappa_phi']
             except KeyError:
                 pass
 
@@ -856,16 +878,21 @@ class CentredPosition(object):
         return {'sampx': self.sampx,
                 'sampy': self.sampy,
                 'phi': self.phi,
-                'phiz': self.phiz,
+                'phix': self.phix,
                 'phiy': self.phiy,
+                'phiz': self.phiz,
+                'kappa': self.kappa,
+                'kappa_phi': self.kappa_phi,
                 'zoom': self.zoom}
 
     def __repr__(self):
         return str({'sampx': str(self.sampx),
                     'sampy': str(self.sampy),
-                    'phi': str(self.phi),
+                    'omega': str(self.phi),
                     'phiz': str(self.phiz),
                     'phiy': str(self.phiy),
+                    'kappa': str(self.kappa),
+                    'kappa_phi': str(self.kappa_phi),
                     'zoom': str(self.zoom)})
 
     def __eq__(self, cpos):
@@ -973,6 +1000,8 @@ def to_collect_dict(data_collection, session):
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
              'group_id': data_collection.lims_group_id,
+             'lims_start_pos_id': data_collection.lims_start_pos_id,
+             'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'anomalous': proc_params.anomalous,
