@@ -579,8 +579,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                      self.collect_number_of_frames)
 
     def collect_dc(self, dc, list_item):
+        log = logging.getLogger("user_level_log")
+
         if self.collect_hwobj:
-            log = logging.getLogger("user_level_log")
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             
