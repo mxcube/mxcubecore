@@ -33,6 +33,17 @@ class Component(object):
         :rtype: str
         """        
         return self.address
+
+    def getCoords(self):
+        coords_list = [self.getIndex()+1]
+        x = self.getContainer()
+	while x:
+          idx = x.getIndex()
+          if idx is not None:
+            coords_list.append(idx+1)
+          x = x.getContainer()        
+        coords_list.reverse()
+        return tuple(coords_list) 
     
     def getIndex(self):
         """
@@ -126,15 +137,14 @@ class Component(object):
     #########################           PROTECTED           #########################    
     def _setInfo(self, present=False, id=None, scanned = False):
         changed=False
-        if self.present!=present:
-            self.present=present
-            changed=True
-        if (present==False):
-            id=None
         if self.id!=id:
             self.id=id
             changed=True      
-                    
+        if self.id:
+            present=True
+        if self.present!=present:
+            self.present=present
+            changed=True                    
         if (self.isScannable() == False):
             scanned=False
         if self.scanned!=scanned:
