@@ -386,7 +386,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         except Exception as ex:
             msg = 'Could not create the data collection group' + \
                   ' in lims. Reason: ' + ex.message, self
-            raise QueueExecutionException(msg)
+            raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
