@@ -166,7 +166,8 @@ class MiniDiff(Equipment):
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
 
-        self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
+        # mh 2013-11-05:why is the channel read directly? disabled for the moment
+        # self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
 
         sc_prop=self.getProperty("samplechanger")
         if sc_prop is not None:
