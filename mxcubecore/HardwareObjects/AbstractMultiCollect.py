@@ -431,7 +431,7 @@ class AbstractMultiCollect(object):
             except:
                 data_collect_parameters["actualSampleBarcode"] = None
                 data_collect_parameters["actualContainerBarcode"] = None
-	else:
+        else:
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
