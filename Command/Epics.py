@@ -1,53 +1,26 @@
-""" 
-Epics channel/command support module
-
-Classes:
-- EpicsCommand
-- EpicsChannel
-
-Implementation based on the PV module of PyEpics 3.2.x
-http://cars.uchicago.edu/software/python/pyepics3/
-
-TO-DO:
-------
-Implementation based on Taco/Tango command and channel implementation,
-unused attributes and methods to be cleaned up ...
-"""
-
-__author__ = 'Michael Hellmig'
-__organization__ = 'Joint Berlin MX Lab, BESSY II, Helmholtz-Zentrum Berlin'
-
 import logging
-import Queue
 import weakref
-import new
-import time
-import types
-import gevent
-import gevent.event
+import copy
 
-from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
-from .. import Poller
 from .. import saferef
+from .. import Poller
+from ..CommandContainer import CommandObject, ChannelObject
 
 try:
     import epics
 except ImportError:
-    logging.getLogger('HWR').warning("EPICS support is not available")
+    logging.getLogger('HWR').warning("EPICS support not available.")
 
 
 class EpicsCommand(CommandObject):
-    """
-    EpicsCommand
-    --
-    Implementation of a BlissFramework-compatbile Commands using the EPICS communication protocol
-    """
-    def __init__(self, name, pv_name, username = None, args = None, **kwargs):
+    def __init__(self, name, pv_name, username = None, args=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
-
-        self.pvName = pv_name
-        self.deviceName = None
-        self.device = None    
+        
+        self.pv_name = pv_name
+        self.read_as_str = kwargs.get("read_as_str", False)
+        self.pollers = {}
+        self.__valueChangedCallbackRef = None
+        self.__timeoutCallbackRef = None
 
         if args is None:
             self.arglist = ()
@@ -57,293 +30,121 @@ class EpicsCommand(CommandObject):
             if not args.endswith(","):
               args+=","
             self.arglist = eval("("+args+")")
+ 
+        if len(self.arglist) > 1:
+            logging.getLogger('HWR').error("EpicsCommand: ftm only scalar arguments are supported.")
+            return
 
-        self.imported = True
-        self.pv_connected = None
-        self.pv = epics.PV(pv_name)
-        # self.pv.add_callback(callback=self.valueChanged_callback)
-        self.pv.connection_callbacks.append(self.connectionStatusChanged_callback)
-        logging.getLogger('HWR').debug("creating EPICS command PV %s", self.pvName)
+        self.pv = epics.PV(pv_name, auto_monitor = True)
+        self.pv_connected = self.pv.connect()
+        self.valueChanged(self.pv.get(as_string = self.read_as_str))
+        logging.getLogger('HWR').debug("EpicsCommand: creating pv %s: read_as_str = %s", self.pv_name, self.read_as_str)
 
-    def init_device(self): 
-        """
-        Not implemented
-        """
-        pass
-
+       
     def __call__(self, *args, **kwargs):
-        """
-        Process the PVs command.
-
-        One scalar argument >args[0] can be used for the command.
-        """
-        # TO-DO: add error-handling including commandFailed signal, ref. TangoCommand
         self.emit('commandBeginWaitReply', (str(self.name()), ))
-
+       
         if len(args) > 0 and len(self.arglist) > 0:
+            # arguments given both given in command call _AND_ in the xml file
             logging.getLogger("HWR").error("%s: cannot execute command with arguments when 'args' is defined from XML", str(self.name()))
             self.emit('commandFailed', (-1, str(self.name()), ))
             return
-        elif len(args)==0 and len(self.arglist) > 0:
+        elif len(args) == 0 and len(self.arglist) > 0:
+            # no argument given in the command call but inside the xml file -> use the default argument from the xml file
             args = self.arglist 
-        try:
-            # use only one scalar attribute
-            # self.pv.put(args[0], wait=False, callback=self.putComplete_callback)
-            self.pv.put(args[0], callback=self.putComplete_callback)
-        except:
-            logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.command)
-        else:
-            self.emit('commandReplyArrived', (0, str(self.name())))
-            return 0
-        self.emit('commandFailed', (-1, self.name()))
-
-    def abort(self):
-        """
-        Not implemented
-        """
-        pass
-
-    def isConnected(self):
-        """
-        Check the PVs connection status
    
-        Parameters:
-        n/a
-        Result:
-        True  <=> PV is connected
-        False <=> otherwise
-        """
-        return self.pv_connected
-
-    def connected(self):
-        """
-        Emit signal >connected< to inform the associated brick.
-        """
-        self.emit('connected', ())
-
-    def disconnected(self):
-        """
-        Emit signal >disconnected< to inform the associated brick.
-        """
-        self.emit('disconnected', ())
-	self.statusChanged(ready=False)
-
-    def statusChanged(self, ready):
-        """
-        Emit the signals >commandReady</>commandNotReady< based on the status of the parameter >ready<.
-        """
-        if ready:
-            self.emit('commandReady', ())
-        else:
-            self.emit('commandNotReady', ())
-
-    def connectionStatusChanged_callback(self, pvname = None, conn = None, **kws):
-        """
-        Callback to be informed about connection status.
-        """
-        # TO-DO: add action if the connection to the PV is lost
-        #        check transferred connection state in that situation
-        # logging.exception("%s: PyEpics connection status changed: %s", pvname, repr(conn))
-        self.pv_connected = conn
-        if self.pv_connected:
-            self.connected()
-        else:
-            self.disconnected()
-
-    def putComplete_callback(self, pvname = None, **kws):
-        """
-        Emit signal >commandReplyArrived< to inform the brick after the command finished processing.
-        """
-        # is it possible to detect a failed command execution???
-        self.emit('commandReplyArrived', ())
-        self.statusChanged(True)
-    
-
-class EpicsChannel(ChannelObject):
-    """
-    EpicsChannel
-    --
-    Implementation of a BlissFramework-compatbile Channel using the EPICS communication protocol
-
-    Both an event-based approach as well as polling is implemented.
-
-    ATTENTION: polling is not working for all PVs, situations, to be debugged
-    """
-    def __init__(self, name, pv_name, username = None, polling = None, timeout = 10000, **kwargs):
-        """
-        EpicsChannel constructor
-
-        creates the link to the PV to be watched
-        """
-        ChannelObject.__init__(self, name, username, **kwargs)
- 
-        self.pvName = pv_name
-        self.deviceName = None
-        self.device = None
-        self.value = Poller.NotInitializedValue
-        self.polling = polling
-        self.pollingTimer = None
-        self.pollingEvents = False
-        self.timeout = int(timeout)
-        self.read_as_str = kwargs.get("read_as_str", False)
-        self._device_initialized = gevent.event.Event()
-         
-        self.imported = True
-        self.pv_connected = None
-        self.pv = epics.PV(pv_name)
-
-        logging.getLogger('HWR').debug("creating EPICS PV %s, polling=%s, timeout=%s", self.pvName, polling, self.timeout)
-        self.init_poller = Poller.poll(self.init_device,
-                                       polling_period = 3000,
-                                       value_changed_callback = self.continue_init,
-                                       error_callback = self.init_poll_failed,
-                                       start_delay=100)
+        if self.pv is not None and self.pv_connected:
+            if len(args) == 0:
+                # no arguments available -> get the pv's current value
+                try:
+                    ret = self.pv.get(as_string = self.read_as_str)
+                except:
+                    logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.pv_name)
+                else:
+                    self.emit('commandReplyArrived', (ret, str(self.name())))
+                    return ret
+            else:
+                # use the given argument to change the pv's value
+                try:
+                    self.pv.put(args[0], wait = True)
+                except:
+                    logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.pv_name)
+                else:
+                    self.emit('commandReplyArrived', (0, str(self.name())))
+                    return 0
+        self.emit('commandFailed', (-1, str(self.name()), ))
 
 
-    def init_poll_failed(self, e, poller_id):
-        """
-        Polling helper function
-        --
-        Tries to restart polling after 3 seconds.
-        """
-        self._device_initialized.clear()
-        logging.getLogger('HWR').warning("PV %s(%s): could not complete init.", self.pvName, self.name())
-        self.init_poller = self.init_poller.restart(3000)
-
-    def continue_init(self, _):
-        """
-        Polling helper function
-        --
-        Actually starts the polling of the PV in the >self.polling< time interval.
-        """
-        self.init_poller.stop()
-
-        if type(self.polling) == types.IntType:
-             Poller.poll(self.poll,
-                         polling_period = self.polling,
-                         value_changed_callback = self.update,
-                         error_callback = self.pollFailed)
-        else:
-            if self.polling=="events":
-                self.pv.add_callback(callback=self.valueChanged_callback)
-                self.pv.connection_callbacks.append(self.connectionStatusChanged_callback)
-                self.poll()
-        self._device_initialized.set()
-
-    def init_device(self):
-        """
-        Not implemented.
-        """
-        pass
-
-    def poll(self):
-        """
-        Read the current value of the PV using the get method after the timer has elapsed.
-
-        Parameters:
-        n/a
-        Result:
-        PV's current value after pv.get()
-        """
-        value = self.pv.get(as_string = self.read_as_str)
-        self.emit('update', value)
-        return value
-
-    def pollFailed(self, e, poller_id):
-        """
-        Error handling for polling
-
-        Tries to restart polling again.
-        """
-        emit_update = True
-        if self.value is None:
-          emit_update = False
-        else:
-          self.value = None
-
+    def valueChanged(self, value):
         try:
-            self.init_device()
+            callback = self.__valueChangedCallbackRef()
         except:
             pass
-       
+        else:
+            if callback is not None:
+                callback(value)
+
+
+    def onPollingError(self, exception, poller_id):
+        # try to reconnect the pv
+        self.pv.connect()
         poller = Poller.get_poller(poller_id)
         if poller is not None:
-            poller.restart(1000)
+            try:
+                poller.restart(1000)
+            except:
+                pass
 
-        try:
-          raise e
-        except:
-          logging.exception("%s: Exception happened while polling %s", self.name(), self.pvName)
 
-        if emit_update: 
-          # emit at the end => can raise exceptions in callbacks
-          self.emit('update', None)
+    def getPvValue(self):
+        # wrapper function to pv.get() in order to supply additional named parameter
+        return self.pv.get(as_string = self.read_as_str)
+        
 
-    def getInfo(self):
-        """
-        ???
-        """
-        self._device_initialized.wait(timeout=3)
+    def poll(self, pollingTime=500, argumentsList=(), valueChangedCallback=None, timeoutCallback=None, direct=True, compare=True):
+        self.__valueChangedCallbackRef = saferef.safe_ref(valueChangedCallback)
+        
+        # store the call to get as a function object
+        # poll_cmd = self.pv.get
+        poll_cmd = self.getPvValue
+
+        Poller.poll(poll_cmd, copy.deepcopy(argumentsList), pollingTime, self.valueChanged, self.onPollingError, compare)
+                
+
+    def stopPolling(self):
         pass
 
-    def update(self, value = Poller.NotInitializedValue):
-        """
-        Slot to be called if the polling interval is elapsed.
 
-        Signal >update< is emitted to inform the Brick.
-        """
-        if value == Poller.NotInitializedValue:
-            value = self.getValue()
-        if type(value) == types.TupleType:
-          value = list(value)
-
-        self.value = value
-        self.emit('update', value)
+    def abort(self):
+        pass
         
-    def getValue(self):
-        """
-        Reads the PVs current value.
-        """
-        self._device_initialized.wait(timeout=3)
 
-        value = self.pv.get(as_string = self.read_as_str)
-        return value
-
-    def setValue(self, newValue):
-        """
-        Modify the PVs value.
-        """
-        self.pv.put(newValue)
-    
     def isConnected(self):
-        """
-        Check the PVs connection status
-   
-        Parameters:
-        n/a
-        Result:
-        True  <=> PV is connected
-        False <=> otherwise
-        """
         return self.pv_connected
 
-    def valueChanged_callback(self, pvname = None, value = None, char_value = None, **kw):
-        """
-        Slot to be called if PV value changes. Used for event processing.
-        Emit signal >update< to inform the brick about the change
-        """
-        # logging.getLogger('HWR').debug("PyEpics valueChanged_callback: PV %s = %s.", pvname, char_value)
-        if self.read_as_str:
-            self.value = char_value
-        else:
-            self.value = value
-        self.emit('update', self.value)
 
-    def connectionStatusChanged_callback(self, pvname = None, conn = None, **kws):
-        """
-        Callback to be informed about connection status.
-        """
-        # TO-DO: add action if the connection to the PV is lost
-        #        check transferred connection state in that situation
-        self.pv_connected = conn
-        logging.getLogger('HWR').debug("%s: PyEpics connection status changed: %s", pvname, repr(conn))
+class EpicsChannel(ChannelObject):
+    """Emulation of a 'Epics channel' = an Epics command + polling"""
+    def __init__(self, name, command, username = None, polling=None, args=None, **kwargs):
+        ChannelObject.__init__(self, name, username, **kwargs)
+ 
+        self.command = EpicsCommand(name+"_internalCmd", command, username, args, **kwargs)
+        
+        try:
+            self.polling = int(polling)
+        except:
+            self.polling = None
+        else:
+            self.command.poll(self.polling, self.command.arglist, self.valueChanged)
+                
+
+    def valueChanged(self, value):
+        self.emit("update", value)
+
+
+    def getValue(self):
+        return self.command()
+      
+ 
+    def isConnected(self):
+        return self.command.isConnected()
