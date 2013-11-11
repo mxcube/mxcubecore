@@ -21,6 +21,8 @@ class Resolution(BaseHardwareObjects.Equipment):
         self.wavelength = self.getDeviceByRole("wavelength")
 	self.getradius = self.getCommandObject("detector_radius")
    	self.detector_diameter_chan = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"detector_radius"}, "MXBCM_PARS/detector_radius")
+        # some value has to be read, otherwise subsequent calls will fail due to some variables inside the buffer?????
+        print "Dummy call to initialize.", self.detector_diameter_chan.getValue()
         self.detector_diameter = 0
         self.det_radius = 0
 
