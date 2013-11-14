@@ -21,6 +21,7 @@ implementations of tasks.
 """
 
 import gevent
+import traceback
 import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
@@ -584,7 +585,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-            
             #acq_1.acquisition_parameters.take_snapshots = True
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session)
@@ -636,7 +636,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
                                             param_list)                
                 self.collect_task.get()
-                dc.id = param_list[0]['collection_id']
+                
+                if 'collection_id' in param_list[0]:
+                    dc.id = param_list[0]['collection_id']
                 
             except gevent.GreenletExit:
                 log.exception("Collection stopped by user.")
@@ -644,6 +646,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('Queue stopped', self)
             except Exception as ex:
+                print traceback.print_exc()
                 raise QueueExecutionException(ex.message, self)
         else:
             log.error("Could not call the data collection routine," +\
