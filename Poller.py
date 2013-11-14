@@ -133,6 +133,8 @@ class _Poller:
             try:
                 res = polled_call(*self.args)
             except Exception, e:
+                if self.stop_event.is_set():
+                  break
                 error_cb = self.error_callback_ref()
                 if error_cb is not None:
                     self.queue.put(PollingException(e, self.get_id()))
