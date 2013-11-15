@@ -527,7 +527,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.collect_dc(data_collection, self.get_view())
 
         if self.shape_history:
-            self.shape_history.get_drawing_event_handler().de_select_all()
+            self.shape_history.de_select_all()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
