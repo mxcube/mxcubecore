@@ -282,7 +282,14 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to de-select.
         :type shape: Shape
         """
-        self._drawing_event.set_selected(shape, False, call_cb = False)
+        if self.is_selected(shape):
+            self._drawing_event.set_selected(shape, False, call_cb = False)
+
+
+    def is_selected(self, shape):
+        return shape in self.selected_shapes
+        
+
 
 class DrawingEvent(QubDrawingEvent):
     """
