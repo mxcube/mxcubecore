@@ -182,7 +182,7 @@ class ShapeHistory(HardwareObject):
         self.shapes[shape] = shape
 
         self.get_drawing_event_handler().de_select_all()
-        self.get_drawing_event_handler().set_selected(shape, call_cb = True)
+        self.get_drawing_event_handler().set_selected(shape, True, call_cb = True)
 
     def _delete_shape(self, shape):
         shape.unhighlight()
@@ -256,7 +256,7 @@ class ShapeHistory(HardwareObject):
         for shape in self.get_shapes():
             if isinstance(shape, Point):
                 if shape.get_centred_positions()[0] == cpos:
-                    self._drawing_event.set_selected(shape, call_cb = False)    
+                    self._drawing_event.set_selected(shape, True, call_cb = False)    
 
     def get_grid(self):
         """
@@ -434,11 +434,11 @@ class DrawingEvent(QubDrawingEvent):
         :type shape: Shape
         """
         if state:
-            self.current_shape.highlight()
+            shape.highlight()
             self.qub_helper.selected_shapes[shape] = shape
         else:
-            self.shape.unhighlight()
-            del self.qub_helper.selected_shapes[self.current_shape]
+            shape.unhighlight()
+            del self.qub_helper.selected_shapes[shape]
 
         if callable(self.selection_cb) and call_cb:
             self.selection_cb(self.qub_helper.selected_shapes.values())
