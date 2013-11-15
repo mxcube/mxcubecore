@@ -273,7 +273,16 @@ class ShapeHistory(HardwareObject):
         :param shape: The shape to select.
         :type shape: Shape
         """
-        self._drawing_event.set_selected(shape, call_cb = False)
+        self._drawing_event.set_selected(shape, True, call_cb = False)
+
+    def de_select_shape(self, shape):
+        """
+        De-select the shape <shape> (programmatically).
+
+        :param shape: The shape to de-select.
+        :type shape: Shape
+        """
+        self._drawing_event.set_selected(shape, False, call_cb = False)
 
 class DrawingEvent(QubDrawingEvent):
     """
@@ -391,26 +400,16 @@ class DrawingEvent(QubDrawingEvent):
         if callable(self.selection_cb):
             self.selection_cb(self.qub_helper.selected_shapes.values())
 
-    def de_select_current(self):
-        self.current_shape.unhighlight()
-        del self.qub_helper.selected_shapes[self.current_shape]
-
-        if callable(self.selection_cb):
-            self.selection_cb(self.qub_helper.selected_shapes.values())
-
+    def de_select_current(self, call_cb = True):
+        self.set_selected(self.current_shape, False, call_cb)
         self.current_shape = None
 
     def select_current(self, call_cb = True):
         """
         Select the shape referenced by self._current_shape.
         """
-        self.current_shape.highlight()
-        self.qub_helper.selected_shapes[self.current_shape] = \
-            self.current_shape
-
-        if callable(self.selection_cb) and call_cb:
-            self.selection_cb(self.qub_helper.selected_shapes.values())
-
+        self.set_selected(self.current_shape, True, call_cb)
+        
     def delete_selected(self):
         """
         Delete all the selected shapes.
@@ -420,17 +419,24 @@ class DrawingEvent(QubDrawingEvent):
 
         #self.current_shape = None
 
-    def set_selected(self, shape, call_cb = True):
+    def set_selected(self, shape, state, call_cb = True):
         """
         Select the shape <shape> (programmatically).
 
         :param shape: The shape to select.
         :type shape: Shape
         """
-        self.current_shape = shape
-        self.select_current(call_cb)
-        
-        
+        if state:
+            self.current_shape.highlight()
+            self.qub_helper.selected_shapes[shape] = shape
+        else:
+            self.shape.unhighlight()
+            del self.qub_helper.selected_shapes[self.current_shape]
+
+        if callable(self.selection_cb) and call_cb:
+            self.selection_cb(self.qub_helper.selected_shapes.values())
+
+
 class Shape(object):
     """
     Base class for shapes.
