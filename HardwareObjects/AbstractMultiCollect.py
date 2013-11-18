@@ -582,7 +582,7 @@ class AbstractMultiCollect(object):
         self.move_motors(motors_to_move_before_collect)
 
         with cleanup(self.close_fast_shutter):
-            self.open_safety_shutter(timeout=10)
+            #self.open_safety_shutter(timeout=10)
 
             self.prepare_intensity_monitors()
            
