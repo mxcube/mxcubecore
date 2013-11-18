@@ -3,6 +3,7 @@ import jsonpickle
 import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
@@ -170,6 +171,58 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
+    def get_default_edna_parameters(self):
+        """
+        :returns: A CharacterisationsParameters object with default parameters.
+        """
+        input_fname = self.data_analysis_hwobj.edna_default_file
+        enda_input = XSDataInputMXCuBE.parseString(input_fname)
+        diff_plan = edna_input.getDiffractionPlan()
+
+        diff_plan.getAimedCompleteness()
+        
+        char_params = queue_model_objects.CharacterisationParameters()
+
+        # Optimisation parameters
+        char_params.use_aimed_resolution = False
+        char_params.aimed_resolution = 1.0
+        char_params.use_aimed_multiplicity = False
+        char_params.aimed_multiplicity = 4
+        char_params.aimed_i_sigma = 3.0
+        char_params.aimed_completness = 9.9e-01
+        char_params.strategy_complexity = 0
+        char_params.induce_burn = False
+        char_params.use_permitted_rotation = False
+        char_params.permitted_phi_start = 0.0
+        char_params.permitted_phi_end = 360
+        char_params.low_res_pass_strat = False
+
+        # Crystal
+        char_params.max_crystal_vdim = 1e-01
+        char_params.min_crystal_vdim = 1e-01
+        char_params.max_crystal_vphi = 90
+        char_params.min_crystal_vphi = 0.0
+        char_params.space_group = ""
+
+        # Characterisation type
+        char_params.use_min_dose = True
+        char_params.use_min_time = False
+        char_params.min_dose = 30.0
+        char_params.min_time = 0.0
+        char_params.account_rad_damage = True
+        char_params.auto_res = False
+        char_params.opt_sad = False
+        char_params.determine_rad_params = False
+        char_params.burn_osc_start = 0.0
+        char_params.burn_osc_interval = 3
+
+        # Radiation damage model
+        char_params.rad_suscept = 1.0
+        char_params.beta = 1
+        char_params.gamma = 0.06
+
+        return char_params
+        
     def get_default_acquisition_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
