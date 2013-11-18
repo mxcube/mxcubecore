@@ -285,11 +285,12 @@ class ShapeHistory(HardwareObject):
         if self.is_selected(shape):
             self._drawing_event.set_selected(shape, False, call_cb = False)
 
-
     def is_selected(self, shape):
         return shape in self.selected_shapes
-        
 
+    def get_selected_shapes(self):
+        return self.selected_shapes.itervalues()
+        
 
 class DrawingEvent(QubDrawingEvent):
     """
