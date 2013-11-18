@@ -235,6 +235,12 @@ class CommandContainer:
               newChannel = ExporterChannel(channelName, channel, **attributesDict)
             except:
               logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
+        elif channelType.lower() == "epics":
+            try:
+              from Command.Epics import EpicsChannel
+              newChannel = EpicsChannel(channelName, channel, **attributesDict)
+            except:
+              logging.getLogger().exception('%s: cannot add EPICS channel %s (hint: check PV name)', self.name(), channelName)
             
         if newChannel is not None:
             if channelOnChange is not None:
@@ -362,7 +368,13 @@ class CommandContainer:
               from Command.Exporter import ExporterCommand
               newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
             except:
-              logging.getLogger().exception('%s: cannot add command %s (hint: check attributes)', self.name(), commandName)
+              logging.getLogger().exception('%s: cannot add command %s (hint: check attributes)', self.name(), cmdName)
+        elif cmdType.lower() == "epics":
+            try:
+              from Command.Epics import EpicsCommand
+              newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
+            except:
+              logging.getLogger().exception('%s: cannot add EPICS channel %s (hint: check PV name)', self.name(), cmdName)
         elif cmdType.lower() == 'pool':
             if not 'tangoname' in attributesDict:
                 try:
