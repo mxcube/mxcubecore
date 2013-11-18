@@ -34,6 +34,15 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
         else:
             return False
 
+    def hasLoadedSample(self):
+        return True
+
+    def getSampleList(self):
+        return []
+
+    def getComponents(self):
+        return []
+
     def loadSample(self, holderLength, sample_id=None, sample_location=None, 
                    sampleIsLoadedCallback=None, failureCallback=None, 
                    prepareCentring=None, prepareCentringMotors={}, wait=False):
@@ -57,6 +66,12 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
 
     def getLoadedSample(self):
         return self.current_sample
+
+    def getLoadedSampleDataMatrix(self):
+        return "Nice-little-matrix"
+
+    def currentBasketDataMatrix(self):
+        return "Nice-little-current-basket"
 
     def abort(self):
         return True
@@ -86,4 +101,4 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
         return True
 
     def getBasketTransferMode(self):
-        return False
+       return False

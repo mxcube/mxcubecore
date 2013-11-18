@@ -312,6 +312,14 @@ class ISPyBClient2Mockup(HardwareObject):
         pass
     
 
+    def _store_data_collection_group(self, group_data):
+        pass
+
+
+    def store_centred_position(self, end_cpos):
+        pass
+
+
     # Bindings to methods called from older bricks.
     getProposal = get_proposal
     getSessionLocalContact = get_session_local_contact
