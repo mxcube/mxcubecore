@@ -4,6 +4,7 @@ import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+import queue_model_enumerables_v1 as queue_model_enumerables
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
@@ -133,7 +134,7 @@ class BeamlineSetup(HardwareObject):
 
         return disable_num_passes
 
-    def get_default_characterisation_parameters(self):
+    def get_default_char_acq_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
@@ -171,25 +172,29 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
-    def get_default_edna_parameters(self):
+    def get_default_characterisation_parameters(self):
         """
         :returns: A CharacterisationsParameters object with default parameters.
         """
         input_fname = self.data_analysis_hwobj.edna_default_file
-        enda_input = XSDataInputMXCuBE.parseString(input_fname)
-        diff_plan = edna_input.getDiffractionPlan()
 
-        diff_plan.getAimedCompleteness()
+        with open(input_fname, 'r') as f:
+            edna_default_input = ''.join(f.readlines())
         
+        edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
+        diff_plan = edna_input.getDiffractionPlan()
+        edna_beam = edna_input.getExperimentalCondition().getBeam()
+        edna_sample = edna_input.getSample()        
         char_params = queue_model_objects.CharacterisationParameters()
-
+        char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
+        
         # Optimisation parameters
-        char_params.use_aimed_resolution = False
-        char_params.aimed_resolution = 1.0
+        char_params.use_aimed_resolution = True
+        char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
         char_params.use_aimed_multiplicity = False
-        char_params.aimed_multiplicity = 4
-        char_params.aimed_i_sigma = 3.0
-        char_params.aimed_completness = 9.9e-01
+        char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
+        char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
+        char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
         char_params.strategy_complexity = 0
         char_params.induce_burn = False
         char_params.use_permitted_rotation = False
@@ -198,8 +203,8 @@ class BeamlineSetup(HardwareObject):
         char_params.low_res_pass_strat = False
 
         # Crystal
-        char_params.max_crystal_vdim = 1e-01
-        char_params.min_crystal_vdim = 1e-01
+        char_params.max_crystal_vdim = edna_sample.getSize().getY().getValue()
+        char_params.min_crystal_vdim = edna_sample.getSize().getZ().getValue()
         char_params.max_crystal_vphi = 90
         char_params.min_crystal_vphi = 0.0
         char_params.space_group = ""
@@ -217,7 +222,7 @@ class BeamlineSetup(HardwareObject):
         char_params.burn_osc_interval = 3
 
         # Radiation damage model
-        char_params.rad_suscept = 1.0
+        char_params.rad_suscept = edna_sample.getSusceptibility().getValue()
         char_params.beta = 1
         char_params.gamma = 0.06
 
