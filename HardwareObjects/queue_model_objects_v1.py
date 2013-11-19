@@ -513,50 +513,74 @@ class CharacterisationParameters(object):
         self.experiment_type = 0
 
         # Optimisation parameters
-        self.use_aimed_resolution = False
-        self.aimed_resolution = 1.0
-        self.use_aimed_multiplicity = False
-        self.aimed_multiplicity = 4
-        self.aimed_i_sigma = 3.0
-        self.aimed_completness = 9.9e-01
-        self.strategy_complexity = 0
-        self.induce_burn = False
-        self.use_permitted_rotation = False
-        self.permitted_phi_start = 0.0
-        self.permitted_phi_end = 360
-        self.low_res_pass_strat = False
+        self.use_aimed_resolution = bool()
+        self.aimed_resolution = float()
+        self.use_aimed_multiplicity = bool()
+        self.aimed_multiplicity = int()
+        self.aimed_i_sigma = float()
+        self.aimed_completness = float()
+        self.strategy_complexity = int()
+        self.induce_burn = bool()
+        self.use_permitted_rotation = bool()
+        self.permitted_phi_start = float()
+        self.permitted_phi_end = float()
+        self.low_res_pass_strat = bool()
 
         # Crystal
-        self.max_crystal_vdim = 1e-01
-        self.min_crystal_vdim = 1e-01
-        self.max_crystal_vphi = 90
-        self.min_crystal_vphi = 0.0
+        self.max_crystal_vdim = float()
+        self.min_crystal_vdim = float()
+        self.max_crystal_vphi = float()
+        self.min_crystal_vphi = float()
         self.space_group = ""
 
         # Characterisation type
-        self.use_min_dose = True
-        self.use_min_time = False
-        self.min_dose = 30.0
-        self.min_time = 0.0
-        self.account_rad_damage = True
-        self.auto_res = False
-        self.opt_sad = False
-        self.determine_rad_params = False
-        self.burn_osc_start = 0.0
-        self.burn_osc_interval = 3
+        self.use_min_dose = bool()
+        self.use_min_time = bool()
+        self.min_dose = float()
+        self.min_time = float()
+        self.account_rad_damage = bool()
+        self.auto_res = bool()
+        self.opt_sad = bool()
+        self.determine_rad_params = bool()
+        self.burn_osc_start = float()
+        self.burn_osc_interval = int()
 
         # Radiation damage model
-        self.rad_suscept = 1.0
-        self.beta = 1
-        self.gamma = 0.06
+        self.rad_suscept = float()
+        self.beta = float()
+        self.gamma = float()
 
     def as_dict(self):
         return {"experiment_type": self.experiment_type,
-                "aimed_resolution": self.aimed_resolution,
+                "use_aimed_resolution": self.use_aimed_resolution,
+                "use_aimed_multiplicity": self.use_aimed_multiplicity,
                 "aimed_multiplicity": self.aimed_multiplicity,
                 "aimed_i_sigma": self.aimed_i_sigma,
                 "aimed_completness": self.aimed_completness,
-                "strategy_complexity": self.strategy_complexity}
+                "strategy_complexity": self.strategy_complexity,
+                "induce_burn": self.induce_burn,
+                "use_permitted_rotation": self.use_permitted_rotation,
+                "permitted_phi_start": self.permitted_phi_start,
+                "permitted_phi_end": self.permitted_phi_end,
+                "low_res_pass_strat": self.low_res_pass_strat,
+                "max_crystal_vdim": self.max_crystal_vdim,
+                "min_crystal_vdim": self.min_crystal_vdim,
+                "max_crystal_vphi": self.max_crystal_vphi,
+                "min_crystal_vphi": self.min_crystal_vphi,
+                "space_group": self.space_group,
+                "use_min_dose": self.use_min_dose,
+                "use_min_time": self.use_min_time,
+                "min_dose": self.min_dose,
+                "min_time": self.min_time,
+                "account_rad_damage": self.account_rad_damage,
+                "auto_res": self.auto_res,
+                "opt_sad": self.opt_sad,
+                "determine_rad_params": self.determine_rad_params,
+                "burn_osc_start": self.burn_osc_start,
+                "burn_osc_interval": self.burn_osc_interval,
+                "rad_suscept": self.rad_suscept,
+                "beta": self.beta,
+                "gamma": self.gamma}
 
     def __repr__(self):
         s = '<%s object at %s>' % (
@@ -1030,13 +1054,15 @@ def dc_from_edna_output(edna_result, reference_image_collection,
     else:
         try:
             resolution = collection_plan.getStrategySummary().\
-                getResolution().getValue()
+                         getResolution().getValue()
+            resolution = round(resolution, 3)
         except AttributeError:
             resolution = None
 
         try: 
             transmission = collection_plan.getStrategySummary().\
-               getAttenuation().getValue()
+                           getAttenuation().getValue()
+            transmission = round(transmission, 2)
         except AttributeError:
             transmission = None
 
