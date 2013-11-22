@@ -23,7 +23,7 @@ class BeamlineSetup(HardwareObject):
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
                            'resolution', 'shape_history', 'session',
                            'data_analysis', 'workflow', 'lims_client',
-                           'collect', 'energy']
+                           'collect', 'energy', 'omega_axis']
 
     def init(self):
         """
@@ -34,8 +34,7 @@ class BeamlineSetup(HardwareObject):
 
         self._object_by_path['/beamline/energy'] = self.energy_hwobj
         self._object_by_path['/beamline/resolution'] = self.resolution_hwobj
-        self._object_by_path['/beamline/transmission'] =\
-            self.transmission_hwobj
+        self._object_by_path['/beamline/transmission'] = self.transmission_hwobj
 
     def _get_object_by_role(self, role):
         """
@@ -183,7 +182,7 @@ class BeamlineSetup(HardwareObject):
         
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
-        edna_beam = edna_input.getExperimentalCondition().getBeam()
+        #edna_beam = edna_input.getExperimentalCondition().getBeam()
         edna_sample = edna_input.getSample()        
         char_params = queue_model_objects.CharacterisationParameters()
         char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
