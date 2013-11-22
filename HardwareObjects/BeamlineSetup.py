@@ -144,8 +144,7 @@ class BeamlineSetup(HardwareObject):
                                              getProperty('start_image_number'))
         acq_parameters.num_images = int(self[parent_key].\
                                     getProperty('number_of_images'))
-        acq_parameters.osc_start = round(float(self[parent_key].\
-                                               getProperty('start_angle')), 2)
+        acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = round(float(self[parent_key].\
                                                getProperty('range')), 2)
         acq_parameters.overlap = round(float(self[parent_key].\
@@ -239,8 +238,7 @@ class BeamlineSetup(HardwareObject):
                                          getProperty('start_image_number'))
         acq_parameters.num_images = int(self[parent_key].\
                                     getProperty('number_of_images'))
-        acq_parameters.osc_start = round(float(self[parent_key].\
-                                               getProperty('start_angle')), 2)
+        acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = round(float(self[parent_key].\
                                                getProperty('range')), 2)
         acq_parameters.overlap = round(float(self[parent_key].\
@@ -323,3 +321,13 @@ class BeamlineSetup(HardwareObject):
             resolution = 0
 
         return resolution
+
+    def _get_omega_axis_position(self):
+        result = 0
+
+        try:
+            result = round(float(self.omega_axis_hwobj.getPosition()), 2)
+        except TypeError:
+            result = round(float(self[parent_key].getProperty('start_angle')), 2)
+
+        return result
