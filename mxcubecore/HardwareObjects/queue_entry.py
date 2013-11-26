@@ -378,7 +378,11 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        group_data = {'sessionId': self.session_hwobj.session_id}
+        # Creating a collection group with the current session id
+        # and a dummy exepriment type OSC. The experiment type
+        # will be updated when the collections are stored.
+        group_data = {'sessionId': self.session_hwobj.session_id,
+                      'experimentType': 'OSC'}
 
         try:
             gid = self.lims_client_hwobj.\
