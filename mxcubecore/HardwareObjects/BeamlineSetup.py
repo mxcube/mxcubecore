@@ -104,16 +104,25 @@ class BeamlineSetup(HardwareObject):
         tw = False
 
         try:
-            tw = self.getProperty('tunable_wavelength')
-
-            if tw is None:
-                tw = False
-
-        except:
+            tw = bool(self.getProperty('tunable_wavelength'))
+        except TypeError:
             tw = False
 
         return tw
 
+    def has_aperture(self):
+        """
+        :returns: True if the beamline has apertures and false otherwise.
+        """
+        ap = False
+
+        try:
+            ap = bool(self.getProperty('has_aperture'))
+        except TypeError:
+            ap = False
+
+        return ap
+        
     def disable_num_passes(self):
         """
         :returns: Returns True if it is possible to use the number of passes
