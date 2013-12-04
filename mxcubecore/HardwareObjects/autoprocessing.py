@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import subprocess
 
 def start(programs,processEvent,paramsDict):
         dataCollectionId = paramsDict.get('datacollect_id')
@@ -17,7 +18,6 @@ def start(programs,processEvent,paramsDict):
         else:
             cell_opt = ''
 
-        #import pdb;pdb.set_trace()
         for program in programs["program"]:
              try:
                 allowed_events = program.getProperty("event").split(" ")
@@ -45,11 +45,13 @@ def start(programs,processEvent,paramsDict):
                             else:
                                 lineToExecute = executable + endOfLineToExecute
 
+			    lineToExecute += " &> /dev/null &"
+				
                             logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 
                             # os.system is preferred to subprocess because we want to detach
                             # the started program from the parent process group
-                            os.system(str(lineToExecute)+" &")
+                            subprocess.Popen(str(lineToExecute), shell=True)
                         else:
                             logging.getLogger().error("No program to execute found (%s)",executable)
              except:
