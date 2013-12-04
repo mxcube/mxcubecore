@@ -373,25 +373,27 @@ class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.lims_client_hwobj = None
-        self._lims_group_id = 0
         self.session_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        # Creating a collection group with the current session id
-        # and a dummy exepriment type OSC. The experiment type
-        # will be updated when the collections are stored.
-        group_data = {'sessionId': self.session_hwobj.session_id,
-                      'experimentType': 'OSC'}
+        gid = self.get_data_model().lims_group_id
 
-        try:
-            gid = self.lims_client_hwobj.\
-                  _store_data_collection_group(group_data)
-            self.get_data_model().lims_group_id = gid
-        except Exception as ex:
-            msg = 'Could not create the data collection group' + \
-                  ' in lims. Reason: ' + ex.message, self
-            raise QueueExecutionException(msg, self)
+        if not gid:
+            # Creating a collection group with the current session id
+            # and a dummy exepriment type OSC. The experiment type
+            # will be updated when the collections are stored.
+            group_data = {'sessionId': self.session_hwobj.session_id,
+                          'experimentType': 'OSC'}
+
+            try:
+                gid = self.lims_client_hwobj.\
+                      _store_data_collection_group(group_data)
+                self.get_data_model().lims_group_id = gid
+            except Exception as ex:
+                msg = 'Could not create the data collection group' + \
+                      ' in lims. Reason: ' + ex.message, self
+                raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
