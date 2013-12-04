@@ -457,19 +457,28 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
-        task_ids = []
+        params = []
 
         for child in self.get_data_model().get_children():
             for grand_child in child.get_children():
                 if isinstance(grand_child, queue_model_objects.DataCollection):
                     xds_dir = grand_child.acquisitions[0].path_template.process_directory
-                    task_ids.append((grand_child.id, xds_dir))
+                    residues = grand_child.processing_parameters.num_residues
+                    anomalous = grand_child.processing_parameters.anomalous
+                    space_group = grand_child.processing_parameters.space_group
+                    cell = grand_child.processing_parameters.get_cell_str()
+                    inverse_beam = grand_child.acquisitions[0].acquisition_parameters.inverse_beam
 
-                    
-         #autoprocessing.start(self["auto_processing"], process_event, processAnalyseParams)
+                    params.append({'collect_id': grand_child.id, 
+                                   'xds_dir': xds_dir,
+                                   'residues': residues,
+                                   'anomalous' : anomalous,
+                                   'spacegroup': space_group,
+                                   'cell': cell,
+                                   'inverse_beam': inverse_beam})
 
-                    
-        #print task_ids
+        programs = self.beamline_setup.collect_hwobj["auto_processing"]
+        #autoprocessing.start(programs, "end_multicollect", params)
         
         self._view.setText(1, "")
 
