@@ -28,6 +28,7 @@ import queue_model_objects_v1 as queue_model_objects
 import pprint
 import os
 import ShapeHistory as shape_history
+import autoprocessing
 
 #import edna_test_data
 #from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
@@ -464,6 +465,10 @@ class SampleQueueEntry(BaseQueueEntry):
                     xds_dir = grand_child.acquisitions[0].path_template.process_directory
                     task_ids.append((grand_child.id, xds_dir))
 
+                    
+         #autoprocessing.start(self["auto_processing"], process_event, processAnalyseParams)
+
+                    
         #print task_ids
         
         self._view.setText(1, "")
