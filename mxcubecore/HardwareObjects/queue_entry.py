@@ -1132,6 +1132,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 
             view.setText(1, "Centring !")
             async_result.get()
+            view.setText(1, "Centring done !")
         finally:
             dm.disconnect("centringAccepted", centring_done_cb)
 
