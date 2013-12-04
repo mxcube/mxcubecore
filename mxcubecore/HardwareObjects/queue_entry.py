@@ -454,6 +454,15 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+        task_ids = []
+
+        for child in self.get_data_model().get_children():
+            for grand_child in child.get_children():
+                if isinstance(grand_child, queue_model_objects.DataCollection):
+                    task_ids.append(grand_child.id)
+
+        #print task_ids
+        
         self._view.setText(1, "")
 
 
