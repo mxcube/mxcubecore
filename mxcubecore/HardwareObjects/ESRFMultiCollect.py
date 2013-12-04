@@ -134,7 +134,7 @@ class PixelDetector:
     @task
     def start_acquisition(self, exptime, npass, first_frame):
       if not first_frame and self.shutterless:
-        time.sleep(exptime) 
+        pass 
       else:
         self.execute_command("start_acquisition")
 
@@ -150,6 +150,8 @@ class PixelDetector:
               # make oscillation an asynchronous task => do not wait here
               self.oscillation_task = self.execute_command("do_oscillation", start, end, exptime, npass, wait=False)
           else:
+              time.sleep(0.89*exptime)
+
               try:
                  self.oscillation_task.get(block=False)
               except gevent.Timeout:
