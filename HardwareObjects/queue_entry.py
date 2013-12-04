@@ -461,7 +461,8 @@ class SampleQueueEntry(BaseQueueEntry):
         for child in self.get_data_model().get_children():
             for grand_child in child.get_children():
                 if isinstance(grand_child, queue_model_objects.DataCollection):
-                    task_ids.append(grand_child.id)
+                    xds_dir = grand_child.acquisitions[0].path_template.process_directory
+                    task_ids.append((grand_child.id, xds_dir))
 
         #print task_ids
         
