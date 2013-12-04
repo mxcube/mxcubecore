@@ -863,9 +863,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             else:
                 self.get_view().setText(1, "No result")
                 self.status = QUEUE_ENTRY_STATUS.WARNING
-                log.info("EDNA-Characterisation completed " +\
-                         "successfully but without collection plan.")
-                log.warning("Characterisation completed" +\
+                log.warning("Characterisation completed " +\
                             "successfully but without collection plan.")
         else:
             self.get_view().setText(1, "Charact. Failed")
