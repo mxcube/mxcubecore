@@ -584,6 +584,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         qc.disconnect(self.collect_hwobj, 'collectNumberOfFrames',
                      self.collect_number_of_frames)
 
+        self.get_view().set_checkable(False)
+
     def collect_dc(self, dc, list_item):
         log = logging.getLogger("user_level_log")
 
@@ -591,8 +593,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             #acq_1.acquisition_parameters.take_snapshots = True
+            sample = self.get_data_model().get_parent().get_parent()
             param_list = queue_model_objects.\
-                to_collect_dict(dc, self.session)
+                to_collect_dict(dc, self.session, sample)
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -736,6 +739,10 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         char = self.get_data_model()
         reference_image_collection = char.reference_image_collection
+
+        # Trick to make sure that the reference collection
+        # has a sample.
+        reference_image_collection._parent = char.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid

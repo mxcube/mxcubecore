@@ -9,7 +9,7 @@ import os
 import queue_model_enumerables_v1 as queue_model_enumerables
 
 
-__author__ = "Marcus OskarSsson"
+__author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
 __credits__ = ["My great coleagues", "The MxCuBE colaboration"]
 
@@ -949,7 +949,7 @@ class Workflow(TaskNode):
 #
 # Collect hardware object utility function.
 #
-def to_collect_dict(data_collection, session):
+def to_collect_dict(data_collection, session, sample):
     """ return [{'comment': '',
           'helical': 0,
           'motors': {},
@@ -1005,7 +1005,8 @@ def to_collect_dict(data_collection, session):
              'sessionId': session.session_id,
              'do_inducedraddam': acq_params.induce_burn,
              'sample_reference': {'spacegroup': proc_params.space_group,
-                                  'cell': proc_params.get_cell_str()},
+                                  'cell': proc_params.get_cell_str(),
+                                  'blSampleId': sample.lims_id},
              'processing': str(proc_params.process_data and True),
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
