@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import subprocess
 
 def grouped_processing(processEvent, params):
     endOfLineToExecute = ''
@@ -68,15 +69,14 @@ def start(programs, processEvent, paramsDict):
 		    #if opts is not None:
 			#lineToExecute = executable + ' ' + opts + endOfLineToExecute
 		    #else:
-                    lineToExecute = executable + endOfLineToExecute
-
-		    lineToExecute += " &> /dev/null &"
-
+                    lineToExecute = executable + endOfLineToExecute + ' &'
 		    logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 
 		    # os.system is preferred to subprocess because we want to detach
 		    # the started program from the parent process group
-		    os.system(str(lineToExecute))
+		    #os.system(str(lineToExecute))
+                    subprocess.Popen(str(lineToExecute), shell=True, stdin=subprocess.PIPE,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
 		else:
                     logging.getLogger().error("No program to execute found (%s)",executable)
         except:
