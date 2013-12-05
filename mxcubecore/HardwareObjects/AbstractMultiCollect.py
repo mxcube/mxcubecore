@@ -408,11 +408,10 @@ class AbstractMultiCollect(object):
         # Creating the directory for images and processing information
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
-
+        data_collect_parameters['xds_dir'] = self.xds_directory
 
 	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
-
 
         if self.bl_control.sample_changer is not None:
             try:

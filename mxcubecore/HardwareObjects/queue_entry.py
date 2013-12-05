@@ -462,7 +462,7 @@ class SampleQueueEntry(BaseQueueEntry):
         for child in self.get_data_model().get_children():
             for grand_child in child.get_children():
                 if isinstance(grand_child, queue_model_objects.DataCollection):
-                    xds_dir = grand_child.acquisitions[0].path_template.process_directory
+                    xds_dir = grand_child.acquisitions[0].path_template.xds_dir
                     residues = grand_child.processing_parameters.num_residues
                     anomalous = grand_child.processing_parameters.anomalous
                     space_group = grand_child.processing_parameters.space_group
@@ -478,7 +478,7 @@ class SampleQueueEntry(BaseQueueEntry):
                                    'inverse_beam': inverse_beam})
 
         programs = self.beamline_setup.collect_hwobj["auto_processing"]
-        #autoprocessing.start(programs, "end_multicollect", params)
+        autoprocessing.start(programs, "end_multicollect", params)
         
         self._view.setText(1, "")
 
@@ -673,6 +673,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 
                 if 'collection_id' in param_list[0]:
                     dc.id = param_list[0]['collection_id']
+
+                dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
                 
             except gevent.GreenletExit:
                 log.exception("Collection stopped by user.")
@@ -1016,10 +1018,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-        self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
-                                        energy_scan.edge,
-                                        scan_file_archive_path,
-                                        scan_file_path)
+         self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
+                                         energy_scan.edge,
+                                         scan_file_archive_path,
+                                         scan_file_path)
 
         #scan_info = self.energy_scan_hwobj.scanInfo
 
