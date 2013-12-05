@@ -76,7 +76,7 @@ def start(programs, processEvent, paramsDict):
 
 		    # os.system is preferred to subprocess because we want to detach
 		    # the started program from the parent process group
-		    os.spawnlp(os.P_NOWAIT, str(lineToExecute))
+		    os.system(str(lineToExecute))
 		else:
                     logging.getLogger().error("No program to execute found (%s)",executable)
         except:
