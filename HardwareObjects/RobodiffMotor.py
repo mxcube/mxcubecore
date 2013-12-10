@@ -47,7 +47,7 @@ class RobodiffMotor(Device):
         self.setIsReady(state > RobodiffMotor.UNUSABLE)
 
         if self.motorState != state:
-            self.motorState = state 
+            self.motorState = state
             self.emit('stateChanged', (self.motorState, ))
 
     def getState(self):
@@ -74,6 +74,7 @@ class RobodiffMotor(Device):
         return self.getPosition()
 
     def move(self, position):
+        self.emit('stateChanged', (RobodiffMotor.MOVESTARTED, ))
         self.motor.move(position, wait=False) 
 
     def moveRelative(self, relativePosition):
