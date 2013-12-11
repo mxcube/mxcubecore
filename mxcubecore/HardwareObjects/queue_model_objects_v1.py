@@ -782,8 +782,8 @@ class PathTemplate(object):
         #Only do the intersection if there is possibilty for
         #Collision, that is directories are the same.
         if (self == rh_pt) and (self.run_number == rh_pt.run_number):
-            if self.start_num <= (rh_pt.start_num + rh_pt.num_files) and \
-               rh_pt.start_num <= (self.start_num + self.num_files):
+            if self.start_num < (rh_pt.start_num + rh_pt.num_files) and \
+               rh_pt.start_num < (self.start_num + self.num_files):
 
                result = True
     
