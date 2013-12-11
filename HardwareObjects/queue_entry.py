@@ -397,7 +397,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = 'Could not create the data collection group' + \
-                      ' in lims. Reason: ' + ex.message, self
+                      ' in LIMS. Reason: ' + ex.message, self
                 raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
