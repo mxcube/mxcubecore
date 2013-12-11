@@ -1157,7 +1157,7 @@ class ISPyBClient2(HardwareObject):
                      'sampX': cpos.sampx,
                      'sampY': cpos.sampy}
 
-        msg = 'Storing position in LIMS:'
+        msg = 'Storing position in LIMS'
         logging.getLogger("user_level_log").info(msg)
         
         try:
