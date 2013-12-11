@@ -75,8 +75,8 @@ def start(programs, processEvent, paramsDict):
 		    # os.system is preferred to subprocess because we want to detach
 		    # the started program from the parent process group
 		    #os.system(str(lineToExecute))
-                    subprocess.Popen(str(lineToExecute), shell=True, stdin=subprocess.PIPE,
-                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+                    subprocess.Popen(str(lineToExecute), shell=True, stdin=None,
+                                     stdout=None, stderr=None, close_fds=True)
 		else:
                     logging.getLogger().error("No program to execute found (%s)",executable)
         except:
