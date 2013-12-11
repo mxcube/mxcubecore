@@ -318,16 +318,20 @@ class BaseQueueEntry(QueueEntryContainer):
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
 
+        self._set_background_color()
+            
+        view.setHighlighted(True)
+        view.setOn(False)
+        self.get_data_model().set_executed(True)
+
+    def _set_background_color(self):
+        view = self.get_view()
         if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
             view.setBackgroundColor(widget_colors.LIGHT_GREEN)
         elif self.status == QUEUE_ENTRY_STATUS.WARNING:
             view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
         elif self.status == QUEUE_ENTRY_STATUS.FAILED:
             view.setBackgroundColor(widget_colors.LIGHT_RED)
-            
-        view.setHighlighted(True)
-        view.setOn(False)
-        self.get_data_model().set_executed(True)
 
     def stop(self):
         """
@@ -479,8 +483,18 @@ class SampleQueueEntry(BaseQueueEntry):
 
         programs = self.beamline_setup.collect_hwobj["auto_processing"]
         autoprocessing.start(programs, "end_multicollect", params)
-        
+
+        self._set_background_color()
         self._view.setText(1, "")
+
+    def _set_background_color(self):
+        BaseQueueEntry._set_background_color(self)
+
+        sample_mounted = self.sample_changer_hwobj.\
+            is_mounted_sample(self._data_model.location)
+
+        if sample_mounted:
+            self._view.set_mounted_style(True)
 
 
 class SampleCentringQueueEntry(BaseQueueEntry):
