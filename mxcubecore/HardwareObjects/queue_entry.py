@@ -519,8 +519,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         elif len(self.shape_history.shapes):
             pos = self.shape_history.shapes.values()[0]
         else:
-            log.warning("No centred position selected, " +\
-                        " using current position.")
+            msg = "No centred position selected, using current position."
+            log.info(msg)
 
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
