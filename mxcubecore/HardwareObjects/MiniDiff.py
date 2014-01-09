@@ -95,11 +95,25 @@ class myimage:
         return self.imgcopy
 
 
-def take_snapshots(light, phi, zoom, drawing):
+def take_snapshots(light, light_motor, phi, zoom, drawing):
   centredImages = []
-  
+
   if light is not None:
     light.wagoIn()
+
+    # No light level, choose default
+    if light_motor.getPosition() == 0:
+      zoom_level = zoom.getPosition()
+      light_level = None
+
+      try:
+        light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
+      except IndexError:
+        logging.getLogger("HWR").info("Could not get default light level")
+
+      if light_level:
+        light_motor.move(light_level)
+
     while light.getWagoState()!="in":
       time.sleep(0.5)
   for i in range(4):
@@ -787,7 +801,7 @@ class MiniDiff(Equipment):
         # if not centring_valid:
         #     logging.getLogger("HWR").error("MiniDiff: you must centre the crystal before taking the snapshots")
         # else:
-        snapshotsProcedure = gevent.spawn(take_snapshots, self.lightWago,self.phiMotor,self.zoomMotor,self._drawing)
+        snapshotsProcedure = gevent.spawn(take_snapshots, self.lightWago, self.lightMotor ,self.phiMotor,self.zoomMotor,self._drawing)
         self.emit('centringSnapshots', (None,))
         self.emitProgressMessage("Taking snapshots")
         self.centringStatus["images"]=[]
