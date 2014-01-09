@@ -9,7 +9,7 @@ import os
 import queue_model_enumerables_v1 as queue_model_enumerables
 
 
-__author__ = "Marcus OskarSsson"
+__author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
 __credits__ = ["My great coleagues", "The MxCuBE colaboration"]
 
@@ -685,6 +685,7 @@ class PathTemplate(object):
 
         self.directory = str()
         self.process_directory = str()
+        self.xds_dir = str()
         self.base_prefix = str()
         self.mad_prefix = str()
         self.reference_image_prefix = str()
@@ -781,8 +782,8 @@ class PathTemplate(object):
         #Only do the intersection if there is possibilty for
         #Collision, that is directories are the same.
         if (self == rh_pt) and (self.run_number == rh_pt.run_number):
-            if self.start_num <= (rh_pt.start_num + rh_pt.num_files) and \
-               rh_pt.start_num <= (self.start_num + self.num_files):
+            if self.start_num < (rh_pt.start_num + rh_pt.num_files) and \
+               rh_pt.start_num < (self.start_num + self.num_files):
 
                result = True
     
@@ -949,7 +950,7 @@ class Workflow(TaskNode):
 #
 # Collect hardware object utility function.
 #
-def to_collect_dict(data_collection, session):
+def to_collect_dict(data_collection, session, sample):
     """ return [{'comment': '',
           'helical': 0,
           'motors': {},
@@ -1005,7 +1006,8 @@ def to_collect_dict(data_collection, session):
              'sessionId': session.session_id,
              'do_inducedraddam': acq_params.induce_burn,
              'sample_reference': {'spacegroup': proc_params.space_group,
-                                  'cell': proc_params.get_cell_str()},
+                                  'cell': proc_params.get_cell_str(),
+                                  'blSampleId': sample.lims_id},
              'processing': str(proc_params.process_data and True),
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,

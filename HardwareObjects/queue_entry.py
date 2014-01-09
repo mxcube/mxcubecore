@@ -28,6 +28,7 @@ import queue_model_objects_v1 as queue_model_objects
 import pprint
 import os
 import ShapeHistory as shape_history
+import autoprocessing
 
 #import edna_test_data
 #from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
@@ -317,16 +318,20 @@ class BaseQueueEntry(QueueEntryContainer):
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
 
+        self._set_background_color()
+            
+        view.setHighlighted(True)
+        view.setOn(False)
+        self.get_data_model().set_executed(True)
+
+    def _set_background_color(self):
+        view = self.get_view()
         if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
             view.setBackgroundColor(widget_colors.LIGHT_GREEN)
         elif self.status == QUEUE_ENTRY_STATUS.WARNING:
             view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
         elif self.status == QUEUE_ENTRY_STATUS.FAILED:
             view.setBackgroundColor(widget_colors.LIGHT_RED)
-            
-        view.setHighlighted(True)
-        view.setOn(False)
-        self.get_data_model().set_executed(True)
 
     def stop(self):
         """
@@ -373,21 +378,27 @@ class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.lims_client_hwobj = None
-        self._lims_group_id = 0
         self.session_hwobj = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        group_data = {'sessionId': self.session_hwobj.session_id}
+        gid = self.get_data_model().lims_group_id
 
-        try:
-            gid = self.lims_client_hwobj.\
-                  _store_data_collection_group(group_data)
-            self.get_data_model().lims_group_id = gid
-        except Exception as ex:
-            msg = 'Could not create the data collection group' + \
-                  ' in lims. Reason: ' + ex.message, self
-            raise QueueExecutionException(msg, self)
+        if not gid:
+            # Creating a collection group with the current session id
+            # and a dummy exepriment type OSC. The experiment type
+            # will be updated when the collections are stored.
+            group_data = {'sessionId': self.session_hwobj.session_id,
+                          'experimentType': 'OSC'}
+
+            try:
+                gid = self.lims_client_hwobj.\
+                      _store_data_collection_group(group_data)
+                self.get_data_model().lims_group_id = gid
+            except Exception as ex:
+                msg = 'Could not create the data collection group' + \
+                      ' in LIMS. Reason: ' + ex.message, self
+                raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -450,7 +461,40 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+        params = []
+
+        for child in self.get_data_model().get_children():
+            for grand_child in child.get_children():
+                if isinstance(grand_child, queue_model_objects.DataCollection):
+                    xds_dir = grand_child.acquisitions[0].path_template.xds_dir
+                    residues = grand_child.processing_parameters.num_residues
+                    anomalous = grand_child.processing_parameters.anomalous
+                    space_group = grand_child.processing_parameters.space_group
+                    cell = grand_child.processing_parameters.get_cell_str()
+                    inverse_beam = grand_child.acquisitions[0].acquisition_parameters.inverse_beam
+
+                    params.append({'collect_id': grand_child.id, 
+                                   'xds_dir': xds_dir,
+                                   'residues': residues,
+                                   'anomalous' : anomalous,
+                                   'spacegroup': space_group,
+                                   'cell': cell,
+                                   'inverse_beam': inverse_beam})
+
+        programs = self.beamline_setup.collect_hwobj["auto_processing"]
+        autoprocessing.start(programs, "end_multicollect", params)
+
+        self._set_background_color()
         self._view.setText(1, "")
+
+    def _set_background_color(self):
+        BaseQueueEntry._set_background_color(self)
+
+        sample_mounted = self.sample_changer_hwobj.\
+            is_mounted_sample(self._data_model.location)
+
+        if sample_mounted:
+            self._view.set_mounted_style(True)
 
 
 class SampleCentringQueueEntry(BaseQueueEntry):
@@ -475,8 +519,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         elif len(self.shape_history.shapes):
             pos = self.shape_history.shapes.values()[0]
         else:
-            log.warning("No centred position selected, " +\
-                        " using current position.")
+            msg = "No centred position selected, using current position."
+            log.info(msg)
 
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
@@ -580,6 +624,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         qc.disconnect(self.collect_hwobj, 'collectNumberOfFrames',
                      self.collect_number_of_frames)
 
+        self.get_view().set_checkable(False)
+
     def collect_dc(self, dc, list_item):
         log = logging.getLogger("user_level_log")
 
@@ -587,8 +633,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             #acq_1.acquisition_parameters.take_snapshots = True
+            sample = self.get_data_model().get_parent().get_parent()
             param_list = queue_model_objects.\
-                to_collect_dict(dc, self.session)
+                to_collect_dict(dc, self.session, sample)
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -640,6 +687,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 
                 if 'collection_id' in param_list[0]:
                     dc.id = param_list[0]['collection_id']
+
+                dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
                 
             except gevent.GreenletExit:
                 log.exception("Collection stopped by user.")
@@ -732,6 +781,10 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         char = self.get_data_model()
         reference_image_collection = char.reference_image_collection
+
+        # Trick to make sure that the reference collection
+        # has a sample.
+        reference_image_collection._parent = char.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid
@@ -841,9 +894,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             else:
                 self.get_view().setText(1, "No result")
                 self.status = QUEUE_ENTRY_STATUS.WARNING
-                log.info("EDNA-Characterisation completed " +\
-                         "successfully but without collection plan.")
-                log.warning("Characterisation completed" +\
+                log.warning("Characterisation completed " +\
                             "successfully but without collection plan.")
         else:
             self.get_view().setText(1, "Charact. Failed")
@@ -981,10 +1032,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-        self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
-                                        energy_scan.edge,
-                                        scan_file_archive_path,
-                                        scan_file_path)
+         self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
+                                         energy_scan.edge,
+                                         scan_file_archive_path,
+                                         scan_file_path)
 
         #scan_info = self.energy_scan_hwobj.scanInfo
 
@@ -1112,6 +1163,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 
             view.setText(1, "Centring !")
             async_result.get()
+            view.setText(1, "Centring done !")
         finally:
             dm.disconnect("centringAccepted", centring_done_cb)
 

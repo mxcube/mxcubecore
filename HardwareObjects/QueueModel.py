@@ -327,4 +327,6 @@ class QueueModel(HardwareObject):
             pt.run_number = new_run_number
             new_node.set_number(new_run_number)
 
+        new_node.set_executed(False)
+
         return new_node
