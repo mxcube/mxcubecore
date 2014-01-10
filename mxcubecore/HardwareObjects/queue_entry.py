@@ -1099,7 +1099,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         elif state == 'RUNNING':
             self.workflow_started = True
         elif state == 'OPEN':
-            msg = "Workflow waiting for input"
+            msg = "Workflow waiting for input, verify parameters and press continue."
             logging.getLogger("user_level_log").warning(msg)
             self.get_queue_controller().show_workflow_tab() 
 
