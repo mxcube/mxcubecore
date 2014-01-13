@@ -318,16 +318,20 @@ class BaseQueueEntry(QueueEntryContainer):
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
 
+        self._set_background_color()
+            
+        view.setHighlighted(True)
+        view.setOn(False)
+        self.get_data_model().set_executed(True)
+
+    def _set_background_color(self):
+        view = self.get_view()
         if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
             view.setBackgroundColor(widget_colors.LIGHT_GREEN)
         elif self.status == QUEUE_ENTRY_STATUS.WARNING:
             view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
         elif self.status == QUEUE_ENTRY_STATUS.FAILED:
             view.setBackgroundColor(widget_colors.LIGHT_RED)
-            
-        view.setHighlighted(True)
-        view.setOn(False)
-        self.get_data_model().set_executed(True)
 
     def stop(self):
         """
@@ -393,7 +397,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = 'Could not create the data collection group' + \
-                      ' in lims. Reason: ' + ex.message, self
+                      ' in LIMS. Reason: ' + ex.message, self
                 raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
@@ -462,7 +466,7 @@ class SampleQueueEntry(BaseQueueEntry):
         for child in self.get_data_model().get_children():
             for grand_child in child.get_children():
                 if isinstance(grand_child, queue_model_objects.DataCollection):
-                    xds_dir = grand_child.acquisitions[0].path_template.process_directory
+                    xds_dir = grand_child.acquisitions[0].path_template.xds_dir
                     residues = grand_child.processing_parameters.num_residues
                     anomalous = grand_child.processing_parameters.anomalous
                     space_group = grand_child.processing_parameters.space_group
@@ -478,9 +482,19 @@ class SampleQueueEntry(BaseQueueEntry):
                                    'inverse_beam': inverse_beam})
 
         programs = self.beamline_setup.collect_hwobj["auto_processing"]
-        #autoprocessing.start(programs, "end_multicollect", params)
-        
+        autoprocessing.start(programs, "end_multicollect", params)
+
+        self._set_background_color()
         self._view.setText(1, "")
+
+    def _set_background_color(self):
+        BaseQueueEntry._set_background_color(self)
+
+        sample_mounted = self.sample_changer_hwobj.\
+            is_mounted_sample(self._data_model.location)
+
+        if sample_mounted:
+            self._view.set_mounted_style(True)
 
 
 class SampleCentringQueueEntry(BaseQueueEntry):
@@ -505,8 +519,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         elif len(self.shape_history.shapes):
             pos = self.shape_history.shapes.values()[0]
         else:
-            log.warning("No centred position selected, " +\
-                        " using current position.")
+            msg = "No centred position selected, using current position."
+            log.info(msg)
 
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
@@ -673,6 +687,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 
                 if 'collection_id' in param_list[0]:
                     dc.id = param_list[0]['collection_id']
+
+                dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
                 
             except gevent.GreenletExit:
                 log.exception("Collection stopped by user.")
@@ -1016,10 +1032,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-        self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
-                                        energy_scan.edge,
-                                        scan_file_archive_path,
-                                        scan_file_path)
+         self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
+                                         energy_scan.edge,
+                                         scan_file_archive_path,
+                                         scan_file_path)
 
         #scan_info = self.energy_scan_hwobj.scanInfo
 
