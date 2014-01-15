@@ -58,19 +58,23 @@ QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,)
 class QueueExecutionException(Exception):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
+        self.message = message
         self.origin = origin
-
+        self.stack_trace = traceback.format_exc()
 
 class QueueAbortedException(QueueExecutionException):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
         self.origin = origin
-
+        self.message = message
+        self.stack_trace = traceback.format_exc()
 
 class QueueSkippEntryException(QueueExecutionException):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
         self.origin = origin
+        self.message = message
+        self.stack_trace = traceback.format_exc()
 
 
 class QueueEntryContainer(object):
