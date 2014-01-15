@@ -11,6 +11,7 @@ documentation for the queue_entry module for more information.
 import logging
 import gevent
 import queue_entry
+import traceback
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -107,10 +108,11 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
                 if isinstance(ex, queue_entry.QueueAbortedException):
                     logging.getLogger('user_level_log').\
-                        warning('Queue execution was aborted, queue stopped. ' + ex.message)
+                        warning('Queue execution was aborted, ' + ex.message)
                 else:
                     logging.getLogger('user_level_log').\
                         error('Queue execution failed with: ' + ex.message)
+
                 self._running = False
                 raise ex
                
@@ -127,8 +129,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
-            logging.getLogger('user_level_log').info('Queue paused,' +\
-                                                     'waiting ...')
+            logging.getLogger('user_level_log').info('Queue paused, waiting ...')
             entry.get_view().setText(1, 'Queue paused, waiting')
 
         self.wait_for_pause_event()
@@ -166,10 +167,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        try:
-            self.get_current_entry().stop()
-        except queue_entry.QueueAbortedException:
-            pass
+        qe = self.get_current_entry()
+
+        if qe:
+            try:
+                self.get_current_entry().stop()
+            except queue_entry.QueueAbortedException:
+                pass
 
         self._root_task.kill(block = False)
         # Reset the pause event, incase we were waiting.
