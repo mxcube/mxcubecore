@@ -805,7 +805,7 @@ class AbstractMultiCollect(object):
     #TODO: rename to stop_collect
     def stopCollect(self, owner):
         if self.data_collect_task is not None:
-            self.data_collect_task.kill()
+            self.data_collect_task.kill(block = False)
 
 
     """
