@@ -151,6 +151,7 @@ class MiniDiff(Equipment):
         self.pixelsPerMmZ=None
         self.imgWidth = None
         self.imgHeight = None
+        self.centredTime = 0
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -310,7 +311,18 @@ class MiniDiff(Equipment):
 
 
     def isReady(self):
-      return self.isValid() and all([not m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
+      if self.isValid():
+         motorsQuiet = True 
+   
+         for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor):
+            if m.motorIsMoving():
+                 motorsQuiet = False
+   
+         return motorsQuiet
+      else:
+         return False
+
+      #return self.isValid() and all([not m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
     
 
     def isValid(self):
@@ -393,23 +405,27 @@ class MiniDiff(Equipment):
 
 
     def phizMotorMoved(self, pos):
-        self.invalidateCentring()
-
+        if time.time() - self.centredTime > 1.0:
+          self.invalidateCentring()
 
     def phiyMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleXMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleYMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleChangerSampleIsLoaded(self, state):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def moveToBeam(self, x, y):
@@ -532,6 +548,7 @@ class MiniDiff(Equipment):
           else:
             self.phiMotor.syncMoveRelative(-180)
           #logging.info("EMITTING CENTRING SUCCESSFUL")
+          self.centredTime = time.time()
           self.emitCentringSuccessful()
           self.emitProgressMessage("")
 
