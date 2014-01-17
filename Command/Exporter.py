@@ -109,13 +109,14 @@ class Exporter(ExporterClient.ExporterClient):
       ExporterClient.ExporterClient.__init__(self, address, port, ExporterClient.PROTOCOL.STREAM, timeout, retries)
 
       self.started = False
+      self.disconnected = True
       self.callbacks = {}
       self.events_queue = gevent.queue.Queue()
       self.events_processing_task = None
 
     def start(self):
         self.started=True
-        self.reconnect()
+        gevent.spawn(self.reconnect)
 
     def stop(self):
         self.started=False
@@ -133,16 +134,25 @@ class Exporter(ExporterClient.ExporterClient):
         return self._to_python_value(ret)
 
     def reconnect(self):
-        if self.started:
-            try:
-                self.disconnect()
-                self.connect()
-            except:
-                time.sleep(1.0)
-                self.reconnect()
+        while self.started and self.disconnected:
+          try:
+            self.connect()
+          except:
+            time.sleep(1)
+        #if self.started:
+        #    try:
+        #        self.disconnect()
+        #        self.connect()
+        #    except:
+        #        time.sleep(1.0)
+        #        self.reconnect()
+
+    def onConnected(self):
+       self.disconnected = False
 
     def onDisconnected(self):
-       self.reconnect()
+       self.disconnected = True
+       gevent.spawn(self.reconnect)
 
     def register(self, name, cb):
        if callable(cb): 
