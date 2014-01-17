@@ -86,6 +86,7 @@ class CcdDetector:
       
     @task
     def reset_detector(self):   
+        self.getCommandObject("reset_detector").abort()
         self.execute_command("reset_detector")
 
 
@@ -176,6 +177,7 @@ class PixelDetector:
     def reset_detector(self):
       if self.shutterless:
           self.oscillation_task.kill()
+      self.getCommandObject("reset_detector").abort()    
       self.execute_command("reset_detector")
 
 
