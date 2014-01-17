@@ -58,19 +58,23 @@ QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,)
 class QueueExecutionException(Exception):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
+        self.message = message
         self.origin = origin
-
+        self.stack_trace = traceback.format_exc()
 
 class QueueAbortedException(QueueExecutionException):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
         self.origin = origin
-
+        self.message = message
+        self.stack_trace = traceback.format_exc()
 
 class QueueSkippEntryException(QueueExecutionException):
     def __init__(self, message, origin):
         Exception.__init__(self, message, origin)
         self.origin = origin
+        self.message = message
+        self.stack_trace = traceback.format_exc()
 
 
 class QueueEntryContainer(object):
@@ -317,21 +321,24 @@ class BaseQueueEntry(QueueEntryContainer):
         logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
-
-        self._set_background_color()
             
         view.setHighlighted(True)
         view.setOn(False)
         self.get_data_model().set_executed(True)
+        self._set_background_color()
 
     def _set_background_color(self):
         view = self.get_view()
-        if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
-            view.setBackgroundColor(widget_colors.LIGHT_GREEN)
-        elif self.status == QUEUE_ENTRY_STATUS.WARNING:
-            view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
-        elif self.status == QUEUE_ENTRY_STATUS.FAILED:
-            view.setBackgroundColor(widget_colors.LIGHT_RED)
+        
+        if self.get_data_model().is_executed():
+            if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
+                view.setBackgroundColor(widget_colors.LIGHT_GREEN)
+            elif self.status == QUEUE_ENTRY_STATUS.WARNING:
+                view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
+            elif self.status == QUEUE_ENTRY_STATUS.FAILED:
+                view.setBackgroundColor(widget_colors.LIGHT_RED)
+        else:
+            view.setBackgroundColor(widget_colors.WHITE)
 
     def stop(self):
         """
@@ -397,7 +404,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = 'Could not create the data collection group' + \
-                      ' in LIMS. Reason: ' + ex.message, self
+                      ' in LIMS. Reason: ' + str(ex)
                 raise QueueExecutionException(msg, self)
 
     def pre_execute(self):
@@ -490,11 +497,11 @@ class SampleQueueEntry(BaseQueueEntry):
     def _set_background_color(self):
         BaseQueueEntry._set_background_color(self)
 
-        sample_mounted = self.sample_changer_hwobj.\
-            is_mounted_sample(self._data_model.location)
+        #sample_mounted = self.sample_changer_hwobj.\
+        #    is_mounted_sample(self._data_model.location)
 
-        if sample_mounted:
-            self._view.set_mounted_style(True)
+        #if sample_mounted:
+        #    self._view.set_mounted_style(True)
 
 
 class SampleCentringQueueEntry(BaseQueueEntry):
@@ -509,7 +516,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
         self.get_view().setText(1, 'Waiting for input')
         log = logging.getLogger("user_level_log")
-        log.warning("Please select a centred position.")
+        log.warning("Please select a centred position, and press continue.")
 
         self.get_queue_controller().pause(True)
         pos = None
@@ -651,10 +658,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict()}
                     self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
 
-                    msg = "Helical data collection with start" +\
-                          "position: " + str(pprint.pformat(start_cpos)) + \
-                          " and end position: " + str(pprint.pformat(end_cpos))
+                    msg = "Helical data collection, moving to start position"
                     log.info(msg)
+                    log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                 else:
                     self.collect_hwobj.getChannelObject("helical").setValue(0)
@@ -662,7 +668,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 empty_cpos = queue_model_objects.CentredPosition()
 
                 if cpos != empty_cpos:
-                    log.info("Moving to: " + str(cpos))
+                    log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                     self.shape_history.select_shape_with_cpos(cpos)
                     self.centring_task = self.diffractometer_hwobj.\
@@ -676,10 +682,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
-                    
-                #log.info("Calling collect hw-object with: " + str(dc.as_dict()))
-
-                #log.info("Collecting: " + str(dc.as_dict()))
                 self.collect_task = self.collect_hwobj.\
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
                                             param_list)                
@@ -691,10 +693,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
                 
             except gevent.GreenletExit:
-                log.exception("Collection stopped by user.")
-                log.warning("Collection stopped by user.")
+                #log.warning("Collection stopped by user.")
                 list_item.setText(1, 'Stopped')
-                raise QueueAbortedException('Queue stopped', self)
+                raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
                 print traceback.print_exc()
                 raise QueueExecutionException(ex.message, self)
@@ -733,6 +734,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
+        self.status = QUEUE_ENTRY_STATUS.FAILED
         logging.getLogger("user_level_log").error(message.replace('\n', ' '))
         raise QueueExecutionException(message.replace('\n', ' '), self)
 
@@ -751,12 +753,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         try:
             self.get_view().setText(1, 'Stopping ...')
-            if self.collect_task:
-                self.collect_task.kill(block=False)
+            #logging.getLogger("user_level_log").info("Stopping collection...")
+            #if self.collect_task:
+            #    self.collect_task.kill(block=False)
+            self.collect_hwobj.stopCollect('mxCuBE')
 
             if self.centring_task:
                 self.centring_task.kill(block=False)
-
         except gevent.GreenletExit:
             raise
 
@@ -1099,7 +1102,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         elif state == 'RUNNING':
             self.workflow_started = True
         elif state == 'OPEN':
-            msg = "Workflow waiting for input"
+            msg = "Workflow waiting for input, verify parameters and press continue."
             logging.getLogger("user_level_log").warning(msg)
             self.get_queue_controller().show_workflow_tab() 
 
@@ -1164,6 +1167,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             view.setText(1, "Centring !")
             async_result.get()
             view.setText(1, "Centring done !")
+            log.info("Centring saved")
         finally:
             dm.disconnect("centringAccepted", centring_done_cb)
 
