@@ -229,7 +229,7 @@ class Session(HardwareObject):
         return self.session_start_date
 
     def set_user_group(self, group_name):
-        self.user_group = str(group_name) + '/'
+        self.user_group = str(group_name)
 
     def get_group_name(self):
         return self.user_group
