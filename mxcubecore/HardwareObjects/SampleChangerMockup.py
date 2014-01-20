@@ -34,8 +34,14 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
         else:
             return False
 
+    def getSelectedSample(self):
+        return None
+
+    def getSelectedComponent(self):
+        return None
+
     def hasLoadedSample(self):
-        return True
+        return self.getLoadedSample() is not None
 
     def getSampleList(self):
         return []
@@ -65,7 +71,8 @@ class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
             return (None, None)
 
     def getLoadedSample(self):
-        return self.current_sample
+        #return self.current_sample
+        return None
 
     def getLoadedSampleDataMatrix(self):
         return "Nice-little-matrix"
