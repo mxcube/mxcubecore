@@ -21,7 +21,7 @@ except ImportError:
 USER_CLICKED_EVENT = AsyncResult()
 
 
-def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, imgWidth, imgHeight, phiy_direction=1):
+def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, beam_xc, beam_yc, phiy_direction=1):
   global USER_CLICKED_EVENT
   X, Y = [], []
   centredPosRel = {}
@@ -42,8 +42,9 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, i
         break
       phi.moveRelative(90)
 
-    beam_xc = imgWidth / 2
-    beam_yc = imgHeight / 2
+    # 2014-01-19-bessy-mh: variable beam position coordinates are passed as parameters
+    # beam_xc = imgWidth / 2
+    # beam_yc = imgHeight / 2
     yc = (Y[0]+Y[2]) / 2
     y =  Y[0] - yc
     x =  yc - Y[1]
@@ -151,6 +152,7 @@ class MiniDiff(Equipment):
         self.pixelsPerMmZ=None
         self.imgWidth = None
         self.imgHeight = None
+        self.centredTime = 0
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -310,7 +312,18 @@ class MiniDiff(Equipment):
 
 
     def isReady(self):
-      return self.isValid() and all([not m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
+      if self.isValid():
+         motorsQuiet = True 
+   
+         for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor):
+            if m.motorIsMoving():
+                 motorsQuiet = False
+   
+         return motorsQuiet
+      else:
+         return False
+
+      #return self.isValid() and all([not m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
     
 
     def isValid(self):
@@ -393,29 +406,40 @@ class MiniDiff(Equipment):
 
 
     def phizMotorMoved(self, pos):
-        self.invalidateCentring()
-
+        if time.time() - self.centredTime > 1.0:
+          self.invalidateCentring()
 
     def phiyMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleXMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleYMotorMoved(self, pos):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
 
     def sampleChangerSampleIsLoaded(self, state):
-        self.invalidateCentring()
+        if time.time() - self.centredTime > 1.0:
+           self.invalidateCentring()
 
+    def getBeamPosX(self):
+        return self.imgWidth / 2
+
+    def getBeamPosY(self):
+        return self.imgHeight / 2
 
     def moveToBeam(self, x, y):
         try:
-            self.phizMotor.moveRelative((y-(self.imgHeight/2))/float(self.pixelsPerMmZ))
-            self.phiyMotor.moveRelative((x-(self.imgWidth/2))/float(self.pixelsPerMmY))
+            beam_xc = self.getBeamPosX()
+            beam_yc = self.getBeamPosY()
+            self.phizMotor.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
+            self.phiyMotor.moveRelative((x-beam_xc)/float(self.pixelsPerMmY))
         except:
             logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
@@ -484,8 +508,8 @@ class MiniDiff(Equipment):
                                                      self.sampleYMotor,
                                                      self.pixelsPerMmY,
                                                      self.pixelsPerMmZ,
-                                                     self.imgWidth,
-                                                     self.imgHeight,
+                                                     self.getBeamPosX(),
+                                                     self.getBeamPosY(),
                                                      self.phiy_direction)
          
         self.currentCentringProcedure.link(self.manualCentringDone)
@@ -505,8 +529,8 @@ class MiniDiff(Equipment):
         rotMatrix.shape = (2, 2)
         invRotMatrix = numpy.array(rotMatrix.I)
         dx, dy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)*self.pixelsPerMmY
-        beam_pos_x = self.imgWidth / 2
-        beam_pos_y = self.imgHeight / 2
+        beam_pos_x = self.getBeamPosX()
+        beam_pos_y = self.getBeamPosY()
 
         x = (phiy * self.pixelsPerMmY) + beam_pos_x
         y = dy + (phiz * self.pixelsPerMmZ) + beam_pos_y
@@ -532,6 +556,7 @@ class MiniDiff(Equipment):
           else:
             self.phiMotor.syncMoveRelative(-180)
           #logging.info("EMITTING CENTRING SUCCESSFUL")
+          self.centredTime = time.time()
           self.emitCentringSuccessful()
           self.emitProgressMessage("")
 
@@ -624,8 +649,8 @@ class MiniDiff(Equipment):
             else:
               X.append(x); Y.append(y)
               
-          beam_xc = imgWidth / 2
-          beam_yc = imgHeight / 2
+          beam_xc = self.getBeamPosX()
+          beam_yc = self.getBeamPosY()
           yc = (Y[0]+Y[2]) / 2
           y =  Y[0] - yc
           x =  yc - Y[1]
