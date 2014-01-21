@@ -355,8 +355,7 @@ class DataCollection(TaskNode):
         self.set_name(name)
 
         self.previous_acquisition = None
-        self.experiment_type = queue_model_enumerables.\
-                               EXPERIMENT_TYPE.NATIVE
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
