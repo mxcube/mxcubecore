@@ -36,6 +36,7 @@ class TaskNode(object):
         self._names = {}
         self._enabled = True
         self._node_id = None
+        self._requires_centring = True
 
     def is_enabled(self):
         """
@@ -148,6 +149,12 @@ class TaskNode(object):
 
     def set_executed(self, executed):
         self._executed = executed
+
+    def requires_centring(self):
+        return self._requires_centring
+
+    def set_requires_centring(self, state):
+        self._requires_centring = state
 
     def get_root(self):
         parent = self._parent
@@ -348,8 +355,7 @@ class DataCollection(TaskNode):
         self.set_name(name)
 
         self.previous_acquisition = None
-        self.experiment_type = queue_model_enumerables.\
-                               EXPERIMENT_TYPE.NATIVE
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
@@ -595,6 +601,7 @@ class EnergyScan(TaskNode):
         TaskNode.__init__(self)
         self.element_symbol = None
         self.edge = None
+        self.set_requires_centring(False)
 
         if not sample:
             self.sample = Sample()
@@ -936,6 +943,7 @@ class Workflow(TaskNode):
         TaskNode.__init__(self)
         self.path_template = PathTemplate()
         self._type = str()
+        self.set_requires_centring(False)
 
     def set_type(self, workflow_type):
         self._type = workflow_type
