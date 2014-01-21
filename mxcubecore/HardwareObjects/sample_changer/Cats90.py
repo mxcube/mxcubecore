@@ -39,16 +39,17 @@ class Basket(Container):
         self.getContainer()._triggerInfoChangedEvent()
 
 
-class CatsBessy(SampleChanger):
+class Cats90(SampleChanger):
     __TYPE__ = "CATS"    
     NO_OF_BASKETS = 9
 
     """
-    Actual implementation of the CATS Sample Changer, BESSY BL14.1 installation
+    Actual implementation of the CATS Sample Changer,
+    BESSY BL14.1 installation with 3 lids and 90 samples
     """    
     def __init__(self, *args, **kwargs):
-        super(CatsBessy, self).__init__(self.__TYPE__,False, *args, **kwargs)
-        for i in range(CatsBessy.NO_OF_BASKETS):
+        super(Cats90, self).__init__(self.__TYPE__,False, *args, **kwargs)
+        for i in range(Cats90.NO_OF_BASKETS):
             basket = Basket(self,i+1)
             self._addComponent(basket)
             
@@ -60,7 +61,7 @@ class CatsBessy(SampleChanger):
         self._abort = self.getCommandObject("_abort")
 
         self._basketChannels = []
-        for basket_index in range(CatsBessy.NO_OF_BASKETS):            
+        for basket_index in range(Cats90.NO_OF_BASKETS):            
             self._basketChannels.append(self.addChannel({"type":"tango", "name":"di_basket", "tangoname": self.tangoname, "polling": "events"}, ("di_Cassette%dPresence" % (basket_index + 1))))
 
         self._lidStatus = self.addChannel({"type":"tango", "name":"di_AllLidsClosed", "tangoname": self.tangoname, "polling": "events"}, "di_AllLidsClosed")
@@ -250,7 +251,7 @@ class CatsBessy(SampleChanger):
         sample=None
         try:
           basket_no = self._selected_basket
-          if basket_no is not None and basket_no>0 and basket_no <=CatsBessy.NO_OF_BASKETS:
+          if basket_no is not None and basket_no>0 and basket_no <=Cats90.NO_OF_BASKETS:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             sample_no = self._selected_sample
             if sample_no is not None and sample_no>0 and sample_no <=Basket.NO_OF_SAMPLES_PER_PUCK:
@@ -299,9 +300,9 @@ class CatsBessy(SampleChanger):
  
     def _initSCContents(self):
         # create temporary list with default basket information
-        basket_list= [('', 4)] * CatsBessy.NO_OF_BASKETS
+        basket_list= [('', 4)] * Cats90.NO_OF_BASKETS
         # write the default basket information into permanent Basket objects 
-        for basket_index in range(CatsBessy.NO_OF_BASKETS):            
+        for basket_index in range(Cats90.NO_OF_BASKETS):            
             basket=self.getComponents()[basket_index]
             datamatrix = None
             present = scanned = False
@@ -309,7 +310,7 @@ class CatsBessy(SampleChanger):
 
         # create temporary list with default sample information and indices
         sample_list=[]
-        for basket_index in range(CatsBessy.NO_OF_BASKETS):            
+        for basket_index in range(Cats90.NO_OF_BASKETS):            
             for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
                 sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH)) 
         # write the default sample information into permanent Pin objects 
@@ -322,7 +323,7 @@ class CatsBessy(SampleChanger):
             sample._setHolderLength(spl[4])    
 
     def _updateSCContents(self):
-        for basket_index in range(CatsBessy.NO_OF_BASKETS):            
+        for basket_index in range(Cats90.NO_OF_BASKETS):            
             # get presence information from the device server
             newBasketPresence = self._basketChannels[basket_index].getValue()
             # get saved presence information from object's internal bookkeeping
