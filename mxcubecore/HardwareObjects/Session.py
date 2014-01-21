@@ -97,7 +97,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.raw_data_folder_name, self.user_group)
+                            self.raw_data_folder_name)
 
     def get_base_process_directory(self):
         """
@@ -105,7 +105,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.processed_data_folder_name, self.user_group)
+                            self.processed_data_folder_name)
 
     def get_image_directory(self, sub_dir):
         """
