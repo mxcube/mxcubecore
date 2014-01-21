@@ -99,6 +99,21 @@ class Cats90(SampleChanger):
         if self._lidStatus is not None:
             self._lidStatus.connectSignal("update", self._updateOperationMode)
 
+        # maintenance commands and status attributes
+        self._powerOn = self.addCommand({"type":"tango", "name":"powerOn", "tangoname": self.tangoname}, "powerOn")
+        self._powerOff = self.addCommand({"type":"tango", "name":"powerOff", "tangoname": self.tangoname}, "powerOff")
+        self._openLid1 = self.addCommand({"type":"tango", "name":"openlid1", "tangoname": self.tangoname}, "openlid1")
+        self._closeLid1 = self.addCommand({"type":"tango", "name":"closelid1", "tangoname": self.tangoname}, "closelid1")
+        self._openLid2 = self.addCommand({"type":"tango", "name":"openlid2", "tangoname": self.tangoname}, "openlid2")
+        self._closeLid2 = self.addCommand({"type":"tango", "name":"closelid2", "tangoname": self.tangoname}, "closelid2")
+        self._openLid3 = self.addCommand({"type":"tango", "name":"openlid3", "tangoname": self.tangoname}, "openlid3")
+        self._closeLid3 = self.addCommand({"type":"tango", "name":"closelid3", "tangoname": self.tangoname}, "closelid3")
+        self._back = self.addCommand({"type":"tango", "name":"back", "tangoname": self.tangoname}, "back")
+        self._safe = self.addCommand({"type":"tango", "name":"safe", "tangoname": self.tangoname}, "safe")
+        self._lid1State = self.addChannel({"type":"tango", "name":"di_Lid1Open", "tangoname": self.tangoname, "polling": "events"}, "Lid1Open")
+        self._lid2State = self.addChannel({"type":"tango", "name":"di_Lid2Open", "tangoname": self.tangoname, "polling": "events"}, "Lid2Open")
+        self._lid3State = self.addChannel({"type":"tango", "name":"di_Lid3Open", "tangoname": self.tangoname, "polling": "events"}, "Lid3Open")
+
         self._initSCContents()
 
         # SampleChanger.init must be called _after_ initialization of the Cats because it starts the update methods which access
