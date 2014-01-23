@@ -44,4 +44,20 @@ class ID232MultiCollect(ESRFMultiCollect):
             return ESRFMultiCollect.trigger_auto_processing(self, process_event, *args, **kwargs)
  
   
+    @task
+    def write_input_files(self, datacollection_id):
+        # copy *geo_corr.cbf* files to process directory
+        try:
+            process_dir = os.path.join(self.xds_directory, "..")
+            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
+            for dir in (process_dir, raw_process_dir):
+                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
+                    dest = os.path.join(dir,filename)
+                    if os.path.exists(dest):
+                        continue
+                    shutil.copyfile(os.path.join("/data/id23eh2/inhouse/opid232", filename), dest)
+        except:
+            logging.exception("Exception happened while copying geo_corr files")
+
+        return ESRFMultiCollect.write_input_files(self, datacollection_id)
 
