@@ -1,4 +1,7 @@
 from ESRFMultiCollect import *
+import shutil
+import logging
+import os
 
 class ID232MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
