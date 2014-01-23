@@ -436,8 +436,7 @@ class MiniDiff(Equipment):
 
     def getBeamInfo(self, update_beam_callback):
         get_beam_info = self.getCommandObject("getBeamInfo")
-        if get_beam_info.isSpecReady():
-            get_beam_info(callback=update_beam_callback, error_callback=None)
+        get_beam_info(callback=update_beam_callback, error_callback=None)
 
     def moveToBeam(self, x, y):
         try:
