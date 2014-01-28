@@ -188,8 +188,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector = detector
         self._tunable_bl = tunable_bl
         self._centring_status = None
-        self._take_snapshots = True
-
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -264,15 +262,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def take_crystal_snapshots(self):
         self.bl_control.diffractometer.takeSnapshots(wait=True)
-
-
-    def enable_crystal_snapshots(self, state):
-        self._take_snapshots = state
-
-
-    def crystal_snapshots_enabled(self):
-        return self._take_snapshots
-
 
     #TODO: remove this hook!!!
     @task
