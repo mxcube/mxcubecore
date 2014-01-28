@@ -111,6 +111,7 @@ def take_snapshots(light, light_motor, phi, zoom, drawing):
         light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
       except IndexError:
         logging.getLogger("HWR").info("Could not get default light level")
+        light_level = 1
 
       if light_level:
         light_motor.move(light_level)
