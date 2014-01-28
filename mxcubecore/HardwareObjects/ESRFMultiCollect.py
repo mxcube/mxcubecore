@@ -270,7 +270,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._take_snapshots = state
 
 
-    def take_crystal_snapshots(self):
+    def crystal_snapshots_enabled(self):
         return self._take_snapshots
 
 
