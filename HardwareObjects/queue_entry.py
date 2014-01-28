@@ -25,7 +25,6 @@ import traceback
 import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
-import pprint
 import os
 import ShapeHistory as shape_history
 import autoprocessing
@@ -400,7 +399,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
             try:
                 gid = self.lims_client_hwobj.\
-                      _store_data_collection_group(group_data)
+                  _store_data_collection_group(group_data)
                 self.get_data_model().lims_group_id = gid
             except Exception as ex:
                 msg = 'Could not create the data collection group' + \
@@ -417,6 +416,10 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
 
 class SampleQueueEntry(BaseQueueEntry):
+    """
+    Defines the behaviour of sample queue entries. Mounting, launching centring
+    and so on.
+    """
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.sample_changer_hwobj = None
@@ -426,31 +429,34 @@ class SampleQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger('queue_exec')
+        sc_used = not self._data_model.free_pin_mode
+        
+        # Only execute samples with collections and when sample changer is used
+        if len(self.get_data_model().get_children()) != 0 and sc_used:
+            if self.sample_changer_hwobj is not None:
+                log.info("Loading sample " + self._data_model.loc_str)
 
-        if len(self.get_data_model().get_children()) != 0:
-            if not self._data_model.free_pin_mode:
-                if self.sample_changer_hwobj is not None:
-                    log.info("Loading sample " + self._data_model.loc_str)
-                    sample_mounted = self.sample_changer_hwobj.\
-                                     is_mounted_sample(self._data_model.location)
-                    if not sample_mounted:
-                        self.sample_centring_result = gevent.event.AsyncResult()
-                        try:
-                            mount_sample(self.beamline_setup, self._view, self._data_model,
-                                         self.centring_done, self.sample_centring_result)
-                        except Exception as e:
-                            self._view.setText(1, "Error loading")
-                            msg = "Error loading sample, please check" +\
-                                  " sample changer: " + e.message
-                            log.error(msg)
-                            raise QueueExecutionException(e.message, self)
-                    else:
-                        log.info("Sample already mounted")
+                sample_mounted = self.sample_changer_hwobj.\
+                                 is_mounted_sample(self._data_model.location)
+
+                if not sample_mounted:
+                    self.sample_centring_result = gevent.event.AsyncResult()
+                    try:
+                        mount_sample(self.beamline_setup, self._view, self._data_model,
+                                     self.centring_done, self.sample_centring_result)
+                    except Exception as e:
+                        self._view.setText(1, "Error loading")
+                        msg = "Error loading sample, please check" +\
+                              " sample changer: " + e.message
+                        log.error(msg)
+                        raise QueueExecutionException(e.message, self)
                 else:
-                    msg = "SampleQueuItemPolicy does not have any " +\
-                          "sample changer hardware object, cannot " +\
-                          "mount sample"
-                    log.info(msg)
+                    log.info("Sample already mounted")
+            else:
+                msg = "SampleQueuItemPolicy does not have any " +\
+                      "sample changer hardware object, cannot " +\
+                      "mount sample"
+                log.info(msg)
 
     def centring_done(self, success, centring_info):
         if success:
@@ -470,6 +476,8 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.post_execute(self)
         params = []
 
+        # Start grouped processing, get information from each collection
+        # and call autoproc with grouped processing option
         for child in self.get_data_model().get_children():
             for grand_child in child.get_children():
                 if isinstance(grand_child, queue_model_objects.DataCollection):
@@ -497,14 +505,11 @@ class SampleQueueEntry(BaseQueueEntry):
     def _set_background_color(self):
         BaseQueueEntry._set_background_color(self)
 
-        #sample_mounted = self.sample_changer_hwobj.\
-        #    is_mounted_sample(self._data_model.location)
-
-        #if sample_mounted:
-        #    self._view.set_mounted_style(True)
-
 
 class SampleCentringQueueEntry(BaseQueueEntry):
+    """
+    Entry for centring a sample
+    """
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
         self.sample_changer_hwobj = None
@@ -534,6 +539,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             cpos = queue_model_objects.CentredPosition(pos_dict)
             pos = shape_history.Point(None, cpos, None)
 
+        # Get tasks associated with this centring
         tasks = self.get_data_model().get_tasks()
 
         for task in tasks:
@@ -561,6 +567,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
 
 class DataCollectionQueueEntry(BaseQueueEntry):
+    """
+    Defines the behaviour of a data collection.
+    """
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
@@ -753,9 +762,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         try:
             self.get_view().setText(1, 'Stopping ...')
-            #logging.getLogger("user_level_log").info("Stopping collection...")
-            #if self.collect_task:
-            #    self.collect_task.kill(block=False)
             self.collect_hwobj.stopCollect('mxCuBE')
 
             if self.centring_task:
@@ -772,6 +778,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
+    """
+    Used to group (couple) a CollectionQueueEntry and a
+    CharacterisationQueueEntry, creating a virtual entry for characterisation.
+    """
     def __init__(self, view=None, data_model=None,
                  view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
@@ -785,15 +795,13 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         char = self.get_data_model()
         reference_image_collection = char.reference_image_collection
 
-        # Trick to make sure that the reference collection
-        # has a sample.
+        # Trick to make sure that the reference collection has a sample.
         reference_image_collection._parent = char.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid
 
-        # Enqueue the reference collection and the characterisation
-        # routine.
+        # Enqueue the reference collection and the characterisation routine.
         dc_qe = DataCollectionQueueEntry(self.get_view(),
                                          reference_image_collection,
                                          view_set_queue_entry=False)
@@ -812,6 +820,9 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
 
 
 class CharacterisationQueueEntry(BaseQueueEntry):
+    """
+    Defines the behaviour of a characterisation
+    """
     def __init__(self, view=None, data_model=None,
                  view_set_queue_entry=True):
 
@@ -836,6 +847,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             edna_input = self.data_analysis_hwobj.\
                          from_params(reference_image_collection,
                                      characterisation_parameters)
+            #Un-comment to use the test input files
             #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
             #edna_input.process_directory = reference_image_collection.acquisitions[0].\
             #                                path_template.process_directory
@@ -843,8 +855,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
         if self.edna_result:
-            logging.getLogger("user_level_log").\
-                info("Characterisation successful.")
+            log.info("Characterisation successful.")
 
             char.html_report = self.data_analysis_hwobj.\
                                get_html_report(self.edna_result)
