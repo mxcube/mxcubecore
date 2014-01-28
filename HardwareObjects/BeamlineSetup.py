@@ -177,7 +177,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
 
-        if self.collect_hwobj.take_crystal_snapshots():
+        if self.collect_hwobj.crystal_snapshots_enabled():
             acq_parameters.take_snapshots = True
         else:
             acq_parameters.take_snapshots = False
@@ -274,7 +274,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
 
-        if self.collect_hwobj.take_crystal_snapshots():
+        if self.collect_hwobj.crystal_snapshots_enabled():
             acq_parameters.take_snapshots = True
         else:
             acq_parameters.take_snapshots = False

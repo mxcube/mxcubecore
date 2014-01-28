@@ -648,8 +648,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-    
-            if self.collect_hwobj.take_crystal_snapshots():
+
+            if self.collect_hwobj.crystal_snapshots_enabled():
                 acq_1.acquisition_parameters.take_snapshots = True
             else:
                 acq_1.acquisition_parameters.take_snapshots = False
