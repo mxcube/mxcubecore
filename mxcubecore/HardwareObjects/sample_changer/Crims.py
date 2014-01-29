@@ -85,7 +85,7 @@ def getProcessingPlan(barcode):
         for x in plate.findall("Xtal"):
             xtal=Xtal()
             xtal.CrystalUUID=x.find("CrystalUUID").text
-            xtal.PinID=x.find("PinID").text
+            xtal.PinID=x.find("Label").text
             xtal.Login=x.find("Login").text
             xtal.Sample=x.find("Sample").text
             xtal.Column=int(x.find("Column").text)
@@ -107,7 +107,7 @@ def getProcessingPlan(barcode):
 
 
 
-def  main():
+if __name__ == "__main__":
     pp= getProcessingPlan("JZ005209")
     img=getImage("JZ005209",1,'C',12,1)
     print pp

@@ -1,5 +1,5 @@
 """
-This module contains objects that combined make up the data model.
+This module contain objects that combined make up the data model.
 Any object that inherhits from TaskNode can be added to and handled by
 the QueueModel.
 """
@@ -355,8 +355,7 @@ class DataCollection(TaskNode):
         self.set_name(name)
 
         self.previous_acquisition = None
-        self.experiment_type = queue_model_enumerables.\
-                               EXPERIMENT_TYPE.NATIVE
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
@@ -479,12 +478,6 @@ class Characterisation(TaskNode):
 
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
-
-    # def get_run_number(self):
-    #     return  self.reference_image_collection.get_run_number()
-
-    # def get_prefix(self):
-    #     return self.reference_image_collection.get_prefix()
 
     def get_path_template(self):
         return self.reference_image_collection.acquisitions[0].\
