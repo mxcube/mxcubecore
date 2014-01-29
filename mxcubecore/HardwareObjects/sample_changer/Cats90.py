@@ -41,6 +41,7 @@ class Basket(Container):
 
 class Cats90(SampleChanger):
     __TYPE__ = "CATS"    
+    NO_OF_LIDS = 3
     NO_OF_BASKETS = 9
 
     """
@@ -54,47 +55,30 @@ class Cats90(SampleChanger):
             self._addComponent(basket)
             
     def init(self):      
-        self._selected_sample = 1
-        self._selected_basket = 1
-
-        self._state = self.getChannelObject("_state")
-        self._abort = self.getCommandObject("_abort")
-
-        self._basketChannels = []
-        for basket_index in range(Cats90.NO_OF_BASKETS):            
-            self._basketChannels.append(self.addChannel({"type":"tango", "name":"di_basket", "tangoname": self.tangoname, "polling": "events"}, ("di_Cassette%dPresence" % (basket_index + 1))))
-
-        self._lidStatus = self.addChannel({"type":"tango", "name":"di_AllLidsClosed", "tangoname": self.tangoname, "polling": "events"}, "di_AllLidsClosed")
-        if self._lidStatus is not None:
-            self._lidStatus.connectSignal("update", self._updateOperationMode)
+        self._selected_sample = None
+        self._selected_basket = None
         self._scIsCharging = None
 
-        self._load = self.addCommand({"type":"tango", "name":"put_bcrd", "tangoname": self.tangoname}, "put_bcrd")
-        self._unload = self.addCommand({"type":"tango", "name":"put_bcrd", "tangoname": self.tangoname}, "get")
-        self._chained_load = self.addCommand({"type":"tango", "name":"getput_bcrd", "tangoname": self.tangoname}, "getput_bcrd")
-        self._barcode = self.addCommand({"type":"tango", "name":"barcode", "tangoname": self.tangoname}, "barcode")
-        self._reset = self.addCommand({"type":"tango", "name":"reset", "tangoname": self.tangoname}, "reset")
-        self._abort = self.addCommand({"type":"tango", "name":"abort", "tangoname": self.tangoname}, "abort")
+        for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning"):
+            setattr(self, channel_name, self.getChannelObject(channel_name))
+           
+        for command_name in ("_cmdAbort", "_cmdReset", "_cmdBack", "_cmdSafe", "_cmdPowerOn", "_cmdPowerOff", \
+                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
+                             "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
+            setattr(self, command_name, self.getCommandObject(command_name))
 
-        self._numSampleOnDiff = self.addChannel({"type":"tango", "name":"NumSampleOnDiff", "tangoname": self.tangoname, "polling": "events"}, "NumSampleOnDiff")
-        self._lidSampleOnDiff = self.addChannel({"type":"tango", "name":"LidSampleOnDiff", "tangoname": self.tangoname, "polling": "events"}, "LidSampleOnDiff")
-        self._barcode = self.addChannel({"type":"tango", "name":"Barcode", "tangoname": self.tangoname, "polling": "events"}, "Barcode")
-        self._pathRunning = self.addChannel({"type":"tango", "name":"PathRunning", "tangoname": self.tangoname, "polling": "events"}, "PathRunning")
+        for basket_index in range(Cats90.NO_OF_BASKETS):            
+            channel_name = "_chnBasket%dState" % (basket_index + 1)
+            setattr(self, channel_name, self.getChannelObject(channel_name))
 
-        # maintenance commands and status attributes
-        self._powerOn = self.addCommand({"type":"tango", "name":"powerOn", "tangoname": self.tangoname}, "powerOn")
-        self._powerOff = self.addCommand({"type":"tango", "name":"powerOff", "tangoname": self.tangoname}, "powerOff")
-        self._openLid1 = self.addCommand({"type":"tango", "name":"openlid1", "tangoname": self.tangoname}, "openlid1")
-        self._closeLid1 = self.addCommand({"type":"tango", "name":"closelid1", "tangoname": self.tangoname}, "closelid1")
-        self._openLid2 = self.addCommand({"type":"tango", "name":"openlid2", "tangoname": self.tangoname}, "openlid2")
-        self._closeLid2 = self.addCommand({"type":"tango", "name":"closelid2", "tangoname": self.tangoname}, "closelid2")
-        self._openLid3 = self.addCommand({"type":"tango", "name":"openlid3", "tangoname": self.tangoname}, "openlid3")
-        self._closeLid3 = self.addCommand({"type":"tango", "name":"closelid3", "tangoname": self.tangoname}, "closelid3")
-        self._back = self.addCommand({"type":"tango", "name":"back", "tangoname": self.tangoname}, "back")
-        self._safe = self.addCommand({"type":"tango", "name":"safe", "tangoname": self.tangoname}, "safe")
-        self._lid1State = self.addChannel({"type":"tango", "name":"di_Lid1Open", "tangoname": self.tangoname, "polling": "events"}, "Lid1Open")
-        self._lid2State = self.addChannel({"type":"tango", "name":"di_Lid2Open", "tangoname": self.tangoname, "polling": "events"}, "Lid2Open")
-        self._lid3State = self.addChannel({"type":"tango", "name":"di_Lid3Open", "tangoname": self.tangoname, "polling": "events"}, "Lid3Open")
+        self._lidStatus = self.getChannelObject("_chnTotalLidState")
+        if self._lidStatus is not None:
+            self._lidStatus.connectSignal("update", self._updateOperationMode)
+        for lid_index in range(Cats90.NO_OF_LIDS):            
+            channel_name = "_chnLid%dState" % (lid_index + 1)
+            setattr(self, channel_name, self.getChannelObject(channel_name))
+            if getattr(self, channel_name) is not None:
+                getattr(self, channel_name).connectSignal("update", getattr(self, "_updateLid%dState" % (lid_index + 1)))
 
         self._initSCContents()
 
@@ -106,6 +90,33 @@ class Cats90(SampleChanger):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
         
     #########################           TASKS           #########################
+    def setPowerState(self, state = False, wait = True):    
+        """
+        Set the CATS power state
+        """    
+        return self._executeTask(SampleChangerState.Moving, wait, self._doPowerState, state)     
+
+    def setLid1State(self, state = True, wait = True):    
+        """
+        Open/Closes LID1
+        """    
+        self._setState(SampleChangerState.Moving)
+        return self._executeTask(SampleChangerState.Moving, wait, self._doLid1State, state)     
+
+    def setLid2State(self, state = True, wait = True):    
+        """
+        Open/Closes LID2
+        """    
+        self._setState(SampleChangerState.Moving)
+        return self._executeTask(SampleChangerState.Moving, wait, self._doLid2State, state)     
+
+    def setLid3State(self, state = True, wait = True):    
+        """
+        Open/Closes LID3
+        """    
+        self._setState(SampleChangerState.Moving)
+        return self._executeTask(SampleChangerState.Moving, wait, self._doLid3State, state)     
+
     def _doUpdateInfo(self):       
         self._updateSCContents()
         self._updateSelection()
@@ -115,24 +126,19 @@ class Cats90(SampleChanger):
     def _doChangeMode(self,mode):
         pass
     
-    def getSelectedComponent(self):
-        return self.getComponents()[self._selected_basket-1]
+    #def getSelectedComponent(self):
+    #    return self.getComponents()[self._selected_basket-1]
     
     def _doSelect(self,component):
+        # import pdb; pdb.set_trace() 
         if isinstance(component, Sample):
             selected_basket = self.getSelectedComponent()
             if (selected_basket is None) or (selected_basket != component.getContainer()):
-                #self._executeServerTask(self._select_basket , component.getBasketNo())
                 self._selected_basket = component.getBasketNo()
-            #self._executeServerTask(self._select_sample, component.getIndex()+1)
             self._selected_sample = component.getIndex()+1
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
-            #self._executeServerTask(self._select_basket, component.getIndex()+1)
             self._selected_basket = component.getIndex()+1
             
-    def _doAbort(self):
-        self._abort()            
-
     def _doScan(self,component, recursive):
         selected_basket = self.getSelectedComponent()
         if isinstance(component, Sample):            
@@ -143,12 +149,12 @@ class Cats90(SampleChanger):
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + (component.getIndex()+1)
             argin = ["2", str(lid), str(sample), "0", "0"]
-            self._executeServerTask(self._barcode, argin)
+            self._executeServerTask(self._cmdScanSample, argin)
+            self._updateSampleBarcode(component)
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
             # component is a basket
             if recursive:
                 pass
-                #self._executeServerTask(self._scan_basket, (component.getIndex()+1))                
             else:
                 if (selected_basket is None) or (selected_basket != component):
                     self._doSelect(component)            
@@ -157,20 +163,22 @@ class Cats90(SampleChanger):
                     lid = ((self._selected_basket - 1) / 3) + 1
                     sample = (((self._selected_basket - 1) % 3) * 10) + (sample_index+1)
                     argin = ["2", str(lid), str(sample), "0", "0"]
-                    self._executeServerTask(self._barcode, argin)
+                    self._executeServerTask(self._cmdScanSample, argin)
         elif isinstance(component, Container) and ( component.getType() == SC3.__TYPE__):
             for basket in self.getComponents():
                 self._doScan(basket, True)
     
     def _doLoad(self,sample=None):
+        #import pdb; pdb.set_trace()
         selected=self.getSelectedSample()            
         if self.hasLoadedSample():
-            if (sample is None) or (sample==self.getLoadedSample()):
+            # if (sample is None) or (sample==self.getLoadedSample()):
+            if (selected is None) or (selected==self.getLoadedSample()):
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
-            self._executeServerTask(self._chained_load, argin)
+            self._executeServerTask(self._cmdChainedLoad, argin)
         else:
             if (sample is None):
                 if (selected == None):
@@ -184,41 +192,88 @@ class Cats90(SampleChanger):
             lid = ((self._selected_basket - 1) / 3) + 1
             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
-            self._executeServerTask(self._load, argin)
+            self._executeServerTask(self._cmdLoad, argin)
             
     def _doUnload(self,sample_slot=None):
+        # import pdb; pdb.set_trace()
         if (sample_slot is not None):
             self._doSelect(sample_slot)
         argin = ["2", "0", "0", "0", "0"]
-        self._executeServerTask(self._unload, argin)
-
-    def _doReset(self):
-        self._executeServerTask(self._reset)
+        self._executeServerTask(self._cmdUnload, argin)
 
     def clearBasketInfo(self, basket):
-	self._reset_basket_info(basket)
+        pass
 
+    ################################################################################
+
+    def _doAbort(self):
+        self._cmdAbort()            
+
+    def _doReset(self):
+        self._cmdReset()
+
+    def _doBack(self):
+        argin = ["2"]
+        self._executeServerTask(self._cmdBack, argin)
+
+    def _doSafe(self):
+        argin = ["2"]
+        self._executeServerTask(self._cmdSafe, argin)
+
+    def _doPowerState(self, state=False):
+        self._setState(SampleChangerState.Moving)
+        if state:
+            self._cmdPowerOn()
+        else:
+            self._cmdPowerOff()
+
+    def _doLid1State(self, state = True):
+        self._setState(SampleChangerState.Moving)
+        if state:
+            self._executeServerTask(self._cmdOpenLid1)
+        else:
+            self._executeServerTask(self._cmdCloseLid1)
+           
+    def _doLid2State(self, state = True):
+        self._setState(SampleChangerState.Moving)
+        if state:
+            self._executeServerTask(self._cmdOpenLid2)
+        else:
+            self._executeServerTask(self._cmdCloseLid2)
+           
+    def _doLid3State(self, state = True):
+        self._setState(SampleChangerState.Moving)
+        if state:
+            self._executeServerTask(self._cmdOpenLid3)
+        else:
+            self._executeServerTask(self._cmdCloseLid3)
+           
     #########################           PRIVATE           #########################        
+    def _updateLid1State(self, value):
+        self.emit('lid1StateChanged', (value, ))
+
+    def _updateLid2State(self, value):
+        self.emit('lid2StateChanged', (value, ))
+
+    def _updateLid3State(self, value):
+        self.emit('lid3StateChanged', (value, ))
+
     def _updateOperationMode(self, value):
         self._scIsCharging = not value
 
     def _executeServerTask(self, method, *args):
         self._waitDeviceReady(3.0)
         task_id = method(*args)
-        # introduced wait because it takes some time before the attribute PathRunning is set
-        # after launching a transfer
-        time.sleep(2.0)
         ret=None
         if task_id is None: #Reset
             while self._isDeviceBusy():
                 gevent.sleep(0.1)
         else:
-            while str(self._pathRunning.getValue()).lower() == 'true': 
+            # introduced wait because it takes some time before the attribute PathRunning is set
+            # after launching a transfer
+            time.sleep(2.0)
+            while str(self._chnPathRunning.getValue()).lower() == 'true': 
                 gevent.sleep(0.1)            
-            #try:
-            #    ret = self._check_task_result(task_id)                
-            #except Exception,err:
-            #    raise 
             ret = True
         return ret
 
@@ -229,12 +284,12 @@ class Cats90(SampleChanger):
           state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return          
-        if self._scIsCharging and not (state == SampleChangerState.Alarm):
+        if self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Charging
         self._setState(state)
        
     def _readState(self):
-        state = self._state.getValue()
+        state = self._chnState.getValue()
         if state is not None:
             stateStr = str(state).upper()
         else:
@@ -264,6 +319,7 @@ class Cats90(SampleChanger):
         #import pdb; pdb.set_trace()
         basket=None
         sample=None
+        # print "_updateSelection: saved selection: ", self._selected_basket, self._selected_sample
         try:
           basket_no = self._selected_basket
           if basket_no is not None and basket_no>0 and basket_no <=Cats90.NO_OF_BASKETS:
@@ -273,12 +329,15 @@ class Cats90(SampleChanger):
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
         except:
           pass
+        #if basket is not None and sample is not None:
+        #    print "_updateSelection: basket: ", basket, basket.getIndex()
+        #    print "_updateSelection: sample: ", sample, sample.getIndex()
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
 
     def _updateLoadedSample(self):
-        loadedSampleLid = self._lidSampleOnDiff.getValue()
-        loadedSampleNum = self._numSampleOnDiff.getValue()
+        loadedSampleLid = self._chnLidLoadedSample.getValue()
+        loadedSampleNum = self._chnNumLoadedSample.getValue()
         if loadedSampleLid != -1 or loadedSampleNum != -1:
             lidBase = (loadedSampleLid - 1) * 3
             lidOffset = ((loadedSampleNum - 1) / 10) + 1
@@ -303,16 +362,19 @@ class Cats90(SampleChanger):
                 has_been_loaded = True
                 old_sample._setLoaded(loaded, has_been_loaded)
             if new_sample is not None:
-                # update information of recently loaded sample
-                datamatrix = str(self._barcode.getValue())
-                scanned = (len(datamatrix) != 0)
-                if not scanned:    
-                    datamatrix = '----------'   
+                self._updateSampleBarcode(new_sample)
                 loaded = True
                 has_been_loaded = True
-                new_sample._setInfo(new_sample.isPresent(), datamatrix, scanned)
                 new_sample._setLoaded(loaded, has_been_loaded)
- 
+
+    def _updateSampleBarcode(self, sample):
+        # update information of recently scanned sample
+        datamatrix = str(self._chnSampleBarcode.getValue())
+        scanned = (len(datamatrix) != 0)
+        if not scanned:    
+           datamatrix = '----------'   
+        sample._setInfo(sample.isPresent(), datamatrix, scanned)
+
     def _initSCContents(self):
         # create temporary list with default basket information
         basket_list= [('', 4)] * Cats90.NO_OF_BASKETS
@@ -340,7 +402,7 @@ class Cats90(SampleChanger):
     def _updateSCContents(self):
         for basket_index in range(Cats90.NO_OF_BASKETS):            
             # get presence information from the device server
-            newBasketPresence = self._basketChannels[basket_index].getValue()
+            newBasketPresence = getattr(self, "_chnBasket%dState" % (basket_index + 1)).getValue()
             # get saved presence information from object's internal bookkeeping
             basket=self.getComponents()[basket_index]
            
