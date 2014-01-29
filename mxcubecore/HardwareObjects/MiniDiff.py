@@ -111,6 +111,7 @@ def take_snapshots(light, light_motor, phi, zoom, drawing):
         light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
       except IndexError:
         logging.getLogger("HWR").info("Could not get default light level")
+        light_level = 1
 
       if light_level:
         light_motor.move(light_level)
@@ -433,6 +434,10 @@ class MiniDiff(Equipment):
 
     def getBeamPosY(self):
         return self.imgHeight / 2
+
+    def getBeamInfo(self, update_beam_callback):
+        get_beam_info = self.getCommandObject("getBeamInfo")
+        get_beam_info(callback=update_beam_callback, error_callback=None)
 
     def moveToBeam(self, x, y):
         try:
