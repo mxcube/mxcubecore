@@ -173,10 +173,14 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.transmission = self._get_transmission()
           
         acq_parameters.inverse_beam = False
-        acq_parameters.shutterless = shutterless
-        acq_parameters.take_snapshots = True
+        acq_parameters.shutterless = shutterless        
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
+
+        if self.collect_hwobj.crystal_snapshots_enabled():
+            acq_parameters.take_snapshots = True
+        else:
+            acq_parameters.take_snapshots = False
 
         acq_parameters.detector_mode = detector_mode
 
@@ -267,9 +271,13 @@ class BeamlineSetup(HardwareObject):
                                         
         acq_parameters.inverse_beam = False
         acq_parameters.shutterless = shutterless
-        acq_parameters.take_snapshots = True
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
+
+        if self.collect_hwobj.crystal_snapshots_enabled():
+            acq_parameters.take_snapshots = True
+        else:
+            acq_parameters.take_snapshots = False
 
         acq_parameters.detector_mode = detector_mode
 
