@@ -496,8 +496,13 @@ class SampleQueueEntry(BaseQueueEntry):
                                    'cell': cell,
                                    'inverse_beam': inverse_beam})
 
-        programs = self.beamline_setup.collect_hwobj["auto_processing"]
-        autoprocessing.start(programs, "end_multicollect", params)
+        try:
+            programs = self.beamline_setup.collect_hwobj["auto_processing"]
+        except IndexError:
+            # skip autoprocessing of the data
+            pass
+        else:
+            autoprocessing.start(programs, "end_multicollect", params)
 
         self._set_background_color()
         self._view.setText(1, "")
