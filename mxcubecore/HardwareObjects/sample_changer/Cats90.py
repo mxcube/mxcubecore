@@ -62,9 +62,7 @@ class Cats90(SampleChanger):
         for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
            
-        for command_name in ("_cmdAbort", "_cmdReset", "_cmdBack", "_cmdSafe", "_cmdPowerOn", "_cmdPowerOff", \
-                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
-                             "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
+        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         for basket_index in range(Cats90.NO_OF_BASKETS):            
@@ -74,11 +72,6 @@ class Cats90(SampleChanger):
         self._lidStatus = self.getChannelObject("_chnTotalLidState")
         if self._lidStatus is not None:
             self._lidStatus.connectSignal("update", self._updateOperationMode)
-        for lid_index in range(Cats90.NO_OF_LIDS):            
-            channel_name = "_chnLid%dState" % (lid_index + 1)
-            setattr(self, channel_name, self.getChannelObject(channel_name))
-            if getattr(self, channel_name) is not None:
-                getattr(self, channel_name).connectSignal("update", getattr(self, "_updateLid%dState" % (lid_index + 1)))
 
         self._initSCContents()
 
@@ -90,32 +83,6 @@ class Cats90(SampleChanger):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
         
     #########################           TASKS           #########################
-    def setPowerState(self, state = False, wait = True):    
-        """
-        Set the CATS power state
-        """    
-        return self._executeTask(SampleChangerState.Moving, wait, self._doPowerState, state)     
-
-    def setLid1State(self, state = True, wait = True):    
-        """
-        Open/Closes LID1
-        """    
-        self._setState(SampleChangerState.Moving)
-        return self._executeTask(SampleChangerState.Moving, wait, self._doLid1State, state)     
-
-    def setLid2State(self, state = True, wait = True):    
-        """
-        Open/Closes LID2
-        """    
-        self._setState(SampleChangerState.Moving)
-        return self._executeTask(SampleChangerState.Moving, wait, self._doLid2State, state)     
-
-    def setLid3State(self, state = True, wait = True):    
-        """
-        Open/Closes LID3
-        """    
-        self._setState(SampleChangerState.Moving)
-        return self._executeTask(SampleChangerState.Moving, wait, self._doLid3State, state)     
 
     def _doUpdateInfo(self):       
         self._updateSCContents()
@@ -125,7 +92,7 @@ class Cats90(SampleChanger):
                     
     def _doChangeMode(self,mode):
         pass
-    
+
     #def getSelectedComponent(self):
     #    return self.getComponents()[self._selected_basket-1]
     
@@ -210,53 +177,9 @@ class Cats90(SampleChanger):
         self._cmdAbort()            
 
     def _doReset(self):
-        self._cmdReset()
+        pass
 
-    def _doBack(self):
-        argin = ["2"]
-        self._executeServerTask(self._cmdBack, argin)
-
-    def _doSafe(self):
-        argin = ["2"]
-        self._executeServerTask(self._cmdSafe, argin)
-
-    def _doPowerState(self, state=False):
-        self._setState(SampleChangerState.Moving)
-        if state:
-            self._cmdPowerOn()
-        else:
-            self._cmdPowerOff()
-
-    def _doLid1State(self, state = True):
-        self._setState(SampleChangerState.Moving)
-        if state:
-            self._executeServerTask(self._cmdOpenLid1)
-        else:
-            self._executeServerTask(self._cmdCloseLid1)
-           
-    def _doLid2State(self, state = True):
-        self._setState(SampleChangerState.Moving)
-        if state:
-            self._executeServerTask(self._cmdOpenLid2)
-        else:
-            self._executeServerTask(self._cmdCloseLid2)
-           
-    def _doLid3State(self, state = True):
-        self._setState(SampleChangerState.Moving)
-        if state:
-            self._executeServerTask(self._cmdOpenLid3)
-        else:
-            self._executeServerTask(self._cmdCloseLid3)
-           
     #########################           PRIVATE           #########################        
-    def _updateLid1State(self, value):
-        self.emit('lid1StateChanged', (value, ))
-
-    def _updateLid2State(self, value):
-        self.emit('lid2StateChanged', (value, ))
-
-    def _updateLid3State(self, value):
-        self.emit('lid3StateChanged', (value, ))
 
     def _updateOperationMode(self, value):
         self._scIsCharging = not value
@@ -264,6 +187,7 @@ class Cats90(SampleChanger):
     def _executeServerTask(self, method, *args):
         self._waitDeviceReady(3.0)
         task_id = method(*args)
+        print "Cats90._executeServerTask", task_id
         ret=None
         if task_id is None: #Reset
             while self._isDeviceBusy():
@@ -284,7 +208,9 @@ class Cats90(SampleChanger):
           state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return          
-        if self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
+        if self._chnPathRunning.getValue() and not (state in [SampleChangerState.Loading, SampleChangerState.Unloading]):
+            state = SampleChangerState.Moving
+        elif self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Charging
         self._setState(state)
        
