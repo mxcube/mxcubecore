@@ -63,7 +63,6 @@ class AbstractMultiCollect(object):
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
-        self._take_snapshots = True
 
 
     def setControlObjects(self, **control_objects):
@@ -318,14 +317,6 @@ class AbstractMultiCollect(object):
     def take_crystal_snapshots(self):
       pass
 
-
-    def enable_crystal_snapshots(self, state):
-        self._take_snapshots = state
-
-
-    def crystal_snapshots_enabled(self):
-        return self._take_snapshots
-    
         
     def prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, inverse_beam, overlap):
         # code to prepare the list of frames to collect: [(start, wedge_size), ...]

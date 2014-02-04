@@ -20,6 +20,7 @@ class BeamlineSetup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._object_by_path = {}
+        self._plate_mode = False
 
         # For hardware objects that we would like to access as:
         # self.<role_name>_hwrobj. Just to make it more elegant syntactically.
@@ -80,6 +81,12 @@ class BeamlineSetup(HardwareObject):
                 raise KeyError('Invalid path')
 
         return value
+
+    def set_plate_mode(self, state):
+        self._plate_mode = state
+
+    def in_plate_mode(self):
+        return self._plate_mode
 
     def detector_has_shutterless(self):
         """
