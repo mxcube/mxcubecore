@@ -37,7 +37,7 @@ class CatsMaint(Equipment):
         self._cmdReset()
 
     def _doBack(self):
-        argin = ["2"]
+        argin = 2
         self._executeServerTask(self._cmdBack, argin)
 
     def _doSafe(self):
