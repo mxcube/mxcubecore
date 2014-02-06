@@ -61,7 +61,7 @@ class Cats90(SampleChanger):
         self._propNoOfLids = self.getProperty('no_of_lids')
         if self._propNoOfLids is not None:
             try:
-                Cats90.NO_OF_LIDS = int(self.propNoOfLids)
+                Cats90.NO_OF_LIDS = int(self._propNoOfLids)
             except ValueError:
                 pass
             else:
@@ -115,7 +115,6 @@ class Cats90(SampleChanger):
     def _directlyUpdateSelectedComponent(self, basket_no, sample_no):    
         basket = None
         sample = None
-        print "_directlyUpdateSelectedComponent: ", basket_no, sample_no 
         try:
           if basket_no is not None and basket_no>0 and basket_no <=Cats90.NO_OF_BASKETS:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
@@ -127,26 +126,14 @@ class Cats90(SampleChanger):
         self._setSelectedSample(sample)
 
     def _doSelect(self,component):
-        # import pdb; pdb.set_trace() 
+        #import pdb; pdb.set_trace() 
         if isinstance(component, Sample):
-            selected_basket = self.getSelectedComponent()
-            if (selected_basket is None) or (selected_basket != component.getContainer()):
-                selected_basket = component.getBasketNo()
-            selected_sample = component.getIndex()+1
+            selected_basket_no = component.getBasketNo()
+            selected_sample_no = component.getIndex()+1
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
-            selected_basket = component.getIndex()+1
-            selected_sample = None
-        self._directlyUpdateSelectedComponent(selected_basket, selected_sample)
-            
-#     def _doSelect(self,component):
-#         # import pdb; pdb.set_trace() 
-#         if isinstance(component, Sample):
-#             selected_basket = self.getSelectedComponent()
-#             if (selected_basket is None) or (selected_basket != component.getContainer()):
-#                 self._selected_basket = component.getBasketNo()
-#             self._selected_sample = component.getIndex()+1
-#         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
-#             self._selected_basket = component.getIndex()+1
+            selected_basket_no = component.getIndex()+1
+            selected_sample_no = None
+        self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
             
     def _doScan(self,component,recursive):
         selected_basket = self.getSelectedComponent()
@@ -177,32 +164,6 @@ class Cats90(SampleChanger):
             for basket in self.getComponents():
                 self._doScan(basket, True)
     
-#     def _doLoad(self,sample=None):
-#         #import pdb; pdb.set_trace()
-#         selected=self.getSelectedSample()            
-#         if self.hasLoadedSample():
-#             # if (sample is None) or (sample==self.getLoadedSample()):
-#             if (selected is None) or (selected==self.getLoadedSample()):
-#                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
-#             lid = ((self._selected_basket - 1) / 3) + 1
-#             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
-#             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
-#             self._executeServerTask(self._cmdChainedLoad, argin)
-#         else:
-#             if (sample is None):
-#                 if (selected == None):
-#                     raise Exception("No sample selected")
-#                 else:
-#                     sample=selected
-#             elif (sample is not None) and (sample!=selected):
-#                 self._doSelect(sample)                
-#             #self._executeServerTask(self._load,sample.getHolderLength())
-#             #import pdb; pdb.set_trace()
-#             lid = ((self._selected_basket - 1) / 3) + 1
-#             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
-#             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
-#             self._executeServerTask(self._cmdLoad, argin)
-            
     def _doLoad(self,sample=None):
         selected=self.getSelectedSample()            
         if sample is not None:
