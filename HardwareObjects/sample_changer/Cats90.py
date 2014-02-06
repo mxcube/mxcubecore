@@ -50,14 +50,28 @@ class Cats90(SampleChanger):
     """    
     def __init__(self, *args, **kwargs):
         super(Cats90, self).__init__(self.__TYPE__,False, *args, **kwargs)
-        for i in range(Cats90.NO_OF_BASKETS):
-            basket = Basket(self,i+1)
-            self._addComponent(basket)
             
     def init(self):      
         self._selected_sample = None
         self._selected_basket = None
         self._scIsCharging = None
+
+        # add support for CATS dewars with variable number of lids
+        # assumption: each lid provides access to three baskets
+        self._propNoOfLids = self.getProperty('no_of_lids')
+        if self._propNoOfLids is not None:
+            try:
+                Cats90.NO_OF_LIDS = int(self.propNoOfLids)
+            except ValueError:
+                pass
+            else:
+                Cats90.NO_OF_BASKETS = 3 * Cats90.NO_OF_LIDS
+        
+        # initialize the sample changer components, moved here from __init__ after allowing
+        # variable number of lids
+        for i in range(Cats90.NO_OF_BASKETS):
+            basket = Basket(self,i+1)
+            self._addComponent(basket)
 
         for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
@@ -86,7 +100,9 @@ class Cats90(SampleChanger):
 
     def _doUpdateInfo(self):       
         self._updateSCContents()
-        self._updateSelection()
+        # periodically updating the selection is not needed anymore, because each call to _doSelect
+        # updates the selected component directly:
+        # self._updateSelection()
         self._updateState()               
         self._updateLoadedSample()
                     
@@ -96,25 +112,51 @@ class Cats90(SampleChanger):
     #def getSelectedComponent(self):
     #    return self.getComponents()[self._selected_basket-1]
     
+    def _directlyUpdateSelectedComponent(self, basket_no, sample_no):    
+        basket = None
+        sample = None
+        print "_directlyUpdateSelectedComponent: ", basket_no, sample_no 
+        try:
+          if basket_no is not None and basket_no>0 and basket_no <=Cats90.NO_OF_BASKETS:
+            basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
+            if sample_no is not None and sample_no>0 and sample_no <=Basket.NO_OF_SAMPLES_PER_PUCK:
+                sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
+        except:
+          pass
+        self._setSelectedComponent(basket)
+        self._setSelectedSample(sample)
+
     def _doSelect(self,component):
         # import pdb; pdb.set_trace() 
         if isinstance(component, Sample):
             selected_basket = self.getSelectedComponent()
             if (selected_basket is None) or (selected_basket != component.getContainer()):
-                self._selected_basket = component.getBasketNo()
-            self._selected_sample = component.getIndex()+1
+                selected_basket = component.getBasketNo()
+            selected_sample = component.getIndex()+1
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
-            self._selected_basket = component.getIndex()+1
+            selected_basket = component.getIndex()+1
+            selected_sample = None
+        self._directlyUpdateSelectedComponent(selected_basket, selected_sample)
             
-    def _doScan(self,component, recursive):
+#     def _doSelect(self,component):
+#         # import pdb; pdb.set_trace() 
+#         if isinstance(component, Sample):
+#             selected_basket = self.getSelectedComponent()
+#             if (selected_basket is None) or (selected_basket != component.getContainer()):
+#                 self._selected_basket = component.getBasketNo()
+#             self._selected_sample = component.getIndex()+1
+#         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
+#             self._selected_basket = component.getIndex()+1
+            
+    def _doScan(self,component,recursive):
         selected_basket = self.getSelectedComponent()
         if isinstance(component, Sample):            
             # scan a single sample
             if (selected_basket is None) or (selected_basket != component.getContainer()):
                 self._doSelect(component)            
             # self._executeServerTask(self._scan_samples, [component.getIndex()+1,])
-            lid = ((self._selected_basket - 1) / 3) + 1
-            sample = (((self._selected_basket - 1) % 3) * 10) + (component.getIndex()+1)
+            lid = ((selected.getBasketNo() - 1) / 3) + 1
+            sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
             argin = ["2", str(lid), str(sample), "0", "0"]
             self._executeServerTask(self._cmdScanSample, argin)
             self._updateSampleBarcode(component)
@@ -127,38 +169,63 @@ class Cats90(SampleChanger):
                     self._doSelect(component)            
                 # self._executeServerTask(self._scan_samples, (0,))                
                 for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
-                    lid = ((self._selected_basket - 1) / 3) + 1
-                    sample = (((self._selected_basket - 1) % 3) * 10) + (sample_index+1)
+                    lid = ((selected.getBasketNo() - 1) / 3) + 1
+                    sample = (((selected.getBasketNo() - 1) % 3) * 10) + (sample_index+1)
                     argin = ["2", str(lid), str(sample), "0", "0"]
                     self._executeServerTask(self._cmdScanSample, argin)
         elif isinstance(component, Container) and ( component.getType() == SC3.__TYPE__):
             for basket in self.getComponents():
                 self._doScan(basket, True)
     
+#     def _doLoad(self,sample=None):
+#         #import pdb; pdb.set_trace()
+#         selected=self.getSelectedSample()            
+#         if self.hasLoadedSample():
+#             # if (sample is None) or (sample==self.getLoadedSample()):
+#             if (selected is None) or (selected==self.getLoadedSample()):
+#                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
+#             lid = ((self._selected_basket - 1) / 3) + 1
+#             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
+#             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
+#             self._executeServerTask(self._cmdChainedLoad, argin)
+#         else:
+#             if (sample is None):
+#                 if (selected == None):
+#                     raise Exception("No sample selected")
+#                 else:
+#                     sample=selected
+#             elif (sample is not None) and (sample!=selected):
+#                 self._doSelect(sample)                
+#             #self._executeServerTask(self._load,sample.getHolderLength())
+#             #import pdb; pdb.set_trace()
+#             lid = ((self._selected_basket - 1) / 3) + 1
+#             sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
+#             argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
+#             self._executeServerTask(self._cmdLoad, argin)
+            
     def _doLoad(self,sample=None):
-        #import pdb; pdb.set_trace()
         selected=self.getSelectedSample()            
-        if self.hasLoadedSample():
-            # if (sample is None) or (sample==self.getLoadedSample()):
-            if (selected is None) or (selected==self.getLoadedSample()):
-                raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
-            lid = ((self._selected_basket - 1) / 3) + 1
-            sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
-            argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
-            self._executeServerTask(self._cmdChainedLoad, argin)
+        if sample is not None:
+            if sample != selected:
+                self._doSelect(sample)
+                selected=self.getSelectedSample()            
         else:
-            if (sample is None):
-                if (selected == None):
-                    raise Exception("No sample selected")
-                else:
-                    sample=selected
-            elif (sample is not None) and (sample!=selected):
-                self._doSelect(sample)                
-            #self._executeServerTask(self._load,sample.getHolderLength())
-            #import pdb; pdb.set_trace()
-            lid = ((self._selected_basket - 1) / 3) + 1
-            sample = (((self._selected_basket - 1) % 3) * 10) + self._selected_sample
-            argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
+            if selected is not None:
+                 sample = selected
+            else:
+               raise Exception("No sample selected")
+
+        # calculate CATS specific lid/sample number
+        lid = ((selected.getBasketNo() - 1) / 3) + 1
+        sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
+        argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
+            
+        if self.hasLoadedSample():
+            if selected==self.getLoadedSample():
+                raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
+            else:
+                self._executeServerTask(self._cmdChainedLoad, argin)
+        else:
             self._executeServerTask(self._cmdLoad, argin)
             
     def _doUnload(self,sample_slot=None):
