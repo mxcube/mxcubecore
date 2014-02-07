@@ -28,6 +28,8 @@ class Session(HardwareObject):
         self.proposal_id = None
         self.in_house_users = []
         self.endstation_name = None
+        self.session_start_date = None
+        self.user_group = ''
 
         self.default_precision = '04'
         self.suffix = None
@@ -71,20 +73,21 @@ class Session(HardwareObject):
         user_category = ''
         directory = ''
 
+        if self.session_start_date:
+            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+        else:
+            start_time = time.strftime("%Y%m%d")
+
         if self.is_inhouse():
             user_category = 'inhouse'
-            directory = os.path.join(self.base_directory,
-                                     self.endstation_name,
-                                     user_category,
-                                     self.get_proposal(),
-                                     time.strftime("%Y%m%d"))
+            directory = os.path.join(self.base_directory, self.endstation_name,
+                                     user_category, self.get_proposal(),
+                                     start_time)
         else:
             user_category = 'visitor'
-            directory = os.path.join(self.base_directory,
-                                     user_category,
-                                     self.get_proposal(),
-                                     self.endstation_name,
-                                     time.strftime("%Y%m%d"))
+            directory = os.path.join(self.base_directory, user_category,
+                                     self.get_proposal(), self.endstation_name,
+                                     start_time)
 
         return directory
 
@@ -94,7 +97,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.raw_data_folder_name) + '/'
+                            self.raw_data_folder_name)
 
     def get_base_process_directory(self):
         """
@@ -102,7 +105,7 @@ class Session(HardwareObject):
         :rtype: str
         """
         return os.path.join(self.get_base_data_directory(),
-                            self.processed_data_folder_name)+ '/'
+                            self.processed_data_folder_name)
 
     def get_image_directory(self, sub_dir):
         """
@@ -218,3 +221,15 @@ class Session(HardwareObject):
         :rtype: tuple (<proposal_code>, <proposal_number>)
         """
         return self.in_house_users[0]
+
+    def set_session_start_date(self, start_date_str):
+        self.session_start_date = start_date_str
+
+    def get_session_start_date(self):
+        return self.session_start_date
+
+    def set_user_group(self, group_name):
+        self.user_group = str(group_name)
+
+    def get_group_name(self):
+        return self.user_group

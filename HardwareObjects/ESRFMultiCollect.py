@@ -86,6 +86,7 @@ class CcdDetector:
       
     @task
     def reset_detector(self):   
+        self.getCommandObject("reset_detector").abort()
         self.execute_command("reset_detector")
 
 
@@ -134,7 +135,7 @@ class PixelDetector:
     @task
     def start_acquisition(self, exptime, npass, first_frame):
       if not first_frame and self.shutterless:
-        time.sleep(exptime) 
+        pass 
       else:
         self.execute_command("start_acquisition")
 
@@ -150,6 +151,8 @@ class PixelDetector:
               # make oscillation an asynchronous task => do not wait here
               self.oscillation_task = self.execute_command("do_oscillation", start, end, exptime, npass, wait=False)
           else:
+              time.sleep(0.89*exptime)
+
               try:
                  self.oscillation_task.get(block=False)
               except gevent.Timeout:
@@ -174,6 +177,7 @@ class PixelDetector:
     def reset_detector(self):
       if self.shutterless:
           self.oscillation_task.kill()
+      self.getCommandObject("reset_detector").abort()    
       self.execute_command("reset_detector")
 
 
@@ -184,7 +188,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector = detector
         self._tunable_bl = tunable_bl
         self._centring_status = None
-
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -259,7 +262,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def take_crystal_snapshots(self):
         self.bl_control.diffractometer.takeSnapshots(wait=True)
-
 
     #TODO: remove this hook!!!
     @task

@@ -316,7 +316,7 @@ class AbstractMultiCollect(object):
     @task
     def take_crystal_snapshots(self):
       pass
-    
+
         
     def prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, inverse_beam, overlap):
         # code to prepare the list of frames to collect: [(start, wedge_size), ...]
@@ -397,13 +397,10 @@ class AbstractMultiCollect(object):
                 data_collect_parameters["synchrotronMode"] = self.get_machine_fill_mode()
             data_collect_parameters["status"] = "failed"
 
-            (group_id, self.collection_id, detector_id) = \
-                       self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
+            (self.collection_id, detector_id) = \
+                                 self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
               
             data_collect_parameters['collection_id'] = self.collection_id
-
-            if group_id:
-                data_collect_parameters['group_id'] = group_id
 
             if detector_id:
                 data_collect_parameters['detector_id'] = detector_id
@@ -411,11 +408,10 @@ class AbstractMultiCollect(object):
         # Creating the directory for images and processing information
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
-
+        data_collect_parameters['xds_dir'] = self.xds_directory
 
 	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
-
 
         if self.bl_control.sample_changer is not None:
             try:
@@ -809,7 +805,7 @@ class AbstractMultiCollect(object):
     #TODO: rename to stop_collect
     def stopCollect(self, owner):
         if self.data_collect_task is not None:
-            self.data_collect_task.kill()
+            self.data_collect_task.kill(block = False)
 
 
     """

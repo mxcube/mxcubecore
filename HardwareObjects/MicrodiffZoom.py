@@ -9,6 +9,7 @@ class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):
     def init(self):
         self.motor_name = "Zoom"
         self.motor_pos_attr_suffix = "Position"
+        self._last_position_name = None
  
         MicrodiffMotor.MicrodiffMotor.init(self)
 
@@ -44,7 +45,9 @@ class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):
         MicrodiffMotor.MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
-        self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
+        if self._last_position_name != positionName:
+          self._last_position_name = positionName
+          self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
 
     def getCurrentPositionName(self, pos=None):
         pos = self.predefined_position_attr.getValue()

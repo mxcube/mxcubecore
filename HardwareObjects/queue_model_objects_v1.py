@@ -1,5 +1,5 @@
 """
-This module contains objects that combined make up the data model.
+This module contain objects that combined make up the data model.
 Any object that inherhits from TaskNode can be added to and handled by
 the QueueModel.
 """
@@ -9,7 +9,7 @@ import os
 import queue_model_enumerables_v1 as queue_model_enumerables
 
 
-__author__ = "Marcus OskarSsson"
+__author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
 __credits__ = ["My great coleagues", "The MxCuBE colaboration"]
 
@@ -36,6 +36,7 @@ class TaskNode(object):
         self._names = {}
         self._enabled = True
         self._node_id = None
+        self._requires_centring = True
 
     def is_enabled(self):
         """
@@ -148,6 +149,12 @@ class TaskNode(object):
 
     def set_executed(self, executed):
         self._executed = executed
+
+    def requires_centring(self):
+        return self._requires_centring
+
+    def set_requires_centring(self, state):
+        self._requires_centring = state
 
     def get_root(self):
         parent = self._parent
@@ -348,8 +355,7 @@ class DataCollection(TaskNode):
         self.set_name(name)
 
         self.previous_acquisition = None
-        self.experiment_type = queue_model_enumerables.\
-                               EXPERIMENT_TYPE.NATIVE
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
@@ -473,12 +479,6 @@ class Characterisation(TaskNode):
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
 
-    # def get_run_number(self):
-    #     return  self.reference_image_collection.get_run_number()
-
-    # def get_prefix(self):
-    #     return self.reference_image_collection.get_prefix()
-
     def get_path_template(self):
         return self.reference_image_collection.acquisitions[0].\
                path_template
@@ -595,6 +595,7 @@ class EnergyScan(TaskNode):
         TaskNode.__init__(self)
         self.element_symbol = None
         self.edge = None
+        self.set_requires_centring(False)
 
         if not sample:
             self.sample = Sample()
@@ -685,6 +686,7 @@ class PathTemplate(object):
 
         self.directory = str()
         self.process_directory = str()
+        self.xds_dir = str()
         self.base_prefix = str()
         self.mad_prefix = str()
         self.reference_image_prefix = str()
@@ -781,8 +783,8 @@ class PathTemplate(object):
         #Only do the intersection if there is possibilty for
         #Collision, that is directories are the same.
         if (self == rh_pt) and (self.run_number == rh_pt.run_number):
-            if self.start_num <= (rh_pt.start_num + rh_pt.num_files) and \
-               rh_pt.start_num <= (self.start_num + self.num_files):
+            if self.start_num < (rh_pt.start_num + rh_pt.num_files) and \
+               rh_pt.start_num < (self.start_num + self.num_files):
 
                result = True
     
@@ -935,6 +937,7 @@ class Workflow(TaskNode):
         TaskNode.__init__(self)
         self.path_template = PathTemplate()
         self._type = str()
+        self.set_requires_centring(False)
 
     def set_type(self, workflow_type):
         self._type = workflow_type
@@ -949,7 +952,7 @@ class Workflow(TaskNode):
 #
 # Collect hardware object utility function.
 #
-def to_collect_dict(data_collection, session):
+def to_collect_dict(data_collection, session, sample):
     """ return [{'comment': '',
           'helical': 0,
           'motors': {},
@@ -1005,7 +1008,8 @@ def to_collect_dict(data_collection, session):
              'sessionId': session.session_id,
              'do_inducedraddam': acq_params.induce_burn,
              'sample_reference': {'spacegroup': proc_params.space_group,
-                                  'cell': proc_params.get_cell_str()},
+                                  'cell': proc_params.get_cell_str(),
+                                  'blSampleId': sample.lims_id},
              'processing': str(proc_params.process_data and True),
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
