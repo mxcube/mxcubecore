@@ -1106,6 +1106,10 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
+        # Add the current node id to workflow parameters
+        group_node_id = self._parent_container._data_model._node_id
+        workflow_params.append("group_node_id")
+        workflow_params.append("%d" % group_node_id)
         self.workflow_running = True
         self.workflow_hwobj.start(workflow_params)
 
