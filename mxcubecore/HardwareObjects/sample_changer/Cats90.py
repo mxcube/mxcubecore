@@ -1,6 +1,18 @@
+"""
+CATS sample changer hardware object.
+
+Implements the abstract interface of the GenericSampleChanger for the CATS
+sample changer model.
+Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
+"""
 from .GenericSampleChanger import *
 import time
 
+__author__ = "Michael Hellmig"
+__credits__ = ["The MxCuBE collaboration"]
+
+__email__ = "michael.hellmig@helmholtz-berlin.de"
+__status__ = "Beta"
 
 class Pin(Sample):        
     STD_HOLDERLENGTH = 22.0
@@ -40,14 +52,14 @@ class Basket(Container):
 
 
 class Cats90(SampleChanger):
-    __TYPE__ = "CATS"    
-    NO_OF_LIDS = 3
-    NO_OF_BASKETS = 9
-
     """
     Actual implementation of the CATS Sample Changer,
     BESSY BL14.1 installation with 3 lids and 90 samples
     """    
+    __TYPE__ = "CATS"    
+    NO_OF_LIDS = 3
+    NO_OF_BASKETS = 9
+
     def __init__(self, *args, **kwargs):
         super(Cats90, self).__init__(self.__TYPE__,False, *args, **kwargs)
             
@@ -73,7 +85,7 @@ class Cats90(SampleChanger):
             basket = Basket(self,i+1)
             self._addComponent(basket)
 
-        for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning"):
+        for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
            
         for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
@@ -94,11 +106,23 @@ class Cats90(SampleChanger):
         SampleChanger.init(self)   
 
     def getSampleProperties(self):
+        """
+        Get the sample's holder length
+
+        :returns: sample length [mm]
+        :rtype: double
+        """
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
         
     #########################           TASKS           #########################
 
     def _doUpdateInfo(self):       
+        """
+        Updates the sample changers status: mounted pucks, state, currently loaded sample
+
+        :returns: None
+        :rtype: None
+        """
         self._updateSCContents()
         # periodically updating the selection is not needed anymore, because each call to _doSelect
         # updates the selected component directly:
@@ -107,11 +131,14 @@ class Cats90(SampleChanger):
         self._updateLoadedSample()
                     
     def _doChangeMode(self,mode):
+        """
+        Changes the SC operation mode, not implemented for the CATS system
+
+        :returns: None
+        :rtype: None
+        """
         pass
 
-    #def getSelectedComponent(self):
-    #    return self.getComponents()[self._selected_basket-1]
-    
     def _directlyUpdateSelectedComponent(self, basket_no, sample_no):    
         basket = None
         sample = None
@@ -126,7 +153,13 @@ class Cats90(SampleChanger):
         self._setSelectedSample(sample)
 
     def _doSelect(self,component):
-        #import pdb; pdb.set_trace() 
+        """
+        Selects a new component (basket or sample).
+	Uses method >_directlyUpdateSelectedComponent< to actually search and select the corrected positions.
+
+        :returns: None
+        :rtype: None
+        """
         if isinstance(component, Sample):
             selected_basket_no = component.getBasketNo()
             selected_sample_no = component.getIndex()+1
@@ -136,11 +169,18 @@ class Cats90(SampleChanger):
         self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
             
     def _doScan(self,component,recursive):
+        """
+        Scans the barcode of a single sample, puck or recursively even the complete sample changer.
+
+        :returns: None
+        :rtype: None
+        """
         selected_basket = self.getSelectedComponent()
         if isinstance(component, Sample):            
             # scan a single sample
             if (selected_basket is None) or (selected_basket != component.getContainer()):
                 self._doSelect(component)            
+            selected=self.getSelectedSample()            
             # self._executeServerTask(self._scan_samples, [component.getIndex()+1,])
             lid = ((selected.getBasketNo() - 1) / 3) + 1
             sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
@@ -155,6 +195,7 @@ class Cats90(SampleChanger):
                 if (selected_basket is None) or (selected_basket != component):
                     self._doSelect(component)            
                 # self._executeServerTask(self._scan_samples, (0,))                
+                selected=self.getSelectedSample()            
                 for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
                     lid = ((selected.getBasketNo() - 1) / 3) + 1
                     sample = (((selected.getBasketNo() - 1) % 3) * 10) + (sample_index+1)
@@ -165,6 +206,13 @@ class Cats90(SampleChanger):
                 self._doScan(basket, True)
     
     def _doLoad(self,sample=None):
+        """
+        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
+        a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
+
+        :returns: None
+        :rtype: None
+        """
         selected=self.getSelectedSample()            
         if sample is not None:
             if sample != selected:
@@ -190,7 +238,12 @@ class Cats90(SampleChanger):
             self._executeServerTask(self._cmdLoad, argin)
             
     def _doUnload(self,sample_slot=None):
-        # import pdb; pdb.set_trace()
+        """
+        Unloads a sample from the diffractometer.
+
+        :returns: None
+        :rtype: None
+        """
         if (sample_slot is not None):
             self._doSelect(sample_slot)
         argin = ["2", "0", "0", "0", "0"]
@@ -202,6 +255,12 @@ class Cats90(SampleChanger):
     ################################################################################
 
     def _doAbort(self):
+        """
+        Aborts a running trajectory on the sample changer.
+
+        :returns: None
+        :rtype: None
+        """
         self._cmdAbort()            
 
     def _doReset(self):
@@ -213,6 +272,12 @@ class Cats90(SampleChanger):
         self._scIsCharging = not value
 
     def _executeServerTask(self, method, *args):
+        """
+        Executes a task on the CATS Tango device server
+
+        :returns: None
+        :rtype: None
+        """
         self._waitDeviceReady(3.0)
         task_id = method(*args)
         print "Cats90._executeServerTask", task_id
@@ -230,19 +295,35 @@ class Cats90(SampleChanger):
         return ret
 
     def _updateState(self):
+        """
+        Updates the state of the hardware object
+
+        :returns: None
+        :rtype: None
+        """
         try:
           state = self._readState()
         except:
           state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return          
-        if self._chnPathRunning.getValue() and not (state in [SampleChangerState.Loading, SampleChangerState.Unloading]):
+        if self.hasLoadedSample() ^ self._chnSampleIsDetected.getValue():
+            # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
+            # or registered but not on the gonio anymore
+            state = SampleChangerState.Unknown
+        elif self._chnPathRunning.getValue() and not (state in [SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Moving
         elif self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Charging
         self._setState(state)
        
     def _readState(self):
+        """
+        Read the state of the Tango DS and translate the state to the SampleChangerState Enum
+
+        :returns: Sample changer state
+        :rtype: GenericSampleChanger.SampleChangerState
+        """
         state = self._chnState.getValue()
         if state is not None:
             stateStr = str(state).upper()
@@ -255,21 +336,48 @@ class Cats90(SampleChanger):
         return state_converter.get(stateStr, SampleChangerState.Unknown)
                         
     def _isDeviceBusy(self, state=None):
+        """
+        Checks whether Sample changer HO is busy.
+
+        :returns: True if the sample changer is busy
+        :rtype: Bool
+        """
         if state is None:
             state = self._readState()
         return state not in (SampleChangerState.Ready, SampleChangerState.Loaded, SampleChangerState.Alarm, 
                              SampleChangerState.Disabled, SampleChangerState.Fault, SampleChangerState.StandBy)
 
     def _isDeviceReady(self):
+        """
+        Checks whether Sample changer HO is ready.
+
+        :returns: True if the sample changer is ready
+        :rtype: Bool
+        """
         state = self._readState()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
 
     def _waitDeviceReady(self,timeout=None):
+        """
+        Waits until the samle changer HO is ready.
+
+        :returns: None
+        :rtype: None
+        """
+
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self._isDeviceReady():
                 gevent.sleep(0.01)
             
     def _updateSelection(self):    
+        """
+        Updates the selected basket and sample. NOT USED ANYMORE FOR THE CATS.
+        Legacy method left from the implementation of the SC3 where the currently selected sample
+        is always read directly from the SC3 Tango DS
+
+        :returns: None
+        :rtype: None
+        """
         #import pdb; pdb.set_trace()
         basket=None
         sample=None
@@ -290,6 +398,14 @@ class Cats90(SampleChanger):
         self._setSelectedSample(sample)
 
     def _updateLoadedSample(self):
+        """
+        Reads the currently mounted sample basket and pin indices from the CATS Tango DS,
+        translates the lid/sample notation into the basket/sample notation and marks the 
+        respective sample as loaded.
+
+        :returns: None
+        :rtype: None
+        """
         loadedSampleLid = self._chnLidLoadedSample.getValue()
         loadedSampleNum = self._chnNumLoadedSample.getValue()
         if loadedSampleLid != -1 or loadedSampleNum != -1:
@@ -322,6 +438,13 @@ class Cats90(SampleChanger):
                 new_sample._setLoaded(loaded, has_been_loaded)
 
     def _updateSampleBarcode(self, sample):
+        """
+        Updates the barcode of >sample< in the local database after scanning with
+        the barcode reader.
+
+        :returns: None
+        :rtype: None
+        """
         # update information of recently scanned sample
         datamatrix = str(self._chnSampleBarcode.getValue())
         scanned = (len(datamatrix) != 0)
@@ -330,6 +453,12 @@ class Cats90(SampleChanger):
         sample._setInfo(sample.isPresent(), datamatrix, scanned)
 
     def _initSCContents(self):
+        """
+        Initializes the sample changer content with default values.
+
+        :returns: None
+        :rtype: None
+        """
         # create temporary list with default basket information
         basket_list= [('', 4)] * Cats90.NO_OF_BASKETS
         # write the default basket information into permanent Basket objects 
@@ -354,6 +483,15 @@ class Cats90(SampleChanger):
             sample._setHolderLength(spl[4])    
 
     def _updateSCContents(self):
+        """
+        Updates the sample changer content. The state of the puck positions are
+        read from the respective channels in the CATS Tango DS.
+        The CATS sample sample does not have an detection of each individual sample, so all
+        samples are flagged as 'Present' if the respective puck is mounted.
+
+        :returns: None
+        :rtype: None
+        """
         for basket_index in range(Cats90.NO_OF_BASKETS):            
             # get presence information from the device server
             newBasketPresence = getattr(self, "_chnBasket%dState" % (basket_index + 1)).getValue()
