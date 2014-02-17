@@ -1,4 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
+from sample_changer import SC3
 
 LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1), 
                   ('', 1, 4,'', 1), ('', 1, 5, '', 1), ('', 1, 6, '', 1), 
@@ -19,92 +19,31 @@ LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1),
                   ('', 5, 9, '', 18), ('', 5, 10, '', 18)]
 
 
-class SampleChangerMockup(Equipment):
+class SampleChangerMockup(SC3.SC3):
     def __init__(self, *args, **kwargs):
-        Equipment.__init__(self, *args, **kwargs)
-        self.current_sample = (1,1)
+        super(SampleChangerMockup, self).__init__(*args, **kwargs)
 
-    def getMatrixCodes(self, codes = None):
-        return LOADED_SAMPLES
+    def init(self):
+        for channel_name in ("_state", "_selected_basket", "_selected_sample"):
+            fun = lambda x: x
+            setattr(self, channel_name, fun)
+           
+        for command_name in ("_abort", "_getInfo", "_is_task_running", \
+                             "_check_task_result", "_load", "_unload",\
+                             "_chained_load", "_set_sample_charge", "_scan_basket",\
+                             "_scan_samples", "_select_sample", "_select_basket", "_reset", "_reset_basket_info"):
+            fun = lambda x: x
+            setattr(self, command_name, fun)
 
-    def sampleIsLoaded(self):
-        if self.current_sample:
-            return True
-        else:
-            return False
+        pass
 
-    def getSelectedSample(self):
-        return None
+    def load_sample(self, holder_length, sample_location, wait):
+        return
 
-    def getSelectedComponent(self):
-        return None
+    def load(self, sample, wait):
+        import pdb
+        pdb.set_trace()
+        return sample
 
-    def hasLoadedSample(self):
-        return self.getLoadedSample() is not None
-
-    def getSampleList(self):
-        return []
-
-    def getComponents(self):
-        return []
-
-    def loadSample(self, holderLength, sample_id=None, sample_location=None, 
-                   sampleIsLoadedCallback=None, failureCallback=None, 
-                   prepareCentring=None, prepareCentringMotors={}, wait=False):
-
-        if sample_location:
-            requested_basket_num = sample_location[0]
-            requested_sample_num = sample_location[1]
-
-
-        for sample in LOADED_SAMPLES:
-            if sample[1] == requested_basket_num and \
-                    sample[2] == requested_sample_num:
-                self.current_sample = sample
-                break
-                
-    def getLoadedSampleLocation(self):
-        if self.current_sample:
-            return self.current_sample
-        else:
-            return (None, None)
-
-    def getLoadedSample(self):
-        #return self.current_sample
-        return None
-
-    def getLoadedSampleDataMatrix(self):
-        return "Nice-little-matrix"
-
-    def currentBasketDataMatrix(self):
-        return "Nice-little-current-basket"
-
-    def abort(self):
-        return True
-
-    def isMicrodiff(self):
-        return False
-
-    def getStatus(self):
-        return 'READY'
-
-    def getState(self):
-        return 'READY'
-
-    def sampleChangerInUse(self):
-        return False
-
-    def sampleChangerCanLoad(self):
-        return True
-
-    def is_mounted_sample(self, sample_model):
-      if sample_model.location == self.getLoadedSampleLocation():
-        return True
-      else:
-        return False
-
-    def minidiffCanMove(self):
-        return True
-
-    def getBasketTransferMode(self):
-       return False
+    def unload(self, sample_slot, wait):
+        return
