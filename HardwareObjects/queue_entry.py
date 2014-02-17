@@ -1095,13 +1095,22 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-
+        
+        # Start execution of a new workflow
         if str(self.workflow_hwobj.state.value) != 'ON':
+            # We are trying to start a new workflow and the Tango server is not idle,
+            # therefore first abort any running workflow: 
             self.workflow_hwobj.abort()
-            time.sleep(3)
-
-            while str(self.workflow_hwobj.state.value) != 'ON':
-                time.sleep(0.5)
+            if self.workflow_hwobj.command_failure():
+                self.logging.error("Workflow abort command failed!")
+            else:
+                # Then sleep three seconds for allowing the server to abort a running workflow:
+                time.sleep(3)
+                # If the Tango server has been restarted the state.value is None.
+                # If not wait till the state.value is "ON":
+                if self.workflow_hwobj.state.value is not None:
+                    while str(self.workflow_hwobj.state.value) != 'ON':
+                        time.sleep(0.5)
 
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
@@ -1110,11 +1119,15 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         group_node_id = self._parent_container._data_model._node_id
         workflow_params.append("group_node_id")
         workflow_params.append("%d" % group_node_id)
-        self.workflow_running = True
         self.workflow_hwobj.start(workflow_params)
-
-        while self.workflow_running:
-            time.sleep(1)
+        if self.workflow_hwobj.command_failure():
+            msg = "Workflow start command failed! Please check workflow Tango server."
+            logging.getLogger("user_level_log").error(msg)
+            self.workflow_running = False
+        else:
+            self.workflow_running = True
+            while self.workflow_running:
+                time.sleep(1)
 
     def workflow_state_handler(self, state):
         if isinstance(state, tuple):
