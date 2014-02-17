@@ -5,19 +5,7 @@ the QueueModel.
 """
 import copy
 import os
-
 import queue_model_enumerables_v1 as queue_model_enumerables
-
-
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 class TaskNode(object):
     """
