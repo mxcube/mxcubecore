@@ -1,11 +1,11 @@
+import os
 import logging
 import gevent.event
 import threading
 import subprocess
 import AbstractDataAnalysis
-import os
 
-import queue_model_enumerables_v1 as queue_model_enumerables
+import queue_model_enumerables_v1 as qme
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -34,14 +34,14 @@ from XSDataCommon import XSDataString
 #from XSDataCommon import XSDataAngularSpeed
 #from XSDataCommon import XSData
 
-from edna_test_data import EDNA_DEFAULT_INPUT
+#from edna_test_data import EDNA_DEFAULT_INPUT
 #from edna_test_data import EDNA_TEST_DATA
 
 
 class EdnaProcessingThread(threading.Thread):
     def __init__(self, edna_cmd, edna_input_file, edna_output_file, base_dir):
         threading.Thread.__init__(self)
-        
+
         self.edna_cmd = edna_cmd
         self.edna_input_file = edna_input_file
         self.edna_output_file = edna_output_file
@@ -52,10 +52,12 @@ class EdnaProcessingThread(threading.Thread):
         self.edna_processing_done = gevent.event.Event()
         threading.Thread.start(self)
         return self.edna_processing_done
-        
+
     def run(self):
         self.edna_processing_watcher.start(self.edna_processing_done.set)
-        subprocess.call("%s %s %s %s" % (self.edna_cmd, self.edna_input_file, self.edna_output_file, self.base_dir), shell=True)
+        args = (self.edna_cmd, self.edna_input_file,
+                self.edna_output_file, self.base_dir)
+        subprocess.call("%s %s %s %s" % args, shell=True)
         self.edna_processing_watcher.send()
 
 
@@ -66,7 +68,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.result = None
         self.processing_done_event = gevent.event.Event()
 
-        
     def init(self):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
@@ -74,7 +75,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         with open(self.edna_default_file, 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
-  
+
     def get_html_report(self, edna_result):
         html_report = None
 
@@ -85,17 +86,14 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         return html_report
 
-
-    def execute_command(self, command_name, *args, **kwargs): 
+    def execute_command(self, command_name, *args, **kwargs):
         wait = kwargs.get("wait", True)
         cmd_obj = self.getCommandObject(command_name)
         return cmd_obj(*args, wait=wait)
 
-
     def get_beam_size(self):
         return (self.execute_command("get_beam_size_x"),
                 self.execute_command("get_beam_size_y"))
-
 
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
@@ -107,12 +105,14 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
-            beam.setTransmission(XSDataDouble(self.collect_obj.get_transmission()))
+            transmission = self.collect_obj.get_transmission()
+            beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             pass
 
         try:
-            beam.setWavelength(XSDataWavelength(self.collect_obj.get_wavelength()))
+            wavelength = self.collect_obj.get_wavelength()
+            beam.setWavelength(XSDataWavelength(wavelength))
         except AttributeError:
             pass
 
@@ -132,56 +132,57 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         #Optimization parameters
         diff_plan = edna_input.getDiffractionPlan()
 
-        diff_plan.setAimedIOverSigmaAtHighestResolution(\
-            XSDataDouble(char_params.aimed_i_sigma))
+        aimed_i_sigma = XSDataDouble(char_params.aimed_i_sigma)
+        aimed_completness = XSDataDouble(char_params.aimed_completness)
+        aimed_multiplicity = XSDataDouble(char_params.aimed_multiplicity)
+        aimed_resolution = XSDataDouble(char_params.aimed_resolution)
 
-        diff_plan.setAimedCompleteness(XSDataDouble(char_params.\
-                                                    aimed_completness))
+        complexity = char_params.strategy_complexity
+        complexity = XSDataString(qme.STRATEGY_COMPLEXITY[complexity])
+
+        permitted_phi_start = XSDataAngle(char_params.permitted_phi_start)
+        _range = char_params.permitted_phi_end - char_params.permitted_phi_start
+        rotation_range = XSDataAngle(_range)
+
+        diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
+        diff_plan.setAimedCompleteness(aimed_completness)
 
         if char_params.use_aimed_multiplicity:
-            diff_plan.setAimedMultiplicity(XSDataDouble(char_params.\
-                                                        aimed_multiplicity))
-            
-        if char_params.use_aimed_resolution:
-            diff_plan.setAimedResolution(XSDataDouble(char_params.aimed_resolution))
+            diff_plan.setAimedMultiplicity(aimed_multiplicity)
 
-        diff_plan.setComplexity(XSDataString(\
-                queue_model_enumerables.STRATEGY_COMPLEXITY[char_params.strategy_complexity]))
+        if char_params.use_aimed_resolution:
+            diff_plan.setAimedResolution(aimed_resolution)
+
+        diff_plan.setComplexity(complexity)
 
         if char_params.use_permitted_rotation:
-            diff_plan.setUserDefinedRotationStart(XSDataAngle(char_params.\
-                                                              permitted_phi_start))
-
-            diff_plan.setUserDefinedRotationRange(XSDataAngle(char_params.permitted_phi_end -\
-                                                              char_params.permitted_phi_start))
-
+            diff_plan.setUserDefinedRotationStart(permitted_phi_start)
+            diff_plan.setUserDefinedRotationRange(rotation_range)
 
         #Vertical crystal dimension
         sample = edna_input.getSample()
         sample.getSize().setY(XSDataLength(char_params.max_crystal_vdim))
         sample.getSize().setZ(XSDataLength(char_params.min_crystal_vdim))
 
-
         #Radiation damage model
         sample.setSusceptibility(XSDataDouble(char_params.rad_suscept))
         sample.setChemicalComposition(None)
-        sample.setRadiationDamageModelBeta(XSDataDouble(char_params.beta/1e6))
-        sample.setRadiationDamageModelGamma(XSDataDouble(char_params.gamma/1e6))
-            
+        sample.setRadiationDamageModelBeta(XSDataDouble(char_params.beta / 1e6))
+        sample.setRadiationDamageModelGamma(XSDataDouble(char_params.gamma / 1e6))
 
-        diff_plan.setForcedSpaceGroup(XSDataString(char_params.\
-                                                   space_group))
+        diff_plan.setForcedSpaceGroup(XSDataString(char_params.space_group))
 
         # Characterisation type - Routine DC
         if char_params.use_min_dose:
             pass
 
         if char_params.use_min_time:
-            diff_plan.setMaxExposureTimePerDataCollection(XSDataTime(char_params.min_time))
-        
+            time = XSDataTime(char_params.min_time)
+            diff_plan.setMaxExposureTimePerDataCollection(time)
+
         # Account for radiation damage
         if char_params.induce_burn:
-            diff_plan.setStrategyOption(XSDataString("-DamPar")) # What is -DamPar ?
+            diff_plan.setStrategyOption(XSDataString("-DamPar"))
         else:
             diff_plan.setStrategyOption(None)
 
@@ -191,13 +192,13 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
 
-        
         #Data set
         data_set = XSDataMXCuBEDataSet()
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
-        path_str = os.path.join(data_collection.acquisitions[0].path_template.directory,
-                                data_collection.acquisitions[0].path_template.get_image_file_name())
-        
+        path_template = data_collection.acquisitions[0].path_template
+        path_str = os.path.join(path_template.directory,
+                                path_template.get_image_file_name())
+
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
             path = XSDataString()
@@ -206,14 +207,13 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             data_set.addImageFile(image_file)
 
         edna_input.addDataSet(data_set)
-        edna_input.process_directory = data_collection.acquisitions[0].path_template.process_directory
-        
+        edna_input.process_directory = path_template.process_directory
+
         return edna_input
 
-    
     def characterise(self, edna_input):
-        process_directory_path = edna_input.process_directory
-        
+        path = edna_input.process_directory
+
         # if there is no data collection id, the id will be a random number
         # this is to give a unique number to the EDNA input and result files;
         # something more clever might be done to give a more significant
@@ -222,30 +222,29 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             dc_id = edna_input.getDataCollectionId().getValue()
         except:
             dc_id = id(edna_input)
-        
+
         if hasattr(edna_input, "process_directory"):
-            edna_input_file = os.path.join(process_directory_path,"EDNAInput_%s.xml" % dc_id)
+            edna_input_file = os.path.join(path, "EDNAInput_%s.xml" % dc_id)
             edna_input.exportToFile(edna_input_file)
-            edna_results_file = os.path.join(process_directory_path, "EDNAOutput_%s.xml" % dc_id)
+            edna_results_file = os.path.join(path, "EDNAOutput_%s.xml" % dc_id)
 
-            if not os.path.isdir(process_directory_path):
-                os.makedirs(process_directory_path)
+            if not os.path.isdir(path):
+                os.makedirs(path)
         else:
-            raise RuntimeError, "No process directory specified in edna_input"
+            raise RuntimeError("No process directory specified in edna_input")
 
-        logging.getLogger("queue_exec").info("Starting EDNA using xml file %r", edna_input_file)
+        msg = "Starting EDNA using xml file %r", edna_input_file
+        logging.getLogger("queue_exec").info(msg)
 
         edna_processing_thread = \
-            EdnaProcessingThread(self.start_edna_command, edna_input_file, \
-                                 edna_results_file, process_directory_path)
+          EdnaProcessingThread(self.start_edna_command, edna_input_file,
+                               edna_results_file, path)
 
         self.processing_done_event = edna_processing_thread.start()
         self.processing_done_event.wait()
-        
         self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
-        
+
         return self.result
-       
 
     def is_running(self):
         return not self.processing_done_event.is_set()

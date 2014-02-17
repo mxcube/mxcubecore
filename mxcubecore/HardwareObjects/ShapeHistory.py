@@ -12,9 +12,8 @@ shapes handled are any that inherits the Shape base class. There are currently
 two shapes implemented Point and Line.
 
 Point is the graphical representation of a centred position. A point can be
-stored and managed by the ShapeHistory.
-
-Line is a line between two Point objects.
+stored and managed by the ShapeHistory. the Line object represents a line
+between two Point objects.
 
 DrawingEvent is an extension of Qub and handles mouse and keyboard events for
 the Qub canvas. It handles selection and some manipulation of the Shape objects.
@@ -38,16 +37,6 @@ from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import dispatcher
-
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 SELECTED_COLOR = qt.Qt.green
 NORMAL_COLOR = qt.Qt.yellow
@@ -78,7 +67,7 @@ class ShapeHistory(HardwareObject):
             logging.getLogger('HWR').info('Setting previous drawing:' + \
                                           str(self._drawing) + ' to ' + \
                                           str(drawing))
-            
+
         self._drawing = drawing
         self._drawing.addDrawingEvent(self._drawing_event)
 
@@ -138,7 +127,6 @@ class ShapeHistory(HardwareObject):
 
         :returns: The QImage contained in the parent widget.
         :rtype: QImage
-        
         """
         if canvas is not None and image is not None:
             device = qt.QPixmap(image)
@@ -177,7 +165,7 @@ class ShapeHistory(HardwareObject):
 
         :param shape: Shape to add.
         :type shape: Shape object.
-        
+
         """
         self.shapes[shape] = shape
 
@@ -186,7 +174,7 @@ class ShapeHistory(HardwareObject):
 
     def _delete_shape(self, shape):
         shape.unhighlight()
-  
+
         if shape in self.selected_shapes:
             del self.selected_shapes[shape]
 
@@ -195,7 +183,7 @@ class ShapeHistory(HardwareObject):
 
         if shape is self._drawing_event.current_shape:
             self._drawing_event.current_shape = None
-        
+
         if callable(self._drawing_event.deletion_cb):
             self._drawing_event.deletion_cb(shape)
 
@@ -207,7 +195,7 @@ class ShapeHistory(HardwareObject):
         :type shape: Shape object.
         """
         related_points = []
-        
+
         #If a point remove related line first
         if isinstance(shape, Point):
             for s in self.get_shapes():
@@ -256,7 +244,7 @@ class ShapeHistory(HardwareObject):
         for shape in self.get_shapes():
             if isinstance(shape, Point):
                 if shape.get_centred_positions()[0] == cpos:
-                    self._drawing_event.set_selected(shape, True, call_cb = False)    
+                    self._drawing_event.set_selected(shape, True, call_cb = False)
 
     def get_grid(self):
         """
@@ -290,7 +278,7 @@ class ShapeHistory(HardwareObject):
 
     def get_selected_shapes(self):
         return self.selected_shapes.itervalues()
-        
+
 
 class DrawingEvent(QubDrawingEvent):
     """
@@ -335,13 +323,13 @@ class DrawingEvent(QubDrawingEvent):
         position.
         """
         clicked_shape = None
-        for shape in self.qub_helper.get_shapes():            
+        for shape in self.qub_helper.get_shapes():
             modifier = shape.get_hit(x, y)
 
             if modifier:
                 clicked_shape = shape
                 break
-            
+
         self.move_to_centred_position_cb(clicked_shape.\
                                          get_centred_positions()[0])
     def mousePressed(self, x, y):
@@ -350,8 +338,8 @@ class DrawingEvent(QubDrawingEvent):
         everything if nothing was under the mouse.
         """
         modifier = None
-        
-        for shape in self.qub_helper.get_shapes():            
+
+        for shape in self.qub_helper.get_shapes():
             modifier = shape.get_hit(x, y)
 
             if modifier:
@@ -360,7 +348,7 @@ class DrawingEvent(QubDrawingEvent):
 
         if not modifier:
             self.de_select_all()
-            
+
     def mouseReleased(self, x, y):
         """
         Handles the type of selection, multiple shapes or
@@ -417,15 +405,13 @@ class DrawingEvent(QubDrawingEvent):
         Select the shape referenced by self._current_shape.
         """
         self.set_selected(self.current_shape, True, call_cb)
-        
+
     def delete_selected(self):
         """
         Delete all the selected shapes.
         """
         for shape in self.qub_helper.selected_shapes.values():
             self.qub_helper.delete_shape(shape)
-
-        #self.current_shape = None
 
     def set_selected(self, shape, state, call_cb = True):
         """
@@ -487,7 +473,7 @@ class Shape(object):
 
     def update_position(self):
         pass
-        
+
     def move(self, new_positions):
         """
         Moves the shape to the position <new_position>
@@ -536,7 +522,7 @@ class Line(Shape):
     def draw(self):
         qub_line = None
 
-        try:                
+        try:
             qub_line, _ = QubAddDrawing(self._drawing, QubLineDrawingMgr, 
                                          qtcanvas.QCanvasLine)
             qub_line.show()
@@ -567,8 +553,8 @@ class Line(Shape):
     def update_position(self):
         self.qub_line.moveFirstPoint(self.start_qub_p._x, self.start_qub_p._y)
         self.qub_line.moveSecondPoint(self.start_qub_p._x, self.start_qub_p._y)
-    
-    def move(self, new_positions):        
+
+    def move(self, new_positions):
         self.qub_line.moveFirstPoint(new_positions[0][0], new_positions[0][1])
         self.qub_line.moveSecondPoint(new_positions[1][0], new_positions[1][1])
 
@@ -607,7 +593,7 @@ class Point(Shape):
         Shape.__init__(self)
 
         self.qub_point = None
-        
+
         if centred_position is None:
             self.centred_position = queue_model_objects.CentredPosition()
             self.centred_position.centring_method = False
@@ -623,10 +609,10 @@ class Point(Shape):
 
     def get_centred_positions(self):
         return [self.centred_position]
-    
+
     def get_hit(self, x, y):
         return self.qub_point.getModifyClass(x, y)
-        
+
     def draw(self, screen_pos):
         """
         Draws a qub point in the sample video.
@@ -647,19 +633,19 @@ class Point(Shape):
                     return
                   return getattr(QubEventMgr, method_name)(self,event,mgr) 
                 setattr(evmgr, method_name, types.MethodType(prevent_shift, evmgr)) 
-             
+
             qub_point.show()
 
             if screen_pos:
                 qub_point.setPoint(screen_pos[0], screen_pos[1])
                 qub_point.setColor(NORMAL_COLOR)
-        
+
         except:
             logging.getLogger('HWR').\
-                exception('Could not draw the centred position')  
-            
+                exception('Could not draw the centred position')
+
         return qub_point
-        
+
     def show(self):
         self.qub_point.show()
 
