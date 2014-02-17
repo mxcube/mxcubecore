@@ -1,5 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-#from abstract_base import AbstractSampleChanger
 
 LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1), 
                   ('', 1, 4,'', 1), ('', 1, 5, '', 1), ('', 1, 6, '', 1), 
@@ -20,7 +19,7 @@ LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1),
                   ('', 5, 9, '', 18), ('', 5, 10, '', 18)]
 
 
-class SampleChangerMockup(Equipment):#, AbstractSampleChanger):
+class SampleChangerMockup(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
         self.current_sample = (1,1)

@@ -1,37 +1,25 @@
 """
-Enumberables and constants used by the queue model.
+Enumberables and oheter constants used by the queue model.
 """
 
 from collections import namedtuple
-
-
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 StrategyComplexity = namedtuple('StrategyComplexity', ['SINGLE','FEW','MANY'])
 STRATEGY_COMPLEXITY = StrategyComplexity('none', 'min', 'full')
 
 ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD',
-                                               'MAD_INV', 'NATIVE','HELICAL', 'EDNA_REF', 'OSC'])
+                                               'MAD_INV', 'NATIVE','HELICAL',
+                                               'EDNA_REF', 'OSC'])
 EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
-
-EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD','MAD - Inverse Beam',
-                                     'OSC','Helical','Characterization', 'OSC')
+EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD',
+                                     'MAD - Inverse Beam', 'OSC','Helical',
+                                     'Characterization', 'OSC')
 
 StrategyOption = namedtuple('StrategyOption', ['AVG'])
 STRATEGY_OPTION = StrategyOption(0)
 
-CollectionOrigin = namedtuple('CollectionOrigin',['MXCUBE', 
-                                                  'EDNA', 'WORKFLOW'])
+CollectionOrigin = namedtuple('CollectionOrigin',['MXCUBE', 'EDNA', 'WORKFLOW'])
 COLLECTION_ORIGIN = CollectionOrigin(0, 1, 2)
-
 COLLECTION_ORIGIN_STR = CollectionOrigin('mxcube', 'edna', 'workflow')
 
 EDNARefImages = namedtuple('EDNARefImages', ['FOUR', 'TWO', 'ONE', 'NONE'])
