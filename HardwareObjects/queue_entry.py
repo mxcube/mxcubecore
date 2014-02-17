@@ -1178,6 +1178,8 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             centring_method = view.listView().parent().\
                               centring_method
 
+            dm.user_confirms_centring = True
+                              
             if centring_method == CENTRING_METHOD.MANUAL:
                 log.warning("Manual centring used, waiting for" +\
                             " user to center sample")
@@ -1186,10 +1188,10 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                 dm.startCentringMethod(dm.C3D_MODE)
                 log.warning("Centring in progress. Please save" +\
                             " the suggested centring or re-center")
-            elif centring_method == CENTRING_METHOD.CRYSTAL:
+            elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 log.info("Centring sample, please wait.")
-                dm.startAutoCentring()
-                log.warning("Please save or reject the centring")
+                dm.user_confirms_centring = False
+                dm.startCentringMethod(dm.C3D_MODE)
 
             view.setText(1, "Centring !")
             async_result.get()

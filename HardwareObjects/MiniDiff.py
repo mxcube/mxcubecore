@@ -154,6 +154,7 @@ class MiniDiff(Equipment):
         self.imgWidth = None
         self.imgHeight = None
         self.centredTime = 0
+        self.user_confirms_centring = True
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -589,7 +590,10 @@ class MiniDiff(Equipment):
           logging.error("Could not complete automatic centring")
           self.emitCentringFailed()
         else:
-          self.emitCentringSuccessful()
+          if self.user_confirms_centring:
+            self.emitCentringSuccessful()
+          else:
+            self.acceptCentring()
               
 
     def do_auto_centring(self, phi, phiy, phiz, sampx, sampy, zoom, camera, phiy_direction):
