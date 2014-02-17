@@ -1,7 +1,19 @@
+"""
+CATS maintenance commands hardware object.
+
+Functionality in addition to sample-transfer functionality: power control,
+lid control, error-recovery commands, ...
+"""
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 import gevent
 import time
+
+__author__ = "Michael Hellmig"
+__credits__ = ["The MxCuBE collaboration"]
+
+__email__ = "michael.hellmig@helmholtz-berlin.de"
+__status__ = "Beta"
 
 class CatsMaint(Equipment):
     __TYPE__ = "CATS"    
@@ -9,7 +21,7 @@ class CatsMaint(Equipment):
 
     """
     Actual implementation of the CATS Sample Changer, MAINTENANCE COMMANDS ONLY
-    BESSY BL14.1 installation with 3 lids and 90 samples
+    BESSY BL14.1 installation with 3 lids
     """    
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
@@ -31,38 +43,86 @@ class CatsMaint(Equipment):
     ################################################################################
 
     def _doAbort(self):
+        """
+        Launch the "abort" trajectory on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
         self._cmdAbort()            
 
     def _doReset(self):
+        """
+        Launch the "reset" command on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
         self._cmdReset()
 
     def _doBack(self):
+        """
+        Launch the "back" trajectory on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
         argin = 2
         self._executeServerTask(self._cmdBack, argin)
 
     def _doSafe(self):
+        """
+        Launch the "safe" trajectory on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
         argin = 2
         self._executeServerTask(self._cmdSafe, argin)
 
     def _doPowerState(self, state=False):
+        """
+        Switch on CATS power if >state< == True, power off otherwise
+
+        :returns: None
+        :rtype: None
+        """
         if state:
             self._cmdPowerOn()
         else:
             self._cmdPowerOff()
 
     def _doLid1State(self, state = True):
+        """
+        Opens lid 1 if >state< == True, closes the lid otherwise
+
+        :returns: None
+        :rtype: None
+        """
         if state:
             self._executeServerTask(self._cmdOpenLid1)
         else:
             self._executeServerTask(self._cmdCloseLid1)
            
     def _doLid2State(self, state = True):
+        """
+        Opens lid 2 if >state< == True, closes the lid otherwise
+
+        :returns: None
+        :rtype: None
+        """
         if state:
             self._executeServerTask(self._cmdOpenLid2)
         else:
             self._executeServerTask(self._cmdCloseLid2)
            
     def _doLid3State(self, state = True):
+        """
+        Opens lid 3 if >state< == True, closes the lid otherwise
+
+        :returns: None
+        :rtype: None
+        """
         if state:
             self._executeServerTask(self._cmdOpenLid3)
         else:
