@@ -1,7 +1,7 @@
 <equipment class = "sample_changer.SC3">
 <!--PMSC  or SC3-->
   <username>Sample Changer / Test</username>
-  <exporter_address>pcsc3-bm14.esrf.fr:9001</exporter_address>    
+  <exporter_address></exporter_address>    
   <channel type="exporter" name="_state">State</channel>
   <channel type="exporter" name="_selected_basket">SelectedBasketLocation</channel>
   <channel type="exporter" name="_selected_sample">SelectedSampleLocation</channel>
