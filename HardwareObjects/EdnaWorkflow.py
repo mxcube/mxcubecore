@@ -17,14 +17,24 @@ class EdnaWorkflow(Device):
         self.current_actor = self.getChannelObject('current_actor')
         self.current_actor.connectSignal('update', self.current_actor_changed)
 
-        self.pause_command = self.getCommandObject('pause')
         self.start_command = self.getCommandObject('start')
+        self.start_command.connectSignal('commandFailed', self.set_command_failed)
 
         self.abort_command = self.getCommandObject('abort')
+        self.abort_command.connectSignal('commandFailed', self.set_command_failed)
+        
         self.get_parameters_command = self.getCommandObject('get_parameters')
         self.get_values_map_command = self.getCommandObject('get_values_map')
         self.set_values_map_command = self.getCommandObject('set_values_map')
         self.get_available_workflows_command = self.getCommandObject('get_available_workflows')
+        self._command_failed = False
+        
+    def command_failure(self):
+        return self._command_failed
+    
+    def set_command_failed(self, *args):
+        logging.getLogger("HWR").error("Workflow '%s' Tango command failed!" % args[1])
+        self._command_failed = True
         
     def state_changed(self, new_value):
         new_value = str(new_value)
@@ -33,6 +43,7 @@ class EdnaWorkflow(Device):
         if new_value == "OPEN":
             params = self.get_parameters()
             self.emit('parametersNeeded', (params, ))
+            
     def current_actor_changed(self, new_value):
         logging.getLogger('HWR').debug('%s: current actor changed to %r', str(self.name()), new_value)
         self.emit('currentActorChanged', (new_value, ))
@@ -101,8 +112,10 @@ class EdnaWorkflow(Device):
         return workflows
 
     def abort(self):
+        self._command_failed = False
         self.abort_command()
+        
     def start(self, workflow):
+        self._command_failed = False
         self.start_command(workflow)
-    def pause(self):
-        self.pause_command()
+        
