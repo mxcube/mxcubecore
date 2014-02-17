@@ -9,15 +9,6 @@ import time
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 class Session(HardwareObject):
     def __init__(self, name):
@@ -223,13 +214,29 @@ class Session(HardwareObject):
         return self.in_house_users[0]
 
     def set_session_start_date(self, start_date_str):
+        """
+        :param start_date_str: The session start date
+        :type start_date_str: str
+        """
         self.session_start_date = start_date_str
 
     def get_session_start_date(self):
+        """
+        :returns: The session start date
+        :rtype: str
+        """
         return self.session_start_date
 
     def set_user_group(self, group_name):
+        """
+        :param group_name: Name of user group
+        :type group_name: str
+        """
         self.user_group = str(group_name)
 
     def get_group_name(self):
+        """
+        :returns: Name of user group
+        :rtype: str
+        """
         return self.user_group

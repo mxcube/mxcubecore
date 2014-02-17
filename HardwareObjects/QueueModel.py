@@ -8,15 +8,6 @@ import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 class QueueModel(HardwareObject):
     def __init__(self, name):
@@ -126,7 +117,6 @@ class QueueModel(HardwareObject):
         else:
             raise TypeError("Expected type TaskNode, got %s "\
                             % str(type(child)))
-
 
     def add_child_at_id(self, _id, child):
         """
