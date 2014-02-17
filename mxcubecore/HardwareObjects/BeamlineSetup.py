@@ -6,15 +6,6 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 import queue_model_enumerables_v1 as queue_model_enumerables
 
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 class BeamlineSetup(HardwareObject):
     def __init__(self, name):
@@ -83,9 +74,20 @@ class BeamlineSetup(HardwareObject):
         return value
 
     def set_plate_mode(self, state):
+        """
+        Sets plate mode, if crystal plates are used instead of ordinary sample
+        pints
+
+        :param state: True if palte is used False if pin is used.
+        :type state: bool
+        """
         self._plate_mode = state
 
     def in_plate_mode(self):
+        """
+        :returns: True if plates are used otherwise False
+        :rtype: bool
+        """
         return self._plate_mode
 
     def detector_has_shutterless(self):
@@ -132,7 +134,7 @@ class BeamlineSetup(HardwareObject):
             ap = False
 
         return ap
-        
+
     def disable_num_passes(self):
         """
         :returns: Returns True if it is possible to use the number of passes
@@ -165,9 +167,9 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless =  bool(self['detector'].getProperty('has_shutterless'))
+        shutterless = bool(self['detector'].getProperty('has_shutterless'))
         detector_mode = int(self[parent_key].getProperty('detector_mode'))
-        
+
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
         acq_parameters.osc_start = self._get_omega_axis_position()
@@ -178,9 +180,9 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.resolution = self._get_resolution()
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
-          
+
         acq_parameters.inverse_beam = False
-        acq_parameters.shutterless = shutterless        
+        acq_parameters.shutterless = shutterless
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
         acq_parameters.take_snapshots = True
@@ -201,10 +203,10 @@ class BeamlineSetup(HardwareObject):
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
         #edna_beam = edna_input.getExperimentalCondition().getBeam()
-        edna_sample = edna_input.getSample()        
+        edna_sample = edna_input.getSample()
         char_params = queue_model_objects.CharacterisationParameters()
         char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
-        
+
         # Optimisation parameters
         char_params.use_aimed_resolution = True
         char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
@@ -244,7 +246,7 @@ class BeamlineSetup(HardwareObject):
         char_params.gamma = 0.06
 
         return char_params
-        
+
     def get_default_acquisition_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
@@ -258,7 +260,7 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless =  bool(self['detector'].getProperty('has_shutterless'))
+        shutterless = bool(self['detector'].getProperty('has_shutterless'))
         detector_mode = int(self[parent_key].getProperty('detector_mode'))
 
         acq_parameters.first_image = img_start_num
@@ -271,7 +273,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.resolution = self._get_resolution()
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
-                                        
+
         acq_parameters.inverse_beam = False
         acq_parameters.shutterless = shutterless
         acq_parameters.take_dark_current = True
@@ -295,15 +297,11 @@ class BeamlineSetup(HardwareObject):
         path_template.mad_prefix = ''
         path_template.reference_image_prefix = ''
         path_template.wedge_prefix = ''
-        path_template.run_number = self[parent_key].\
-                                   getProperty('run_number')
-        path_template.suffix = self.session_hwobj["file_info"].\
-                               getProperty('file_suffix')
+        path_template.run_number = self[parent_key].getProperty('run_number')
+        path_template.suffix = self.session_hwobj["file_info"].getProperty('file_suffix')
         path_template.precision = '04'
-        path_template.start_num = int(self[parent_key].\
-                                      getProperty('start_image_number'))
-        path_template.num_files = int(self[parent_key].\
-                                      getProperty('number_of_images'))
+        path_template.start_num = int(self[parent_key].getProperty('start_image_number'))
+        path_template.num_files = int(self[parent_key].getProperty('number_of_images'))
 
         return path_template
 
@@ -351,5 +349,5 @@ class BeamlineSetup(HardwareObject):
         except AttributeError:
             parent_key = "default_acquisition_values"
             result = round(float(self[parent_key].getProperty('start_angle')), 2)
-            
+
         return result

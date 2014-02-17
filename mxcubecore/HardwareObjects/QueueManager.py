@@ -7,24 +7,12 @@ The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
-
 import logging
 import gevent
 import queue_entry
-import traceback
 
-from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from queue_entry import QueueEntryContainer
-
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
 
 
 logger = logging.getLogger('queue_exec')
@@ -115,8 +103,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
                 self._running = False
                 raise ex
-               
-        self._running = False    
+
+        self._running = False
         self.emit('queue_execution_finished', (None,))
 
     def __execute_entry(self, entry): 
