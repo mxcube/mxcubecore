@@ -39,15 +39,6 @@ from queue_model_enumerables_v1 import EXPERIMENT_TYPE
 from BlissFramework.Utils import widget_colors
 from HardwareRepository.HardwareRepository import dispatcher
 
-__author__ = "Marcus Oskarsson"
-__copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
-
-__version__ = "0.1"
-__maintainer__ = "Marcus Oskarsson"
-__email__ = "marcus.oscarsson@esrf.fr"
-__status__ = "Beta"
-
 
 status_list = ['SUCCESS','WARNING', 'FAILED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
@@ -320,7 +311,7 @@ class BaseQueueEntry(QueueEntryContainer):
         logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
-            
+
         view.setHighlighted(True)
         view.setOn(False)
         self.get_data_model().set_executed(True)
@@ -328,7 +319,7 @@ class BaseQueueEntry(QueueEntryContainer):
 
     def _set_background_color(self):
         view = self.get_view()
-        
+
         if self.get_data_model().is_executed():
             if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
                 view.setBackgroundColor(widget_colors.LIGHT_GREEN)
@@ -430,7 +421,7 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         log = logging.getLogger('queue_exec')
         sc_used = not self._data_model.free_pin_mode
-        
+
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
             if self.sample_changer_hwobj is not None:
@@ -658,7 +649,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 acq_1.acquisition_parameters.take_snapshots = False
             else:
                 acq_1.acquisition_parameters.take_snapshots = True
-                
+
             sample = self.get_data_model().get_parent().get_parent()
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session, sample)
@@ -705,12 +696,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                     collect(COLLECTION_ORIGIN_STR.MXCUBE,
                                             param_list)                
                 self.collect_task.get()
-                
+
                 if 'collection_id' in param_list[0]:
                     dc.id = param_list[0]['collection_id']
 
                 dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
-                
+
             except gevent.GreenletExit:
                 #log.warning("Collection stopped by user.")
                 list_item.setText(1, 'Stopped')
@@ -875,7 +866,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                                   getStrategyResult()
             except:
                 strategy_result = None
-                
 
             if strategy_result:
                 collection_plan = strategy_result.getCollectionPlan()
@@ -1146,7 +1136,6 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        
         qc = self.get_queue_controller()
         self.workflow_hwobj = self.beamline_setup.workflow_hwobj
 
