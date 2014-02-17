@@ -1092,7 +1092,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             # therefore first abort any running workflow: 
             self.workflow_hwobj.abort()
             if self.workflow_hwobj.command_failure():
-                self.logging.error("Workflow abort command failed!")
+                msg = "Workflow abort command failed! Please check workflow Tango server."
+                logging.getLogger("user_level_log").error(msg)
             else:
                 # Then sleep three seconds for allowing the server to abort a running workflow:
                 time.sleep(3)
@@ -1106,9 +1107,9 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
         # Add the current node id to workflow parameters
-        group_node_id = self._parent_container._data_model._node_id
-        workflow_params.append("group_node_id")
-        workflow_params.append("%d" % group_node_id)
+        #group_node_id = self._parent_container._data_model._node_id
+        #workflow_params.append("group_node_id")
+        #workflow_params.append("%d" % group_node_id)
         self.workflow_hwobj.start(workflow_params)
         if self.workflow_hwobj.command_failure():
             msg = "Workflow start command failed! Please check workflow Tango server."
