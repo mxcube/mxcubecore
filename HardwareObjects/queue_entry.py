@@ -644,12 +644,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-
-            if self.beamline_setup.in_plate_mode():
-                acq_1.acquisition_parameters.take_snapshots = False
-            else:
-                acq_1.acquisition_parameters.take_snapshots = True
-
             sample = self.get_data_model().get_parent().get_parent()
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session, sample)
