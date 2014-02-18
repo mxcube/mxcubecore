@@ -593,6 +593,7 @@ class MiniDiff(Equipment):
           if self.user_confirms_centring:
             self.emitCentringSuccessful()
           else:
+            self.emitCentringSuccessful()
             self.acceptCentring()
               
 

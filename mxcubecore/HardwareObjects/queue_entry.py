@@ -1169,7 +1169,6 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
     beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
                                                           sample_location=loc,
                                                           wait=True)
-
     dm = beamline_setup_hwobj.diffractometer_hwobj
 
     if dm is not None:
@@ -1177,9 +1176,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             dm.connect("centringAccepted", centring_done_cb)
             centring_method = view.listView().parent().\
                               centring_method
-
-            dm.user_confirms_centring = True
-                              
+                  
             if centring_method == CENTRING_METHOD.MANUAL:
                 log.warning("Manual centring used, waiting for" +\
                             " user to center sample")
@@ -1190,7 +1187,6 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                             " the suggested centring or re-center")
             elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 log.info("Centring sample, please wait.")
-                dm.user_confirms_centring = False
                 dm.startCentringMethod(dm.C3D_MODE)
 
             view.setText(1, "Centring !")
