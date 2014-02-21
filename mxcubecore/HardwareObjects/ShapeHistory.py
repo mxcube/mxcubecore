@@ -679,3 +679,79 @@ class Point(Shape):
 
     def get_qub_objects(self):
           return [self.qub_point]
+
+
+class CanvasGrid(qtcanvas.QCanvasRectangle) :
+    def __init__(self, canvas, cell_width = None, cell_height = None,
+                 beam_width = None, beam_height = None) :
+        qtcanvas.QCanvasRectangle.__init__(self, canvas)
+        self.__painter = None
+
+        # Grid dimension
+        self.__num_cells = 0
+        self.__width = None
+        self.__height = None
+        self.__cell_width = cell_width
+        self.__cell_height = cell_height
+        self.__beam_width = beam_width
+        self.__beam_height = beam_height
+        self.__beam_shape = None
+
+        # (score, (r,g,b))
+        self.__grid_data = {}
+        self.__has_data = False
+        
+    def drawShape(self, painter):
+        self.__painter = painter
+        rect = self.rect()
+
+        self.__num_cells = 0
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
+
+        for i in range(0, num_rows + 1):
+            offset =  i*self.__cell_height
+            self.__height = offset
+            painter.drawLine(rect.left(), rect.top() + offset,
+                             rect.right(), rect.top() + offset)
+
+        for i in range(0, num_colls + 1):
+            offset =  i*self.__cell_width
+            self.__width = offset
+            painter.drawLine(rect.left() + offset, rect.top(),
+                             rect.left() + offset, rect.bottom())
+
+        for i in range(0, num_rows):
+            row_offset = i*self.__cell_height
+            for k in range(0, num_colls):
+                coll_offset = k*self.__cell_width
+                self.__num_cells += 1
+                if not self.__has_data:
+                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 255))
+                    
+                color = self.__grid_data[self.__num_cells][1]
+                
+                painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
+                painter.drawEllipse(rect.left() + coll_offset,
+                                    rect.top() + row_offset,
+                                    self.__beam_width, self.__beam_height)
+
+                tr = qt.QRect(rect.left() + coll_offset, rect.top() + row_offset,
+                              self.__cell_width, self.__cell_height)
+                painter.drawText(tr, qt.Qt.AlignCenter, str(self.__num_cells))
+
+    def reshape(self):
+        if self.__width < self.__cell_width:
+            self.__width = self.__cell_width
+
+        if self.__height < self.__cell_height:
+            self.__height = self.__cell_height
+
+        self.setSize(self.__width + 1, self.__height + 1)
+
+    def get_nummer_of_cells(self):
+        return self.__num_cells
+
+    def set_data(self, data):
+        self.__has_data = True
+        self.__grid_data = data
