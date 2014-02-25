@@ -30,7 +30,8 @@ class SpecMotor(Device, SpecMotorA):
         
 
     def motorIsMoving(self):
-        return self.getState() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
+        return not self._ready_state_event.is_set()
+        #return self.getState() in (SpecMotor.MOVESTARTED, SpecMotor.MOVING)
    
  
     def motorLimitsChanged(self):
