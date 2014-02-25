@@ -1,0 +1,23 @@
+<equipment class = "sample_changer.CatsMaint">
+  <username>CatsMaint</username>
+  <tangoname>bl141/cats/1</tangoname>    
+  
+  <command type="tango" name="_cmdReset">reset</command>
+  <command type="tango" name="_cmdBack">back</command>
+  <command type="tango" name="_cmdSafe">safe</command>
+  <command type="tango" name="_cmdPowerOn">powerOn</command>
+  <command type="tango" name="_cmdPowerOff">powerOff</command>
+
+  <command type="tango" name="_cmdOpenLid1">openlid1</command>
+  <command type="tango" name="_cmdCloseLid1">closelid1</command>
+  <command type="tango" name="_cmdOpenLid2">openlid2</command>
+  <command type="tango" name="_cmdCloseLid2">closelid2</command>
+  <command type="tango" name="_cmdOpenLid3">openlid3</command>
+  <command type="tango" name="_cmdCloseLid3">closelid3</command>
+  <channel type="tango" name="_chnLid1State" polling="events">di_Lid1Open</channel>
+  <channel type="tango" name="_chnLid2State" polling="events">di_Lid2Open</channel>
+  <channel type="tango" name="_chnLid3State" polling="events">di_Lid3Open</channel>
+
+  <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
+</equipment>
+
