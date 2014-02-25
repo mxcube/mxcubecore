@@ -793,3 +793,27 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
 
     def get_size(self):
         return (self.width(), self.height())
+
+    def _get_grid(self):
+        rect = self.rect()
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
+        
+        x = rect.left() * self.__x_pixel_size
+        y = rect.top() * self.__y_pixel_size
+
+        cell_width = self.__cell_width * self.__x_pixel_size
+        cell_height = self.__cell_height * self.__y_pixel_size 
+        
+        first_cell_center_x = x + cell_width / 2
+        first_cell_center_y = y + cell_height / 2
+        
+        grid =   {'dx_mm': cell_width,
+                  'dy_mm': cell_height,
+                  'steps_x': num_rows,
+                  'steps_y': num_colls,
+                  'x1': first_cell_center_x,
+                  'y1': first_cell_center_y,
+                  'angle': 0}
+
+        return grid

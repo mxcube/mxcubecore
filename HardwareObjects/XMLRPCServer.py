@@ -281,15 +281,12 @@ class XMLRPCServer(HardwareObject):
         else:
             self.wokflow_in_progress = False
 
-
     def get_diffractometer_positions(self):
         return self.diffractometer_hwobj.getPositions()
-
 
     def move_diffractometer(self, roles_positions_dict):
         self.diffractometer_hwobj.moveMotors(roles_positions_dict)
         return True
-
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
