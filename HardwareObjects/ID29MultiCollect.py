@@ -40,8 +40,9 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
-        while self.bl_control.resolution.motorIsMoving():
-            time.sleep(0.5)
+        self.bl_control.resolution.waitMove()
+        #while self.bl_control.resolution.motorIsMoving():
+        #    time.sleep(0.5)
 
     def trigger_auto_processing(self, process_event, *args, **kwargs):       
         if process_event in ('before', 'after'):
