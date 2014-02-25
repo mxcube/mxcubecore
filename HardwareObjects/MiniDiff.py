@@ -826,6 +826,29 @@ class MiniDiff(Equipment):
                "zoom": self.zoomMotor.getPosition()}
     
 
+    def moveMotors(self, roles_positions_dict):
+        motor = { "phi": self.phiMotor,
+                  "focus": self.focusMotor,
+                  "phiy": self.phiyMotor,
+                  "phiz": self.phizMotor,
+                  "sampx": self.sampleXMotor,
+                  "sampy": self.sampleYMotor,
+                  "kappa": self.kappaMotor,
+                  "kappa_phi": self.kappaPhiMotor,
+                  "zoom": self.zoomMotor }
+   
+        for role, pos in roles_positions_dict.iteritems():
+           motor[role].move(pos)
+ 
+        # TODO: remove this sleep, the motors states should
+        # be MOVING since the beginning (or READY if move is
+        # already finished) 
+        time.sleep(1)
+ 
+        while not all([m.getState() == m.READY for m in motor.itervalues()]):
+           time.sleep(0.1)
+
+
     def takeSnapshots(self, wait=False):
         self.camera.forceUpdate = True
         

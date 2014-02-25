@@ -86,6 +86,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.queue_execute_entry_with_id)
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.beamline_setup_read)
+        self._server.register_function(self.get_diffractometer_positions)
+        self._server.register_function(self.move_diffractometer)
+ 
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -101,6 +104,7 @@ class XMLRPCServer(HardwareObject):
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
+        self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
 
     def _add_to_queue(self, task, set_on = True):
@@ -276,6 +280,16 @@ class XMLRPCServer(HardwareObject):
             self.wokflow_in_progress = True
         else:
             self.wokflow_in_progress = False
+
+
+    def get_diffractometer_positions(self):
+        return self.diffractometer_hwobj.getPositions()
+
+
+    def move_diffractometer(self, roles_positions_dict):
+        self.diffractometer_hwobj.moveMotors(roles_positions_dict)
+        return True
+
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
