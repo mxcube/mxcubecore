@@ -31,8 +31,7 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_detector(self, detector_distance):
         self.bl_control.detector_distance.move(detector_distance)
-        while self.bl_control.detector_distance.motorIsMoving():
-            time.sleep(0.5)
+        self.bl_control.detector_distance.waitMove()
 
     def get_detector_distance(self):
         return self.bl_control.detector_distance.getPosition()
@@ -41,8 +40,6 @@ class ID29MultiCollect(ESRFMultiCollect):
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
         self.bl_control.resolution.waitMove()
-        #while self.bl_control.resolution.motorIsMoving():
-        #    time.sleep(0.5)
 
     def trigger_auto_processing(self, process_event, *args, **kwargs):       
         if process_event in ('before', 'after'):
