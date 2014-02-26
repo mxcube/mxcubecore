@@ -710,7 +710,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__num_cells = 0
         num_rows = (rect.bottom() - rect.top()) / self.__cell_height
         num_colls = (rect.right() - rect.left()) / self.__cell_width
-
+        painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.DotLine))
+        
         for i in range(0, num_rows + 1):
             offset =  i*self.__cell_height
             self.__height = offset
@@ -732,15 +733,21 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                     self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 255))
                     
                 color = self.__grid_data[self.__num_cells][1]
-                
+
+                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
                 painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
                 painter.drawEllipse(rect.left() + coll_offset,
                                     rect.top() + row_offset,
                                     self.__beam_width, self.__beam_height)
 
+                painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
                 tr = qt.QRect(rect.left() + coll_offset, rect.top() + row_offset,
                               self.__cell_width, self.__cell_height)
-                painter.drawText(tr, qt.Qt.AlignCenter, str(self.__num_cells))
+                
+                score = self.__grid_data[self.__num_cells][0]
+
+                if score:
+                    painter.drawText(tr, qt.Qt.AlignCenter, str(score))
 
     def reshape(self):
         if self.__width < self.__cell_width:
@@ -759,10 +766,10 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__grid_data = data
 
     def set_x_pixel_size(self, x_size):
-        self.__x_pixel_size = x_size * 1000
+        self.__x_pixel_size = x_size * 10e-3 # From pixel/m to pixel/mm
     
     def set_y_pixel_size(self, y_size):
-        self.__y_pixel_size = y_size * 1000
+        self.__y_pixel_size = y_size * 10e-3
 
     def get_cell_locations(self):
         locations = []
