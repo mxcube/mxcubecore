@@ -293,6 +293,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     @task
+    def data_collection_cleanup(self):
+        self.execute_command("close_fast_shutter")
+
+
+    @task
     def close_fast_shutter(self):
         self.execute_command("close_fast_shutter")
 
