@@ -208,7 +208,7 @@ class BeamlineSetup(HardwareObject):
         char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
 
         # Optimisation parameters
-        char_params.use_aimed_resolution = True
+        char_params.use_aimed_resolution = False
         char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
         char_params.use_aimed_multiplicity = False
         char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
