@@ -16,6 +16,7 @@ class Robodiff(MiniDiff.MiniDiff):
     def oscil(self, *args, **kwargs):
         self.controller.oscil(*args, **kwargs)
 
+    """
     def moveToCentredPosition(self,*args):
         return self._moveToCentredPosition(wait=False)
 
@@ -36,6 +37,6 @@ class Robodiff(MiniDiff.MiniDiff):
                  "kappa": 0,
                  "kappa_phi": 0,
                  "zoom": 0 }
-
+    """
 
  
