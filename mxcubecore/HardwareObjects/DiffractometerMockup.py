@@ -134,7 +134,7 @@ class DiffractometerMockup(Equipment):
         pass
 
     def startCentringMethod(self, method, sample_info=None):
-        pass
+        self.acceptCentring()
 
     def cancelCentringMethod(self, reject=False):
         pass
@@ -158,7 +158,7 @@ class DiffractometerMockup(Equipment):
         pass
 
     def startAutoCentring(self, sample_info=None, loop_only=False):
-        pass
+        self.acceptCentring()
 
     def imageClicked(self, x, y, xi, yi):
         pass
@@ -167,7 +167,9 @@ class DiffractometerMockup(Equipment):
         pass
 
     def acceptCentring(self):
-        pass
+        self.centringStatus["valid"]=True
+        self.centringStatus["accepted"]=True
+        self.emit('centringAccepted', (True,self.getCentringStatus()))
 
     def rejectCentring(self):
         pass

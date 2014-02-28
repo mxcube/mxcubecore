@@ -644,12 +644,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-
-            if self.beamline_setup.in_plate_mode():
-                acq_1.acquisition_parameters.take_snapshots = False
-            else:
-                acq_1.acquisition_parameters.take_snapshots = True
-
             sample = self.get_data_model().get_parent().get_parent()
             param_list = queue_model_objects.\
                 to_collect_dict(dc, self.session, sample)
@@ -1092,7 +1086,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             # therefore first abort any running workflow: 
             self.workflow_hwobj.abort()
             if self.workflow_hwobj.command_failure():
-                self.logging.error("Workflow abort command failed!")
+                msg = "Workflow abort command failed! Please check workflow Tango server."
+                logging.getLogger("user_level_log").error(msg)
             else:
                 # Then sleep three seconds for allowing the server to abort a running workflow:
                 time.sleep(3)
@@ -1106,9 +1101,9 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
         # Add the current node id to workflow parameters
-        group_node_id = self._parent_container._data_model._node_id
-        workflow_params.append("group_node_id")
-        workflow_params.append("%d" % group_node_id)
+        #group_node_id = self._parent_container._data_model._node_id
+        #workflow_params.append("group_node_id")
+        #workflow_params.append("%d" % group_node_id)
         self.workflow_hwobj.start(workflow_params)
         if self.workflow_hwobj.command_failure():
             msg = "Workflow start command failed! Please check workflow Tango server."
@@ -1169,7 +1164,6 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
     beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
                                                           sample_location=loc,
                                                           wait=True)
-
     dm = beamline_setup_hwobj.diffractometer_hwobj
 
     if dm is not None:
@@ -1177,7 +1171,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             dm.connect("centringAccepted", centring_done_cb)
             centring_method = view.listView().parent().\
                               centring_method
-
+                  
             if centring_method == CENTRING_METHOD.MANUAL:
                 log.warning("Manual centring used, waiting for" +\
                             " user to center sample")
@@ -1186,10 +1180,9 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                 dm.startCentringMethod(dm.C3D_MODE)
                 log.warning("Centring in progress. Please save" +\
                             " the suggested centring or re-center")
-            elif centring_method == CENTRING_METHOD.CRYSTAL:
+            elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 log.info("Centring sample, please wait.")
-                dm.startAutoCentring()
-                log.warning("Please save or reject the centring")
+                dm.startCentringMethod(dm.C3D_MODE)
 
             view.setText(1, "Centring !")
             async_result.get()
