@@ -1,15 +1,21 @@
-from ESRFMultiCollect import *
-from detectors.LimaPilatus import Pilatus
-import itertools
-import gevent
 
 def grouped(iterable, n):
     "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
     return itertools.izip(*[iter(iterable)]*n)
 
-class ID30MultiCollect(ESRFMultiCollect):
-    def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
+class ADSC:
+    """
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_state">DevState</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_status">DevStatus</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_setfilepar">DevCCDSetFilePar</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_sethwpar">DevCCDSetHwPar</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_stop">DevCCDStopExposure</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_write_image">DevCCDWriteImage</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_start_exposure">DevCCDStartExposure</command>
+        <command type="taco" taconame="id30/adsc/massif1" name="detector_reset">DevReset</command>
+    """
+    def __init__(self):
+        pass
 
     @task
     def data_collection_hook(self, data_collect_parameters):
