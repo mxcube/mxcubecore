@@ -1085,9 +1085,14 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 
     loc = data_model.location
     holder_length = data_model.holder_length
-    beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
-                                                          sample_location=loc,
-                                                          wait=True)
+    if hasattr(beamline_setup_hwobj.sample_changer_hwobj, '__TYPE__')\
+       and (beamline_setup_hwobj.sample_changer_hwobj.__TYPE__ == 'CATS'):
+        element = '%d:%02d' % loc
+        beamline_setup_hwobj.sample_changer_hwobj.load(sample=element, wait=True)
+    else:
+        beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
+                                                              sample_location=loc,
+                                                              wait=True)
 
     dm = beamline_setup_hwobj.diffractometer_hwobj
 
