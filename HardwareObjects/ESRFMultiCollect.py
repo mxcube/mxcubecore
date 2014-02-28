@@ -91,33 +91,48 @@ class CcdDetector:
 
 
 class PixelDetector:
-    def __init__(self):
+    def __init__(self, detector_class=None):
+        self._detector = detector_class() if detector_class else None
         self.shutterless = True
         self.new_acquisition = True
         self.oscillation_task = None
         self.shutterless_exptime = None
         self.shutterless_range = None
 
+    def init(self, config, collect_obj):
+        if self._detector:
+          self._detector.addChannel = self.addChannel
+          self._detector.addCommand = self.addCommand
+          self._detector.init(config, collect_obj)
+
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
         self.new_acquisition = True
         if  osc_range < 0.0001:
             self.shutterless = False
+            still = True
+        else:
+            still = False
         take_dark = 0
         if self.shutterless:
             self.shutterless_range = osc_range*number_of_images
             self.shutterless_exptime = (exptime + 0.003)*number_of_images
-        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)",wait=True)
+        if self._detector:
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
+        else:
+            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
         
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
       if self.shutterless and not self.new_acquisition:
           return
-
-      self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
-      self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
-      self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
+ 
+      if self._detector:
+          self._detector.set_detector_filename(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
+      else:
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
+          self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
 
     @task
     def prepare_oscillation(self, start, osc_range, exptime, npass):
@@ -137,7 +152,10 @@ class PixelDetector:
       if not first_frame and self.shutterless:
         pass 
       else:
-        self.execute_command("start_acquisition")
+        if self._detector:
+            self._detector.start_acquisition()
+        else:
+            self.execute_command("start_acquisition")
 
     @task
     def do_oscillation(self, start, end, exptime, npass):
@@ -168,7 +186,6 @@ class PixelDetector:
       if last_frame:
         if self.shutterless:
             self.oscillation_task.get()
-            self.execute_command("specific_collect_frame_hook")
 
     def stop_acquisition(self):
         self.new_acquisition = False
@@ -177,8 +194,11 @@ class PixelDetector:
     def reset_detector(self):
       if self.shutterless:
           self.oscillation_task.kill()
-      self.getCommandObject("reset_detector").abort()    
-      self.execute_command("reset_detector")
+      if self._detector:
+          self._detector.stop()
+      else:
+          self.getCommandObject("reset_detector").abort()    
+          self.execute_command("reset_detector")
 
 
 class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
@@ -193,7 +213,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
       wait = kwargs.get("wait", True)
       cmd_obj = self.getCommandObject(command_name)
       return cmd_obj(*args, wait=wait)
-          
         
     def init(self):
         self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
@@ -246,9 +265,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
   
 	self.getChannelObject("spec_messages").connectSignal("update", self.log_message_from_spec)
 
+        self._detector.addCommand = self.addCommand
+        self._detector.addChannel = self.addChannel
         self._detector.getCommandObject = self.getCommandObject
         self._detector.getChannelObject = self.getChannelObject
         self._detector.execute_command = self.execute_command
+        self._detector.init(self["detector"], self)
         self._tunable_bl.bl_control = self.bl_control
 
         self.emit("collectConnected", (True,))
@@ -348,7 +370,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment)
+        energy = self._tunable_bl.getCurrentEnergy()
+        return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy)
 
 
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
