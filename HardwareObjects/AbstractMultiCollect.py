@@ -193,6 +193,12 @@ class AbstractMultiCollect(object):
 
 
     @abc.abstractmethod
+    @task
+    def data_collection_cleanup(self):
+        pass
+
+
+    @abc.abstractmethod
     def get_wavelength(self):
       pass
 
@@ -577,7 +583,7 @@ class AbstractMultiCollect(object):
 
         self.move_motors(motors_to_move_before_collect)
 
-        with cleanup(self.close_fast_shutter):
+        with cleanup(self.data_collection_cleanup):
             self.open_safety_shutter(timeout=10)
 
             self.prepare_intensity_monitors()
