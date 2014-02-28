@@ -679,3 +679,153 @@ class Point(Shape):
 
     def get_qub_objects(self):
           return [self.qub_point]
+
+
+class CanvasGrid(qtcanvas.QCanvasRectangle) :
+    def __init__(self, canvas, cell_width = None, cell_height = None,
+                 beam_width = None, beam_height = None) :
+        qtcanvas.QCanvasRectangle.__init__(self, canvas)
+        self.__painter = None
+
+        # Grid dimension
+        self.__num_cells = 0
+        self.__width = None
+        self.__height = None
+        self.__cell_width = cell_width
+        self.__cell_height = cell_height
+        self.__beam_width = beam_width
+        self.__beam_height = beam_height
+        self.__beam_shape = None
+        self.__x_pixel_size = 1
+        self.__y_pixel_size = 1
+        self.__beam_pos = (0, 0)
+        
+        # (score, (r,g,b))
+        self.__grid_data = {}
+        self.__has_data = False
+        
+    def drawShape(self, painter):
+        self.__painter = painter
+        rect = self.rect()
+
+        self.__num_cells = 0
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
+        painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.DotLine))
+
+        for i in range(0, num_rows + 1):
+            offset =  i*self.__cell_height
+            self.__height = offset
+            painter.drawLine(rect.left(), rect.top() + offset,
+                             rect.right(), rect.top() + offset)
+
+        for i in range(0, num_colls + 1):
+            offset =  i*self.__cell_width
+            self.__width = offset
+            painter.drawLine(rect.left() + offset, rect.top(),
+                             rect.left() + offset, rect.bottom())
+
+        for i in range(0, num_rows):
+            row_offset = i*self.__cell_height
+            for k in range(0, num_colls):
+                coll_offset = k*self.__cell_width
+                self.__num_cells += 1
+                if not self.__has_data:
+                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 255))
+                    
+                color = self.__grid_data[self.__num_cells][1]
+
+                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
+                painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
+                painter.drawEllipse(rect.left() + coll_offset,
+                                    rect.top() + row_offset,
+                                    self.__beam_width, self.__beam_height)
+
+                painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
+                tr = qt.QRect(rect.left() + coll_offset, rect.top() + row_offset,
+                              self.__cell_width, self.__cell_height)
+                
+                score = self.__grid_data[self.__num_cells][0]
+
+                if score:
+                    painter.drawText(tr, qt.Qt.AlignCenter, str(score))
+
+    def reshape(self):
+        if self.__width < self.__cell_width:
+            self.__width = self.__cell_width
+
+        if self.__height < self.__cell_height:
+            self.__height = self.__cell_height
+
+        self.setSize(self.__width + 1, self.__height + 1)
+
+    def get_nummer_of_cells(self):
+        return self.__num_cells
+
+    def set_data(self, data):
+        self.__has_data = True
+        self.__grid_data = data
+
+    def set_x_pixel_size(self, x_size):
+        self.__x_pixel_size = x_size
+    
+    def set_y_pixel_size(self, y_size):
+        self.__y_pixel_size = y_size
+
+    def set_beam_position(self, x, y):
+        self.__beam_pos = (x, y)
+
+    def get_cell_locations(self):
+        locations = []
+        rect = self.rect()
+
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
+        
+        x = rect.left() * self.__x_pixel_size
+        y = rect.top() * self.__y_pixel_size
+
+        cell_width = self.__cell_width * self.__x_pixel_size
+        cell_height = self.__cell_height * self.__y_pixel_size
+        
+        first_cell_center_x = x + cell_width / 2
+        first_cell_center_y = y + cell_height / 2
+
+        for k in range(0, num_rows):
+            row = []
+
+            for i in range(0, num_colls):
+                row.append((first_cell_center_x + (i * cell_width),
+                            first_cell_center_y + (k * cell_height)))
+
+            locations.append(row)
+            
+        return locations
+
+    def get_size(self):
+        return (self.width(), self.height())
+
+    def _get_grid(self):
+        rect = self.rect()
+
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
+        
+        x = (rect.left() - self.__beam_pos[0])
+        y = (rect.top() - self.__beam_pos[1])
+
+        cell_width = float(self.__cell_width / self.__x_pixel_size)
+        cell_height = float(self.__cell_height / self.__y_pixel_size)
+        
+        first_cell_center_x = (x + cell_width / 2) / self.__x_pixel_size
+        first_cell_center_y = (y + cell_height / 2) / self.__x_pixel_size
+
+        grid = {'dx_mm': cell_width,
+                'dy_mm': cell_height,
+                'steps_x': num_colls,
+                'steps_y': num_rows,
+                'x1': first_cell_center_x,
+                'y1': first_cell_center_y,
+                'angle': 0}
+
+        return grid
