@@ -703,6 +703,9 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         # (score, (r,g,b))
         self.__grid_data = {}
         self.__has_data = False
+
+        self.__highlighted = False
+        self.__label = "Grid n"
         
     def drawShape(self, painter):
         self.__painter = painter
@@ -711,7 +714,11 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__num_cells = 0
         num_rows = (rect.bottom() - rect.top()) / self.__cell_height
         num_colls = (rect.right() - rect.left()) / self.__cell_width
-        painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.DotLine))
+
+        if self.__highlighted:
+            painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
+        else:
+            painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.DotLine))
 
         for i in range(0, num_rows + 1):
             offset =  i*self.__cell_height
@@ -750,6 +757,11 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 if score:
                     painter.drawText(tr, qt.Qt.AlignCenter, str(score))
 
+            if self.__label and self.__highlighted:
+                #painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
+                painter.drawText(rect.right() + 2, rect.top() - 5 , self.__label)
+            
+
     def reshape(self):
         if self.__width < self.__cell_width:
             self.__width = self.__cell_width
@@ -758,6 +770,12 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
             self.__height = self.__cell_height
 
         self.setSize(self.__width + 1, self.__height + 1)
+
+    def highlight(self, state):
+        self.__highlighted = state
+
+    def set_label(self, label):
+        self.__label = label
 
     def get_nummer_of_cells(self):
         return self.__num_cells
