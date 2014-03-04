@@ -651,7 +651,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    self.collect_hwobj.getChannelObject("helical").setValue(1)
+                    self.collect_hwobj.set_helical(True)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -660,14 +660,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                                          store_centred_position(end_cpos)
 
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict()}
-                    self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+                    self.collect_hwobj.set_helical_pos(helical_oscil_pos)
 
                     msg = "Helical data collection, moving to start position"
                     log.info(msg)
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                 else:
-                    self.collect_hwobj.getChannelObject("helical").setValue(0)
+                    self.collect_hwobj.set_helical(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()
 

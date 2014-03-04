@@ -323,7 +323,17 @@ class AbstractMultiCollect(object):
     def take_crystal_snapshots(self):
       pass
 
-        
+       
+    @abc.abstractmethod
+    def set_helical(self, helical_on):
+      pass
+
+
+    @abc.abstractmethod
+    def set_helical_pos(self, helical_pos):
+      pass
+
+ 
     def prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, inverse_beam, overlap):
         # code to prepare the list of frames to collect: [(start, wedge_size), ...]
         wedge_sizes_list = [reference_interval]*(nframes/reference_interval)
