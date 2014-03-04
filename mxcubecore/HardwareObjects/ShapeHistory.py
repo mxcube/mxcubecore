@@ -790,7 +790,13 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
     def set_y_pixel_size(self, y_size):
         self.__y_pixel_size = y_size
 
-    def set_beam_position(self, x, y):
+    def set_beam_position(self, x, y, w = None, h = None):
+        if w and h:
+            self.__cell_width = w
+            self.__cell_height = h
+            self.__beam_width = w
+            self.__beam_height = h
+
         self.__beam_pos = (x, y)
 
     def get_cell_locations(self):
