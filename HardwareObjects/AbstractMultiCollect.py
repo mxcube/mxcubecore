@@ -680,12 +680,7 @@ class AbstractMultiCollect(object):
 
                 with error_cleanup(self.reset_detector):
                     self.start_acquisition(exptime, npass, frame==start_image_number)
-                    if osc_end - osc_start < 1E-4:
-                       self.open_fast_shutter()
-                       time.sleep(exptime)
-                       self.close_fast_shutter()
-                    else:
-                       self.do_oscillation(osc_start, osc_end, exptime, npass)
+                    self.do_oscillation(osc_start, osc_end, exptime, npass)
                     self.stop_acquisition()
                     last_frame = start_image_number + nframes - 1
                     self.write_image(frame == last_frame)
