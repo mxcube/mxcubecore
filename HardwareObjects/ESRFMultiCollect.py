@@ -5,6 +5,7 @@ import logging
 import time
 import os
 import httplib
+import math
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -100,23 +101,25 @@ class PixelDetector:
         self.shutterless_range = None
 
     def init(self, config, collect_obj):
+        self.collect_obj = collect_obj
         if self._detector:
           self._detector.addChannel = self.addChannel
           self._detector.addCommand = self.addCommand
+          self._detector.getChannelObject = self.getChannelObject
+          self._detector.getCommandObject = self.getCommandObject
           self._detector.init(config, collect_obj)
 
     @task
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
         self.new_acquisition = True
-        if  osc_range < 0.0001:
-            self.shutterless = False
+        if osc_range < 1E-4:
             still = True
         else:
             still = False
         take_dark = 0
         if self.shutterless:
             self.shutterless_range = osc_range*number_of_images
-            self.shutterless_exptime = (exptime + 0.003)*number_of_images
+            self.shutterless_exptime = (exptime + self._detector.get_deadtime())*number_of_images
         if self._detector:
             self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
         else:
@@ -128,7 +131,7 @@ class PixelDetector:
           return
  
       if self._detector:
-          self._detector.set_detector_filename(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
+          self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
       else:
           self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
           self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
@@ -137,15 +140,17 @@ class PixelDetector:
     @task
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         if self.shutterless:
+            end = start+self.shutterless_range
             if self.new_acquisition:
-                self.execute_command("prepare_oscillation", start, start+self.shutterless_range, self.shutterless_exptime, npass)
+                self.collect_obj.do_prepare_oscillation(start, end, self.shutterless_exptime, npass)
+            return (start, end)
         else:
             if osc_range < 1E-4:
                 # still image
                 pass
             else:
-                self.execute_command("prepare_oscillation", start, start+osc_range, exptime, npass)
-        return (start, start+osc_range)
+                self.collect_obj.do_prepare_oscillation(start, start+osc_range, exptime, npass)
+            return (start, start+osc_range)
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
@@ -158,16 +163,22 @@ class PixelDetector:
             self.execute_command("start_acquisition")
 
     @task
+    def no_oscillation(self, exptime):
+        self.collect_obj.open_fast_shutter()
+        time.sleep(exptime)
+        self.collect_obj.close_fast_shutter()
+ 
+    @task
     def do_oscillation(self, start, end, exptime, npass):
+      still = math.fabs(end-start) < 1E-4
       if self.shutterless:
           if self.new_acquisition:
               # only do this once per collect
-              npass = 1
-              exptime = self.shutterless_exptime
-              end = start + self.shutterless_range
-          
               # make oscillation an asynchronous task => do not wait here
-              self.oscillation_task = self.execute_command("do_oscillation", start, end, exptime, npass, wait=False)
+              if still:
+                  self.oscillation_task = self.no_oscillation(self.shutterless_exptime, wait=False)
+              else:
+                  self.oscillation_task = self.collect_obj.oscil(start, end, self.shutterless_exptime, 1, wait=False)
           else:
               time.sleep(0.89*exptime)
 
@@ -179,8 +190,11 @@ class PixelDetector:
                  # an exception occured in task! Pilatus server died?
                  raise
       else:
-          self.execute_command("do_oscillation", start, end, exptime, npass)
-    
+          if still:
+              self.no_oscillation(exptime)
+          else:
+              self.collect_obj.oscil(start, end, exptime, npass)
+   
     @task
     def write_image(self, last_frame):
       if last_frame:
@@ -290,7 +304,18 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def data_collection_hook(self, data_collect_parameters):
         return
  
-
+    def do_prepare_oscillation(self, start, end, exptime, npass):
+        return self.execute_command("prepare_oscillation", start, end, exptime, npass)
+    
+    @task
+    def oscil(self, start, end, exptime, npass):
+      if math.fabs(end-start) < 1E-4:
+        self.open_fast_shutter()
+        time.sleep(exptime)
+        self.close_fast_shutter()
+      else:
+        return self.execute_command("do_oscillation", start, end, exptime, npass)
+    
     @task
     def set_transmission(self, transmission_percent):
         self.bl_control.transmission.setTransmission(transmission_percent)
@@ -316,7 +341,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_cleanup(self):
-        self.execute_command("close_fast_shutter")
+        self.close_fast_shutter()
 
 
     @task
