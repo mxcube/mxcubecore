@@ -104,7 +104,7 @@ def take_snapshots(light, light_motor, phi, zoom, drawing):
 
     # No light level, choose default
     if light_motor.getPosition() == 0:
-      zoom_level = zoom.getPosition()
+      zoom_level = int(zoom.getPosition())
       light_level = None
 
       try:
