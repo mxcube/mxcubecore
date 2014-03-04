@@ -698,7 +698,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__beam_shape = None
         self.__x_pixel_size = 1
         self.__y_pixel_size = 1
-        self.__beam_pos = (0, 0)
+        self.__beam_pos = (0, 0, 0, 0)
         
         # (score, (r,g,b))
         self.__grid_data = {}
@@ -786,18 +786,24 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
 
     def set_x_pixel_size(self, x_size):
         self.__x_pixel_size = x_size
-    
+        beam_width_mu = self.__beam_pos[2]
+        self.__cell_width = int(beam_width_mu * self.__x_pixel_size)
+        self.__beam_width = int(beam_width_mu * self.__x_pixel_size)
+
     def set_y_pixel_size(self, y_size):
         self.__y_pixel_size = y_size
+        beam_height_mu = self.__beam_pos[3]
+        self.__cell_height = int(beam_height_mu * self.__y_pixel_size)
+        self.__beam_height = int(beam_height_mu * self.__y_pixel_size)
 
-    def set_beam_position(self, x, y, w = None, h = None):
+    def set_beam_position(self, x, y, w=0, h=0):
         if w and h:
-            self.__cell_width = w
-            self.__cell_height = h
-            self.__beam_width = w
-            self.__beam_height = h
+            self.__cell_width = int(w * self.__x_pixel_size)
+            self.__cell_height = int(h * self.__y_pixel_size)
+            self.__beam_width = int(w * self.__x_pixel_size)
+            self.__beam_height = int(h * self.__y_pixel_size)
 
-        self.__beam_pos = (x, y)
+        self.__beam_pos = (x, y, w, h)
 
     def get_cell_locations(self):
         locations = []
