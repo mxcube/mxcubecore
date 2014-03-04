@@ -19,10 +19,11 @@ class EnergyScan(Equipment):
         self.energyMotor = None
         self.energyScanArgs = None
         self.archive_prefix = None
-        self.energy2WavelengthConstant=None
-        self.defaultWavelength=None
         self._element = None
         self._edge = None
+        self.defaultWavelength = self.getProperty("default_wavelength")
+        self.energy2WavelengthConstant=self.getProperty("hc_over_e")
+
         try:
             self.defaultWavelengthChannel=self.getChannelObject('default_wavelength')
         except KeyError:
