@@ -693,6 +693,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__height = None
         self.__cell_width = cell_width
         self.__cell_height = cell_height
+        self.__num_colls = 0
+        self.__num_rows = 0
         self.__beam_shape = None
         self.__x_pixel_size = 1
         self.__y_pixel_size = 1
@@ -761,13 +763,12 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 #painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
                 painter.drawText(rect.right() + 2, rect.top() - 5 , self.__label)
 
+        self.__num_rows = num_rows
+        self.__num_colls = num_colls
+
     def reshape(self):
-        if self.__width < self.__cell_width:
-            self.__width = self.__cell_width
-
-        if self.__height < self.__cell_height:
-            self.__height = self.__cell_height
-
+        self.__width = self.__cell_width * self.__num_colls
+        self.__height = self.__cell_height * self.__num_rows
         self.setSize(self.__width + 1, self.__height + 1)
 
     def highlight(self, state):
@@ -844,10 +845,10 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         cell_height = float(self.__cell_height / self.__y_pixel_size)
         
         first_cell_center_x = ((x + (self.__cell_width / 2)) - self.__beam_pos[0]) / self.__x_pixel_size
-        first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__x_pixel_size
+        first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__y_pixel_size
 
-        grid = {'dx_mm': (cell_width * num_colls),
-                'dy_mm': (cell_height * num_rows),
+        grid = {'dx_mm': cell_width * (num_colls - 1),
+                'dy_mm': cell_height * (num_rows - 1),
                 'steps_x': num_colls,
                 'steps_y': num_rows,
                 'x1': first_cell_center_x,
