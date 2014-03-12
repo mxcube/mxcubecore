@@ -93,7 +93,7 @@ class SampleChanger(Container,Equipment):
         self._token=None
         task=self.__timer_task(wait=False)
         task.link(self._onTimerExit)
-        self._timer_update_inverval = 2
+        self._timer_update_inverval = 5 # defines the interval in periods of 100 ms
         self._timer_update_counter = 0            
         
     def init(self):
@@ -106,16 +106,19 @@ class SampleChanger(Container,Equipment):
         
     @task
     def __timer_task(self, *args):
+        self._timer_update_counter = 0            
         while(True):
-            gevent.sleep(1.0)
+            gevent.sleep(0.1)
             try:
                 if self.isEnabled():
-                    self._onTimer1s()
-                    if self._timer_update_inverval >=0:
-                         self._timer_update_counter=self._timer_update_counter+1
-                         if self._timer_update_counter >=self._timer_update_inverval:
-                             self._timer_update_counter=0
+                    self._timer_update_counter += 1
+                    if (self._timer_update_counter % 10) == 0: # 10 periods of 100 ms == 1s
+                        self._onTimer1s()
+                    try:
+                        if (self._timer_update_counter % self._timer_update_interval) == 0:
                              self._onTimerUpdate()
+                    except ZeroDivisionError:
+                        pass
             except:
                 pass                
              
