@@ -645,8 +645,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
-            param_list = queue_model_objects.\
-                to_collect_dict(dc, self.session, sample)
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -686,9 +684,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
+                param_list = queue_model_objects.to_collect_dict(dc, self.session, sample)
                 self.collect_task = self.collect_hwobj.\
-                                    collect(COLLECTION_ORIGIN_STR.MXCUBE,
-                                            param_list)                
+                    collect(COLLECTION_ORIGIN_STR.MXCUBE, param_list)                
                 self.collect_task.get()
 
                 if 'collection_id' in param_list[0]:
@@ -1161,9 +1159,16 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 
     loc = data_model.location
     holder_length = data_model.holder_length
-    beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
-                                                          sample_location=loc,
-                                                          wait=True)
+
+    if hasattr(beamline_setup_hwobj.sample_changer_hwobj, '__TYPE__')\
+       and (beamline_setup_hwobj.sample_changer_hwobj.__TYPE__ == 'CATS'):
+        element = '%d:%02d' % loc
+        beamline_setup_hwobj.sample_changer_hwobj.load(sample=element, wait=True)
+    else:
+        beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
+                                                              sample_location=loc,
+                                                              wait=True)
+
     dm = beamline_setup_hwobj.diffractometer_hwobj
 
     if dm is not None:
