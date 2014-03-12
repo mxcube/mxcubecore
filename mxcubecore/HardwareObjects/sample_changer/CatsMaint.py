@@ -29,9 +29,16 @@ class CatsMaint(Equipment):
     def init(self):      
         self._chnPathRunning = self.getChannelObject("_chnPathRunning")
         self._chnPathRunning.connectSignal("update", self._updateRunningState)
+        self._chnPowered = self.getChannelObject("_chnPowered")
+        self._chnPowered.connectSignal("update", self._updatePoweredState)
+        self._chnMessage = self.getChannelObject("_chnMessage")
+        self._chnMessage.connectSignal("update", self._updateMessage)
+        self._chnLN2Regulation = self.getChannelObject("_chnLN2RegulationDewar1")
+        self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
            
         for command_name in ("_cmdReset", "_cmdBack", "_cmdSafe", "_cmdPowerOn", "_cmdPowerOff", \
-                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3"):
+                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
+                             "_cmdRegulOn"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         for lid_index in range(CatsMaint.NO_OF_LIDS):            
@@ -92,6 +99,15 @@ class CatsMaint(Equipment):
         else:
             self._cmdPowerOff()
 
+    def _doEnableRegulation(self):
+        """
+        Switch on CATS regulation
+
+        :returns: None
+        :rtype: None
+        """
+        self._cmdRegulOn()
+
     def _doLid1State(self, state = True):
         """
         Opens lid 1 if >state< == True, closes the lid otherwise
@@ -132,6 +148,15 @@ class CatsMaint(Equipment):
 
     def _updateRunningState(self, value):
         self.emit('runningStateChanged', (value, ))
+
+    def _updatePoweredState(self, value):
+        self.emit('powerStateChanged', (value, ))
+
+    def _updateMessage(self, value):
+        self.emit('messageChanged', (value, ))
+
+    def _updateRegulationState(self, value):
+        self.emit('regulationStateChanged', (value, ))
 
     def _updateLid1State(self, value):
         self.emit('lid1StateChanged', (value, ))
