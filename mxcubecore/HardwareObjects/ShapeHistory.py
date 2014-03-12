@@ -771,6 +771,17 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__height = self.__cell_height * self.__num_rows
         self.setSize(self.__width + 1, self.__height + 1)
 
+    def reposition(self, scale_factor_x = None, scale_factor_y = None):
+        if scale_factor_x:
+            beam_dx = self.x() - self.__beam_pos[0]
+            dx =  beam_dx * scale_factor_x - beam_dx
+            self.moveBy(dx, 0)
+
+        if scale_factor_y:
+            beam_dy = self.y() - self.__beam_pos[1]
+            dy = beam_dy * scale_factor_y - beam_dy
+            self.moveBy(0, dy)
+
     def highlight(self, state):
         self.__highlighted = state
 
