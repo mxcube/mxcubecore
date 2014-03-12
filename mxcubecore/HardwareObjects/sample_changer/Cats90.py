@@ -85,7 +85,7 @@ class Cats90(SampleChanger):
             basket = Basket(self,i+1)
             self._addComponent(basket)
 
-        for channel_name in ("_chnState", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
+        for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
            
         for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
@@ -213,6 +213,9 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        if not self._chnPowered.getValue():
+            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            
         selected=self.getSelectedSample()            
         if sample is not None:
             if sample != selected:
@@ -244,6 +247,9 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        if not self._chnPowered.getValue():
+            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            
         if (sample_slot is not None):
             self._doSelect(sample_slot)
         argin = ["2", "0", "0", "0", "0"]
