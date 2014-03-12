@@ -200,6 +200,12 @@ class Sample(TaskNode):
 
         # Crystal information
         self.crystals = [Crystal()]
+        self.processing_parameters = ProcessingParameters()
+        self.processing_parameters.num_residues = 200
+        self.processing_parameters.process_data = True
+        self.processing_parameters.anomalous = False
+        self.processing_parameters.pdb_code = None
+        self.processing_parameters.pdb_file = str()
 
         self.energy_scan_result = EnergyScanResult()
 
@@ -238,27 +244,35 @@ class Sample(TaskNode):
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
             self.crystals[0].cell_a = lims_sample.cellA
+            self.processing_parameters.cell_a = lims_sample.cellA
 
         if hasattr(lims_sample, 'cellAlpha'):
             self.crystals[0].cell_alpha = lims_sample.cellAlpha
+            self.processing_parameters.cell_alpha = lims_sample.cellAlpha
 
         if hasattr(lims_sample, 'cellB'):
             self.crystals[0].cell_b = lims_sample.cellB
+            self.processing_parameters.cell_b = lims_sample.cellB
 
         if hasattr(lims_sample, 'cellBeta'):
             self.crystals[0].cell_beta = lims_sample.cellBeta
+            self.processing_parameters.cell_beta = lims_sample.cellBeta
 
         if hasattr(lims_sample, 'cellC'):
             self.crystals[0].cell_c = lims_sample.cellC
+            self.processing_parameters.cell_c = lims_sample.cellC
 
         if hasattr(lims_sample, 'cellGamma'):
             self.crystals[0].cell_gamma = lims_sample.cellGamma
+            self.processing_parameters.cell_gamma = lims_sample.cellGamma
 
         if hasattr(lims_sample, 'proteinAcronym'):
             self.crystals[0].protein_acronym = lims_sample.proteinAcronym
+            self.processing_parameters.protein_acronym = lims_sample.proteinAcronym
 
         if hasattr(lims_sample, 'crystalSpaceGroup'):
             self.crystals[0].space_group = lims_sample.crystalSpaceGroup
+            self.processing_parameters.space_group = lims_sample.crystalSpaceGroup
 
         if hasattr(lims_sample, 'code'):
             self.lims_code = lims_sample.code
@@ -300,6 +314,20 @@ class Sample(TaskNode):
             name += '-' + self.name
 
         self.set_name(name)
+
+    def get_processing_parameters(self):
+        processing_params = ProcessingParameters()
+        processing_params.space_group = self.crystals[0].space_group
+        processing_params.cell_a = self.crystals[0].cell_a
+        processing_params.cell_alpha = self.crystals[0].cell_alpha
+        processing_params.cell_b = self.crystals[0].cell_b
+        processing_params.cell_beta = self.crystals[0].cell_beta
+        processing_params.cell_c = self.crystals[0].cell_c
+        processing_params.cell_gamma = self.crystals[0].cell_gamma
+        processing_params.protein_acronym = self.crystals[0].protein_acronym
+     
+
+        return processing_params
 
 
 class DataCollection(TaskNode):
