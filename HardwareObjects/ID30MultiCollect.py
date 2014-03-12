@@ -18,7 +18,9 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def set_resolution(self, new_resolution):
-        pass #self.bl_control.resolution.move(new_resolution)
+        self.bl_control.resolution.move(new_resolution)
+        while self.bl_control.resolution.motorIsMoving():
+          time.sleep(0.01)
 
     def get_detector_distance(self):
         return 260 #self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition())
@@ -29,7 +31,7 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
-        save_diagnostic = False
+        save_diagnostic = True
         operate_shutter = True
         self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
 

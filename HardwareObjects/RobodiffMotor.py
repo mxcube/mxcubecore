@@ -61,7 +61,7 @@ class RobodiffMotor(Device):
         return self.motor.limits()
 
     def positionChanged(self, absolutePosition):
-        print self.name(), absolutePosition
+        #print self.name(), absolutePosition
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
