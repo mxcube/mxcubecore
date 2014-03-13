@@ -71,7 +71,7 @@ class Pilatus:
       #self.header["Start_angle"]="%0.4f deg." % start
       self.header["Transmission"]=self.collect_obj.get_transmission()
       self.header["Flux"]=self.collect_obj.get_flux(),
-      self.header["Beam_xy"]="(%.2f, %.2f) pixels" % self.collect_obj.get_beam_centre()
+      self.header["Beam_xy"]="(%.2f, %.2f) pixels" % tuple([value/0.172 for value in self.collect_obj.get_beam_centre()])
       self.header["Detector_Voffset"]="0.0000 m"
       self.header["Energy_range"]="(0, 0) eV"
       self.header["Detector_distance"]="%f m" % (self.collect_obj.get_detector_distance()/1000.0)
@@ -146,7 +146,7 @@ class Pilatus:
       for i, start_angle in enumerate(self.start_angles):
           header = "\n%s\n" % self.config.getProperty("serial")
           header += "# %s\n" % time.strftime("%Y/%b/%d %T")
-          header += "# Pixel size 172e-6 m x 172e-6 m\n"
+          header += "# Pixel_size 172e-6 m x 172e-6 m\n"
           header += "# Silicon sensor, thickness 0.000320 m\n"  
           self.header["Start_angle"]=start_angle
           for key, value in self.header.iteritems():
