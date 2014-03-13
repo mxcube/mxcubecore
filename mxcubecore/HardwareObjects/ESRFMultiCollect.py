@@ -240,60 +240,42 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                detector_distance = self.getObjectByRole("detector_distance"),
                                transmission = self.getObjectByRole("transmission"),
                                undulators = self.getObjectByRole("undulators"),
-                               flux = self.getObjectByRole("flux"))
+                               flux = self.getObjectByRole("flux"),
+                               detector = self.getObjectByRole("detector"))
 
-        mxlocalHO = self.getObjectByRole("beamline_configuration")
-        bcm_pars = mxlocalHO["BCM_PARS"]
-        spec_pars = mxlocalHO["SPEC_PARS"]
         try:
-          undulators = bcm_pars["undulator"]
+          undulators = self["undulator"]
         except IndexError:
           undulators = []
+
         self.setBeamlineConfiguration(directory_prefix = self.getProperty("directory_prefix"),
-                                      default_exposure_time = bcm_pars.getProperty("default_exposure_time"),
-                                      default_number_of_passes = bcm_pars.getProperty("default_number_of_passes"),
-                                      maximum_radiation_exposure = bcm_pars.getProperty("maximum_radiation_exposure"),
-                                      nominal_beam_intensity = bcm_pars.getProperty("nominal_beam_intensity"),
-                                      minimum_exposure_time = bcm_pars.getProperty("minimum_exposure_time"),
-                                      minimum_phi_speed = bcm_pars.getProperty("minimum_phi_speed"),
-                                      minimum_phi_oscillation = bcm_pars.getProperty("minimum_phi_oscillation"),
-                                      maximum_phi_speed = bcm_pars.getProperty("maximum_phi_speed"),
-                                      detector_fileext = bcm_pars.getProperty("FileSuffix"),
-                                      detector_type = bcm_pars["detector"].getProperty("type"),
-                                      detector_mode = spec_pars["detector"].getProperty("binning"),
-                                      detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer"),
-                                      detector_model = bcm_pars["detector"].getProperty("model"),
-                                      detector_px = bcm_pars["detector"].getProperty("px"),
-                                      detector_py = bcm_pars["detector"].getProperty("py"),
-                                      beam_ax = spec_pars["beam"].getProperty("ax"),
-                                      beam_ay = spec_pars["beam"].getProperty("ay"),
-                                      beam_bx = spec_pars["beam"].getProperty("bx"),
-                                      beam_by = spec_pars["beam"].getProperty("by"),
+                                      default_exposure_time = self.bl_control.detector.getProperty("default_exposure_time"),
+                                      minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
+                                      detector_fileext = self.bl_control.detector.getProperty("file_suffix"),
+                                      detector_type = self.bl_control.detector.getProperty("type"),
+                                      detector_mode = 1,
+                                      detector_manufacturer = self.bl_control.detector.getProperty("manufacturer"),
+                                      detector_model = self.bl_control.detector.getProperty("model"),
+                                      detector_px = self.bl_control.detector.getProperty("px"),
+                                      detector_py = self.bl_control.detector.getProperty("py"),
                                       undulators = undulators,
-                                      focusing_optic = bcm_pars.getProperty('focusing_optic'),
-                                      monochromator_type = bcm_pars.getProperty('monochromator'),
-                                      beam_divergence_vertical = bcm_pars.getProperty('beam_divergence_vertical'),
-                                      beam_divergence_horizontal = bcm_pars.getProperty('beam_divergence_horizontal'),     
-                                      polarisation = bcm_pars.getProperty('polarisation'),
+                                      focusing_optic = self.getProperty('focusing_optic'),
+                                      monochromator_type = self.getProperty('monochromator'),
+                                      beam_divergence_vertical = self.getProperty('beam_divergence_vertical'),
+                                      beam_divergence_horizontal = self.getProperty('beam_divergence_horizontal'),     
+                                      polarisation = self.getProperty('polarisation'),
                                       input_files_server = self.getProperty("input_files_server"))
   
-	self.getChannelObject("spec_messages").connectSignal("update", self.log_message_from_spec)
-
         self._detector.addCommand = self.addCommand
         self._detector.addChannel = self.addChannel
         self._detector.getCommandObject = self.getCommandObject
         self._detector.getChannelObject = self.getChannelObject
         self._detector.execute_command = self.execute_command
-        self._detector.init(self["detector"], self)
+        self._detector.init(self.bl_control.detector, self)
         self._tunable_bl.bl_control = self.bl_control
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
-
-
-    def log_message_from_spec(self, msg):
-        logging.getLogger("user_level_log").info(msg)      
-
 
     @task
     def take_crystal_snapshots(self):
