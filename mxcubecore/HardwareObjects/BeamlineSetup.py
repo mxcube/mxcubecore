@@ -96,7 +96,7 @@ class BeamlineSetup(HardwareObject):
         :rtype: bool
         """
         try:
-          return self['detector'].getProperty('type').lower()=='pilatus'
+          return self.detector_hwobj.getProperty('type').lower()=='pilatus'
         except:
           return False
 
@@ -160,7 +160,7 @@ class BeamlineSetup(HardwareObject):
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_has_shutterless()
-        detector_mode = int(self[parent_key].getProperty('detector_mode'))
+        detector_mode = 1 #unbinned...
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -252,8 +252,8 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = bool(self['detector'].getProperty('has_shutterless'))
-        detector_mode = int(self[parent_key].getProperty('detector_mode'))
+        shutterless = self.detector_has_shutterless()
+        detector_mode = 1 #unbinned
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
