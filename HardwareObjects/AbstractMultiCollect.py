@@ -22,18 +22,13 @@ BeamlineControl = collections.namedtuple('BeamlineControl',
                                           'detector_distance',
                                           'transmission',
                                           'undulators',
-                                          'flux'])
+                                          'flux',
+                                          'detector'])
 
 BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                         ['directory_prefix',
                                          'default_exposure_time',
-                                         'default_number_of_passes',
-                                         'maximum_radiation_exposure',
-                                         'nominal_beam_intensity',
                                          'minimum_exposure_time',
-                                         'minimum_phi_speed',
-                                         'minimum_phi_oscillation',
-                                         'maximum_phi_speed',
                                          'detector_fileext',
                                          'detector_type',
                                          'detector_mode',
@@ -41,10 +36,6 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'detector_model',
                                          'detector_px',
                                          'detector_py',
-                                         'beam_ax',
-                                         'beam_ay',
-                                         'beam_bx',
-                                         'beam_by',
                                          'undulators',
                                          'focusing_optic', 
                                          'monochromator_type', 
@@ -58,8 +49,8 @@ class AbstractMultiCollect(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.bl_control = BeamlineControl(*[None]*12)
-        self.bl_config = BeamlineConfig(*[None]*27)
+        self.bl_control = BeamlineControl(*[None]*13)
+        self.bl_config = BeamlineConfig(*[None]*17)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -612,6 +603,9 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["detectorDistance"] =  self.get_detector_distance()
                     data_collect_parameters["resolution"] = self.get_resolution()
                     data_collect_parameters["transmission"] = self.get_transmission()
+                    beam_centre_x, beam_centre_y = self.get_beam_centre()
+                    data_collect_parameters["xBeam"] = beam_centre_x
+                    data_collect_parameters["yBeam"] = beam_centre_y
                     gap1, gap2, gap3 = self.get_undulators_gaps()
                     data_collect_parameters["undulatorGap1"] = gap1
                     data_collect_parameters["undulatorGap2"] = gap2
@@ -624,9 +618,6 @@ class AbstractMultiCollect(object):
                     hor_gap, vert_gap = self.get_slit_gaps()
                     data_collect_parameters["slitGapHorizontal"] = hor_gap
                     data_collect_parameters["slitGapVertical"] = vert_gap
-                    beam_centre_x, beam_centre_y = self.get_beam_centre()
-                    data_collect_parameters["xBeam"] = beam_centre_x
-                    data_collect_parameters["yBeam"] = beam_centre_y
 
                     logging.info("Updating data collection in ISPyB")
                     self.bl_control.lims.update_data_collection(data_collect_parameters, wait=True)
