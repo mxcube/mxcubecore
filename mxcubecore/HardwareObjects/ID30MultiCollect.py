@@ -14,16 +14,23 @@ class ID30MultiCollect(ESRFMultiCollect):
   
     @task
     def move_detector(self, detector_distance):
-        pass #self.bl_control.resolution.newDistance(detector_distance)
+        det_distance = self.getObjectByRole("distance")
+        det_distance.move(detector_distance)
+        while det_distance.motorIsMoving():
+          time.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
-          time.sleep(0.01)
+          time.sleep(0.1)
+
+    def get_resolution_at_corner(self):
+        return self.bl_control.resolution.get_value_at_corner()
 
     def get_detector_distance(self):
-        return 260 #self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition())
+        det_distance = self.getObjectByRole("distance")
+        return det_distance.getPosition()
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -50,11 +57,11 @@ class ID30MultiCollect(ESRFMultiCollect):
     def get_flux(self):
         return -1
 
-    def set_transmission(self, transmission_percent):
-    	pass
+    def set_transmission(self, transmission):
+    	self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
-        return 100
+        return self.getObjectByRole("transmission").get_value()
 
     def get_cryo_temperature(self):
         return 0
@@ -64,6 +71,6 @@ class ID30MultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        return (159.063, 163.695)
+        return self.bl_control.resolution.get_beam_centre()
 
 
