@@ -254,6 +254,9 @@ class ShapeHistory(HardwareObject):
         dispatcher.send("grid", self, grid_dict)
         return grid_dict
 
+    def set_grid_data(self, key, result_data):
+        dispatcher.send("set_grid_data", self, key, result_data)
+
     def select_shape(self, shape):
         """
         Select the shape <shape> (programmatically).
@@ -843,7 +846,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
             
         return locations
 
-    def _get_grid(self):
+    def _get_grid(self, key):
         rect = self.rect()
 
         num_rows = (rect.bottom() - rect.top()) / self.__cell_height
@@ -858,7 +861,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         first_cell_center_x = ((x + (self.__cell_width / 2)) - self.__beam_pos[0]) / self.__x_pixel_size
         first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__y_pixel_size
 
-        grid = {'dx_mm': cell_width * (num_colls - 1),
+        grid = {'id': key,
+                'dx_mm': cell_width * (num_colls - 1),
                 'dy_mm': cell_height * (num_rows - 1),
                 'steps_x': num_colls,
                 'steps_y': num_rows,
