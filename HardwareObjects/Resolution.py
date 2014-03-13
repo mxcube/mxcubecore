@@ -6,6 +6,8 @@ class Resolution(BaseHardwareObjects.HardwareObject):
     def __init__(self, *args, **kwargs):
         BaseHardwareObjects.HardwareObject.__init__(self, *args, **kwargs)
 
+        self.get_value = self.getPosition
+
     def init(self):
         self.currentResolution = None
         self.energy = None
@@ -26,14 +28,19 @@ class Resolution(BaseHardwareObjects.HardwareObject):
         except:
             return False
 
-    def update_beam_centre(self, dtox):
+    def get_beam_centre(self, dtox=None):
+        if dtox is None:
+            dtox = self.dtox.getPosition()
+
         ax = float(self.detector['beam'].getProperty('ax'))
         bx = float(self.detector['beam'].getProperty('bx'))
         ay = float(self.detector['beam'].getProperty('ay'))
         by = float(self.detector['beam'].getProperty('by'))
      
-        beam_x = float(dtox*ax+bx)
-        beam_y = float(dtox*ay+by)
+        return float(dtox*ax+bx), float(dtox*ay+by)
+
+    def update_beam_centre(self, dtox):
+        beam_x, beam_y = self.get_beam_centre(dtox)
         self.det_radius =  min(self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y)
 
     def getWavelength(self):
@@ -51,14 +58,11 @@ class Resolution(BaseHardwareObjects.HardwareObject):
         except:
             return None
 
-    def dist2res(self, dist=None):
+    def _calc_res(self, radius, dist):
         current_wavelength = self.getWavelength()
-        
-        if dist is None:
-            dist = self.dtox.getPosition()
-            
+
         try:
-            ttheta = math.atan(self.det_radius / dist)
+            ttheta = math.atan(radius / dist)
             
             if ttheta != 0:
                 return current_wavelength / (2*math.sin(ttheta/2))
@@ -68,6 +72,12 @@ class Resolution(BaseHardwareObjects.HardwareObject):
             logging.getLogger().exception("error while calculating resolution")
             return None
 
+    def dist2res(self, dist=None):
+        if dist is None:
+            dist = self.dtox.getPosition()
+            
+        return self._calc_res(self.det_radius, dist)
+       
     def recalculateResolution(self):
         dtox_pos = self.dtox.getPosition()
         self.update_beam_centre(dtox_pos)
@@ -81,8 +91,16 @@ class Resolution(BaseHardwareObjects.HardwareObject):
           self.recalculateResolution()
         return self.currentResolution
 
-    def get_value(self):
-        return self.getPosition()
+    def get_value_at_corner(self):
+        dtox_pos = self.dtox.getPosition()
+        beam_x, beam_y = self.get_beam_centre(dtox_pos)
+
+        distance_at_corners = [math.sqrt(beam_x**2+beam_y**2), 
+                               math.sqrt((self.det_width-beam_x)**2+beam_y**2),
+                               math.sqrt((beam_x**2+(self.det_height-beam_y)**2)),
+                               math.sqrt((self.det_width-beam_x)**2+(self.det_height-beam_y)**2)]
+        return self._calc_res(max(distance_at_corners), dtox_pos)      
+
     
     def update_resolution(self, res):
         self.currentResolution = res
