@@ -116,8 +116,6 @@ class Camera(BaseHardwareObjects.Device):
                         fullHeight = self.addChannel({ 'type': 'tango', 'name': 'fullheight'}, "FullHeight")
                         roi        = self.addChannel({ 'type': 'tango', 'name': 'roi'},        "Roi")
                         exposure   = self.addChannel({ 'type': 'tango', 'name': 'exposure'},   "Exposure")
-                        FlipHorizontal = self.addChannel({ 'type': 'tango', 'name': 'fliphorizontal' }, "FlipHorizontal")
-                        FlipVertical   = self.addChannel({ 'type': 'tango', 'name': 'flipvertical'}, "FlipVertical")
 
                         if "Brightness" in _attribute_list:
                             print "add brightness"
