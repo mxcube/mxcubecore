@@ -269,7 +269,7 @@ class XMLRPCServer(HardwareObject):
 
         """
         grid_dict = self.shape_history_hwobj.get_grid()
-        self.shape_history_set_grid_data(grid_dict['id'], {})
+        #self.shape_history_set_grid_data(grid_dict['id'], {})
         
         return grid_dict
 
