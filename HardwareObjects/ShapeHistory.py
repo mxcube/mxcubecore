@@ -748,7 +748,12 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 color = self.__grid_data[self.__num_cells][1]
 
                 painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
+
+                #if self.__highlighted:
                 painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
+                #else:
+                #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
+
                 painter.drawEllipse(rect.left() + coll_offset,
                                     rect.top() + row_offset,
                                     self.__beam_width, self.__beam_height)
