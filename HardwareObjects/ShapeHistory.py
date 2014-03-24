@@ -254,6 +254,9 @@ class ShapeHistory(HardwareObject):
         dispatcher.send("grid", self, grid_dict)
         return grid_dict
 
+    def set_grid_data(self, key, result_data):
+        dispatcher.send("set_grid_data", self, key, result_data)
+
     def select_shape(self, shape):
         """
         Select the shape <shape> (programmatically).
@@ -689,15 +692,23 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
 
         # Grid dimension
         self.__num_cells = 0
+
+        # Total width and height in px
         self.__width = None
         self.__height = None
         self.__cell_width = cell_width
         self.__cell_height = cell_height
+
+        # Grid dimensions
         self.__num_colls = 0
         self.__num_rows = 0
-        self.__beam_shape = None
+
+        # Scale px/mm 
         self.__x_pixel_size = 1
         self.__y_pixel_size = 1
+
+        # Beam position and dimension on the format:
+        # (x pos in px, y pos in px, width in mm, height in mm)
         self.__beam_pos = (0, 0, beam_width, beam_height)
         self.__beam_width = beam_width * self.__x_pixel_size
         self.__beam_height = beam_height * self.__y_pixel_size
@@ -706,10 +717,18 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__grid_data = {}
         self.__has_data = False
 
+        self.__beam_shape = None
         self.__highlighted = False
         self.__label = "Grid n"
-        
+
     def drawShape(self, painter):
+        """
+        Overloads the QCanvasRectangle drawShape. Performs the drawing of the
+        grid.
+
+        :param painter: The QPainter object to use when drawing.
+        :type painter: QPainter
+        """
         self.__painter = painter
         rect = self.rect()
 
@@ -745,7 +764,12 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 color = self.__grid_data[self.__num_cells][1]
 
                 painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
+
+                #if self.__highlighted:
                 painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
+                #else:
+                #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
+
                 painter.drawEllipse(rect.left() + coll_offset,
                                     rect.top() + row_offset,
                                     self.__beam_width, self.__beam_height)
@@ -767,72 +791,135 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__num_colls = num_colls
 
     def reshape(self):
+        """
+        Reshapes the grid, mostly used after it has been drawn or resized to
+        achive a "snap to" like effect.
+        """
         self.__width = self.__cell_width * self.__num_colls
         self.__height = self.__cell_height * self.__num_rows
         self.setSize(self.__width + 1, self.__height + 1)
 
+    def reposition(self, scale_factor_x = None, scale_factor_y = None):
+        """
+        Re-positions the shape, used when the scale factor changes (zooming)
+
+        :param scale_factor_x: The new x scale factor
+        :type scale_factor_x: float
+
+        :param scale_factor_y: The new y scale factor
+        :type scale_factor_y: float
+        """
+        if scale_factor_x:
+            beam_dx = self.x() - self.__beam_pos[0]
+            dx =  beam_dx * scale_factor_x - beam_dx
+            self.moveBy(dx, 0)
+
+        if scale_factor_y:
+            beam_dy = self.y() - self.__beam_pos[1]
+            dy = beam_dy * scale_factor_y - beam_dy
+            self.moveBy(0, dy)
+
     def highlight(self, state):
+        """
+        :param state: true if the grid is to be highlighted false otherwise
+        :type state: boolean
+        """
         self.__highlighted = state
 
     def set_label(self, label):
+        """
+        :param label: The label of the grid (displayed in the top right corner)
+        :type label: str
+        """
         self.__label = label
 
     def get_nummer_of_cells(self):
+        """
+        :returns: The total number of cells in the grid
+        :rtype: int
+        """
         return self.__num_cells
 
     def set_data(self, data):
+        """
+        :param data: The result data to use when displaying the grid
+        :type data: dict
+
+        The data dict should have the following format:
+
+        {1: (cell_label, (r,g,b)),
+         .
+         .
+         .
+         index_n-1: (cell_label, (r,g,b)),
+         index_n: (cell_label, (r,g,b)),
+        }
+
+        and contain as many elements as the grid contains cells. That is
+        index_n = self.get_nummer_of_cells()
+
+        cell_label is the label displayed in the cell center and the rgb triplet
+        the background color of the cell.
+        """
         self.__has_data = True
         self.__grid_data = data
 
     def set_x_pixel_size(self, x_size):
+        """
+        Sets the x-axis pixel per mm scale value.
+        
+        :param x_size: x-axis pixels per mm
+        :type x_size: float
+        """
         self.__x_pixel_size = x_size
         self.__recalculate_beam_dim()
         
     def set_y_pixel_size(self, y_size):
+        """
+        Sets the y-axis pixel per mm scale value.
+        
+        :param y_size: y-axis pixels per mm
+        :type y_size: float
+        """
         self.__y_pixel_size = y_size
         self.__recalculate_beam_dim()
         
     def set_beam_position(self, x, y, w=0, h=0):
+        """
+        Set beam position and dimension
+
+        :param x: x position in pixels
+        :type x: int
+
+        :param y: y position in pixels
+        :type y: int
+
+        :param w: width in mm
+        :type w: float
+
+        :param h: height in mm
+        :type h: float
+        """
         self.__beam_pos = (x, y, w, h)
         if w and h:
             self.__recalculate_beam_dim()
 
-    def __recalculate_beam_dim(self):
-        beam_height_mm = self.__beam_pos[3]
-        beam_width_mm = self.__beam_pos[2]
-        self.__cell_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__cell_width = int(beam_width_mm * self.__x_pixel_size)
-        self.__beam_width = int(beam_width_mm * self.__x_pixel_size)
+    def _get_grid(self, key):
+        """
+        :returns: A dictionary with grid dimensions and position.
+        :rtype: dict
 
-    def get_cell_locations(self):
-        locations = []
-        rect = self.rect()
+        The dictionary has the following format:
 
-        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
-        num_colls = (rect.right() - rect.left()) / self.__cell_width
-        
-        x = rect.left() * self.__x_pixel_size
-        y = rect.top() * self.__y_pixel_size
-
-        cell_width = self.__cell_width * self.__x_pixel_size
-        cell_height = self.__cell_height * self.__y_pixel_size
-        
-        first_cell_center_x = x + cell_width / 2
-        first_cell_center_y = y + cell_height / 2
-
-        for k in range(0, num_rows):
-            row = []
-
-            for i in range(0, num_colls):
-                row.append((first_cell_center_x + (i * cell_width),
-                            first_cell_center_y + (k * cell_height)))
-
-            locations.append(row)
-            
-        return locations
-
-    def _get_grid(self):
+        grid = {'id': 'grid-n',
+                'dx_mm': total width in mm,
+                'dy_mm': total height in mm,
+                'steps_x': number of colls,
+                'steps_y': number of rows,
+                'x1': top left cell center x coord,
+                'y1': top left cell center y coord,
+                'angle': 0}
+        """
         rect = self.rect()
 
         num_rows = (rect.bottom() - rect.top()) / self.__cell_height
@@ -847,7 +934,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         first_cell_center_x = ((x + (self.__cell_width / 2)) - self.__beam_pos[0]) / self.__x_pixel_size
         first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__y_pixel_size
 
-        grid = {'dx_mm': cell_width * (num_colls - 1),
+        grid = {'id': key,
+                'dx_mm': cell_width * (num_colls - 1),
                 'dy_mm': cell_height * (num_rows - 1),
                 'steps_x': num_colls,
                 'steps_y': num_rows,
@@ -859,3 +947,14 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         #print "Grid: (%i, %i, %i, %i):" % (x, y, self.__cell_width, self.__cell_height)
 
         return grid
+
+    def __recalculate_beam_dim(self):
+        """
+        Calculates the beam widht and height when the pixel/mm scale changes
+        """
+        beam_height_mm = self.__beam_pos[3]
+        beam_width_mm = self.__beam_pos[2]
+        self.__cell_height = int(beam_height_mm * self.__y_pixel_size)
+        self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
+        self.__cell_width = int(beam_width_mm * self.__x_pixel_size)
+        self.__beam_width = int(beam_width_mm * self.__x_pixel_size)

@@ -85,6 +85,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
         self._server.register_function(self.shape_history_get_grid)
+        self._server.register_function(self.shape_history_set_grid_data)
         self._server.register_function(self.beamline_setup_read)
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
@@ -257,7 +258,8 @@ class XMLRPCServer(HardwareObject):
 
         Format of the returned dictionary:
 
-        {'dx_mm': float,
+        {'id': id,
+         'dx_mm': float,
          'dy_mm': float,
          'steps_x': int,
          'steps_y': int,
@@ -266,7 +268,19 @@ class XMLRPCServer(HardwareObject):
          'angle': float}
 
         """
-        return self.shape_history_hwobj.get_grid()
+        grid_dict = self.shape_history_hwobj.get_grid()
+        #self.shape_history_set_grid_data(grid_dict['id'], {})
+        
+        return grid_dict
+
+    def shape_history_set_grid_data(self, key, result_data):
+
+        int_based_result = {}
+        for result in result_data.iteritems():
+            int_based_result[int(result[0])] = result[1]
+
+        self.shape_history_hwobj.set_grid_data(key, int_based_result)
+        return True
 
     def beamline_setup_read(self, path):
         try:
