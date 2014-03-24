@@ -109,7 +109,7 @@ class TangoCommand(CommandObject):
         except PyTango.DevFailed, error_dict:
             logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict) 
         except:
-            logging.getLogger('HWR').error("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
+            logging.getLogger('HWR').exception("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
         else:
             self.emit('commandReplyArrived', (ret, str(self.name())))
             return ret
