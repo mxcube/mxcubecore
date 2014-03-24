@@ -7,6 +7,7 @@ import Image
 import tempfile
 import logging
 import numpy
+from scipy import optimize
 import math
 import os
 import time
@@ -21,9 +22,16 @@ except ImportError:
 USER_CLICKED_EVENT = AsyncResult()
 
 
-def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, beam_xc, beam_yc, phiy_direction=1):
+def multiPointCentre(z,phis) :
+    fitfunc = lambda p,x: p[0] * numpy.sin(x+p[1]) + p[2]
+    errfunc = lambda p,x,y: fitfunc(p,x) - y
+    p1, success = optimize.leastsq(errfunc,[1.,0.,0.],args = (phis,z))
+    return p1
+
+
+def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_Ver, beam_xc, beam_yc, phiy_direction=1):
   global USER_CLICKED_EVENT
-  X, Y = [], []
+  X, Y, phi_positions = [], [], []
   centredPosRel = {}
 
   if all([x.isReady() for x in (phi, phiy, phiz, sampx, sampy)]):
@@ -33,34 +41,39 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMmY, pixelsPerMmZ, b
     raise RuntimeError, "motors not ready"
 
   try:  
+    i = 0
     while True:
       USER_CLICKED_EVENT = AsyncResult()
       x, y = USER_CLICKED_EVENT.get()
-      X.append(x)
-      Y.append(y)
+      X.append(x/float(pixelsPerMM_Hor))
+      Y.append(y/float(pixelsPerMM_Ver))
+      phi_positions.append(-math.radians(phi.getPosition()))
       if len(X) == 3:
         break
       phi.moveRelative(90)
+      i += 1
 
-    # 2014-01-19-bessy-mh: variable beam position coordinates are passed as parameters
-    # beam_xc = imgWidth / 2
-    # beam_yc = imgHeight / 2
-    yc = (Y[0]+Y[2]) / 2
-    y =  Y[0] - yc
-    x =  yc - Y[1]
-    b1 = -math.radians(phiSavedDialPosition)
-    rotMatrix = numpy.matrix([math.cos(b1), -math.sin(b1), math.sin(b1), math.cos(b1)])
-    rotMatrix.shape = (2,2)
-    dx, dy = numpy.dot(numpy.array([x,y]), numpy.array(rotMatrix))/pixelsPerMmY 
+    Robot_angle = math.radians(0)
+    robotRotMatrix = numpy.matrix([[math.cos(Robot_angle), -math.sin(Robot_angle)],
+                                   [math.sin(Robot_angle), math.cos(Robot_angle)]])
+  
+    Z = robotRotMatrix*numpy.matrix([X,Y])
+    z = Z[1]
+    avg_pos = Z[0].mean()
 
-    beam_xc_real = beam_xc / float(pixelsPerMmY)
-    beam_yc_real = beam_yc / float(pixelsPerMmZ)
-    y = yc / float(pixelsPerMmZ)
-    x = sum(X) / 3.0 / float(pixelsPerMmY)
-    centredPos = { sampx: sampx.getPosition() + float(dx),
-                   sampy: sampy.getPosition() + float(dy),
-                   phiy: phiy.getPosition() + phiy_direction * (x - beam_xc_real),
-                   phiz: phiz.getPosition() + (y - beam_yc_real) }
+    r, a, offset = multiPointCentre(numpy.array(z).flatten(), phi_positions)
+    dy = r * numpy.sin(a)
+    dx = r * numpy.cos(a)
+   
+    d = robotRotMatrix.transpose()*numpy.matrix([[avg_pos],
+                                                 [offset]])
+    d_phiy = d[0] - (beam_xc / float(pixelsPerMM_Hor))
+    d_phiz = d[1] - (beam_yc / float(pixelsPerMM_Ver))
+   
+    centredPos = { sampx: sampx.getPosition() + dx,
+                   sampy: sampy.getPosition() + dy,
+                   phiy: phiy.getPosition() + d_phiy,
+                   phiz: phiz.getPosition() + d_phiz }
     return centredPos
   except:
     phi.move(phiSavedPosition)    
@@ -72,7 +85,7 @@ def move_to_centred_position(centred_pos):
   for motor, pos in centred_pos.iteritems():
     motor.move(pos)
 
-  with gevent.Timeout(15):
+  with gevent.Timeout(None):
     while not all([m.getState() == m.READY for m in centred_pos.iterkeys()]):
       time.sleep(0.1)
 
