@@ -8,6 +8,7 @@ import AbstractDataAnalysis
 import queue_model_enumerables_v1 as qme
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareRepository import HardwareRepository
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
@@ -72,8 +73,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
+	hwr_dir = HardwareRepository().getHardwareRepositoryPath()
 
-        with open(self.edna_default_file, 'r') as f:
+        with open(os.path.join(hwr_dir, self.edna_default_file), 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
 
     def get_html_report(self, edna_result):
