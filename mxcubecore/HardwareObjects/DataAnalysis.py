@@ -73,7 +73,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
-	hwr_dir = HardwareRepository().getHardwareRepositoryPath()
+        hwr_dir = HardwareRepository().getHardwareRepositoryPath()
 
         with open(os.path.join(hwr_dir, self.edna_default_file), 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
