@@ -293,6 +293,14 @@ class __HardwareRepositoryClient:
         raise KeyError
     
 
+    def getHardwareRepositoryPath(self):
+       if self.server:
+         return ""
+       else:
+         path = self.serverAddress[0]
+         return os.path.abspath(path)
+
+
     def getHardwareRepositoryFiles(self, startdir = '/'):
         #TODO: when server is not used
         if not self.server:
