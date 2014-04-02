@@ -1,11 +1,12 @@
 """
-Contains The classes
+Contains the classes
 
 * ShapeHistory
 * DrawingEvent
 * Shape
 * Point
 * Line.
+* CanvasGrid
 
 ShapeHistory keeps track of the current shapes the user has created. The
 shapes handled are any that inherits the Shape base class. There are currently
