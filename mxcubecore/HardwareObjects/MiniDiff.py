@@ -60,7 +60,6 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
     Z = robotRotMatrix*numpy.matrix([X,Y])
     z = Z[1]
     avg_pos = Z[0].mean()
-
     r, a, offset = multiPointCentre(numpy.array(z).flatten(), phi_positions)
     dy = r * numpy.sin(a)
     dx = r * numpy.cos(a)
@@ -70,10 +69,10 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
     d_phiy = d[0] - (beam_xc / float(pixelsPerMM_Hor))
     d_phiz = d[1] - (beam_yc / float(pixelsPerMM_Ver))
    
-    centredPos = { sampx: sampx.getPosition() + dx,
-                   sampy: sampy.getPosition() + dy,
-                   phiy: phiy.getPosition() + d_phiy,
-                   phiz: phiz.getPosition() + d_phiz }
+    centredPos = { sampx: float(sampx.getPosition() + dx),
+                   sampy: float(sampy.getPosition() + dy),
+                   phiy: float(phiy.getPosition() + d_phiy[0,0]),
+                   phiz: float(phiz.getPosition() + d_phiz[0,0]) }
     return centredPos
   except:
     phi.move(phiSavedPosition)    
