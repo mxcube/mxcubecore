@@ -166,7 +166,6 @@ class BeamlineSetup(HardwareObject):
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
         osc_range = round(float(self[parent_key].getProperty('range')), 2)
-        overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = bool(self['detector'].getProperty('has_shutterless'))
@@ -176,7 +175,6 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.num_images = int(num_images)
         acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = osc_range
-        acq_parameters.overlap = overlap
         acq_parameters.exp_time = exp_time
         acq_parameters.num_passes = num_passes
         acq_parameters.resolution = self._get_resolution()
@@ -260,7 +258,6 @@ class BeamlineSetup(HardwareObject):
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
         osc_range = round(float(self[parent_key].getProperty('range')), 2)
-        overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = bool(self['detector'].getProperty('has_shutterless'))
@@ -270,7 +267,6 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.num_images = num_images
         acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = osc_range
-        acq_parameters.overlap = overlap
         acq_parameters.exp_time = exp_time
         acq_parameters.num_passes = num_passes
         acq_parameters.resolution = self._get_resolution()
