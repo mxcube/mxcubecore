@@ -388,6 +388,7 @@ class DataCollection(TaskNode):
                 'num_images': parameters.num_images,
                 'osc_start': parameters.osc_start,
                 'osc_range': parameters.osc_range,
+                'overlap': parameters.overlap,
                 'exp_time': parameters.exp_time,
                 'num_passes': parameters.num_passes,
                 'path': path_template.directory,
@@ -810,6 +811,7 @@ class AcquisitionParameters(object):
         self.num_images = int()
         self.osc_start = float()
         self.osc_range = float()
+        self.overlap = float()
         self.exp_time = float()
         self.num_passes = int()
         self.energy = int()
@@ -988,6 +990,7 @@ def to_collect_dict(data_collection, session, sample):
                                     'phiStart': 0.0,
                                     'start_image_number': 1,
                                     'number_of_images': 1,
+                                    'overlap': 0.0,
                                     'start': 0.0,
                                     'range': 1.0,
                                     'number_of_passes': 1}],
@@ -1032,6 +1035,7 @@ def to_collect_dict(data_collection, session, sample):
                                        #'phiStart': 0.0,
                                        'start_image_number': acq_params.first_image,
                                        'number_of_images': acq_params.num_images,
+                                       'overlap': acq_params.overlap,
                                        'start': acq_params.osc_start,
                                        'range': acq_params.osc_range,
                                        'number_of_passes': acq_params.num_passes}],
