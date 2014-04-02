@@ -202,6 +202,8 @@ class Sample(TaskNode):
         self.crystals = [Crystal()]
         self.processing_parameters = ProcessingParameters()
         self.processing_parameters.num_residues = 200
+        self.processing_parameters.process_data = True
+        self.processing_parameters.anomalous = False
         self.processing_parameters.pdb_code = None
         self.processing_parameters.pdb_file = str()
 
@@ -461,6 +463,8 @@ class ProcessingParameters():
         self.cell_gamma = 0
         self.protein_acronym = ""
         self.num_residues = 200
+        self.process_data = True
+        self.anomalous = False
         self.pdb_code = None
         self.pdb_file = str()
 
