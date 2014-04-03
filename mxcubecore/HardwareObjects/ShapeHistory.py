@@ -1,11 +1,12 @@
 """
-Contains The classes
+Contains the classes
 
 * ShapeHistory
 * DrawingEvent
 * Shape
 * Point
 * Line.
+* CanvasGrid
 
 ShapeHistory keeps track of the current shapes the user has created. The
 shapes handled are any that inherits the Shape base class. There are currently
@@ -759,7 +760,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 coll_offset = k*self.__cell_width
                 self.__num_cells += 1
                 if not self.__has_data:
-                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 255))
+                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
                     
                 color = self.__grid_data[self.__num_cells][1]
 

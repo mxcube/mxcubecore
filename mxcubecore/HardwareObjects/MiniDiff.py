@@ -70,10 +70,10 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
     d_phiy = d[0] - (beam_xc / float(pixelsPerMM_Hor))
     d_phiz = d[1] - (beam_yc / float(pixelsPerMM_Ver))
    
-    centredPos = { sampx: sampx.getPosition() + dx,
-                   sampy: sampy.getPosition() + dy,
-                   phiy: phiy.getPosition() + d_phiy,
-                   phiz: phiz.getPosition() + d_phiz }
+    centredPos = { sampx: float(sampx.getPosition() + dx),
+                   sampy: float(sampy.getPosition() + dy),
+                   phiy: float(phiy.getPosition() + phiy_direction*d_phiy[0,0]),
+                   phiz: float(phiz.getPosition() + d_phiz[0,0]) }
     return centredPos
   except:
     phi.move(phiSavedPosition)    
