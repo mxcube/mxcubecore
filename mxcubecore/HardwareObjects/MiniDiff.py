@@ -71,7 +71,7 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
    
     centredPos = { sampx: float(sampx.getPosition() + dx),
                    sampy: float(sampy.getPosition() + dy),
-                   phiy: float(phiy.getPosition() + d_phiy[0,0]),
+                   phiy: float(phiy.getPosition() + phiy_direction*d_phiy[0,0]),
                    phiz: float(phiz.getPosition() + d_phiz[0,0]) }
     return centredPos
   except:
