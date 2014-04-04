@@ -18,7 +18,7 @@ class Pin(Sample):
     STD_HOLDERLENGTH = 22.0
 
     def __init__(self,basket,basket_no,sample_no):
-        super(Pin, self).__init__(basket, Pin.getSampleAddress(basket_no,sample_no), True)
+        super(Pin, self).__init__(basket, Pin.getSampleAddress(basket_no,sample_no), False)
         self._setHolderLength(Pin.STD_HOLDERLENGTH)
 
     def getBasketNo(self):
@@ -312,6 +312,7 @@ class Cats90(SampleChanger):
         except:
           state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+            #print "*** _updateState return"
             return          
         if self.hasLoadedSample() ^ self._chnSampleIsDetected.getValue():
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
@@ -321,6 +322,7 @@ class Cats90(SampleChanger):
             state = SampleChangerState.Moving
         elif self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Charging
+        #print "*** _updateState: ", state
         self._setState(state)
        
     def _readState(self):
@@ -331,6 +333,7 @@ class Cats90(SampleChanger):
         :rtype: GenericSampleChanger.SampleChangerState
         """
         state = self._chnState.getValue()
+        #print "*** _readState: ", state
         if state is not None:
             stateStr = str(state).upper()
         else:
