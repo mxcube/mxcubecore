@@ -5,6 +5,7 @@ Functionality in addition to sample-transfer functionality: power control,
 lid control, error-recovery commands, ...
 """
 import logging
+from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 import gevent
 import time
@@ -48,6 +49,18 @@ class CatsMaint(Equipment):
                 getattr(self, channel_name).connectSignal("update", getattr(self, "_updateLid%dState" % (lid_index + 1)))
 
     ################################################################################
+
+    def backTraj(self):    
+        """
+        Moves a sample from the gripper back into the dewar to its logged position.
+        """    
+        return self._executeTask(False,self._doBack)     
+
+    def safeTraj(self):    
+        """
+        Safely Moves the robot arm and the gripper to the home position
+        """    
+        return self._executeTask(False,self._doSafe)     
 
     def _doAbort(self):
         """
@@ -144,6 +157,27 @@ class CatsMaint(Equipment):
         else:
             self._executeServerTask(self._cmdCloseLid3)
            
+    #########################          PROTECTED          #########################        
+
+    def _executeTask(self,wait,method,*args):        
+        ret= self._run(method,wait=False,*args)
+        if (wait):                        
+            return ret.get()
+        else:
+            return ret    
+        
+    @task
+    def _run(self,method,*args):
+        exception=None
+        ret=None    
+        try:            
+            ret=method(*args)
+        except Exception as ex:        
+            exception=ex
+        if exception is not None:
+            raise exception
+        return ret
+
     #########################           PRIVATE           #########################        
 
     def _updateRunningState(self, value):
@@ -176,7 +210,8 @@ class CatsMaint(Equipment):
         ret=None
         # introduced wait because it takes some time before the attribute PathRunning is set
         # after launching a transfer
-        time.sleep(2.0)
+        # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
+        time.sleep(1.0)
         while str(self._chnPathRunning.getValue()).lower() == 'true': 
             gevent.sleep(0.1)            
         ret = True
