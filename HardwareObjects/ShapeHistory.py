@@ -5,7 +5,7 @@ Contains the classes
 * DrawingEvent
 * Shape
 * Point
-* Line.
+* Line
 * CanvasGrid
 
 ShapeHistory keeps track of the current shapes the user has created. The
@@ -771,8 +771,11 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 #else:
                 #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
 
-                painter.drawEllipse(rect.left() + coll_offset,
-                                    rect.top() + row_offset,
+                beam_hspacing = self.__cell_width - self.__beam_width
+                beam_vspacing = self.__cell_height - self.__beam_height
+                
+                painter.drawEllipse(rect.left() + coll_offset + beam_hspacing,
+                                    rect.top() + row_offset + beam_vspacing,
                                     self.__beam_width, self.__beam_height)
 
                 painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
