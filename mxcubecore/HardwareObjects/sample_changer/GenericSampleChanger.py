@@ -91,34 +91,47 @@ class SampleChanger(Container,Equipment):
         self.task_error=None
         self._transient=False
         self._token=None
-        task=self.__timer_task(wait=False)
-        task.link(self._onTimerExit)
-        self._timer_update_inverval = 2
+        self._timer_update_inverval = 5 # defines the interval in periods of 100 ms
         self._timer_update_counter = 0            
+        task1s=self.__timer_1s_task(wait=False)
+        task1s.link(self._onTimer1sExit)
+        updateTask=self.__update_timer_task(wait=False)
+        updateTask.link(self._onTimerUpdateExit)
         
     def init(self):
         self.updateInfo()
         
         
-    def _onTimerExit(self, task):
-        logging.warning("Exiting Sample Changer timer task")
+    def _onTimer1sExit(self, task):
+        logging.warning("Exiting Sample Changer 1s timer task")
+        
+    def _onTimerUpdateExit(self, task):
+        logging.warning("Exiting Sample Changer update timer task")
         
         
     @task
-    def __timer_task(self, *args):
+    def __timer_1s_task(self, *args):
         while(True):
             gevent.sleep(1.0)
             try:
                 if self.isEnabled():
                     self._onTimer1s()
-                    if self._timer_update_inverval >=0:
-                         self._timer_update_counter=self._timer_update_counter+1
-                         if self._timer_update_counter >=self._timer_update_inverval:
-                             self._timer_update_counter=0
-                             self._onTimerUpdate()
             except:
                 pass                
              
+    @task
+    def __update_timer_task(self, *args):
+        while(True):
+            gevent.sleep(0.1)
+            try:
+                if self.isEnabled():
+                    self._timer_update_counter += 1
+                    if (self._timer_update_counter >= self._timer_update_counter):
+                        self._onTimerUpdate()
+                        self._timer_update_counter = 0
+            except:
+                pass                
+
 #########################           TIMER           #########################
     def _setTimerUpdateInterval(self,value):
         self._timer_update_inverval=value
