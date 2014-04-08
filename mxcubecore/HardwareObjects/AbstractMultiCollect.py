@@ -525,7 +525,7 @@ class AbstractMultiCollect(object):
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")
-        #import pdb;pdb.set_trace()
+
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         sample_id = data_collect_parameters['blSampleId']
         inverse_beam = "reference_interval" in oscillation_parameters
@@ -602,10 +602,19 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["detectorDistance"] =  self.get_detector_distance()
                     data_collect_parameters["resolution"] = self.get_resolution()
                     data_collect_parameters["transmission"] = self.get_transmission()
+                    """
                     gap1, gap2, gap3 = self.get_undulators_gaps()
                     data_collect_parameters["undulatorGap1"] = gap1
                     data_collect_parameters["undulatorGap2"] = gap2
                     data_collect_parameters["undulatorGap3"] = gap3
+                    """
+                    und = self.get_undulators_gaps()
+                    i = 1
+                    for key in und:
+                        self.bl_config.undulators[i-1].type = key
+                        data_collect_parameters["undulatorGap%d" %i] = und[key]  
+                        i += 1
+
                     data_collect_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
                     beam_size_x, beam_size_y = self.get_beam_size()
                     data_collect_parameters["beamSizeAtSampleX"] = beam_size_x
@@ -619,6 +628,7 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["yBeam"] = beam_centre_y
 
                     logging.info("Updating data collection in ISPyB")
+
                     self.bl_control.lims.update_data_collection(data_collect_parameters, wait=True)
                     logging.info("Done")
                   except:
