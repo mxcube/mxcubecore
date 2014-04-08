@@ -46,10 +46,12 @@ class Cryo(TacoDevice.TacoDevice):
             self.emit("cryoStatusChanged", (CRYO_STATUS[cryo_status], ))
         if dry_status != self.dry_status:
             self.dry_status = dry_status
-            self.emit("dryStatusChanged", (CRYO_STATUS[dry_status], ))
+            if dry_status != 9999:
+                self.emit("dryStatusChanged", (CRYO_STATUS[dry_status], ))
         if sdry_status != self.sdry_status:
             self.sdry_status = sdry_status
-            self.emit("sdryStatusChanged", (CRYO_STATUS[sdry_status], ))
+            if sdry_status != 9999:
+                self.emit("sdryStatusChanged", (CRYO_STATUS[sdry_status], ))
 
 
     def setN2Level(self, newLevel):
