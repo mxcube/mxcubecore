@@ -760,19 +760,22 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 coll_offset = k*self.__cell_width
                 self.__num_cells += 1
                 if not self.__has_data:
-                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
+                    if self.__num_cells % 2:
+                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
+                    else:
+                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
+
+                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.SolidLine))
                     
                 color = self.__grid_data[self.__num_cells][1]
-
-                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
 
                 #if self.__highlighted:
                 painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
                 #else:
                 #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
 
-                beam_hspacing = self.__cell_width - self.__beam_width
-                beam_vspacing = self.__cell_height - self.__beam_height
+                beam_hspacing = (self.__cell_width - self.__beam_width) / 2
+                beam_vspacing = (self.__cell_height - self.__beam_height) /2
                 
                 painter.drawEllipse(rect.left() + coll_offset + beam_hspacing,
                                     rect.top() + row_offset + beam_vspacing,
