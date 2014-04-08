@@ -491,6 +491,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_undulators_gaps(self):
+        """
         und_gaps = [None]*3
         i = 0
         try:
@@ -499,9 +500,21 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 i+=1
         except:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
-        
         return und_gaps
-
+        """
+        all_gaps = {'Unknown': None}
+        try:
+            _gaps = self.bl_control.undulators.getUndulatorGaps()
+        except:
+            logging.getLogger("HWR").exception("Could not get undulator gaps")
+        all_gaps.clear()
+        for key in _gaps:
+            if  '_Position' in key:
+                nkey = key[:-9]
+                all_gaps[nkey] = _gaps[key]
+            else:
+                all_gaps = _gaps
+        return all_gaps
 
     def get_resolution_at_corner(self):
       return self.execute_command("get_resolution_at_corner")

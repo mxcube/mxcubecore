@@ -6,7 +6,7 @@ import time
 class ID29MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(), TunableEnergy())
-       
+
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
