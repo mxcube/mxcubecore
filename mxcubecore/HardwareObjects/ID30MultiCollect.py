@@ -33,6 +33,12 @@ class ID30MultiCollect(ESRFMultiCollect):
         return det_distance.getPosition()
 
     @task
+    def move_motors(self, motors_to_move_dict):
+        motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
+        self.getObjectByRole("beamstop").moveToPosition("in")
+        motion.get()
+
+    @task
     def do_prepare_oscillation(self, *args, **kwargs):
         return
 
