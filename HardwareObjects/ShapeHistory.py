@@ -761,7 +761,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 self.__num_cells += 1
                 if not self.__has_data:
                     self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
-                    
+
                 color = self.__grid_data[self.__num_cells][1]
 
                 painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
@@ -773,7 +773,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
 
                 beam_hspacing = self.__cell_width - self.__beam_width
                 beam_vspacing = self.__cell_height - self.__beam_height
-                
+
                 painter.drawEllipse(rect.left() + coll_offset + beam_hspacing,
                                     rect.top() + row_offset + beam_vspacing,
                                     self.__beam_width, self.__beam_height)
@@ -781,7 +781,7 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
                 tr = qt.QRect(rect.left() + coll_offset, rect.top() + row_offset,
                               self.__cell_width, self.__cell_height)
-                
+
                 score = self.__grid_data[self.__num_cells][0]
 
                 if score:
@@ -871,23 +871,23 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
     def set_x_pixel_size(self, x_size):
         """
         Sets the x-axis pixel per mm scale value.
-        
+
         :param x_size: x-axis pixels per mm
         :type x_size: float
         """
         self.__x_pixel_size = x_size
         self.__recalculate_beam_dim()
-        
+
     def set_y_pixel_size(self, y_size):
         """
         Sets the y-axis pixel per mm scale value.
-        
+
         :param y_size: y-axis pixels per mm
         :type y_size: float
         """
         self.__y_pixel_size = y_size
         self.__recalculate_beam_dim()
-        
+
     def set_beam_position(self, x, y, w=0, h=0):
         """
         Set beam position and dimension
@@ -928,13 +928,13 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
 
         num_rows = (rect.bottom() - rect.top()) / self.__cell_height
         num_colls = (rect.right() - rect.left()) / self.__cell_width
-        
+
         x = rect.left()
         y = rect.top()
 
         cell_width = float(self.__cell_width / self.__x_pixel_size)
         cell_height = float(self.__cell_height / self.__y_pixel_size)
-        
+
         first_cell_center_x = ((x + (self.__cell_width / 2)) - self.__beam_pos[0]) / self.__x_pixel_size
         first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__y_pixel_size
 
@@ -958,7 +958,13 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         """
         beam_height_mm = self.__beam_pos[3]
         beam_width_mm = self.__beam_pos[2]
-        self.__cell_height = int(beam_height_mm * self.__y_pixel_size)
+        self.__cell_height = int(self.__cell_height * self.__y_pixel_size)
         self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__cell_width = int(beam_width_mm * self.__x_pixel_size)
+        self.__cell_width = int(self.__cell_width * self.__x_pixel_size)
         self.__beam_width = int(beam_width_mm * self.__x_pixel_size)
+
+    def set_cell_width(self, cell_width_mm):
+        self.cell_width = (cell_width_mm * self.__x_pixel_size)
+
+    def set_cell_height(self, cell_height_mm):
+        self.cell_height = (cell_height_mm * self.__y_pixel_size)
