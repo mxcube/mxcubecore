@@ -1,11 +1,12 @@
 """
-Contains The classes
+Contains the classes
 
 * ShapeHistory
 * DrawingEvent
 * Shape
 * Point
-* Line.
+* Line
+* CanvasGrid
 
 ShapeHistory keeps track of the current shapes the user has created. The
 shapes handled are any that inherits the Shape base class. There are currently
@@ -759,19 +760,25 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 coll_offset = k*self.__cell_width
                 self.__num_cells += 1
                 if not self.__has_data:
-                    self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 255))
+                    if self.__num_cells % 2:
+                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
+                    else:
+                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
+
+                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.SolidLine))
                     
                 color = self.__grid_data[self.__num_cells][1]
-
-                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.NoPen))
 
                 #if self.__highlighted:
                 painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
                 #else:
                 #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
 
-                painter.drawEllipse(rect.left() + coll_offset,
-                                    rect.top() + row_offset,
+                beam_hspacing = (self.__cell_width - self.__beam_width) / 2
+                beam_vspacing = (self.__cell_height - self.__beam_height) /2
+                
+                painter.drawEllipse(rect.left() + coll_offset + beam_hspacing,
+                                    rect.top() + row_offset + beam_vspacing,
                                     self.__beam_width, self.__beam_height)
 
                 painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
@@ -954,7 +961,15 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         """
         beam_height_mm = self.__beam_pos[3]
         beam_width_mm = self.__beam_pos[2]
-        self.__cell_height = int(beam_height_mm * self.__y_pixel_size)
+        self.__cell_height = int(self.__cell_height * self.__y_pixel_size)
         self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__cell_width = int(beam_width_mm * self.__x_pixel_size)
+        self.__cell_width = int(self.__cell_width * self.__x_pixel_size)
         self.__beam_width = int(beam_width_mm * self.__x_pixel_size)
+
+        print self.__cell_height
+
+    def set_cell_width(self, cell_width_mm):
+        self.__cell_width = (cell_width_mm * self.__x_pixel_size)
+
+    def set_cell_height(self, cell_height_mm):
+        self.__cell_height = (cell_height_mm * self.__y_pixel_size)

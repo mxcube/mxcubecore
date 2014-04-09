@@ -1,3 +1,4 @@
+import os
 import logging
 import jsonpickle
 import queue_model_objects_v1 as queue_model_objects
@@ -6,6 +7,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 import queue_model_enumerables_v1 as queue_model_enumerables
 
+from HardwareRepository.HardwareRepository import HardwareRepository
 
 class BeamlineSetup(HardwareObject):
     def __init__(self, name):
@@ -196,8 +198,9 @@ class BeamlineSetup(HardwareObject):
         :returns: A CharacterisationsParameters object with default parameters.
         """
         input_fname = self.data_analysis_hwobj.edna_default_file
+        hwr_dir = HardwareRepository().getHardwareRepositoryPath()
 
-        with open(input_fname, 'r') as f:
+        with open(os.path.join(hwr_dir, input_fname), 'r') as f:
             edna_default_input = ''.join(f.readlines())
 
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
