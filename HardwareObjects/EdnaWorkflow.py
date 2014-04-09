@@ -112,6 +112,7 @@ class EdnaWorkflow(Device):
         return workflows
 
     def abort(self):
+        logging.getLogger("HWR").info('Aborting current workflow')
         self._command_failed = False
         self.abort_command()
         
