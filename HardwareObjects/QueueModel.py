@@ -131,6 +131,7 @@ class QueueModel(HardwareObject):
         :returns: The id of the child.
         :rtype: int
         """
+        print "Adding child at parent with id %s" % str(_id)
         parent = self.get_node(_id)
         self.add_child(parent, child)
         return child._node_id
@@ -152,7 +153,7 @@ class QueueModel(HardwareObject):
             parent = self._selected_model 
 
         for node in parent._children:
-            if node._node_id is _id:
+            if node._node_id == _id:
                 return node
             else:
                 result = self.get_node(_id, node)
