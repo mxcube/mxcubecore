@@ -163,7 +163,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         #qe = self.get_current_entry()
 
         if self._queue_entry_list:
-            for qe in self._queue_entry_list:
+            for qe in self._current_queue_entries:
                 try:
                     qe.stop()
                 except queue_entry.QueueAbortedException:
