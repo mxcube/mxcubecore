@@ -686,8 +686,8 @@ class Point(Shape):
 
 
 class CanvasGrid(qtcanvas.QCanvasRectangle) :
-    def __init__(self, canvas, cell_width = 0, cell_height = 0,
-                 beam_width = 0, beam_height = 0) :
+    def __init__(self, canvas, cell_width = 1, cell_height = 1,
+                 beam_width = 1, beam_height = 1) :
         qtcanvas.QCanvasRectangle.__init__(self, canvas)
         self.__painter = None
 
@@ -961,7 +961,18 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         """
         beam_height_mm = self.__beam_pos[3]
         beam_width_mm = self.__beam_pos[2]
-        self.__cell_height = int(beam_height_mm * self.__y_pixel_size)
+        self.__cell_height = int(self.__cell_height_mm * self.__y_pixel_size)
         self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__cell_width = int(beam_width_mm * self.__x_pixel_size)
+        self.__cell_width = int(self.__cell_width_mm * self.__x_pixel_size)
         self.__beam_width = int(beam_width_mm * self.__x_pixel_size)
+        self.reshape()
+
+    def set_cell_width(self, cell_width_mm):
+        self.__cell_width_mm = cell_width_mm
+        self.__cell_width = int(self.__cell_width_mm * self.__x_pixel_size)
+        self.reshape()
+
+    def set_cell_height(self, cell_height_mm):
+        self.__cell_height_mm = cell_height_mm
+        self.__cell_height = int(self.__cell_height_mm * self.__y_pixel_size)
+        self.reshape()
