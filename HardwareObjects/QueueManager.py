@@ -168,6 +168,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.stop()
                 except queue_entry.QueueAbortedException:
                     pass
+                except:
+                    pass
 
         self._root_task.kill(block = False)
         # Reset the pause event, incase we were waiting.
