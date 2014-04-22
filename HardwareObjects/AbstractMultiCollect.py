@@ -63,6 +63,7 @@ class AbstractMultiCollect(object):
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
+        self.__safety_shutter_close_task = None
 
 
     def setControlObjects(self, **control_objects):
@@ -125,6 +126,10 @@ class AbstractMultiCollect(object):
     @task
     def open_safety_shutter(self):
         pass
+
+   
+    def safety_shutter_opened(self):
+        return False
 
 
     @abc.abstractmethod
@@ -373,6 +378,9 @@ class AbstractMultiCollect(object):
 
     @task
     def do_collect(self, owner, data_collect_parameters, in_multicollect=False):
+        if self.__safety_shutter_close_task is not None:
+            self.__safety_shutter_close_task.kill()
+
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -584,7 +592,8 @@ class AbstractMultiCollect(object):
         self.move_motors(motors_to_move_before_collect)
 
         with cleanup(self.data_collection_cleanup):
-            self.open_safety_shutter(timeout=10)
+            if not self.safety_shutter_opened():
+                self.open_safety_shutter(timeout=10)
 
             self.prepare_intensity_monitors()
            
@@ -786,7 +795,7 @@ class AbstractMultiCollect(object):
                   self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], self.collection_id, osc_id, data_collect_parameters))
 
             try:
-              self.close_safety_shutter(timeout=10)
+              self.__safety_shutter_close_task = gevent.spawn_later(3, self.close_safety_shutter, timeout=10)
             except:
               logging.exception("Could not close safety shutter")
 

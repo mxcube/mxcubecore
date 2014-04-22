@@ -335,6 +335,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           time.sleep(0.1)
 
 
+    def safety_shutter_opened(self):
+        return self.bl_control.safety_shutter.getShutterState() == "opened"
+
+
     @task
     def close_safety_shutter(self):
         self.bl_control.safety_shutter.closeShutter()
