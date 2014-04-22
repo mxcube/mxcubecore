@@ -29,7 +29,7 @@ def multiPointCentre(z,phis) :
     return p1
 
 
-def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_Ver, beam_xc, beam_yc, phiy_direction=1):
+def manual_centring(phi, phiy, phiz, sampx, sampy, chi, pixelsPerMM_Hor, pixelsPerMM_Ver, beam_xc, beam_yc, phiy_direction=1):
   global USER_CLICKED_EVENT
   X, Y, phi_positions = [], [], []
   centredPosRel = {}
@@ -53,11 +53,11 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
       phi.moveRelative(90)
       i += 1
 
-    Robot_angle = math.radians(0)
-    robotRotMatrix = numpy.matrix([[math.cos(Robot_angle), -math.sin(Robot_angle)],
-                                   [math.sin(Robot_angle), math.cos(Robot_angle)]])
+    chi_angle = math.radians(chi.getPosition())
+    chiRotMatrix = numpy.matrix([[math.cos(chi_angle), -math.sin(chi_angle)],
+                                   [math.sin(chi_angle), math.cos(chi_angle)]])
   
-    Z = robotRotMatrix*numpy.matrix([X,Y])
+    Z = chiRotMatrix*numpy.matrix([X,Y])
     z = Z[1]
     avg_pos = Z[0].mean()
 
@@ -65,7 +65,7 @@ def manual_centring(phi, phiy, phiz, sampx, sampy, pixelsPerMM_Hor, pixelsPerMM_
     dy = r * numpy.sin(a)
     dx = r * numpy.cos(a)
    
-    d = robotRotMatrix.transpose()*numpy.matrix([[avg_pos],
+    d = chiRotMatrix.transpose()*numpy.matrix([[avg_pos],
                                                  [offset]])
     d_phiy = d[0] - (beam_xc / float(pixelsPerMM_Hor))
     d_phiz = d[1] - (beam_yc / float(pixelsPerMM_Ver))
@@ -196,6 +196,7 @@ class MiniDiff(Equipment):
         self.camera = self.getDeviceByRole('camera')
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
+        self.chiMotor = self.getDeviceByRole('chi')
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
         # self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
@@ -525,6 +526,7 @@ class MiniDiff(Equipment):
                                                      self.phizMotor,
                                                      self.sampleXMotor,
                                                      self.sampleYMotor,
+                                                     self.chiMotor,
                                                      self.pixelsPerMmY,
                                                      self.pixelsPerMmZ,
                                                      self.getBeamPosX(),
@@ -611,9 +613,9 @@ class MiniDiff(Equipment):
               
 
     def do_auto_centring(self, phi, phiy, phiz, sampx, sampy, zoom, camera, phiy_direction):
-        if not lucid:
-          return
-
+        #if not lucid:
+        #  return 
+        return
         imgWidth = camera.getWidth()
         imgHeight = camera.getHeight()
 
@@ -799,7 +801,7 @@ class MiniDiff(Equipment):
 
             motors = {}
             motor_pos = self.currentCentringProcedure.get()
-            for motor_role in ('phiy', 'phiz', 'sampx', 'sampy', 'zoom', 'phi', 'focus', 'kappa', 'kappa_phi'):
+            for motor_role in ('phiy', 'phiz', 'sampx', 'sampy', 'zoom', 'phi', 'focus', 'chi', 'kappa', 'kappa_phi'):
                 mot_obj = self.getDeviceByRole(motor_role)
 
                 try:
@@ -835,7 +837,8 @@ class MiniDiff(Equipment):
                "sampx": self.sampleXMotor.getPosition(),
                "sampy": self.sampleYMotor.getPosition(),
                "kappa": self.kappaMotor.getPosition(),
-               "kappa_phi": self.kappaPhiMotor.getPosition(),
+               "kappa_phi": self.kappaPhiMotor.getPosition(),    
+               "chi": self.chiMotor.getPosition(),
                "zoom": self.zoomMotor.getPosition()}
     
 
@@ -848,6 +851,7 @@ class MiniDiff(Equipment):
                   "sampy": self.sampleYMotor,
                   "kappa": self.kappaMotor,
                   "kappa_phi": self.kappaPhiMotor,
+                  "chi": self.chiMotor,
                   "zoom": self.zoomMotor }
    
         for role, pos in roles_positions_dict.iteritems():
