@@ -55,17 +55,13 @@ def start(programs, processEvent, paramsDict):
                         else:
                             cell_opt = ''
 
-			in_queue = paramsDict.get("in_multicollect")
-
 			endOfLineToExecute = ' -path ' + paramsDict["xds_dir"] +\
 					     ' -mode ' + processEvent +\
 					     ' -datacollectionID ' + str(dataCollectionId) +\
 					     ' -residues ' + str(residues) +\
 					     ' -anomalous ' + str(anomalous) +\
-					     ' -in_queue ' + str(in_queue) +\
 					     sg_opt + cell_opt +\
 					     (paramsDict["inverse_beam"] and ' -inverse' or '')
-
 		    #if opts is not None:
 			#lineToExecute = executable + ' ' + opts + endOfLineToExecute
 		    #else:
