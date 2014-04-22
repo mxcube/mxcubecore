@@ -1144,7 +1144,6 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.workflow_started = False
         self.workflow_running = False
 
-
     def stop(self):
         BaseQueueEntry.stop(self)
         self.workflow_hwobj.abort()

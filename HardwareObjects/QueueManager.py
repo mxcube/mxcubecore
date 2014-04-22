@@ -38,8 +38,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._paused_event = gevent.event.Event()
         self._paused_event.set()
         self._current_queue_entry = None
+        self._current_queue_entries = []
         self._running = False
         self._disable_collect = False
+        self._is_stopped = False
 
     def enqueue(self, queue_entry):
         """
@@ -59,6 +61,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         Starts execution of the queue.
         """
         if not self.is_disabled():
+            self._is_stopped = False
             self._root_task = gevent.spawn(self.__execute_task)
 
     def is_executing(self, node_id=None):
@@ -69,13 +72,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         status = self._running
 
         if node_id:
-            qe = self._current_queue_entry
-
-            if qe:
-                if qe.get_data_model()._node_id == node_id:
-                    status = True
-                else:
-                    status = False
+            if self._current_queue_entries:
+                for qe in self._current_queue_entries:
+                    if qe.get_data_model()._node_id == node_id:
+                        status = True
+                        break
+                    else:
+                        status = False
             else:
                 status = False
 
@@ -108,10 +111,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.emit('queue_execution_finished', (None,))
 
     def __execute_entry(self, entry): 
-        self.set_current_entry(entry)
-
-        if not entry.is_enabled():
+        if not entry.is_enabled() or self._is_stopped:
             return
+        
+        self._current_queue_entries.append(entry)
 
         logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
         logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
@@ -146,7 +149,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             entry.post_execute()
 
-        self.set_current_entry(None)
+        self._current_queue_entries.remove(entry)
 
     def stop(self):
         """
@@ -155,18 +158,22 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        qe = self.get_current_entry()
-
-        if qe:
-            try:
-                self.get_current_entry().stop()
-            except queue_entry.QueueAbortedException:
-                pass
+        if self._queue_entry_list:
+            for qe in self._current_queue_entries:
+                try:
+                    qe.stop()
+                    qe.post_execute()
+                except queue_entry.QueueAbortedException:
+                    pass
+                except:
+                    pass
 
         self._root_task.kill(block = False)
+
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
+        self._is_stopped = True
 
     def set_pause(self, state):
         """
