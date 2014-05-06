@@ -50,6 +50,12 @@
     <detector_mode>1</detector_mode>
   </default_acquisition_values>
 
+  <acquisition_limit_values>
+    <osc_range>0.0001,10000,4</osc_range>
+    <exposure_time>0.003,6000,5</exposure_time>
+    <number_of_images>1,9999,0</number_of_images>
+  </acquisition_limit_values>
+
   <!-- Default values for a characterization -->
   <default_characterisation_values>
     <exposure_time>0.037</exposure_time>
