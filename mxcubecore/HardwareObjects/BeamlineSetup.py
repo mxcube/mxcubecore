@@ -279,6 +279,31 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
+    def get_acqisition_limt_values(self):
+        parent_key = "acquisition_limit_values"
+
+        limits = {}
+
+        try:
+            exp_time_limit = self[parent_key].getProperty('exposure_time')
+            limits['exposure_time'] = exp_time_limit
+        except:
+            pass
+
+        try:
+            range_limit = self[parent_key].getProperty('osc_range')
+            limits['osc_range'] = range_limit
+        except:
+            pass
+
+        try:
+            num_images_limit = self[parent_key].getProperty('number_of_images')
+            limits['number_of_images'] = num_images_limit
+        except:
+            pass
+
+        return limits
+        
     def get_default_path_template(self):
         """
         :returns: A PathTemplate object with default parameters.

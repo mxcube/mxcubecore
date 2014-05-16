@@ -428,8 +428,13 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
         mosflm_directory = os.path.join(process_directory, mosflm_input_file_dirname)
 
+        hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
+        hkl2000_directory = os.path.join(process_directory, hkl2000_dirname)
+
         self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
         self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
+        self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
+
         for dir in (self.raw_data_input_file_dir, xds_directory):
           self.create_directories(dir)
           logging.info("Creating XDS processing input file directory: %s", dir)
@@ -438,10 +443,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           self.create_directories(dir)
           logging.info("Creating MOSFLM processing input file directory: %s", dir)
           os.chmod(dir, 0777)
-        hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
-        raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
-        hkl2000_dir = os.path.join(process_directory, hkl2000_dirname)
-        for dir in (raw_hkl2000_dir, hkl2000_dir):
+        for dir in (self.raw_hkl2000_dir, hkl2000_directory):
           self.create_directories(dir)
           os.chmod(dir, 0777)
  
@@ -454,13 +456,29 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except:
             logging.exception("Could not create processing file directory")
 
-        return xds_directory, mosflm_directory
+        return xds_directory, mosflm_directory, hkl2000_directory
 
 
     @task
     def write_input_files(self, collection_id):
         # assumes self.xds_directory and self.mosflm_directory are valid
         conn = httplib.HTTPConnection(self.bl_config.input_files_server)
+
+        # hkl input files 
+        for input_file_dir, file_prefix in ((self.raw_hkl2000_dir, "../.."), (self.hkl2000_directory, "../links")): 
+            hkl_file_path = os.path.join(input_file_dir, "def.site")
+            conn.request("GET", "/def.site/%d?basedir=%s" % (collection_id, file_prefix))
+            hkl_file = open(hkl_file_path, "w")
+            r = conn.getresponse()
+
+            if r.status != 200:
+                logging.error("Could not create input file")
+                return
+
+            hkl_file.write(r.read())
+            hkl_file.close()
+            os.chmod(hkl_file_path, 0666)
+
         for input_file_dir, file_prefix in ((self.raw_data_input_file_dir, "../.."), (self.xds_directory, "../links")): 
 	  xds_input_file = os.path.join(input_file_dir, "XDS.INP")
           conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
@@ -472,6 +490,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           xds_file.write(r.read())
           xds_file.close()
           os.chmod(xds_input_file, 0666)
+
         for input_file_dir, file_prefix in ((self.mosflm_raw_data_input_file_dir, "../.."), (self.mosflm_directory, "../links")): 
 	  mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
           conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
