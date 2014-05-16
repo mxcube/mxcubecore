@@ -35,7 +35,14 @@ class ID30MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
+
         self.getObjectByRole("beamstop").moveToPosition("in")
+        #with gevent.Timeout(15):
+        #    self.getObjectByRole("eh_controller").wcid30m.set("detcover_out", 1)
+        #    while not self.getObjectByRole("eh_controller").wcid30m.get("detcover_isout"):
+        #       time.sleep(0.5)
+        self.getObjectByRole("light").wagoOut()
+
         motion.get()
 
     @task
