@@ -792,7 +792,7 @@ class AbstractMultiCollect(object):
                   self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], self.collection_id, osc_id, data_collect_parameters))
 
             try:
-              self.__safety_shutter_close_task = gevent.spawn_later(5*60, self.close_safety_shutter, timeout=10)
+              self.__safety_shutter_close_task = gevent.spawn_later(1*60, self.close_safety_shutter, timeout=10)
             except:
               logging.exception("Could not close safety shutter")
 
