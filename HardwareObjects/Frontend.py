@@ -104,4 +104,10 @@ class Frontend(BaseHardwareObjects.Device):
             if name.lower() in key.lower():
                 return undulator_gaps[key]
 
-    
+    def moveUndulatorGaps(self, gaps):
+        curr_gaps = self.getUndulatorGaps()
+        for key in curr_gaps.keys():
+            for nkey in gaps.keys():
+                if nkey.lower() in key.lower():
+                    self.getChannelObject(key).setValue(gaps[nkey])
+                
