@@ -36,14 +36,12 @@ class ID30MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
+        cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
         self.getObjectByRole("beamstop").moveToPosition("in")
-        #with gevent.Timeout(15):
-        #    self.getObjectByRole("eh_controller").wcid30m.set("detcover_out", 1)
-        #    while not self.getObjectByRole("eh_controller").wcid30m.get("detcover_isout"):
-        #       time.sleep(0.5)
         self.getObjectByRole("light").wagoOut()
 
         motion.get()
+        cover_task.get()
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
