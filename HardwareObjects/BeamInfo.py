@@ -88,18 +88,18 @@ class BeamInfo(Equipment):
         Description: called if aperture, slits or focusing has been changed
         Returns: dictionary, for example {size_x: 0.1, size_y: 0.1, shape: "rectangular"}
         """
-	    if self.focusingHO is not None:
+	if self.focusingHO is not None:
             self.beam_info_dict["size_x"] = self.beam_size_focusing[0]
             self.beam_info_dict["size_y"] = self.beam_size_focusing[1]
-	    else:
+	else:
             self.beam_info_dict["size_x"] = min (self.beam_size_slits[0], self.beam_size_aperture[0])
             self.beam_info_dict["size_y"] = min (self.beam_size_slits[1], self.beam_size_aperture[1])
         if (self.beam_size_aperture < self.beam_size_slits):
 	        self.beam_info_dict["shape"] = "ellipse"
-	    else:
+	else:
 	        self.beam_info_dict["shape"] = "rectangular"
 	
-	    self.emit("beamInfoChanged", (self.beam_info_dict, ))
+	self.emit("beamInfoChanged", (self.beam_info_dict, ))
 		
         if self.chan_beam_size_hor is not None:
             self.chan_beam_size_hor.setValue(self.beam_info_dict["size_x"])
