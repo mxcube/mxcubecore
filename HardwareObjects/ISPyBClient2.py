@@ -15,7 +15,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from datetime import datetime
 from collections import namedtuple
 from pprint import pformat
-
+import time
 
 # Production web-services:    http://160.103.210.1:8080/ispyb-ejb3/ispybWS/
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
@@ -805,7 +805,7 @@ class ISPyBClient2(HardwareObject):
                 exception("Error in get_bl_sample: could not connect to server")
 
     @trace
-    def create_session(self, session_dict):
+    def create_session(self, proposal=None, session_dict=None):
         """
         Create a new session for "current proposal", the attribute
         porposalId in <session_dict> has to be set (and exist in ISPyB).
@@ -816,37 +816,55 @@ class ISPyBClient2(HardwareObject):
         :returns: The session id of the created session. 
         :rtype: int
         """
+	if session_dict is None:
+	    if proposal is None:
+		raise ValueError("Cannot create session without proposal")
+	    
+	    current_time=time.localtime()
+            start_time=time.strftime("%Y-%m-%d 00:00:00", current_time)
+            end_time=time.mktime(current_time)+60*60*24
+            tomorrow=time.localtime(end_time)
+            end_time=time.strftime("%Y-%m-%d 07:59:59", tomorrow)
+
+            # Create a session
+	    session_dict={ "proposalId": proposal['Proposal']['proposalId'],
+			   'startDate': start_time,
+			   "endDate": end_time,
+			   'beamlineName': self.beamline_name,
+			   'scheduled': 0,
+			   'nbShifts': 3,
+			   'comments': "Session created by the BCM",
+			   "sessionId": -1 }
+	    
         if self.__collection:
+	    # The old API used date formated strings and the new
+	    # one uses DateTime objects. 
+	    session_dict["startDate"]  = datetime.\
+					 strptime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
+	    session_dict["endDate"] = datetime.\
+				      strptime(session_dict["endDate"], "%Y-%m-%d %H:%M:%S")
 
             try:
-                # The old API used date formated strings and the new
-                # one uses DateTime objects. 
-                session_dict["startDate"]  = datetime.\
-                    strptime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
-                session_dict["endDate"] = datetime.\
-                    strptime(session_dict["endDate"], "%Y-%m-%d %H:%M:%S")
-
-                session = self.__collection.service.\
+		session_id = self.__collection.service.\
                     storeOrUpdateSession(session_dict)
-
-                # changing back to string representation of the dates,
-                # since the session_dict is used after this method is called,
-                session_dict["startDate"]  = datetime.\
-                    strftime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
-                session_dict["endDate"] = datetime.\
-                    strftime(session_dict["endDate"], "%Y-%m-%d %H:%M:%S")
-
             except WebFault, e:
-                session = {}
                 logging.getLogger("ispyb_client").exception(e.message)
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-
-            return session
+	    else:
+		session_dict["sessionId"] = session_id
+		
+	    # changing back to string representation of the dates,
+	    # since the session_dict is used after this method is called,
+	    session_dict["startDate"]  = datetime.\
+					 strftime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
+	    session_dict["endDate"] = datetime.\
+				      strftime(session_dict["endDate"], "%Y-%m-%d %H:%M:%S")
+		
+	    return session_dict
         else:
             logging.getLogger("ispyb_client").\
-                exception("Error in create_session: could not connect to server")
-
+		    exception("Error in create_session: could not connect to server")
 
     @trace
     def update_session(self, session_dict):
