@@ -681,7 +681,7 @@ class AbstractMultiCollect(object):
                 file_location = file_parameters["directory"]
                 file_path  = os.path.join(file_location, filename)
                 
-                logging.info("Frame %d, %7.3f to %7.3f degrees", frame, start, end)
+                #logging.info("Frame %d, %7.3f to %7.3f degrees", frame, start, end)
 
                 self.set_detector_filenames(frame, start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
                 
@@ -867,7 +867,7 @@ class AbstractMultiCollect(object):
       except Exception,msg:
         logging.getLogger().exception("DataCollect:processing: %r" % msg)
       else:
-        logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
+        #logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
             
         try: 
             autoprocessing.start(self["auto_processing"], process_event, processAnalyseParams)
