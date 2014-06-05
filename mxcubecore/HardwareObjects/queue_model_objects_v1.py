@@ -557,6 +557,7 @@ class CharacterisationParameters(object):
         self.account_rad_damage = bool()
         self.auto_res = bool()
         self.opt_sad = bool()
+        self.sad_res = float()
         self.determine_rad_params = bool()
         self.burn_osc_start = float()
         self.burn_osc_interval = int()
@@ -591,6 +592,7 @@ class CharacterisationParameters(object):
                 "account_rad_damage": self.account_rad_damage,
                 "auto_res": self.auto_res,
                 "opt_sad": self.opt_sad,
+                "sad_res": self.sad_res,
                 "determine_rad_params": self.determine_rad_params,
                 "burn_osc_start": self.burn_osc_start,
                 "burn_osc_interval": self.burn_osc_interval,
