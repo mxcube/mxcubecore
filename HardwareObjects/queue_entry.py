@@ -710,7 +710,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        pass
+        logging.getLogger("user_level_log").info('Collection started')
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
