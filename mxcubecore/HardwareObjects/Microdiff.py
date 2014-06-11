@@ -21,7 +21,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         MiniDiff.MiniDiff.init(self)
 
-        self.phiyMotor.direction = -1
+        self.centringPhiy.direction = -1
 
  
     def getCalibrationData(self, offset):

@@ -98,8 +98,6 @@ class MiniDiff(Equipment):
 
 
     def init(self):
-        self.phiy_direction = 1
-        
         self.centringMethods={MiniDiff.MANUAL3CLICK_MODE: self.start3ClickCentring,\
             MiniDiff.C3D_MODE: self.startAutoCentring }
         self.cancelCentringMethods={}
@@ -114,17 +112,22 @@ class MiniDiff(Equipment):
         except:
           phiz_ref = None
         
-        self.phiMotor = sample_centring.CentringMotor(self.getDeviceByRole('phi'), direction=-1)
-        self.phizMotor = sample_centring.CentringMotor(self.getDeviceByRole('phiz'), reference_position=phiz_ref)
-        self.phiyMotor = sample_centring.CentringMotor(self.getDeviceByRole('phiy'))
+        self.phiMotor = self.getDeviceByRole('phi')
+        self.phizMotor = self.getDeviceByRole('phiz')
+        self.phiyMotor = self.getDeviceByRole("phiy")
         self.zoomMotor = self.getDeviceByRole('zoom')
         self.lightMotor = self.getDeviceByRole('light')
         self.focusMotor = self.getDeviceByRole('focus')
-        self.sampleXMotor = sample_centring.CentringMotor(self.getDeviceByRole('sampx'))
-        self.sampleYMotor = sample_centring.CentringMotor(self.getDeviceByRole('sampy'))
+        self.sampleXMotor = self.getDeviceByRole("sampx")
+        self.sampleYMotor = self.getDeviceByRole("sampy")
         self.camera = self.getDeviceByRole('camera')
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
+        self.centringPhi=sample_centring.CentringMotor(self.phiMotor, direction=-1)
+        self.centringPhiz=sample_centring.CentringMotor(self.phizMotor, reference_position=phiz_ref)
+        self.centringPhiy=sample_centring.CentringMotor(self.phiyMotor)
+        self.centringSamplex=sample_centring.CentringMotor(self.sampleXMotor)
+        self.centringSampley=sample_centring.CentringMotor(self.sampleYMotor)
 
         sc_prop=self.getProperty("samplechanger")
         if sc_prop is not None:
@@ -197,6 +200,7 @@ class MiniDiff(Equipment):
         if self.aperture is not None:
             self.connect(self.aperture, 'predefinedPositionChanged', self.apertureChanged)
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
+
 
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
@@ -386,11 +390,11 @@ class MiniDiff(Equipment):
 
 
     def start3ClickCentring(self, sample_info=None):
-        self.currentCentringProcedure = sample_centring.start({"phi":self.phiMotor,
-                                                               "phiy":self.phiyMotor,
-                                                               "sampx": self.sampleXMotor,
-                                                               "sampy": self.sampleYMotor,
-                                                               "phiz": self.phizMotor }, 
+        self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
+                                                               "phiy":self.centringPhiy,
+                                                               "sampx": self.centringSamplex,
+                                                               "sampy": self.centringSampley,
+                                                               "phiz": self.centringPhiz }, 
                                                               self.pixelsPerMmY, self.pixelsPerMmZ, 
                                                               self.getBeamPosX(), self.getBeamPosY())
                                                                          
@@ -399,14 +403,11 @@ class MiniDiff(Equipment):
   
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
-        phi_angle = math.radians(-self.phiMotor.getPosition()) #centred_positions_dict["phi"])
-        #logging.info("CENTRED POS DICT = %r", centred_positions_dict)
-        sampx = centred_positions_dict["sampx"]-self.sampleXMotor.getPosition()
-        sampy = centred_positions_dict["sampy"]-self.sampleYMotor.getPosition()
-        phiy = self.phiy_direction * (centred_positions_dict["phiy"]-self.phiyMotor.getPosition())
-        #logging.info("phiy move = %f", centred_positions_dict["phiy"]-self.phiyMotor.getPosition())
-        phiz = centred_positions_dict["phiz"]-self.phizMotor.getPosition()
-        #logging.info("sampx=%f, sampy=%f, phiy=%f, phiz=%f, phi=%f", sampx, sampy, phiy, phiz, phi_angle)
+        phi_angle = math.radians(self.centringPhi.direction*self.phiMotor.getPosition()) 
+        sampx = self.centringSamplex.direction * (centred_positions_dict["sampx"]-self.sampleXMotor.getPosition())
+        sampy = self.centringSampley.direction * (centred_positions_dict["sampy"]-self.sampleYMotor.getPosition())
+        phiy = self.centringPhiy.direction * (centred_positions_dict["phiy"]-self.phiyMotor.getPosition())
+        phiz = self.centringPhiz.direction * (centred_positions_dict["phiz"]-self.phizMotor.getPosition())
         rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle), math.sin(phi_angle), math.cos(phi_angle)])
         rotMatrix.shape = (2, 2)
         invRotMatrix = numpy.array(rotMatrix.I)
@@ -469,11 +470,11 @@ class MiniDiff(Equipment):
               
     def startAutoCentring(self, sample_info=None, loop_only=False):
         self.currentCentringProcedure = sample_centring.start_auto(self.camera, 
-                                                                   {"phi":self.phiMotor,
-                                                                    "phiy":self.phiyMotor,
-                                                                    "sampx": self.sampleXMotor,
-                                                                    "sampy": self.sampleYMotor,
-                                                                    "phiz": self.phizMotor }, 
+                                                                   {"phi":self.centringPhi,
+                                                                    "phiy":self.centringPhiy,
+                                                                    "sampx": self.centringSamplex,
+                                                                    "sampy": self.centringSampley,
+                                                                    "phiz": self.centringPhiz },
                                                                    self.pixelsPerMmY, self.pixelsPerMmZ, 
                                                                    self.getBeamPosX(), self.getBeamPosY(), 
                                                                    msg_cb=self.emitProgressMessage,
@@ -521,6 +522,13 @@ class MiniDiff(Equipment):
             self.centringStatus["endTime"]=curr_time
 
             self.centringStatus["motors"]=self.getPositions()
+            centred_pos = self.currentCentringProcedure.get()
+            for role in self.centringStatus["motors"].iterkeys():
+              motor = self.getDeviceByRole(role)
+              try:
+                self.centringStatus["motors"][role] = centred_pos[motor]
+              except KeyError:
+		continue
             self.centringStatus["method"]=self.currentCentringMethod
             self.centringStatus["valid"]=True
             
