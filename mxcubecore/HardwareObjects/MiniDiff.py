@@ -109,14 +109,19 @@ class MiniDiff(Equipment):
 
         self.centringStatus={"valid":False}
 
-        self.phiMotor = self.getDeviceByRole('phi')
-        self.phizMotor = self.getDeviceByRole('phiz')
-        self.phiyMotor = self.getDeviceByRole('phiy')
+        try:
+          phiz_ref = self["centringReferencePosition"].getProperty("phiz")
+        except:
+          phiz_ref = None
+        
+        self.phiMotor = sample_centring.CentringMotor(self.getDeviceByRole('phi'), direction=-1)
+        self.phizMotor = sample_centring.CentringMotor(self.getDeviceByRole('phiz'), reference_position=phiz_ref)
+        self.phiyMotor = sample_centring.CentringMotor(self.getDeviceByRole('phiy'))
         self.zoomMotor = self.getDeviceByRole('zoom')
         self.lightMotor = self.getDeviceByRole('light')
         self.focusMotor = self.getDeviceByRole('focus')
-        self.sampleXMotor = self.getDeviceByRole('sampx')
-        self.sampleYMotor = self.getDeviceByRole('sampy')
+        self.sampleXMotor = sample_centring.CentringMotor(self.getDeviceByRole('sampx'))
+        self.sampleYMotor = sample_centring.CentringMotor(self.getDeviceByRole('sampy'))
         self.camera = self.getDeviceByRole('camera')
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
@@ -192,13 +197,6 @@ class MiniDiff(Equipment):
         if self.aperture is not None:
             self.connect(self.aperture, 'predefinedPositionChanged', self.apertureChanged)
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
- 
-#         try:
-#           self.auto_loop_centring = self.getChannelObject("auto_centring_flag")
-#         except KeyError:
-#           logging.getLogger("HWR").warning("MiniDiff: automatic loop centring will not auto start after SC loading")
-#         else:
-#           self.auto_loop_centring.connectSignal("update", self.do_auto_loop_centring)
 
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
@@ -206,60 +204,8 @@ class MiniDiff(Equipment):
     def emitDiffractometerMoved(self, *args):
       self.emit("diffractometerMoved", ())
         
-#     def do_auto_loop_centring(self, n, old={"n":None}):
-#         if n == old["n"]: 
-#           return
-#         old["n"]=n
-#         if n < 0:
-#           return
-
-#         # this is a terrible hack... we have to know if we are running within mxCuBE
-#         # with automatic centring brick, otherwise we should not start auto loop centring
-#         # (for example: if we have been imported in Automatic Centring server, or in
-#         # mxCuBE hutch version with no automatic centring brick...) 
-#         from qt import QApplication
-#         continue_auto_centring = False
-#         for w in QApplication.allWidgets():
-#           if callable(w.name) and str(w.name()) == 'autocentring':
-#             continue_auto_centring = w.isInstanceModeMaster()
-#             break
-#         if not continue_auto_centring:
-#           return
-
-#         try:
-#               if self.currentCentringProcedure is not None:
-#                 return
-
-#               if str(self.getChannelObject("auto_crystal_centring_enabled").getValue())=='1':
-#                 loop_only=False
-#               else:
-#                 loop_only=True
-#               if loop_only and str(self.getChannelObject("auto_loop_centring_enabled").getValue())=='0':
-#                 return
-#               if str(self.getChannelObject("playback_centring_enabled").getValue())=='1':
-#                 sample_info=self.currentSampleInfo
-#               else:
-#                 sample_info=None
-
-#               self.emitCentringStarted(MiniDiff.C3D_MODE)
-#               self.startAutoCentring(sample_info=sample_info, loop_only=loop_only)
-#         except:  
-#            logging.getLogger("HWR").warning("MiniDiff: automatic centring fails to start (hint: is the centring server running?)")
-
-
     def isReady(self):
-      if self.isValid():
-         motorsQuiet = True 
-   
-         for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor):
-            if m.motorIsMoving():
-                 motorsQuiet = False
-   
-         return motorsQuiet
-      else:
-         return False
-
-      #return self.isValid() and all([not m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
+        return self.isValid() and not any([m.motorIsMoving() for m in (self.sampleXMotor, self.sampleYMotor, self.zoomMotor, self.phiMotor, self.phizMotor, self.phiyMotor)])
     
 
     def isValid(self):
@@ -440,12 +386,13 @@ class MiniDiff(Equipment):
 
 
     def start3ClickCentring(self, sample_info=None):
-        try:
-          phiz_reference_position = self["centringReferencePosition"].getProperty("phiz")
-        except:
-          phiz_reference_position = None
-
-        self.currentCentringProcedure = sample_centring.start({"phi":sample_centring.CentringMotor(self.phiMotor, direction=-1), "phiy": sample_centring.CentringMotor(self.phiyMotor, direction=-1), "sampx": sample_centring.CentringMotor(self.sampleXMotor), "sampy": sample_centring.CentringMotor(self.sampleYMotor), "phiz": sample_centring.CentringMotor(self.phizMotor, reference_position=phiz_reference_position) }, self.pixelsPerMmY, self.pixelsPerMmZ, self.getBeamPosX(), self.getBeamPosY())
+        self.currentCentringProcedure = sample_centring.start({"phi":self.phiMotor,
+                                                               "phiy":self.phiyMotor,
+                                                               "sampx": self.sampleXMotor,
+                                                               "sampy": self.sampleYMotor,
+                                                               "phiz": self.phizMotor }, 
+                                                              self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                              self.getBeamPosX(), self.getBeamPosY())
                                                                          
         self.currentCentringProcedure.link(self.manualCentringDone)
 
@@ -488,130 +435,54 @@ class MiniDiff(Equipment):
           except:
             logging.exception("Could not move to centred position")
             self.emitCentringFailed()
-          else:
-            self.phiMotor.syncMoveRelative(-180)
+          
           #logging.info("EMITTING CENTRING SUCCESSFUL")
           self.centredTime = time.time()
           self.emitCentringSuccessful()
           self.emitProgressMessage("")
 
-    def autoCentringDone(self, auto_centring_procedure):
+    def autoCentringDone(self, auto_centring_procedure): 
         self.emitProgressMessage("")
         self.emit("newAutomaticCentringPoint", (-1,-1))
-        
-        res = auto_centring_procedure.get()
 
+        res = auto_centring_procedure.get()
+        
         if isinstance(res, gevent.GreenletExit):
           logging.error("Could not complete automatic centring")
           self.emitCentringFailed()
         else:
+          positions = self.zoomMotor.getPredefinedPositionsList()
+          i = len(positions) / 2
+          self.zoomMotor.moveToPosition(positions[i-1])
+
+          #be sure zoom stop moving
+          while self.zoomMotor.motorIsMoving():
+              time.sleep(0.1)
+
+          self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
+
           if self.user_confirms_centring:
             self.emitCentringSuccessful()
           else:
             self.emitCentringSuccessful()
             self.acceptCentring()
               
-
-    def do_auto_centring(self, phi, phiy, phiz, sampx, sampy, zoom, camera, phiy_direction):
-        if not lucid:
-          return
-
-        imgWidth = camera.getWidth()
-        imgHeight = camera.getHeight()
-        try:
-          phiz_reference_position = self["centringReferencePosition"].getProperty("phiz")
-        except:
-          phiz_reference_position = None
-        sample_centring.start({"phi":sample_centring.CentringMotor(self.phiMotor, direction=-1), "phiy": sample_centring.CentringMotor(self.phiyMotor, direction=-1), "sampx": sample_centring.CentringMotor(self.sampleXMotor), "sampy": sample_centring.CentringMotor(self.sampleYMotor), "phiz": sample_centring.CentringMotor(self.phizMotor, reference_position=phiz_reference_position) }, self.pixelsPerMmY, self.pixelsPerMmZ, self.getBeamPosX(), self.getBeamPosY())
-
-        def find_loop(pixels_per_mm_horizontal, show_point=True):
-          #img_array = numpy.fromstring(camera.getChannelObject("image").getValue(), numpy.uint8)
-          rgbImgChan    = camera.addChannel({ 'type': 'tango', 'name': 'rgbimage', "read_as_str": 1 }, "RgbImage")
-          raw_data = rgbImgChan.getValue()
-          snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
-          Image.fromstring("RGB", (imgWidth, imgHeight), raw_data).save(snapshot_filename)
-
-          info, x, y = lucid.find_loop(snapshot_filename, pixels_per_mm_horizontal=pixels_per_mm_horizontal)
-          
-          self.emitProgressMessage("Loop found: %s (%d, %d)" % (info, x, y))
-          logging.debug("Loop found: %s (%d, %d)" % (info, x, y))
-          if show_point:
-              self.emit("newAutomaticCentringPoint", (x,y))
-          return x,y
-        
-        def centre_loop(pixelsPerMmY, pixelsPerMmZ, n_points=3): #, lastCoord=(-1, -1)):
-          self.emitProgressMessage("Doing automatic centring")
-          
-          for a in range(n_points):
-            x, y = find_loop(pixelsPerMmY) 
-            if x < 0 or y < 0:
-              for i in range(1,5):
-                logging.debug("loop not found - moving back") 
-                phi.syncMoveRelative(-20)
-                xold, yold = x, y
-                x, y = find_loop(pixelsPerMmY)
-                if x >=0:
-                  if y < imgHeight/2:
-                    y = 0
-                    self.emit("newAutomaticCentringPoint", (x,y))
-                    sample_centring.user_click(x,y)
-                    break
-                  else:
-                    y = imgHeight
-                    self.emit("newAutomaticCentringPoint", (x,y))
-                    sample_centring.user_click(x,y)
-                    break
-                if i == 4:
-                  logging.debug("loop not found - trying with last coordinates")
-                  self.emit("newAutomaticCentringPoint", (xold,yold))
-                  sample_centring.user_click(xold, yold)
-              phi.syncMoveRelative(i*20)
-            else:
-              sample_centring.user_click(x,y)
-          
-          return sample_centring.CURRENT_CENTRING.get()
- 
-        #check if loop is there at the beginning
-        i = 0
-        while -1 in find_loop(self.pixelsPerMmY):
-          phi.syncMoveRelative(90)
-          i+=1
-          if i>4:
-            return
-        lastCoord = []
-        centred = True #False
-        for i in range(2): #was 4
-          motor_pos = centre_loop(self.pixelsPerMmY, self.pixelsPerMmZ)
-          sample_centring.end()
-         
-        if centred:
-          # move zoom
-          self.emit("newAutomaticCentringPoint", (-1,-1))
-          positions = zoom.getPredefinedPositionsList()
-          i = len(positions) / 2
-          zoom.moveToPosition(positions[i-1])
-
-          #be sure zoom stop moving
-          while zoom.motorIsMoving():
-              time.sleep(0.1)
-
-          self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(zoom.getPosition())
-
-          return motor_pos
-
-    def startAutoCentring(self,sample_info=None, loop_only=False):
-        self.currentCentringProcedure = gevent.spawn(self.do_auto_centring, self.phiMotor,
-                                                     self.phiyMotor,
-                                                     self.phizMotor,
-                                                     self.sampleXMotor,
-                                                     self.sampleYMotor,
-                                                     self.zoomMotor,
-                                                     self.camera,
-                                                     self.phiy_direction)
+    def startAutoCentring(self, sample_info=None, loop_only=False):
+        self.currentCentringProcedure = sample_centring.start_auto(self.camera, 
+                                                                   {"phi":self.phiMotor,
+                                                                    "phiy":self.phiyMotor,
+                                                                    "sampx": self.sampleXMotor,
+                                                                    "sampy": self.sampleYMotor,
+                                                                    "phiz": self.phizMotor }, 
+                                                                   self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                                   self.getBeamPosX(), self.getBeamPosY(), 
+                                                                   msg_cb=self.emitProgressMessage,
+                                                                   new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
+       
         self.currentCentringProcedure.link(self.autoCentringDone)
+
 	self.emitProgressMessage("Starting automatic centring procedure...")
         
-    
     def moveToCentredPosition(self, motor_position_dict):
       return sample_centring.move_motors(motor_position_dict)
 
@@ -634,10 +505,8 @@ class MiniDiff(Equipment):
         self.emitProgressMessage("")
         self.emit('centringAccepted', (False,self.getCentringStatus()))
 
-
     def emitCentringMoving(self):
         self.emit('centringMoving', ())
-
 
     def emitCentringFailed(self):
         self.centringStatus={"valid":False}
@@ -646,22 +515,12 @@ class MiniDiff(Equipment):
         self.currentCentringProcedure=None
         self.emit('centringFailed', (method,self.getCentringStatus()))
 
-
     def emitCentringSuccessful(self):
         if self.currentCentringProcedure is not None:
             curr_time=time.strftime("%Y-%m-%d %H:%M:%S")
             self.centringStatus["endTime"]=curr_time
 
-            motors = {}
-            motor_pos = self.currentCentringProcedure.get()
-            for motor_role in ('phiy', 'phiz', 'sampx', 'sampy', 'zoom', 'phi', 'focus', 'kappa', 'kappa_phi'):
-                mot_obj = self.getDeviceByRole(motor_role)
-
-                try:
-                    motors[motor_role] = motor_pos[mot_obj] 
-                except KeyError:
-                    motors[motor_role] = mot_obj.getPosition()
-            self.centringStatus["motors"]=motors
+            self.centringStatus["motors"]=self.getPositions()
             self.centringStatus["method"]=self.currentCentringMethod
             self.centringStatus["valid"]=True
             
