@@ -45,8 +45,8 @@ def prepare(centring_motors_dict):
   global USER_CLICKED_EVENT
   USER_CLICKED_EVENT = gevent.event.AsyncResult()  
 
-  move_motors(dict([(m, m.reference_position if m.reference_position is not None else m.getPosition()) for m in centring_motors_dict.itervalues()]))
-  SAVED_INITIAL_POSITIONS = dict([(m, m.motor.getPosition()) for m in centring_motors_dict.itervalues()])
+  move_motors(dict([(m.motor, m.reference_position if m.reference_position is not None else m.getPosition()) for m in centring_motors_dict.itervalues()]))
+  SAVED_INITIAL_POSITIONS = dict([(m.motor, m.motor.getPosition()) for m in centring_motors_dict.itervalues()])
 
   phi = centring_motors_dict["phi"]
   phiy = centring_motors_dict["phiy"]
@@ -149,9 +149,9 @@ def center(phi, phiy,
   vertical_move = phiRotMatrix*numpy.matrix([[0],d_vertical])
   
   centred_pos = SAVED_INITIAL_POSITIONS.copy()
-  centred_pos.update({ sampx: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
-                       sampy: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
-                       phiy: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+  centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
+                       sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
+                       phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
   return centred_pos
 
 def end(centred_pos=None):
