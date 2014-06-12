@@ -7,7 +7,9 @@ import gevent
 from Lima import Core
 from Qub.CTools import pixmaptools
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, MmapType, RawType
+from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, MmapType, RawType, RGBType
+
+import os
 
 class LimaVideo(BaseHardwareObjects.Device):
 
@@ -28,7 +30,7 @@ class LimaVideo(BaseHardwareObjects.Device):
 
 	self.camType = self.getProperty("type").lower()
 	self.camAddress = self.getProperty("address")
-	#self.camMirror = eval(self.getProperty("mirror_hor_ver"))
+	self.camMirror = eval(self.getProperty("mirror_hor_ver"))
 
 	if self.camType == 'prosilica':
 	    from Lima import Prosilica
@@ -61,6 +63,9 @@ class LimaVideo(BaseHardwareObjects.Device):
 		self.scalingType = pixmaptools.LUT.Scaling.BAYER_RG16
         elif image_type.lower().startswith("raw") :
             self.imgtype = RawType()
+	elif image_type.lower() == 'rgb':
+	    self.imgtype = RGBType()
+  	    self.scalingType = pixmaptools.LUT.Scaling.RGB24
         elif image_type.lower().startswith("mmap:"):
             self.imgtype = MmapType(image_type.split(":")[1])
 
@@ -99,7 +104,8 @@ class LimaVideo(BaseHardwareObjects.Device):
         return self.__gainExists
 
     def setGain(self, gain):
-	self.video.setGain(gain)
+	pass
+	#self.video.setGain(gain)
 
     def getGain(self):
 	return self.video.getGain()
@@ -123,9 +129,18 @@ class LimaVideo(BaseHardwareObjects.Device):
     def setLive(self, mode):
 	if mode:
 	    self.video.startLive()
+            self.change_owner()
         else:
 	    self.video.stopLive()
     
+    def change_owner(self):
+        if os.getuid() == 0:
+           try:
+              os.setgid(int(os.getenv("SUDO_GID")))
+              os.setuid(int(os.getenv("SUDO_UID")))
+           except:
+	      logging.getLogger().warning('%s: failed to change the process ownership.', self.name())
+
     def getWidth(self):
 	return self.__imageDimensions[0]
 	
@@ -156,6 +171,6 @@ class LimaVideo(BaseHardwareObjects.Device):
                                                                       self.scalingType,
                                                                       self.scaling)
 		if validFlag:
-                    #if self.camMirror is not None:
-                    #    qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])     
+                    if self.camMirror is not None:
+                        qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])     
    	            self.emit("imageReceived", qimage, qimage.width(), qimage.height(), self.forceUpdate)
