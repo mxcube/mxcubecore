@@ -95,10 +95,10 @@ def move_motors(motor_positions_dict):
   wait_ready()
   
 def user_click(x,y, wait=False):
+  READY_FOR_NEXT_POINT.clear()
   USER_CLICKED_EVENT.set((x,y))
   if wait:
     READY_FOR_NEXT_POINT.wait()
-    READY_FOR_NEXT_POINT.clear()
   
 def center(phi, phiy,
            sampx, sampy, 
