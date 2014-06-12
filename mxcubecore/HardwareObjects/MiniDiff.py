@@ -483,8 +483,14 @@ class MiniDiff(Equipment):
         self.currentCentringProcedure.link(self.autoCentringDone)
 
 	self.emitProgressMessage("Starting automatic centring procedure...")
-        
-    def moveToCentredPosition(self, motor_position_dict):
+       
+    @task 
+    def moveToCentredPosition(self, centred_position):
+      motor_position_dict = { self.sampleXMotor: centred_position.sampx,
+                              self.sampleYMotor: centred_position.sampy,
+                              self.phiMotor: centred_position.phi,
+                              self.phiyMotor: centred_position.phiy,
+                              self.phizMotor: centred_position.phiz }
       return sample_centring.move_motors(motor_position_dict)
 
     def imageClicked(self, x, y, xi, yi):
