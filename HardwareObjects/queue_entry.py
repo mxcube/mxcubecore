@@ -674,7 +674,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     list_item.setText(1, "Moving sample")
                     self.shape_history.select_shape_with_cpos(cpos)
                     self.centring_task = self.diffractometer_hwobj.\
-                                         moveToCentredPosition(cpos)
+                                         moveToCentredPosition(cpos, wait=False)
                     self.centring_task.get()
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
