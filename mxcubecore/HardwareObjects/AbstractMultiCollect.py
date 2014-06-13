@@ -535,7 +535,7 @@ class AbstractMultiCollect(object):
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")
-        #import pdb;pdb.set_trace()
+
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         sample_id = data_collect_parameters['blSampleId']
         inverse_beam = "reference_interval" in oscillation_parameters
@@ -616,10 +616,14 @@ class AbstractMultiCollect(object):
                     beam_centre_x, beam_centre_y = self.get_beam_centre()
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
-                    gap1, gap2, gap3 = self.get_undulators_gaps()
-                    data_collect_parameters["undulatorGap1"] = gap1
-                    data_collect_parameters["undulatorGap2"] = gap2
-                    data_collect_parameters["undulatorGap3"] = gap3
+
+                    und = self.get_undulators_gaps()
+                    i = 1
+                    for key in und:
+                        self.bl_config.undulators[i-1].type = key
+                        data_collect_parameters["undulatorGap%d" %i] = und[key]  
+                        i += 1
+
                     data_collect_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
                     beam_size_x, beam_size_y = self.get_beam_size()
                     data_collect_parameters["beamSizeAtSampleX"] = beam_size_x
@@ -630,6 +634,7 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["slitGapVertical"] = vert_gap
 
                     logging.info("Updating data collection in ISPyB")
+
                     self.bl_control.lims.update_data_collection(data_collect_parameters, wait=True)
                     logging.info("Done")
                   except:
@@ -672,7 +677,7 @@ class AbstractMultiCollect(object):
                 file_location = file_parameters["directory"]
                 file_path  = os.path.join(file_location, filename)
                 
-                logging.info("Frame %d, %7.3f to %7.3f degrees", frame, start, end)
+                #logging.info("Frame %d, %7.3f to %7.3f degrees", frame, start, end)
 
                 self.set_detector_filenames(frame, start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
                 
@@ -853,7 +858,7 @@ class AbstractMultiCollect(object):
       except Exception,msg:
         logging.getLogger().exception("DataCollect:processing: %r" % msg)
       else:
-        logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
+        #logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, inverse_beam, do_inducedraddam, spacegroup, cell)
             
         try: 
             autoprocessing.start(self["auto_processing"], process_event, processAnalyseParams)
