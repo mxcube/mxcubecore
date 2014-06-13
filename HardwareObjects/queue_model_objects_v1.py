@@ -208,6 +208,7 @@ class Sample(TaskNode):
         self.processing_parameters.pdb_file = str()
 
         self.energy_scan_result = EnergyScanResult()
+	self.xrf_scan_result = XRFScanResult()
 
     def __str__(self):
         s = '<%s object at %s>' % (
@@ -227,14 +228,21 @@ class Sample(TaskNode):
     def get_name(self):
         return self._name
 
-    def get_display_name(self):
+    def get_display_name(self, return_tuple=False):
         name = self.name
         acronym = self.crystals[0].protein_acronym
 
         if self.name is not '' and acronym is not '':
-            return acronym + '-' + name
+            display_name = acronym + '-' + name
+            if return_tuple:
+              return (acronym, display_name)
+            else:
+              return display_name
         else:
-            return ''
+            if return_tuple:
+              return ()
+            else:
+              return ''
 
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
@@ -557,6 +565,7 @@ class CharacterisationParameters(object):
         self.account_rad_damage = bool()
         self.auto_res = bool()
         self.opt_sad = bool()
+        self.sad_res = float()
         self.determine_rad_params = bool()
         self.burn_osc_start = float()
         self.burn_osc_interval = int()
@@ -591,6 +600,7 @@ class CharacterisationParameters(object):
                 "account_rad_damage": self.account_rad_damage,
                 "auto_res": self.auto_res,
                 "opt_sad": self.opt_sad,
+                "sad_res": self.sad_res,
                 "determine_rad_params": self.determine_rad_params,
                 "burn_osc_start": self.burn_osc_start,
                 "burn_osc_interval": self.burn_osc_interval,
@@ -611,7 +621,7 @@ class EnergyScan(TaskNode):
         TaskNode.__init__(self)
         self.element_symbol = None
         self.edge = None
-        self.set_requires_centring(False)
+        self.set_requires_centring(True)
 
         if not sample:
             self.sample = Sample()
@@ -634,7 +644,6 @@ class EnergyScan(TaskNode):
     def get_path_template(self):
         return self.path_template
 
-
 class EnergyScanResult(object):
     def __init__(self):
         object.__init__(self)
@@ -644,6 +653,38 @@ class EnergyScanResult(object):
         self.second_remote = 0
         self.data_file_path = PathTemplate()
 
+
+class XRFScan(TaskNode):
+    def __init__(self, sample=None, path_template=None):
+        TaskNode.__init__(self)
+	self.count_time = None
+        self.set_requires_centring(True)
+
+        if not sample:
+            self.sample = Sample()
+        else:
+            self.sampel = sample
+
+        if not path_template:
+            self.path_template = PathTemplate()
+        else:
+            self.path_template = path_template
+
+        self.result = XRFScanResult()
+
+    def get_run_number(self):
+        return self.path_template.run_number
+
+    def get_prefix(self):
+        return self.path_template.get_prefix()
+
+    def get_path_template(self):
+        return self.path_template
+
+class XRFScanResult(object):
+    def __init__(self):
+        object.__init__(self)
+        self.data_file_path = PathTemplate()
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None):
@@ -697,6 +738,11 @@ class Acquisition(object):
 
 
 class PathTemplate(object):
+    @staticmethod
+    def set_archive_path(self, archive_base_directory, archive_folder):
+        PathTemplate.archive_base_directory = archive_base_directory
+        PathTemplate.archive_folder = archive_folder
+
     def __init__(self):
         object.__init__(self)
 
@@ -756,17 +802,16 @@ class PathTemplate(object):
         
         if 'visitor' in folders:
             endstation_name = folders[4]
-            folders[2] = 'pyarch'
+            folders[2] = PathTemplate.archive_folder
             temp = folders[3]
             folders[3] = folders[4]
             folders[4] = temp
         else:
             endstation_name = folders[2]
-            folders[2] = 'pyarch'
+            folders[2] = PathTemplate.archive_folder
             folders[3] = endstation_name
 
-
-        archive_directory = '/' + os.path.join(*folders[1:])
+        archive_directory = os.path.join(os.path.join(PathTemplate.archive_base_directory, *folders[2:]))
 
         return archive_directory
 
@@ -824,7 +869,7 @@ class AcquisitionParameters(object):
         self.transmission = float()
         self.inverse_beam = False
         self.shutterless = False
-        self.take_snapshots = True
+        self.take_snapshots = 0
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
@@ -845,6 +890,7 @@ class Crystal(object):
 
         # MAD energies
         self.energy_scan_result = EnergyScanResult()
+	self.xrf_scan_result = XRFScanResult()
 
 
 class CentredPosition(object):
@@ -869,6 +915,9 @@ class CentredPosition(object):
         self.zoom = int()
         self.snapshot_image = None
         self.centring_method = True
+        
+        self.beam_x = int() # why ints? 
+        self.beam_y = int()
 
         if motor_dict:
             try:
@@ -916,6 +965,17 @@ class CentredPosition(object):
             except KeyError:
                 pass
 
+            try:
+                self.beam_x = motor_dict['beam_x']
+            except KeyError:
+                pass
+
+	    try:
+                self.beam_y = motor_dict['beam_y']
+            except KeyError:
+                pass
+
+
     def as_dict(self):
         return {'sampx': self.sampx,
                 'sampy': self.sampy,
@@ -925,7 +985,10 @@ class CentredPosition(object):
                 'phiz': self.phiz,
                 'kappa': self.kappa,
                 'kappa_phi': self.kappa_phi,
-                'zoom': self.zoom}
+                'zoom': self.zoom,
+ 	        'beam_x':self.beam_x,
+                'beam_y':self.beam_y
+                }
 
     def __repr__(self):
         return str({'sampx': str(self.sampx),
@@ -935,13 +998,16 @@ class CentredPosition(object):
                     'phiy': str(self.phiy),
                     'kappa': str(self.kappa),
                     'kappa_phi': str(self.kappa_phi),
-                    'zoom': str(self.zoom)})
+                    'zoom': str(self.zoom),
+                    'beam_x':str(self.beam_x),
+		    'beam_y':str(self.beam_y)
+                     })
 
     def __eq__(self, cpos):
         result = (self.sampx == cpos.sampx) and (self.sampy == cpos.sampy) and \
                  (self.phi == cpos.phi) and (self.phiz == cpos.phiz) and \
-                 (self.phiy == cpos.phiy) and (self.zoom == cpos.zoom)
-
+                 (self.phiy == cpos.phiy) and (self.zoom == cpos.zoom) and \
+                 (self.beam_x == cpos.beam_x) and (self.beam_y == cpos.beam_y) 
         return result
 
 

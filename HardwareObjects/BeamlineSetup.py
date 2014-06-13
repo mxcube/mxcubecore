@@ -20,7 +20,7 @@ class BeamlineSetup(HardwareObject):
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
                            'resolution', 'shape_history', 'session',
                            'data_analysis', 'workflow', 'lims_client',
-                           'collect', 'energy', 'omega_axis', 'detector']
+                           'collect', 'energy', 'omega_axis', 'beam_info', 'xrf']
 
     def init(self):
         """
@@ -229,8 +229,9 @@ class BeamlineSetup(HardwareObject):
         char_params.min_dose = 30.0
         char_params.min_time = 0.0
         char_params.account_rad_damage = True
-        char_params.auto_res = False
+        char_params.auto_res = True
         char_params.opt_sad = False
+        char_params.sad_res = 0.5
         char_params.determine_rad_params = False
         char_params.burn_osc_start = 0.0
         char_params.burn_osc_interval = 3

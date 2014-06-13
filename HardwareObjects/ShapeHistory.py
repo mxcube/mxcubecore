@@ -733,9 +733,13 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__painter = painter
         rect = self.rect()
 
+	num_rows = 0
+	num_colls = 0
         self.__num_cells = 0
-        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
-        num_colls = (rect.right() - rect.left()) / self.__cell_width
+	if self.__cell_height <> 0:
+            num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        if self.__cell_width <> 0:
+            num_colls = (rect.right() - rect.left()) / self.__cell_width
 
         if self.__highlighted:
             painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
