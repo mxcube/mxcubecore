@@ -738,6 +738,11 @@ class Acquisition(object):
 
 
 class PathTemplate(object):
+    @staticmethod
+    def set_archive_path(self, archive_base_directory, archive_folder):
+        PathTemplate.archive_base_directory = archive_base_directory
+        PathTemplate.archive_folder = archive_folder
+
     def __init__(self):
         object.__init__(self)
 
@@ -797,17 +802,16 @@ class PathTemplate(object):
         
         if 'visitor' in folders:
             endstation_name = folders[4]
-            folders[2] = 'store'
+            folders[2] = PathTemplate.archive_folder
             temp = folders[3]
             folders[3] = folders[4]
             folders[4] = temp
         else:
             endstation_name = folders[2]
-            folders[2] = 'store'
+            folders[2] = PathTemplate.archive_folder
             folders[3] = endstation_name
 
-
-        archive_directory = '/dataInt/10736_206/karpics/mxcube/' + os.path.join(*folders[1:])
+        archive_directory = os.path.join(os.path.join(PathTemplate.archive_base_directory, *folders[2:]))
 
         return archive_directory
 
