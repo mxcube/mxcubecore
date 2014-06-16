@@ -24,7 +24,8 @@ BeamlineControl = collections.namedtuple('BeamlineControl',
                                           'transmission',
                                           'undulators',
                                           'flux',
-                                          'detector'])
+                                          'detector',
+                                          'beam_info'])
 
 BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                         ['directory_prefix',
@@ -50,7 +51,7 @@ class AbstractMultiCollect(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.bl_control = BeamlineControl(*[None]*13)
+        self.bl_control = BeamlineControl(*[None]*14)
         self.bl_config = BeamlineConfig(*[None]*17)
         self.data_collect_task = None
         self.oscillations_history = []
