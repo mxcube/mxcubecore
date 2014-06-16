@@ -739,7 +739,7 @@ class Acquisition(object):
 
 class PathTemplate(object):
     @staticmethod
-    def set_archive_path(self, archive_base_directory, archive_folder):
+    def set_archive_path(archive_base_directory, archive_folder):
         PathTemplate.archive_base_directory = archive_base_directory
         PathTemplate.archive_folder = archive_folder
 
