@@ -241,7 +241,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                transmission = self.getObjectByRole("transmission"),
                                undulators = self.getObjectByRole("undulators"),
                                flux = self.getObjectByRole("flux"),
-                               detector = self.getObjectByRole("detector"))
+                               detector = self.getObjectByRole("detector"),
+                               beam_info = self.getObjectByRole("beam_info"))
 
         try:
           undulators = self["undulator"]
