@@ -228,21 +228,14 @@ class Sample(TaskNode):
     def get_name(self):
         return self._name
 
-    def get_display_name(self, return_tuple=False):
+    def get_display_name(self):
         name = self.name
         acronym = self.crystals[0].protein_acronym
 
         if self.name is not '' and acronym is not '':
-            display_name = acronym + '-' + name
-            if return_tuple:
-              return (acronym, display_name)
-            else:
-              return display_name
+            return acronym + '-' + name
         else:
-            if return_tuple:
-              return ()
-            else:
-              return ''
+            return ''
 
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
