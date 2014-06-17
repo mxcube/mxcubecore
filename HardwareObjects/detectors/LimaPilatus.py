@@ -130,7 +130,7 @@ class Pilatus:
                                                          saving_directory),
                                                          shell=True, stdin=None, 
                                                          stdout=None, stderr=None, 
-                                                         close_fds=True)
+                                                         close_fds=True).wait()
       
       self.wait_ready()  
    
