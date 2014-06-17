@@ -929,6 +929,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 'steps_y': number of rows,
                 'x1': top left cell center x coord,
                 'y1': top left cell center y coord,
+                'beam_width': beam width in mm
+                'beam_height': beam height in mm
                 'angle': 0}
         """
         rect = self.rect()
@@ -952,6 +954,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 'steps_y': num_rows,
                 'x1': first_cell_center_x,
                 'y1': first_cell_center_y,
+                'beam_width': self.__beam_width / self.__x_pixel_size,
+                'beam_height': self.__beam_height / self.__y_pixel_size,
                 'angle': 0}
 
         #print "Beam: " + str(self.__beam_pos)
