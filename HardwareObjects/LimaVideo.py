@@ -21,7 +21,6 @@ class LimaVideo(BaseHardwareObjects.Device):
     def _init(self):
 	self.scalingType = None	
 	self.forceUpdate = False
- 	self.camMirror = None
 
 	self.__brightnessExists = False
 	self.__contrastExists = False
@@ -30,7 +29,10 @@ class LimaVideo(BaseHardwareObjects.Device):
 
 	self.camType = self.getProperty("type").lower()
 	self.camAddress = self.getProperty("address")
-	self.camMirror = eval(self.getProperty("mirror_hor_ver"))
+        try:
+ 	  self.camMirror = eval(self.getProperty("mirror_hor_ver"))
+        except:
+          self.camMirror = None
 
 	if self.camType == 'prosilica':
 	    from Lima import Prosilica
