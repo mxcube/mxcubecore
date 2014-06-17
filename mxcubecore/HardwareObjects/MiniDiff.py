@@ -86,6 +86,7 @@ class MiniDiff(Equipment):
         self.lightWago = None
         self.currentSampleInfo = None
         self.aperture = None
+        self.beam_info = None
       
         self.pixelsPerMmY=None
         self.pixelsPerMmZ=None
@@ -125,6 +126,7 @@ class MiniDiff(Equipment):
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
         self.chiMotor = self.getDeviceByRole('chi')
+        self.beam_info = self.getObjectByRole('beam_info')
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
         # self.camera.addChannel({ 'type': 'tango', 'name': 'jpegImage' }, "JpegImage")
@@ -135,22 +137,23 @@ class MiniDiff(Equipment):
         self.centringSamplex=sample_centring.CentringMotor(self.sampleXMotor)
         self.centringSampley=sample_centring.CentringMotor(self.sampleYMotor)
 
+        hwr = HardwareRepository.HardwareRepository()
         sc_prop=self.getProperty("samplechanger")
         if sc_prop is not None:
             try:
-                self.sampleChanger=HardwareRepository.HardwareRepository().getHardwareObject(sc_prop)
+                self.sampleChanger=hwr.getHardwareObject(sc_prop)
             except:
                 pass
         wl_prop=self.getProperty("wagolight")
         if wl_prop is not None:
             try:
-                self.lightWago=HardwareRepository.HardwareRepository().getHardwareObject(wl_prop)
+                self.lightWago=hwr.getHardwareObject(wl_prop)
             except:
                 pass
         aperture_prop = self.getProperty("aperture")
         if aperture_prop is not None:
             try:
-                self.aperture = HardwareRepository.HardwareRepository().getHardwareObject(aperture_prop)
+                self.aperture = hwr.getHardwareObject(aperture_prop)
             except:
                 pass
             
@@ -269,6 +272,14 @@ class MiniDiff(Equipment):
                         return (float(calibrationData.pixelsPerMmY) or 0, float(calibrationData.pixelsPerMmZ) or 0)
         return (None, None)
 
+    def get_pixels_per_mm(self):
+	return (self.pixelsPerMmY, self.pixelsPerMmZ)
+
+    def getBeamInfo(self, callback=None):
+	beam_info = self.beam_info.get_beam_info() 
+	if callable(callback):
+          callback(beam_info)
+        return beam_info
 
     def zoomMotorPredefinedPositionChanged(self, positionName, offset):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(offset)
@@ -325,10 +336,6 @@ class MiniDiff(Equipment):
 
     def getBeamPosY(self):
         return self.imgHeight / 2
-
-    def getBeamInfo(self, update_beam_callback):
-        get_beam_info = self.getCommandObject("getBeamInfo")
-        get_beam_info(callback=update_beam_callback, error_callback=None, wait=True)
 
     def moveToBeam(self, x, y):
         try:
