@@ -66,6 +66,10 @@ class MmapType(ImageType):
     ImageType.__init__(self, "mmap")
     self.mmapFile = mmapFile
 
+class RGBType(ImageType):
+  def __init__(self,mmapFile):
+    ImageType.__init__(self, "rgb")
+
 
 
 class Camera(BaseHardwareObjects.Device):
