@@ -83,3 +83,7 @@ class Attenuators(Device):
         else:
             self.emit('attFactorChanged', (value, )) 
   	      
+   def is_in(self, attenuator_index):
+        curr_bits = self.getAttState()
+        val = self.bits[attenuator_index]
+        return bool(val & curr_bits)
