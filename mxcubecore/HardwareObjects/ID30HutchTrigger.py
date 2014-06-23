@@ -61,7 +61,8 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         
   
     def macro(self, entering_hutch):
-        import pdb;pdb.set_trace()
+        #import pdb;pdb.set_trace()
+        logging.debug("HUTCHTRIGGER, entering_hutch=%s", entering_hutch)
         if entering_hutch:
           self.getObjectByRole("detector_distance")
           self.getObjectByRole("beamstop")
