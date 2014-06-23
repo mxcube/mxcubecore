@@ -72,7 +72,7 @@ class RobodiffMotor(Device):
         return self.getPosition()
 
     def move(self, position):
-        self.emit('stateChanged', (RobodiffMotor.MOVESTARTED, ))
+        self.emit('stateChanged', (RobodiffMotor.MOVING, ))
         self.motor.move(self.direction*position, wait=False) 
 
     def moveRelative(self, relativePosition):
