@@ -87,7 +87,7 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        argin = 2
+        argin = ["2", "0"] # to send string array with two arg...
         self._executeServerTask(self._cmdBack, argin)
 
     def _doSafe(self):

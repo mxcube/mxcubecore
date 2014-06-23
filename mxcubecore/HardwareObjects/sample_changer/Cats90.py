@@ -337,15 +337,16 @@ class Cats90(SampleChanger):
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             #print "*** _updateState return"
             return          
+
+        #_chnSampleIsDetected does not exist in our CATS. 
         if self.hasLoadedSample() ^ self._chnSampleIsDetected.getValue():
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
             # or registered but not on the gonio anymore
-            state = SampleChangerState.Unknown
+            state = SampleChangerState.Unknown 
         elif self._chnPathRunning.getValue() and not (state in [SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Moving
         elif self._scIsCharging and not (state in [SampleChangerState.Alarm, SampleChangerState.Moving, SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Charging
-        #print "*** _updateState: ", state
         self._setState(state)
        
     def _readState(self):
