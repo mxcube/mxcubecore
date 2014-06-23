@@ -30,3 +30,15 @@ class MaxLabMicrodiff(MiniDiff.MiniDiff):
         if self.lightWago is not None:
             self.lightWago.wagoOut()
 
+    def getBeamInfo(self, update_beam_callback):
+        if self.aperture is not None:
+              curpos = self.aperture.getCurrentPositionName()
+              logging.getLogger("HWR").info(" Aperture is %s \n" % curpos)
+              size_x = size_y = eval(str(curpos)) / 1000.0 
+              ret= {"size_x": size_x, "size_y": size_y, "shape": "circular"}
+              update_beam_callback( ret )
+
+        #get_beam_info = self.getCommandObject("getBeamInfo")
+        #get_beam_info(callback=update_beam_callback, error_callback=None, wait=True)
+
+
