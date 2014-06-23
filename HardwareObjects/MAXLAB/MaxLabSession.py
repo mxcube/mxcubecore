@@ -140,10 +140,12 @@ class MaxLabSession(Session):
            archive_dir_base = os.path.sep + os.path.join( *parts[1:-2] )
            logging.getLogger().info("archive_dir_base:%s", archive_dir_base)
            #Set up the archiving directory if the user is logged in 
-           #Check if the original path is /data/data1/mx... AN 25/03/2014
+           #Check if the original path is /data/data1/visitor/mx... AN 25/03/2014
 
-           if (archive_dir_base.startswith("/data/data1/visitor") or archive_dir_base.startswith("/data/data1/inhouse")):
-               archive_dir_base = archive_dir_base.replace("/data/data1/", "/data/ispyb/")
+           if (archive_dir_base.startswith("/data/data1/visitor") ):
+               archive_dir_base = archive_dir_base.replace("/data/data1/visitor", "/data/ispyb/")
+           elif (archive_dir_base.startswith("/data/data1/inhouse")):
+               archive_dir_base = archive_dir_base.replace("/data/data1/inhouse", "/data/ispyb/")
 
 
            archive_dir = os.path.join( archive_dir_base, "archive")
