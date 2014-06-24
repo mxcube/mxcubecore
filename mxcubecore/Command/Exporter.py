@@ -114,11 +114,12 @@ class Exporter(ExporterClient.ExporterClient):
       self.events_processing_task = None
 
     def start(self):
-        self.started=True
-        self.reconnect()
+        pass
+        #self.started=True
+        #self.reconnect()
 
     def stop(self):
-        self.started=False
+        #self.started=False
         self.disconnect()
 
     def execute(self, *args, **kwargs):
@@ -133,6 +134,7 @@ class Exporter(ExporterClient.ExporterClient):
         return self._to_python_value(ret)
 
     def reconnect(self):
+        return
         if self.started:
             try:
                 self.disconnect()
@@ -142,7 +144,7 @@ class Exporter(ExporterClient.ExporterClient):
                 self.reconnect()
 
     def onDisconnected(self):
-       self.reconnect()
+       pass #self.reconnect()
 
     def register(self, name, cb):
        if callable(cb): 
