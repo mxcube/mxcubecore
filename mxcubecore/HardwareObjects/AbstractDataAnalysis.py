@@ -76,6 +76,7 @@ class AbstractDataAnalysis(object):
               'not_use_low_res'
               'auto_res'
               'opt_sad'
+              'sad_res'
               'determine_rad_params'
 
               # Radiation damage model

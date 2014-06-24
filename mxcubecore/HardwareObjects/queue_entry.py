@@ -674,7 +674,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     list_item.setText(1, "Moving sample")
                     self.shape_history.select_shape_with_cpos(cpos)
                     self.centring_task = self.diffractometer_hwobj.\
-                                         moveToCentredPosition(cpos)
+                                         moveToCentredPosition(cpos, wait=False)
                     self.centring_task.get()
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
@@ -710,7 +710,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        pass
+        logging.getLogger("user_level_log").info('Collection started')
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
