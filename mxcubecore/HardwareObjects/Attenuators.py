@@ -10,7 +10,7 @@ class Attenuators(Device):
         self.bits    = []
         self.attno   = 0
         self.getValue = self.get_value 
-       
+        self.attState = 0       
 
     def init(self):
         cmdToggle = self.getCommandObject('toggle')
@@ -68,11 +68,11 @@ class Attenuators(Device):
 
     def attStateChanged(self, channelValue):
         try:
-            value = int(channelValue)
+            self.attState = int(channelValue)
         except:
             logging.getLogger("HWR").error('%s: received value on channel is not an integer value', str(self.name())) 
         else:
-            self.emit('attStateChanged', (value, ))
+            self.emit('attStateChanged', (self.attState, ))
 
 
     def attFactorChanged(self, channelValue):
@@ -82,4 +82,7 @@ class Attenuators(Device):
             logging.getLogger("HWR").error('%s: received value on channel is not a float value', str(self.name()))
         else:
             self.emit('attFactorChanged', (value, )) 
+
+    def is_in(self, idx):
+        return self.attState & self.bits[idx]
   	      
