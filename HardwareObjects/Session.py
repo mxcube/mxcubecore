@@ -8,7 +8,7 @@ import os
 import time
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-
+import queue_model_objects_v1 as queue_model_objects
 
 class Session(HardwareObject):
     def __init__(self, name):
@@ -51,6 +51,10 @@ class Session(HardwareObject):
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
                 str(prop.getProperty('number'))))
+
+        queue_model_objects.PathTemplate.set_archive_path(self['file_info'].getProperty('archive_base_directory'),
+                                                          self['file_info'].getProperty('archive_folder'))
+
 
     def get_base_data_directory(self):
         """
@@ -115,8 +119,8 @@ class Session(HardwareObject):
 
         if sub_dir:
             sub_dir = sub_dir.replace(' ', '').replace(':', '-')
-            directory = os.path.join(directory, sub_dir) + '/'
-
+            directory = os.path.join(directory, sub_dir) + os.path.sep
+            
         return directory
 
     def get_process_directory(self, sub_dir=None):
