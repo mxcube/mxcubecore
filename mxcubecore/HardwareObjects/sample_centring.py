@@ -51,9 +51,10 @@ def prepare(centring_motors_dict):
   phi = centring_motors_dict["phi"]
   phiy = centring_motors_dict["phiy"]
   sampx = centring_motors_dict["sampx"]
-  sampy = centring_motors_dict["sampy"]
+  sampy = centring_motors_dict["sampy"] 
+  phiz = centring_motors_dict["phiz"]
 
-  return phi, phiy, sampx, sampy
+  return phi, phiy, phiz, sampx, sampy
   
 def start(centring_motors_dict,
           pixelsPerMm_Hor, pixelsPerMm_Ver, 
@@ -62,11 +63,12 @@ def start(centring_motors_dict,
           n_points = 3):
   global CURRENT_CENTRING
 
-  phi, phiy, sampx, sampy = prepare(centring_motors_dict)
+  phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
   CURRENT_CENTRING = gevent.spawn(center, 
                                   phi,
                                   phiy,
+                                  phiz,
                                   sampx, 
                                   sampy, 
                                   pixelsPerMm_Hor, pixelsPerMm_Ver, 
@@ -100,7 +102,7 @@ def user_click(x,y, wait=False):
   if wait:
     READY_FOR_NEXT_POINT.wait()
   
-def center(phi, phiy,
+def center(phi, phiy, phiz,
            sampx, sampy, 
            pixelsPerMm_Hor, pixelsPerMm_Ver, 
            beam_xc, beam_yc,
@@ -149,9 +151,15 @@ def center(phi, phiy,
   vertical_move = phiRotMatrix*numpy.matrix([[0],d_vertical])
   
   centred_pos = SAVED_INITIAL_POSITIONS.copy()
-  centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
-                       sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
-                       phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+  if phiz.reference_position is None:
+      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
+                           sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
+                           phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]),
+                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+  else:
+      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
+                           sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
+                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
   return centred_pos
 
 def end(centred_pos=None):
@@ -172,11 +180,11 @@ def start_auto(camera,  centring_motors_dict,
                new_point_cb=None):    
     global CURRENT_CENTRING
 
-    phi, phiy, sampx, sampy = prepare(centring_motors_dict)
+    phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
 
     CURRENT_CENTRING = gevent.spawn(auto_center, 
                                     camera, 
-                                    phi, phiy, 
+                                    phi, phiy, phiz,
                                     sampx, sampy, 
                                     pixelsPerMm_Hor, pixelsPerMm_Ver, 
                                     beam_xc, beam_yc, 
@@ -199,7 +207,7 @@ def find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb):
   return x, y
 
 def auto_center(camera, 
-                phi, phiy, 
+                phi, phiy, phiz,
                 sampx, sampy, 
                 pixelsPerMm_Hor, pixelsPerMm_Ver, 
                 beam_xc, beam_yc, 
@@ -224,7 +232,7 @@ def auto_center(camera,
             msg_cb("Doing automatic centring")
             
       centring_greenlet = gevent.spawn(center,
-                                       phi, phiy, 
+                                       phi, phiy, phiz,
                                        sampx, sampy, 
                                        pixelsPerMm_Hor, pixelsPerMm_Ver, 
                                        beam_xc, beam_yc, 
