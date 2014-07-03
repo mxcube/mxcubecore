@@ -113,7 +113,7 @@ class Camera(BaseHardwareObjects.Device):
                         #self.oprint ("attribute list:")
                         #self.oprint (_attribute_list)
 
-                        imgChan    = self.addChannel({ 'type': 'tango', 'name': 'image', "read_as_str": 1 }, "Image")
+                        imgChan    = self.addChannel({ 'type': 'tango', 'name': 'image', "read_as_str": 1 }, "RgbImage")
                         imgWidth   = self.addChannel({ 'type': 'tango', 'name': 'width' },     "Width")
                         imgHeight  = self.addChannel({ 'type': 'tango', 'name': 'height'},     "Height")
                         fullWidth  = self.addChannel({ 'type': 'tango', 'name': 'fullwidth' }, "FullWidth")
