@@ -248,6 +248,9 @@ class AbstractMultiCollect(object):
     def get_beam_shape(self):
       pass
 
+    @abc.abstractmethod
+    def get_beam_centre(self):
+      pass
 
     @abc.abstractmethod
     def get_measured_intensity(self):
