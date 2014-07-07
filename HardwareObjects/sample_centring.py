@@ -45,7 +45,12 @@ def prepare(centring_motors_dict):
   global USER_CLICKED_EVENT
   USER_CLICKED_EVENT = gevent.event.AsyncResult()  
 
-  move_motors(dict([(m.motor, m.reference_position if m.reference_position is not None else m.getPosition()) for m in centring_motors_dict.itervalues()]))
+  motors_to_move = dict()
+  for m in centring_motors_dict.itervalues():
+    if m.reference_position is not None:
+      motors_to_move[m.motor] = m.reference_position
+  move_motors(motors_to_move)
+
   SAVED_INITIAL_POSITIONS = dict([(m.motor, m.motor.getPosition()) for m in centring_motors_dict.itervalues()])
 
   phi = centring_motors_dict["phi"]
