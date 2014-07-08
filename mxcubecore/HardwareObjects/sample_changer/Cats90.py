@@ -4,15 +4,19 @@ CATS sample changer hardware object.
 Implements the abstract interface of the GenericSampleChanger for the CATS
 sample changer model.
 Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
+Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
+ -fix the Abort Bug
+ -enable setondiff for the catsmaint object 
+ -fix the bug of MD2 jam during exchange or unload
 """
 from .GenericSampleChanger import *
 import time
 
-__author__ = "Michael Hellmig"
+__author__ = "Jie Nan"
 __credits__ = ["The MxCuBE collaboration"]
 
-__email__ = "michael.hellmig@helmholtz-berlin.de"
-__status__ = "Beta"
+__email__ = "jie.nan@maxlab.lu.se"
+__status__ = "Alpha"
 
 class Pin(Sample):        
     STD_HOLDERLENGTH = 22.0
