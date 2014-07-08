@@ -12,6 +12,7 @@ class Energy(Equipment):
         self.energy_motor = None
         self.tunable = False
         self.moving = None
+        self.default_en = 0
         self.en_lims = []
 
         try:
@@ -23,8 +24,14 @@ class Energy(Equipment):
         try:
             self.tunable = self.getProperty("tunable_energy")
         except:
-            logging.getLogger("HWR").warning('Energy: will set no fixed energy')
+            logging.getLogger("HWR").warning('Energy: will set to fixed energy')
             self.tunable = False
+
+        try:
+            self.default_en = self.getProperty("default_energy")
+            self.tunable = False
+        except:
+            logging.getLogger("HWR").warning('Energy: no default energy')
 
         if self.energy_motor is not None:
             self.energy_motor.connect('positionChanged', self.energyPositionChanged)
@@ -47,7 +54,7 @@ class Energy(Equipment):
             except:
                 logging.getLogger("HWR").exception("EnergyHO: could not read current energy")
                 return None
-        return None
+        return self.default_en
 
     def getCurrentWavelength(self):
         logging.getLogger("HWR").info("Get current wavelength")
