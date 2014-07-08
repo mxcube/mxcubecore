@@ -3,6 +3,9 @@ CATS maintenance commands hardware object.
 
 Functionality in addition to sample-transfer functionality: power control,
 lid control, error-recovery commands, ...
+Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
+ -add more controls, including Regulation Off, Gripper Dry/Open/Close, Reset Memory, Set Sample On Diff
+ -add CATS dewar layout
 """
 import logging
 from HardwareRepository.TaskUtils import *
@@ -11,11 +14,11 @@ import gevent
 import time
 import Cats90
 
-__author__ = "Michael Hellmig"
+__author__ = "Jie Nan"
 __credits__ = ["The MxCuBE collaboration"]
 
-__email__ = "michael.hellmig@helmholtz-berlin.de"
-__status__ = "Beta"
+__email__ = "jie.nan@maxlab.lu.se"
+__status__ = "Alpha"
 
 class CatsMaint(Equipment):
     __TYPE__ = "CATS"    
