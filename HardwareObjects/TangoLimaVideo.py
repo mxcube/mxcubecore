@@ -47,24 +47,26 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
     def imageType(self):
         return BayerType("RG16")
 
+    def _get_last_image(self):
+        img_data = self.device.video_last_image
+        if img_data[0]=="VIDEO_IMAGE":
+            header_fmt = ">IHHqiiHHHH"
+            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)])
+            raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
+            self.scaling.autoscale_min_max(raw_buffer, width, height, pixmaptools.LUT.Scaling.BAYER_RG16)
+            validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
+                                                                  width, height,
+                                                                  pixmaptools.LUT.Scaling.BAYER_RG16,
+                                                                  self.scaling)
+            if validFlag:
+                return qimage
+
     def _do_polling(self, sleep_time):
         while True:
-            img_data = self.device.video_last_image
-            if img_data[0]=="VIDEO_IMAGE":
-              header_fmt = ">IHHqiiHHHH"
-              _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)]) 
-              print frame_number
-              raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
-              self.scaling.autoscale_min_max(raw_buffer, width, height, pixmaptools.LUT.Scaling.BAYER_RG16)
-              validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
-                                                                    width, height,
-                                                                    pixmaptools.LUT.Scaling.BAYER_RG16,
-                                                                    self.scaling)
-	      if validFlag:
-   	          self.emit("imageReceived", qimage, qimage.width(), qimage.height(), False)
+            qimage = self._get_last_image()
+   	    self.emit("imageReceived", qimage, qimage.width(), qimage.height(), False)
 
             time.sleep(sleep_time)
-            
 
     def connectNotify(self, signal):
         if signal=="imageReceived":
@@ -107,37 +109,14 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
     def takeSnapshot(self, *args, **kwargs):
         """tango"""
-        return
-        if canTakeSnapshots:
-            imgChan = self.getChannelObject("image")
-            rawimg = imgChan.getValue()
-            w = self.getWidth()
-            h = self.getHeight()
-            if len(rawimg) == w*h*3:
-                img_type="RGB"
-            else:
-                img_type="L"
-            try:
-                if kwargs.get("bw", False) and img_type=="RGB":
-                    img = Image.frombuffer(img_type, (self.getWidth(), self.getHeight()), rawimg).convert("L")
-                else:
-                    img = Image.frombuffer(img_type, (self.getWidth(), self.getHeight()), rawimg)
-                img = img.transpose(Image.FLIP_TOP_BOTTOM)
-            except:
-                logging.getLogger("HWR").exception("%s: could not save snapshot", self.name())
-            else:
-                if len(args):
-                    try:
-                        img.save(*args)
-                    except:
-                        logging.getLogger("HWR").exception("%s: could not save snapshot", self.name())
-                    else:
-                        return True
-                else:
-                    return img
+        qimage = self._get_last_image()
+        try:
+            qimage.save(*args)
+        except:
+            logging.getLogger("HWR").exception("%s: could not save snapshot", self.name())
+            return False
         else:
-            logging.getLogger("HWR").error("%s: could not take snapshot: sorry PIL is not available :-(", self.name())
-        return False
+            return True
 
     def setLive(self, mode):
         """tango"""
