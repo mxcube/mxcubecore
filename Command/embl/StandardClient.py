@@ -204,6 +204,8 @@ class StandardClient:
         self.error=None
         self.received_msg=None
         self.msg_received_event.clear() # = gevent.event.Event()
+        if not self.isConnected():
+          self.connect()
         self.__sendStream__(cmd)
 
         with gevent.Timeout(self.timeout, TimeoutError):
