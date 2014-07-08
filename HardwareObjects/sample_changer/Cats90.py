@@ -88,7 +88,7 @@ class Cats90(SampleChanger):
         for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
            
-        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
+        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad","_cmdRestartMD2"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         for basket_index in range(Cats90.NO_OF_BASKETS):            
@@ -259,6 +259,8 @@ class Cats90(SampleChanger):
             if selected==self.getLoadedSample():
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             else:
+                self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
+                time.sleep(4) # wait for the MD2 restart
                 self._executeServerTask(self._cmdChainedLoad, argin)
         else:
             self._executeServerTask(self._cmdLoad, argin)
@@ -276,6 +278,9 @@ class Cats90(SampleChanger):
         if (sample_slot is not None):
             self._doSelect(sample_slot)
         argin = ["2", "0", "0", "0", "0"]
+        
+        self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140703
+        time.sleep(4) # wait for the MD2 restart
         self._executeServerTask(self._cmdUnload, argin)
 
     def clearBasketInfo(self, basket):
