@@ -14,7 +14,7 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_size(self):
-        return (0.100,0.100)
+        return self.bl_control.beam_info.getBeamSize()
  
     @task
     def get_slit_gaps(self):
@@ -22,7 +22,7 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_shape(self):
-        return "elliptical"
+        return self.bl_control.beam_info.getBeamShape()
 
     @task
     def move_detector(self, detector_distance):
