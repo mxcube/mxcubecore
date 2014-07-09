@@ -54,12 +54,12 @@ class BeamInfo(Equipment):
         except:
            logging.getLogger("HWR").debug('BeamInfo: beam definer not defined correctly')
 
-        self.beam_position_hor = self.getChannelObject("beam_position_hor")
-        self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
-        self.beam_position_ver = self.getChannelObject("beam_position_ver")
-        self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
-	self.chan_beam_size_microns = self.getChannelObject("beam_size_microns")
-        self.chan_beam_shape_ellipse  = self.getChannelObject("beam_shape_ellipse")
+        #self.beam_position_hor = self.getChannelObject("beam_position_hor")
+        #self.beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
+        #self.beam_position_ver = self.getChannelObject("beam_position_ver")
+        #self.beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
+	#self.chan_beam_size_microns = self.getChannelObject("beam_size_microns")
+        #self.chan_beam_shape_ellipse  = self.getChannelObject("beam_shape_ellipse")
   
     def beam_pos_hor_changed(self, value):
 	self.beam_position[0] = value
@@ -77,7 +77,7 @@ class BeamInfo(Equipment):
 	self.beam_position_hor.setValue(int(beam_x))
 	self.beam_position_ver.setValue(int(beam_y))
 
-    def aperture_pos_changed(self, nameList, name, size):
+    def aperture_pos_changed(self, size): # size must be a tuple like (xsize,ysize)
         self.beam_size_aperture = size
         self.evaluate_beam_info() 
 	self.emit_beam_info_change()
@@ -141,8 +141,9 @@ class BeamInfo(Equipment):
 	    self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"],\
 					   self.beam_info_dict["size_y"]), ))
             self.emit("beamInfoChanged", (self.beam_info_dict, ))
-	    if self.chan_beam_size_microns is not None:
+	    """if self.chan_beam_size_microns is not None:
 		self.chan_beam_size_microns.setValue((self.beam_info_dict["size_x"] * 1000, \
 					 	     self.beam_info_dict["size_y"] * 1000))	
             if self.chan_beam_shape_ellipse is not None:
                 self.chan_beam_shape_ellipse.setValue(self.beam_info_dict["shape"] == "ellipse") 
+            """
