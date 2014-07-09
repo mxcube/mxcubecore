@@ -127,7 +127,8 @@ class BeamInfo(Equipment):
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
 
-        if self.beam_size_aperture < self.beam_size_slits:
+        # be careful with comparisons!!! both have to be the same type (=tuple)
+        if tuple(self.beam_size_aperture) < tuple(self.beam_size_slits):
 	    self.beam_info_dict["shape"] = "ellipse"
 	else:
 	    self.beam_info_dict["shape"] = "rectangular"
