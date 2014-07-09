@@ -15,7 +15,6 @@ class RobodiffMotor(Device):
         self.motorState = RobodiffMotor.NOTINITIALIZED
         self.username = self.motor_name
         controller = self.getObjectByRole("controller")
-        self.direction = self.getProperty("direction") or 1
 
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.motor_name
@@ -73,7 +72,7 @@ class RobodiffMotor(Device):
 
     def move(self, position):
         self.updateState("MOVING")
-        self.motor.move(self.direction*position, wait=False) 
+        self.motor.move(position, wait=False) 
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
