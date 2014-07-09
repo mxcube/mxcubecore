@@ -29,7 +29,11 @@ class RobodiffLight(Device):
       
     def _wago_polling(self, key):
         while True:
-            reading = int(self.wago_controller.get(key))
+            try:
+              reading = int(self.wago_controller.get(key))
+            except:
+              time.sleep(1)
+              continue
             if self._state != reading:
                 self._state = reading
                 self.emit("wagoStateChanged", (self.getWagoState(), ))
