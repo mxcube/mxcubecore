@@ -364,6 +364,9 @@ class __HardwareRepositoryClient:
         Return :
           the required Hardware Object
         """
+        if not objectName.startswith("/"):
+            objectName="/"+objectName
+
         try:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
