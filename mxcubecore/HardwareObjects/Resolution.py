@@ -120,8 +120,7 @@ class Resolution(BaseHardwareObjects.HardwareObject):
           if state == self.dtox.READY:
             self.recalculateResolution()
         else:
-          self.dtox.motorState = self.dtox.READY
-          self.dtox.motorStateChanged(self.dtox.motorState)
+          self.dtox.updateState("READY")
 
     def dtoxPositionChanged(self, pos):
         self.update_beam_centre(pos)
