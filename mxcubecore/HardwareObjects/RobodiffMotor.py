@@ -96,4 +96,4 @@ class RobodiffMotor(Device):
         return self.motor_name
 
     def stop(self):
-        self.motor.abort()
+        self.motor.stop()
