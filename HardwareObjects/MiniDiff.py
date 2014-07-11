@@ -116,7 +116,7 @@ class MiniDiff(Equipment):
         
         self.phiMotor = self.getDeviceByRole('phi')
         self.phizMotor = self.getDeviceByRole('phiz')
-        self.phiyMotor = self.getDeviceByRole("phiy")
+        self.phiyMotor = self.getObjectByRole("phiy")
         self.zoomMotor = self.getDeviceByRole('zoom')
         self.lightMotor = self.getDeviceByRole('light')
         self.focusMotor = self.getDeviceByRole('focus')
