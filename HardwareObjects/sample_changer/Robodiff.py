@@ -78,6 +78,7 @@ class Robodiff(SampleChanger):
         self.dm_reader = getattr(controller, "dm_reader")
         self.dw = getattr(controller, "dw")
         self.robot = controller
+        self.detector_translation = self.getObjectByRole("detector_translation")
         
         return SampleChanger.init(self)
 
@@ -145,7 +146,7 @@ class Robodiff(SampleChanger):
     def _doSelect(self, component):
         if isinstance(component, Cell):
           cell_pos = component.getIndex()
-          self.dw.move(cell_pos)
+          self.dw.move(cell_pos+1)
           self._updateSelection()
 
     def _doLoad(self, sample=None):
@@ -153,6 +154,9 @@ class Robodiff(SampleChanger):
         basket_index = sample.getBasketNo()-1
         vial_index = sample.getVialNo()
         sample_to_load = basket_index*10+vial_index
+        # move detector to high software limit, without waiting end of move
+        self.detector_translation.move(self.detector_translation.getLimits()[1])
+        # now call load procedure
         self.robot.load_sample(sample_to_load)
         self._setLoadedSample(sample)
 
@@ -219,7 +223,7 @@ class Robodiff(SampleChanger):
                 gevent.sleep(0.01)
             
     def _updateSelection(self):    
-        dw_pos = int(self.dw.position())
+        dw_pos = int(self.dw.position())-1
         for cell in self.getComponents():
           i = cell.getIndex()
           if dw_pos == i:
