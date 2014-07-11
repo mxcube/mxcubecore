@@ -71,6 +71,7 @@ class Cats90(SampleChanger):
         self._selected_sample = None
         self._selected_basket = None
         self._scIsCharging = None
+        self._startLoad =False # add flag to disable Load or UnLoad/Exchange Button immediately after 1 click (Avoid Click multiple times)
 
         # add support for CATS dewars with variable number of lids
         # assumption: each lid provides access to three baskets
@@ -254,6 +255,8 @@ class Cats90(SampleChanger):
             else:
                raise Exception("No sample selected")
 
+        self._startLoad = True 
+
         # calculate CATS specific lid/sample number
         lid = ((selected.getBasketNo() - 1) / 3) + 1
         sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
@@ -264,10 +267,12 @@ class Cats90(SampleChanger):
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             else:
                 self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
-                time.sleep(4) # wait for the MD2 restart
+                time.sleep(5) # wait for the MD2 restart
                 self._executeServerTask(self._cmdChainedLoad, argin)
         else:
             self._executeServerTask(self._cmdLoad, argin)
+
+        self._startLoad = False
             
     def _doUnload(self,sample_slot=None):
         """
@@ -282,10 +287,12 @@ class Cats90(SampleChanger):
         if (sample_slot is not None):
             self._doSelect(sample_slot)
         argin = ["2", "0", "0", "0", "0"]
+        self._startLoad = True
         
         self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140703
-        time.sleep(4) # wait for the MD2 restart
+        time.sleep(5) # wait for the MD2 restart
         self._executeServerTask(self._cmdUnload, argin)
+        self._startLoad = False
 
     def clearBasketInfo(self, basket):
         pass
