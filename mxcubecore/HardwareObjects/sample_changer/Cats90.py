@@ -255,8 +255,6 @@ class Cats90(SampleChanger):
             else:
                raise Exception("No sample selected")
 
-        self._startLoad = True 
-
         # calculate CATS specific lid/sample number
         lid = ((selected.getBasketNo() - 1) / 3) + 1
         sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
@@ -266,14 +264,14 @@ class Cats90(SampleChanger):
             if selected==self.getLoadedSample():
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             else:
+                self._startLoad = True
                 self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
                 time.sleep(5) # wait for the MD2 restart
+                self._startLoad = False
                 self._executeServerTask(self._cmdChainedLoad, argin)
         else:
             self._executeServerTask(self._cmdLoad, argin)
 
-        self._startLoad = False
-            
     def _doUnload(self,sample_slot=None):
         """
         Unloads a sample from the diffractometer.
@@ -291,8 +289,8 @@ class Cats90(SampleChanger):
         
         self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140703
         time.sleep(5) # wait for the MD2 restart
-        self._executeServerTask(self._cmdUnload, argin)
         self._startLoad = False
+        self._executeServerTask(self._cmdUnload, argin)
 
     def clearBasketInfo(self, basket):
         pass
