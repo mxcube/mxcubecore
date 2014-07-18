@@ -70,7 +70,7 @@ class Pilatus:
       self.header["Angle_increment"]="%0.4f deg." % osc_range
       #self.header["Start_angle"]="%0.4f deg." % start
       self.header["Transmission"]=self.collect_obj.get_transmission()
-      self.header["Flux"]=self.collect_obj.get_flux(),
+      self.header["Flux"]=self.collect_obj.get_flux()
       self.header["Beam_xy"]="(%.2f, %.2f) pixels" % tuple([value/0.172 for value in self.collect_obj.get_beam_centre()])
       self.header["Detector_Voffset"]="0.0000 m"
       self.header["Energy_range"]="(0, 0) eV"
@@ -80,9 +80,9 @@ class Pilatus:
       self.header["Flat_field:"]="(nil)"
       self.header["Excluded_pixels:"]=" badpix_mask.tif"
       self.header["N_excluded_pixels:"]="= 321"
-      self.header["Threshold_setting"]="%d eV" % self.getChannelObject("threshold").getValue(),
-      self.header["Count_cutoff"]="1048500",
-      self.header["Tau"]="= 0 s",
+      self.header["Threshold_setting"]="%d eV" % self.getChannelObject("threshold").getValue()
+      self.header["Count_cutoff"]="1048500"
+      self.header["Tau"]="= 0 s"
       self.header["Exposure_period"]="%f s" % (exptime+self.get_deadtime())
       self.header["Exposure_time"]="%f s" % exptime
 
