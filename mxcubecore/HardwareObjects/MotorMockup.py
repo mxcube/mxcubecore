@@ -51,7 +51,7 @@ class MotorMockup(Device):
         return self.motorState == 'MOVING'
  
     def getMotorMnemonic(self):
-        return self.motor_name
+        return self.name()
 
     def stop(self):
         return
