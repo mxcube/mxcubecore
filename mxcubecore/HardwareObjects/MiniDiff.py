@@ -125,7 +125,6 @@ class MiniDiff(Equipment):
         self.camera = self.getDeviceByRole('camera')
         self.kappaMotor = self.getDeviceByRole('kappa')
         self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
-        self.chiMotor = self.getDeviceByRole('chi')
         self.beam_info = self.getObjectByRole('beam_info')
 
         # mh 2013-11-05:why is the channel read directly? disabled for the moment
@@ -576,7 +575,6 @@ class MiniDiff(Equipment):
                "sampy": self.sampleYMotor.getPosition(),
                "kappa": self.kappaMotor.getPosition(),
                "kappa_phi": self.kappaPhiMotor.getPosition(),    
-               "chi": self.chiMotor.getPosition(),
                "zoom": self.zoomMotor.getPosition()}
     
 
@@ -589,7 +587,6 @@ class MiniDiff(Equipment):
                   "sampy": self.sampleYMotor,
                   "kappa": self.kappaMotor,
                   "kappa_phi": self.kappaPhiMotor,
-                  "chi": self.chiMotor,
                   "zoom": self.zoomMotor }
    
         for role, pos in roles_positions_dict.iteritems():
