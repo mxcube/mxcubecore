@@ -86,6 +86,7 @@ def ready(*motors):
   return not any([m.motorIsMoving() for m in motors])
 
 def move_motors(motor_positions_dict):
+  #import pdb; pdb.set_trace()
   def wait_ready(timeout=None):
     with gevent.Timeout(timeout):
       while not ready(*motor_positions_dict.keys()):
@@ -130,6 +131,7 @@ def center(phi, phiy, phiz,
       READY_FOR_NEXT_POINT.set()
       i += 1
   except:
+    logging.exception("Exception while centring")
     move_motors(SAVED_INITIAL_POSITIONS)
     raise
 
