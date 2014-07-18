@@ -899,6 +899,7 @@ class CentredPosition(object):
 
         self.sampx = int()
         self.sampy = int()
+        self.chi = int()
         self.phi = int()
         self.phix = int()
         self.phiz = int()
@@ -920,6 +921,11 @@ class CentredPosition(object):
 
             try:
                 self.sampy = motor_dict['sampy']
+            except KeyError:
+                pass
+
+            try:
+                self.chi = motor_dict['chi']
             except KeyError:
                 pass
 
