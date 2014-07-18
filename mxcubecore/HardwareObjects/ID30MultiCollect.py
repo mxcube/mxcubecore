@@ -9,11 +9,19 @@ class ID30MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
 
-    ### TEMPORARY DEACTIVATE XTAL SNAPSHOTS
     @task
-    def take_crystal_snapshots(self):
+    def data_collection_hook(self, data_collect_parameters):
+      oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+      # are we doing shutterless ?
+      shutterless = data_collect_parameters.get("shutterless")
+      if data_collect_parameters.get("experiment_type") == 'Helical':
+          shutterless = False
+      self._detector.shutterless = True if shutterless else False
+
+    @task
+    def take_crystal_snapshots(self, number_of_snapshots):
         return
-    ###
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def get_beam_size(self):
