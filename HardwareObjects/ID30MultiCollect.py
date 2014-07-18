@@ -20,7 +20,6 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        return
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
