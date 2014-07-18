@@ -1,6 +1,9 @@
 from ESRFMultiCollect import *
 from detectors.LimaPilatus import Pilatus
 import gevent
+import shutil
+import logging
+import os
 
 class ID30MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
@@ -14,7 +17,7 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_size(self):
-        return self.bl_control.beam_info.getBeamSize()
+        return self.bl_control.beam_info.get_beam_size()
  
     @task
     def get_slit_gaps(self):
@@ -22,7 +25,7 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def get_beam_shape(self):
-        return self.bl_control.beam_info.getBeamShape()
+        return self.bl_control.beam_info.get_beam_shape()
 
     @task
     def move_detector(self, detector_distance):
@@ -78,7 +81,7 @@ class ID30MultiCollect(ESRFMultiCollect):
         return
 
     def get_flux(self):
-        return -1
+        return 1E12
 
     def set_transmission(self, transmission):
     	self.getObjectByRole("transmission").set_value(transmission)
@@ -96,4 +99,20 @@ class ID30MultiCollect(ESRFMultiCollect):
     def get_beam_centre(self):
         return self.bl_control.resolution.get_beam_centre()
 
+    @task
+    def write_input_files(self, datacollection_id):
+        # copy *geo_corr.cbf* files to process directory
+        try:
+            process_dir = os.path.join(self.xds_directory, "..")
+            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
+            for dir in (process_dir, raw_process_dir):
+                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
+                    dest = os.path.join(dir,filename)
+                    if os.path.exists(dest):
+                        continue
+                    shutil.copyfile(os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest)
+        except:
+            logging.exception("Exception happened while copying geo_corr files")
+
+        return ESRFMultiCollect.write_input_files(self, datacollection_id)
 
