@@ -7,9 +7,7 @@ import gevent
 from Lima import Core
 from Qub.CTools import pixmaptools
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, MmapType, RawType, RGBType
-
-import os
+from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, MmapType, RawType
 
 class LimaVideo(BaseHardwareObjects.Device):
 
@@ -65,9 +63,6 @@ class LimaVideo(BaseHardwareObjects.Device):
 		self.scalingType = pixmaptools.LUT.Scaling.BAYER_RG16
         elif image_type.lower().startswith("raw") :
             self.imgtype = RawType()
-	elif image_type.lower() == 'rgb':
-	    self.imgtype = RGBType()
-  	    self.scalingType = pixmaptools.LUT.Scaling.RGB24
         elif image_type.lower().startswith("mmap:"):
             self.imgtype = MmapType(image_type.split(":")[1])
 
@@ -106,8 +101,7 @@ class LimaVideo(BaseHardwareObjects.Device):
         return self.__gainExists
 
     def setGain(self, gain):
-	pass
-	#self.video.setGain(gain)
+	self.video.setGain(gain)
 
     def getGain(self):
 	return self.video.getGain()
@@ -131,18 +125,9 @@ class LimaVideo(BaseHardwareObjects.Device):
     def setLive(self, mode):
 	if mode:
 	    self.video.startLive()
-            self.change_owner()
         else:
 	    self.video.stopLive()
     
-    def change_owner(self):
-        if os.getuid() == 0:
-           try:
-              os.setgid(int(os.getenv("SUDO_GID")))
-              os.setuid(int(os.getenv("SUDO_UID")))
-           except:
-	      logging.getLogger().warning('%s: failed to change the process ownership.', self.name())
-
     def getWidth(self):
 	return self.__imageDimensions[0]
 	

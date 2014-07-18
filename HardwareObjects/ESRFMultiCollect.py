@@ -279,8 +279,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectReady", (True, ))
 
     @task
-    def take_crystal_snapshots(self):
-        self.bl_control.diffractometer.takeSnapshots(wait=True)
+    def take_crystal_snapshots(self, number_of_snapshots):
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     #TODO: remove this hook!!!
     @task
