@@ -101,8 +101,8 @@ class BeamInfo(Equipment):
 	Resturns: list with two integers
 	"""
 	self.evaluate_beam_info()
-        return int(self.beam_info_dict["size_x"] *1000), \
-	       int(self.beam_info_dict["size_y"] * 1000)
+        return float(self.beam_info_dict["size_x"]), \
+	       float(self.beam_info_dict["size_y"])
 
     def get_beam_shape(self):
 	self.evaluate_beam_info()
