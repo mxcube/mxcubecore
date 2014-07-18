@@ -622,11 +622,11 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["yBeam"] = beam_centre_y
 
                     und = self.get_undulators_gaps()
-                    i = 1
-                    for key in und:
-                        self.bl_config.undulators[i-1].type = key
-                        data_collect_parameters["undulatorGap%d" %i] = und[key]  
-                        i += 1
+                    for i, key in enumerate(und):
+                        if i>=2:
+                          break
+                        self.bl_config.undulators[i].type = key
+                        data_collect_parameters["undulatorGap%d" % (i+1)] = und[key]  
 
                     data_collect_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
                     beam_size_x, beam_size_y = self.get_beam_size()
@@ -682,7 +682,6 @@ class AbstractMultiCollect(object):
                 file_path  = os.path.join(file_location, filename)
                 
                 #logging.info("Frame %d, %7.3f to %7.3f degrees", frame, start, end)
-
                 self.set_detector_filenames(frame, start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
                 
                 osc_start, osc_end = self.prepare_oscillation(start, osc_range, exptime, npass)
