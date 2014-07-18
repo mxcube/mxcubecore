@@ -1,5 +1,6 @@
 from HardwareRepository.TaskUtils import *
 import MiniDiff
+import sample_centring
 import os
 import sys
 import logging
@@ -12,31 +13,67 @@ class Robodiff(MiniDiff.MiniDiff):
     def init(self): 
         self.controller = self.getObjectByRole("controller")
         MiniDiff.MiniDiff.init(self)
+        self.chiMotor = self.getDeviceByRole('chi')
 
     def oscil(self, *args, **kwargs):
         self.controller.oscil(*args, **kwargs)
 
-    """
-    def moveToCentredPosition(self,*args):
-        return self._moveToCentredPosition(wait=False)
+    def getPositions(self, *args, **kwargs):
+        res=MiniDiff.MiniDiff.getPositions(self,*args, **kwargs)
+        res["chi"]=self.chiMotor.getPosition()
+        return res
 
-    @task
-    def _moveToCentredPosition(self):
-        return
+    def start3ClickCentring(self, sample_info=None):
+        self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
+                                                               "phiy":self.centringPhiy,
+                                                               "sampx": self.centringSamplex,
+                                                               "sampy": self.centringSampley,
+                                                               "phiz": self.centringPhiz },
+                                                              self.pixelsPerMmY, self.pixelsPerMmZ,
+                                                              self.getBeamPosX(), self.getBeamPosY(),
+                                                              chi_angle=-self.chiMotor.getPosition())
 
-    def takeSnapshots(self, wait=False):
-        return
+        self.currentCentringProcedure.link(self.manualCentringDone)
 
-    def getPositions(self):
-        return { "phi": self.controller.phi.position(),
-                 "focus": 0,
-                 "phiy": 0,
-                 "phiz": 0,
-                 "sampx": 0, 
-                 "sampy": 0,
-                 "kappa": 0,
-                 "kappa_phi": 0,
-                 "zoom": 0 }
-    """
 
- 
+    def startAutoCentring(self, sample_info=None, loop_only=False):
+        self.currentCentringProcedure = sample_centring.start_auto(self.camera,
+                                                                   {"phi":self.centringPhi,
+                                                                    "phiy":self.centringPhiy,
+                                                                    "sampx": self.centringSamplex,
+                                                                    "sampy": self.centringSampley,
+                                                                    "phiz": self.centringPhiz },
+                                                                   self.pixelsPerMmY, self.pixelsPerMmZ,
+                                                                   self.getBeamPosX(), self.getBeamPosY(),
+                                                                   chi_angle=-self.chiMotor.getPosition(),
+                                                                   msg_cb=self.emitProgressMessage,
+                                                                   new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
+
+        self.currentCentringProcedure.link(self.autoCentringDone)
+
+        self.emitProgressMessage("Starting automatic centring procedure...")
+
+
+    def moveMotors(self, roles_positions_dict):
+        motor = { "phi": self.phiMotor,
+                  "focus": self.focusMotor,
+                  "phiy": self.phiyMotor,
+                  "phiz": self.phizMotor,
+                  "sampx": self.sampleXMotor,
+                  "sampy": self.sampleYMotor,
+                  "kappa": self.kappaMotor,
+                  "kappa_phi": self.kappaPhiMotor,
+                  "chi": self.chiMotor,
+                  "zoom": self.zoomMotor }
+
+        for role, pos in roles_positions_dict.iteritems():
+           motor[role].move(pos)
+
+        # TODO: remove this sleep, the motors states should
+        # be MOVING since the beginning (or READY if move is
+        # already finished) 
+        time.sleep(1)
+
+        while not all([m.getState() == m.READY for m in motor.itervalues()]):
+           time.sleep(0.1)
+
