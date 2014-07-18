@@ -20,7 +20,7 @@ class BeamlineSetup(HardwareObject):
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
                            'resolution', 'shape_history', 'session',
                            'data_analysis', 'workflow', 'lims_client',
-                           'collect', 'energy', 'omega_axis', 'beam_info', 'xrf']
+                           'collect', 'energy', 'omega_axis']
 
     def init(self):
         """

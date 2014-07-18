@@ -319,9 +319,19 @@ class AbstractMultiCollect(object):
                     raise
      
 
+    def _take_crystal_snapshots(self, number_of_snapshots):
+      if isinstance(number_of_snapshots, bool):
+        # backward compatibility, if number_of_snapshots is True|False
+        if number_of_snapshots:
+          return self.take_crystal_snapshots(4)
+        else:
+          return
+      return self.take_crystal_snapshots(number_of_snapshots)
+
+
     @abc.abstractmethod
     @task
-    def take_crystal_snapshots(self):
+    def take_crystal_snapshots(self, number_of_snapshots):
       pass
 
        
@@ -451,13 +461,7 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        try:
-            # why .get() is not working as expected?
-            # got KeyError anyway!
-            if data_collect_parameters["take_snapshots"]:
-              self.take_crystal_snapshots()
-        except KeyError:
-            pass
+        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
 
         centring_info = {}
         try:
@@ -493,7 +497,7 @@ class AbstractMultiCollect(object):
           except:
             logging.getLogger("HWR").exception("Could not update sample infromation in LIMS")
 
-        if 'images' in centring_info:
+        if centring_info.get('images'):
           # Save snapshots
           snapshot_directory = self.get_archive_directory(file_parameters["directory"])
           logging.getLogger("HWR").debug("Snapshot directory is %s" % snapshot_directory)

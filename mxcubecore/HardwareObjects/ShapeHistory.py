@@ -733,13 +733,9 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
         self.__painter = painter
         rect = self.rect()
 
-	num_rows = 0
-	num_colls = 0
         self.__num_cells = 0
-	if self.__cell_height <> 0:
-            num_rows = (rect.bottom() - rect.top()) / self.__cell_height
-        if self.__cell_width <> 0:
-            num_colls = (rect.right() - rect.left()) / self.__cell_width
+        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
+        num_colls = (rect.right() - rect.left()) / self.__cell_width
 
         if self.__highlighted:
             painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
@@ -929,6 +925,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 'steps_y': number of rows,
                 'x1': top left cell center x coord,
                 'y1': top left cell center y coord,
+                'beam_width': beam width in mm
+                'beam_height': beam height in mm
                 'angle': 0}
         """
         rect = self.rect()
@@ -952,6 +950,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle) :
                 'steps_y': num_rows,
                 'x1': first_cell_center_x,
                 'y1': first_cell_center_y,
+                'beam_width': self.__beam_width / self.__x_pixel_size,
+                'beam_height': self.__beam_height / self.__y_pixel_size,
                 'angle': 0}
 
         #print "Beam: " + str(self.__beam_pos)

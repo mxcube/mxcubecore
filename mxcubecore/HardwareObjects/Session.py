@@ -32,7 +32,6 @@ class Session(HardwareObject):
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
-	self.synchrotron_name = self.getProperty('synchrotron_name').lower()
         self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].\
@@ -69,27 +68,21 @@ class Session(HardwareObject):
         user_category = ''
         directory = ''
 
-	#IK
-	if self.synchrotron_name == 'esrf':
-            if self.session_start_date:
-                start_time = self.session_start_date.split(' ')[0].replace('-', '')
-            else:
-                start_time = time.strftime("%Y%m%d")
+        if self.session_start_date:
+            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+        else:
+            start_time = time.strftime("%Y%m%d")
 
-	    if self.is_inhouse():
-                user_category = 'inhouse'
-                directory = os.path.join(self.base_directory, self.endstation_name,
-                                         user_category, self.get_proposal(),
-                                         start_time)
-            else:
-                user_category = 'visitor'
-                directory = os.path.join(self.base_directory, user_category,
-                                         self.get_proposal(), self.endstation_name,
-                                         start_time)
-	elif self.synchrotron_name == 'petra':
-	    start_time = time.strftime("%Y%m%d")	
-	    directory = os.path.join(self.base_directory, str(os.getuid()) + '_'\
-				     + str(os.getgid()), str(os.getlogin()), start_time)	
+        if self.is_inhouse():
+            user_category = 'inhouse'
+            directory = os.path.join(self.base_directory, self.endstation_name,
+                                     user_category, self.get_proposal(),
+                                     start_time)
+        else:
+            user_category = 'visitor'
+            directory = os.path.join(self.base_directory, user_category,
+                                     self.get_proposal(), self.endstation_name,
+                                     start_time)
 
         return directory
 
