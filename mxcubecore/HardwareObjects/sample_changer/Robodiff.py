@@ -76,7 +76,7 @@ class Robodiff(SampleChanger):
     def init(self):
         controller = self.getObjectByRole("controller")
         self.dm_reader = getattr(controller, "dm_reader")
-        self.dw = getattr(controller, "dw")
+        self.dw = self.getObjectByRole("dewar")
         self.robot = controller
         self.detector_translation = self.getObjectByRole("detector_translation")
         
@@ -146,7 +146,8 @@ class Robodiff(SampleChanger):
     def _doSelect(self, component):
         if isinstance(component, Cell):
           cell_pos = component.getIndex()
-          self.dw.move(cell_pos+1)
+          self.dw.moveToPosition(cell_pos+1)
+          self.dw.waitEndOfMove()
           self._updateSelection()
 
     def _doLoad(self, sample=None):
@@ -159,6 +160,8 @@ class Robodiff(SampleChanger):
         # now call load procedure
         self.robot.load_sample(sample_to_load)
         self._setLoadedSample(sample)
+        # update chi position and state
+        self.robot.chi._update_channels()
 
     def _doUnload(self, sample=None):
         loaded_sample = self.getLoadedSample()
@@ -223,7 +226,7 @@ class Robodiff(SampleChanger):
                 gevent.sleep(0.01)
             
     def _updateSelection(self):    
-        dw_pos = int(self.dw.position())-1
+        dw_pos = int(self.dw.getCurrentPositionName())-1
         for cell in self.getComponents():
           i = cell.getIndex()
           if dw_pos == i:
