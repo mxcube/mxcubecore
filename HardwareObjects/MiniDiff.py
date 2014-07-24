@@ -3,7 +3,6 @@ from gevent.event import AsyncResult
 from Qub.Tools import QubImageSave
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import *
-import Image
 import tempfile
 import logging
 import math
@@ -13,7 +12,7 @@ from HardwareRepository import HardwareRepository
 import copy
 import sample_centring
 import numpy
-
+import queue_model_objects_v1 as qmo
 
 class myimage:
     def __init__(self, drawing):
@@ -77,6 +76,16 @@ class MiniDiff(Equipment):
 
     def __init__(self, *args):
         Equipment.__init__(self, *args)
+
+        qmo.CentredPosition.set_diffractometer_motor_names("phi",
+                                                           "focus",
+                                                           "phiz",
+                                                           "phiy",
+                                                           "zoom",
+                                                           "sampx",
+                                                           "sampy",
+                                                           "kappa",
+                                                           "kappa_phi")
 
         self.phiMotor = None
         self.phizMotor = None
@@ -467,7 +476,8 @@ class MiniDiff(Equipment):
         if isinstance(res, gevent.GreenletExit):
           logging.error("Could not complete automatic centring")
           self.emitCentringFailed()
-        else:
+        else: 
+          positions = self.zoomMotor.getPredefinedPositionsList()
           i = len(positions) / 2
           self.zoomMotor.moveToPosition(positions[i-1])
 
@@ -501,12 +511,7 @@ class MiniDiff(Equipment):
        
     @task 
     def moveToCentredPosition(self, centred_position):
-      motor_position_dict = { self.sampleXMotor: centred_position.sampx,
-                              self.sampleYMotor: centred_position.sampy,
-                              self.phiMotor: centred_position.phi,
-                              self.phiyMotor: centred_position.phiy,
-                              self.phizMotor: centred_position.phiz }
-      return sample_centring.move_motors(motor_position_dict)
+      return self.moveMotors(centred_position.as_dict())
 
     def imageClicked(self, x, y, xi, yi):
         sample_centring.user_click(x,y)
