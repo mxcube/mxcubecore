@@ -201,11 +201,11 @@ def start_auto(camera,  centring_motors_dict,
                                     msg_cb, new_point_cb)
     return CURRENT_CENTRING
 
-def find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb):
+def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
   snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
   camera.takeSnapshot(snapshot_filename, bw=True)
 
-  info, x, y = lucid.find_loop(snapshot_filename, pixels_per_mm_horizontal=pixelsPerMm_Hor)
+  info, x, y = lucid.find_loop(snapshot_filename, debug=True,pixels_per_mm_horizontal=pixelsPerMm_Hor, chi_angle=chi_angle)
   
   if callable(msg_cb):
     msg_cb("Loop found: %s (%d, %d)" % (info, x, y))
@@ -227,7 +227,7 @@ def auto_center(camera,
  
     #check if loop is there at the beginning
     i = 0
-    while -1 in find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb):
+    while -1 in find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
         phi.syncMoveRelative(90)
         i+=1
         if i>4:
@@ -248,14 +248,14 @@ def auto_center(camera,
                                        n_points)
 
       for a in range(n_points):
-            x, y = find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb) 
+            x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb) 
             #logging.info("in autocentre, x=%f, y=%f",x,y)
             if x < 0 or y < 0:
               for i in range(1,5):
                 logging.debug("loop not found - moving back")
                 phi.syncMoveRelative(-20)
                 xold, yold = x, y
-                x, y = find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb)
+                x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb)
                 if x >=0:
                   if y < imgHeight/2:
                     y = 0
