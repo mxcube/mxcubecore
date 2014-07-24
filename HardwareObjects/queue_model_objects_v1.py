@@ -860,102 +860,32 @@ class CentredPosition(object):
     which simply is a dictonary with the motornames and
     their corresponding values.
     """
-
+    MOTOR_POS_DELTA = 1E-4
+    DIFFRACTOMETER_MOTOR_NAMES = []
+    @staticmethod
+    def set_diffractometer_motor_names(*names):
+        CentredPosition.DIFFRACTOMETER_MOTOR_NAMES = names[:]
+        
     def __init__(self, motor_dict=None):
-        object.__init__(self)
-
-        self.sampx = int()
-        self.sampy = int()
-        self.chi = int()
-        self.phi = int()
-        self.phix = int()
-        self.phiz = int()
-        self.phiy = int()
-        self.kappa = int()
-        self.kappa_phi = int()
-        self.zoom = int()
         self.snapshot_image = None
         self.centring_method = True
 
-        if motor_dict:
-            try:
-                self.sampx = motor_dict['sampx']
-            except KeyError:
-                pass
+        for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
+           setattr(self, motor_name, 0)
 
-            try:
-                self.sampy = motor_dict['sampy']
-            except KeyError:
-                pass
-
-            try:
-                self.chi = motor_dict['chi']
-            except KeyError:
-                pass
-
-            try:
-                self.phi = motor_dict['phi']
-            except KeyError:
-                pass
-            
-            try:
-                self.phix = motor_dict['focus']
-            except KeyError:
-                pass
-
-            try:
-                self.phiy = motor_dict['phiy']
-            except KeyError:
-                pass
-
-            try:
-                self.phiz = motor_dict['phiz']
-            except KeyError:
-                pass
-
-            try:
-                self.kappa = motor_dict['kappa']
-            except KeyError:
-                pass
-
-            try:
-                self.kappa_phi = motor_dict['kappa_phi']
-            except KeyError:
-                pass
-
-            try:
-                self.zoom = motor_dict['zoom']
-            except KeyError:
-                pass
+        if motor_dict is not None:
+          for motor_name, position in motor_dict.iteritems():
+            setattr(self, motor_name, position)
 
     def as_dict(self):
-        return {'sampx': self.sampx,
-                'sampy': self.sampy,
-                'phi': self.phi,
-                'phix': self.phix,
-                'phiy': self.phiy,
-                'phiz': self.phiz,
-                'kappa': self.kappa,
-                'kappa_phi': self.kappa_phi,
-                'zoom': self.zoom}
+        return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
+                    [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
     def __repr__(self):
-        return str({'sampx': str(self.sampx),
-                    'sampy': str(self.sampy),
-                    'omega': str(self.phi),
-                    'phiz': str(self.phiz),
-                    'phiy': str(self.phiy),
-                    'kappa': str(self.kappa),
-                    'kappa_phi': str(self.kappa_phi),
-                    'zoom': str(self.zoom)})
+        return str(self.as_dict())
 
     def __eq__(self, cpos):
-        result = (self.sampx == cpos.sampx) and (self.sampy == cpos.sampy) and \
-                 (self.phi == cpos.phi) and (self.phiz == cpos.phiz) and \
-                 (self.phiy == cpos.phiy) and (self.zoom == cpos.zoom)
-
-        return result
-
+        return all([abs(getattr(self, motor_name) - getattr(cpos, motor_name))<=CentredPosition.MOTOR_POS_DELTA for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES])
 
     def __ne__(self, cpos):
         return not (self == cpos)
