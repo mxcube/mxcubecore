@@ -92,7 +92,7 @@ def move_motors(motor_positions_dict):
       while not ready(*motor_positions_dict.keys()):
         time.sleep(0.1)
 
-  wait_ready(timeout=3)
+  wait_ready(timeout=30)
 
   if not ready(*motor_positions_dict.keys()):
     raise RuntimeError("Motors not ready")
@@ -151,6 +151,7 @@ def center(phi, phiy, phiz,
 
   d_horizontal =  d[0] - (beam_xc / float(pixelsPerMm_Hor))
   d_vertical =  d[1] - (beam_yc / float(pixelsPerMm_Ver))
+
 
   phi_pos = math.radians(phi.direction*phi.getPosition())
   phiRotMatrix = numpy.matrix([[math.cos(phi_pos), -math.sin(phi_pos)],
