@@ -9,13 +9,13 @@ class ID30MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
 
+        self.helical = False
+
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
       # are we doing shutterless ?
       shutterless = data_collect_parameters.get("shutterless")
-      if data_collect_parameters.get("experiment_type") == 'Helical':
-          shutterless = False
       self._detector.shutterless = True if shutterless else False
 
     @task
@@ -73,7 +73,10 @@ class ID30MultiCollect(ESRFMultiCollect):
     def oscil(self, start, end, exptime, npass):
         save_diagnostic = True
         operate_shutter = True
-        self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
+        if self.helical: 
+          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, npass, save_diagnostic, operate_shutter)
+        else:
+          self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
@@ -82,10 +85,10 @@ class ID30MultiCollect(ESRFMultiCollect):
         self.getObjectByRole("diffractometer").controller.fshut.close()
 
     def set_helical(self, helical_on):
-        return
+        self.helical = helical_on
 
     def set_helical_pos(self, helical_oscil_pos):
-        return
+        self.helical_pos = helical_oscil_pos
 
     def get_flux(self):
         return 1E12
