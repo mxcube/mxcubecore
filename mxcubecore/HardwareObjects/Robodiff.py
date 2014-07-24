@@ -99,6 +99,9 @@ class Robodiff(MiniDiff.MiniDiff):
         # already finished) 
         time.sleep(1)
 
-        while not all([m.getState() == m.READY for m in motor.itervalues()]):
+        while any([m.getState() == m.MOVING for m in motor.itervalues()]):
            time.sleep(0.1)
+
+        if any([m.getState() == m.ONLIMIT for m in motor.itervalues()]):
+           raise RuntimeError("Motor %s on limit" % m.username)
 
