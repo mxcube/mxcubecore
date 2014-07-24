@@ -150,7 +150,7 @@ class LimaVideo(BaseHardwareObjects.Device):
 	    if image.frameNumber() > -1:
       		raw_buffer = image.buffer()	
 			
-	        self.scaling.autoscale_min_max(raw_buffer,
+	        self.scaling.autoscale_plus_minus_sigma(raw_buffer,
                                           image.width(), image.height(),
                                           self.scalingType)
                 validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
