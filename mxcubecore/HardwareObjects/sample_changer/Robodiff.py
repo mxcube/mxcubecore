@@ -164,6 +164,7 @@ class Robodiff(SampleChanger):
         self.robot.chi._update_channels()
 
     def _doUnload(self, sample=None):
+        self.detector_translation.move(self.detector_translation.getLimits()[1])
         loaded_sample = self.getLoadedSample()
         if loaded_sample is not None and loaded_sample != sample:
           raise RuntimeError("Can't unload another sample")
