@@ -111,7 +111,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         """tango"""
         qimage = self._get_last_image()
         try:
-            qimage.save(*args)
+            qimage.save(args[0], "PNG")
         except:
             logging.getLogger("HWR").exception("%s: could not save snapshot", self.name())
             return False
