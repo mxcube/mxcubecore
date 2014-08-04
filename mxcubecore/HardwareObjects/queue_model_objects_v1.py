@@ -869,7 +869,6 @@ class CentredPosition(object):
     def __init__(self, motor_dict=None):
         self.snapshot_image = None
         self.centring_method = True
-
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
            setattr(self, motor_name, 0)
 
