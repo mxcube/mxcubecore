@@ -150,6 +150,18 @@ class Robodiff(SampleChanger):
           self.dw.waitEndOfMove()
           self._updateSelection()
 
+    @task
+    def load_sample(self, holderLength, sample_id=None, sample_location=None, sampleIsLoadedCallback=None, failureCallback=None, prepareCentring=True):
+       cell, basket, sample = sample_location
+       sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
+       return self.load(sample)
+
+    @task
+    def unload_sample(self, holderLength, sample_id=None, sample_location=None, successCallback=None, failureCallback=None):
+       cell, basket, sample = sample_location
+       sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
+       return self.unload(sample)
+ 
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())
         basket_index = sample.getBasketNo()-1
