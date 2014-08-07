@@ -4,6 +4,8 @@ from HardwareRepository import BaseHardwareObjects
 import logging
 import os
 import PyTango
+import Image
+import numpy as np
 
 import qt
 
@@ -98,6 +100,17 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
 
        try:
           img=self.device.getImageJPG()
+          
+          # JN, 20140807,adapt the MD2 screen (768x576) to mxCuBE2 
+#          logging.getLogger('HWR').info("Img_chr dimension %s",img.shape)
+          f = open("tmp.jpg","w")
+          f.write("".join(map(chr, img)))
+          f.close()
+          img_tmp=Image.open("tmp.jpg").crop((55,42,714,535))
+          img_tmp.save("tmp_crop.jpg")
+          img=np.fromfile("tmp_crop.jpg",dtype="uint8")
+#          logging.getLogger('HWR').info("Img dimension2 %s",img.shape)
+ 
        #   print img
        #   print len(img)
        except PyTango.ConnectionFailed:
@@ -108,7 +121,8 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
           traceback.print_exc()
 
        if img.any():
-             self.emit("imageReceived", img, 768, 576)
+       #      self.emit("imageReceived", img, 768, 576) 
+             self.emit("imageReceived", img, 659, 493) # JN,20140807,adapt the MD2 screen to mxCuBE2
              if self.badimg > MAX_TRIES:
                  self.badimg = 0
        else:
@@ -133,9 +147,11 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
     def gainExists(self):
         return False
     def getWidth(self):
-        return 768
+        #return 768 #JN ,20140807,adapt the MD2 screen to mxCuBE2
+        return 659
     def getHeight(self):
-        return 576
+        #return 576 # JN ,20140807,adapt the MD2 screen to mxCuBE2
+        return 493
 
     def setLive(self, state):
         self.liveState = state
