@@ -103,12 +103,12 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
           
           # JN, 20140807,adapt the MD2 screen (768x576) to mxCuBE2 
 #          logging.getLogger('HWR').info("Img_chr dimension %s",img.shape)
-          f = open("tmp.jpg","w")
+          f = open("/tmp/mxcube_tmp.jpg","w")
           f.write("".join(map(chr, img)))
           f.close()
-          img_tmp=Image.open("tmp.jpg").crop((55,42,714,535))
-          img_tmp.save("tmp_crop.jpg")
-          img=np.fromfile("tmp_crop.jpg",dtype="uint8")
+          img_tmp=Image.open("/tmp/mxcube_tmp.jpg").crop((55,42,714,535))
+          img_tmp.save("/tmp/mxcube_crop.jpg")
+          img=np.fromfile("/tmp/mxcube_crop.jpg",dtype="uint8")
 #          logging.getLogger('HWR').info("Img dimension2 %s",img.shape)
  
        #   print img
