@@ -164,13 +164,10 @@ class Robodiff(SampleChanger):
  
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())
-        basket_index = sample.getBasketNo()-1
-        vial_index = sample.getVialNo()
-        sample_to_load = basket_index*10+vial_index
         # move detector to high software limit, without waiting end of move
         self.detector_translation.move(self.detector_translation.getLimits()[1])
         # now call load procedure
-        self.robot.load_sample(sample_to_load)
+        self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         self._setLoadedSample(sample)
         # update chi position and state
         self.robot.chi._update_channels()
@@ -180,10 +177,8 @@ class Robodiff(SampleChanger):
         loaded_sample = self.getLoadedSample()
         if loaded_sample is not None and loaded_sample != sample:
           raise RuntimeError("Can't unload another sample")
-        basket_index = sample.getBasketNo()-1
-        vial_index = sample.getVialNo()
-        sample_to_unload = basket_index*10+vial_index
-        self.robot.unload_sample(sample_to_unload)
+        #sample_to_unload = basket_index*10+vial_index
+        self.robot.unload_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         self._setLoadedSample(None)
 
     def _doAbort(self):
@@ -245,4 +240,13 @@ class Robodiff(SampleChanger):
           if dw_pos == i:
             self._setSelectedComponent(cell)
             break
+        # read nSampleNumber
+        sample_no = int(self.robot.tg_device.getVal3DoubleVariable("nSampleNumber"))
+        # find sample
+        cell = self.getSelectedComponent()
+        for sample in cell.getSampleList():
+          if sample.getVialNo() == sample_no:
+            self._setSelectedSample(sample)
+            return
         self._setSelectedSample(0)
+ 
