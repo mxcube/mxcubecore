@@ -26,6 +26,9 @@ class ID30BMultiCollect(ESRFMultiCollect):
     def get_measured_intensity(self):
         return 0
 
+    def get_measured_intensity(self):
+        return 0
+
     @task
     def get_beam_shape(self):
         return self.bl_control.beam_info.get_beam_shape()
