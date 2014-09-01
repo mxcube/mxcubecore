@@ -158,6 +158,9 @@ class AbstractMultiCollect(object):
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
       pass
 
+    @abc.abstractmethod
+    def last_image_saved(self):
+      pass
 
     @abc.abstractmethod
     @task

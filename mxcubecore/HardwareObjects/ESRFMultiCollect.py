@@ -109,6 +109,9 @@ class PixelDetector:
           self._detector.getCommandObject = self.getCommandObject
           self._detector.init(config, collect_obj)
 
+    def last_image_saved(self):
+        return self._detector.last_image_saved()
+
     @task
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
         self.new_acquisition = True
@@ -180,8 +183,6 @@ class PixelDetector:
               else:
                   self.oscillation_task = self.collect_obj.oscil(start, end, self.shutterless_exptime, 1, wait=False)
           else:
-              time.sleep(0.89*exptime)
-
               try:
                  self.oscillation_task.get(block=False)
               except gevent.Timeout:
@@ -405,6 +406,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def write_image(self, last_frame):
         return self._detector.write_image(last_frame)
 
+
+    def last_image_saved(self):
+        return self._detector.last_image_saved()
 
     def stop_acquisition(self):
         return self._detector.stop_acquisition()
