@@ -19,7 +19,7 @@ class Pilatus:
                            "acq_expo_time", "saving_directory", "saving_prefix",
                            "saving_suffix", "saving_next_number", "saving_index_format",
                            "saving_format", "saving_overwrite_policy",
-                           "saving_header_delimiter"):
+                           "saving_header_delimiter", "last_image_saved"):
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": lima_device },
                            channel_name)
 
@@ -48,6 +48,9 @@ class Pilatus:
       with gevent.Timeout(10, RuntimeError("Detector not ready")):
           while acq_status_chan.getValue() != "Ready":
               time.sleep(1)
+
+  def last_image_saved(self):
+      return self.getChannelObject("last_image_saved").getValue() + 1
 
   def get_deadtime(self):
       return float(self.config.getProperty("deadtime"))
