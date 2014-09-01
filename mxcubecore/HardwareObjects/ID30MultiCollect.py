@@ -16,6 +16,8 @@ class ID30MultiCollect(ESRFMultiCollect):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
       # are we doing shutterless ?
       shutterless = data_collect_parameters.get("shutterless")
+      if oscillation_parameters["overlap"] != 0:
+        shutterless = False
       self._detector.shutterless = True if shutterless else False
 
     @task
