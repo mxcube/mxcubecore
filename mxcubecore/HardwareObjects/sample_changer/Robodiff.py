@@ -246,7 +246,9 @@ class Robodiff(SampleChanger):
         cell = self.getSelectedComponent()
         for sample in cell.getSampleList():
           if sample.getVialNo() == sample_no:
+            self._setLoadedSample(sample)
             self._setSelectedSample(sample)
             return
-        self._setSelectedSample(0)
+        self._setLoadedSample(None)
+        self._setSelectedSample(None)
  
