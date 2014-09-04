@@ -44,11 +44,11 @@ class GetStaticParameters:
 
             static_pars = {}
             larr[0] /= 1000
-            static_pars["edge_E"] = larr[0]
-            static_pars["start_E"] = larr[0] - 0.05
-            static_pars["end_E"] = larr[0] + 0.05
-            static_pars["findatt_E"] = larr[0] + 0.03
-            static_pars["remote_E"] = larr[0]+1
+            static_pars["edgeEnergy"] = larr[0]
+            static_pars["startEnergy"] = larr[0] - 0.05
+            static_pars["endEnergy"] = larr[0] + 0.05
+            static_pars["findattEnergy"] = larr[0] + 0.03
+            static_pars["remoteEnergy"] = larr[0]+1
             static_pars["eroi_min"] = larr[1]
             static_pars["eroi_max"] = larr[2]
             
