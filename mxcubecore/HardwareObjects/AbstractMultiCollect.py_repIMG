@@ -751,7 +751,7 @@ class AbstractMultiCollect(object):
                     last_frame = start_image_number + nframes - 1
                     self.write_image(frame == last_frame)
 
-                    self.emit("collectImageTaken", frame)
+#                    self.emit("collectImageTaken", frame)
  
                 frame += 1
                 
