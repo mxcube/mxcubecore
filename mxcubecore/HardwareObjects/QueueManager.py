@@ -87,7 +87,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
     def __execute_task(self):
         self._running = True
 
-        for qe in self._queue_entry_list:
+        try:
+          for qe in self._queue_entry_list:
             try:
                 self.__execute_entry(qe)
             except (queue_entry.QueueAbortedException, Exception) as ex:
@@ -104,11 +105,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     logging.getLogger('user_level_log').\
                         error('Queue execution failed with: ' + str(ex.message))
 
-                self._running = False
                 raise ex
-
-        self._running = False
-        self.emit('queue_execution_finished', (None,))
+        finally:
+          self._running = False
+          self.emit('queue_execution_finished', (None,))
 
     def __execute_entry(self, entry): 
         if not entry.is_enabled() or self._is_stopped:
