@@ -353,8 +353,8 @@ class MiniDiff(Equipment):
         try:
             beam_xc = self.getBeamPosX()
             beam_yc = self.getBeamPosY()
-            self.phizMotor.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
-            self.phiyMotor.moveRelative((x-beam_xc)/float(self.pixelsPerMmY))
+            self.centringPhiz.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
+            self.centringPhiy.moveRelative((x-beam_xc)/float(self.pixelsPerMmY))
         except:
             logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
@@ -428,11 +428,11 @@ class MiniDiff(Equipment):
   
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
-        phi_angle = math.radians(self.centringPhi.direction*self.phiMotor.getPosition()) 
-        sampx = self.centringSamplex.direction * (centred_positions_dict["sampx"]-self.sampleXMotor.getPosition())
-        sampy = self.centringSampley.direction * (centred_positions_dict["sampy"]-self.sampleYMotor.getPosition())
-        phiy = self.centringPhiy.direction * (centred_positions_dict["phiy"]-self.phiyMotor.getPosition())
-        phiz = self.centringPhiz.direction * (centred_positions_dict["phiz"]-self.phizMotor.getPosition())
+        phi_angle = math.radians(self.centringPhi.direction*self.centringPhi.getPosition()) 
+        sampx = self.centringSamplex.direction * (centred_positions_dict["sampx"]-self.centringSamplex.getPosition())
+        sampy = self.centringSampley.direction * (centred_positions_dict["sampy"]-self.centringSampley.getPosition())
+        phiy = self.centringPhiy.direction * (centred_positions_dict["phiy"]-self.centringPhiy.getPosition())
+        phiz = self.centringPhiz.direction * (centred_positions_dict["phiz"]-self.centringPhiz.getPosition())
         rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle), math.sin(phi_angle), math.cos(phi_angle)])
         rotMatrix.shape = (2, 2)
         invRotMatrix = numpy.array(rotMatrix.I)
