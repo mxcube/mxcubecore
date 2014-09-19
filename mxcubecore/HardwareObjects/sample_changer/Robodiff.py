@@ -241,11 +241,13 @@ class Robodiff(SampleChanger):
             self._setSelectedComponent(cell)
             break
         # read nSampleNumber
-        sample_no = int(self.robot.tg_device.getVal3DoubleVariable("nSampleNumber"))
+        robot_sample_no = int(self.robot.tg_device.getVal3DoubleVariable("nSampleNumber"))
+        sample_no = robot_sample_no % 10
+        puck_no = 1+(robot_sample_no//10)
         # find sample
         cell = self.getSelectedComponent()
         for sample in cell.getSampleList():
-          if sample.getVialNo() == sample_no:
+          if sample.getVialNo() == sample_no and sample.getBasketNo()==puck_no:
             self._setLoadedSample(sample)
             self._setSelectedSample(sample)
             return
