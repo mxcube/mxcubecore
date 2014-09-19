@@ -665,7 +665,8 @@ class AbstractMultiCollect(object):
                 data_collect_parameters["dark"] = 0
 
                 i = 0
-                while frame < last_frame: 
+                j = wedge_size
+                while j > 0: 
                   frame_start = start+i*osc_range
                   i+=1
 
@@ -683,14 +684,14 @@ class AbstractMultiCollect(object):
                   osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
 
                   with error_cleanup(self.reset_detector):
-                      self.start_acquisition(exptime, npass, frame == start_image_number)
+                      self.start_acquisition(exptime, npass, j == wedge_size)
                       self.do_oscillation(osc_start, osc_end, exptime, npass)
                       self.stop_acquisition()
-                      self.write_image(frame == last_frame)
-                                      
+                      self.write_image(j == 1)
+                                     
                       # Store image in lims
                       if self.bl_control.lims:
-                        if self.store_image_in_lims(frame, frame == start_image_number, frame == last_frame):
+                        if self.store_image_in_lims(frame, j == wedge_size, j == 1):
                           lims_image={'dataCollectionId': self.collection_id,
                                       'fileName': filename,
                                       'fileLocation': file_location,
@@ -720,12 +721,22 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
+			  while self.last_image_saved() == 0:
+                            time.sleep(exptime)
+                          
                           time.sleep(exptime*wedge_size/100.0)
-                          frame = max(start_image_number+1, start_image_number+self.last_image_saved()-1)
+                          last_image_saved = self.last_image_saved()
+                          frame = max(start_image_number+1, start_image_number+last_image_saved-1)
+                          self.emit("collectImageTaken", frame)
+                          logging.info("J=%d", j)
+                          j = wedge_size - last_image_saved
                       else:
+                          j -= 1
+                          self.emit("collectImageTaken", frame)
                           frame += 1
+                          if j == 0:
+                            break
 
-                      self.emit("collectImageTaken", frame)
                 
     @task
     def loop(self, owner, data_collect_parameters_list):
