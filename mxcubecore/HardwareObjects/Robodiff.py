@@ -6,6 +6,7 @@ import sys
 import logging
 import time
 import queue_model_objects_v1 as qmo
+import copy
 
 class Robodiff(MiniDiff.MiniDiff):      
     def __init__(self, name):
@@ -20,8 +21,8 @@ class Robodiff(MiniDiff.MiniDiff):
                                                            "kappa",
                                                            "kappa_phi",
                                                            "chi",
-                                                           "roby",
-                                                           "robz")
+                                                           "y",
+                                                           "z")
 
 
 
@@ -29,8 +30,18 @@ class Robodiff(MiniDiff.MiniDiff):
         self.controller = self.getObjectByRole("controller")
         MiniDiff.MiniDiff.init(self)
         self.chiMotor = self.getDeviceByRole('chi')
-        self.robzMotor = self.getDeviceByRole('robz')
-        self.robyMotor = self.getDeviceByRole('roby')
+        self.zMotor = self.getDeviceByRole('z')
+        self.yMotor = self.getDeviceByRole('y')
+        self.centringPhiz=sample_centring.CentringMotor(self.zMotor) #, reference_position=phiz_ref)
+        self.centringPhiy=sample_centring.CentringMotor(self.yMotor)
+
+        self.connect(self.zMotor, 'stateChanged', self.phizMotorStateChanged)
+        self.connect(self.zMotor, 'positionChanged', self.phizMotorMoved)
+        self.connect(self.zMotor, "positionChanged", self.emitDiffractometerMoved)
+        self.connect(self.yMotor, 'stateChanged', self.phiyMotorStateChanged)
+        self.connect(self.yMotor, 'positionChanged', self.phiyMotorMoved)
+        self.connect(self.yMotor, "positionChanged", self.emitDiffractometerMoved)
+
 
     def oscil(self, *args, **kwargs):
         self.controller.oscil(*args, **kwargs)
@@ -41,8 +52,8 @@ class Robodiff(MiniDiff.MiniDiff):
     def getPositions(self, *args, **kwargs):
         res=MiniDiff.MiniDiff.getPositions(self,*args, **kwargs)
         res["chi"]=self.chiMotor.getPosition()
-        res["roby"]=self.robyMotor.getPosition()
-        res["robz"]=self.robzMotor.getPosition()
+        res["y"]=self.yMotor.getPosition()
+        res["z"]=self.zMotor.getPosition()
         return res
 
     def start3ClickCentring(self, sample_info=None):
@@ -54,7 +65,6 @@ class Robodiff(MiniDiff.MiniDiff):
                                                               self.pixelsPerMmY, self.pixelsPerMmZ,
                                                               self.getBeamPosX(), self.getBeamPosY(),
                                                               chi_angle=-self.chiMotor.getPosition())
-
         self.currentCentringProcedure.link(self.manualCentringDone)
 
 
@@ -76,6 +86,12 @@ class Robodiff(MiniDiff.MiniDiff):
         self.emitProgressMessage("Starting automatic centring procedure...")
 
 
+    def motor_positions_to_screen(self, centred_positions_dict):
+        centred_pos_dict = copy.deepcopy(centred_positions_dict)
+        centred_pos_dict["phiy"]=centred_positions_dict['y']
+        centred_pos_dict["phiz"]=centred_positions_dict['z']
+        return MiniDiff.MiniDiff.motor_positions_to_screen(self, centred_pos_dict) 
+
     def moveMotors(self, roles_positions_dict):
         motor = { "phi": self.phiMotor,
                   "focus": self.focusMotor,
@@ -86,12 +102,12 @@ class Robodiff(MiniDiff.MiniDiff):
                   "kappa": self.kappaMotor,
                   "kappa_phi": self.kappaPhiMotor,
                   "chi": self.chiMotor,
-                  "roby": self.robyMotor,
-                  "robz": self.robzMotor,
+                  "y": self.yMotor,
+                  "z": self.zMotor,
                   "zoom": self.zoomMotor }
 
-
         for role, pos in roles_positions_dict.iteritems():
+           logging.info("moving motor %s to %f", role, pos)
            motor[role].move(pos)
 
         # TODO: remove this sleep, the motors states should
