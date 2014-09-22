@@ -917,8 +917,8 @@ class ISPyBClient2(HardwareObject):
         
             try:
                 result = self.__collection.service.\
-                    storeBLSampleHasEnergyScan(entry_dict['blSampleId'],
-                                               entry_dict['energyScanId'])
+                    storeBLSampleHasEnergyScan(entry_dict['energyScanId'],
+                                               entry_dict['blSampleId'])
 
             except WebFault, e:
                 result = -1

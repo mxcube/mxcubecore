@@ -153,6 +153,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.close_fast_shutter()
         self.close_safety_shutter()
         self.execute_command("cleanScan")
+        self.emit("energyScanFailed", ())
         self.ready_event.set()
 
     @task
@@ -163,6 +164,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
+    @task
     def move_energy(self, energy):
         return self.energy_obj.startMoveEnergy(energy, wait=True)
         #return self._tunable_bl.energy_obj.move_energy(energy)
@@ -186,11 +188,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         except:
             return
 
-        #remore unnecessary for ISPyB fields:
+        #remove unnecessary for ISPyB fields:
         self.energy_scan_parameters.pop('prefix')
         self.energy_scan_parameters.pop('eroi_min')
         self.energy_scan_parameters.pop('eroi_max')
         self.energy_scan_parameters.pop('findattEnergy')
+        self.energy_scan_parameters.pop('edge')
+        self.energy_scan_parameters.pop('directory')
 
         gevent.spawn(StoreEnergyScanThread, self.dbConnection,self.energy_scan_parameters)
 
@@ -326,14 +330,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.storeEnergyScan()
 
         logging.getLogger("HWR").info("<chooch> returning" )
-        #self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
+        self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title
 
 def StoreEnergyScanThread(db_conn, scan_info):
     scanInfo = dict(scan_info)
     dbConnection = db_conn
 
-    import pdb; pdb.set_trace()
     blsampleid = scanInfo['blSampleId']
     scanInfo.pop('blSampleId')
     db_status=dbConnection.storeEnergyScan(scanInfo)

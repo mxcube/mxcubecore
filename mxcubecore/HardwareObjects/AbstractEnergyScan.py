@@ -160,6 +160,7 @@ class AbstractEnergyScan(object):
     #def do_energy_scan(self, energy_scan_parameters):
     def startEnergyScan(self,element,edge,directory,prefix,session_id=None,blsample_id=None):
 
+        self.emit('energyScanStarted', ())
         STATICPARS_DICT = {}
         #Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(element,edge)
@@ -180,13 +181,16 @@ class AbstractEnergyScan(object):
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory
+        #create the directory if needed
+        if not os.path.exists(directory):
+             os.makedirs(directory)
         self.energy_scan_parameters["prefix"]=prefix
         if session_id is not None:
             self.energy_scan_parameters["sessionId"] = session_id
             self.energy_scan_parameters["blSampleId"] = blsample_id
             self.energy_scan_parameters['startTime']=time.strftime("%Y-%m-%d %H:%M:%S")
 
-        with cleanup(self.escan_cleanup):
+        with error_cleanup(self.escan_cleanup):
 
             self.escan_prepare()
             try:
