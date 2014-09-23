@@ -237,8 +237,8 @@ class Sample(TaskNode):
             return ''
 
     def init_from_sc_sample(self, sc_sample):
-        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
-        self.location = sc_sample[-1] #(sc_sample[1], sc_sample[2])
+        self.loc_str = ":".join(map(str,sc_sample[-1]))
+        self.location = sc_sample[-1]
         self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
