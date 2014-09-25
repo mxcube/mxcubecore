@@ -179,7 +179,7 @@ class Robodiff(SampleChanger):
           raise RuntimeError("Can't unload another sample")
         #sample_to_unload = basket_index*10+vial_index
         self.robot.unload_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
-        self._setLoadedSample(None)
+        self._resetLoadedSample()
 
     def _doAbort(self):
         return
