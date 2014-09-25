@@ -507,7 +507,7 @@ class SampleChanger(Container,Equipment):
 
     def _setLoadedSample(self, sample):
         for s in self.getSampleList():
-            if s is not sample:
+            if s != sample:
                 s._setLoaded(False)
             else:
                 s._setLoaded(True)
