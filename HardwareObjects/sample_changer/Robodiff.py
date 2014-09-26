@@ -242,8 +242,8 @@ class Robodiff(SampleChanger):
             break
         # read nSampleNumber
         robot_sample_no = int(self.robot.tg_device.getVal3DoubleVariable("nSampleNumber"))
-        sample_no = robot_sample_no % 10
-        puck_no = 1+(robot_sample_no//10)
+        sample_no = 1+((robot_sample_no-1) % 10)
+        puck_no = 1+((robot_sample_no-1)//10)
         # find sample
         cell = self.getSelectedComponent()
         for sample in cell.getSampleList():
