@@ -158,9 +158,16 @@ class Robodiff(SampleChanger):
 
     @task
     def unload_sample(self, holderLength, sample_id=None, sample_location=None, successCallback=None, failureCallback=None):
-       cell, basket, sample = sample_location
-       sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
-       return self.unload(sample)
+        cell, basket, sample = sample_location
+        sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
+        return self.unload(sample)
+
+    def chained_load(self, sample_to_unload, sample_to_load):
+        try:
+            self.robot.tg_device.setval3variable(['1', "n_UnloadLoad"])
+            return SampleChanger.chained_load(self, sample_to_unload, sample_to_load)
+        finally:
+            self.robot.tg_device.setval3variable(['0', "n_UnloadLoad"])
  
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())

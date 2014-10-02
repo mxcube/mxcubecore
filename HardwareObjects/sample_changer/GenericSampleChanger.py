@@ -346,6 +346,10 @@ class SampleChanger(Container,Equipment):
         self._triggerSelectionChangedEvent()        
         return ret
 
+    def chained_load(self, sample_to_unload, sample_to_load):
+        self.unload(sample_to_unload)
+        return self.load(sample_to_load)
+
     def load(self, sample=None, wait=True):    
         """
         Load a sample. 
@@ -357,8 +361,7 @@ class SampleChanger(Container,Equipment):
             #Do a chained load in this case
             if (sample is None) or (sample==self.getLoadedSample()):
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
-            self.unload(self.getLoadedSample())
-            return self.load(sample)
+            return self.chained_load(self.getLoadedSample(), sample)
         else:    
             return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)     
 
