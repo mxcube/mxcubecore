@@ -69,6 +69,8 @@ class Robodiff(MiniDiff.MiniDiff):
 
 
     def startAutoCentring(self, sample_info=None, loop_only=False):
+        self.lightWago.wagoIn()
+
         self.currentCentringProcedure = sample_centring.start_auto(self.camera,
                                                                    {"phi":self.centringPhi,
                                                                     "phiy":self.centringPhiy,
