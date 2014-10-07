@@ -1,16 +1,5 @@
 <device class="CameraMockup">
-  <username>Prosilica GE1350C</username>
-  <!-- <tangoname>id23/ge1350c/1</tangoname> -->
-  <!--<imagetype>bayer:rg</imagetype>-->
-  <!--<imagetype>jpeg</imagetype>-->
-  <!-- <imagetype>mmap:/tmp/prosilicaBuffer</imagetype> -->
-  <interval>1</interval>
-  <!-- Source points to a directory with jpg images -->
-  <source>/tmp/images/</source>
-  <!-- <remote_interval>40</remote_interval> -->
-  <!-- <bpmname>id23/ge1350c-bpm/1</bpmname> -->
+  <username>Mockup Camera</username>
+  <source>/txo/Projects/MX/mxcube3/ExampleFiles/fakeimg.jpg</source>
+  <interval>60</interval>
 </device>
-
-<!--
-Screen size is 680x512
--->
