@@ -96,7 +96,11 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def init(self):
         self.energy_obj =  self.getObjectByRole("energy")
         self.safety_shutter = self.getObjectByRole("safety_shutter")
-        self.beamsize = self.getObjectByRole("beamsize")
+        #check if beamsize is a HO
+        try:
+            self.beamsize = self.getObjectByRole("beamsize")
+        except:
+            self.beamsize = None
         self.transmission = self.getObjectByRole("transmission")
         self.ready_event = gevent.event.Event()
         self.dbConnection=self.getObjectByRole("dbserver")
@@ -139,10 +143,14 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     @task
     def escan_prepare(self):
         self.execute_command("presetScan")
-        bsX = self.beamsize.getCurrentPositionName()
-        bsY = bsX
+        if self.beamsize:
+            bsX = self.beamsize.getCurrentPositionName()
+            bsY = bsX
+        else:
+            bsX = self.execute_command("get_beam_size_x") * 1000.
+            bsY = self.execute_command("get_beam_size_y") * 1000.
         self.energy_scan_parameters["beamSizeHorizontal"] = bsX
-        self.energy_scan_parameters["beamSizeVertical"]=bsY
+        self.energy_scan_parameters["beamSizeVertical"] = bsY
 
     @task
     def escan_postscan(self):
@@ -153,6 +161,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.close_fast_shutter()
         self.close_safety_shutter()
         self.execute_command("cleanScan")
+        self.emit("energyScanFailed", ())
         self.ready_event.set()
 
     @task
@@ -163,9 +172,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
+    @task
     def move_energy(self, energy):
-        return self.energy_obj.startMoveEnergy(energy, wait=True)
-        #return self._tunable_bl.energy_obj.move_energy(energy)
+        try:
+            self._tunable_bl.energy_obj.move_energy(energy)
+        except:
+            self.emit("energyScanFailed", ())
+            raise RuntimeError("Cannot move energy")
 
     # Elements commands
     def getElements(self):
@@ -186,11 +199,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         except:
             return
 
-        #remore unnecessary for ISPyB fields:
+        #remove unnecessary for ISPyB fields:
         self.energy_scan_parameters.pop('prefix')
         self.energy_scan_parameters.pop('eroi_min')
         self.energy_scan_parameters.pop('eroi_max')
         self.energy_scan_parameters.pop('findattEnergy')
+        self.energy_scan_parameters.pop('edge')
+        self.energy_scan_parameters.pop('directory')
 
         gevent.spawn(StoreEnergyScanThread, self.dbConnection,self.energy_scan_parameters)
 
@@ -326,14 +341,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.storeEnergyScan()
 
         logging.getLogger("HWR").info("<chooch> returning" )
-        #self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
+        self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title
 
 def StoreEnergyScanThread(db_conn, scan_info):
     scanInfo = dict(scan_info)
     dbConnection = db_conn
 
-    import pdb; pdb.set_trace()
     blsampleid = scanInfo['blSampleId']
     scanInfo.pop('blSampleId')
     db_status=dbConnection.storeEnergyScan(scanInfo)
