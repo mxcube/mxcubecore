@@ -108,7 +108,6 @@ class PixelDetector:
             self.shutterless_range = osc_range*number_of_images
             self.shutterless_exptime = (exptime + 0.003)*number_of_images
         self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)",wait=True)
         
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -151,7 +150,7 @@ class PixelDetector:
               # make oscillation an asynchronous task => do not wait here
               self.oscillation_task = self.execute_command("do_oscillation", start, end, exptime, npass, wait=False)
           else:
-              time.sleep(0.89*exptime)
+              time.sleep(0.2*exptime)
 
               try:
                  self.oscillation_task.get(block=False)
