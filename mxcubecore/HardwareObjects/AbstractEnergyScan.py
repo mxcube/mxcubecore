@@ -86,7 +86,7 @@ class AbstractEnergyScan(object):
         the ROI min/max values.
         There are few more reserved key names:
         'eroi_min', 'eroi_max' - min and max ROI limits if you want ot set one.
-        'attEnergy' - energy to move to if you want to choose the attenuation
+        'findattEnergy' - energy to move to if you want to choose the attenuation
         for the scan.
         """
         pass
@@ -101,7 +101,7 @@ class AbstractEnergyScan(object):
 
     @abc.abstractmethod
     @task
-    def calculate_und_gaps(self, energy, undulator=None):
+    def calculate_und_gaps(self, energy):
         """
         Calculate the undulator(s) gap(s), If specified, undulator is the
         name of the undulator to chose if several possibilities. Return
@@ -173,7 +173,7 @@ class AbstractEnergyScan(object):
         #Calculate undulator gaps (if any)
         GAPS = {}
         try:
-            GAPS = self.calculate_und_gaps(STATICPARS_DICT['edgeEnergy'], und=None)
+            GAPS = self.calculate_und_gaps(STATICPARS_DICT['edgeEnergy'])
         except:
             pass
 
@@ -193,10 +193,6 @@ class AbstractEnergyScan(object):
         with error_cleanup(self.escan_cleanup):
 
             self.escan_prepare()
-            try:
-                self.move_energy(self.energy_scan_parameters['attEnergy'])
-            except:
-                pass
             self.energy_scan_hook(self.energy_scan_parameters)
             self.open_safety_shutter(timeout=10)
             self.choose_attenuation()
