@@ -15,6 +15,9 @@ class RobodiffController(HardwareObject):
      objects = config.get_context_objects("default", "default")
      self.__controller = objects["robot"]
 
+  def set_diagfile(self, diagfile):
+     self.__controller.diagfile = diagfile
+
   def __getattr__(self, attr):
      if attr.startswith("__"):
        raise AttributeError,attr
