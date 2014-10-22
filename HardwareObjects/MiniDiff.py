@@ -21,15 +21,26 @@ class myimage:
         self.zoom = 1
         if matrix is not None:
             self.zoom = matrix.m11()
+
+    def save(self, filename=None):
         self.img = self.drawing.getPPP()
-        fd, name = tempfile.mkstemp()
-        os.close(fd)
+
+        if filename is None:
+          fd, name = tempfile.mkstemp()
+          os.close(fd)
+        else:
+          name = filename
+
         QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
-        f = open(name, "r")
-        self.imgcopy = f.read()
-        f.close()
-        os.unlink(name)
+
+        if filename is None:
+          f = open(name, "r")
+          self.imgcopy = f.read()
+          f.close()
+          os.unlink(name)
+
     def __str__(self):
+        self.save()
         return self.imgcopy
 
 
@@ -205,6 +216,10 @@ class MiniDiff(Equipment):
             self.connect(self.aperture, 'predefinedPositionChanged', self.apertureChanged)
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
 
+
+    def save_snapshot(self, filename):
+        img = myimage(self._drawing)
+        img.save(filename)
 
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
