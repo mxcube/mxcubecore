@@ -89,6 +89,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.beamline_setup_read)
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
+        self._server.register_function(self.save_snapshot)
  
 
         # Register functions from modules specified in <apis> element
@@ -300,6 +301,10 @@ class XMLRPCServer(HardwareObject):
 
     def move_diffractometer(self, roles_positions_dict):
         self.diffractometer_hwobj.moveMotors(roles_positions_dict)
+        return True
+
+    def save_snapshot(self, imgpath):
+        self.diffractometer_hwobj.save_snapshot(imgpath)
         return True
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
