@@ -478,11 +478,18 @@ class AbstractMultiCollect(object):
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
         
         for motor in motors:
-          positions_str = "%s %s=%f" % (positions_str, motor, motors[motor])
+          if motors[motor] is None:
+              positions_str = "%s %s=None" % (positions_str, motor)
+          else:
+              positions_str = "%s %s=%f" % (positions_str, motor, motors[motor])
+
           # update 'motors' field, so diffractometer will move to centring pos.
           motors_to_move_before_collect.update({motor: motors[motor]})
         for motor in extra_motors:
-          positions_str = "%s %s=%f" % (positions_str, motor, extra_motors[motor])
+          if extra_motors[motor] is None:
+              positions_str = "%s %s=None" % (positions_str, motor)
+          else:
+              positions_str = "%s %s=%f" % (positions_str, motor, extra_motors[motor])
           motors_to_move_before_collect.update({motor: extra_motors[motor]})
           
         data_collect_parameters['actualCenteringPosition'] = positions_str
