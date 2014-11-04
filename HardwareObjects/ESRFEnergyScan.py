@@ -120,6 +120,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         offset_keV = self.getProperty("offset_keV")
         pars["startEnergy"] += offset_keV
         pars["endEnergy"] += offset_keV
+        pars["element"] = element
 
         #next to tell spec which energy
         self.getChannelObject("ae_rcm").setValue(pars)
