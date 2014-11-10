@@ -12,7 +12,7 @@ import pkgutil
 import types
 import gevent
 import socket
-
+import json
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from SimpleXMLRPCServer import SimpleXMLRPCServer
@@ -90,8 +90,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
+        self._server.register_function(self.get_cp)
  
-
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
             apis = next(self.getObjects("apis"))
@@ -275,13 +275,27 @@ class XMLRPCServer(HardwareObject):
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
-
         int_based_result = {}
         for result in result_data.iteritems():
             int_based_result[int(result[0])] = result[1]
 
         self.shape_history_hwobj.set_grid_data(key, int_based_result)
         return True
+
+    def get_cp(self):
+        """
+        :returns: a json encoded list with all centred positions
+        """
+        cplist = []
+        points  = self.shape_history_hwobj.get_points()
+
+        for point in points:
+            cp = point.get_centred_positions()[0].as_dict()
+            cplist.append(cp)
+        
+        json_cplist = json.dumps(cplist)
+
+        return json_cplist
 
     def beamline_setup_read(self, path):
         try:
