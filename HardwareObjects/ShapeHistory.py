@@ -160,6 +160,18 @@ class ShapeHistory(HardwareObject):
         """
         return self.shapes.values()
 
+    def get_points(self):
+        """
+        :returns: All points currently handled
+        """
+        current_points = []
+
+        for shape in self.get_shapes():
+            if isinstance(shape, Point):
+                current_points.append(shape)
+
+        return current_points
+        
     def add_shape(self, shape):
         """
         Adds the shape <shape> to the list of handled objects.
