@@ -407,6 +407,11 @@ class MiniDiff(Equipment):
     def currentCentringMethod(self):
         return self.currentCentringMethod
 
+    
+    def saveCurrentPos(self):
+        self.centringStatus["motors"] = self.getPositions()
+        self.acceptCentring()
+
 
     def start3ClickCentring(self, sample_info=None):
         self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
