@@ -91,6 +91,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.get_cp)
+        self._server.register_function(self.save_current_pos)
  
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -319,6 +320,13 @@ class XMLRPCServer(HardwareObject):
 
     def save_snapshot(self, imgpath):
         self.diffractometer_hwobj.save_snapshot(imgpath)
+        return True
+
+    def save_current_pos(self):
+        """
+        Saves the current position as a centered position.
+        """
+        self.diffractometer_hwobj.saveCurrentPos()
         return True
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
