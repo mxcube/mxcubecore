@@ -58,10 +58,12 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
           pos = pos or self.getPosition()
         else :
           pos = pos
-        for positionName in self.predefinedPositions:
-          if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
-            return positionName
-        return ''
+        try:
+            for positionName in self.predefinedPositions:
+                if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
+                    return positionName
+        except:
+            return ''
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])

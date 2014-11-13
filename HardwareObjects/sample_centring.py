@@ -202,7 +202,7 @@ def find_loop(camera, pixelsPerMm_Hor, msg_cb, new_point_cb):
   snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
   camera.takeSnapshot(snapshot_filename, bw=True)
 
-  info, x, y = lucid.find_loop(snapshot_filename, pixels_per_mm_horizontal=pixelsPerMm_Hor)
+  info, x, y = lucid.find_loop(snapshot_filename, pixels_per_mm_horizontal=pixelsPerMm_Hor, debug=False)
   
   if callable(msg_cb):
     msg_cb("Loop found: %s (%d, %d)" % (info, x, y))
