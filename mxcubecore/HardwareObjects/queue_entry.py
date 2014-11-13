@@ -984,7 +984,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
-        self.energy_scan_hwobj = self.beamline_setup.energy_hwobj
+        self.energy_scan_hwobj = self.beamline_setup.energyscan_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
 
         qc = self.get_queue_controller()
@@ -1029,8 +1029,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
     def energy_scan_finished(self, scan_info):
         energy_scan = self.get_data_model()
+        fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
         scan_file_path = os.path.join(energy_scan.path_template.directory,
-                                      energy_scan.path_template.get_prefix())
+                                      fname)
 
         scan_file_archive_path = os.path.join(energy_scan.path_template.\
                                               get_archive_directory(),
@@ -1038,7 +1039,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
-         self.energy_scan_hwobj.doChooch(None, energy_scan.element_symbol,
+         self.energy_scan_hwobj.doChooch(energy_scan.element_symbol,
                                          energy_scan.edge,
                                          scan_file_archive_path,
                                          scan_file_path)
