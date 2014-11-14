@@ -3,9 +3,24 @@ import shutil
 import logging
 import time
 
+class Pilatus3_6M(PixelDetector):
+    def __init__(self,*args,**kwargs):
+      PixelDetector.__init__(self,*args,**kwargs)
+
+    @task
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+        self.new_acquisition = True
+        if  osc_range < 0.0001:
+            self.shutterless = False
+        take_dark = 0
+        if self.shutterless:
+            self.shutterless_range = osc_range*number_of_images
+            self.shutterless_exptime = (exptime + 0.00095)*number_of_images
+        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
+
 class ID29MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(), TunableEnergy())
+        ESRFMultiCollect.__init__(self, name, Pilatus3_6M(), TunableEnergy())
 
     @task
     def data_collection_hook(self, data_collect_parameters):
