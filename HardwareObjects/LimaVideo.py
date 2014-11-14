@@ -19,7 +19,6 @@ class LimaVideo(BaseHardwareObjects.Device):
     def _init(self):
 	self.scalingType = None	
 	self.forceUpdate = False
- 	self.camMirror = None
 
 	self.__brightnessExists = False
 	self.__contrastExists = False
@@ -28,7 +27,10 @@ class LimaVideo(BaseHardwareObjects.Device):
 
 	self.camType = self.getProperty("type").lower()
 	self.camAddress = self.getProperty("address")
-	#self.camMirror = eval(self.getProperty("mirror_hor_ver"))
+        try:
+ 	  self.camMirror = eval(self.getProperty("mirror_hor_ver"))
+        except:
+          self.camMirror = None
 
 	if self.camType == 'prosilica':
 	    from Lima import Prosilica
@@ -148,7 +150,7 @@ class LimaVideo(BaseHardwareObjects.Device):
 	    if image.frameNumber() > -1:
       		raw_buffer = image.buffer()	
 			
-	        self.scaling.autoscale_min_max(raw_buffer,
+	        self.scaling.autoscale_plus_minus_sigma(raw_buffer,
                                           image.width(), image.height(),
                                           self.scalingType)
                 validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
@@ -156,6 +158,6 @@ class LimaVideo(BaseHardwareObjects.Device):
                                                                       self.scalingType,
                                                                       self.scaling)
 		if validFlag:
-                    #if self.camMirror is not None:
-                    #    qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])     
+                    if self.camMirror is not None:
+                        qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])     
    	            self.emit("imageReceived", qimage, qimage.width(), qimage.height(), self.forceUpdate)

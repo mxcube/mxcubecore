@@ -4,7 +4,6 @@ class GetStaticParameters:
     def __init__(self, element, edge):
         self.element = element
         self.edge = edge
-        import pdb; pdb.set_trace()
         config_file = "/users/blissadm/local/spec/userconf/EdgeScan.dat"
         #config_file = "EdgeScan.dat"
         self.STATICPARS_DICT = {}
