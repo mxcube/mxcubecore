@@ -20,7 +20,7 @@ class BeamlineSetup(HardwareObject):
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
                            'resolution', 'shape_history', 'session',
                            'data_analysis', 'workflow', 'lims_client',
-                           'collect', 'energy', 'omega_axis','energyscan']
+                           'collect', 'energy', 'omega_axis', "detector"]
 
     def init(self):
         """
@@ -97,18 +97,10 @@ class BeamlineSetup(HardwareObject):
         :returns: True if the detector is capable of shuterless.
         :rtype: bool
         """
-        shutter_less = False
-
         try:
-            shutter_less = self['detector'].getProperty('has_shutterless')
-
-            if shutter_less is None:
-                shutter_less = False
-
+          return self.detector_hwobj.getProperty('type').lower()=='pilatus'
         except:
-            shutter_less = False
-
-        return shutter_less
+          return False
 
     def tunable_wavelength(self):
         """
@@ -169,8 +161,8 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = bool(self['detector'].getProperty('has_shutterless'))
-        detector_mode = int(self[parent_key].getProperty('detector_mode'))
+        shutterless = self.detector_has_shutterless()
+        detector_mode = 1 #unbinned...
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -264,8 +256,8 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = bool(self['detector'].getProperty('has_shutterless'))
-        detector_mode = int(self[parent_key].getProperty('detector_mode'))
+        shutterless = self.detector_has_shutterless()
+        detector_mode = 1 #unbinned
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images

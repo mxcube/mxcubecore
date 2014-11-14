@@ -649,7 +649,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
-                    self.collect_hwobj.getChannelObject("helical").setValue(1)
+                    self.collect_hwobj.set_helical(True)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -657,22 +657,22 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     dc.lims_end_pos_id = self.lims_client_hwobj.\
                                          store_centred_position(end_cpos)
 
-                    helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict()}
-                    self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+                    helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
+                    self.collect_hwobj.set_helical_pos(helical_oscil_pos)
 
-                    msg = "Helical data collection, moving to start position"
-                    log.info(msg)
-                    log.info("Moving sample to given position ...")
-                    list_item.setText(1, "Moving sample")
+                    #msg = "Helical data collection, moving to start position"
+                    #log.info(msg)
+                    #list_item.setText(1, "Moving sample")
                 else:
-                    self.collect_hwobj.getChannelObject("helical").setValue(0)
+                    self.collect_hwobj.set_helical(False)
 
-                empty_cpos = queue_model_objects.CentredPosition()
-
+                """empty_cpos = queue_model_objects.CentredPosition()
+                
                 if cpos != empty_cpos:
                     log.info("Moving sample to given position ...")
                     list_item.setText(1, "Moving sample")
                     self.shape_history.select_shape_with_cpos(cpos)
+                    
                     self.centring_task = self.diffractometer_hwobj.\
                                          moveToCentredPosition(cpos, wait=False)
                     self.centring_task.get()
@@ -682,7 +682,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     snapshot = self.shape_history.get_snapshot([])
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
-
+                """
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample)
                 self.collect_task = self.collect_hwobj.\
@@ -718,16 +718,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def image_taken(self, image_number):
         # this is to work around the remote access problem
         dispatcher.send("collect_started")
-        num_images = str(self.get_data_model().acquisitions[0].\
-                     acquisition_parameters.num_images)
-
-        first_image = self.get_data_model().acquisitions[0].\
-                      acquisition_parameters.first_image
-
-        if first_image != 0:
-            image_number = image_number - first_image + 1
-
-        self.get_view().setText(1, str(image_number) + "/" + num_images)
+        num_images = self.get_data_model().acquisitions[0].\
+                     acquisition_parameters.num_images
+        num_images += self.get_data_model().acquisitions[0].\
+                      acquisition_parameters.first_image - 1
+        self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
     def preparing_collect(self, number_images=0):
         self.get_view().setText(1, "Collecting")

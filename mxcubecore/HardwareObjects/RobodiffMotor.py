@@ -60,11 +60,8 @@ class RobodiffMotor(Device):
     def getLimits(self):
         return self.motor.limits()
 
-    def positionChanged(self, absolutePosition, private={}):
-        if math.fabs(absolutePosition - private.get("old_pos", 1E12))<=1E-3:
-          return 
-        private["old_pos"]=absolutePosition 
-
+    def positionChanged(self, absolutePosition):
+        #print self.name(), absolutePosition
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
@@ -74,7 +71,7 @@ class RobodiffMotor(Device):
         return self.getPosition()
 
     def move(self, position):
-        self.emit('stateChanged', (RobodiffMotor.MOVESTARTED, ))
+        self.updateState("MOVING")
         self.motor.move(position, wait=False) 
 
     def moveRelative(self, relativePosition):
@@ -92,10 +89,10 @@ class RobodiffMotor(Device):
         self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
-        return self.motorState == 'MOVING'
+        return self.motorState == RobodiffMotor.MOVING
  
     def getMotorMnemonic(self):
         return self.motor_name
 
     def stop(self):
-        self.motor.abort()
+        self.motor.stop()

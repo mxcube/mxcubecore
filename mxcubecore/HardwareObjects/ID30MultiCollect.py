@@ -1,145 +1,91 @@
 from ESRFMultiCollect import *
-import itertools
+from detectors.LimaPilatus import Pilatus
 import gevent
-
-def grouped(iterable, n):
-    "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-    return itertools.izip(*[iter(iterable)]*n)
+import shutil
+import logging
+import os
 
 class ID30MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, CcdDetector(), FixedEnergy(0.965, 12.8))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
+
+        self.helical = False
 
     @task
     def data_collection_hook(self, data_collect_parameters):
-        self.dc_params = data_collect_parameters
-
-    def _send_params(self, func, *args):
-        for key, value in grouped(args, 2):
-          func([key, str(value)])
-
-    @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        self.oscil_start = start
-        self.take_dark = take_dark
-        self.osc_range = osc_range
-
-        bx, by = self.get_beam_centre()
-
-        self.execute_command("detector_state")
-        # set Taco timeout to 15 seconds
-        self.getCommandObject("detector_state").device.timeout(15)
-
-        # set detector to Hardware Binned
-        ccd_set_hwpar = self.getCommandObject("detector_sethwpar")
-        self._send_params(ccd_set_hwpar, 'adc', 1, 'bin', 2, 'save_raw', 0, 'no_xform', 0)
+      oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+      # are we doing shutterless ?
+      shutterless = data_collect_parameters.get("shutterless")
+      if oscillation_parameters["overlap"] != 0:
+        shutterless = False
+      self._detector.shutterless = True if shutterless else False
  
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-        self._send_params(ccd_set_filepar, 'filename', '%s/notset' % self.dc_params["fileinfo"]["directory"],
-                                           'phi', start, 'distance', self.dc_params["detectorDistance"],
-                                           'wavelength', self.dc_params["wavelength"], 'osc_range', osc_range,
-                                           'time', exptime, 'beam_x', bx, 'beam_y', by, 'comment', comment)
+      file_info = data_collect_parameters["fileinfo"]
+      diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
+      self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
 
     @task
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        print 'frame', frame_number, ' - setting detector filename', filename, 'phi=',start
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-        self._send_params(ccd_set_filepar, 'filename', filename, 'phi', start, 'jpeg_name1', jpeg_full_path,
-                                           'jpeg_size1', '1024x1024', 'jpeg_size2', '250x250',
-                                           'jpeg_name2', jpeg_thumbnail_full_path)
+    def take_crystal_snapshots(self, number_of_snapshots):
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
-    def start_acquisition(self, exptime, npass, first_frame):
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-
-        if first_frame and self.take_dark: #self.dc_params.get("dark", 0):
-          start = self.oscil_start
-          dark_start = start-2*self.osc_range
-
-          self.getObjectByRole("diffractometer").phiMotor.move(dark_start)
-
-          logging.info("Taking 1st dark image")
-          self._send_params(ccd_set_filepar, 'kind', 0, 'lastimage', 1)
-          self.execute_command("detector_start_exposure")
-          self.wait_detector(1)
-          self.do_oscillation(dark_start, dark_start+self.osc_range, exptime, npass, save_diagnostic=False, operate_shutter=False)
-          self.execute_command("detector_stop")
-          self.wait_detector(0)
-          self.execute_command("detector_write_image")
-          self.wait_detector(0)
-
-          logging.info("Taking 2nd dark image")
-          self._send_params(ccd_set_filepar, 'kind', 1, 'lastimage', 1)
-          self.execute_command("detector_start_exposure")
-          self.wait_detector(1)
-          self.do_oscillation(dark_start+self.osc_range, start, exptime, npass, save_diagnostic=False, operate_shutter=False)
-          self.execute_command("detector_stop")
-          self.wait_detector(0)
-          self.execute_command("detector_write_image")
-          self.wait_detector(0)
-
-        self._send_params(ccd_set_filepar, 'axis', 1, 'kind', 5, 'lastimage', 0)
-
-        print 'detector start exposure'
-        self.execute_command("detector_start_exposure")
-        self.wait_detector(1) 
-
-    @task
-    def write_image(self, last_frame):
-        if last_frame:
-            ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-            self._send_params(ccd_set_filepar, 'lastimage', 1)
-
-        self.wait_detector(0)
+    def get_beam_size(self):
+        return self.bl_control.beam_info.get_beam_size()
  
-        print 'calling write_image'
-        self.execute_command("detector_write_image")
+    @task
+    def get_slit_gaps(self):
+        return (0.1, 0.1)
+
+    def get_measured_intensity(self):
+        return 0
 
     @task
-    def stop_acquisition(self):
-        print 'calling stop'
-        self.execute_command("detector_stop")
-
-    @task
-    def reset_detector(self):
-        self.execute_command("detector_reset")
-
-
-    def wait_detector(self, until_state):
-        with gevent.Timeout(20, RuntimeError("Timeout waiting for detector")):
-            state = self.execute_command("detector_state")
-            print state, until_state
-            while state != until_state:
-                time.sleep(0.2)
-                state = self.execute_command("detector_state")
-                print 'DET. WAITING FOR STATE ;', state, until_state
-                if state in (-1, 3):
-                    status = self.execute_command("detector_status")
-                    raise RuntimeError("Detector problem: %s, hint: try to restart detector software" % status)
+    def get_beam_shape(self):
+        return self.bl_control.beam_info.get_beam_shape()
 
     @task
     def move_detector(self, detector_distance):
-        pass #self.bl_control.resolution.newDistance(detector_distance)
+        det_distance = self.getObjectByRole("distance")
+        det_distance.move(detector_distance)
+        while det_distance.motorIsMoving():
+          time.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
-        pass #self.bl_control.resolution.move(new_resolution)
+        self.bl_control.resolution.move(new_resolution)
+        while self.bl_control.resolution.motorIsMoving():
+          time.sleep(0.1)
+
+    def get_resolution_at_corner(self):
+        return self.bl_control.resolution.get_value_at_corner()
 
     def get_detector_distance(self):
-        return 260 #self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition()
+        det_distance = self.getObjectByRole("distance")
+        return det_distance.getPosition()
 
     @task
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
-        if osc_range < 1E-4:
-            # still image
-            return (start, start+osc_range)
-        else:
-            # prepare oscillation... what should we do?
-            return (start, start+osc_range)
-        
+    def move_motors(self, motors_to_move_dict):
+        motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
+
+        cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
+        self.getObjectByRole("beamstop").moveToPosition("in")
+        self.getObjectByRole("light").wagoOut()
+
+        motion.get()
+        cover_task.get()
+
     @task
-    def do_oscillation(self, start, end, exptime, npass=1, save_diagnostic=True, operate_shutter=True):
-        self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter) 
+    def do_prepare_oscillation(self, *args, **kwargs):
+        return
+
+    @task
+    def oscil(self, start, end, exptime, npass):
+        save_diagnostic = True
+        operate_shutter = True
+        if self.helical: 
+          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, npass, save_diagnostic, operate_shutter)
+        else:
+          self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
@@ -147,14 +93,20 @@ class ID30MultiCollect(ESRFMultiCollect):
     def close_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.close()
 
-    def get_flux(self):
-        return -1
+    def set_helical(self, helical_on):
+        self.helical = helical_on
 
-    def set_transmission(self, transmission_percent):
-    	pass
+    def set_helical_pos(self, helical_oscil_pos):
+        self.helical_pos = helical_oscil_pos
+
+    def get_flux(self):
+        return 1E12
+
+    def set_transmission(self, transmission):
+    	self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
-        return 100
+        return self.getObjectByRole("transmission").get_value()
 
     def get_cryo_temperature(self):
         return 0
@@ -164,6 +116,22 @@ class ID30MultiCollect(ESRFMultiCollect):
         return
 
     def get_beam_centre(self):
-        return (159.063, 163.695)
+        return self.bl_control.resolution.get_beam_centre()
 
+    @task
+    def write_input_files(self, datacollection_id):
+        # copy *geo_corr.cbf* files to process directory
+        try:
+            process_dir = os.path.join(self.xds_directory, "..")
+            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
+            for dir in (process_dir, raw_process_dir):
+                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
+                    dest = os.path.join(dir,filename)
+                    if os.path.exists(dest):
+                        continue
+                    shutil.copyfile(os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest)
+        except:
+            logging.exception("Exception happened while copying geo_corr files")
+
+        return ESRFMultiCollect.write_input_files(self, datacollection_id)
 

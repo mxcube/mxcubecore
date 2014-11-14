@@ -346,6 +346,10 @@ class SampleChanger(Container,Equipment):
         self._triggerSelectionChangedEvent()        
         return ret
 
+    def chained_load(self, sample_to_unload, sample_to_load):
+        self.unload(sample_to_unload)
+        return self.load(sample_to_load)
+
     def load(self, sample=None, wait=True):    
         """
         Load a sample. 
@@ -353,12 +357,13 @@ class SampleChanger(Container,Equipment):
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
         #Do a chained load in this case
-        #if self.hasLoadedSample():    
+        if self.hasLoadedSample():    
             #Do a chained load in this case
-            #raise Exception("A sample is loaded")
-            #if self.getLoadedSample() == sample:
-            #    raise Exception("The sample " + sample.getAddress() + " is already loaded")
-        return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)     
+            if (sample is None) or (sample==self.getLoadedSample()):
+                raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
+            return self.chained_load(self.getLoadedSample(), sample)
+        else:    
+            return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)     
 
     def unload(self, sample_slot=None, wait=True):
         """
@@ -368,8 +373,8 @@ class SampleChanger(Container,Equipment):
         sample_slot = self._resolveComponent(sample_slot)
         self.assertNotCharging()
         #In case we have manually mounted we can command an unmount
-        #if not self.hasLoadedSample(self):
-        #    raise Exception("No sample is loaded")
+        if not self.hasLoadedSample():
+            raise Exception("No sample is loaded")
         return self._executeTask(SampleChangerState.Unloading,wait,self._doUnload,sample_slot)         
 
     def reset(self,wait=True):
@@ -378,8 +383,6 @@ class SampleChanger(Container,Equipment):
         If sample_slot=None, unloads to the same slot the sample was loaded from.        
         """
         return self._executeTask(SampleChangerState.Resetting,wait,self._doReset)
-                
-    
     
     def _load(self,sample=None):
         self._doLoad(sample)
@@ -507,7 +510,7 @@ class SampleChanger(Container,Equipment):
 
     def _setLoadedSample(self, sample):
         for s in self.getSampleList():
-            if s is not sample:
+            if s != sample:
                 s._setLoaded(False)
             else:
                 s._setLoaded(True)

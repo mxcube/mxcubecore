@@ -2,7 +2,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 import os
 import sys
 
-class RobodiffController(HardwareObject):
+class ObjectsController(HardwareObject):
   def __init__(self, *args):
     HardwareObject.__init__(self, *args)
 
@@ -13,13 +13,6 @@ class RobodiffController(HardwareObject):
      cfg_file = os.path.join(self.getProperty("source"), self.getProperty("config_file")) 
      config.load(cfg_file)
      objects = config.get_context_objects("default", "default")
-     self.__controller = objects["robot"]
 
-  def set_diagfile(self, diagfile):
-     self.__controller.diagfile = diagfile
-
-  def __getattr__(self, attr):
-     if attr.startswith("__"):
-       raise AttributeError,attr
-     return getattr(self.__controller, attr)
-
+     for obj_name, obj in objects.iteritems():
+       setattr(self, obj_name, obj)
