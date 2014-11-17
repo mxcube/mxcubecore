@@ -32,7 +32,7 @@ class MaxLabSession(Session):
 
         if self.is_inhouse():
             user_category = 'inhouse'
-            directory = os.path.join(self.base_directory, user_category, start_time)
+            directory = os.path.join(self.base_directory, user_category, self.get_proposal(), start_time)
         else:
             user_category = 'visitor'
             directory = os.path.join(self.base_directory, user_category, self.get_proposal(), start_time)
