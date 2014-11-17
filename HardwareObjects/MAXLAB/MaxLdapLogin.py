@@ -76,7 +76,7 @@ class MaxLdapLogin(Procedure):
                 return self.cleanup(ex=err)
 
         if not found:
-            return self.cleanup(msg="unknown proposal %s" % username)
+            return self.cleanup(msg="unknown username %s" % username)
         if password=="":
             return self.cleanup(msg="invalid password for %s" % username)
 
