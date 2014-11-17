@@ -289,6 +289,7 @@ class Sample(TaskNode):
         self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
         self.location_plate = plate_sample[5]
         self.set_name(self.loc_str)
+        self.code=sc_sample[0]
 
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
@@ -325,6 +326,9 @@ class Sample(TaskNode):
 
         if hasattr(lims_sample, 'code'):
             self.lims_code = lims_sample.code
+            logging.getLogger("lism_code:%s" %self.lims_code)
+        else:
+            logging.getLogger("No code found from LIMS for this sample")
 
         if hasattr(lims_sample, 'holderLength'):
             self.holder_length = lims_sample.holderLength
