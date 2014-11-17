@@ -74,7 +74,7 @@ class XMLRPCServer(HardwareObject):
         if hasattr(self, "_server" ):
           return
         self.xmlrpc_prefixes = set()
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False)
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none=True)
 
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
