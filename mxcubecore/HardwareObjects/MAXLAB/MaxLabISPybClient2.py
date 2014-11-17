@@ -117,7 +117,7 @@ class MaxLabISPybClient2(HardwareObject):
         try:
             formatter = \
                 logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-            hdlr = logging.FileHandler('/users/blissadm/log/ispyb_client.log')
+            hdlr = logging.FileHandler('/home/blissadm/log/ispyb_client.log')
             hdlr.setFormatter(formatter)
             logger.addHandler(hdlr) 
         except:
@@ -157,7 +157,9 @@ class MaxLabISPybClient2(HardwareObject):
                 
                 t3 = HttpAuthenticated(username = _WS_USERNAME, 
                                       password = _WS_PASSWORD)
-                
+
+                logging.getLogger().debug("ISPyB URL is %s", _WSDL_ROOT)
+
                 try: 
                     self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3,
                                              transport = t1, cache = None)
@@ -234,14 +236,15 @@ class MaxLabISPybClient2(HardwareObject):
 
         try:
             try:
-                person = self.__shipping.service.findPersonByLogin(username)
+                person = self.__shipping.service.findPersonByLogin(username, os.environ["SMIS_BEAMLINE_NAME"])
             except WebFault, e:
                 logging.getLogger("ispyb_client").warning(e.message)
                 person = {}
 
             try:
-                proposal = self.__shipping.service.findProposalByLogin(username)
+                proposal = self.__shipping.service.findProposalByLoginAndBeamline(username, os.environ["SMIS_BEAMLINE_NAME"])
                 if not proposal:
+                    logging.getLogger("ispyb_client").warning("Error in get_proposal: No proposal has been found to  the user, returning empty proposal")
                     return empty_dict
                 proposal_code   = proposal.code
                 proposal_number = proposal.number
@@ -1601,8 +1604,11 @@ class ISPyBValueFactory():
             pass
 
         try:
+#JN,20140910, beam position, wrongly setup for EDNA             
             data_collection.xbeam = mx_collect_dict['xBeam']
             data_collection.ybeam = mx_collect_dict['yBeam']
+#            data_collection.xbeam = mx_collect_dict['yBeam']
+#            data_collection.ybeam = mx_collect_dict['xBeam']   
         except KeyError,diag:
             pass
 
