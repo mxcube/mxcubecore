@@ -294,7 +294,7 @@ class MiniDiff(Equipment):
         if self.zoomMotor is not None:
             if self.zoomMotor.hasObject('positions'):
                 for position in self.zoomMotor['positions']:
-                    if position.offset == offset:
+                    if abs(position.offset - offset)<=self.zoomMotor.delta:
                         calibrationData = position['calibrationData']
                         return (float(calibrationData.pixelsPerMmY) or 0, float(calibrationData.pixelsPerMmZ) or 0)
         return (None, None)
