@@ -602,8 +602,8 @@ class MiniDiff(Equipment):
                "phiz": self.phizMotor.getPosition(),
                "sampx": self.sampleXMotor.getPosition(),
                "sampy": self.sampleYMotor.getPosition(),
-               "kappa": self.kappaMotor.getPosition(),
-               "kappa_phi": self.kappaPhiMotor.getPosition(),    
+               "kappa": self.kappaMotor.getPosition() if self.kappaMotor else None,
+               "kappa_phi": self.kappaPhiMotor.getPosition() if self.kappaPhiMotor else None,    
                "zoom": self.zoomMotor.getPosition()}
     
 
@@ -619,14 +619,16 @@ class MiniDiff(Equipment):
                   "zoom": self.zoomMotor }
    
         for role, pos in roles_positions_dict.iteritems():
-           motor[role].move(pos)
+           m = motor.get(role)
+           if m is not None:
+             m.move(pos)
  
         # TODO: remove this sleep, the motors states should
         # be MOVING since the beginning (or READY if move is
         # already finished) 
         time.sleep(1)
  
-        while not all([m.getState() == m.READY for m in motor.itervalues()]):
+        while not all([m.getState() == m.READY for m in motor.itervalues() if m is not None]):
            time.sleep(0.1)
 
 
