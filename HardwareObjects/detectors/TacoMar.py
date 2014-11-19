@@ -1,178 +1,169 @@
 import TacoDevice
+import time
+import logging
+import os
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+import gevent
 
-def grouped(iterable, n):
-    "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-    return itertools.izip(*[iter(iterable)]*n)
+MAR_READ,MAR_CORRECT,MAR_WRITE,MAR_DEZINGER = 1,2,3,4
+MAR_IDLE, MAR_QUEUED, MAR_EXEC, MAR_ERROR, MAR_RESERVED = 0,1,2,4,8
+MAR_ACQUIRE = 0
 
 class Mar225:
-    """
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_state">DevState</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_status">DevStatus</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_setfilepar">DevCCDSetFilePar</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_sethwpar">DevCCDSetHwPar</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_stop">DevCCDStopExposure</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_write_image">DevCCDWriteImage</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_start_exposure">DevCCDStartExposure</command>
-        <command type="taco" taconame="id30/adsc/massif1" name="detector_reset">DevReset</command>
-    """
-    def __init__(self):
-        pass
+    def init(self, config, collect_obj):
+        self.config = config
+        self.collect_obj = collect_obj
+        self.header = dict()
 
-    @task
-    def data_collection_hook(self, data_collect_parameters):
-        self.dc_params = data_collect_parameters
+        taco_device = config.getProperty("mar_device")
 
-    def _send_params(self, func, *args):
-        for key, value in grouped(args, 2):
-          func([key, str(value)])
-
-    @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        self.oscil_start = start
-        self.take_dark = take_dark
-        self.osc_range = osc_range
-
-        bx, by = self.get_beam_centre()
-
-        self.execute_command("detector_state")
+        for cmdname, taco_cmdname in (("detector_state", "DevState"),
+                                      ("detector_substate", "DevSubState"),
+                                      ("detector_status", "DevStatus"),
+                                      ("detector_setthumbnail1", "DevCcdSetThumbnail1"),
+                                      ("detector_setthumbnail2", "DevCcdSetThumbnail2"),
+                                      ("detector_stop", "DevCcdStop"),
+                                      ("detector_setheader", "DevCcdHeader"),
+                                      ("detector_start_exposure", "DevCcdStart"),
+                                      ("detector_setbin", "DevCcdSetBin"),
+                                      ("detector_getbin", "DevCcdGetBin"),
+                                      ("detector_xsize", "DevCcdXSize"),
+                                      ("detector_dezinger", "DevCcdDezinger"),
+                                      ("detector_write", "DevCcdWriteFile")):
+            self.addCommand({"type":"taco", "name":cmdname, "taconame": taco_device}, taco_cmdname)
+        
         # set Taco timeout to 15 seconds
         self.getCommandObject("detector_state").device.timeout(15)
 
-        # set detector to Hardware Binned
-        ccd_set_hwpar = self.getCommandObject("detector_sethwpar")
-        self._send_params(ccd_set_hwpar, 'adc', 1, 'bin', 2, 'save_raw', 0, 'no_xform', 0)
- 
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-        self._send_params(ccd_set_filepar, 'filename', '%s/notset' % self.dc_params["fileinfo"]["directory"],
-                                           'phi', start, 'distance', self.dc_params["detectorDistance"],
-                                           'wavelength', self.dc_params["wavelength"], 'osc_range', osc_range,
-                                           'time', exptime, 'beam_x', bx, 'beam_y', by, 'comment', comment)
+    def execute_command(self, cmd_name, *args):
+        return self.getCommandObject(cmd_name)(*args)
 
-    @task
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        print 'frame', frame_number, ' - setting detector filename', filename, 'phi=',start
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-        self._send_params(ccd_set_filepar, 'filename', filename, 'phi', start, 'jpeg_name1', jpeg_full_path,
-                                           'jpeg_size1', '1024x1024', 'jpeg_size2', '250x250',
-                                           'jpeg_name2', jpeg_thumbnail_full_path)
+    def _wait(self, task, end_state=MAR_IDLE):
+        while self._get_task_state(task, end_state):
+            time.sleep(0.1)
 
-    @task
-    def start_acquisition(self, exptime, npass, first_frame):
-        ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-
-        if first_frame and self.take_dark: #self.dc_params.get("dark", 0):
-          start = self.oscil_start
-          dark_start = start-2*self.osc_range
-
-          self.getObjectByRole("diffractometer").phiMotor.move(dark_start)
-
-          logging.info("Taking 1st dark image")
-          self._send_params(ccd_set_filepar, 'kind', 0, 'lastimage', 1)
-          self.execute_command("detector_start_exposure")
-          self.wait_detector(1)
-          self.do_oscillation(dark_start, dark_start+self.osc_range, exptime, npass, save_diagnostic=False, operate_shutter=False)
-          self.execute_command("detector_stop")
-          self.wait_detector(0)
-          self.execute_command("detector_write_image")
-          self.wait_detector(0)
-
-          logging.info("Taking 2nd dark image")
-          self._send_params(ccd_set_filepar, 'kind', 1, 'lastimage', 1)
-          self.execute_command("detector_start_exposure")
-          self.wait_detector(1)
-          self.do_oscillation(dark_start+self.osc_range, start, exptime, npass, save_diagnostic=False, operate_shutter=False)
-          self.execute_command("detector_stop")
-          self.wait_detector(0)
-          self.execute_command("detector_write_image")
-          self.wait_detector(0)
-
-        self._send_params(ccd_set_filepar, 'axis', 1, 'kind', 5, 'lastimage', 0)
-
-        print 'detector start exposure'
-        self.execute_command("detector_start_exposure")
-        self.wait_detector(1) 
-
-    @task
-    def write_image(self, last_frame):
-        if last_frame:
-            ccd_set_filepar = self.getCommandObject("detector_setfilepar")
-            self._send_params(ccd_set_filepar, 'lastimage', 1)
-
-        self.wait_detector(0)
- 
-        print 'calling write_image'
-        self.execute_command("detector_write_image")
-
-    @task
-    def stop_acquisition(self):
-        print 'calling stop'
-        self.execute_command("detector_stop")
-
-    @task
-    def reset_detector(self):
-        self.execute_command("detector_reset")
-
-
-    def wait_detector(self, until_state):
-        with gevent.Timeout(20, RuntimeError("Timeout waiting for detector")):
-            state = self.execute_command("detector_state")
-            print state, until_state
-            while state != until_state:
-                time.sleep(0.2)
-                state = self.execute_command("detector_state")
-                print 'DET. WAITING FOR STATE ;', state, until_state
-                if state in (-1, 3):
-                    status = self.execute_command("detector_status")
-                    raise RuntimeError("Detector problem: %s, hint: try to restart detector software" % status)
-
-    @task
-    def move_detector(self, detector_distance):
-        pass #self.bl_control.resolution.newDistance(detector_distance)
-
-    @task
-    def set_resolution(self, new_resolution):
-        pass #self.bl_control.resolution.move(new_resolution)
-
-    def get_detector_distance(self):
-        return 260 #self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition()
-
-    @task
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
-        if osc_range < 1E-4:
-            # still image
-            return (start, start+osc_range)
+    def _get_task_state(self, task, expected_state=MAR_IDLE):
+        if self.execute_command("detector_substate", task) == expected_state:
+            return 0
         else:
-            # prepare oscillation... what should we do?
-            return (start, start+osc_range)
+            return 1
         
-    @task
-    def do_oscillation(self, start, end, exptime, npass=1, save_diagnostic=True, operate_shutter=True):
-        self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter) 
+    def wait(self):
+        with gevent.Timeout(20, RuntimeError("Timeout waiting for detector")):
+            logging.debug("CCD clearing...")
+            if self._get_task_state(MAR_ACQUIRE):
+                logging.debug("CCD integrating...")
+            if self._get_task_state(MAR_READ):
+                logging.debug("CCD reading out...")
+                self._wait(MAR_READ)
+                logging.debug("CCD reading done.")
+            if self._get_task_state(MAR_CORRECT):
+                logging.debug("CCD correcting...")
+                self._wait(MAR_CORRECT)
+                logging.debug("CCD correction done.")
 
-    def open_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.open()
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, still=False):
+        self.header["start_phi"] = start
+        self.header["rotation_range"] = osc_range
+        self.header["exposure_time"] = exptime
+        self.header["dataset_comments"] = comment
+        self.header["file_comments"] = ""
+        self.current_filename = ""
+	self.current_thumbnail2 = ""
+	self.current_thumbnail1 = ""
 
-    def close_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.close()
+        self.stop()
 
-    def get_flux(self):
-        return -1
+        if take_dark:
+            logging.info("CCD: taking a background")
+            if self.execute_command("detector_state") == 2:
+                logging.debug("CCD clearing before background image...")
+                self.stop_acquisition()
+            self.wait()
+            self.execute_command("detector_stop", ["1","","",""])
+            logging.debug("CCD readout...")
+            self.wait()
+        
+    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
+        self.header["xtal_to_detector"] = self.collect_obj.get_detector_distance()
+        self.header["source_wavelength"] = self.collect_obj.get_wavelength()
+        bx, by = self.collect_obj.get_beam_centre()
+        self.header["beam_x"] = bx
+        self.header["beam_y"] = by
+        self.header["file_comment"] = filename
+       
+        if not os.path.isdir(os.path.dirname(jpeg_full_path)): 
+            os.makedirs(os.path.dirname(jpeg_full_path))
+        
+        self.current_thumbnail1 =  jpeg_full_path
+        self.current_thumbnail2 = jpeg_thumbnail_full_path
+        self.current_filename = filename
 
-    def set_transmission(self, transmission_percent):
-    	pass
+    def _check_background(self):
+        xsize    = self.execute_command("detector_xsize", 0)
+        bkg_xsize= self.execute_command("detector_xsize", 1)
+        # if binning has changed raw size if different than bkg size and at startup
+        # time bkg size is 0.
+        return bkg_xsize & xsize
 
-    def get_transmission(self):
-        return 100
+    def take_background(self):
+        if self.execute_command("detector_state") == 2:
+            logging.debug("CCD: clearing before background image")
+            self.stop_acquisition()
 
-    def get_cryo_temperature(self):
-        return 0
+        self.wait()
 
-    @task
-    def prepare_intensity_monitors(self):
-        return
+        logging.debug("CCD: reading scratch image")
+        self._wait(MAR_READ)
+        self.execute_command("detector_stop", ["2","","",""])
+        logging.debug("CCD: readout...")
 
-    def get_beam_centre(self):
-        return (159.063, 163.695)
+        logging.debug("CCD: reading background image")
+        self._wait(MAR_READ)
+        self.execute_command("detector_stop", ["1","","",""])
+        logging.debug("CCD: readout...")
+
+        self.wait()
+
+        logging.debug("CCD: Zinger correction")
+        self.execute_command("detector_dezinger", 1)
+        self.wait()
+
+    def start_acquisition(self, exptime, npass, first_frame):
+        with error_cleanup(self.stop):
+            if self._check_background() == 0:
+                self.take_background()
+            
+            self._wait(MAR_READ)
+
+            self.execute_command("detector_start_exposure")
+
+            self._wait(MAR_ACQUIRE, MAR_EXEC)
+        
+            logging.debug("CCD integrating...")
+
+    def stop(self):
+        self._wait(MAR_READ, MAR_IDLE)
+        self.execute_command("detector_stop", ["0","","",""])
+
+    def write_image(self, last_frame):
+        pass
+
+    def _send_header(self):
+        header = []
+        for i, k in enumerate(self.header.keys()):
+            header.append("%s=%s" % (i, self.header[k]))
+        self.execute_command("detector_setheader", header)
+
+    def stop_acquisition(self):
+        #import pdb;pdb.set_trace()
+        self.execute_command("detector_setthumbnail1", ["JPG", "1024", "1024"])
+        self.execute_command("detector_setthumbnail2", ["JPG", "250", "250"])
+        self._wait(MAR_READ)
+        self._send_header()
+        self.execute_command("detector_stop", ["0",self.current_filename,self.current_thumbnail1,self.current_thumbnail2])
+        self._wait(MAR_READ, MAR_EXEC)
+        
+        logging.debug("CCD readout...")
 
 
