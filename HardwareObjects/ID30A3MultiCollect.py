@@ -14,11 +14,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
-      # are we doing shutterless ?
-      shutterless = data_collect_parameters.get("shutterless")
-      if oscillation_parameters["overlap"] != 0:
-        shutterless = False
-      self._detector.shutterless = True if shutterless else False
  
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
@@ -67,12 +62,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
-        cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
+        #cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
         self.getObjectByRole("beamstop").moveToPosition("in")
         self.getObjectByRole("light").wagoOut()
 
         motion.get()
-        cover_task.get()
+        #cover_task.get()
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -117,21 +112,4 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def get_beam_centre(self):
         return self.bl_control.resolution.get_beam_centre()
-
-    @task
-    def write_input_files(self, datacollection_id):
-        # copy *geo_corr.cbf* files to process directory
-        try:
-            process_dir = os.path.join(self.xds_directory, "..")
-            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
-            for dir in (process_dir, raw_process_dir):
-                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
-                    dest = os.path.join(dir,filename)
-                    if os.path.exists(dest):
-                        continue
-                    shutil.copyfile(os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest)
-        except:
-            logging.exception("Exception happened while copying geo_corr files")
-
-        return ESRFMultiCollect.write_input_files(self, datacollection_id)
 
