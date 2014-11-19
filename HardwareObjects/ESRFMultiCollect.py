@@ -45,51 +45,95 @@ class TunableEnergy:
 
 
 class CcdDetector:
+    def __init__(self, detector_class=None):
+        self._detector = detector_class() if detector_class else None
+    
+    def init(self, config, collect_obj): 
+        self.collect_obj = collect_obj
+        if self._detector:
+          self._detector.addChannel = self.addChannel
+          self._detector.addCommand = self.addCommand
+          self._detector.getChannelObject = self.getChannelObject
+          self._detector.getCommandObject = self.getCommandObject
+          self._detector.init(config, collect_obj)
+    
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        self.getChannelObject("take_dark").setValue(take_dark)
-        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)", wait=True)
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
+        if osc_range < 1E-4:
+            still = True
+        else:
+            still = False
+        
+        if self._detector:
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
+        else:
+            self.getChannelObject("take_dark").setValue(take_dark)
+            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
-        self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
-        self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
-       
+      if self._detector:
+          self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
+      else:
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
+          self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
+
     @task
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         if osc_range < 1E-4:
             # still image
-            return (start, start+osc_range)
+            pass
         else:
-            self.execute_command("prepare_oscillation", start, start+osc_range, exptime, npass)
-            return (start, start+osc_range)
-        
-    @task
-    def do_oscillation(self, start, end, exptime, npass):
-        self.execute_command("do_oscillation", start, end, exptime, npass)
+            self.collect_obj.do_prepare_oscillation(start, start+osc_range, exptime, npass)
+        return (start, start+osc_range)
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-        self.execute_command("start_acquisition")  
-      
+        if self._detector:
+            self._detector.start_acquisition(exptime, npass, first_frame)
+        else:
+            self.execute_command("start_acquisition")
+
+    @task
+    def no_oscillation(self, exptime):
+        self.collect_obj.open_fast_shutter()
+        time.sleep(exptime)
+        self.collect_obj.close_fast_shutter()
+ 
+    @task
+    def do_oscillation(self, start, end, exptime, npass):
+      still = math.fabs(end-start) < 1E-4
+      if still:
+          self.no_oscillation(exptime)
+      else:
+          self.collect_obj.oscil(start, end, exptime, npass)
+   
     @task
     def write_image(self, last_frame):
-        if last_frame:
-            self.execute_command("flush_detector")
+        if self._detector:
+            self._detector.write_image(last_frame)
         else:
-            self.execute_command("write_image")
-
-    @task
+            if last_frame:
+                self.execute_command("flush_detector")
+            else:
+                self.execute_command("write_image")
+    
     def stop_acquisition(self):
-        self.execute_command("detector_readout")
-      
-    @task
-    def reset_detector(self):   
-        self.getCommandObject("reset_detector").abort()
-        self.execute_command("reset_detector")
+        # detector readout
+        if self._detector:
+            self._detector.stop_acquisition()
+        else:
+            self.execute_command("detector_readout")
 
+    @task
+    def reset_detector(self):     
+        if self._detector:
+            self._detector.stop()
+        else:
+            self.getCommandObject("reset_detector").abort()
+            self.execute_command("reset_detector")
+ 
 
 class PixelDetector:
     def __init__(self, detector_class=None):
