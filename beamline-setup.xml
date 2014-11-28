@@ -6,6 +6,7 @@
   <object href="/diffractometer-mockup" role="diffractometer"/>
   <object href="/sc-mockup" role="sample_changer"/>    
   <object href="/resolution-mockup" role="resolution"/>
+  <object href="/energy-mockup" role="energy"/>
 
   <!-- Software (abstract) concepts -->
   <object href="/shape-history" role="shape_history"/>
@@ -15,7 +16,7 @@
   <!--<object href="/workflow-mockup" role="workflow"/> -->
  
   <!-- Procedures and routines -->
-  <object href="/energyscan-mockup" role="energy"/>
+  <object href="/energyscan-mockup" role="energyscan"/>
   <!-- <object href="/collect-mockup" role="collect"/> -->
 
   <!-- Is it possible to change the beam wavelentgh.
@@ -51,9 +52,9 @@
   </default_acquisition_values>
 
   <acquisition_limit_values>
-    <osc_range>0.0001,10000,4</osc_range>
-    <exposure_time>0.003,6000,5</exposure_time>
-    <number_of_images>1,9999,0</number_of_images>
+    <osc_range>0.0001,10000</osc_range>
+    <exposure_time>0.003,6000</exposure_time>
+    <number_of_images>1,9999</number_of_images>
   </acquisition_limit_values>
 
   <!-- Default values for a characterization -->
