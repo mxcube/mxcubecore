@@ -440,7 +440,8 @@ class SampleQueueEntry(BaseQueueEntry):
                         msg = "Error loading sample, please check" +\
                               " sample changer: " + e.message
                         log.error(msg)
-                        raise QueueExecutionException(e.message, self)
+                        raise QueueSkippEntryException(e.message, self)
+                        #raise QueueExecutionException(e.message, self)
                 else:
                     log.info("Sample already mounted")
             else:
