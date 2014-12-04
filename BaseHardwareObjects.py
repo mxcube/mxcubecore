@@ -1,6 +1,6 @@
 import logging
 import types
-from .dispatcher import *
+from dispatcher import *
 from CommandContainer import CommandContainer
 import HardwareRepository
 
