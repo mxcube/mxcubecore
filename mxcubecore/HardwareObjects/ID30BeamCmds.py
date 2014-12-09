@@ -26,11 +26,11 @@ class ControllerCommand(CommandObject):
                 res = cmd_execution.get()
             except:
                 self.emit('commandFailed', (str(self.name()), ))
-            
-            if isinstance(res, gevent.GreenletExit):
-                self.emit('commandFailed', (str(self.name()), ))
-            else:
-                self.emit('commandReplyArrived', (str(self.name()), res))
+            else: 
+                if isinstance(res, gevent.GreenletExit):
+                    self.emit('commandFailed', (str(self.name()), ))
+                else:
+                    self.emit('commandReplyArrived', (str(self.name()), res))
         finally:
             self.emit('commandReady')
 
