@@ -38,9 +38,10 @@ class Mar225:
     def execute_command(self, cmd_name, *args):
         return self.getCommandObject(cmd_name)(*args)
 
-    def _wait(self, task, end_state=MAR_IDLE):
-        while self._get_task_state(task, end_state):
-            time.sleep(0.1)
+    def _wait(self, task, end_state=MAR_IDLE, timeout=5):
+        with gevent.Timeout(timeout, RuntimeError("MAR detector: Timeout waiting for state")):
+            while self._get_task_state(task, end_state):
+                time.sleep(0.1)
 
     def _get_task_state(self, task, expected_state=MAR_IDLE):
         if self.execute_command("detector_substate", task) == expected_state:
