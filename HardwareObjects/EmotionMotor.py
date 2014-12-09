@@ -68,7 +68,12 @@ class EmotionMotor(Device):
         self.emit('limitsChanged', (self.getLimits(), ))
                      
     def getLimits(self):
-        return self.motor.limits()
+        # no limit = None, but None is a problematic value
+        # for some GUI components (like MotorSpinBox), so
+        # in case of None it is much easier to return very
+        # large limits
+        ll, hl = self.motor.limits()
+        return ll if ll is not None else -1E6, hl if hl is not None else 1E6
 
     def positionChanged(self, absolutePosition):
         #print self.name(), absolutePosition
