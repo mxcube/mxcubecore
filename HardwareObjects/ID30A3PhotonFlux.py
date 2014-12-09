@@ -13,6 +13,7 @@ class ID30A3PhotonFlux(Equipment):
         self.musst = controller.musst
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
+        self.factor = self.getProperty("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
@@ -29,7 +30,7 @@ class ID30A3PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        counts = int(self.musst.putget("#?CH CH6").split()[0])
+        counts = -10*int(self.musst.putget("#?CH CH6").split()[0])/float(0x7FFFFFFF)
         return counts
 
     def connectNotify(self, signal):
@@ -46,7 +47,8 @@ class ID30A3PhotonFlux(Equipment):
         if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
           self.emitValueChanged(0)
           return
-        self.emitValueChanged("%1.3g" % counts)
+        flux = counts * self.factor
+        self.emitValueChanged("%1.3g" % flux)
 
         """ 
         try:
@@ -88,10 +90,10 @@ class ID30A3PhotonFlux(Equipment):
     def getCurrentFlux(self):
         return self.current_flux
 
-    def emitValueChanged(self, counts=None):
-        if counts is None:
+    def emitValueChanged(self, flux=None):
+        if flux is None:
           self.current_flux = None
           self.emit("valueChanged", ("?", ))
         else:
-          self.current_flux = float(counts)
-          self.emit("valueChanged", (counts, ))
+          self.current_flux = flux
+          self.emit("valueChanged", (self.current_flux, ))
