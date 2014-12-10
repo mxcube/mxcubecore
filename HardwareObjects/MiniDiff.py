@@ -598,15 +598,15 @@ class MiniDiff(Equipment):
 
 
     def getPositions(self):
-      return { "phi": self.phiMotor.getPosition(),
-               "focus": self.focusMotor.getPosition(),
-               "phiy": self.phiyMotor.getPosition(),
-               "phiz": self.phizMotor.getPosition(),
-               "sampx": self.sampleXMotor.getPosition(),
-               "sampy": self.sampleYMotor.getPosition(),
-               "kappa": self.kappaMotor.getPosition() if self.kappaMotor else None,
-               "kappa_phi": self.kappaPhiMotor.getPosition() if self.kappaPhiMotor else None,    
-               "zoom": self.zoomMotor.getPosition()}
+      return { "phi": float(self.phiMotor.getPosition()),
+               "focus": float(self.focusMotor.getPosition()),
+               "phiy": float(self.phiyMotor.getPosition()),
+               "phiz": float(self.phizMotor.getPosition()),
+               "sampx": float(self.sampleXMotor.getPosition()),
+               "sampy": float(self.sampleYMotor.getPosition()),
+               "kappa": float(self.kappaMotor.getPosition()) if self.kappaMotor else None,
+               "kappa_phi": float(self.kappaPhiMotor.getPosition()) if self.kappaPhiMotor else None,    
+               "zoom": float(self.zoomMotor.getPosition())}
     
 
     def moveMotors(self, roles_positions_dict):
