@@ -66,7 +66,7 @@ def start(programs, processEvent, paramsDict):
 		    #if opts is not None:
 			#lineToExecute = executable + ' ' + opts + endOfLineToExecute
 		    #else:
-                    lineToExecute = executable + endOfLineToExecute + '2>&1 > /dev/null &'
+                    lineToExecute = executable + endOfLineToExecute + ' 2>&1 > /dev/null &'
 		    logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 
 		    # os.system is preferred to subprocess because we want to detach
