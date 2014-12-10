@@ -3,6 +3,7 @@ import logging
 import PyTango.gevent
 import gevent
 import time
+import sys
 
 
 class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
@@ -10,8 +11,11 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         BaseHardwareObjects.HardwareObject.__init__(self, name)
 
     def _do_polling(self):
-        while True:
-          self.poll()
+        while True: 
+          try:
+              self.poll()
+          except:
+              sys.excepthook(*sys.exc_info())
           time.sleep(self.getProperty("interval")/1000.0 or 1)
 
     def init(self):
@@ -67,17 +71,19 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
           detcover_task = eh_controller.detcover.set_out(wait=False)
           if old["dtox"] is not None:
             eh_controller.DtoX.move(old["dtox"], wait=False)
-          if old["aperture"] is not None:
+          if self.getObjectByRole("aperture") and old["aperture"] is not None:
             self.getObjectByRole("aperture").moveToPosition(old["aperture"])
           self.getObjectByRole("beamstop").moveToPosition("in")
           detcover_task.get()
           eh_controller.DtoX.wait_move()
         else: 
           old["dtox"] = eh_controller.DtoX.position()
-          old["aperture"] = self.getObjectByRole("aperture").getPosition()
+          if self.getObjectByRole("aperture"): 
+              old["aperture"] = self.getObjectByRole("aperture").getPosition()
           detcover_task = eh_controller.detcover.set_in(wait=False)
-          eh_controller.DtoX.move(700, wait=False) 
-          self.getObjectByRole("aperture").moveToPosition("Outbeam")
+          eh_controller.DtoX.move(700, wait=False)
+          if self.getObjectByRole("aperture"):
+              self.getObjectByRole("aperture").moveToPosition("Outbeam")
           self.getObjectByRole("beamstop").moveToPosition("out")
           detcover_task.get()
           eh_controller.DtoX.wait_move()
