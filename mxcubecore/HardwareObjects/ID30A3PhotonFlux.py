@@ -30,7 +30,9 @@ class ID30A3PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        counts = -10*int(self.musst.putget("#?CH CH6").split()[0])/float(0x7FFFFFFF)
+        counts = -100*int(self.musst.putget("#?CH CH6").split()[0])/float(0x7FFFFFFF)
+        if counts < 0:
+            counts = 0
         return counts
 
     def connectNotify(self, signal):
