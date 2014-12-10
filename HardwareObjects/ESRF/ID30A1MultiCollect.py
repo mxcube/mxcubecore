@@ -33,7 +33,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
  
     @task
     def get_slit_gaps(self):
-        return (0.1, 0.1)
+        return (self.bl_control.diffractometer.controller.hgap.position(), self.bl_control.diffractometer.controller.vgap.position())
 
     def get_measured_intensity(self):
         return 0
