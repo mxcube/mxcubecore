@@ -309,6 +309,8 @@ class MiniDiff(Equipment):
         return beam_info
 
     def zoomMotorPredefinedPositionChanged(self, positionName, offset):
+        if not positionName:
+            return 
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(offset)
         self.emit('zoomMotorPredefinedPositionChanged', (positionName, offset, ))
 
