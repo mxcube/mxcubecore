@@ -1,4 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.TaskUtils import *
 import math
 import logging
 import time
@@ -85,8 +86,13 @@ class EmotionMotor(Device):
     def getDialPosition(self):
         return self.getPosition()
 
+    @task
+    def _wait_ready(self):
+        while self.motorIsMoving():
+            time.sleep(0.02)
+
     def move(self, position):
-        #self.updateState("MOVING")
+        self._wait_ready(timeout=1)
         self.motor.move(position, wait=False) #.link(self.updateState)
 
     def moveRelative(self, relativePosition):
@@ -104,7 +110,7 @@ class EmotionMotor(Device):
         self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
-        return self.motorState == EmotionMotor.MOVING
+        return self.motor.state() == 'MOVING'
  
     def getMotorMnemonic(self):
         return self.motor_name
