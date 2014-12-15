@@ -4,6 +4,14 @@ import MiniDiff
 class ID30A3MD2M(MiniDiff.MiniDiff):      
     def __init__(self, name):
         MiniDiff.MiniDiff.__init__(self, name)
+        MiniDiff.qmo.CentredPosition.set_diffractometer_motor_names("phi",
+                                                                    "focus",
+                                                                    "phiz",
+                                                                    "phiy",
+                                                                    "zoom",
+                                                                    "sampx",
+                                                                    "sampy")
+
 
     def init(self): 
         self.controller = self.getObjectByRole("controller")
