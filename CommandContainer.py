@@ -242,6 +242,23 @@ class CommandContainer:
             except:
               logging.getLogger().exception('%s: cannot add EPICS channel %s (hint: check PV name)', self.name(), channelName)
             
+        elif channelType.lower() == "sardana":
+
+            if not 'taurusname' in attributesDict:
+                try:
+                    attributesDict['taurusname'] = self.taurusname
+                except AttributeError:
+                    pass
+	    uribase = attributesDict['taurusname']
+
+            try:
+              from Command.Sardana import SardanaChannel
+              logging.getLogger().debug('Creating a sardanachannel - %s / %s / %s', self.name(), channelName, str(attributesDict))
+              newChannel = SardanaChannel(channelName, channel, uribase=uribase, **attributesDict)
+              logging.getLogger().debug('Created')
+            except:
+              logging.getLogger().exception('%s: cannot add SARDANA channel %s (hint: check PV name)', self.name(), channelName)
+
         if newChannel is not None:
             if channelOnChange is not None:
                newChannel._onchange = (channelOnChange, weakref.ref(self))
@@ -255,6 +272,8 @@ class CommandContainer:
             self.__channels[channelName] = newChannel
 
             return newChannel
+        else:
+              logging.getLogger().exception('Channel is None')
 
          
     def setValue(self, channelName, value):
@@ -352,6 +371,7 @@ class CommandContainer:
                 raise ConnectionError
             except:
                 logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+
         elif cmdType.lower() == 'exporter':
             if not 'exporter_address' in attributesDict:
               try:
@@ -375,6 +395,74 @@ class CommandContainer:
               newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
             except:
               logging.getLogger().exception('%s: cannot add EPICS channel %s (hint: check PV name)', self.name(), cmdName)
+
+        elif cmdType.lower() == 'sardana':
+
+            doorname = None
+            taurusname = None
+            cmdtype = None
+            door_first = False
+            tango_first = False
+
+            if not 'doorname' in attributesDict:
+                try:
+                    attributesDict['doorname'] = self.doorname
+                    doorname = self.doorname
+                except AttributeError:
+                    pass
+            else:
+                door_first = True 
+                doorname = attributesDict['doorname']
+
+            if not 'taurusname' in attributesDict:
+                try:
+                    attributesDict['taurusname'] = self.taurusname
+                    taurusname = self.taurusname
+                except AttributeError:
+                    pass
+            else:
+                tango_first = True 
+                taurusname = attributesDict['taurusname']
+
+            if 'cmdtype' in attributesDict:
+                cmdtype = attributesDict['cmdtype']
+            
+            # guess what kind of command to create
+            if cmdtype is None:
+                if taurusname is not None and doorname is None:
+                     cmdtype = "command"
+                elif doorname is not None and taurusname is None:
+                     cmdtype = "macro"
+                elif doorname is not None and taurusname is not None:
+                     if door_first:
+                         cmdtype = "macro"
+                     elif tango_first:
+                         cmdtype = "command"
+                     else:
+                         cmdtype = "macro"
+                else:
+                    logging.getLogger().error('%s: incomplete sardana command declaration. ignored', self.name())
+            
+            from Command.Sardana import SardanaCommand, SardanaMacro
+            if cmdtype == 'macro' and doorname is not None:
+                try:
+                    newCommand = SardanaMacro(cmdName, cmd, **attributesDict)
+                except ConnectionError:
+                    logging.getLogger().error('%s: could not connect to sardana door %s (hint: is it running ?)', self.name(), attributesDict["doorname"])
+                    raise ConnectionError
+                except:
+                    logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+            elif cmdtype == 'command' and taurusname is not None:
+                try:
+                    newCommand = SardanaCommand(cmdName, cmd, **attributesDict)
+                except ConnectionError:
+                    logging.getLogger().error('%s: could not connect to sardana device %s (hint: is it running ?)', self.name(), taurusname)
+                    raise ConnectionError
+                except:
+                    logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+            else:
+                logging.getLogger().error('%s: incomplete sardana command declaration. ignored', self.name())
+                
         elif cmdType.lower() == 'pool':
             if not 'tangoname' in attributesDict:
                 try:
