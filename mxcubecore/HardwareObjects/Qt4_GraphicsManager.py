@@ -96,33 +96,6 @@ class Qt4_GraphicsManager(HardwareObject):
         if is_enabled:
             print self.graphics_centring_lines_item.parent
 
-    def get_snapshot(self, qub_objects):
-        """
-        Get a snapshot of the video stream and overlay the objects
-        in qub_objects.
-
-        :param qub_objects: The QCanvas object to add on top of the video.
-        :type qub_objects: QCanvas
-
-        :returns: The snapshot
-        :rtype: QImage
-        """
-        qimg = None
-
-        try:
-            matrix = self._drawing.matrix()
-        except AttributeError:
-            qimg = None
-        else:
-            zoom = 1
-            if matrix is not None:
-                zoom = matrix.m11()
-
-            img = self._drawing.getPPP()
-            qimg = self.get_qimage(img, qub_objects, zoom)
-
-        return qimg
-
     def get_shapes(self):
         """
         :returns: All the shapes currently handled.
@@ -445,276 +418,6 @@ class GraphicsObjectCentredPoint(Shape):
         painter.setPen(pen)
         painter.drawEllipse(self.rect)
 
-class CanvasGrid(Shape) :
-    def __init__(self, canvas, cell_width = 1, cell_height = 1,
-                 beam_width = 1, beam_height = 1) :
-        Shape.__init__(self, canvas)
-        self.__painter = None
-
-        # Grid dimension
-        self.__num_cells = 0
-
-        # Total width and height in px
-        self.__width = None
-        self.__height = None
-        self.__cell_width = cell_width
-        self.__cell_height = cell_height
-
-        # Grid dimensions
-        self.__num_colls = 0
-        self.__num_rows = 0
-
-        # Scale px/mm 
-        self.__x_pixel_size = 1
-        self.__y_pixel_size = 1
-
-        # Beam position and dimension on the format:
-        # (x pos in px, y pos in px, width in mm, height in mm)
-        self.__beam_pos = (0, 0, beam_width, beam_height)
-        self.__beam_width = beam_width * self.__x_pixel_size
-        self.__beam_height = beam_height * self.__y_pixel_size
-
-        # (score, (r,g,b))
-        self.__grid_data = {}
-        self.__has_data = False
-
-        self.__beam_shape = None
-        self.__highlighted = False
-        self.__label = "Grid n"
-
-    def drawShape(self, painter):
-        """
-        Overloads the QCanvasRectangle drawShape. Performs the drawing of the
-        grid.
-
-        :param painter: The QPainter object to use when drawing.
-        :type painter: QPainter
-        """
-        self.__painter = painter
-        rect = self.rect()
-
-        self.__num_cells = 0
-        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
-        num_colls = (rect.right() - rect.left()) / self.__cell_width
-
-        if self.__highlighted:
-            painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
-        else:
-            painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.DotLine))
-
-        for i in range(0, num_rows + 1):
-            offset =  i*self.__cell_height
-            self.__height = offset
-            painter.drawLine(rect.left(), rect.top() + offset,
-                             rect.right(), rect.top() + offset)
-
-        for i in range(0, num_colls + 1):
-            offset =  i*self.__cell_width
-            self.__width = offset
-            painter.drawLine(rect.left() + offset, rect.top(),
-                             rect.left() + offset, rect.bottom())
-
-        for i in range(0, num_rows):
-            row_offset = i*self.__cell_height
-            for k in range(0, num_colls):
-                coll_offset = k*self.__cell_width
-                self.__num_cells += 1
-                if not self.__has_data:
-                    if self.__num_cells % 2:
-                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
-                    else:
-                        self.__grid_data[self.__num_cells] = (self.__num_cells, (0, 0, 150))
-
-                painter.setPen(qt.QPen(qt.Qt.black, 0, qt.Qt.SolidLine))
-                    
-                color = self.__grid_data[self.__num_cells][1]
-
-                #if self.__highlighted:
-                painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense4Pattern))
-                #else:
-                #    painter.setBrush(qt.QBrush(qt.QColor(*color), qt.Qt.Dense6Pattern))
-
-                beam_hspacing = (self.__cell_width - self.__beam_width) / 2
-                beam_vspacing = (self.__cell_height - self.__beam_height) /2
-                
-                painter.drawEllipse(rect.left() + coll_offset + beam_hspacing,
-                                    rect.top() + row_offset + beam_vspacing,
-                                    self.__beam_width, self.__beam_height)
-
-                painter.setPen(qt.QPen(qt.Qt.black, 1, qt.Qt.SolidLine))
-                tr = qt.QRect(rect.left() + coll_offset, rect.top() + row_offset,
-                              self.__cell_width, self.__cell_height)
-                
-                score = self.__grid_data[self.__num_cells][0]
-
-                if score:
-                    painter.drawText(tr, qt.Qt.AlignCenter, str(score))
-
-            if self.__label and self.__highlighted:
-                #painter.setPen(qt.QPen(qt.Qt.green, 0, qt.Qt.SolidLine))
-                painter.drawText(rect.right() + 2, rect.top() - 5 , self.__label)
-
-        self.__num_rows = num_rows
-        self.__num_colls = num_colls
-
-    def reshape(self):
-        """
-        Reshapes the grid, mostly used after it has been drawn or resized to
-        achive a "snap to" like effect.
-        """
-        self.__width = self.__cell_width * self.__num_colls
-        self.__height = self.__cell_height * self.__num_rows
-        self.setSize(self.__width + 1, self.__height + 1)
-
-    def reposition(self, scale_factor_x = None, scale_factor_y = None):
-        """
-        Re-positions the shape, used when the scale factor changes (zooming)
-
-        :param scale_factor_x: The new x scale factor
-        :type scale_factor_x: float
-
-        :param scale_factor_y: The new y scale factor
-        :type scale_factor_y: float
-        """
-        if scale_factor_x:
-            beam_dx = self.x() - self.__beam_pos[0]
-            dx =  beam_dx * scale_factor_x - beam_dx
-            self.moveBy(dx, 0)
-
-        if scale_factor_y:
-            beam_dy = self.y() - self.__beam_pos[1]
-            dy = beam_dy * scale_factor_y - beam_dy
-            self.moveBy(0, dy)
-
-    def highlight(self, state):
-        """
-        :param state: true if the grid is to be highlighted false otherwise
-        :type state: boolean
-        """
-        self.__highlighted = state
-
-    def set_label(self, label):
-        """
-        :param label: The label of the grid (displayed in the top right corner)
-        :type label: str
-        """
-        self.__label = label
-
-    def get_nummer_of_cells(self):
-        """
-        :returns: The total number of cells in the grid
-        :rtype: int
-        """
-        return self.__num_cells
-
-    def set_data(self, data):
-        """
-        :param data: The result data to use when displaying the grid
-        :type data: dict
-
-        The data dict should have the following format:
-
-        {1: (cell_label, (r,g,b)),
-         .
-         .
-         .
-         index_n-1: (cell_label, (r,g,b)),
-         index_n: (cell_label, (r,g,b)),
-        }
-
-        and contain as many elements as the grid contains cells. That is
-        index_n = self.get_nummer_of_cells()
-
-        cell_label is the label displayed in the cell center and the rgb triplet
-        the background color of the cell.
-        """
-        self.__has_data = True
-        self.__grid_data = data
-
-    def set_x_pixel_size(self, x_size):
-        """
-        Sets the x-axis pixel per mm scale value.
-        
-        :param x_size: x-axis pixels per mm
-        :type x_size: float
-        """
-        self.__x_pixel_size = x_size
-        self.__recalculate_beam_dim()
-        
-    def set_y_pixel_size(self, y_size):
-        """
-        Sets the y-axis pixel per mm scale value.
-        
-        :param y_size: y-axis pixels per mm
-        :type y_size: float
-        """
-        self.__y_pixel_size = y_size
-        self.__recalculate_beam_dim()
-        
-    def set_beam_position(self, x, y, w=0, h=0):
-        """
-        Set beam position and dimension
-
-        :param x: x position in pixels
-        :type x: int
-
-        :param y: y position in pixels
-        :type y: int
-
-        :param w: width in mm
-        :type w: float
-
-        :param h: height in mm
-        :type h: float
-        """
-        self.__beam_pos = (x, y, w, h)
-        if w and h:
-            self.__recalculate_beam_dim()
-
-    def _get_grid(self, key):
-        """
-        :returns: A dictionary with grid dimensions and position.
-        :rtype: dict
-
-        The dictionary has the following format:
-
-        grid = {'id': 'grid-n',
-                'dx_mm': total width in mm,
-                'dy_mm': total height in mm,
-                'steps_x': number of colls,
-                'steps_y': number of rows,
-                'x1': top left cell center x coord,
-                'y1': top left cell center y coord,
-                'beam_width': beam width in mm
-                'beam_height': beam height in mm
-                'angle': 0}
-        """
-        rect = self.rect()
-
-        num_rows = (rect.bottom() - rect.top()) / self.__cell_height
-        num_colls = (rect.right() - rect.left()) / self.__cell_width
-        
-        x = rect.left()
-        y = rect.top()
-
-        cell_width = float(self.__cell_width / self.__x_pixel_size)
-        cell_height = float(self.__cell_height / self.__y_pixel_size)
-        
-        first_cell_center_x = ((x + (self.__cell_width / 2)) - self.__beam_pos[0]) / self.__x_pixel_size
-        first_cell_center_y = ((y + (self.__cell_height / 2)) - self.__beam_pos[1]) / self.__y_pixel_size
-
-        grid = {'id': key,
-                'dx_mm': cell_width * (num_colls - 1),
-                'dy_mm': cell_height * (num_rows - 1),
-                'steps_x': num_colls,
-                'steps_y': num_rows,
-                'x1': first_cell_center_x,
-                'y1': first_cell_center_y,
-                'beam_width': self.__beam_width / self.__x_pixel_size,
-                'beam_height': self.__beam_height / self.__y_pixel_size,
-                'angle': 0}
-
-        return grid
 
     def __recalculate_beam_dim(self):
         """
@@ -741,7 +444,7 @@ class CanvasGrid(Shape) :
 class GraphicsScene(QtGui.QGraphicsScene):
     def __init__ (self, parent=None):
         super(GraphicsScene, self).__init__ (parent)
-        self.centring_state = None
+        self.centring_state = True
 
     def set_centring_state(self, state):
         self.centring_state = state
@@ -753,13 +456,14 @@ class GraphicsScene(QtGui.QGraphicsScene):
         self.update()
 
     def mouseMoveEvent(self, event):
+        print self.mouseGrabberItem()
         if self.centring_state:
             position = QtCore.QPointF(event.scenePos())
             print "moved here: " + str(position.x()) + ", " + str(position.y())
         self.update()
 
     def mouseReleaseEvent(self, event):
-        if centring_state:
+        if self.centring_state:
             position = QtCore.QPointF(event.scenePos())
             print "released here: " + str(position.x()) + ", " + str(position.y())
         self.update()
