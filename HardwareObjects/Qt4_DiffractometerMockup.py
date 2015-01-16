@@ -1,22 +1,6 @@
-#
-#  Project: MXCuBE
-#  https://github.com/mxcube.
-#
-#  This file is part of MXCuBE software.
-#
-#  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  MXCuBE is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-
+"""
+Descript. :
+"""
 import os
 import copy
 import time
@@ -29,8 +13,34 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 
-last_centred_position = [200, 200]
+class myimage:
+    """
+    Descript. :
+    """
+    def __init__(self, drawing):
+        """
+        Descript. :
+        """
+        self.drawing = drawing
+        matrix = self.drawing.matrix()
+        self.zoom = 1
+        if matrix is not None:
+            self.zoom = matrix.m11()
+        self.img = self.drawing.getPPP()
+        fd, name = tempfile.mkstemp()
+        os.close(fd)
+        #QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
+        f = open(name, "r")
+        self.imgcopy = f.read()
+        f.close()
+        os.unlink(name)
+    def __str__(self):
+        """
+        Descript. :
+        """
+        return self.imgcopy
 
+last_centred_position = [200, 200]
 
 class Qt4_DiffractometerMockup(Equipment):
     """
@@ -76,6 +86,12 @@ class Qt4_DiffractometerMockup(Equipment):
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)
+
+        #IK - this will be sorted out
+        self.startCentringMethod = self.start_centring_method 
+        self.imageClicked = self.image_clicked
+        self.acceptCentring = self.accept_centring
+        self.rejectCentring = self.reject_centring
 
     def init(self):
         """
@@ -452,11 +468,9 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        if self.beam_info_hwobj is not None: 
+        if self.beam_info_hwobj: 
             self.beam_info_hwobj.beam_pos_hor_changed(300) 
             self.beam_info_hwobj.beam_pos_ver_changed(200)
-            self.emit('zoomMotorPredefinedPositionChanged',  (None, None, ))
-            self.emit('omegaReferenceChanged', ((200, None), ))
 
     def start_auto_focus(self): 
         """
@@ -497,7 +511,7 @@ class Qt4_DiffractometerMockup(Equipment):
         centred_images = []
         for index in range(image_count):
             logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", index + 1)
-            #centred_images.append((0, str(myimage(drawing))))
+            centred_images.append((0, str(myimage(drawing))))
             centred_images.reverse() 
         return centred_images
 
