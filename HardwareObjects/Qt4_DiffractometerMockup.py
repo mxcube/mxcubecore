@@ -1,6 +1,22 @@
-"""
-Descript. :
-"""
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import copy
 import time
@@ -13,34 +29,9 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 
-class myimage:
-    """
-    Descript. :
-    """
-    def __init__(self, drawing):
-        """
-        Descript. :
-        """
-        self.drawing = drawing
-        matrix = self.drawing.matrix()
-        self.zoom = 1
-        if matrix is not None:
-            self.zoom = matrix.m11()
-        self.img = self.drawing.getPPP()
-        fd, name = tempfile.mkstemp()
-        os.close(fd)
-        #QubImageSave.save(name, self.img, self.drawing.canvas(), self.zoom, "JPEG")
-        f = open(name, "r")
-        self.imgcopy = f.read()
-        f.close()
-        os.unlink(name)
-    def __str__(self):
-        """
-        Descript. :
-        """
-        return self.imgcopy
 
 last_centred_position = [200, 200]
+
 
 class Qt4_DiffractometerMockup(Equipment):
     """
@@ -305,6 +296,7 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         self.emit_progress_message("3 click centring...")
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
+        print self.current_centring_procedure
         self.current_centring_procedure.link(self.manual_centring_done)	
 
     def start_automatic_centring(self, sample_info = None, loop_only = False):
@@ -345,10 +337,11 @@ class Qt4_DiffractometerMockup(Equipment):
         except:
             logging.exception("Could not move to centred position")
 
-    def image_clicked(self, x, y, xi, yi): 
+    def image_clicked(self, x, y): 
         """
         Descript. :
         """
+        print "image_clicked: ",x ,y 
         self.user_clicked_event.set((x, y))
 	
     def emit_cetring_started(self, method):
@@ -364,7 +357,7 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         self.centring_status["valid"] = True
         self.centring_status["accepted"] = True
-        self.emit('centringAccepted', (True, self.get_centring_status()))
+        self.emit('centringAccepted', True, self.get_centring_status())
 	
     def reject_centring(self):
         """
@@ -374,7 +367,7 @@ class Qt4_DiffractometerMockup(Equipment):
             self.current_centring_procedure.kill()
         self.centring_status = {"valid" : False}
         self.emit_progress_message("")
-        self.emit('centringAccepted', (False, self.get_centring_status()))
+        self.emit('centringAccepted', False, self.get_centring_status())
 
     def emit_centring_moving(self):
         """
@@ -403,6 +396,7 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
+        print self.current_centring_procedure
         if self.current_centring_procedure is not None:
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centring_status["endTime"] = curr_time

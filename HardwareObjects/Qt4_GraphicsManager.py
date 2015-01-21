@@ -66,17 +66,46 @@ class Qt4_GraphicsManager(HardwareObject):
         self.beam_shape = None
         self.graphics_scene_width = None
         self.graphics_scene_height = None
+        self.graphics_view = GraphicsView()
          
-        # Graphics objects
-        self.graphics_beam_item = GraphicsObjectBeam(self)
-        self.graphics_scale_item = GraphicsObjectScale(self)
-        self.graphics_omega_reference_item = GraphicsObjectOmegaReference(self)
-        self.graphics_centring_lines_item = GraphicsObjectCentringLines(self)
+        self.graphics_camera_frame = GraphicsCameraFrame()
+        self.graphics_beam_item = GraphicsItemBeam(self)
+        self.graphics_scale_item = GraphicsItemScale(self)
+        self.graphics_omega_reference_item = GraphicsItemOmegaReference(self)
+        self.graphics_centring_lines_item = GraphicsItemCentringLines(self)
+        self.graphics_centring_lines_item.hide()
+         
+        self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
+        self.graphics_view.graphics_scene.addItem(self.graphics_beam_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_scale_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_centring_lines_item) 
 
         self.beam_info_dict = {}
         self.omega_axis_info_dict = {}
         self.shapes_dict = {}
         self.selected_shapes = {}
+        self.centring_points = []
+        self.centring_state = False
+        self.shapes = {}
+        self.selected_shapes = {}
+
+        QtCore.QObject.connect(self.graphics_view, QtCore.SIGNAL('graphicsViewMouseClicked'), self.graphics_view_mouse_clicked)
+        QtCore.QObject.connect(self.graphics_view, QtCore.SIGNAL('graphicsViewMouseMoved'), self.graphics_view_mouse_moved)
+
+    def graphics_view_mouse_clicked(self, x, y): 
+        self.emit("graphicsClicked", x, y)
+        self.graphics_centring_lines_item.set_coordinates(x, y)
+
+    def graphics_view_mouse_moved(self, x, y):
+        if self.centring_state:
+            self.graphics_centring_lines_item.set_coordinates(x, y)
+
+    def get_graphics_view(self):
+        return self.graphics_view
+
+    def get_camera_frame(self):
+        return self.graphics_camera_frame 
 
     def set_graphics_scene_size(self, size):
         self.graphics_scene_size = size
@@ -91,10 +120,12 @@ class Qt4_GraphicsManager(HardwareObject):
     def get_omega_reference_item(self):
         return self.graphics_omega_reference_item
 
-    def set_centring_lines_enable(self, is_enabled):
-        print "set_centring_lines_enable... ", is_enabled         
-        if is_enabled:
-            print self.graphics_centring_lines_item.parent
+    def set_centring_state(self, state):
+        self.centring_state = state
+        if state: 
+            self.graphics_centring_lines_item.show()
+        else:
+            self.graphics_centring_lines_item.hide()
 
     def get_shapes(self):
         """
@@ -122,10 +153,8 @@ class Qt4_GraphicsManager(HardwareObject):
         :type shape: Shape object.
 
         """
+        self.graphics_view.graphics_scene.addItem(shape)
         self.shapes[shape] = shape
-
-        self.get_drawing_event_handler().de_select_all()
-        self.get_drawing_event_handler().set_selected(shape, True, call_cb = True)
 
     def _delete_shape(self, shape):
         shape.unhighlight()
@@ -261,10 +290,15 @@ class Qt4_GraphicsManager(HardwareObject):
     def update_omega_reference(self, omega_reference):
         self.graphics_omega_reference_item.set_reference(omega_reference)  
 
+    def add_new_centring_point(self, state, centring_status, beam_info):
+        new_point = GraphicsItemCentredPoint(self,200, 200)
+        self.centring_points.append(new_point)
+        self.graphics_view.graphics_scene.addItem(new_point)        
 
-class Shape(QtGui.QGraphicsItem):
+
+class GraphicsItem(QtGui.QGraphicsItem):
     """
-    Base class for shapes.
+    Descript. : Base class for shapes.
     """
     def __init__(self, parent, position_x = 0, position_y = 0):
         QtGui.QGraphicsItem.__init__(self)
@@ -292,15 +326,12 @@ class Shape(QtGui.QGraphicsItem):
         else:
             self.hide()
 
-    def boundingRect(self):
-        return self.rect.adjusted(-2, -2, 2, 2)
-
-class GraphicsObjectBeam(Shape):
+class GraphicsItemBeam(GraphicsItem):
     """
     Descrip. : 
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
-        Shape.__init__(self, parent, position_x = 0, position_y= 0)
+        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
         self.shape_is_rectangle = True
 
     def paint(self, painter, option, widget):
@@ -325,12 +356,12 @@ class GraphicsObjectBeam(Shape):
     def set_shape(self, is_rectangle):
         self.shape_is_rectangle = is_rectangle      
 
-class GraphicsObjectScale(Shape):
+class GraphicsItemScale(GraphicsItem):
     """
     Descrip. : 
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
-        Shape.__init__(self, parent, position_x = 0, position_y= 0)
+        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen(self.style)
@@ -340,12 +371,12 @@ class GraphicsObjectScale(Shape):
         painter.drawLine(0, 0, 150, 0)
         painter.drawLine(0, 0, 0, -50)
 
-class GraphicsObjectOmegaReference(Shape):
+class GraphicsItemOmegaReference(GraphicsItem):
     """
     Descrip. : 
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
-        Shape.__init__(self, parent, position_x = 0, position_y= 0)
+        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
         self.parent = parent
         self.start_x = 0
         self.start_y = 0
@@ -373,33 +404,44 @@ class GraphicsObjectOmegaReference(Shape):
             self.start_y = omega_reference[1]
             self.end_y = omega_reference[1]
 
-class GraphicsObjectCentringLines(Shape):
+class GraphicsItemCentringLines(GraphicsItem):
     """
     Descrip. : 
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
-        Shape.__init__(self, parent, position_x = 0, position_y= 0)
+        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
         self.parent = parent
+
+        self.coord_x = 200
+        self.coord_y = 100
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen(self.style)
         pen.setWidth(1)
-        pen.setColor(QtCore.Qt.white)
+        pen.setColor(QtCore.Qt.yellow)
         painter.setPen(pen)
+        painter.drawLine(self.coord_x, 0, self.coord_x, self.scene().height())
+        painter.drawLine(0, self.coord_y, self.scene().width(), self.coord_y)
 
-class GraphicsObjectCentredPoint(Shape):
+    def set_coordinates(self, x, y):
+        self.coord_x = x
+        self.coord_y = y 
+        self.update()
+        
+
+class GraphicsItemCentredPoint(GraphicsItem):
     """
     Descrip. : Centred point class.
     Args.    : parent, centred position (motors position dict, 
                full_centring (True if 3click centring), initial position)
     """
-    def __init__(self, parent, centred_position = None, full_centring = True,
+    def __init__(self, centred_position = None, full_centring = True,
                  position_x = 0, position_y = 0):
-        Shape.__init__(self)
+        GraphicsItem.__init__(self, position_x, position_y)
 
         self.full_centring = full_centring
-
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
+                      QtGui.QGraphicsItem.ItemIsMovable)
 
         if centred_position is None:
             self.centred_position = queue_model_objects.CentredPosition()
@@ -407,63 +449,68 @@ class GraphicsObjectCentredPoint(Shape):
         else:
             self.centred_position = centred_position
         self.set_size(20, 20)
+	self.set_position(position_x, position_y)
+        self.index = None
+
+    def set_index(self, index):
+        self.index = index  
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen(self.style)
-        pen.setWidth(3)
+        pen.setWidth(1)
         if option.state & QtGui.QStyle.State_Selected:
             pen.setColor(QtCore.Qt.green)
         else:
             pen.setColor(QtCore.Qt.yellow)
         painter.setPen(pen)
         painter.drawEllipse(self.rect)
+        painter.drawLine(self.rect.left(), self.rect.top(),
+                         self.rect.right(), self.rect.bottom())
+        painter.drawLine(self.rect.right(), self.rect.top(),
+                         self.rect.left(), self.rect.bottom())
+        if self.index: 
+            painter.drawText(self.rect.right() + 2, self.rect.top(), str(self.index))
+        else:
+            painter.drawText(self.rect.right() + 2, self.rect.top(), "#")
 
+    def mousePressEvent(self, event):
+        position = QtCore.QPointF(event.pos())
 
-    def __recalculate_beam_dim(self):
-        """
-        Calculates the beam widht and height when the pixel/mm scale changes
-        """
-        beam_height_mm = self.__beam_pos[3]
-        beam_width_mm = self.__beam_pos[2]
-        self.__cell_height = int(self.__cell_height_mm * self.__y_pixel_size)
-        self.__beam_height = int(beam_height_mm * self.__y_pixel_size)
-        self.__cell_width = int(self.__cell_width_mm * self.__x_pixel_size)
-        self.__beam_width = int(beam_width_mm * self.__x_pixel_size)
-        self.reshape()
+class GraphicsView(QtGui.QGraphicsView):
+    def __init__ (self, parent=None):
+        super(GraphicsView, self).__init__(parent)
 
-    def set_cell_width(self, cell_width_mm):
-        self.__cell_width_mm = cell_width_mm
-        self.__cell_width = int(self.__cell_width_mm * self.__x_pixel_size)
-        self.reshape()
+        self.graphics_scene = GraphicsScene(self)
+        self.setScene(self.graphics_scene)  
+        self.graphics_scene.clearSelection()
+        self.setMouseTracking(True)
 
-    def set_cell_height(self, cell_height_mm):
-        self.__cell_height_mm = cell_height_mm
-        self.__cell_height = int(self.__cell_height_mm * self.__y_pixel_size)
-        self.reshape()
+    def mouseMoveEvent(self, event):
+        position = QtCore.QPointF(event.pos())
+        self.emit(QtCore.SIGNAL("graphicsViewMouseMoved"), position.x(), position.y())
+        self.update()
+
+    def mousePressEvent(self, event):
+        position = QtCore.QPointF(event.pos())
+        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseClicked"), position.x(), position.y())
+        self.update()   
 
 class GraphicsScene(QtGui.QGraphicsScene):
     def __init__ (self, parent=None):
         super(GraphicsScene, self).__init__ (parent)
-        self.centring_state = True
+ 
 
-    def set_centring_state(self, state):
-        self.centring_state = state
+class GraphicsCameraFrame(QtGui.QGraphicsPixmapItem):
+    def __init__ (self, parent=None):
+        super(GraphicsCameraFrame, self).__init__(parent)
 
-    def mousePressEvent(self, event):
-        if self.centring_state:
-            position = QtCore.QPointF(event.scenePos())
-            print "pressed here: " + str(position.x()) + ", " + str(position.y())
+    """def mousePressEvent(self, event):
+        position = QtCore.QPointF(event.pos())
+        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseClicked"), position.x(), position.y())
         self.update()
 
     def mouseMoveEvent(self, event):
-        print self.mouseGrabberItem()
-        if self.centring_state:
-            position = QtCore.QPointF(event.scenePos())
-            print "moved here: " + str(position.x()) + ", " + str(position.y())
-        self.update()
-
-    def mouseReleaseEvent(self, event):
-        if self.centring_state:
-            position = QtCore.QPointF(event.scenePos())
-            print "released here: " + str(position.x()) + ", " + str(position.y())
-        self.update()
+        print "moved"
+        position = QtCore.QPointF(event.pos())
+        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseMoved"), position.x(), position.y())
+        self.update()"""
