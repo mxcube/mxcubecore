@@ -295,6 +295,11 @@ class Qt4_GraphicsManager(HardwareObject):
         self.centring_points.append(new_point)
         self.graphics_view.graphics_scene.addItem(new_point)        
 
+    def get_snapshot(self, shape):
+        
+        print "graphicsManager get_snapshot of %s- implement" %str(shape)
+        return
+  
 
 class GraphicsItem(QtGui.QGraphicsItem):
     """
