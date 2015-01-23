@@ -24,6 +24,9 @@ import logging
 import tempfile
 import gevent
 import random
+
+import queue_model_objects_v1 as qmo
+
 from gevent.event import AsyncResult
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
@@ -46,6 +49,16 @@ class Qt4_DiffractometerMockup(Equipment):
         Descript. :
         """
         Equipment.__init__(self, *args)
+
+        qmo.CentredPosition.set_diffractometer_motor_names("phi",
+                                                           "focus",
+                                                           "phiz",
+                                                           "phiy",
+                                                           "zoom",
+                                                           "sampx",
+                                                           "sampy",
+                                                           "kappa",
+                                                           "kappa_phi")
 
         self.phiMotor = None
         self.phizMotor = None

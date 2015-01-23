@@ -90,8 +90,12 @@ class Qt4_GraphicsManager(HardwareObject):
         self.shapes = {}
         self.selected_shapes = {}
 
-        QtCore.QObject.connect(self.graphics_view, QtCore.SIGNAL('graphicsViewMouseClicked'), self.graphics_view_mouse_clicked)
-        QtCore.QObject.connect(self.graphics_view, QtCore.SIGNAL('graphicsViewMouseMoved'), self.graphics_view_mouse_moved)
+        QtCore.QObject.connect(self.graphics_view, 
+                               QtCore.SIGNAL('graphicsViewMouseClicked'), 
+                               self.graphics_view_mouse_clicked)
+        QtCore.QObject.connect(self.graphics_view, 
+                               QtCore.SIGNAL('graphicsViewMouseMoved'), 
+                               self.graphics_view_mouse_moved)
 
     def graphics_view_mouse_clicked(self, x, y): 
         self.emit("graphicsClicked", x, y)
@@ -220,7 +224,8 @@ class Qt4_GraphicsManager(HardwareObject):
         self.shapes.clear()
 
     def de_select_all(self):
-        self._drawing_event.de_select_all()
+        self.graphics_view.graphics_scene.clearSelection()
+        #self._drawing_event.de_select_all()
 
     def select_shape_with_cpos(self, cpos):
         self._drawing_event.de_select_all()
@@ -296,7 +301,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(new_point)        
 
     def get_snapshot(self, shape):
-        
+         
         print "graphicsManager get_snapshot of %s- implement" %str(shape)
         return
   
