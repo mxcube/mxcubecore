@@ -74,12 +74,15 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_omega_reference_item = GraphicsItemOmegaReference(self)
         self.graphics_centring_lines_item = GraphicsItemCentringLines(self)
         self.graphics_centring_lines_item.hide()
+        self.graphics_mesh_draw_item = GraphicsItemMesh(self)
+        self.graphics_mesh_draw_item.hide()
          
         self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_scale_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_centring_lines_item) 
+        self.graphics_view.graphics_scene.addItem(self.graphics_mesh_draw_item)
 
         self.beam_info_dict = {}
         self.omega_axis_info_dict = {}
@@ -87,12 +90,16 @@ class Qt4_GraphicsManager(HardwareObject):
         self.selected_shapes = {}
         self.centring_points = []
         self.centring_state = False
+        self.mesh_drawing_state = False
         self.shapes = {}
         self.selected_shapes = {}
 
         QtCore.QObject.connect(self.graphics_view, 
                                QtCore.SIGNAL('graphicsViewMouseClicked'), 
                                self.graphics_view_mouse_clicked)
+        QtCore.QObject.connect(self.graphics_view,
+                               QtCore.SIGNAL('graphicsViewMouseReleased'),
+                               self.graphics_view_mouse_released)
         QtCore.QObject.connect(self.graphics_view, 
                                QtCore.SIGNAL('graphicsViewMouseMoved'), 
                                self.graphics_view_mouse_moved)
@@ -100,10 +107,19 @@ class Qt4_GraphicsManager(HardwareObject):
     def graphics_view_mouse_clicked(self, x, y): 
         self.emit("graphicsClicked", x, y)
         self.graphics_centring_lines_item.set_coordinates(x, y)
+        self.mesh_drawing_state = True
+        self.graphics_mesh_draw_item.set_draw_mode(True)
+        self.graphics_mesh_draw_item.set_draw_start_position(x, y)
+
+    def graphics_view_mouse_released(self, x, y):
+        self.graphics_mesh_draw_item.set_draw_mode(False)
+        self.mesh_drawing_state = False
 
     def graphics_view_mouse_moved(self, x, y):
         if self.centring_state:
             self.graphics_centring_lines_item.set_coordinates(x, y)
+        if self.mesh_drawing_state:
+            self.graphics_mesh_draw_item.set_draw_end_position(x, y)
 
     def get_graphics_view(self):
         return self.graphics_view
@@ -301,11 +317,12 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(new_point)        
 
     def get_snapshot(self, shape):
-         
         print "graphicsManager get_snapshot of %s- implement" %str(shape)
         return
-  
 
+    def start_mesh_draw(self, shape):
+        self.graphics_mesh_draw_item.show()
+  
 class GraphicsItem(QtGui.QGraphicsItem):
     """
     Descript. : Base class for shapes.
@@ -365,6 +382,61 @@ class GraphicsItemBeam(GraphicsItem):
 
     def set_shape(self, is_rectangle):
         self.shape_is_rectangle = is_rectangle      
+
+class GraphicsItemMesh(GraphicsItem):
+    """
+    Descrip. : 
+    """
+    def __init__(self, parent, position_x = 0, position_y= 0):
+        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
+        self.__beam_size_hor = 40
+        self.__beam_size_ver = 20
+        self.__draw_start_pos = [100, 100]
+        self.__draw_end_pos = [400, 400]
+        self.__num_col = 0
+        self.__num_row = 0
+        self.__draw_mode = False
+
+    def set_draw_start_position(self, pos_x, pos_y): 
+        self.__draw_start_pos = [pos_x, pos_y]
+
+    def set_draw_end_position(self, pos_x, pos_y):
+        self.__draw_end_pos = [pos_x, pos_y]
+
+    def set_draw_mode(self, draw_mode):
+        self.__draw_mode = draw_mode 
+
+    def paint(self, painter, option, widget):
+        pen = QtGui.QPen(self.style)
+        pen.setWidth(1)
+        if self.__draw_mode:
+            pen.setStyle(QtCore.Qt.DashLine)
+        else:
+            pen.setStyle(QtCore.Qt.SolidLine) 
+
+        if option.state & QtGui.QStyle.State_Selected:
+            pen.setColor(QtCore.Qt.green)
+        else:
+            pen.setColor(QtCore.Qt.black)
+        painter.setPen(pen)
+        
+        self.__num_col = int(abs(self.__draw_start_pos[0] - self.__draw_end_pos[0]) / self.__beam_size_hor)
+        self.__num_row = int(abs(self.__draw_start_pos[1] - self.__draw_end_pos[1]) / self.__beam_size_ver)
+              
+        for col in range(self.__num_col + 1):
+            painter.drawLine(self.__draw_start_pos[0] + self.__beam_size_hor * col,
+                             self.__draw_start_pos[1],
+                             self.__draw_start_pos[0] + self.__beam_size_hor * col,
+                             self.__draw_end_pos[1])
+        for row in range(self.__num_row + 1):
+            painter.drawLine(self.__draw_start_pos[0],
+                             self.__draw_start_pos[1] + self.__beam_size_ver * row,
+                             self.__draw_end_pos[0],
+                             self.__draw_start_pos[1] + self.__beam_size_ver * row)  
+ 
+ 
+        painter.drawLine(self.__draw_start_pos[0], self.__draw_start_pos[1],
+                         self.__draw_end_pos[0], self.__draw_end_pos[1]) 
 
 class GraphicsItemScale(GraphicsItem):
     """
@@ -503,7 +575,12 @@ class GraphicsView(QtGui.QGraphicsView):
     def mousePressEvent(self, event):
         position = QtCore.QPointF(event.pos())
         self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseClicked"), position.x(), position.y())
-        self.update()   
+        self.update()  
+
+    def mouseReleaseEvent(self, event):
+        position = QtCore.QPointF(event.pos())
+        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseReleased"), position.x(), position.y())
+        self.update() 
 
 class GraphicsScene(QtGui.QGraphicsScene):
     def __init__ (self, parent=None):
