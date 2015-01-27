@@ -206,7 +206,7 @@ class BeamlineSetup(HardwareObject):
         char_params.use_aimed_resolution = False
         char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
         char_params.use_aimed_multiplicity = False
-        char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
+        #char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
         char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
         char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
         char_params.strategy_complexity = 0
