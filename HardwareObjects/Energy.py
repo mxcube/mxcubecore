@@ -129,6 +129,7 @@ class Energy(Equipment):
             
     def checkLimits(self, value):
         logging.getLogger("HWR").info("Checking the move limits")
+        self.getEnergyLimits()
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True
