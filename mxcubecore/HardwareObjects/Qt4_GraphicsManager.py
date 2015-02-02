@@ -112,7 +112,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_mesh_draw_item.set_draw_start_position(x, y)
 
     def graphics_view_mouse_released(self, x, y):
-        self.graphics_mesh_draw_item.set_draw_mode(False)
+        #self.graphics_mesh_draw_item.set_draw_mode(False)
         self.mesh_drawing_state = False
 
     def graphics_view_mouse_moved(self, x, y):
@@ -244,6 +244,8 @@ class Qt4_GraphicsManager(HardwareObject):
         #self._drawing_event.de_select_all()
 
     def select_shape_with_cpos(self, cpos):
+        print "select_shape_with_cpos: - implement"
+        return
         self._drawing_event.de_select_all()
 
         for shape in self.get_shapes():
@@ -317,8 +319,13 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(new_point)        
 
     def get_snapshot(self, shape):
-        print "graphicsManager get_snapshot of %s- implement" %str(shape)
-        return
+        image = QtGui.QImage(self.graphics_view.graphics_scene.sceneRect().size().toSize(), 
+                             QtGui.QImage.Format_ARGB32)
+        image.fill(QtCore.Qt.transparent)
+        image_painter = QtGui.QPainter(image)
+        self.graphics_view.render(image_painter)
+        image_painter.end()
+        return image
 
     def start_mesh_draw(self, shape):
         self.graphics_mesh_draw_item.show()
@@ -389,19 +396,29 @@ class GraphicsItemMesh(GraphicsItem):
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
         GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
-        self.__beam_size_hor = 40
-        self.__beam_size_ver = 20
-        self.__draw_start_pos = [100, 100]
-        self.__draw_end_pos = [400, 400]
+        self.__beam_size_hor = 70
+        self.__beam_size_ver = 70
+        self.__cell_height = 70
+        self.__cell_width = 70
+        self.__corner_points_motor_pos = []
+        self.__corner_points_coord = [[0, 0], [0, 0], [0, 0], [0, 0]]
         self.__num_col = 0
         self.__num_row = 0
-        self.__draw_mode = False
+        self.__draw_mode = True
 
-    def set_draw_start_position(self, pos_x, pos_y): 
-        self.__draw_start_pos = [pos_x, pos_y]
+    def set_draw_start_position(self, pos_x, pos_y):
+        self.__corner_points_coord[0][0] = pos_x
+        self.__corner_points_coord[0][1] = pos_y
+        self.__corner_points_coord[1][1] = pos_y
+        self.__corner_points_coord[2][0] = pos_x
+        self.scene().update()
 
     def set_draw_end_position(self, pos_x, pos_y):
-        self.__draw_end_pos = [pos_x, pos_y]
+        self.__corner_points_coord[1][0] = pos_x
+        self.__corner_points_coord[2][1] = pos_y
+        self.__corner_points_coord[3][0] = pos_x
+        self.__corner_points_coord[3][1] = pos_y
+        self.scene().update()
 
     def set_draw_mode(self, draw_mode):
         self.__draw_mode = draw_mode 
@@ -409,35 +426,90 @@ class GraphicsItemMesh(GraphicsItem):
     def paint(self, painter, option, widget):
         pen = QtGui.QPen(self.style)
         pen.setWidth(1)
+        brush = QtGui.QBrush(self.style)
+        brush.setColor(QtGui.QColor(122,175,220))
         if self.__draw_mode:
             pen.setStyle(QtCore.Qt.DashLine)
         else:
             pen.setStyle(QtCore.Qt.SolidLine) 
-
         if option.state & QtGui.QStyle.State_Selected:
             pen.setColor(QtCore.Qt.green)
         else:
             pen.setColor(QtCore.Qt.black)
         painter.setPen(pen)
+        painter.setBrush(brush)
         
-        self.__num_col = int(abs(self.__draw_start_pos[0] - self.__draw_end_pos[0]) / self.__beam_size_hor)
-        self.__num_row = int(abs(self.__draw_start_pos[1] - self.__draw_end_pos[1]) / self.__beam_size_ver)
-              
-        for col in range(self.__num_col + 1):
-            painter.drawLine(self.__draw_start_pos[0] + self.__beam_size_hor * col,
-                             self.__draw_start_pos[1],
-                             self.__draw_start_pos[0] + self.__beam_size_hor * col,
-                             self.__draw_end_pos[1])
-        for row in range(self.__num_row + 1):
-            painter.drawLine(self.__draw_start_pos[0],
-                             self.__draw_start_pos[1] + self.__beam_size_ver * row,
-                             self.__draw_end_pos[0],
-                             self.__draw_start_pos[1] + self.__beam_size_ver * row)  
+        if self.__draw_mode:
+            self.__num_col = int(abs(self.__corner_points_coord[0][0] - \
+                                     self.__corner_points_coord[1][0]) / \
+                                     self.__beam_size_hor)
+            self.__num_row = int(abs(self.__corner_points_coord[0][1] - \
+                                     self.__corner_points_coord[2][1]) / \
+                                     self.__beam_size_ver) 
+            for row in range(0, self.__num_row):
+                row_offset = row * self.__cell_width
+                for col in range(0, self.__num_col):
+                    col_offset = col * self.__cell_height 
+                    start_x = self.__corner_points_coord[0][0] + \
+                              col_offset
+                    start_y = self.__corner_points_coord[0][1] + \
+                              row_offset
+                    brush.setStyle(QtCore.Qt.Dense4Pattern)
+                    painter.setBrush(brush)
+                    painter.drawEllipse(start_x, start_y, self.__cell_height,
+                                        self.__cell_width) 
+                    brush.setStyle(QtCore.Qt.NoBrush)
+                    painter.setBrush(brush)
+                    painter.drawRect(start_x, start_y, self.__cell_height,
+                                     self.__cell_width)
+                     
+        else:
+           print "get positions from motors"
+           for row in range(0, self.__num_row + 1):
+                start_x = min(self.__corner_points_coord[0][0], 
+                              self.__corner_points_coord[2][0]) + \
+                          (abs(self.__corner_points_coord[0][0] - \
+                               self.__corner_points_coord[2][0]) / \
+                               self.__num_row * row)
+                start_y = min(self.__corner_points_coord[0][1], 
+                              self.__corner_points_coord[2][1]) + \
+                          (abs(self.__corner_points_coord[0][1] - \
+                               self.__corner_points_coord[2][1]) / \
+                               self.__num_row * row) 
+                end_x = min(self.__corner_points_coord[1][0], 
+                            self.__corner_points_coord[3][0]) + \
+                        (abs(self.__corner_points_coord[1][0] - \
+                             self.__corner_points_coord[3][0]) / \
+                             self.__num_row * row)
+                end_y = min(self.__corner_points_coord[1][1], 
+                            self.__corner_points_coord[3][1]) + \
+                        (abs(self.__corner_points_coord[1][1] - \
+                             self.__corner_points_coord[3][1]) / \
+                             self.__num_row * row)
+                painter.drawLine(start_x, start_y, end_x, end_y)
+           for col in range(0, self.__num_col + 1):
+                start_x = min(self.__corner_points_coord[0][0], \
+                              self.__corner_points_coord[1][0]) + \
+                          (abs(self.__corner_points_coord[0][0] - \
+                              self.__corner_points_coord[1][0]) / \
+                              self.__num_col * col)
+                start_y = min(self.__corner_points_coord[0][1], \
+                              self.__corner_points_coord[1][1]) + \
+                          (abs(self.__corner_points_coord[0][1] - \
+                              self.__corner_points_coord[1][1]) / \
+                              self.__num_col * col)
+                end_x = min(self.__corner_points_coord[2][0], \
+                            self.__corner_points_coord[3][0]) + \
+                        (abs(self.__corner_points_coord[2][0] - \
+                             self.__corner_points_coord[3][0]) / \
+                             self.__num_col * col)
+                end_y = min(self.__corner_points_coord[2][1], \
+                            self.__corner_points_coord[3][1]) + \
+                        (abs(self.__corner_points_coord[2][1] - \
+                             self.__corner_points_coord[3][1]) / \
+                             self.__num_col * col)
+                painter.drawLine(start_x, start_y, end_x, end_y)
  
- 
-        painter.drawLine(self.__draw_start_pos[0], self.__draw_start_pos[1],
-                         self.__draw_end_pos[0], self.__draw_end_pos[1]) 
-
 class GraphicsItemScale(GraphicsItem):
     """
     Descrip. : 
@@ -586,18 +658,6 @@ class GraphicsScene(QtGui.QGraphicsScene):
     def __init__ (self, parent=None):
         super(GraphicsScene, self).__init__ (parent)
  
-
 class GraphicsCameraFrame(QtGui.QGraphicsPixmapItem):
     def __init__ (self, parent=None):
         super(GraphicsCameraFrame, self).__init__(parent)
-
-    """def mousePressEvent(self, event):
-        position = QtCore.QPointF(event.pos())
-        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseClicked"), position.x(), position.y())
-        self.update()
-
-    def mouseMoveEvent(self, event):
-        print "moved"
-        position = QtCore.QPointF(event.pos())
-        self.scene().views()[0].emit(QtCore.SIGNAL("graphicsViewMouseMoved"), position.x(), position.y())
-        self.update()"""
