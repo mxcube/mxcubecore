@@ -749,7 +749,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+        self.getChannelObject('helical_pos').setValue(helical_oscil_pos)
 
 
     def get_archive_directory(self, directory):
