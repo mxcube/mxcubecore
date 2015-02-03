@@ -1160,9 +1160,13 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
         element = '%d:%02d' % loc
         beamline_setup_hwobj.sample_changer_hwobj.load(sample=element, wait=True)
     else:
-        beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
+        if beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
                                                               sample_location=loc,
-                                                              wait=True)
+                                                              wait=True) == False:
+            # WARNING: explicit test of False return value.
+            # This is to preserve backward compatibility (load_sample was supposed to return None);
+            # if sample could not be loaded, but no exception is raised, let's skip the sample
+            raise QueueSkippEntryException("Sample changer could not load sample", "")
 
     dm = beamline_setup_hwobj.diffractometer_hwobj
 
