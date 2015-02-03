@@ -174,10 +174,13 @@ class Robodiff(SampleChanger):
         # move detector to high software limit, without waiting end of move
         self.detector_translation.move(self.detector_translation.getLimits()[1])
         # now call load procedure
-        self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        load_successful = self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        if not load_successful:
+          return False 
         self._setLoadedSample(sample)
         # update chi position and state
         self.robot.chi._update_channels()
+        return True
 
     def _doUnload(self, sample=None):
         self.detector_translation.move(self.detector_translation.getLimits()[1])

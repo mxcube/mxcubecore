@@ -74,7 +74,7 @@ class XMLRPCServer(HardwareObject):
         if hasattr(self, "_server" ):
           return
         self.xmlrpc_prefixes = set()
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none=True)
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
 
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
@@ -92,6 +92,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.save_snapshot)
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
+        self._server.register_function(self.cryo_temperature)
+        self._server.register_function(self.flux)
  
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -328,6 +330,15 @@ class XMLRPCServer(HardwareObject):
         """
         self.diffractometer_hwobj.saveCurrentPos()
         return True
+
+    def cryo_temperature(self):
+        return self.beamline_setup_hwobj.collect_hwobj.get_cryo_temperature()
+
+    def flux(self):
+        flux = self.beamline_setup_hwobj.collect_hwobj.get_flux()
+        if flux is None:
+            flux = 0
+        return float(flux)
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")

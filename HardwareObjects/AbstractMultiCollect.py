@@ -686,7 +686,7 @@ class AbstractMultiCollect(object):
                   file_location = file_parameters["directory"]
                   file_path  = os.path.join(file_location, filename)
 
-                  self.set_detector_filenames(frame, frame_start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
+                  self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
                   osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
 
                   with error_cleanup(self.reset_detector):

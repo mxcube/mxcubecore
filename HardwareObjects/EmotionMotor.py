@@ -1,4 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.TaskUtils import *
 import math
 import logging
 import time
@@ -68,7 +69,12 @@ class EmotionMotor(Device):
         self.emit('limitsChanged', (self.getLimits(), ))
                      
     def getLimits(self):
-        return self.motor.limits()
+        # no limit = None, but None is a problematic value
+        # for some GUI components (like MotorSpinBox), so
+        # in case of None it is much easier to return very
+        # large limits
+        ll, hl = self.motor.limits()
+        return ll if ll is not None else -1E6, hl if hl is not None else 1E6
 
     def positionChanged(self, absolutePosition):
         #print self.name(), absolutePosition
@@ -80,8 +86,13 @@ class EmotionMotor(Device):
     def getDialPosition(self):
         return self.getPosition()
 
+    @task
+    def _wait_ready(self):
+        while self.motorIsMoving():
+            time.sleep(0.02)
+
     def move(self, position):
-        #self.updateState("MOVING")
+        self._wait_ready(timeout=1)
         self.motor.move(position, wait=False) #.link(self.updateState)
 
     def moveRelative(self, relativePosition):
@@ -99,7 +110,7 @@ class EmotionMotor(Device):
         self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
-        return self.motorState == EmotionMotor.MOVING
+        return self.motor.state() == 'MOVING'
  
     def getMotorMnemonic(self):
         return self.motor_name

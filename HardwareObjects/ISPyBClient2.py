@@ -262,9 +262,11 @@ class ISPyBClient2(HardwareObject):
                     proposal = {}
 
                 try: 
-                    lab = self.__shipping.service.\
-                        findLaboratoryByProposal(proposal_code, 
-                                                 proposal_number)
+                    # lab = self.__shipping.service.\
+                    #     findLaboratoryByProposal(proposal_code, 
+                    #                              proposal_number)
+
+                    lab = None
 
                     if not lab:
                         lab = {}
@@ -1148,19 +1150,15 @@ class ISPyBClient2(HardwareObject):
         """
         """
         pos_id = -1
-        mpos_dict = {'omega' : cpos.phi,
-                     'phi': cpos.kappa_phi,
-                     'kappa': cpos.kappa,
-                     'phiX': cpos.focus,
-                     'phiY': cpos.phiy,
-                     'phiZ': cpos.phiz,
-                     'sampX': cpos.sampx,
-                     'sampY': cpos.sampy}
-        try:
-          mpos_dict['chi']=cpos.chi
-        except AttributeError:
-          pass
-          
+        diffractometer_positions = cpos.as_dict()
+        mxcube2ispyb = { "phi": "omega", "kappa_phi": "phi", "kappa":"kappa", "focus":"phiX",
+                         "phiy": "phiY", "phiz": "phiZ", "sampx": "sampX", "sampy": "sampY", "chi":"chi" }
+        mpos_dict = { "omega": -9999, "phi": -9999, "kappa": -9999, "phiX": -9999,
+                      "phiY": -9999, "phiZ": -9999, "sampX": -9999, "sampY": -9999, "chi": 0 }
+        for motor_name, pos in diffractometer_positions.iteritems():
+            if mxcube2ispyb.get(motor_name):
+                mpos_dict[mxcube2ispyb[motor_name]]=pos
+
         msg = 'Storing position in LIMS'
         logging.getLogger("user_level_log").info(msg)
         
