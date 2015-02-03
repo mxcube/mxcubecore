@@ -30,7 +30,11 @@ class ID30A3PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        counts = -100*int(self.musst.putget("#?CH CH6").split()[0])/float(0x7FFFFFFF)
+        gain = 20 #20uA
+        keithley_voltage = 2 
+        musst_voltage = int("".join([x for x in self.musst.putget("#?CHCFG CH5") if x.isdigit()]))
+        musst_fs = float(0x7FFFFFFF)
+        counts = abs((gain/keithley_voltage)*musst_voltage*int(self.musst.putget("#?VAL CH5"))/musst_fs)
         if counts < 0:
             counts = 0
         return counts
