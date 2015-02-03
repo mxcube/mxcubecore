@@ -293,7 +293,11 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         #'public' post-initialization method
         pass
 
+    
+    def __nonzero__(self):
+        return True
         
+
     def __getattr__(self, attr):
         if attr.startswith("__"):
            raise AttributeError, attr
