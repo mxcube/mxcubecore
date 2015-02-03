@@ -12,7 +12,7 @@ class Energy(Equipment):
         self.energy_motor = None
         self.tunable = False
         self.moving = None
-        self.default_en = 0
+        self.default_en = None
         self.en_lims = []
 
         try:
@@ -22,16 +22,15 @@ class Energy(Equipment):
             self.energy_motor = None
 
         try:
+            self.default_en = self.getProperty("default_energy")
+        except:
+            logging.getLogger("HWR").warning('Energy: no default energy')
+
+        try:
             self.tunable = self.getProperty("tunable_energy")
         except:
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
             self.tunable = False
-
-        try:
-            self.default_en = self.getProperty("default_energy")
-            self.tunable = False
-        except:
-            logging.getLogger("HWR").warning('Energy: no default energy')
 
         if self.energy_motor is not None:
             self.energy_motor.connect('positionChanged', self.energyPositionChanged)
@@ -129,6 +128,7 @@ class Energy(Equipment):
             
     def checkLimits(self, value):
         logging.getLogger("HWR").info("Checking the move limits")
+        self.getEnergyLimits()
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True
