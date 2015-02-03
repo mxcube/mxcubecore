@@ -20,10 +20,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
 
     @task
-    def take_crystal_snapshots(self, number_of_snapshots):
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
-
-    @task
     def get_beam_size(self):
         return self.bl_control.beam_info.get_beam_size()
  
