@@ -909,7 +909,7 @@ class Workflow(TaskNode):
 #
 # Collect hardware object utility function.
 #
-def to_collect_dict(data_collection, session, sample):
+def to_collect_dict(data_collection, session, sample, centred_pos=None):
     """ return [{'comment': '',
           'helical': 0,
           'motors': {},
@@ -993,7 +993,8 @@ def to_collect_dict(data_collection, session, sample):
              #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
              EXPERIMENT_TYPE_STR[data_collection.experiment_type],
-             'skip_images': acq_params.skip_existing_images}]
+             'skip_images': acq_params.skip_existing_images,
+             'motors': centred_pos.as_dict() if centred_pos is not None else {}}]
 
 
 def dc_from_edna_output(edna_result, reference_image_collection,
