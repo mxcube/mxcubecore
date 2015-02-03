@@ -34,8 +34,6 @@ class ID232MultiCollect(ESRFMultiCollect):
       data_collect_parameters["dark"] = 0
       # are we doing shutterless ?
       shutterless = data_collect_parameters.get("shutterless")
-      if data_collect_parameters.get("experiment_type") == 'Helical':
-          shutterless = False
       self._detector.shutterless = True if shutterless else False
       self.getChannelObject("shutterless").setValue(1 if shutterless else 0)
 
