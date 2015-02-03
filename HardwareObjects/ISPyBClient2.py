@@ -262,9 +262,11 @@ class ISPyBClient2(HardwareObject):
                     proposal = {}
 
                 try: 
-                    lab = self.__shipping.service.\
-                        findLaboratoryByProposal(proposal_code, 
-                                                 proposal_number)
+                    # lab = self.__shipping.service.\
+                    #     findLaboratoryByProposal(proposal_code, 
+                    #                              proposal_number)
+
+                    lab = None
 
                     if not lab:
                         lab = {}
