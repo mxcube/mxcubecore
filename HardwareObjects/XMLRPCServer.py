@@ -90,6 +90,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_diffractometer_positions)
         self._server.register_function(self.move_diffractometer)
         self._server.register_function(self.save_snapshot)
+        self._server.register_function(self.cryo_temperature)
+        self._server.register_function(self.flux)
  
 
         # Register functions from modules specified in <apis> element
@@ -306,6 +308,15 @@ class XMLRPCServer(HardwareObject):
     def save_snapshot(self, imgpath):
         self.diffractometer_hwobj.save_snapshot(imgpath)
         return True
+
+    def cryo_temperature(self):
+        return self.beamline_setup_hwobj.collect_hwobj.get_cryo_temperature()
+
+    def flux(self):
+        flux = self.beamline_setup_hwobj.collect_hwobj.get_flux()
+        if flux is None:
+            flux = 0
+        return float(flux)
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
