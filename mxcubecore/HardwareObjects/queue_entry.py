@@ -687,7 +687,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
                 """
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
-                param_list = queue_model_objects.to_collect_dict(dc, self.session, sample)
+                param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos)
+               
                 self.collect_task = self.collect_hwobj.\
                     collect(COLLECTION_ORIGIN_STR.MXCUBE, param_list)                
                 self.collect_task.get()
