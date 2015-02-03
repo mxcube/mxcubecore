@@ -52,6 +52,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
+        self.emit('apertureChanged', (self.getApertureSize(), ))
 
     def getCurrentPositionName(self, pos=None):
         if self.getPosition() is not None:
@@ -74,6 +75,13 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
+
+    def getApertureSize(self):
+        diameter_name = self.getCurrentPositionName()
+        for diameter in self["diameter"]:
+            if str(diameter.getProperty("name")) == str(diameter_name):
+                return (diameter.getProperty("size"),)*2
+        return (9999,9999)
 
     def getApertureCoef(self):
         diameter_name = self.getCurrentPositionName()
