@@ -29,7 +29,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
  
     @task
     def get_slit_gaps(self):
-        return (0.1, 0.1)
+        return (self.bl_control.diffractometer.controller.hgap.position(), self.bl_control.diffractometer.controller.vgap.position())
 
     def get_measured_intensity(self):
         return 0
@@ -93,9 +93,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
-
-    def get_flux(self):
-        return 1E12
 
     def set_transmission(self, transmission):
     	self.getObjectByRole("transmission").set_value(transmission)

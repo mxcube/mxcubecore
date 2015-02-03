@@ -44,31 +44,38 @@ class myimage:
         return self.imgcopy
 
 
+def set_light_in(light, light_motor, zoom):
+    with gevent.Timeout(5, RuntimeError("Could not set light in")):
+       light_level = None
+
+       if light is not None:
+           light.wagoIn()
+
+       # No light level, choose default
+       if light_motor.getPosition() == 0:
+           zoom_level = int(zoom.getPosition())
+           light_level = None
+
+           try:
+               light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
+           except IndexError:
+               logging.getLogger("HWR").info("Could not get default light level")
+               light_level = 1
+
+       if light_level:
+           light_motor.move(light_level)
+
+       while light.getWagoState()!="in":
+           time.sleep(0.5)
+
+
 def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
   if number_of_snapshots <= 0:
     return
 
   centredImages = []
 
-  if light is not None:
-    light.wagoIn()
-
-    # No light level, choose default
-    if light_motor.getPosition() == 0:
-      zoom_level = int(zoom.getPosition())
-      light_level = None
-
-      try:
-        light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
-      except IndexError:
-        logging.getLogger("HWR").info("Could not get default light level")
-        light_level = 1
-
-      if light_level:
-        light_motor.move(light_level)
-
-    while light.getWagoState()!="in":
-      time.sleep(0.5)
+  set_light_in(light, light_motor, zoom)
 
   for i, angle in enumerate([-90]*number_of_snapshots):
      logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", i+1)
@@ -235,6 +242,7 @@ class MiniDiff(Equipment):
 
 
     def save_snapshot(self, filename):
+        set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
         img = myimage(self._drawing)
         img.save(filename)
 
@@ -309,6 +317,8 @@ class MiniDiff(Equipment):
         return beam_info
 
     def zoomMotorPredefinedPositionChanged(self, positionName, offset):
+        if not positionName:
+            return 
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(offset)
         self.emit('zoomMotorPredefinedPositionChanged', (positionName, offset, ))
 
@@ -596,15 +606,15 @@ class MiniDiff(Equipment):
 
 
     def getPositions(self):
-      return { "phi": self.phiMotor.getPosition(),
-               "focus": self.focusMotor.getPosition(),
-               "phiy": self.phiyMotor.getPosition(),
-               "phiz": self.phizMotor.getPosition(),
-               "sampx": self.sampleXMotor.getPosition(),
-               "sampy": self.sampleYMotor.getPosition(),
-               "kappa": self.kappaMotor.getPosition() if self.kappaMotor else None,
-               "kappa_phi": self.kappaPhiMotor.getPosition() if self.kappaPhiMotor else None,    
-               "zoom": self.zoomMotor.getPosition()}
+      return { "phi": float(self.phiMotor.getPosition()),
+               "focus": float(self.focusMotor.getPosition()),
+               "phiy": float(self.phiyMotor.getPosition()),
+               "phiz": float(self.phizMotor.getPosition()),
+               "sampx": float(self.sampleXMotor.getPosition()),
+               "sampy": float(self.sampleYMotor.getPosition()),
+               "kappa": float(self.kappaMotor.getPosition()) if self.kappaMotor else None,
+               "kappa_phi": float(self.kappaPhiMotor.getPosition()) if self.kappaPhiMotor else None,    
+               "zoom": float(self.zoomMotor.getPosition())}
     
 
     def moveMotors(self, roles_positions_dict):

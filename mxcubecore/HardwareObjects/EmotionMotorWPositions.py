@@ -33,6 +33,9 @@ class EmotionMotorWPositions(EmotionMotor):
 
             self.sortPredefinedPositionsList()
 
+    def getPositionsData(self):
+        return self["positions"]
+
     def connectNotify(self, signal):
         EmotionMotor.connectNotify(self, signal)
 
