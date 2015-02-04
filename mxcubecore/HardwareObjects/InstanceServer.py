@@ -120,7 +120,7 @@ class InstanceServer(Procedure):
             if my_nick!=nick:
                 if use_proposal:
                     if prop is not None:
-                        pretty_print="[%s%d]%s" % (prop["code"],prop["number"],nick)
+                        pretty_print="[%s%s]%s" % (prop["code"],prop["number"],nick)
                     else:
                         pretty_print="[?]%s" % nick
                 else:
