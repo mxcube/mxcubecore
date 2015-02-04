@@ -669,25 +669,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     self.collect_hwobj.set_helical(False)
 
-                """empty_cpos = queue_model_objects.CentredPosition()
-                
-                if cpos != empty_cpos:
-                    log.info("Moving sample to given position ...")
-                    list_item.setText(1, "Moving sample")
-                    self.shape_history.select_shape_with_cpos(cpos)
-                    
-                    self.centring_task = self.diffractometer_hwobj.\
-                                         moveToCentredPosition(cpos, wait=False)
-                    self.centring_task.get()
-                else:
-                    pos_dict = self.diffractometer_hwobj.getPositions()
-                    cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_snapshot([])
-                    acq_1.acquisition_parameters.centred_position = cpos
-                    acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
-                """
+                empty_cpos = queue_model_objects.CentredPosition()
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
-                param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos)
+                param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\
                     collect(COLLECTION_ORIGIN_STR.MXCUBE, param_list)                
