@@ -1,9 +1,11 @@
 from ESRFMultiCollect import *
 from detectors.TacoMar import Mar225
 import gevent
+import socket
 import shutil
 import logging
 import os
+import gevent
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
@@ -98,6 +100,28 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def get_cryo_temperature(self):
         return 0
+
+    @task
+    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
+        self.last_image_filename = filename
+        return ESRFMultiCollect.set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
+       
+ 
+    def adxv_notify(self, image_filename):
+        try:
+            adxv_notify_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
+            adxv_notify_socket.sendall("load_image %s\n" % image_filename)
+            adxv_notify_socket.close()
+        except:
+            pass
+        
+
+    @task
+    def write_image(self, last_frame):
+        ESRFMultiCollect.write_image(self, last_frame)
+        gevent.spawn_later(3, self.adxv_notify, self.last_image_filename)
+        
 
     @task
     def prepare_intensity_monitors(self):
