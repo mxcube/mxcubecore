@@ -1,0 +1,13 @@
+<device class="DetectorMockup">
+  <type>pilatus</type>
+  <model>6M_F</model>
+  <manufacturer>DECTRIS</manufacturer>
+  <px>0.172</px>
+  <py>0.172</py>
+  <hasShutterless>True</hasShutterless>
+  <fileSuffix>cbf</fileSuffix>
+  <collectName>simdetector</collectName>
+  <useIcsShutter>False</useIcsShutter>
+  <shutterName>shutter</shutterName>
+  <detectorModes>{"0": 0, "C18": 1, "C2": 2}</detectorModes>
+</device>
