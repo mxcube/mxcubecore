@@ -1,4 +1,4 @@
-<equipment class="BeamInfo">
+<equipment class="BeamInfo-break">
     <device role="slits" hwrid="/eh1/beamAttocube"/>
     <device role="aperture" hwrid="/eh1/beamAperture"/>
     <device role="focusing" hwrid="/eh1/beamFocusing"/>

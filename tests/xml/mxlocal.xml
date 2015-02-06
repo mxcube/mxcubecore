@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<beamline_pars>
+  <BCM_PARS>
+    <undulator>
+      <type>u29</type>
+      <device_uri></device_uri>
+      <gap_index>0</gap_index>
+    </undulator>
+    <undulator>
+      <type></type>
+      <device_uri></device_uri>
+      <gap_index>0</gap_index>
+    </undulator>
+    <detector_radius>211.8</detector_radius>
+    <monochromator>Si(111)</monochromator>
+    <focusing_optic>Toroidal mirror</focusing_optic>
+    <beam_shape>circular</beam_shape>
+    <polarisation>0.99</polarisation>
+    <beam_divergence_vertical>6.5</beam_divergence_vertical>
+    <beam_divergence_horizontal>104</beam_divergence_horizontal>
+    <FileSuffix>cbf</FileSuffix>
+    <minimum_exposure_time>0.040</minimum_exposure_time>
+    <default_exposure_time>0.040</default_exposure_time>
+    <minimum_phi_speed>0.01</minimum_phi_speed>
+    <minimum_phi_oscillation>0.01</minimum_phi_oscillation>
+    <default_phi_oscillation>0.1</default_phi_oscillation>
+    <maximum_phi_speed>100</maximum_phi_speed>
+    <maximum_radiation_exposure>200</maximum_radiation_exposure>
+    <!-- <hutch>id29</hutch>
+    <tunable_wavelength>False</tunable_wavelength> -->
+  </BCM_PARS>
+
+
+ <VALIDATE_PARS>
+    <!-- <exposure_time>0.05,100</exposure_time> -->
+
+    <start_angle>-1000,1000</start_angle>
+    <range>0.0,10</range>
+    <number_of_passes>1,10</number_of_passes>
+    <start_image_number>0,10000</start_image_number>
+    <run_number>0,10000</run_number>
+    <overlap>-90,0.99</overlap>
+    <number_of_images>1,10000</number_of_images>
+ </VALIDATE_PARS>
+ <EXTRAVALIDATE_PARS>
+    <rotation_speed>0.01,100</rotation_speed>
+ </EXTRAVALIDATE_PARS>
+ <INHOUSE_USERS>
+   <proposal>
+     <code>mxihr</code>
+     <number>1</number>
+   </proposal>
+   <proposal>
+     <code>mxihr</code>
+   </proposal>
+ </INHOUSE_USERS>
+</beamline_pars>

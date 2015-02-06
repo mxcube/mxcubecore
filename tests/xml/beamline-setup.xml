@@ -1,6 +1,6 @@
 <!-- Example beamline setup file -->
 
-<object class="BeamlineSetup-break" role="BeamlineSetup">
+<object class="BeamlineSetup" role="BeamlineSetup">
   <!-- Objects directly associatd with hardware -->
   <object href="/transmission-mockup" role="transmission"/>
   <object href="/diffractometer-mockup" role="diffractometer"/>
