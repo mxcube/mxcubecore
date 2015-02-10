@@ -497,6 +497,53 @@ class DataCollection(TaskNode):
 
         return new_node
 
+    def get_point_index(self):
+        """
+        Descript. : Returns point index associated to the data collection
+        Args.     :
+        Return    : index (integer)
+        """
+        cp = self.get_centred_positions()
+        return cp[0].get_index()
+
+    def get_helical_point_index(self):
+        """
+        Descript. : Return indexes of points associated to the helical line
+        Args.     :
+        Return    : index (integer), index (integer)
+        """ 
+        cp = self.get_centred_positions()
+        return cp[0].get_index(), cp[1].get_index()
+
+    def set_grid_id(self, grid_id):
+        """
+        Descript. : Sets grid id associated to the data collection
+        Args.     : grid_id (integer)
+        Return    : 
+        """
+        self.grid_id = grid_id
+
+    def get_display_name(self):
+        """
+        Descript. : Returns display name depending from collection type
+        Args.     :
+        Return    : display_name (string)
+        """
+        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL:
+            start_index, end_index = self.get_helical_point_index()
+            display_name = "%s (Line - %d:%d)" %(self.get_name(), start_index, end_index)
+        elif self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            display_name = "%s (%s)" %(self.get_name(), self.grid_id)
+        else:
+            index = self.get_point_index()
+            if index:
+                index = str(index)
+            else:
+                index = "not defined"
+            display_name = "%s (Point - %s)" %(self.get_name(), index)
+        return display_name
+
+
 class ProcessingParameters():
     def __init__(self):
         self.space_group = 0
@@ -565,6 +612,29 @@ class Characterisation(TaskNode):
         new_node.reference_image_collection = self.reference_image_collection.copy()
 
         return new_node
+
+    def get_point_index(self):
+        """
+        Descript. : Returns point index associated to the data collection
+        Args.     :
+        Return    : index (integer)
+        """
+        cp = self.get_centred_positions()
+        return cp[0].get_index()
+
+    def get_display_name(self):
+        """
+        Descript. : Returns display name of the collection
+        Args.     :
+        Return    : display_name (string)
+        """
+        index = self.get_point_index()
+        if index:
+            index = str(index)
+        else:
+            index = "not defined"
+        display_name = "%s (Point - %s)" %(self.get_name(), index)
+        return display_name
 
 class CharacterisationParameters(object):
     def __init__(self):
@@ -694,6 +764,19 @@ class EnergyScan(TaskNode):
     def set_collected(self, collected):
         return self.set_executed(collected)
 
+    def get_point_index(self):
+        if self.centred_position:
+            return self.centred_position.get_index()
+
+    def get_display_name(self):
+        index = self.get_point_index()
+        if index:
+            index = str(index)
+        else:
+            index = "not defined"
+        display_name = "%s (Point - %s)" %(self.get_name(), index)
+        return display_name
+
     def copy(self):
         new_node = copy.deepcopy(self)
         cpos = self.centred_position
@@ -712,7 +795,7 @@ class EnergyScanResult(object):
         self.first_remote = None
         self.second_remote = None
         self.data_file_path = PathTemplate()
-
+ 
         self.data = None
 
         self.pk = None
@@ -727,6 +810,79 @@ class EnergyScanResult(object):
         self.chooch_graph_y2 = None
         self.title = None
 
+
+class XRFScan(TaskNode):
+    """
+    Descript. : Class represents XRF scan task
+    """ 
+    def __init__(self, sample=None, path_template=None, cpos=None):
+        TaskNode.__init__(self)
+        self.count_time = None
+        self.set_requires_centring(True)
+        self.centred_position = cpos
+
+        if not sample:
+            self.sample = Sample()
+        else:
+            self.sample = sample
+
+        if not path_template:
+            self.path_template = PathTemplate()
+        else:
+            self.path_template = path_template
+
+        self.result = XRFScanResult()
+
+    def get_run_number(self):
+        return self.path_template.run_number
+
+    def get_prefix(self):
+        return self.path_template.get_prefix()
+
+    def get_path_template(self):
+        return self.path_template
+
+    def get_point_index(self):
+        if self.centred_position:
+            return self.centred_position.get_index()
+
+    def get_display_name(self):
+        index = self.get_point_index()
+        if index:
+            index = str(index)
+        else:
+            index = "not defined"
+        display_name = "%s (Point - %s)" %(self.get_name(), index)
+        return display_name
+
+    def set_count_time(self, count_time):
+        self.count_time = count_time
+
+    def is_collected(self):
+        return self.is_executed()
+
+    def set_collected(self, collected):
+        return self.set_executed(collected)
+
+    def get_scan_result(self):
+        return self.result
+
+    def copy(self):
+        new_node = copy.deepcopy(self)
+        cpos = self.centred_position
+        if cpos:
+            snapshot_image = self.centred_position.snapshot_image
+            if snapshot_image:
+                snapshot_image_copy = snapshot_image.copy()
+                new_node.centred_position.snapshot_image = snapshot_image_copy
+        return new_node
+
+class XRFScanResult(object):
+    def __init__(self):
+        object.__init__(self)
+        self.mca_data = None
+        self.mca_calib = None
+        self.mca_config = None
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
@@ -966,6 +1122,8 @@ class CentredPosition(object):
     def __init__(self, motor_dict=None):
         self.snapshot_image = None
         self.centring_method = True
+        self.index = None
+
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
            setattr(self, motor_name, 0)
 
@@ -985,6 +1143,12 @@ class CentredPosition(object):
 
     def __ne__(self, cpos):
         return not (self == cpos)
+
+    def set_index(self, index):
+        self.index = index
+
+    def get_index(self):
+        return self.index
 
     def get_kappa_value(self):
         return self.kappa
