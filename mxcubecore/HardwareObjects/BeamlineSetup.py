@@ -242,7 +242,7 @@ class BeamlineSetup(HardwareObject):
 
         return char_params
 
-    def get_default_acquisition_parameters(self, parent_key="default-acquisition-parameters"):
+    def get_default_acquisition_parameters(self, parent_key="default_acquisition_values"):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
