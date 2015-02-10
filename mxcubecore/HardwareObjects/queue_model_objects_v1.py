@@ -329,6 +329,35 @@ class Sample(TaskNode):
 
         return processing_params
 
+class Basket(TaskNode):
+    """
+    Class represents a basket in the tree. It has not task assigned.
+    It represents a parent for samples with the same basket id.
+    """
+    def __init__(self):
+        TaskNode.__init__(self)
+        self.name = str()
+        self.location = None
+        self.is_present = False
+        self.free_pin_mode = False
+
+    def init_from_sc_basket(self, sc_basket):
+        self.location = sc_basket[0]
+        self.name = "Puck %d" % self.location
+        self.is_present = sc_basket[2]
+
+    def get_name(self):
+        return self.name
+
+    def get_location(self):
+        return self.location
+
+    def get_is_present(self):
+        return self.is_present
+
+    def set_is_present(self, present):
+        self.is_present = present
+
 
 class DataCollection(TaskNode):
     """
