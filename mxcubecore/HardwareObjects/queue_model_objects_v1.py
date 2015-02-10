@@ -329,6 +329,35 @@ class Sample(TaskNode):
 
         return processing_params
 
+class Basket(TaskNode):
+    """
+    Class represents a basket in the tree. It has not task assigned.
+    It represents a parent for samples with the same basket id.
+    """
+    def __init__(self):
+        TaskNode.__init__(self)
+        self.name = str()
+        self.location = None
+        self.is_present = False
+        self.free_pin_mode = False
+
+    def init_from_sc_basket(self, sc_basket):
+        self.location = sc_basket[0]
+        self.name = "Puck %d" % self.location
+        self.is_present = sc_basket[2]
+
+    def get_name(self):
+        return self.name
+
+    def get_location(self):
+        return self.location
+
+    def get_is_present(self):
+        return self.is_present
+
+    def set_is_present(self, present):
+        self.is_present = present
+
 
 class DataCollection(TaskNode):
     """
@@ -390,6 +419,8 @@ class DataCollection(TaskNode):
                 'num_images': parameters.num_images,
                 'osc_start': parameters.osc_start,
                 'osc_range': parameters.osc_range,
+                'kappa': parameters.kappa,
+                'kappa_phi': parameters.kappa_phi,
                 'overlap': parameters.overlap,
                 'exp_time': parameters.exp_time,
                 'num_passes': parameters.num_passes,
@@ -640,11 +671,26 @@ class EnergyScan(TaskNode):
 class EnergyScanResult(object):
     def __init__(self):
         object.__init__(self)
-        self.inflection = 0
-        self.peak = 0
-        self.first_remote = 0
-        self.second_remote = 0
+        self.inflection = None
+        self.peak = None
+        self.first_remote = None
+        self.second_remote = None
         self.data_file_path = PathTemplate()
+ 
+        self.data = None
+
+        self.pk = None
+        self.fppPeak = None
+        self.fpPeak = None
+        self.ip = None
+        self.fppInfl = None
+        self.fpInfl = None
+        self.rm = None
+        self.chooch_graph_x = None
+        self.chooch_graph_y1 = None
+        self.chooch_graph_y2 = None
+        self.title = None
+
 
 class XRFScan(TaskNode):
     """
@@ -721,12 +767,15 @@ class XRFScanResult(object):
 
 
 class SampleCentring(TaskNode):
-    def __init__(self, name = None):
+    def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
         self._tasks = []
 
         if name:
             self.set_name(name)
+
+        self.kappa = kappa
+        self.kappa_phi = kappa_phi
 
     def add_task(self, task_node):
         self._tasks.append(task_node)
@@ -895,6 +944,8 @@ class AcquisitionParameters(object):
         self.osc_start = float()
         self.osc_range = float()
         self.overlap = float()
+        self.kappa = float()
+        self.kappa_phi = float()
         self.exp_time = float()
         self.num_passes = int()
         self.energy = int()
@@ -961,6 +1012,13 @@ class CentredPosition(object):
 
     def __ne__(self, cpos):
         return not (self == cpos)
+
+    def get_kappa_value(self):
+        return self.kappa
+
+    def get_kappa_phi_value(self):
+        return self.kappa_phi
+
 
 class Workflow(TaskNode):
     def __init__(self):
