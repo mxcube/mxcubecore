@@ -242,11 +242,21 @@ class BeamlineSetup(HardwareObject):
 
         return char_params
 
-    def get_default_acquisition_parameters(self, parent_key="default_acquisition_values"):
+    def get_default_acquisition_parameters(self, parent_key=None):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
+        default_key = "default_acquisition_values"
+        if parent_key is None:
+            parent_key = default_key
+
         acq_parameters = queue_model_objects.AcquisitionParameters()
+
+        try:
+           self[parent_key]
+        except IndexError:
+           logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
+           parent_key = default_key
 
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
