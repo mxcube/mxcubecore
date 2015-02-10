@@ -16,6 +16,7 @@ class MotorMockup(Device):
         self.username = self.name()
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.name()
+        self.motorPosition = 0
 
     def getState(self):
         return self.motorState
@@ -27,13 +28,15 @@ class MotorMockup(Device):
         return (-1E3, 1E3)
 
     def getPosition(self):
-        return 0
+        return self.motorPosition
 
     def getDialPosition(self):
         return self.getPosition()
 
     def move(self, position):
-        return
+        self.motorPosition = position
+        self.emit('positionChanged', (self.motorPosition, ))
+        self.emit('stateChanged', (self.motorState, ))
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
