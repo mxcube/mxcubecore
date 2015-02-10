@@ -85,6 +85,14 @@ class Robodiff(SampleChanger):
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
+    def getBasketList(self):
+        basket_list = []
+        for basket in self.getComponents():
+            if isinstance(basket, Basket):
+                basket_list.append(basket)
+        return basket_list
+
+
     def _doChangeMode(self, *args, **kwargs):
         return
 
@@ -174,13 +182,10 @@ class Robodiff(SampleChanger):
         # move detector to high software limit, without waiting end of move
         self.detector_translation.move(self.detector_translation.getLimits()[1])
         # now call load procedure
-        load_successful = self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
-        if not load_successful:
-          return False 
+        self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         self._setLoadedSample(sample)
         # update chi position and state
         self.robot.chi._update_channels()
-        return True
 
     def _doUnload(self, sample=None):
         self.detector_translation.move(self.detector_translation.getLimits()[1])
