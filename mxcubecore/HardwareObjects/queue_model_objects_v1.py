@@ -120,6 +120,9 @@ class TaskNode(object):
 
         return name_list
 
+    def get_display_name(self):
+        return self.get_name()
+
     def get_path_template(self):
         return None
 
