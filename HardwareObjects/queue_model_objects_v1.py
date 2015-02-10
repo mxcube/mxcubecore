@@ -671,20 +671,37 @@ class EnergyScan(TaskNode):
 class EnergyScanResult(object):
     def __init__(self):
         object.__init__(self)
-        self.inflection = 0
-        self.peak = 0
-        self.first_remote = 0
-        self.second_remote = 0
+        self.inflection = None
+        self.peak = None
+        self.first_remote = None
+        self.second_remote = None
         self.data_file_path = PathTemplate()
+
+        self.data = None
+
+        self.pk = None
+        self.fppPeak = None
+        self.fpPeak = None
+        self.ip = None
+        self.fppInfl = None
+        self.fpInfl = None
+        self.rm = None
+        self.chooch_graph_x = None
+        self.chooch_graph_y1 = None
+        self.chooch_graph_y2 = None
+        self.title = None
 
 
 class SampleCentring(TaskNode):
-    def __init__(self, name = None):
+    def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
         self._tasks = []
 
         if name:
             self.set_name(name)
+
+        self.kappa = kappa
+        self.kappa_phi = kappa_phi
 
     def add_task(self, task_node):
         self._tasks.append(task_node)
@@ -853,6 +870,8 @@ class AcquisitionParameters(object):
         self.osc_start = float()
         self.osc_range = float()
         self.overlap = float()
+        self.kappa = float()
+        self.kappa_phi = float()
         self.exp_time = float()
         self.num_passes = int()
         self.energy = int()
@@ -919,6 +938,13 @@ class CentredPosition(object):
 
     def __ne__(self, cpos):
         return not (self == cpos)
+
+    def get_kappa_value(self):
+        return self.kappa
+
+    def get_kappa_phi_value(self):
+        return self.kappa_phi
+
 
 class Workflow(TaskNode):
     def __init__(self):
