@@ -61,7 +61,7 @@ class BeamlineSetup(HardwareObject):
         value = None
 
         if path == '/beamline/default-acquisition-parameters/':
-            value = jsonpickle.encode(self.get_default_acquisition_parameters())
+            value = jsonpickle.encode(self.get_default_acquisition_parameters()) 
         elif path == '/beamline/default-path-template/':
             value = jsonpickle.encode(self.get_default_path_template())
         else:
@@ -97,10 +97,7 @@ class BeamlineSetup(HardwareObject):
         :returns: True if the detector is capable of shuterless.
         :rtype: bool
         """
-        try:
-          return self.detector_hwobj.getProperty('type').lower()=='pilatus'
-        except:
-          return False
+        return self.detector_hwobj.has_shutterless()
 
     def tunable_wavelength(self):
         """
@@ -161,13 +158,15 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = self.detector_has_shutterless()
-        detector_mode = 1 #unbinned...
+        shutterless = self.detector_hwobj.has_shutterless()
+        detector_mode = self._get_detector_mode()
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
         acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = osc_range
+        acq_parameters.kappa = self._get_kappa_axis_position()
+        acq_parameters.kappa_phi = self._get_kappa_phi_axis_position()
         acq_parameters.overlap = overlap
         acq_parameters.exp_time = exp_time
         acq_parameters.num_passes = num_passes
@@ -243,12 +242,11 @@ class BeamlineSetup(HardwareObject):
 
         return char_params
 
-    def get_default_acquisition_parameters(self):
+    def get_default_acquisition_parameters(self, parent_key="default_acquisition_values"):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
         acq_parameters = queue_model_objects.AcquisitionParameters()
-        parent_key = "default_acquisition_values"
 
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
@@ -256,13 +254,15 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = self.detector_has_shutterless()
-        detector_mode = 1 #unbinned
+        shutterless = self.detector_hwobj.has_shutterless()
+        detector_mode = self._get_detector_mode()
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
         acq_parameters.osc_start = self._get_omega_axis_position()
         acq_parameters.osc_range = osc_range
+        acq_parameters.kappa = self._get_kappa_axis_position()
+        acq_parameters.kappa_phi = self._get_kappa_phi_axis_position()
         acq_parameters.overlap = overlap
         acq_parameters.exp_time = exp_time
         acq_parameters.num_passes = num_passes
@@ -287,19 +287,29 @@ class BeamlineSetup(HardwareObject):
 
         try:
             exp_time_limit = self[parent_key].getProperty('exposure_time')
-            limits['exposure_time'] = exp_time_limit
+            if exp_time_limit is not None:
+                limits['exposure_time'] = exp_time_limit
         except:
             pass
 
         try:
             range_limit = self[parent_key].getProperty('osc_range')
-            limits['osc_range'] = range_limit
+            if range_limit is not None:
+                limits['osc_range'] = range_limit
         except:
             pass
 
         try:
             num_images_limit = self[parent_key].getProperty('number_of_images')
-            limits['number_of_images'] = num_images_limit
+            if num_images_limit is not None:
+                limits['number_of_images'] = num_images_limit
+        except:
+            pass
+
+        try:
+            kappa_limit = self[parent_key].getProperty('kappa')
+            if kappa_limit is not None:
+                limits['kappa'] = kappa_limit
         except:
             pass
 
@@ -359,6 +369,17 @@ class BeamlineSetup(HardwareObject):
 
         return resolution
 
+    def _get_detector_mode(self):
+        """
+        Descript. :
+        """
+        try:
+            detector_mode = int(self.detector_hwobj.get_detector_mode())
+        except (AttributeError, TypeError):
+            detector_mode = 0
+
+        return detector_mode
+
     def _get_omega_axis_position(self):
         result = 0
 
@@ -371,4 +392,26 @@ class BeamlineSetup(HardwareObject):
             parent_key = "default_acquisition_values"
             result = round(float(self[parent_key].getProperty('start_angle')), 2)
 
+        return result
+
+    def _get_kappa_axis_position(self):
+        """
+        Descript. :
+        """
+        result = 0
+        try:
+            result = round(float(self.kappa_axis_hwobj.getPosition()), 2)
+        except:
+            pass
+        return result
+
+    def _get_kappa_phi_axis_position(self):
+        """
+        Descript. :
+        """
+        result = 0
+        try:
+            result = round(float(self.kappa_phi_axis_hwobj.getPosition()), 2)
+        except:
+            pass
         return result

@@ -432,12 +432,18 @@ class DataCollection(TaskNode):
                 'energy': parameters.energy,
                 'resolution': parameters.resolution,
                 'transmission': parameters.transmission,
+                'detector_mode': parameters.detector_mode,
                 'shutterless': parameters.shutterless,
                 'inverse_beam': parameters.inverse_beam,
                 'sample': str(self.crystal),
                 'acquisitions': str(self.acquisitions),
                 'acq_parameters': str(parameters),
                 'snapshot': parameters.centred_position.snapshot_image}
+
+    def set_experiment_type(self, exp_type):
+        self.experiment_type = exp_type
+        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            self.set_requires_centring(False)
 
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
@@ -816,9 +822,6 @@ class SampleCentring(TaskNode):
         self.kappa = kappa
         self.kappa_phi = kappa_phi
 
-        self.kappa = kappa
-        self.kappa_phi = kappa_phi
-
     def add_task(self, task_node):
         self._tasks.append(task_node)
 
@@ -828,6 +831,11 @@ class SampleCentring(TaskNode):
     def get_name(self):
         return self._name
 
+    def get_kappa(self):
+        return self.kappa
+
+    def get_kappa_phi(self):
+        return self.kappa_phi
 
 class Acquisition(object):
     def __init__(self):
@@ -1005,6 +1013,8 @@ class AcquisitionParameters(object):
         self.skip_existing_images = False
         self.detector_mode = str()
         self.induce_burn = False
+        self.mesh_steps = int()
+        self.mesh_range = ()        
 
 
 class Crystal(object):

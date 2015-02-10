@@ -233,7 +233,8 @@ class QueueModel(HardwareObject):
 
         if isinstance(task_model, queue_model_objects.Sample):
             self.queue_hwobj.enqueue(qe)
-        else:
+        elif not isinstance(task_model, queue_model_objects.Basket):
+        #else:
             view_item.parent().get_queue_entry().enqueue(qe)
 
     def get_next_run_number(self, new_path_template, exclude_current = True):
