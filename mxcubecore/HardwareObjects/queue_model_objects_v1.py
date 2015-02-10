@@ -432,12 +432,18 @@ class DataCollection(TaskNode):
                 'energy': parameters.energy,
                 'resolution': parameters.resolution,
                 'transmission': parameters.transmission,
+                'detector_mode': parameters.detector_mode,
                 'shutterless': parameters.shutterless,
                 'inverse_beam': parameters.inverse_beam,
                 'sample': str(self.crystal),
                 'acquisitions': str(self.acquisitions),
                 'acq_parameters': str(parameters),
                 'snapshot': parameters.centred_position.snapshot_image}
+
+    def set_experiment_type(self, exp_type):
+        self.experiment_type = exp_type
+        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            self.set_requires_centring(False)
 
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
@@ -458,7 +464,12 @@ class DataCollection(TaskNode):
         return file_locations
 
     def get_centred_positions(self):
-        return [self.acquisitions[0].acquisition_parameters.centred_position]
+        centred_pos = []
+        for pos in self.acquisitions:
+             centred_pos.append(pos.acquisition_parameters.centred_position)
+        return centred_pos
+
+        #return [self.acquisitions[0].acquisition_parameters.centred_position]
 
     def set_centred_positions(self, cp):
         self.acquisitions[0].acquisition_parameters.centred_position = cp
@@ -643,11 +654,12 @@ class CharacterisationParameters(object):
 
 
 class EnergyScan(TaskNode):
-    def __init__(self, sample=None, path_template=None):
+    def __init__(self, sample = None, path_template = None, cpos = None):
         TaskNode.__init__(self)
         self.element_symbol = None
         self.edge = None
-        self.set_requires_centring(False)
+        self.set_requires_centring(True)
+        self.centred_position = cpos
 
         if not sample:
             self.sample = Sample()
@@ -670,6 +682,27 @@ class EnergyScan(TaskNode):
     def get_path_template(self):
         return self.path_template
 
+    def set_scan_result_data(self, data):
+        self.result.data = data
+
+    def get_scan_result(self):
+        return self.result
+
+    def is_collected(self):
+        return self.is_executed()
+
+    def set_collected(self, collected):
+        return self.set_executed(collected)
+
+    def copy(self):
+        new_node = copy.deepcopy(self)
+        cpos = self.centred_position
+        if cpos:
+            snapshot_image = self.centred_position.snapshot_image
+            if snapshot_image:
+                snapshot_image_copy = snapshot_image.copy()
+                new_node.centred_position.snapshot_image = snapshot_image_copy
+        return new_node
 
 class EnergyScanResult(object):
     def __init__(self):
@@ -702,7 +735,7 @@ class SampleCentring(TaskNode):
 
         if name:
             self.set_name(name)
-
+ 
         self.kappa = kappa
         self.kappa_phi = kappa_phi
 
@@ -715,6 +748,11 @@ class SampleCentring(TaskNode):
     def get_name(self):
         return self._name
 
+    def get_kappa(self):
+        return self.kappa
+
+    def get_kappa_phi(self):
+        return self.kappa_phi
 
 class Acquisition(object):
     def __init__(self):
@@ -809,6 +847,10 @@ class PathTemplate(object):
         :returns: Archive directory.
         :rtype: str
         """
+
+        # TODO make this more general. Add option to enable/disable archive
+        # Also archive path template needs to be defined in xml
+
         folders = self.directory.split('/')
         endstation_name = None
         
@@ -888,6 +930,8 @@ class AcquisitionParameters(object):
         self.skip_existing_images = False
         self.detector_mode = str()
         self.induce_burn = False
+        self.mesh_steps = int()
+        self.mesh_range = ()        
 
 
 class Crystal(object):
