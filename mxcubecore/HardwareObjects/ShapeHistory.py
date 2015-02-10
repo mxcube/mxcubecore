@@ -54,6 +54,7 @@ class ShapeHistory(HardwareObject):
         self._drawing_event = DrawingEvent(self)
         self.shapes = {}
         self.selected_shapes = {}
+        self.point_index = 0
 
     def set_drawing(self, drawing):
         """
@@ -181,9 +182,15 @@ class ShapeHistory(HardwareObject):
 
         """
         self.shapes[shape] = shape
+        if isinstance(shape, Point):
+            shape.set_index(self.get_available_point_index())
 
         self.get_drawing_event_handler().de_select_all()
         self.get_drawing_event_handler().set_selected(shape, True, call_cb = True)
+
+    def get_available_point_index(self):
+        self.point_index += 1
+        return self.point_index
 
     def _delete_shape(self, shape):
         shape.unhighlight()
@@ -603,6 +610,9 @@ class Line(Shape):
     def get_qub_objects(self):
         return [self.start_qub_p, self.end_qub_p, self.qub_line]
 
+    def get_points_index(self):
+        if self.start_cpos and self.end_cpos:
+            return (self.start_cpos.get_index(), self.end_cpos.get_index())
 
 class Point(Shape):
     def __init__(self, drawing, centred_position, screen_pos):
@@ -616,9 +626,16 @@ class Point(Shape):
         else:
             self.centred_position = centred_position
         self.screen_pos = screen_pos
+        self.point_index = None
         self._drawing = drawing
 
         self.qub_point = self.draw(screen_pos)
+
+    def set_index(self, index):
+        self.point_index = index
+
+    def get_index(self):
+        return self.point_index
 
     def get_qub_point(self):
         return self.qub_point
@@ -673,6 +690,9 @@ class Point(Shape):
 
     def highlight(self):
         try:
+            if self.point_index:
+                self._drawing.setInfo("Point no. %d selected" % self.point_index)
+                self.qub_point.setLabel(str(self.point_index))
             highlighted_pen = qt.QPen(self.qub_point.\
                                        _drawingObjects[0].pen())
             highlighted_pen.setWidth(2)
