@@ -691,7 +691,14 @@ class Point(Shape):
     def highlight(self):
         try:
             if self.point_index:
-                self._drawing.setInfo("Point no. %d selected" % self.point_index)
+                text = "Point no. %d selected" % self.point_index
+                if self.centred_position is not None:
+                    if self.centred_position.kappa and self.centred_position.kappa_phi:
+                        text = "Point no. %d (kappa: %0.2f phi: %0.2f) selected" %(
+                               self.point_index,
+                               self.centred_position.kappa,
+                               self.centred_position.kappa_phi)  
+                self._drawing.setInfo(text)
                 self.qub_point.setLabel(str(self.point_index))
             highlighted_pen = qt.QPen(self.qub_point.\
                                        _drawingObjects[0].pen())
