@@ -97,10 +97,7 @@ class BeamlineSetup(HardwareObject):
         :returns: True if the detector is capable of shuterless.
         :rtype: bool
         """
-        try:
-          return self.detector_hwobj.getProperty('type').lower()=='pilatus'
-        except:
-          return False
+        return self.detector_hwobj.has_shutterless()
 
     def tunable_wavelength(self):
         """
@@ -161,9 +158,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        #hutterless = self.detector_has_shutterless()
-        #etector_mode = 1 #unbinned...
-
         shutterless = self.detector_hwobj.has_shutterless()
         detector_mode = self._get_detector_mode()
 
@@ -261,9 +255,6 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        #shutterless = self.detector_has_shutterless()
-        #detector_mode = 1 #unbinned
-
         shutterless = self.detector_hwobj.has_shutterless()
         detector_mode = self._get_detector_mode()
 
@@ -385,9 +376,7 @@ class BeamlineSetup(HardwareObject):
         """
         try:
             detector_mode = int(self.detector_hwobj.get_detector_mode())
-        except AttributeError:
-            detector_mode = 0
-        except TypeError:
+        except (AttributeError, TypeError):
             detector_mode = 0
 
         return detector_mode
