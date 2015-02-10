@@ -630,7 +630,7 @@ class MiniDiff(Equipment):
    
         for role, pos in roles_positions_dict.iteritems():
            m = motor.get(role)
-           if m is not None:
+           if not None in (m, pos):
              m.move(pos)
  
         # TODO: remove this sleep, the motors states should
