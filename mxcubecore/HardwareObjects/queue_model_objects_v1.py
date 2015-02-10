@@ -390,6 +390,8 @@ class DataCollection(TaskNode):
                 'num_images': parameters.num_images,
                 'osc_start': parameters.osc_start,
                 'osc_range': parameters.osc_range,
+                'kappa': parameters.kappa,
+                'kappa_phi': parameters.kappa_phi,
                 'overlap': parameters.overlap,
                 'exp_time': parameters.exp_time,
                 'num_passes': parameters.num_passes,
