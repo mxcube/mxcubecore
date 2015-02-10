@@ -251,7 +251,7 @@ class SampleChanger(Container,Equipment):
         :rtype: str
         """           
         return self.getLoadedSample() is not None
-              
+
     
     def is_mounted_sample(self, sample_location):
         try:

@@ -491,6 +491,7 @@ class SampleQueueEntry(BaseQueueEntry):
                                    'inverse_beam': inverse_beam})
 
         try:
+            #TODO move this to AutoProcessing hwobj
             programs = self.beamline_setup.collect_hwobj["auto_processing"]
         except IndexError:
             # skip autoprocessing of the data
@@ -504,6 +505,9 @@ class SampleQueueEntry(BaseQueueEntry):
     def _set_background_color(self):
         BaseQueueEntry._set_background_color(self)
 
+class BasketQueueEntry(BaseQueueEntry):
+    def __init__(self, view=None, data_model=None):
+        BaseQueueEntry.__init__(self, view, data_model)
 
 class SampleCentringQueueEntry(BaseQueueEntry):
     """
@@ -514,13 +518,22 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
         self.shape_history = None
+        self.move_kappa_phi_task = None
 
     def execute(self):
         BaseQueueEntry.execute(self)
 
         self.get_view().setText(1, 'Waiting for input')
         log = logging.getLogger("user_level_log")
-        log.warning("Please select a centred position, and press continue.")
+
+        kappa = self._data_model.get_kappa()
+        phi = self._data_model.get_kappa_phi()
+
+        self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+
+        #TODO agree on correct message
+        log.warning("Please center a new point, and press continue.")
+        #log.warning("Please select a centred position, and press continue.")
 
         self.get_queue_controller().pause(True)
         pos = None
@@ -536,7 +549,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
-            pos = shape_history.Point(None, cpos, None)
+            pos = shape_history.Point(None, cpos, None) #, True)
 
         # Get tasks associated with this centring
         tasks = self.get_data_model().get_tasks()
@@ -666,6 +679,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #msg = "Helical data collection, moving to start position"
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
+                elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
+                    mesh_steps = acq_1.acquisition_parameters.mesh_steps
+                    mesh_range = acq_1.acquisition_parameters.mesh_range
+                    self.collect_hwobj.setMeshScanParameters(mesh_steps, mesh_range)
+                    self.collect_hwobj.setHelical(0)
                 else:
                     self.collect_hwobj.set_helical(False)
 
@@ -676,6 +694,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 self.collect_task = self.collect_hwobj.\
                     collect(COLLECTION_ORIGIN_STR.MXCUBE, param_list)                
                 self.collect_task.get()
+                #TODO as a gevent task?
+                #self.collect_task = gevent.spawn(self.collect_hwobj.collect,
+                #             COLLECTION_ORIGIN_STR.MXCUBE,
+                #             param_list)
+                #self.collect_task.get()
+                #self.collect_hwobj.ready_event.wait()
+                #self.collect_hwobj.ready_event.clear()
+
 
                 if 'collection_id' in param_list[0]:
                     dc.id = param_list[0]['collection_id']
@@ -699,6 +725,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_started(self, owner, num_oscillations):
         logging.getLogger("user_level_log").info('Collection started')
+        self.get_view().setText(1, "Collecting")
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
@@ -1012,9 +1039,11 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
     def energy_scan_finished(self, scan_info):
         energy_scan = self.get_data_model()
-        fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
+        #fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
+        #scan_file_path = os.path.join(energy_scan.path_template.directory,
+        #                              fname)
         scan_file_path = os.path.join(energy_scan.path_template.directory,
-                                      fname)
+                                      energy_scan.path_template.get_prefix())
 
         scan_file_archive_path = os.path.join(energy_scan.path_template.\
                                               get_archive_directory(),
@@ -1036,9 +1065,22 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         sample.crystals[0].energy_scan_result.peak = pk
         sample.crystals[0].energy_scan_result.inflection = ip
         sample.crystals[0].energy_scan_result.first_remote = rm
-        sample.crystals[0].second_remote = None
+        sample.crystals[0].energy_scan_result.second_remote = None
 
-        energy_scan.result = sample.crystals[0].energy_scan_result
+        energy_scan.result.pk = pk
+        energy_scan.result.fppPeak = fppPeak
+        energy_scan.result.fpPeak = fpPeak
+        energy_scan.result.ip = ip
+        energy_scan.result.fppInfl = fppInfl
+        energy_scan.result.fpInfl = fpInfl
+        energy_scan.result.rm = rm
+        energy_scan.result.chooch_graph_x = chooch_graph_x
+        energy_scan.result.chooch_graph_y1 = chooch_graph_y1
+        energy_scan.result.chooch_graph_y2 = chooch_graph_y2
+        energy_scan.result.title = title
+        energy_scan.result.data = self.energy_scan_hwobj.get_scan_data()
+
+        #energy_scan.result = sample.crystals[0].energy_scan_result
 
         logging.getLogger("user_level_log").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
@@ -1049,6 +1091,28 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
     def energy_scan_failed(self):
         self._failed = True
+        self.get_view().setText(1, "Failed")
+        self.status = QUEUE_ENTRY_STATUS.FAILED
+        logging.getLogger("user_level_log").error(message.replace('\n', ' '))
+        raise QueueExecutionException(message.replace('\n', ' '), self)
+
+    def stop(self):
+        BaseQueueEntry.stop(self)
+
+        try:
+            #self.get_view().setText(1, 'Stopping ...')
+            self.energy_scan_hwobj.cancelEnergyScan()
+
+            if self.centring_task:
+                self.centring_task.kill(block=False)
+        except gevent.GreenletExit:
+            raise
+
+        self.get_view().setText(1, 'Stopped')
+        logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+        # this is to work around the remote access problem
+        dispatcher.send("collect_finished")
+        raise QueueAbortedException('Queue stopped', self)
 
 
 class GenericWorkflowQueueEntry(BaseQueueEntry):
@@ -1190,5 +1254,6 @@ MODEL_QUEUE_ENTRY_MAPPINGS = \
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
+     queue_model_objects.Basket: BasketQueueEntry,
      queue_model_objects.TaskGroup: TaskGroupQueueEntry,
      queue_model_objects.Workflow: GenericWorkflowQueueEntry}
