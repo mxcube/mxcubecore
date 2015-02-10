@@ -120,6 +120,9 @@ class TaskNode(object):
 
         return name_list
 
+    def get_display_name(self):
+        return self.get_name()
+
     def get_path_template(self):
         return None
 
@@ -329,6 +332,35 @@ class Sample(TaskNode):
 
         return processing_params
 
+class Basket(TaskNode):
+    """
+    Class represents a basket in the tree. It has not task assigned.
+    It represents a parent for samples with the same basket id.
+    """
+    def __init__(self):
+        TaskNode.__init__(self)
+        self.name = str()
+        self.location = None
+        self.is_present = False
+        self.free_pin_mode = False
+
+    def init_from_sc_basket(self, sc_basket):
+        self.location = sc_basket[0]
+        self.name = "Puck %d" % self.location
+        self.is_present = sc_basket[2]
+
+    def get_name(self):
+        return self.name
+
+    def get_location(self):
+        return self.location
+
+    def get_is_present(self):
+        return self.is_present
+
+    def set_is_present(self, present):
+        self.is_present = present
+
 
 class DataCollection(TaskNode):
     """
@@ -390,6 +422,8 @@ class DataCollection(TaskNode):
                 'num_images': parameters.num_images,
                 'osc_start': parameters.osc_start,
                 'osc_range': parameters.osc_range,
+                'kappa': parameters.kappa,
+                'kappa_phi': parameters.kappa_phi,
                 'overlap': parameters.overlap,
                 'exp_time': parameters.exp_time,
                 'num_passes': parameters.num_passes,
@@ -398,12 +432,18 @@ class DataCollection(TaskNode):
                 'energy': parameters.energy,
                 'resolution': parameters.resolution,
                 'transmission': parameters.transmission,
+                'detector_mode': parameters.detector_mode,
                 'shutterless': parameters.shutterless,
                 'inverse_beam': parameters.inverse_beam,
                 'sample': str(self.crystal),
                 'acquisitions': str(self.acquisitions),
                 'acq_parameters': str(parameters),
                 'snapshot': parameters.centred_position.snapshot_image}
+
+    def set_experiment_type(self, exp_type):
+        self.experiment_type = exp_type
+        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            self.set_requires_centring(False)
 
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
@@ -424,7 +464,12 @@ class DataCollection(TaskNode):
         return file_locations
 
     def get_centred_positions(self):
-        return [self.acquisitions[0].acquisition_parameters.centred_position]
+        centred_pos = []
+        for pos in self.acquisitions:
+             centred_pos.append(pos.acquisition_parameters.centred_position)
+        return centred_pos
+
+        #return [self.acquisitions[0].acquisition_parameters.centred_position]
 
     def set_centred_positions(self, cp):
         self.acquisitions[0].acquisition_parameters.centred_position = cp
@@ -609,11 +654,12 @@ class CharacterisationParameters(object):
 
 
 class EnergyScan(TaskNode):
-    def __init__(self, sample=None, path_template=None):
+    def __init__(self, sample = None, path_template = None, cpos = None):
         TaskNode.__init__(self)
         self.element_symbol = None
         self.edge = None
-        self.set_requires_centring(False)
+        self.set_requires_centring(True)
+        self.centred_position = cpos
 
         if not sample:
             self.sample = Sample()
@@ -636,71 +682,17 @@ class EnergyScan(TaskNode):
     def get_path_template(self):
         return self.path_template
 
+    def set_scan_result_data(self, data):
+        self.result.data = data
 
-class EnergyScanResult(object):
-    def __init__(self):
-        object.__init__(self)
-        self.inflection = 0
-        self.peak = 0
-        self.first_remote = 0
-        self.second_remote = 0
-        self.data_file_path = PathTemplate()
-
-class XRFScan(TaskNode):
-    """
-    Descript. : Class represents XRF scan task
-    """ 
-    def __init__(self, sample=None, path_template=None, cpos=None):
-        TaskNode.__init__(self)
-        self.count_time = None
-        self.set_requires_centring(True)
-        self.centred_position = cpos
-
-        if not sample:
-            self.sample = Sample()
-        else:
-            self.sample = sample
-
-        if not path_template:
-            self.path_template = PathTemplate()
-        else:
-            self.path_template = path_template
-
-        self.result = XRFScanResult()
-
-    def get_run_number(self):
-        return self.path_template.run_number
-
-    def get_prefix(self):
-        return self.path_template.get_prefix()
-
-    def get_path_template(self):
-        return self.path_template
-
-    def get_point_index(self):
-        if self.centred_position:
-            return self.centred_position.get_index()
-
-    def get_display_name(self):
-        index = self.get_point_index()
-        if index:
-            index = str(index)
-        else:
-            index = "not defined"
-        display_name = "%s (Point - %s)" %(self.get_name(), index)
-        return display_name
-
-    def set_count_time(self, count_time):
-        self.count_time = count_time
+    def get_scan_result(self):
+        return self.result
 
     def is_collected(self):
         return self.is_executed()
 
     def set_collected(self, collected):
         return self.set_executed(collected)
-
-    def get_scan_result(self):
-        return self.result
 
     def copy(self):
         new_node = copy.deepcopy(self)
@@ -712,21 +704,40 @@ class XRFScan(TaskNode):
                 new_node.centred_position.snapshot_image = snapshot_image_copy
         return new_node
 
-class XRFScanResult(object):
+class EnergyScanResult(object):
     def __init__(self):
         object.__init__(self)
-        self.mca_data = None
-        self.mca_calib = None
-        self.mca_config = None
+        self.inflection = None
+        self.peak = None
+        self.first_remote = None
+        self.second_remote = None
+        self.data_file_path = PathTemplate()
+
+        self.data = None
+
+        self.pk = None
+        self.fppPeak = None
+        self.fpPeak = None
+        self.ip = None
+        self.fppInfl = None
+        self.fpInfl = None
+        self.rm = None
+        self.chooch_graph_x = None
+        self.chooch_graph_y1 = None
+        self.chooch_graph_y2 = None
+        self.title = None
 
 
 class SampleCentring(TaskNode):
-    def __init__(self, name = None):
+    def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
         self._tasks = []
 
         if name:
             self.set_name(name)
+ 
+        self.kappa = kappa
+        self.kappa_phi = kappa_phi
 
     def add_task(self, task_node):
         self._tasks.append(task_node)
@@ -737,6 +748,11 @@ class SampleCentring(TaskNode):
     def get_name(self):
         return self._name
 
+    def get_kappa(self):
+        return self.kappa
+
+    def get_kappa_phi(self):
+        return self.kappa_phi
 
 class Acquisition(object):
     def __init__(self):
@@ -831,6 +847,10 @@ class PathTemplate(object):
         :returns: Archive directory.
         :rtype: str
         """
+
+        # TODO make this more general. Add option to enable/disable archive
+        # Also archive path template needs to be defined in xml
+
         folders = self.directory.split('/')
         endstation_name = None
         
@@ -895,6 +915,8 @@ class AcquisitionParameters(object):
         self.osc_start = float()
         self.osc_range = float()
         self.overlap = float()
+        self.kappa = float()
+        self.kappa_phi = float()
         self.exp_time = float()
         self.num_passes = int()
         self.energy = int()
@@ -908,6 +930,8 @@ class AcquisitionParameters(object):
         self.skip_existing_images = False
         self.detector_mode = str()
         self.induce_burn = False
+        self.mesh_steps = int()
+        self.mesh_range = ()        
 
 
 class Crystal(object):
@@ -961,6 +985,13 @@ class CentredPosition(object):
 
     def __ne__(self, cpos):
         return not (self == cpos)
+
+    def get_kappa_value(self):
+        return self.kappa
+
+    def get_kappa_phi_value(self):
+        return self.kappa_phi
+
 
 class Workflow(TaskNode):
     def __init__(self):
