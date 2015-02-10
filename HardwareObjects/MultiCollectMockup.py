@@ -1,6 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractMultiCollect import *
-from gevent.event import AsyncResult
 import logging
 import time
 import os
@@ -13,11 +12,13 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
         self._centring_status = None
+        self.ready_event = None
+        self.actual_frame_num = 0
 
     def execute_command(self, command_name, *args, **kwargs): 
-      wait = kwargs.get("wait", True)
-      cmd_obj = self.getCommandObject(command_name)
-      return cmd_obj(*args, wait=wait)
+        wait = kwargs.get("wait", True)
+        cmd_obj = self.getCommandObject(command_name)
+        return cmd_obj(*args, wait=wait)
         
     def init(self):
         self.emit("collectConnected", (True,))
@@ -32,7 +33,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
 
     def do_prepare_oscillation(self, start, end, exptime, npass):
-        return
+        self.actual_frame_num = 0
     
     @task
     def oscil(self, start, end, exptime, npass):
@@ -103,10 +104,11 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
       
     def write_image(self, last_frame):
-        return 
+        self.actual_frame_num += 1
+        return
 
     def last_image_saved(self):
-        return
+        return self.actual_frame_num
 
     def stop_acquisition(self):
         return 
