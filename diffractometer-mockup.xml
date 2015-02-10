@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <equipment class="DiffractometerMockup">
-  <beam_info>/beam-info</beam_info>
-  <object href="/ccd/video-mockup" role="camera"/>
+  <beam_info>/beam-info-mockup</beam_info>
+  <object href="/mockup_camera" role="camera"/>
   <zoomcentre>{"x":340,"y":250}</zoomcentre>
   <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference> 
 </equipment>
