@@ -9,10 +9,14 @@ import tempfile
 import gevent
 import random
 from gevent.event import AsyncResult
-from Qub.Tools import QubImageSave
+
+import queue_model_objects_v1 as qmo
+
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
+
+from Qub.Tools import QubImageSave
 
 class myimage:
     """
@@ -57,6 +61,16 @@ class DiffractometerMockup(Equipment):
         """
         Equipment.__init__(self, *args)
 
+        qmo.CentredPosition.set_diffractometer_motor_names("phi",
+                                                           "focus",
+                                                           "phiz",
+                                                           "phiy",
+                                                           "zoom",
+                                                           "sampx",
+                                                           "sampy",
+                                                           "kappa",
+                                                           "kappa_phi")
+
         self.phiMotor = None
         self.phizMotor = None
         self.phiyMotor = None
@@ -64,6 +78,8 @@ class DiffractometerMockup(Equipment):
         self.zoomMotor = None
         self.sampleXMotor = None
         self.sampleYMotor = None
+        self.kappaMotor = None
+        self.kappaPhiMotor = None
         self.camera = None
         self.beam_info_hwobj = None
 
@@ -117,12 +133,23 @@ class DiffractometerMockup(Equipment):
         self.centring_time = 0
         self.user_confirms_centring = True
         self.user_clicked_event = AsyncResult()
-
         self.image_width = 400
         self.image_height = 400
-
         self.equipmentReady()
         self.user_clicked_event = AsyncResult()
+
+        self.kappaMotor = self.getDeviceByRole('kappa')
+        self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
+
+        if self.kappaMotor is not None:
+            self.connect(self.kappaMotor, "positionChanged", self.kappa_motor_moved)
+        else:
+            logging.getLogger("HWR").error('EMBLMiniDiff: kappa motor is not defined')
+
+        if self.kappaPhiMotor is not None:
+            self.connect(self.kappaPhiMotor, 'positionChanged', self.kappa_phi_motor_moved)
+        else:
+            logging.getLogger("HWR").error('EMBLMiniDiff: kappa phi motor is not defined')
 
         self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
                                 getHardwareObject(self.getProperty("beam_info"))
@@ -130,6 +157,24 @@ class DiffractometerMockup(Equipment):
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
         else:
             logging.getLogger("HWR").debug('Minidiff: Beaminfo is not defined')
+
+        try:
+            self.zoom_centre = eval(self.getProperty("zoomCentre"))
+        except:
+            if self.image_width is not None and self.image_height is not None:
+                self.zoom_centre = {'x': self.image_width / 2,'y' : self.image_height / 2}
+                self.beam_position = [self.image_width / 2, self.image_height / 2]
+                logging.getLogger("HWR").warning('EMBLMiniDiff: Zoom center is ' +\
+                       'not defined continuing with the middle: %s' % self.zoom_centre)
+            else:
+                logging.getLogger("HWR").warning('EMBLMiniDiff: Neither zoom centre nor camera size iz defined')
+
+        try:
+            self.omega_reference_par = eval(self.getProperty("omegaReference"))
+            self.omega_reference_motor = self.getDeviceByRole(self.omega_reference_par["motor_name"])
+            self.connect(self.omega_reference_motor, 'positionChanged', self.omega_reference_motor_moved)
+        except:
+            logging.getLogger("HWR").warning('EMBLMiniDiff: Omega axis is not defined')
 
     def getStatus(self):
         """
@@ -147,9 +192,10 @@ class DiffractometerMockup(Equipment):
         last_centred_position[1] = y
         random_num = random.random()
         centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num, 
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009, 
-                         ' kappa_phi': 311.0}
+                           'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                           'phi': 311.1, 'focus': -0.42, 
+                           'kappa': self.kappaMotor.getPosition(), 
+                           'kappa_phi': self.kappaPhiMotor.getPosition()}
         return centred_pos_dir 		
 
     def set_sample_info(self, sample_info):
@@ -196,6 +242,20 @@ class DiffractometerMockup(Equipment):
             self.centring_status = {"valid":False}
             self.emitProgressMessage("")
             self.emit('centringInvalid', ())
+
+    def kappa_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.emit_diffractometer_moved()
+        self.emit('kappaMotorMoved', pos)
+
+    def kappa_phi_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.emit_diffractometer_moved()
+        self.emit('phiMotorMoved', pos)
 
     def get_available_centring_methods(self):
         """
@@ -408,9 +468,11 @@ class DiffractometerMockup(Equipment):
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centring_status["endTime"] = curr_time
             random_num = random.random()
-            motors = {'phiy': random_num * 10,  'phiz': random_num*20,
-                      'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53, 'phi': 311.1, 
-		      'focus': -0.42, 'kappa': 0.0009, ' kappa_phi': 311.0}
+            motors = {'phiy': random_num * 10,  'phiz': random_num * 20,
+                      'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53, 
+                      'phi': 311.1, 'focus': -0.42, 
+                      'kappa': self.kappaMotor.getPosition(),
+                      'kappa_phi': self.kappaPhiMotor.getPosition()}
 
             motors["beam_x"] = 0.1
             motors["beam_y"] = 0.1
@@ -444,8 +506,10 @@ class DiffractometerMockup(Equipment):
         """
         random_num = random.random()
         return {"phi": random_num * 10, "focus": random_num * 20, 
-                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-		"kappa": 0.0009, "kappa_phi": 311.0, "zoom": 8.53}
+                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, 
+                "sampy": 9.3, "zoom": 8.53,
+                "kappa": self.kappaMotor.getPosition(),
+                "kappa_phi": self.kappaPhiMotor.getPosition()}
 
     def simulateAutoCentring(self, sample_info = None):
         """
@@ -472,6 +536,8 @@ class DiffractometerMockup(Equipment):
         if self.beam_info_hwobj: 
             self.beam_info_hwobj.beam_pos_hor_changed(300) 
             self.beam_info_hwobj.beam_pos_ver_changed(200)
+        self.emit("phiMoved", 10.2)
+        self.emit("kappaMoved", 11.2)
 
     def start_auto_focus(self): 
         """
@@ -544,3 +610,12 @@ class DiffractometerMockup(Equipment):
             self.emit('centringSnapshots', (True,))
             self.emit_progress_message("")
         self.emit_progress_message("Sample is centred!")
+
+    def move_kappa_phi(self, kappa, kappa_phi, wait = False):
+        """
+        Descript. :
+        """
+        if self.kappaMotor is not None:
+            self.kappaMotor.move(kappa)
+        if self.kappaPhiMotor is not None:
+            self.kappaPhiMotor.move(kappa_phi)
