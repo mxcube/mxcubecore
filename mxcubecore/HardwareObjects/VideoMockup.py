@@ -172,4 +172,4 @@ class VideoMockup(BaseHardwareObjects.Device):
         Descript. :
         """
         if signal  == "imageReceived":
-            self.image_polling = gevent.spawn(self._do_imagePolling, 5)
+            self.image_polling = gevent.spawn(self._do_imagePolling, 1)
