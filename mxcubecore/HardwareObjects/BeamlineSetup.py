@@ -18,9 +18,10 @@ class BeamlineSetup(HardwareObject):
         # For hardware objects that we would like to access as:
         # self.<role_name>_hwrobj. Just to make it more elegant syntactically.
         self._role_list = ['transmission', 'diffractometer', 'sample_changer',
-                           'resolution', 'shape_history', 'session',
+                           'resolution', 'shape_history', 'session', 'beam_info',
                            'data_analysis', 'workflow', 'lims_client',
-                           'collect', 'energy', 'energyscan', 'omega_axis', "detector"]
+                           'omega_axis', 'kappa_axis', 'kappa_phi_axis',
+                           'collect', 'energy', 'xrf', 'detector', 'energyscan']
 
     def init(self):
         """
