@@ -61,7 +61,7 @@ class BeamlineSetup(HardwareObject):
         value = None
 
         if path == '/beamline/default-acquisition-parameters/':
-            value = jsonpickle.encode(self.get_default_acquisition_parameters("default-acquisition-parameters"))
+            value = jsonpickle.encode(self.get_default_acquisition_parameters()) 
         elif path == '/beamline/default-path-template/':
             value = jsonpickle.encode(self.get_default_path_template())
         else:
@@ -242,12 +242,11 @@ class BeamlineSetup(HardwareObject):
 
         return char_params
 
-    def get_default_acquisition_parameters(self, parent_key):
+    def get_default_acquisition_parameters(self, parent_key="default-acquisition-parameters"):
         """
         :returns: A AcquisitionParameters object with all default parameters.
         """
         acq_parameters = queue_model_objects.AcquisitionParameters()
-        #parent_key = "default_acquisition_values"
 
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
