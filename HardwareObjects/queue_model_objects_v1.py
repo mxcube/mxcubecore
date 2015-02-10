@@ -788,6 +788,7 @@ class EnergyScanResult(object):
         self.peak = None
         self.first_remote = None
         self.second_remote = None
+        self.data_file_path = PathTemplate()
 
         self.data = None
 
@@ -803,6 +804,7 @@ class EnergyScanResult(object):
         self.chooch_graph_y2 = None
         self.title = None
 
+
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
@@ -811,6 +813,9 @@ class SampleCentring(TaskNode):
         if name:
             self.set_name(name)
  
+        self.kappa = kappa
+        self.kappa_phi = kappa_phi
+
         self.kappa = kappa
         self.kappa_phi = kappa_phi
 
@@ -1067,6 +1072,7 @@ class CentredPosition(object):
 
     def get_kappa_phi_value(self):
         return self.kappa_phi
+
 
 class Workflow(TaskNode):
     def __init__(self):
