@@ -1154,9 +1154,8 @@ class XRFScanQueueEntry(BaseQueueEntry):
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
-        self.xrf_scan_hwobj = self.beamline_setup.xrfscan_hwobj
+        self.xrf_scan_hwobj = self.beamline_setup.xrf_scan_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
-
         qc = self.get_queue_controller()
 
         qc.connect(self.xrf_scan_hwobj, 'xrfScanStatusChanged',
@@ -1213,8 +1212,8 @@ class XRFScanQueueEntry(BaseQueueEntry):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error(message.replace('\n', ' '))
-        raise QueueExecutionException(message.replace('\n', ' '), self)
+        logging.getLogger("user_level_log").error("XRF spectrum failed.")
+        raise QueueExecutionException("XRF spectrum failed", self)
 
 class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):

@@ -817,7 +817,7 @@ class XRFScan(TaskNode):
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
-        self.count_time = None
+        self.count_time = 1
         self.set_requires_centring(True)
         self.centred_position = cpos
 
