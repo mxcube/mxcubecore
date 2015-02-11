@@ -72,8 +72,7 @@ class XMLDataMatrixReadingHandler(ContentHandler):
             self.flag = 0
             self.holder_length=22.0
         elif name == "Basket":
-            if len(self.dataMatrix) > 0:
-                self.basketDataMatrixList[self.sampleLocation-1]=(self.dataMatrix,self.flag)
+            self.basketDataMatrixList[self.sampleLocation-1]=(self.dataMatrix,self.flag)
             self.dataMatrix = ''
             self.basketLocation = -1
             self.sampleLocation = -1
@@ -145,6 +144,7 @@ class SC3(SampleChanger):
             datamatrix = basket_list[b][0]
             if (len(datamatrix)==0):    datamatrix=None
             flags=basket_list[b][1]
+            
             present =   (flags & 3) != 0
             scanned =   (flags& 8) != 0
             basket=self.getComponents()[b]
