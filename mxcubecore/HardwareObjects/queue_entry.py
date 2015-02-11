@@ -1093,8 +1093,8 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error(message.replace('\n', ' '))
-        raise QueueExecutionException(message.replace('\n', ' '), self)
+        logging.getLogger("user_level_log").error("Energy scan failed.")
+        raise QueueExecutionException("Energy scan failed", self)
 
     def stop(self):
         BaseQueueEntry.stop(self)
