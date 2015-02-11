@@ -341,13 +341,16 @@ class Basket(TaskNode):
         TaskNode.__init__(self)
         self.name = str()
         self.location = None
-        self.is_present = False
         self.free_pin_mode = False
+
+    @property
+    def is_present(self):
+        return self.get_is_present()
 
     def init_from_sc_basket(self, sc_basket):
         self.location = sc_basket[0]
         self.name = "Puck %d" % self.location
-        self.is_present = sc_basket[2]
+        self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
 
     def get_name(self):
         return self.name
@@ -356,10 +359,10 @@ class Basket(TaskNode):
         return self.location
 
     def get_is_present(self):
-        return self.is_present
+        return self._basket_object.present
 
-    def set_is_present(self, present):
-        self.is_present = present
+    #def set_is_present(self, present):
+    #    self.is_present = present
 
 
 class DataCollection(TaskNode):
