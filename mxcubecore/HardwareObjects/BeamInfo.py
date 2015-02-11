@@ -7,6 +7,7 @@ It can include aperture, slits and/or other beam definer (lenses or other eq.)
 
 [Emited signals]
 beamInfoChanged
+beamPosChanged
 
 [Included Hardware Objects]
 -----------------------------------------------------------------------
@@ -43,10 +44,6 @@ class BeamInfo(Equipment):
         self.beam_info_dict = None
         self.default_beam_divergence = None
 
-        self.chan_beam_position_hor = None
-        self.chan_beam_position_ver = None
-        self.chan_beam_size_microns = None
-        self.chan_beam_shape_ellipse = None
 
     def init(self):
         """
@@ -78,16 +75,10 @@ class BeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")
 
-        self.chan_beam_position_hor = self.getChannelObject("beam_position_hor")
-        if self.chan_beam_position_hor is not None: 
-            self.chan_beam_position_hor.connectSignal("update", self.beam_pos_hor_changed)
-        self.chan_beam_position_ver = self.getChannelObject("beam_position_ver")
-        if self.chan_beam_position_ver is not None:
-            self.chan_beam_position_ver.connectSignal("update", self.beam_pos_ver_changed)
-        self.chan_beam_size_microns = self.getChannelObject("beam_size_microns")
-        self.chan_beam_shape_ellipse = self.getChannelObject("beam_shape_ellipse")
-        self.default_beam_divergence = eval(self.getProperty("defaultBeamDivergence"))
- 
+        default_beam_divergence_vertical = int(self.getProperty("beam_divergence_vertical"))
+        default_beam_divergence_horizontal = int(self.getProperty("beam_divergence_horizontal"))
+        self.default_beam_divergence = [default_beam_divergence_horizontal, default_beam_divergence_vertical]
+
     def get_beam_divergence_hor(self):
         """
         Descript. : 
@@ -106,34 +97,13 @@ class BeamInfo(Equipment):
         else:
             return self.default_beam_divergence[1]
  
-    def beam_pos_hor_changed(self, value):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
-        self.beam_position[0] = value
-        self.emit("beamPosChanged", (self.beam_position, ))
-
-    def beam_pos_ver_changed(self, value):
-        """
-        Descript. :
-        Arguments :
-        Return    :
-        """
-        self.beam_position[1] = value 
-        self.emit("beamPosChanged", (self.beam_position, ))
-
     def get_beam_position(self):
         """
         Descript. :
         Arguments :
         Return    :
         """
-        if self.chan_beam_position_hor and self.chan_beam_position_ver:
-            self.beam_position = [self.chan_beam_position_hor.getValue(), \
-	                          self.chan_beam_position_ver.getValue()]
-        return self.beam_position	
+        raise NotImplementedError
 
     def set_beam_position(self, beam_x, beam_y):
         """
@@ -141,11 +111,7 @@ class BeamInfo(Equipment):
         Arguments :
         Return    :
         """
-        self.beam_position = [beam_x, beam_y]
-        if self.chan_beam_position_hor:
-            self.chan_beam_position_hor.setValue(int(beam_x))
-        if self.chan_beam_position_ver:
-            self.chan_beam_position_ver.setValue(int(beam_y))
+        raise NotImplementedError
 
     def aperture_pos_changed(self, names_list, name, size):
         """

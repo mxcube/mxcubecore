@@ -13,6 +13,9 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         self.camera = self.getDeviceByRole("camera")
         self.beam_position = (self.camera.getWidth() / 2, self.camera.getHeight() / 2)
 
+    def get_beam_position(self):
+        return self.beam_position
+
     def set_beam_position(self, beam_x, beam_y):
         return
 
