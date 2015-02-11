@@ -699,13 +699,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_started(self, owner, num_oscillations):
         logging.getLogger("user_level_log").info('Collection started')
+        # this is to work around the remote access problem
+        dispatcher.send("collect_started")
 
     def collect_number_of_frames(self, number_of_images=0):
         pass
 
     def image_taken(self, image_number):
-        # this is to work around the remote access problem
-        dispatcher.send("collect_started")
         num_images = self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images
         num_images += self.get_data_model().acquisitions[0].\
