@@ -775,7 +775,6 @@ class AbstractMultiCollect(object):
                                                  data_collect_parameters["EDNA_files_dir"],
                                                  data_collect_parameters["anomalous"],
                                                  data_collect_parameters["residues"],
-                                                 "reference_interval" in data_collect_parameters["oscillation_sequence"][0],
                                                  data_collect_parameters["do_inducedraddam"],
                                                  data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                                  data_collect_parameters.get("sample_reference", {}).get("cell", ""))
