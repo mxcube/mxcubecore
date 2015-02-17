@@ -742,13 +742,16 @@ class AbstractMultiCollect(object):
                           last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          j = wedge_size - last_image_saved
+                          new_j = wedge_size - last_image_saved
+                          if new_j < 1 and j > 1:
+                              # make sure to do finalization
+                              j = 1
+                          else:
+                              j = new_j
                       else:
                           j -= 1
                           self.emit("collectImageTaken", frame)
                           frame += 1
-                          if j == 0:
-                            break
 
                 
     @task
@@ -819,12 +822,6 @@ class AbstractMultiCollect(object):
               self.__safety_shutter_close_task = gevent.spawn_later(10*60, self.close_safety_shutter, timeout=10)
             except:
               logging.exception("Could not close safety shutter")
-
-            #if callable(finished_callback):
-            #   try:
-            #     finished_callback()
-            #   except:
-            #     logging.getLogger("HWR").exception("Exception while calling finished callback")
         finally:
            self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
            self.emit("collectReady", (True, ))
