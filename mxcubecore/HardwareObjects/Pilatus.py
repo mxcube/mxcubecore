@@ -10,6 +10,11 @@ class Pilatus(Device):
     def has_shutterless(self):
         return True
 
-    def get_detector_mode(self):
-        return 0
+    def default_mode(self):
+        return 1
 
+    def get_detector_mode(self):
+        return self.default_mode()
+
+    def set_detector_mode(self, mode):
+        return

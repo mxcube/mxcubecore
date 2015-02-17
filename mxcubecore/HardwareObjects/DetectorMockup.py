@@ -79,6 +79,9 @@ class DetectorMockup(Equipment):
         """
         return self.detector_mode
 
+    def default_mode(self):
+        return 1
+
     def get_detector_modes_list(self):
         """
         Descript. :

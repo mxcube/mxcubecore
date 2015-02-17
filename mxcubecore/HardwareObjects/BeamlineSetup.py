@@ -160,7 +160,7 @@ class BeamlineSetup(HardwareObject):
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_hwobj.has_shutterless()
-        detector_mode = self._get_detector_mode()
+        detector_mode = self.detector_hwobj.default_mode() 
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -266,7 +266,7 @@ class BeamlineSetup(HardwareObject):
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_hwobj.has_shutterless()
-        detector_mode = self._get_detector_mode()
+        detector_mode = self.detector_hwobj.default_mode()
 
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
@@ -379,17 +379,16 @@ class BeamlineSetup(HardwareObject):
             resolution = 0
 
         return resolution
-
-    def _get_detector_mode(self):
-        """
-        Descript. :
-        """
-        try:
-            detector_mode = int(self.detector_hwobj.get_detector_mode())
-        except (AttributeError, TypeError):
-            detector_mode = 0
-
-        return detector_mode
+ 
+    #def _get_detector_mode(self):
+    #    """
+    #    Descript. :
+    #    """
+    #    try:
+    #        detector_mode = int(self.detector_hwobj.get_detector_mode())
+    #    except (AttributeError, TypeError):
+    #        detector_mode = 1
+    #    return detector_mode
 
     def _get_omega_axis_position(self):
         result = 0
