@@ -280,6 +280,12 @@ class AbstractMultiCollect(object):
     @abc.abstractmethod
     def store_image_in_lims(self, frame, first_frame, last_frame):
       pass
+
+    
+    @abc.abstractmethod
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        pass
     
 
     def get_sample_info_from_parameters(self, parameters):
@@ -738,9 +744,11 @@ class AbstractMultiCollect(object):
                             lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
 
                           try:
-                            self.bl_control.lims.store_image(lims_image)
+                              self.bl_control.lims.store_image(lims_image)
                           except:
-                            logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                              logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                          
+                          self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
                 
                       if data_collect_parameters.get("processing", False)=="True":
                         self.trigger_auto_processing("image",
