@@ -441,14 +441,6 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         return
 
     @task
-    def set_detector_mode(self, detector_mode):
-        """
-        Descript. : 
-        """
-        if self.bl_control.detector is not None:
-            self.bl_control.detector.set_detector_mode(detector_mode) 
-        
-    @task
     def move_detector(self, detector_distance):
         """
         Descript. : 

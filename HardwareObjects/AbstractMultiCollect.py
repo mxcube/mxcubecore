@@ -33,7 +33,6 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'minimum_exposure_time',
                                          'detector_fileext',
                                          'detector_type',
-                                         'detector_mode',
                                          'detector_manufacturer',
                                          'detector_model',
                                          'detector_px',
@@ -52,7 +51,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*14)
-        self.bl_config = BeamlineConfig(*[None]*17)
+        self.bl_config = BeamlineConfig(*[None]*16)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -71,6 +70,15 @@ class AbstractMultiCollect(object):
     @task
     def data_collection_hook(self, data_collect_parameters):
       pass
+
+   
+    @task
+    def set_detector_mode(self, detector_mode):
+        """
+        Descript. :
+        """
+        if self.bl_control.detector is not None:
+            self.bl_control.detector.set_detector_mode(detector_mode)
 
 
     @abc.abstractmethod
@@ -602,6 +610,9 @@ class AbstractMultiCollect(object):
           self.move_detector(oscillation_parameters["detdistance"])
 
         self.close_fast_shutter()
+
+        # 0: software binned, 1: unbinned, 2:hw binned
+        self.set_detector_mode(data_collect_parameters["detector_mode"])
 
         self.move_motors(motors_to_move_before_collect)
 
