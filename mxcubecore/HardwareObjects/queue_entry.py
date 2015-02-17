@@ -540,8 +540,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
         if len(self.shape_history.selected_shapes):
             pos = self.shape_history.selected_shapes.values()[0]
-        elif len(self.shape_history.shapes):
-            pos = self.shape_history.shapes.values()[0]
+        #elif len(self.shape_history.shapes):
+        #    pos = self.shape_history.shapes.values()[0]
         else:
             msg = "No centred position selected, using current position."
             log.info(msg)
