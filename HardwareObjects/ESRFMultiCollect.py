@@ -5,6 +5,7 @@ import logging
 import time
 import os
 import httplib
+import urllib
 import math
 
 class FixedEnergy:
@@ -710,6 +711,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_flux(self):
         return self.bl_control.flux.getCurrentFlux()
+
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        directories = filename.split(os.path.sep)
+        try:
+            if directories[2]=='visitor':
+                beamline = directories[4]
+                proposal = directories[3]
+            else:
+                beamline = directories[2]
+                proposal = directories[4]
+        except:
+            beamline = "unknown"
+            proposal = "unknown" 
+        conn = httplib.HTTPConnection("mxedna.esrf.fr",37180)
+        params = urllib.urlencode({"image_path":filename,
+                                   "jpeg_path":jpeg_path,
+                                   "jpeg_thumbnail_path":jpeg_thumbnail_path,
+                                   "initiator": beamline,
+                                   "externalRef": proposal,
+                                   "reuseCase": "true" })
+        conn.request("POST", 
+                     "/BES/bridge/rest/processes/CreateThumbnails/RUN?%s" % params, 
+                     headers={"Accept":"text/plain"})
+        r = conn.getresponse()
 
     """
     getOscillation
