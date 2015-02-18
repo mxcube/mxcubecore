@@ -254,6 +254,7 @@ class ShapeHistory(HardwareObject):
             self._delete_shape(shape)
 
         self.shapes.clear()
+        self.point_index = 0
 
     def de_select_all(self):
         self._drawing_event.de_select_all()
