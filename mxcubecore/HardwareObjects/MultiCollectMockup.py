@@ -38,7 +38,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     @task
     def oscil(self, start, end, exptime, npass):
         return
-    
+
     @task
     def set_transmission(self, transmission_percent):
         return
@@ -258,3 +258,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def get_archive_directory(self, directory):
         archive_dir = os.path.join(directory, '/archive/')
         return archive_dir
+
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        pass
