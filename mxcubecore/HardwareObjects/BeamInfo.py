@@ -113,7 +113,7 @@ class BeamInfo(Equipment):
         """
         raise NotImplementedError
 
-    def aperture_pos_changed(self, names_list, name, size):
+    def aperture_pos_changed(self, size):
         """
         Descript. :
         Arguments :
