@@ -153,12 +153,12 @@ class BeamInfo(Equipment):
         
     def get_beam_size(self):
         """
-        Descript. : returns beam size in microns
+        Descript. : returns beam size in millimeters
         Return   : list with two integers
         """
         self.evaluate_beam_info()
-        return int(self.beam_info_dict["size_x"] * 1000), \
-	       int(self.beam_info_dict["size_y"] * 1000)
+        return self.beam_info_dict["size_x"], \
+	       self.beam_info_dict["size_y"]
 
     def get_beam_shape(self):
         """
