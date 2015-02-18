@@ -104,8 +104,8 @@ class DiffractometerMockup(Equipment):
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)
 
-        #IK - this will be sorted out
         self.startCentringMethod = self.start_centring_method 
+        self.cancelCentringMethod = self.cancel_centring_method
         self.imageClicked = self.image_clicked
         self.acceptCentring = self.accept_centring
         self.rejectCentring = self.reject_centring
