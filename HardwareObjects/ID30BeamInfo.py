@@ -8,7 +8,9 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
 
     def init(self): 
         BeamInfo.BeamInfo.init(self)
- 
+
+        self.chan_beam_size_microns = None 
+        self.chan_beam_shape_ellipse = None 
         self.beam_size_slits = map(float,self.getProperty("beam_size_slits").split()) #[0.1, 0.05]
         self.camera = self.getDeviceByRole("camera")
         self.beam_position = (self.camera.getWidth() / 2, self.camera.getHeight() / 2)
