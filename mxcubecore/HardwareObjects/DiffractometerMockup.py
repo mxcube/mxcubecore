@@ -144,12 +144,12 @@ class DiffractometerMockup(Equipment):
         if self.kappaMotor is not None:
             self.connect(self.kappaMotor, "positionChanged", self.kappa_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: kappa motor is not defined')
+            logging.getLogger("HWR").error('MiniDiff: kappa motor is not defined')
 
         if self.kappaPhiMotor is not None:
             self.connect(self.kappaPhiMotor, 'positionChanged', self.kappa_phi_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: kappa phi motor is not defined')
+            logging.getLogger("HWR").error('MiniDiff: kappa phi motor is not defined')
 
         self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
                                 getHardwareObject(self.getProperty("beam_info"))
@@ -164,17 +164,17 @@ class DiffractometerMockup(Equipment):
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {'x': self.image_width / 2,'y' : self.image_height / 2}
                 self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning('EMBLMiniDiff: Zoom center is ' +\
+                logging.getLogger("HWR").warning('MiniDiff: Zoom center is ' +\
                        'not defined continuing with the middle: %s' % self.zoom_centre)
             else:
-                logging.getLogger("HWR").warning('EMBLMiniDiff: Neither zoom centre nor camera size iz defined')
+                logging.getLogger("HWR").warning('MiniDiff: Neither zoom centre nor camera size iz defined')
 
         try:
             self.omega_reference_par = eval(self.getProperty("omegaReference"))
             self.omega_reference_motor = self.getDeviceByRole(self.omega_reference_par["motor_name"])
             self.connect(self.omega_reference_motor, 'positionChanged', self.omega_reference_motor_moved)
         except:
-            logging.getLogger("HWR").warning('EMBLMiniDiff: Omega axis is not defined')
+            logging.getLogger("HWR").warning('MiniDiff: Omega axis is not defined')
 
     def getStatus(self):
         """
@@ -248,14 +248,14 @@ class DiffractometerMockup(Equipment):
         Descript. :
         """
         self.emit_diffractometer_moved()
-        self.emit('kappaMotorMoved', pos)
+        self.emit('kappaMoved', pos)
 
     def kappa_phi_motor_moved(self, pos):
         """
         Descript. :
         """
         self.emit_diffractometer_moved()
-        self.emit('phiMotorMoved', pos)
+        self.emit('kappaPhiMoved', pos)
 
     def get_available_centring_methods(self):
         """
