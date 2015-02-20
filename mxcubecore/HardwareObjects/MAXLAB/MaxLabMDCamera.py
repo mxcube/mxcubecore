@@ -100,16 +100,16 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
 
        try:
           img=self.device.getImageJPG()
-          
           # JN, 20140807,adapt the MD2 screen (768x576) to mxCuBE2 
 #          logging.getLogger('HWR').info("Img_chr dimension %s",img.shape)
-          f = open("/tmp/mxcube_tmp.jpg","w")
-          f.write("".join(map(chr, img)))
-          f.close()
-          img_tmp=Image.open("/tmp/mxcube_tmp.jpg").crop((55,42,714,535))
-          img_tmp.save("/tmp/mxcube_crop.jpg")
-          img=np.fromfile("/tmp/mxcube_crop.jpg",dtype="uint8")
-#          logging.getLogger('HWR').info("Img dimension2 %s",img.shape)
+	  if img is not None:
+                f = open("/tmp/mxcube_tmp.jpg","w")
+                f.write("".join(map(chr, img)))
+                f.close()
+                img_tmp=Image.open("/tmp/mxcube_tmp.jpg").crop((55,42,714,535))
+                img_tmp.save("/tmp/mxcube_crop.jpg")
+                img=np.fromfile("/tmp/mxcube_crop.jpg",dtype="uint8")
+#               logging.getLogger('HWR').info("Img dimension2 %s",img.shape)
  
        #   print img
        #   print len(img)
@@ -120,19 +120,18 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
           import traceback
           traceback.print_exc()
 
-       if img.any():
-       #      self.emit("imageReceived", img, 768, 576) 
-             self.emit("imageReceived", img, 659, 493) # JN,20140807,adapt the MD2 screen to mxCuBE2
-             if self.badimg > MAX_TRIES:
-                 self.badimg = 0
-       else:
-             print "bad"
-             self.badimg += 1
+       if img is not None:
+          if img.any():
+                self.emit("imageReceived", img, 659, 493) # JN,20140807,adapt the MD2 screen to mxCuBE2
+                if self.badimg > MAX_TRIES:
+                    self.badimg = 0
+          else:
+                print "bad"
+                self.badimg += 1
 
-       if self.badimg > MAX_TRIES:
-            print "seems too bad. polling with a slow interval now"
-            self.pollingTimer.changeInterval(SLOW_INTERVAL)
-       
+          if self.badimg > MAX_TRIES:
+                print "seems too bad. polling with a slow interval now"
+                self.pollingTimer.changeInterval(SLOW_INTERVAL)
   
     def imageUpdated(self, value):
        print "<HW> got new image"
@@ -162,6 +161,17 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
     def takeSnapshot(self, *args):
       #jpeg_data=self.device.GrabImage()
       jpeg_data=self.device.getImageJPG()
-      f = open(*(args + ("w",)))
+      
+ 
+      # JN 20150206, have the same resolution as the one shown on the mxCuBE video
+      f = open("/tmp/mxcube_tmpSnapshot.jpeg","w")
       f.write("".join(map(chr, jpeg_data)))
+      f.close()
+      img_tmp=Image.open("/tmp/mxcube_tmpSnapshot.jpeg").crop((55,42,714,535))
+      img_tmp.save("/tmp/mxcube_cropSnapshot.jpeg")
+      img=np.fromfile("/tmp/mxcube_cropSnapshot.jpeg",dtype="uint8")
+
+      f = open(*(args + ("w",)))
+      f.write("".join(map(chr, img)))
       f.close()       
+      
