@@ -619,3 +619,6 @@ class DiffractometerMockup(Equipment):
             self.kappaMotor.move(kappa)
         if self.kappaPhiMotor is not None:
             self.kappaPhiMotor.move(kappa_phi)
+ 
+    def moveMotors(self, roles_positions_dict):
+        return  
