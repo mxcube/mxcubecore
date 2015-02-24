@@ -342,6 +342,7 @@ class Basket(TaskNode):
         self.name = str()
         self.location = None
         self.free_pin_mode = False
+        self.sample_list = []
 
     @property
     def is_present(self):
@@ -361,6 +362,15 @@ class Basket(TaskNode):
     def get_is_present(self):
         return self._basket_object.present
 
+    def clear_sample_list(self):
+        self.sample_list = []
+
+    def add_sample(self, sample):
+        self.sample_list.append(sample) 
+
+    def get_sample_list(self):
+        return self.sample_list
+ 
     #def set_is_present(self, present):
     #    self.is_present = present
 
