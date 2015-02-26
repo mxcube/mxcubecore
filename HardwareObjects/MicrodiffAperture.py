@@ -29,7 +29,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
         self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
         
     def connectNotify(self, signal):
-        if signal in ('predefinedPositionChanged', 'apertureChanged'):
+        if signal == 'predefinedPositionChanged':
             positionName = self.getCurrentPositionName()
 
             try:
@@ -38,6 +38,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
                 self.emit(signal, ('', None))
             else:
                 self.emit(signal, (positionName, pos))
+        elif signal == 'apertureChanged':
                 self.emit('apertureChanged', (self.getApertureSize(), ))
         else:
             return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
