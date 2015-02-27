@@ -3,6 +3,7 @@ from HardwareRepository.TaskUtils import *
 import numpy
 import time
 import logging
+from PyTango.gevent import DeviceProxy
 
 class ID30A3PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
@@ -17,6 +18,7 @@ class ID30A3PhotonFlux(Equipment):
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
+        self.tg_device = DeviceProxy("id30/keithley_massif3/i0")
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -30,13 +32,15 @@ class ID30A3PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        gain = 20 #20uA
+        """gain = 20 #20uA
         keithley_voltage = 2 
         musst_voltage = int("".join([x for x in self.musst.putget("#?CHCFG CH5") if x.isdigit()]))
         musst_fs = float(0x7FFFFFFF)
         counts = abs((gain/keithley_voltage)*musst_voltage*int(self.musst.putget("#?VAL CH5"))/musst_fs)
-        if counts < 0:
-            counts = 0
+        """
+        #try:
+        self.tg_device.MeasureSingle()
+        counts = abs(self.tg_device.ReadData)*1E6
         return counts
 
     def connectNotify(self, signal):
