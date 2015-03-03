@@ -688,6 +688,16 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.collect_hwobj.set_helical(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()
+
+                if cpos != empty_cpos:
+                    self.shape_history.select_shape_with_cpos(cpos)
+                else:
+                    pos_dict = self.diffractometer_hwobj.getPositions()
+                    cpos = queue_model_objects.CentredPosition(pos_dict)
+                    snapshot = self.shape_history.get_snapshot([])
+                    acq_1.acquisition_parameters.centred_position = cpos
+                    acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
+
                 dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
