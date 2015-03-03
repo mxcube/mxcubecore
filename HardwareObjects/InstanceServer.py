@@ -21,6 +21,19 @@ TERMINATOR = "\0"
 INSTANCE_HO = None
 SERVER_CLIENTS = {}
 CLIENTS = {}
+MAGIC = "mxcube"
+
+def start_announcement(discoveryPort, port):
+    def do_start_announcement(port_str, s):
+        while True:
+            s.sendto(port_str, ('<broadcast>', discoveryPort))
+            time.sleep(1)
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    s.bind(('', 0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    
+    gevent.spawn(do_start_announcement, MAGIC+str(port), s)
+
 
 ###
 ### Creates an asynchronous TCP server to manage multiple application instances
@@ -29,7 +42,8 @@ class InstanceServer(Procedure):
     # Initializes the hardware object
     def init(self):
         # Read the HO configuration
-        self.serverPort=self.getProperty('port')
+        self.discoveryPort=self.getProperty('port')
+        self.serverPort = 0
         self.serverHost=self.getProperty('host')
         if self.serverHost is None:
             self.serverHost=socket.getfqdn("")
@@ -135,14 +149,19 @@ class InstanceServer(Procedure):
         if self.asyncServer is not None:
             logging.getLogger("HWR").error('InstanceServer: server already started')
         elif self.serverPort is not None:
-            try:
-                async_server=gevent.server.StreamServer((self.serverHost, self.serverPort), handleRemoteClient) #AsyncServer(self,self.serverHost,self.serverPort)
-                async_server.start() 
-            except:
-                logging.getLogger("HWR").warning('InstanceServer: cannot create server, so trying to connect to it')
-                self.connectToServer()
-            else:
-                self.asyncServer=async_server
+            # discover server port using UDP broadcast
+            s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            s.bind(('',self.discoveryPort))
+            with gevent.Timeout(3,False):
+                data, addr = s.recvfrom(1024)
+                if data.startswith(MAGIC):
+                    self.serverPort = int(data[len(MAGIC):]) 
+            if self.serverPort == 0:
+                self.asyncServer = gevent.server.StreamServer((self.serverHost, self.serverPort), handleRemoteClient) #AsyncServer(self,self.serverHost,self.serverPort)
+                self.asyncServer.start() 
+
+                start_announcement(self.discoveryPort, self.asyncServer.socket.getsockname()[1])
+                         
                 server_hostname=self.serverHost.split('.')[0]
                 logging.getLogger("HWR").debug('InstanceServer: listening to connections on %s:%d' % (server_hostname,self.serverPort))
 
@@ -150,8 +169,11 @@ class InstanceServer(Procedure):
                 self.controlId2=list(self.serverId2)
 
                 self.idCount[server_hostname]=1
-            
+
                 self.emit('serverInitialized', (True,self.serverId2))
+            else:
+                logging.getLogger("HWR").warning('InstanceServer: trying to connect to master remote instance (port %d)' % self.serverPort)
+                self.connectToServer()
         else:
             logging.getLogger("HWR").error('InstanceServer: not property configured to start the server')
             self.emit('serverInitialized', (False,))
