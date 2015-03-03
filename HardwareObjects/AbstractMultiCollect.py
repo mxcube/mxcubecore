@@ -408,6 +408,8 @@ class AbstractMultiCollect(object):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
 
+        self.close_fast_shutter()
+
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -472,24 +474,11 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-
-        centring_info = {}
-        try:
-            centring_status = self.diffractometer().getCentringStatus()
-        except:
-            pass
-        else:
-            centring_info = dict(centring_status)
-
         #Save sample centring positions
-        motors = centring_info.get("motors", {})
-        extra_motors = centring_info.get("extraMotors", {})
-
         positions_str = ""
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        
+
         for motor, pos in motors.iteritems():
           if pos is None:
               positions_str = "%s %s=None" % (positions_str, motor)
@@ -505,6 +494,13 @@ class AbstractMultiCollect(object):
               motors_to_move_before_collect.update({motor: pos})
           
         data_collect_parameters['actualCenteringPosition'] = positions_str
+        self.move_motors(motors_to_move_before_collect)
+
+        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        centring_info = self.diffractometer.getCentringStatus()
+        # move *again* motors, since taking snapshots may change positions
+        self.move_motors(motors_to_move_before_collect)
 
         if self.bl_control.lims:
           try:
@@ -609,12 +605,8 @@ class AbstractMultiCollect(object):
         elif 'detdistance' in oscillation_parameters:
           self.move_detector(oscillation_parameters["detdistance"])
 
-        self.close_fast_shutter()
-
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
-
-        self.move_motors(motors_to_move_before_collect)
 
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
