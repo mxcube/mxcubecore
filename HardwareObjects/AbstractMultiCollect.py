@@ -474,31 +474,16 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        #Save sample centring positions
-        positions_str = ""
-
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-
-        for motor, pos in motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              # update 'motors' field, so diffractometer will move to centring pos.
-              motors_to_move_before_collect.update({motor: pos})
-        for motor, pos in extra_motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              motors_to_move_before_collect.update({motor: pos})
-          
+        # this is for the LIMS
+        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
+        ###
         self.move_motors(motors_to_move_before_collect)
 
         # take snapshots, then assign centring status (which contains images) to centring_info variable
         self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-        centring_info = self.diffractometer.getCentringStatus()
+        centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
         self.move_motors(motors_to_move_before_collect)
 
