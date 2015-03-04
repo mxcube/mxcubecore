@@ -109,6 +109,8 @@ class DiffractometerMockup(Equipment):
         self.imageClicked = self.image_clicked
         self.acceptCentring = self.accept_centring
         self.rejectCentring = self.reject_centring
+        self.getCentringStatus = self.get_centring_status
+        self.takeSnapshots = self.take_snapshots
 
     def init(self):
         """
