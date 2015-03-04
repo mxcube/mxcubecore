@@ -115,7 +115,7 @@ class ISPyBClient2Mockup(HardwareObject):
         :returns: None
 
         """
-        pass
+        return None, None
 
 
     def store_beamline_setup(self, session_id, beamline_setup):
