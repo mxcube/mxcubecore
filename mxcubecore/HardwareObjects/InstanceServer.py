@@ -82,10 +82,12 @@ class InstanceServer(Procedure):
         except:
             pass
         self.emit('instanceInitializing', ())
+
         if self.isLocal():
             self.startServer()
         else:
-            self.connectToServer()
+            if self.findServer():
+                self.connectToServer()
 
     # 
     def setProposal(self,proposal):
@@ -144,18 +146,26 @@ class InstanceServer(Procedure):
 
         return pretty_print
 
+    def findServer(self):
+        # discover server port using UDP broadcast
+        s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        s.bind(('',self.discoveryPort))
+        with gevent.Timeout(3,False):
+            data, addr = s.recvfrom(1024)
+            if data.startswith(MAGIC):
+               self.serverPort = int(data[len(MAGIC):]) 
+               return True
+        if not self.serverPort:
+            logging.getLogger("HWR").error("InstanceServer: cannot connect to MXCuBE master")
+            return False
+
     # Starts the server
     def startServer(self):
         if self.asyncServer is not None:
             logging.getLogger("HWR").error('InstanceServer: server already started')
         elif self.serverPort is not None:
-            # discover server port using UDP broadcast
-            s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-            s.bind(('',self.discoveryPort))
-            with gevent.Timeout(3,False):
-                data, addr = s.recvfrom(1024)
-                if data.startswith(MAGIC):
-                    self.serverPort = int(data[len(MAGIC):]) 
+            self.findServer()
+
             if self.serverPort == 0:
                 self.asyncServer = gevent.server.StreamServer((self.serverHost, self.serverPort), handleRemoteClient) #AsyncServer(self,self.serverHost,self.serverPort)
                 self.asyncServer.start() 
@@ -172,7 +182,7 @@ class InstanceServer(Procedure):
 
                 self.emit('serverInitialized', (True,self.serverId2))
             else:
-                logging.getLogger("HWR").warning('InstanceServer: trying to connect to master remote instance (port %d)' % self.serverPort)
+                logging.getLogger("HWR").info('InstanceServer: trying to connect to master remote instance (port %d)' % self.serverPort)
                 self.connectToServer()
         else:
             logging.getLogger("HWR").error('InstanceServer: not property configured to start the server')
@@ -194,7 +204,7 @@ class InstanceServer(Procedure):
         except:
             self.instanceClient = None
             if not quiet:
-              logging.getLogger("HWR").error('InstanceServer: cannot connect to server')
+              logging.getLogger("HWR").exception('InstanceServer: cannot connect to server')
             self.emit('clientInitialized', (False,(None,None),None,quiet))
         else:
             my_login=pwd.getpwuid(os.getuid())[0]
