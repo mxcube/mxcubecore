@@ -1349,6 +1349,8 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 log.info("Centring sample, please wait.")
                 dm.startCentringMethod(dm.C3D_MODE)
+            else:
+                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
             view.setText(1, "Centring !")
             async_result.get()
