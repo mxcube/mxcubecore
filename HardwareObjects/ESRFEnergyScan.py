@@ -333,7 +333,6 @@ def StoreEnergyScanThread(db_conn, scan_info):
     scanInfo = dict(scan_info)
     dbConnection = db_conn
 
-    import pdb; pdb.set_trace()
     blsampleid = scanInfo['blSampleId']
     scanInfo.pop('blSampleId')
     db_status=dbConnection.storeEnergyScan(scanInfo)
