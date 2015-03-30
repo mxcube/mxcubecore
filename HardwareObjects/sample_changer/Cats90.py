@@ -279,8 +279,8 @@ class Cats90(SampleChanger):
         :rtype: None
         """
         # JN, 20150302, make sure MD2 TransferMode is "SAMPLE_CHANGER"
-       # if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
-       #    logging.info("TransferMode is %s" % str(self._chnTransferMode.getValue()))	
+        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))	
      
         if not self._chnPowered.getValue():
             raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
