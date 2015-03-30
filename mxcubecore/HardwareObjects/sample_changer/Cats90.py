@@ -89,8 +89,8 @@ class Cats90(SampleChanger):
         for i in range(Cats90.NO_OF_BASKETS):
             basket = Basket(self,i+1)
             self._addComponent(basket)
-
-        for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
+            
+        for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected","_chnCurrentPhase", "_chnTransferMode"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
            
         for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad","_cmdRestartMD2"):
@@ -195,7 +195,44 @@ class Cats90(SampleChanger):
             selected_basket_no = component.getIndex()+1
             selected_sample_no = None
         self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
-            
+
+# JN 20150324, load for CATS GUI, no timer and the window will not freeze
+    def load_cats(self, sample=None, wait=True):
+        """
+        Load a sample. 
+        """
+        sample = self._resolveComponent(sample)
+        self.assertNotCharging()
+        logging.info("call load without a timer")
+        return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
+
+# JN 20150324, add load for queue mount, sample centring can start after MD2 in Centring phase instead of waiting for CATS finishes completely
+    def load(self, sample=None, wait=True):
+        """
+        Load a sample. 
+        """
+        sample = self._resolveComponent(sample)
+        self.assertNotCharging()
+        #Do a chained load in this case
+        #if self.hasLoadedSample():    
+            #Do a chained load in this case
+            #raise Exception("A sample is loaded")
+            #if self.getLoadedSample() == sample:
+            #    raise Exception("The sample " + sample.getAddress() + " is already loaded")
+
+        #return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
+        logging.info("call load with a timer")
+        self._executeTask(SampleChangerState.Loading,False,self._doLoad,sample)
+        timeout=0
+        time.sleep(20) # in case MD2 starts with Centring phase before loading the new sample
+        while self._chnCurrentPhase.getValue() != 'Centring':
+            if timeout > 60:
+                logging.info("waited for too long, change to centring mode manually")
+		return
+            time.sleep(1)
+            timeout+=1
+            logging.info("current phase is " + self._chnCurrentPhase.getValue())
+   
     def _doScan(self,component,recursive):
         """
         Scans the barcode of a single sample, puck or recursively even the complete sample changer.
@@ -241,6 +278,10 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        # JN, 20150302, make sure MD2 TransferMode is "SAMPLE_CHANGER"
+       # if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+       #    logging.info("TransferMode is %s" % str(self._chnTransferMode.getValue()))	
+     
         if not self._chnPowered.getValue():
             raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
             
