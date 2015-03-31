@@ -737,7 +737,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info('Collection started')
         self.get_view().setText(1, "Collecting")
 
-    def collect_number_of_frames(self, number_of_images=0):
+    def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
         pass
 
     def image_taken(self, image_number):
@@ -749,7 +749,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                       acquisition_parameters.first_image - 1
         self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
-    def preparing_collect(self, number_images=0):
+    def preparing_collect(self, number_images=0, exposure_time=0):
         self.get_view().setText(1, "Collecting")
 
     def collect_failed(self, owner, state, message, *args):
