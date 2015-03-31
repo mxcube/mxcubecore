@@ -868,7 +868,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
         if self.edna_result:
-            log.info("Characterisation successful.")
+            log.info("Characterisation completed.")
 
             char.html_report = self.data_analysis_hwobj.\
                                get_html_report(self.edna_result)
