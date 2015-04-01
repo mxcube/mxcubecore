@@ -16,17 +16,29 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         self.actual_frame_num = 0
 
     def execute_command(self, command_name, *args, **kwargs): 
-        wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
-        return cmd_obj(*args, wait=wait)
+        return
         
     def init(self):
+        self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
+                               sample_changer = self.getObjectByRole("sample_changer"),
+                               lims = self.getObjectByRole("dbserver"),
+                               safety_shutter = self.getObjectByRole("safety_shutter"),
+                               machine_current = self.getObjectByRole("machine_current"),
+                               cryo_stream = self.getObjectByRole("cryo_stream"),
+                               energy = self.getObjectByRole("energy"),
+                               resolution = self.getObjectByRole("resolution"),
+                               detector_distance = self.getObjectByRole("detector_distance"),
+                               transmission = self.getObjectByRole("transmission"),
+                               undulators = self.getObjectByRole("undulators"),
+                               flux = self.getObjectByRole("flux"),
+                               detector = self.getObjectByRole("detector"),
+                               beam_info = self.getObjectByRole("beam_info"))
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
-        return
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -150,23 +162,24 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
        
     def get_resolution(self):
-        return self.bl_control.resolution.getPosition()
-
+        if self.bl_control.resolution is not None:
+            return self.bl_control.resolution.getPosition()
 
     def get_transmission(self):
-        return self.bl_control.transmission.getAttFactor()
+        if self.bl_control.transmission is not None:
+            return self.bl_control.transmission.getAttFactor()
 
     def get_undulators_gaps(self):
-        return
+        return []
 
     def get_resolution_at_corner(self):
         return
 
     def get_beam_size(self):
-        return 
+        return None, None
 
     def get_slit_gaps(self):
-        return
+        return None, None
 
     def get_beam_shape(self):
         return
@@ -175,34 +188,31 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
 
     def get_machine_current(self):
-        if self.bl_control.machine_current:
+        if self.bl_control.machine_current is not None:
             return self.bl_control.machine_current.getCurrent()
         else:
             return 0
 
-
     def get_machine_message(self):
-        if  self.bl_control.machine_current:
+        if  self.bl_control.machine_current is not None:
             return self.bl_control.machine_current.getMessage()
         else:
             return ''
 
-
     def get_machine_fill_mode(self):
-        if self.bl_control.machine_current:
+        if self.bl_control.machine_current is not None:
             return self.bl_control.machine_current.getFillMode()
         else:
             ''
-
     def get_cryo_temperature(self):
-      return self.bl_control.cryo_stream.getTemperature()
-
+        if self.bl_control.cryo_stream is not None: 
+            return self.bl_control.cryo_stream.getTemperature()
 
     def getCurrentEnergy(self):
         return
 
     def get_beam_centre(self):
-        return
+        return None, None
     
     def getBeamlineConfiguration(self, *args):
         return self.bl_config._asdict()
@@ -235,7 +245,8 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return True
 
     def get_flux(self):
-        return self.bl_control.flux.getCurrentFlux()
+        if self.bl_control.flux is not None:
+            return self.bl_control.flux.getCurrentFlux()
 
     def getOscillation(self, oscillation_id):
         return self.oscillations_history[oscillation_id - 1]
@@ -256,8 +267,9 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
 
     def get_archive_directory(self, directory):
-        archive_dir = os.path.join(directory, '/archive/')
+        archive_dir = os.path.join(directory, 'archive')
         return archive_dir
 
+    @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
