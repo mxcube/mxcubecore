@@ -79,15 +79,12 @@ class EMBLEnergyScan(Equipment):
         if self.beam_info_hwobj is None:
             logging.getLogger("HWR").warning('EMBLEnergyScan: Beam info hwobj not defined')
 
-        self.chan_scan_start = self.getChannelObject('energyScanStart')
-        if self.chan_scan_start is not None:
+        try:  
+            self.chan_scan_start = self.getChannelObject('energyScanStart')
             self.chan_scan_start.connectSignal('update', self.scan_start_update)
-        
-        self.chan_scan_status = self.getChannelObject('energyScanStatus')
-        if self.chan_scan_status is not None: 
+            self.chan_scan_status = self.getChannelObject('energyScanStatus')
             self.chan_scan_status.connectSignal('update', self.scan_status_update)
-
-        self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
+            self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
 
             self.can_scan = True
         except:
@@ -241,7 +238,7 @@ class EMBLEnergyScan(Equipment):
         Descript. :
         """
         title = "%s %s: %s %s" % (self.scanInfo["sessionId"], 
-                self.scanInfo["blSampleId"], self.scanInfo["element"], self.scanInfo["edgeEnergy"])
+            self.scanInfo["blSampleId"], self.scanInfo["element"], self.scanInfo["edgeEnergy"])
         dic = {'xlabel': 'energy', 'ylabel': 'counts', 'scaletype': 'normal', 'title': title}
         self.emit('scanStart', (dic, ))
         self.scanInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")

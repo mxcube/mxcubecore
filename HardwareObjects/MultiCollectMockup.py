@@ -5,6 +5,7 @@ import time
 import os
 import httplib
 import math
+import gevent
 
 
 class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
@@ -110,7 +111,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return (start, start+osc_range)
     
     def do_oscillation(self, start, end, exptime, npass):
-        return
+        gevent.sleep(exptime)
   
     def start_acquisition(self, exptime, npass, first_frame):
         return
@@ -129,6 +130,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         return
 
     def prepare_input_files(self, files_directory, prefix, run_number, process_directory):
+        self.actual_frame_num = 0
         i = 1
         while True:
           xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)

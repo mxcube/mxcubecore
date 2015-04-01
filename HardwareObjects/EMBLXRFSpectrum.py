@@ -23,9 +23,9 @@ class EMBLXRFSpectrum(Equipment):
         self.can_scan = None
         self.ready_event = None
         self.scanning = None
-        self.spectrumInfo = None
+        self.spectrum_info = None
 
-        self.energy_motor_hwobj = None
+        self.energy_hwobj = None
         self.transmission_hwobj = None
         self.db_connection_hwobj = None
         self.beam_info_hwobj = None
@@ -40,7 +40,7 @@ class EMBLXRFSpectrum(Equipment):
         """
         self.ready_event = gevent.event.Event()
  
-        self.energy_motor_hwobj = self.getObjectByRole("energy")
+        self.energy_hwobj = self.getObjectByRole("energy")
 
         self.transmission_hwobj = self.getObjectByRole("transmission")
         if self.transmission_hwobj is None:
@@ -55,7 +55,8 @@ class EMBLXRFSpectrum(Equipment):
             logging.getLogger("HWR").warning("EMBLXRFSpectrum: Beam info hwobj not defined")
 
         try:
-            self.chan_scan_start = self.getChannelObject('xrfScanStart')
+            self.chan_scan_start = self.getCommandObject('chan_xrf_spectrum_get')
+
             self.chan_scan_status = self.getChannelObject('xrfScanStatus')
             self.chan_scan_status.connectSignal('update', self.scan_status_update)
             self.chan_scan_consts = self.getChannelObject('xrfScanConsts')
@@ -70,15 +71,16 @@ class EMBLXRFSpectrum(Equipment):
         """
         Descript. :
         """
+
         if self.scanning == True:
             if status == 'scanning':
                 logging.getLogger("HWR").info('XRF scan in progress...')
             elif status == 'ready':
-                if self.scanning is True:
+                if self.scanning:
                     self.spectrumCommandFinished()
                     logging.getLogger("HWR").info('XRF scan finished')
             elif status == 'aborting':
-                if self.scanning is True:
+                if self.scanning:
                     self.spectrumCommandAborted()
                     logging.getLogger("HWR").info('XRF scan aborted!')
             elif status == 'error':
@@ -94,7 +96,7 @@ class EMBLXRFSpectrum(Equipment):
     def sConnected(self):
         """
         Descript. :
-f      """
+        """
         self.emit('connected', ())
 
     def sDisconnected(self):
@@ -117,7 +119,7 @@ f      """
             self.spectrumCommandAborted()
             return False 
   
-        self.spectrumInfo = {"sessionId": session_id, "blSampleId": blsample_id}
+        self.spectrum_info = {"sessionId": session_id, "blSampleId": blsample_id}
         if not os.path.isdir(directory):
             logging.getLogger().debug("EMBLXRFSpectrum: creating directory %s" % directory)
             try:
@@ -151,12 +153,12 @@ f      """
             htmlname = html_pattern % i
             i = i + 1
 
-        self.spectrumInfo["filename"] = filename
-        self.spectrumInfo["scanFileFullPath"] = filename
-        self.spectrumInfo["jpegScanFileFullPath"] = aname
-        self.spectrumInfo["exposureTime"] = ct
-        self.spectrumInfo["annotatedPymcaXfeSpectrum"] = htmlname
-        self.spectrumInfo["htmldir"] = directory
+        self.spectrum_info["filename"] = filename
+        self.spectrum_info["scanFileFullPath"] = filename
+        self.spectrum_info["jpegScanFileFullPath"] = aname
+        self.spectrum_info["exposureTime"] = ct
+        self.spectrum_info["annotatedPymcaXfeSpectrum"] = htmlname
+        self.spectrum_info["htmldir"] = directory
         self.spectrumCommandStarted()
         logging.getLogger().debug("EMBLXRFSpectrum: archive file is %s", aname)
         self.reallyStartXrfSpectrum(ct, filename)
@@ -167,7 +169,7 @@ f      """
         Descript. :
         """
         try:
-            self.chan_scan_start.setValue(ct)
+            self.chan_scan_start(ct)
         except:
             logging.getLogger().exception('EMBLXRFSpectrum: problem in starting scan')
             self.emit('xrfScanStatusChanged', ("Error problem in starting scan",))
@@ -199,7 +201,7 @@ f      """
         """
         Descript. :
         """
-        self.spectrumInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.spectrum_info['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
         self.emit('xrfScanStarted', ())
 
@@ -207,7 +209,7 @@ f      """
         """
         Descript. :
         """
-        self.spectrumInfo['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.spectrum_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = False
         self.store_xrf_spectrum()
         self.emit('xrfScanFailed', ())
@@ -226,44 +228,53 @@ f      """
         Descript. :
         """
         with cleanup(self.ready_event.set):
-            self.spectrumInfo['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.spectrum_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
             self.scanning = False
-            values = list(self.chan_scan_start.getValue())
-            mcaCalib = self.chan_scan_consts.getValue()
+
+            values = list(self.chan_scan_start.get())
+
+            xmin = 0
+            xmax = 0
+            mcaCalib = self.chan_scan_consts.getValue()[::-1]
             mcaData = []
             calibrated_data = []
             for n, value in enumerate(values):
-                mcaData.append((n, value))
-                energy = mcaCalib[0] + mcaCalib[1] * n + mcaCalib[2] * n * n
-                calibrated_line = [energy, value]
-                calibrated_data.append(calibrated_line)
+                mcaData.append((n / 1000.0, value))
+                energy = (mcaCalib[2] + mcaCalib[1] * n + mcaCalib[0] * n * n) / 1000
+                if value > xmax:
+                    xmax = value
+                if value < xmin:
+                    xmin = value
+                calibrated_data.append([energy, value])
             calibrated_array = numpy.array(calibrated_data)
-            mcaConfig = {}
 
-            self.spectrumInfo["beamTransmission"] = self.transmission_hwobj.getAttFactor()
-            self.spectrumInfo["energy"] = self.getCurrentEnergy()
+            self.spectrum_info["beamTransmission"] = self.transmission_hwobj.getAttFactor()
+            self.spectrum_info["energy"] = self.getCurrentEnergy()
             beam_size = self.beam_info_hwobj.get_beam_size()
-            self.spectrumInfo["beamSizeHorizontal"] = beam_size[0]
-            self.spectrumInfo["beamSizeVertical"] = beam_size[1]
-            mcaConfig["legend"] = "test legend"
-            mcaConfig["min"] = values[0]
-            mcaConfig["max"] = values[-1]
-            mcaConfig["htmldir"] = self.spectrumInfo["htmldir"]
-            self.spectrumInfo.pop("htmldir")
+            self.spectrum_info["beamSizeHorizontal"] = beam_size[0]
+            self.spectrum_info["beamSizeVertical"] = beam_size[1]
+
+            mcaConfig = {}
+            mcaConfig["legend"] = "Xfe spectrum"
+            mcaConfig["min"] = xmin
+            mcaConfig["max"] = xmax
+            mcaConfig["htmldir"] = self.spectrum_info["htmldir"]
+            self.spectrum_info.pop("htmldir")
 
             fig = Figure(figsize=(15, 11))
             ax = fig.add_subplot(111)
-            ax.set_title(self.spectrumInfo["jpegScanFileFullPath"])
+            ax.set_title(self.spectrum_info["jpegScanFileFullPath"])
             ax.grid(True)
+
             ax.plot(*(zip(*calibrated_array)), **{"color" : 'black'})
             ax.set_xlabel("Energy")
             ax.set_ylabel("Counts")
             canvas = FigureCanvasAgg(fig)
-            logging.getLogger().info("Rendering spectrum to PNG file : %s", self.spectrumInfo["jpegScanFileFullPath"])
-            canvas.print_figure(self.spectrumInfo["jpegScanFileFullPath"], dpi = 80)
+            logging.getLogger().info("Rendering spectrum to PNG file : %s", self.spectrum_info["jpegScanFileFullPath"])
+            canvas.print_figure(self.spectrum_info["jpegScanFileFullPath"], dpi = 80)
             #logging.getLogger().debug("Copying .fit file to: %s", a_dir)
             #tmpname=filename.split(".")
-            logging.getLogger().debug("finished %r", self.spectrumInfo)
+            logging.getLogger().debug("finished %r", self.spectrum_info)
             self.store_xrf_spectrum()
             self.emit('xrfScanFinished', (mcaData, mcaCalib, mcaConfig))
             
@@ -278,23 +289,23 @@ f      """
         Descript. :
         """
         #logging.getLogger().debug("db connection %r", self.db_connection_HO)
-        logging.getLogger().debug("spectrum info %r", self.spectrumInfo)
+        logging.getLogger().debug("spectrum info %r", self.spectrum_info)
         if self.db_connection_hwobj:
             try:
-                session_id = int(self.spectrumInfo['sessionId'])
+                session_id = int(self.spectrum_info['sessionId'])
             except:
                 return
-            blsampleid = self.spectrumInfo['blSampleId']
-            #self.spectrumInfo.pop('blSampleId')
-            db_status = self.db_connection_hwobj.storeXfeSpectrum(self.spectrumInfo)
+            blsampleid = self.spectrum_info['blSampleId']
+            #self.spectrum_info.pop('blSampleId')
+            db_status = self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info)
 
     def getCurrentEnergy(self):
         """
         Descript. :
         """
-        if self.energy_motor_hwobj is not None:
+        if self.energy_hwobj is not None:
             try:
-                return self.energy_motor_hwobj.getPosition()
+                return self.energy_hwobj.getCurrentEnergy()
             except:
                 logging.getLogger("HWR").exception("EMBLXRFScan: couldn't read energy")
                 return None

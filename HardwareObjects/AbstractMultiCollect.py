@@ -552,7 +552,9 @@ class AbstractMultiCollect(object):
                                                            oscillation_parameters["overlap"])
         nframes = sum([wedge_size for _, wedge_size in wedges_to_collect])
 
-        self.emit("collectNumberOfFrames", nframes) 
+        #Added exposure time for ProgressBarBrick. 
+        #Extra time for each collection needs to be added (in this case 0.04)
+        self.emit("collectNumberOfFrames", nframes, oscillation_parameters["exposure_time"] + 0.04)
 
         start_image_number = oscillation_parameters["start_image_number"]    
         last_frame = start_image_number + nframes - 1
