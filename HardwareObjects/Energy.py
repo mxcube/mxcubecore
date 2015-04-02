@@ -46,7 +46,6 @@ class Energy(Equipment):
         return True
 
     def getCurrentEnergy(self):
-        logging.getLogger("HWR").info("Get current energy")
         if self.energy_motor is not None:
             try:
                 return  self.energy_motor.getPosition()
@@ -56,7 +55,6 @@ class Energy(Equipment):
         return self.default_en
 
     def getCurrentWavelength(self):
-        logging.getLogger("HWR").info("Get current wavelength")
         current_en = self.getCurrentEnergy()
         if current_en is not None:
             return (12.3984/current_en)
