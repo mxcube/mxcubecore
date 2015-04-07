@@ -1,17 +1,21 @@
 from ESRFMultiCollect import *
-from detectors.TacoMar import Mar225
+#from detectors.TacoMar import Mar225
+#from detectors.LimaEiger import Eiger
+from detectors.LimaPilatus import Pilatus
 import gevent
 import socket
 import shutil
 import logging
 import os
 import gevent
+#import cPickle as pickle
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, CcdDetector(Mar225), FixedEnergy(0.965, 12.8))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
 
         self.helical = False
+        self._notify_greenlet = None
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -20,6 +24,18 @@ class ID30A3MultiCollect(ESRFMultiCollect):
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
+
+      self._detector.shutterless = data_collect_parameters["shutterless"]
+      
+      """
+      try:
+          albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+          albula_socket.connect(('localhost', 31337))
+      except:
+          pass
+      else:
+          albula_socket.sendall(pickle.dumps({"type":"newcollection"}))
+      """
 
     @task
     def get_beam_size(self):
@@ -41,13 +57,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         det_distance = self.getObjectByRole("distance")
         det_distance.move(detector_distance)
         while det_distance.motorIsMoving():
-          time.sleep(0.1)
+          gevent.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
-          time.sleep(0.1)
+          gevent.sleep(0.1)
 
     def get_resolution_at_corner(self):
         return self.bl_control.resolution.get_value_at_corner()
@@ -73,12 +89,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
-        save_diagnostic = True
+        save_diagnostic = True #False
         operate_shutter = True
         if self.helical: 
-          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, npass, save_diagnostic, operate_shutter)
+          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic, operate_shutter)
         else:
-          self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
+          self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
@@ -108,6 +124,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
        
  
     def adxv_notify(self, image_filename):
+        logging.info("adxv_notify %r", image_filename)
         try:
             adxv_notify_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
@@ -115,13 +132,31 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             adxv_notify_socket.close()
         except:
             pass
+        else:
+            gevent.sleep(3)
         
+    """
+    def albula_notify(self, image_filename):
+       try:
+          albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+          albula_socket.connect(('localhost', 31337))
+      except:
+          pass
+      else:
+          albula_socket.sendall(pickle.dumps({ "type":"newimage", "path": image_filename }))
+    """
 
     @task
     def write_image(self, last_frame):
         ESRFMultiCollect.write_image(self, last_frame)
-        gevent.spawn_later(3, self.adxv_notify, self.last_image_filename)
-        
+        if last_frame:
+            gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
+        else:
+            if self._notify_greenlet is None or self._notify_greenlet.ready():
+                self._notify_greenlet = gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
+
+#    def trigger_auto_processing(self, *args, **kw):
+#        return
 
     @task
     def prepare_intensity_monitors(self):
