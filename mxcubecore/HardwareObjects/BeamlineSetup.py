@@ -98,7 +98,7 @@ class BeamlineSetup(HardwareObject):
         :rtype: bool
         """
         try:
-          return self.detector_hwobj.getProperty('type').lower()=='pilatus'
+          return self.detector_hwobj.getProperty('type').lower() in ('pilatus', 'eiger')
         except:
           return False
 
