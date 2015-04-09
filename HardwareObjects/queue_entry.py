@@ -737,7 +737,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info('Collection started')
         self.get_view().setText(1, "Collecting")
 
-    def collect_number_of_frames(self, number_of_images=0):
+    def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
         pass
 
     def image_taken(self, image_number):
@@ -749,7 +749,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                       acquisition_parameters.first_image - 1
         self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
-    def preparing_collect(self, number_images=0):
+    def preparing_collect(self, number_images=0, exposure_time=0):
         self.get_view().setText(1, "Collecting")
 
     def collect_failed(self, owner, state, message, *args):
@@ -868,7 +868,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
         if self.edna_result:
-            log.info("Characterisation successful.")
+            log.info("Characterisation completed.")
 
             char.html_report = self.data_analysis_hwobj.\
                                get_html_report(self.edna_result)
@@ -1349,6 +1349,8 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
             elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                 log.info("Centring sample, please wait.")
                 dm.startCentringMethod(dm.C3D_MODE)
+            else:
+                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
             view.setText(1, "Centring !")
             async_result.get()
