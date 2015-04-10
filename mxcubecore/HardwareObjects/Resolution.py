@@ -7,31 +7,38 @@ class Resolution(BaseHardwareObjects.HardwareObject):
         BaseHardwareObjects.HardwareObject.__init__(self, *args, **kwargs)
 
         self.get_value = self.getPosition
+        self.valid = True
 
     def init(self):
         self.currentResolution = None
         self.energy = None
 
         self.dtox = self.getObjectByRole("dtox")
-        self.detector = self.getObjectByRole("detector")
-        self.det_width = float(self.detector.getProperty('width'))
-        self.det_height = float(self.detector.getProperty('height'))
-
         self.energy = self.getObjectByRole("energy")
+        self.detector = self.getObjectByRole("detector")
+        if self.detector:
+            self.det_width = float(self.detector.getProperty('width'))
+            self.det_height = float(self.detector.getProperty('height'))
+        else:
+            self.valid = False
+            logging.getLogger().exception('Cannot get detector properties')
+            raise AttributeError("Cannot get detector properties")
+
 
         self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
         self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged) 
 
     def isReady(self):
-        try:
-            return self.dtox.isReady()
-        except:
-            return False
+        if self.valid:
+            try:
+                return self.dtox.isReady()
+            except:
+                return False
+        return False
 
     def get_beam_centre(self, dtox=None):
         if dtox is None:
             dtox = self.dtox.getPosition()
-
         ax = float(self.detector['beam'].getProperty('ax'))
         bx = float(self.detector['beam'].getProperty('bx'))
         ay = float(self.detector['beam'].getProperty('ay'))
