@@ -14,6 +14,8 @@ class Pilatus:
 
       lima_device = config.getProperty("lima_device")
       pilatus_device = config.getProperty("pilatus_device")
+      if None in (lima_device, pilatus_device):
+          return
 
       for channel_name in ("acq_status", "acq_trigger_mode", "saving_mode", "acq_nb_frames",
                            "acq_expo_time", "saving_directory", "saving_prefix",
