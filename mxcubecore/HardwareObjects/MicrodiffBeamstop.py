@@ -4,38 +4,30 @@ import logging
 
 class MicrodiffBeamstop(Equipment):
     def init(self):
-        self.beamstopPosition = self.addChannel({"type":"tango", "name":"bs_pos", "tangoname":self.tangoname, "polling":500 }, "CapillaryPosition")
-        self.beamstopPosition.connectSignal("update", self.checkPosition)
-        self.beamstopSetInPosition = self.addCommand({"type":"tango", "name":"bs_set_in", "tangoname":self.tangoname},"saveCapillaryBeamPosition")
+        self.beamstop = self.getObjectByRole('beamstop')
+        self.beamstop.state_attr.connectSignal("update", self.checkPosition)
 
         self.motors = self["motors"]
         self.roles = self.motors.getRoles()
-        self.amplitude = 0 #just to make the beamstop brick happy
-        self.positions = { "in": "BEAM", "out": "OFF" }
-        self.md2_to_mxcube = { "BEAM": "in", "OFF": "out" }  
- 
-        #self.connect("equipmentReady", self.equipmentReady)
-        #self.connect("equipmentNotReady", self.equipmentNotReady)
- 
-  
+
+        save_cmd_name = self.getProperty("save_cmd_name")
+        self.beamstopSetInPosition = self.beamstop.addCommand({"type":"exporter", "name":"bs_set_in", "address":self.beamstop.getProperty('exporter_address')},save_cmd_name)
+
+        #next two lines - just to make the beamstop brick happy
+        self.amplitude = 0 
+        self.positions = self.beamstop.moves 
+
     def moveToPosition(self, name):
         if name == "in":
-            self.beamstopPosition.setValue("BEAM")
+            self.beamstop.actuatorIn(wait=True)
         elif name == "out":
-            self.beamstopPosition.setValue("OFF")
+            self.beamstop.actuatorOut(wait=True)
+        self.checkPosition()
 
   
     def connectNotify(self, signal):
         self.checkPosition()
    
-    """ 
-    def equipmentReady(self, *args):
-        self.checkPosition()
-
-    def equipmentNotReady(self, *args):
-        self.checkPosition()
-    """
-
     def isReady(self):
         return True
  
@@ -47,10 +39,12 @@ class MicrodiffBeamstop(Equipment):
 
     def checkPosition(self, pos=None, noEmit=False):
         if pos is None:
-            pos = self.beamstopPosition.getValue()
-           
-        pos = self.md2_to_mxcube.get(pos)
-
+            pos = self.beamstop.getActuatorState()
+        try:
+            pos = self.beamstop.states[pos]
+        except:
+            pass
+            
         if not noEmit:
           if pos:
             self.emit("positionReached", pos)
