@@ -11,6 +11,7 @@ Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
 """
 from .GenericSampleChanger import *
 import time
+import qt
 
 __author__ = "Jie Nan"
 __credits__ = ["The MxCuBE collaboration"]
@@ -278,12 +279,17 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        # JN, 20150302, make sure MD2 TransferMode is "SAMPLE_CHANGER"
-        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
-            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))	
      
         if not self._chnPowered.getValue():
+#            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
             raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+       
+        # JN, 20150302, make sure MD2 TransferMode is "SAMPLE_CHANGER"
+        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))  
+            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
             
         selected=self.getSelectedSample()            
         if sample is not None:
