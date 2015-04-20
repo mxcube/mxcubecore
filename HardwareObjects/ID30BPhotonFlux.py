@@ -20,7 +20,6 @@ class ID30BPhotonFlux(Equipment):
             fname  = self.getProperty("calibrated_diodes_file")
         except:
             pass
-        import pdb; pdb.set_trace()
         self.flux_calc = self.controller.CalculateFlux()
         self.flux_calc.init(fname)
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
