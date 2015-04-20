@@ -4,8 +4,9 @@ import subprocess
 import os
 import math
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+import logging
 
-class Pilatus:
+class Eiger:
 
   def init(self, config, collect_obj):
       self.config = config
@@ -13,20 +14,18 @@ class Pilatus:
       self.header = dict()
 
       lima_device = config.getProperty("lima_device")
-      pilatus_device = config.getProperty("pilatus_device")
-      if None in (lima_device, pilatus_device):
-          return
+      eiger_device = config.getProperty("eiger_device")
 
       for channel_name in ("acq_status", "acq_trigger_mode", "saving_mode", "acq_nb_frames",
                            "acq_expo_time", "saving_directory", "saving_prefix",
                            "saving_suffix", "saving_next_number", "saving_index_format",
                            "saving_format", "saving_overwrite_policy",
-                           "saving_header_delimiter", "last_image_saved"):
+                           "saving_header_delimiter", "last_image_saved", "saving_frames_per_file", "saving_managed_mode"):
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": lima_device },
                            channel_name)
 
-      for channel_name in ("fill_mode", "working_energy", "threshold"):
-          self.addChannel({"type":"tango", "name": channel_name, "tangoname": pilatus_device },
+      for channel_name in ("threshold_energy", ):
+          self.addChannel({"type":"tango", "name": channel_name, "tangoname": eiger_device },
                           channel_name)
 
       self.addCommand({ "type": "tango",
@@ -44,14 +43,19 @@ class Pilatus:
       self.addCommand({ "type": "tango",
                         "name": "set_image_header",
                         "tangoname": lima_device }, "SetImageHeader")
+      
+      self.getCommandObject("prepare_acq").init_device()
+      self.getCommandObject("prepare_acq").device.set_timeout_millis(5*60*1000)
+      self.getChannelObject("threshold_energy").init_device()
 
   def wait_ready(self):
       acq_status_chan = self.getChannelObject("acq_status")
-      with gevent.Timeout(10, RuntimeError("Detector not ready")):
+      with gevent.Timeout(30, RuntimeError("Detector not ready")):
           while acq_status_chan.getValue() != "Ready":
               time.sleep(1)
 
   def last_image_saved(self):
+      #return 0
       return self.getChannelObject("last_image_saved").getValue() + 1
 
   def get_deadtime(self):
@@ -67,14 +71,12 @@ class Pilatus:
       self.header["N_oscillations"]=number_of_images
       self.header["Oscillation_axis"]="omega"
       self.header["Chi"]="0.0000 deg."
-      kappa_phi = diffractometer_positions.get("kappa_phi", -9999)
-      if kappa_phi is None:
-          kappa_phi = -9999
-      kappa = diffractometer_positions.get("kappa", -9999)
-      if kappa is None:
-          kappa = -9999
-      self.header["Phi"]="%0.4f deg." % kappa_phi
-      self.header["Kappa"]="%0.4f deg." % kappa
+      try:
+          self.header["Phi"]="%0.4f deg." % diffractometer_positions.get("kappa_phi", -9999)
+          self.header["Kappa"]="%0.4f deg." % diffractometer_positions.get("kappa", -9999)
+      except:
+          self.header["Phi"]="0.0000 deg."
+          self.header["Kappa"]="0.0000 deg."
       self.header["Alpha"]="0.0000 deg."
       self.header["Polarization"]=self.collect_obj.bl_config.polarisation
       self.header["Detector_2theta"]="0.0000 deg."
@@ -91,7 +93,7 @@ class Pilatus:
       self.header["Flat_field:"]="(nil)"
       self.header["Excluded_pixels:"]=" badpix_mask.tif"
       self.header["N_excluded_pixels:"]="= 321"
-      self.header["Threshold_setting"]="%d eV" % self.getChannelObject("threshold").getValue()
+      self.header["Threshold_setting"]="%d eV" % self.getChannelObject("threshold_energy").getValue()
       self.header["Count_cutoff"]="1048500"
       self.header["Tau"]="= 0 s"
       self.header["Exposure_period"]="%f s" % (exptime+self.get_deadtime())
@@ -99,7 +101,7 @@ class Pilatus:
 
       self.stop()
       self.wait_ready()
-
+ 
       self.set_energy_threshold(energy)
 
       if still:
@@ -107,26 +109,25 @@ class Pilatus:
       else:
           self.getChannelObject("acq_trigger_mode").setValue("EXTERNAL_TRIGGER")
 
+      self.getChannelObject("saving_frames_per_file").setValue(number_of_images)
       self.getChannelObject("saving_mode").setValue("AUTO_FRAME")
+      logging.info("Acq. nb frames = %d", number_of_images)
       self.getChannelObject("acq_nb_frames").setValue(number_of_images)
       self.getChannelObject("acq_expo_time").setValue(exptime)
       self.getChannelObject("saving_overwrite_policy").setValue("OVERWRITE")
+      self.getChannelObject("saving_managed_mode").setValue("HARDWARE")
 
   def set_energy_threshold(self, energy):  
       minE = self.config.getProperty("minE")
       if energy < minE:
         energy = minE
-      
-      working_energy_chan = self.getChannelObject("working_energy")
-      working_energy = working_energy_chan.getValue()
-      if math.fabs(working_energy - energy) > 0.1:
-        working_energy_chan.setValue(energy)
-        
-        while math.fabs(working_energy_chan.getValue() - energy) > 0.1:
-          time.sleep(1)    
-      
-      self.getChannelObject("fill_mode").setValue("ON")
      
+      working_energy_chan = self.getChannelObject("threshold_energy")
+      working_energy = working_energy_chan.getValue()/1000.0
+      if math.fabs(working_energy - energy) > 0.1:
+        egy = int(energy*1000.0)
+        working_energy_chan.setValue(egy)
+        
   @task 
   def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
       prefix, suffix = os.path.splitext(os.path.basename(filename))
@@ -134,15 +135,16 @@ class Pilatus:
       dirname = os.path.dirname(filename)
       if dirname.startswith(os.path.sep):
         dirname = dirname[len(os.path.sep):]
-      
+     
       saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
+      """
       subprocess.Popen("ssh %s@%s mkdir --parents %s" % (os.environ["USER"],
                                                          self.config.getProperty("control"),
                                                          saving_directory),
                                                          shell=True, stdin=None, 
                                                          stdout=None, stderr=None, 
                                                          close_fds=True).wait()
-      
+      """
       self.wait_ready()  
    
       self.getChannelObject("saving_directory").setValue(saving_directory) 
@@ -150,7 +152,7 @@ class Pilatus:
       self.getChannelObject("saving_suffix").setValue(suffix)
       self.getChannelObject("saving_next_number").setValue(frame_number)
       self.getChannelObject("saving_index_format").setValue("%04d")
-      self.getChannelObject("saving_format").setValue("CBF")
+      self.getChannelObject("saving_format").setValue("HDF5")
       self.getChannelObject("saving_header_delimiter").setValue(["|", ";", ":"])
 
       headers = list()
@@ -164,11 +166,13 @@ class Pilatus:
               header += "# %s %s\n" % (key, value)
           headers.append("%d : array_data/header_contents|%s;" % (i, header))    
       
-      self.getCommandObject("set_image_header")(headers)
-       
+      #self.getCommandObject("set_image_header")(headers)
+
   @task 
   def start_acquisition(self):
+      logging.getLogger("user_level_log").info("Preparing acquisition, please wait 2 minutes at least")
       self.getCommandObject("prepare_acq")()
+      logging.getLogger("user_level_log").info("Detector ready, continuing")
       return self.getCommandObject("start_acq")()
 
   def stop(self):
