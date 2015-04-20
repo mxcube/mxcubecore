@@ -12,7 +12,7 @@ import gevent
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.9677, 12.812))
 
         self.helical = False
         self._notify_greenlet = None
@@ -89,12 +89,15 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
-        save_diagnostic = True #False
+        save_diagnostic = False
         operate_shutter = True
         if self.helical: 
           self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic, operate_shutter)
         else:
-          self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
+          try:
+              self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
+          except:
+              raise
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
@@ -164,4 +167,22 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def get_beam_centre(self):
         return self.bl_control.resolution.get_beam_centre()
+
+    @task
+    def write_input_files(self, datacollection_id):
+        # copy *geo_corr.cbf* files to process directory
+        try:
+            process_dir = os.path.join(self.xds_directory, "..")
+            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
+            for dir in (process_dir, raw_process_dir):
+                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
+                    dest = os.path.join(dir,filename)
+                    if os.path.exists(dest):
+                        continue
+                    shutil.copyfile(os.path.join("/data/pyarch/id30a3", filename), dest)
+        except:
+            logging.exception("Exception happened while copying geo_corr files")
+
+        return ESRFMultiCollect.write_input_files(self, datacollection_id)
+
 
