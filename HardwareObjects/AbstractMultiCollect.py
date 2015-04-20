@@ -618,12 +618,12 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["yBeam"] = beam_centre_y
 
                     und = self.get_undulators_gaps()
-                    for i, key in enumerate(und):
-                        if i>=2:
-                          break
-                        self.bl_config.undulators[i].type = key
-                        data_collect_parameters["undulatorGap%d" % (i+1)] = und[key]  
-
+                    i = 1
+                    for jj in self.bl_config.undulators:
+                        key = jj.type
+                        if und.has_key(key):
+                            data_collect_parameters["undulatorGap%d" % (i)] = und[key]
+                            i += 1
                     data_collect_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
                     beam_size_x, beam_size_y = self.get_beam_size()
                     data_collect_parameters["beamSizeAtSampleX"] = beam_size_x
