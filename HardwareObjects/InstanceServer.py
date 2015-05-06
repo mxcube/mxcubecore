@@ -2,14 +2,16 @@ from HardwareRepository.BaseHardwareObjects import Procedure
 import logging
 import time
 import pickle
-import os,tempfile
-import BlissFramework
+import os
+import tempfile
 import operator
 import gevent
 import gevent.server
 import socket
 import pwd
-import qt
+
+import BlissFramework
+
 """
 <procedure class="InstanceServer">
   <host>myhostname</host>
@@ -21,19 +23,6 @@ TERMINATOR = "\0"
 INSTANCE_HO = None
 SERVER_CLIENTS = {}
 CLIENTS = {}
-MAGIC = "mxcube"
-
-def start_announcement(discoveryPort, port):
-    def do_start_announcement(port_str, s):
-        while True:
-            s.sendto(port_str, ('<broadcast>', discoveryPort))
-            time.sleep(1)
-    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-    s.bind(('', 0))
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    
-    gevent.spawn(do_start_announcement, MAGIC+str(port), s)
-
 
 ###
 ### Creates an asynchronous TCP server to manage multiple application instances
@@ -42,8 +31,7 @@ class InstanceServer(Procedure):
     # Initializes the hardware object
     def init(self):
         # Read the HO configuration
-        self.discoveryPort=self.getProperty('port')
-        self.serverPort = 0
+        self.serverPort=self.getProperty('port')
         self.serverHost=self.getProperty('host')
         if self.serverHost is None:
             self.serverHost=socket.getfqdn("")
@@ -75,19 +63,29 @@ class InstanceServer(Procedure):
 
     def initializeInstance(self):
         # Remove BlissFramework application lockfile
-        self.guiConfiguration=qt.qApp.mainWidget().configuration
+        #self.guiConfiguration=qt.qApp.mainWidget().configuration
+
+        if BlissFramework.get_gui_version() == "qt3":
+            from qt import qApp
+            self.guiConfiguration=qt.qApp.mainWidget().configuration     
+        elif BlissFramework.get_gui_version() == "qt4":
+            from PyQt4.QtGui import QApplication
+            self.guiConfiguration = QApplication.activeWindow().configuration
+        else:
+            logging.getLogger("HWR").error('InstanceServer: % gui version not supported' % \
+                                            BlissFramework.get_gui_version())
+
         lockfilename=os.path.join(tempfile.gettempdir(), '.%s.lock' % BlissFramework.loggingName)
+        
         try:
             os.unlink(lockfilename)
         except:
             pass
         self.emit('instanceInitializing', ())
-
         if self.isLocal():
             self.startServer()
         else:
-            if self.findServer():
-                self.connectToServer()
+            self.connectToServer()
 
     # 
     def setProposal(self,proposal):
@@ -136,7 +134,7 @@ class InstanceServer(Procedure):
             if my_nick!=nick:
                 if use_proposal:
                     if prop is not None:
-                        pretty_print="[%s%s]%s" % (prop["code"],prop["number"],nick)
+                        pretty_print="[%s%d]%s" % (prop["code"],prop["number"],nick)
                     else:
                         pretty_print="[?]%s" % nick
                 else:
@@ -146,32 +144,19 @@ class InstanceServer(Procedure):
 
         return pretty_print
 
-    def findServer(self):
-        # discover server port using UDP broadcast
-        s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        s.bind(('',self.discoveryPort))
-        with gevent.Timeout(3,False):
-            data, addr = s.recvfrom(1024)
-            if data.startswith(MAGIC):
-               self.serverPort = int(data[len(MAGIC):]) 
-               return True
-        if not self.serverPort:
-            logging.getLogger("HWR").error("InstanceServer: cannot connect to MXCuBE master")
-            return False
-
     # Starts the server
     def startServer(self):
         if self.asyncServer is not None:
             logging.getLogger("HWR").error('InstanceServer: server already started')
         elif self.serverPort is not None:
-            self.findServer()
-
-            if self.serverPort == 0:
-                self.asyncServer = gevent.server.StreamServer((self.serverHost, self.serverPort), handleRemoteClient) #AsyncServer(self,self.serverHost,self.serverPort)
-                self.asyncServer.start() 
-
-                start_announcement(self.discoveryPort, self.asyncServer.socket.getsockname()[1])
-                         
+            try:
+                async_server=gevent.server.StreamServer((self.serverHost, self.serverPort), handleRemoteClient) #AsyncServer(self,self.serverHost,self.serverPort)
+                async_server.start() 
+            except:
+                logging.getLogger("HWR").warning('InstanceServer: cannot create server, so trying to connect to it')
+                self.connectToServer()
+            else:
+                self.asyncServer=async_server
                 server_hostname=self.serverHost.split('.')[0]
                 logging.getLogger("HWR").debug('InstanceServer: listening to connections on %s:%d' % (server_hostname,self.serverPort))
 
@@ -179,11 +164,8 @@ class InstanceServer(Procedure):
                 self.controlId2=list(self.serverId2)
 
                 self.idCount[server_hostname]=1
-
+            
                 self.emit('serverInitialized', (True,self.serverId2))
-            else:
-                logging.getLogger("HWR").info('InstanceServer: trying to connect to master remote instance (port %d)' % self.serverPort)
-                self.connectToServer()
         else:
             logging.getLogger("HWR").error('InstanceServer: not property configured to start the server')
             self.emit('serverInitialized', (False,))
@@ -204,7 +186,7 @@ class InstanceServer(Procedure):
         except:
             self.instanceClient = None
             if not quiet:
-              logging.getLogger("HWR").exception('InstanceServer: cannot connect to server')
+              logging.getLogger("HWR").error('InstanceServer: cannot connect to server')
             self.emit('clientInitialized', (False,(None,None),None,quiet))
         else:
             my_login=pwd.getpwuid(os.getuid())[0]
