@@ -205,13 +205,37 @@ class Cats90(SampleChanger):
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
         logging.info("call load without a timer")
+        if not self._chnPowered.getValue():
+#            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
+            return
+
+        # JN, 20150512, make sure MD2 TransferMode is "SAMPLE_CHANGER"
+        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+            return
+       
         return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
 
 # JN 20150324, add load for queue mount, sample centring can start after MD2 in Centring phase instead of waiting for CATS finishes completely
     def load(self, sample=None, wait=True):
         """
         Load a sample. 
-        """
+         """
+        if not self._chnPowered.getValue():
+#            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
+            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
+            return 
+
+        # JN, 20150512, make sure MD2 TransferMode is "SAMPLE_CHANGER"
+        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+            return 
+
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
         #Do a chained load in this case
@@ -279,17 +303,6 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-     
-        if not self._chnPowered.getValue():
-#            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
-            #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
-            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
-            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
-       
-        # JN, 20150302, make sure MD2 TransferMode is "SAMPLE_CHANGER"
-        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
-            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))  
-            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
             
         selected=self.getSelectedSample()            
         if sample is not None:
