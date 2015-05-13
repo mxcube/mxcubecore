@@ -613,15 +613,9 @@ class ISPyBClient2(HardwareObject):
             data_collection = ISPyBValueFactory().\
                 from_data_collect_parameters(self.__collection, mx_collection)
 
-            #group_id = self.store_data_collection_group(mx_collection)
-
-            #if group_id:
-            #    data_collection.dataCollectionGroupId = group_id
-
             if beamline_setup:
                 lims_beamline_setup = ISPyBValueFactory.\
                     from_bl_config(self.__collection, beamline_setup)
-
                 lims_beamline_setup.synchrotronMode = \
                     data_collection.synchrotronMode
 
@@ -720,7 +714,6 @@ class ISPyBClient2(HardwareObject):
 
                     data_collection = ISPyBValueFactory().\
                         from_data_collect_parameters(self.__collection, mx_collection)
-
                     self.__collection.service.\
                         storeOrUpdateDataCollection(data_collection)
                 except WebFault:
@@ -1454,7 +1447,6 @@ class ISPyBValueFactory():
         :rtype: beamLineSetup3VO
         """
         beamline_setup = None
-
         try:
             beamline_setup = ws_client.factory.create('ns0:beamLineSetup3VO')
         except:
