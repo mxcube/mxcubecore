@@ -616,6 +616,7 @@ class ISPyBClient2(HardwareObject):
             if beamline_setup:
                 lims_beamline_setup = ISPyBValueFactory.\
                     from_bl_config(self.__collection, beamline_setup)
+          
                 lims_beamline_setup.synchrotronMode = \
                     data_collection.synchrotronMode
 
@@ -714,6 +715,7 @@ class ISPyBClient2(HardwareObject):
 
                     data_collection = ISPyBValueFactory().\
                         from_data_collect_parameters(self.__collection, mx_collection)
+  
                     self.__collection.service.\
                         storeOrUpdateDataCollection(data_collection)
                 except WebFault:
