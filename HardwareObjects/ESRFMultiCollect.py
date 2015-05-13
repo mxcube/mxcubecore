@@ -6,6 +6,7 @@ import time
 import os
 import httplib
 import math
+from queue_model_objects_v1 import PathTemplate
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -753,19 +754,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_archive_directory(self, directory):
-        res = None
-       
-        dir_path_list = directory.split(os.path.sep)
-        try:
-          suffix_path=os.path.join(*dir_path_list[4:])
-        except TypeError:
-          return None
-        else:
-          if 'inhouse' in directory:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
-          else:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
-          if archive_dir[-1] != os.path.sep:
-            archive_dir += os.path.sep
-            
-          return archive_dir
+        pt = PathTemplate()
+        pt.directory = directory
+        return pt.get_archive_directory()
