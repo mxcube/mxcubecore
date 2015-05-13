@@ -726,7 +726,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except:
             beamline = "unknown"
             proposal = "unknown" 
-        conn = httplib.HTTPConnection("mxedna.esrf.fr",37180)
+        host, port = self.getProperty("bes_jpeg_hostport").split(":")
+        conn = httplib.HTTPConnection(host, int(port)) 
         params = urllib.urlencode({"image_path":filename,
                                    "jpeg_path":jpeg_path,
                                    "jpeg_thumbnail_path":jpeg_thumbnail_path,
