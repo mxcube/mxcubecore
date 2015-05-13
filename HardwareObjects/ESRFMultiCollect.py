@@ -717,9 +717,21 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         directories = filename.split(os.path.sep)
         try:
-            if directories[2]=='visitor':
+            if directories[1] == "data" and directories[2] == "gz":
+                if directories[3] == "visitor":
+                    proposal = directories[4]
+                    beamline = directories[5]
+                elif directories[4] == "inhouse":
+                    proposal = directories[5]
+                    beamline = directories[3]
+                else:
+                    proposal = "unknown"
+                    beamline = "unknown"
+
+            elif directories[2] == 'visitor':
                 beamline = directories[4]
                 proposal = directories[3]
+
             else:
                 beamline = directories[2]
                 proposal = directories[4]
