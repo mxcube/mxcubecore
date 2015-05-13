@@ -390,16 +390,16 @@ class ISPyBClient2(HardwareObject):
         
         if self.__collection:
             data_collection = ISPyBValueFactory().\
-                from_data_collect_parameters(mx_collection)
+                from_data_collect_parameters(self.__collection, mx_collection)
 
-            group_id = self.store_data_collection_group(mx_collection)
+            #group_id = self.store_data_collection_group(mx_collection)
             
             #if group_id:
             #    data_collection.dataCollectionGroupId = group_id
 
             if beamline_setup:
                 lims_beamline_setup = ISPyBValueFactory.\
-                    from_bl_config(beamline_setup)
+                    from_bl_config(self.__collection, beamline_setup)
           
                 lims_beamline_setup.synchrotronMode = \
                     data_collection.synchrotronMode
@@ -498,7 +498,7 @@ class ISPyBClient2(HardwareObject):
                     self.store_data_collection_group(mx_collection)
                 
                     data_collection = ISPyBValueFactory().\
-                        from_data_collect_parameters(mx_collection)
+                        from_data_collect_parameters(self.__collection, mx_collection)
   
                     self.__collection.service.\
                         storeOrUpdateDataCollection(data_collection)
@@ -1128,7 +1128,7 @@ class ISPyBClient2(HardwareObject):
         """
 
         if self.__collection:
-            group = ISPyBValueFactory().dcg_from_dc_params(mx_collection)
+            group = ISPyBValueFactory().dcg_from_dc_params(self.__collection, mx_collection)
 
             group_id = self.__collection.service.\
                        storeOrUpdateDataCollectionGroup(group)
@@ -1228,18 +1228,14 @@ class ISPyBValueFactory():
 
     
     @staticmethod
-    def from_bl_config(bl_config):
+    def from_bl_config(ws_client, bl_config):
         """
         Creates a beamLineSetup3VO from the bl_config dictionary.
         :rtype: beamLineSetup3VO
         """
-        ws_client = None
         beamline_setup = None
         
         try:
-            ws_client = Client(_WS_COLLECTION_URL,
-                               cache = None)
-
             beamline_setup = ws_client.factory.create('ns0:beamLineSetup3VO')
         except:
             raise
@@ -1290,7 +1286,7 @@ class ISPyBValueFactory():
 
     
     @staticmethod
-    def dcg_from_dc_params(mx_collect_dict):
+    def dcg_from_dc_params(ws_client, mx_collect_dict):
         """
         Creates a dataCollectionGroupWS3VO object from a mx_collect_dict.
         """
@@ -1298,9 +1294,6 @@ class ISPyBValueFactory():
         group = None
 
         try:
-            ws_client = Client(_WS_COLLECTION_URL,
-                               cache = None)
-
             group = \
                   ws_client.factory.create('ns0:dataCollectionGroupWS3VO')
         except:
@@ -1420,7 +1413,7 @@ class ISPyBValueFactory():
 
         
     @staticmethod
-    def from_data_collect_parameters(mx_collect_dict):
+    def from_data_collect_parameters(ws_client, mx_collect_dict):
         """
         Ceates a dataCollectionWS3VO from mx_collect_dict.
         :rtype: dataCollectionWS3VO
@@ -1428,12 +1421,9 @@ class ISPyBValueFactory():
         if len(mx_collect_dict['oscillation_sequence']) != 1:
             raise ISPyBArgumentError("ISPyBServer: number of oscillations" + \
                                      " must be 1 (until further notice...)")
-        ws_client = None
         data_collection = None
 
         try:
-            ws_client = Client(_WS_COLLECTION_URL,
-                               cache = None)
 
             data_collection = \
                 ws_client.factory.create('ns0:dataCollectionWS3VO')
