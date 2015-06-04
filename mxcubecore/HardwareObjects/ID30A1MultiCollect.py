@@ -5,8 +5,10 @@ import gevent
 import shutil
 import logging
 import os
+import PyTango
+import decimal
 
-class ID30MultiCollect(ESRFMultiCollect):
+class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
 
@@ -109,6 +111,11 @@ class ID30MultiCollect(ESRFMultiCollect):
 
     @task
     def prepare_intensity_monitors(self):
+        self.getObjectByRole("diffractometer").controller.set_diode_autorange('i0', True, 'i1', False) 
+        self.getObjectByRole("diffractometer").controller.diode(True, False)
+        i0_range = decimal.Decimal(str(self.getObjectByRole("diffractometer").controller.get_diode_range()[0]))
+        i1_range = float(str(i0_range.as_tuple().digits[0])+ 'e' + str(len(i0_range.as_tuple().digits[1:]) + i0_range.as_tuple().exponent))        
+        self.getObjectByRole("diffractometer").controller.set_i1_range(i1_range)
         return
 
     def get_beam_centre(self):
