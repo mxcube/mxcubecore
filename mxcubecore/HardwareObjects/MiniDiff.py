@@ -502,7 +502,7 @@ class MiniDiff(Equipment):
         else: 
           positions = self.zoomMotor.getPredefinedPositionsList()
           i = len(positions) / 2
-          self.zoomMotor.moveToPosition(positions[i-1])
+          #self.zoomMotor.moveToPosition(positions[i-1])
 
           #be sure zoom stop moving
           while self.zoomMotor.motorIsMoving():
