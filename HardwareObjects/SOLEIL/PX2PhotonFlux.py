@@ -2,6 +2,7 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
 import numpy
 import logging
+from PyTango.gevent import DeviceProxy
 
 
 class PX2PhotonFlux(Equipment):
