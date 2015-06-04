@@ -125,6 +125,7 @@ class MiniDiff(Equipment):
         self.imgHeight = None
         self.centredTime = 0
         self.user_confirms_centring = True
+        self.do_centring = True
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -302,7 +303,7 @@ class MiniDiff(Equipment):
         if self.zoomMotor is not None:
             if self.zoomMotor.hasObject('positions'):
                 for position in self.zoomMotor['positions']:
-                    if position.offset == offset:
+                    if abs(position.offset - offset)<=self.zoomMotor.delta:
                         calibrationData = position['calibrationData']
                         return (float(calibrationData.pixelsPerMmY) or 0, float(calibrationData.pixelsPerMmZ) or 0)
         return (None, None)
@@ -317,6 +318,8 @@ class MiniDiff(Equipment):
         return beam_info
 
     def zoomMotorPredefinedPositionChanged(self, positionName, offset):
+        if not positionName:
+            return 
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(offset)
         self.emit('zoomMotorPredefinedPositionChanged', (positionName, offset, ))
 
@@ -387,6 +390,14 @@ class MiniDiff(Equipment):
 
 
     def startCentringMethod(self,method,sample_info=None):
+        if not self.do_centring:
+            self.emitCentringStarted(method)
+            def fake_centring_procedure():
+              return { "motors": {}, "method":method, "valid":True }
+            self.currentCentringProcedure = gevent.spawn(fake_centring_procedure)
+            self.emitCentringSuccessful()
+            return
+
         if self.currentCentringMethod is not None:
             logging.getLogger("HWR").error("MiniDiff: already in centring method %s" % self.currentCentringMethod)
             return
@@ -435,6 +446,11 @@ class MiniDiff(Equipment):
 
     def currentCentringMethod(self):
         return self.currentCentringMethod
+
+    
+    def saveCurrentPos(self):
+        self.centringStatus["motors"] = self.getPositions()
+        self.acceptCentring()
 
 
     def start3ClickCentring(self, sample_info=None):
@@ -599,15 +615,15 @@ class MiniDiff(Equipment):
 
 
     def getPositions(self):
-      return { "phi": self.phiMotor.getPosition(),
-               "focus": self.focusMotor.getPosition(),
-               "phiy": self.phiyMotor.getPosition(),
-               "phiz": self.phizMotor.getPosition(),
-               "sampx": self.sampleXMotor.getPosition(),
-               "sampy": self.sampleYMotor.getPosition(),
-               "kappa": self.kappaMotor.getPosition(),
-               "kappa_phi": self.kappaPhiMotor.getPosition(),    
-               "zoom": self.zoomMotor.getPosition()}
+      return { "phi": float(self.phiMotor.getPosition()),
+               "focus": float(self.focusMotor.getPosition()),
+               "phiy": float(self.phiyMotor.getPosition()),
+               "phiz": float(self.phizMotor.getPosition()),
+               "sampx": float(self.sampleXMotor.getPosition()),
+               "sampy": float(self.sampleYMotor.getPosition()),
+               "kappa": float(self.kappaMotor.getPosition()) if self.kappaMotor else None,
+               "kappa_phi": float(self.kappaPhiMotor.getPosition()) if self.kappaPhiMotor else None,    
+               "zoom": float(self.zoomMotor.getPosition())}
     
 
     def moveMotors(self, roles_positions_dict):
@@ -622,14 +638,16 @@ class MiniDiff(Equipment):
                   "zoom": self.zoomMotor }
    
         for role, pos in roles_positions_dict.iteritems():
-           motor[role].move(pos)
+           m = motor.get(role)
+           if not None in (m, pos):
+             m.move(pos)
  
         # TODO: remove this sleep, the motors states should
         # be MOVING since the beginning (or READY if move is
         # already finished) 
         time.sleep(1)
  
-        while not all([m.getState() == m.READY for m in motor.itervalues()]):
+        while not all([m.getState() == m.READY for m in motor.itervalues() if m is not None]):
            time.sleep(0.1)
 
 

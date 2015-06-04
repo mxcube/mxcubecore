@@ -85,6 +85,14 @@ class Robodiff(SampleChanger):
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
+    def getBasketList(self):
+        basket_list = []
+        for basket in self.getComponents():
+            if isinstance(basket, Basket):
+                basket_list.append(basket)
+        return basket_list
+
+
     def _doChangeMode(self, *args, **kwargs):
         return
 

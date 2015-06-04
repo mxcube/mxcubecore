@@ -48,6 +48,11 @@ class ESRFSC3(SC3.SC3):
         return sample
 
 
+    def chained_load(self, sample_to_unload, sample_to_load):
+        SC3.SC3.unload(self, sample_to_unload)
+        return SC3.SC3.load(self, sample_to_load)
+
+ 
     @task
     def load(self, holderLength, sample_id=None, sample_location=None, sampleIsLoadedCallback=None, failureCallback=None, prepareCentring=True):
         loaded = False

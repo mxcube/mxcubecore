@@ -38,6 +38,8 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
                 self.emit(signal, ('', None))
             else:
                 self.emit(signal, (positionName, pos))
+        elif signal == 'apertureChanged':
+                self.emit('apertureChanged', (self.getApertureSize(), ))
         else:
             return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
 
@@ -52,16 +54,19 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
+        self.emit('apertureChanged', (self.getApertureSize(), ))
 
     def getCurrentPositionName(self, pos=None):
         if self.getPosition() is not None:
           pos = pos or self.getPosition()
         else :
           pos = pos
-        for positionName in self.predefinedPositions:
-          if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
-            return positionName
-        return ''
+        try:
+            for positionName in self.predefinedPositions:
+                if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
+                    return positionName
+        except:
+            return ''
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
@@ -72,6 +77,13 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
+
+    def getApertureSize(self):
+        diameter_name = self.getCurrentPositionName()
+        for diameter in self["diameter"]:
+            if str(diameter.getProperty("name")) == str(diameter_name):
+                return (diameter.getProperty("size"),)*2
+        return (9999,9999)
 
     def getApertureCoef(self):
         diameter_name = self.getCurrentPositionName()

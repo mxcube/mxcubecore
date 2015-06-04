@@ -54,46 +54,8 @@ class ID30A1PhotonFlux(Equipment):
         #if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
         #  self.emitValueChanged(0)
         #  return
-        
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
-
-        """ 
-        try:
-          counts = counts[self.index]
-        except TypeError:
-          logging.getLogger("HWR").error("%s: counts is None", self.name())
-          return
-        flux = None
-
-        try:
-          egy = self.energy_motor.getPosition()*1000.0
-        except:
-          logging.getLogger("HWR").exception("%s: could not get energy", self.name())
-        else:
-          try:
-            calib_dict = self.calibration_chan.getValue()
-            if calib_dict is None:
-              logging.getLogger("HWR").error("%s: calibration is None", self.name())
-            else:
-              calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.itervalues()]
-              calibs.sort()
-              E = [c[0] for c in calibs]
-              C = [c[1] for c in calibs]
-          except:
-            logging.getLogger("HWR").exception("%s: could not get calibration", self.name())
-          else:
-            try:
-              aperture_coef = self.aperture.getApertureCoef()
-            except:
-              aperture_coef = 1
-            if aperture_coef <= 0:
-              aperture_coef = 1
-            calib = numpy.interp([egy], E, C)
-            flux = counts * calib * aperture_coef
-            #logging.getLogger("HWR").debug("%s: flux-> %f * %f=%f , calib_dict=%r", self.name(), counts, calib, counts*calib, calib_dict)
-            self.emitValueChanged("%1.3g" % flux)
-        """
 
     def getCurrentFlux(self):
         return self.current_flux

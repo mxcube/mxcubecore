@@ -221,12 +221,20 @@ class QueueModel(HardwareObject):
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
-        view_item.setText(0, task_model.get_name())
+        #view_item.setText(0, task_model.get_name())
+
+        if isinstance(task_model, queue_model_objects.Sample) or \
+          isinstance(task_model, queue_model_objects.TaskGroup):
+            view_item.setText(0, task_model.get_name())
+        else:
+            view_item.setText(0, task_model.get_display_name())
+
         view_item.setOn(task_model.is_enabled())
 
         if isinstance(task_model, queue_model_objects.Sample):
             self.queue_hwobj.enqueue(qe)
-        else:
+        elif not isinstance(task_model, queue_model_objects.Basket):
+        #else:
             view_item.parent().get_queue_entry().enqueue(qe)
 
     def get_next_run_number(self, new_path_template, exclude_current = True):
