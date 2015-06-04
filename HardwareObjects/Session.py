@@ -102,7 +102,7 @@ class Session(HardwareObject):
         return os.path.join(self.get_base_data_directory(),
                             self.processed_data_folder_name)
 
-    def get_image_directory(self, sub_dir):
+    def get_image_directory(self, sub_dir=None):
         """
         Returns the full path to images, using the name of each of
         data_nodes parents as sub directories.

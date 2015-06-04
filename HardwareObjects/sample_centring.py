@@ -122,7 +122,10 @@ def center(phi, phiy, phiz,
   try:
     i = 0
     while i < n_points:
-      x, y = USER_CLICKED_EVENT.get()
+      try:
+          x, y = USER_CLICKED_EVENT.get()
+      except:
+          raise RuntimeError("Aborted while waiting for point selection")
       USER_CLICKED_EVENT = gevent.event.AsyncResult()
       X.append(x / float(pixelsPerMm_Hor))
       Y.append(y / float(pixelsPerMm_Ver))

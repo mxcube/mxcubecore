@@ -9,11 +9,11 @@ STRATEGY_COMPLEXITY = StrategyComplexity('none', 'min', 'full')
 
 ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD',
                                                'MAD_INV', 'NATIVE','HELICAL',
-                                               'EDNA_REF', 'OSC'])
-EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7)
+                                               'EDNA_REF', 'OSC', 'MESH'])
+EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7,8)
 EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD',
                                      'MAD - Inverse Beam', 'OSC','Helical',
-                                     'Characterization', 'OSC')
+                                     'Characterization', 'OSC', 'MESH')
 
 StrategyOption = namedtuple('StrategyOption', ['AVG'])
 STRATEGY_OPTION = StrategyOption(0)
@@ -25,8 +25,8 @@ COLLECTION_ORIGIN_STR = CollectionOrigin('mxcube', 'edna', 'workflow')
 EDNARefImages = namedtuple('EDNARefImages', ['FOUR', 'TWO', 'ONE', 'NONE'])
 EDNA_NUM_REF_IMAGES = EDNARefImages(0, 1, 2, 3)
 
-CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'FULLY_AUTOMATIC'])
-CENTRING_METHOD = CentringMethod(0, 1, 2)
+CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'FULLY_AUTOMATIC', "NO"])
+CENTRING_METHOD = CentringMethod(0, 1, 2, 3)
 
 WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
 WORKFLOW_TYPE = WorkflowType(0, 1, 2)

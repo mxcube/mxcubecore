@@ -7,7 +7,6 @@ import os
 import httplib
 import urllib
 import math
-from queue_model_objects_v1 import PathTemplate
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -301,7 +300,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
                                       detector_fileext = self.bl_control.detector.getProperty("file_suffix"),
                                       detector_type = self.bl_control.detector.getProperty("type"),
-                                      detector_mode = 1,
                                       detector_manufacturer = self.bl_control.detector.getProperty("manufacturer"),
                                       detector_model = self.bl_control.detector.getProperty("model"),
                                       detector_px = self.bl_control.detector.getProperty("px"),
@@ -309,8 +307,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       undulators = undulators,
                                       focusing_optic = self.getProperty('focusing_optic'),
                                       monochromator_type = self.getProperty('monochromator'),
-                                      beam_divergence_vertical = self.getProperty('beam_divergence_vertical'),
-                                      beam_divergence_horizontal = self.getProperty('beam_divergence_horizontal'),     
+                                      beam_divergence_vertical = self.bl_control.beam_info.getProperty('beam_divergence_vertical'),
+                                      beam_divergence_horizontal = self.bl_control.beam_info.getProperty('beam_divergence_horizontal'),     
                                       polarisation = self.getProperty('polarisation'),
                                       input_files_server = self.getProperty("input_files_server"))
   
@@ -728,6 +726,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             proposal = "unknown" 
         host, port = self.getProperty("bes_jpeg_hostport").split(":")
         conn = httplib.HTTPConnection(host, int(port)) 
+
         params = urllib.urlencode({"image_path":filename,
                                    "jpeg_path":jpeg_path,
                                    "jpeg_thumbnail_path":jpeg_thumbnail_path,
@@ -781,6 +780,19 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_archive_directory(self, directory):
-        pt = PathTemplate()
-        pt.directory = directory
-        return pt.get_archive_directory()
+        res = None
+       
+        dir_path_list = directory.split(os.path.sep)
+        try:
+          suffix_path=os.path.join(*dir_path_list[4:])
+        except TypeError:
+          return None
+        else:
+          if 'inhouse' in directory:
+            archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
+          else:
+            archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
+          if archive_dir[-1] != os.path.sep:
+            archive_dir += os.path.sep
+            
+          return archive_dir

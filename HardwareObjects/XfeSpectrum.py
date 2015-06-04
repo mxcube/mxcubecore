@@ -4,12 +4,17 @@ import logging
 import os
 import time
 import types
+import gevent.event
 import gevent
 
 class XfeSpectrum(Equipment):
     def init(self):
+        self.startXrfSpectrum = self.startXfeSpectrum
+        self.cancelXrfSpectrum = self.cancelXfeSpectrum
+         
         self.scanning = None
         self.moving = None
+        self.ready_event = gevent.event.Event()
 
         self.storeSpectrumThread = None
 
@@ -81,7 +86,7 @@ class XfeSpectrum(Equipment):
                 os.makedirs(directory)
             except OSError,diag:
                 logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (directory,str(diag)))
-                self.emit('spectrumStatusChanged', ("Error creating directory",))
+                self.spectrumStatusChanged("Error creating directory")
                 return False
         curr = self.getSpectrumParams()
 
@@ -148,7 +153,7 @@ class XfeSpectrum(Equipment):
             res = self.doSpectrum(ct, filename, wait=True)
         except:
             logging.getLogger().exception('XRFSpectrum: problem calling spec macro')
-            self.emit('spectrumStatusChanged', ("Error problem spec macro",))
+            self.spectrumStatusChanged("Error problem spec macro")
         else:
             self.spectrumCommandFinished(res)
 
@@ -159,25 +164,32 @@ class XfeSpectrum(Equipment):
     def spectrumCommandReady(self):
         if not self.scanning:
             self.emit('xfeSpectrumReady', (True,))
+            self.emit('xrfScanReady', (True,))
 
     def spectrumCommandNotReady(self):
         if not self.scanning:
             self.emit('xfeSpectrumReady', (False,))
+            self.emit('xrfScanReady', (False,))
 
     def spectrumCommandStarted(self, *args):
         self.spectrumInfo['startTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
         self.emit('xfeSpectrumStarted', ())
+        self.emit('xrfScanStarted', ())
 
     def spectrumCommandFailed(self, *args):
         self.spectrumInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = False
         self.storeXfeSpectrum()
         self.emit('xfeSpectrumFailed', ())
+        self.emit('xrfScanFailed', ())
+        self.ready_event.set()
     
     def spectrumCommandAborted(self, *args):
         self.scanning = False
         self.emit('xfeSpectrumFailed', ())
+        self.emit('xrfScanFailed', ())
+        self.ready_event.set()
 
     def spectrumCommandFinished(self,result):
         self.spectrumInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
@@ -206,10 +218,13 @@ class XfeSpectrum(Equipment):
             logging.getLogger().debug("finished %r", self.spectrumInfo)
             self.storeXfeSpectrum()
             self.emit('xfeSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
+            self.emit('xrfScanFinished', (mcaData,mcaCalib,mcaConfig))
         else:
             self.spectrumCommandFailed()
+        self.ready_event.set()
             
     def spectrumStatusChanged(self,status):
+        self.emit('xrfScanStatusChanged', (status, ))
         self.emit('spectrumStatusChanged', (status,))
 
     def storeXfeSpectrum(self):
@@ -234,7 +249,7 @@ class XfeSpectrum(Equipment):
             return self.curr
         except:
             logging.getLogger().exception('XRFSpectrum: error getting xrfspectrum parameters (%s)' % str(diag))
-            self.emit('spectrumStatusChanged', ("Error getting xrfspectrum parameters",))
+            self.spectrumStatusChanged("Error getting xrfspectrum parameters")
             return False
 
     def setSpectrumParams(self,pars):

@@ -13,6 +13,7 @@ import types
 import gevent
 import socket
 import time
+import json
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from SimpleXMLRPCServer import SimpleXMLRPCServer
@@ -74,7 +75,7 @@ class XMLRPCServer(HardwareObject):
         if hasattr(self, "_server" ):
           return
         self.xmlrpc_prefixes = set()
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none=True)
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
 
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
@@ -95,8 +96,9 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.set_aperture)
         self._server.register_function(self.get_aperture)
         self._server.register_function(self.get_aperture_list)
+        self._server.register_function(self.get_cp)
+        self._server.register_function(self.save_current_pos)
  
-
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
             apis = next(self.getObjects("apis"))
@@ -280,13 +282,27 @@ class XMLRPCServer(HardwareObject):
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
-
         int_based_result = {}
         for result in result_data.iteritems():
             int_based_result[int(result[0])] = result[1]
 
         self.shape_history_hwobj.set_grid_data(key, int_based_result)
         return True
+
+    def get_cp(self):
+        """
+        :returns: a json encoded list with all centred positions
+        """
+        cplist = []
+        points  = self.shape_history_hwobj.get_points()
+
+        for point in points:
+            cp = point.get_centred_positions()[0].as_dict()
+            cplist.append(cp)
+        
+        json_cplist = json.dumps(cplist)
+
+        return json_cplist
 
     def beamline_setup_read(self, path):
         try:
@@ -310,6 +326,13 @@ class XMLRPCServer(HardwareObject):
 
     def save_snapshot(self, imgpath):
         self.diffractometer_hwobj.save_snapshot(imgpath)
+        return True
+
+    def save_current_pos(self):
+        """
+        Saves the current position as a centered position.
+        """
+        self.diffractometer_hwobj.saveCurrentPos()
         return True
 
     def cryo_temperature(self):

@@ -13,3 +13,5 @@ class AttenuatorsMockup(Device):
     def get_value(self):
         return self.getAttFactor()
 
+    def set_value(self, value):
+        return

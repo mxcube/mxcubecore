@@ -33,7 +33,6 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'minimum_exposure_time',
                                          'detector_fileext',
                                          'detector_type',
-                                         'detector_mode',
                                          'detector_manufacturer',
                                          'detector_model',
                                          'detector_px',
@@ -52,7 +51,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*14)
-        self.bl_config = BeamlineConfig(*[None]*17)
+        self.bl_config = BeamlineConfig(*[None]*16)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
@@ -71,6 +70,15 @@ class AbstractMultiCollect(object):
     @task
     def data_collection_hook(self, data_collect_parameters):
       pass
+
+   
+    @task
+    def set_detector_mode(self, detector_mode):
+        """
+        Descript. :
+        """
+        if self.bl_control.detector is not None:
+            self.bl_control.detector.set_detector_mode(detector_mode)
 
 
     @abc.abstractmethod
@@ -400,6 +408,8 @@ class AbstractMultiCollect(object):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
 
+        self.close_fast_shutter()
+
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -464,33 +474,18 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-
-        centring_info = {}
-        try:
-            centring_status = self.diffractometer().getCentringStatus()
-        except:
-            pass
-        else:
-            centring_info = dict(centring_status)
-
-        #Save sample centring positions
-        motors = centring_info.get("motors", {})
-        extra_motors = centring_info.get("extraMotors", {})
-
-        positions_str = ""
-
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        
-        for motor in motors:
-          positions_str = "%s %s=%f" % (positions_str, motor, motors[motor])
-          # update 'motors' field, so diffractometer will move to centring pos.
-          motors_to_move_before_collect.update({motor: motors[motor]})
-        for motor in extra_motors:
-          positions_str = "%s %s=%f" % (positions_str, motor, extra_motors[motor])
-          motors_to_move_before_collect.update({motor: extra_motors[motor]})
-          
+        # this is for the LIMS
+        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
+        ###
+        self.move_motors(motors_to_move_before_collect)
+
+        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        centring_info = self.bl_control.diffractometer.getCentringStatus()
+        # move *again* motors, since taking snapshots may change positions
+        self.move_motors(motors_to_move_before_collect)
 
         if self.bl_control.lims:
           try:
@@ -557,7 +552,9 @@ class AbstractMultiCollect(object):
                                                            oscillation_parameters["overlap"])
         nframes = sum([wedge_size for _, wedge_size in wedges_to_collect])
 
-        self.emit("collectNumberOfFrames", nframes) 
+        #Added exposure time for ProgressBarBrick. 
+        #Extra time for each collection needs to be added (in this case 0.04)
+        self.emit("collectNumberOfFrames", nframes, oscillation_parameters["exposure_time"] + 0.04)
 
         start_image_number = oscillation_parameters["start_image_number"]    
         last_frame = start_image_number + nframes - 1
@@ -595,9 +592,8 @@ class AbstractMultiCollect(object):
         elif 'detdistance' in oscillation_parameters:
           self.move_detector(oscillation_parameters["detdistance"])
 
-        self.close_fast_shutter()
-
-        self.move_motors(motors_to_move_before_collect)
+        # 0: software binned, 1: unbinned, 2:hw binned
+        self.set_detector_mode(data_collect_parameters["detector_mode"])
 
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
@@ -686,7 +682,7 @@ class AbstractMultiCollect(object):
                   file_location = file_parameters["directory"]
                   file_path  = os.path.join(file_location, filename)
 
-                  self.set_detector_filenames(frame, frame_start, file_path, jpeg_full_path, jpeg_thumbnail_full_path)
+                  self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
                   osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
 
                   with error_cleanup(self.reset_detector):
@@ -736,14 +732,16 @@ class AbstractMultiCollect(object):
                           last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          logging.info("J=%d", j)
-                          j = wedge_size - last_image_saved
+                          new_j = wedge_size - last_image_saved
+                          if new_j < 1 and j > 1:
+                              # make sure to do finalization
+                              j = 1
+                          else:
+                              j = new_j
                       else:
                           j -= 1
                           self.emit("collectImageTaken", frame)
                           frame += 1
-                          if j == 0:
-                            break
 
                 
     @task
@@ -814,12 +812,6 @@ class AbstractMultiCollect(object):
               self.__safety_shutter_close_task = gevent.spawn_later(10*60, self.close_safety_shutter, timeout=10)
             except:
               logging.exception("Could not close safety shutter")
-
-            #if callable(finished_callback):
-            #   try:
-            #     finished_callback()
-            #   except:
-            #     logging.getLogger("HWR").exception("Exception while calling finished callback")
         finally:
            self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
            self.emit("collectReady", (True, ))
