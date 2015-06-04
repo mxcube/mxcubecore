@@ -3,6 +3,7 @@ from HardwareRepository.TaskUtils import *
 import numpy
 import time
 import logging
+from PyTango.gevent import DeviceProxy
 
 class ID30A1PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
@@ -16,7 +17,8 @@ class ID30A1PhotonFlux(Equipment):
         self.factor = self.getProperty("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
-
+        
+        self.tg_device = DeviceProxy("id30/keithley_massif1/i0")
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -30,9 +32,12 @@ class ID30A1PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        counts = -100*int(self.musst.putget("#?CH CH5").split()[0])/float(0x7FFFFFFF)
+        """counts = abs((2/2.1)*10*int(self.musst.putget("#?VAL CH5")) / float(0x7FFFFFFF))
         if counts < 0:
             counts = 0
+        """
+        self.tg_device.MeasureSingle()
+        counts = abs(self.tg_device.ReadData)*1E6
         return counts
 
     def connectNotify(self, signal):
@@ -46,9 +51,10 @@ class ID30A1PhotonFlux(Equipment):
         self.countsUpdated(self._get_counts(), ignore_shutter_state=True)
 
     def countsUpdated(self, counts, ignore_shutter_state=False):
-        if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
-          self.emitValueChanged(0)
-          return
+        #if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
+        #  self.emitValueChanged(0)
+        #  return
+        
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 
