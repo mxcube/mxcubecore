@@ -92,7 +92,6 @@ class CcdDetector:
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-
         if self._detector:
             self._detector.start_acquisition(exptime, npass, first_frame)
         else:
