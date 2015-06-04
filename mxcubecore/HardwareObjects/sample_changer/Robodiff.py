@@ -172,7 +172,9 @@ class Robodiff(SampleChanger):
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())
         # move detector to high software limit, without waiting end of move
-        self.detector_translation.move(self.detector_translation.getLimits()[1])
+        #self.detector_translation.move(self.detector_translation.getLimits()[1])
+        self.prepare_detector()
+
         # now call load procedure
         load_successful = self.robot.load_sample(sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         if not load_successful:
@@ -182,8 +184,20 @@ class Robodiff(SampleChanger):
         self.robot.chi._update_channels()
         return True
 
-    def _doUnload(self, sample=None):
+    def prepare_detector(self):
+        #DN to speedup load/unload
+        self.robot.detcover.cover_ctrl.set(self.robot.detcover.keys["cover_out_cmd"], 0)
+        # move detector to high software limit, without waiting end of move
         self.detector_translation.move(self.detector_translation.getLimits()[1])
+        while not self.robot.detcover.status() == "IN":
+          time.sleep(0.5)
+
+
+    def _doUnload(self, sample=None):
+        #DN to speedup load/unload
+        #self.detector_translation.move(self.detector_translation.getLimits()[1])
+        self.prepare_detector()
+
         loaded_sample = self.getLoadedSample()
         if loaded_sample is not None and loaded_sample != sample:
           raise RuntimeError("Can't unload another sample")
