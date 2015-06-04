@@ -5,7 +5,9 @@ import logging
 import time
 import os
 import httplib
+import urllib
 import math
+from queue_model_objects_v1 import PathTemplate
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -45,51 +47,95 @@ class TunableEnergy:
 
 
 class CcdDetector:
+    def __init__(self, detector_class=None):
+        self._detector = detector_class() if detector_class else None
+    
+    def init(self, config, collect_obj): 
+        self.collect_obj = collect_obj
+        if self._detector:
+          self._detector.addChannel = self.addChannel
+          self._detector.addCommand = self.addCommand
+          self._detector.getChannelObject = self.getChannelObject
+          self._detector.getCommandObject = self.getCommandObject
+          self._detector.init(config, collect_obj)
+    
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        self.getChannelObject("take_dark").setValue(take_dark)
-        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)", wait=True)
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
+        if osc_range < 1E-4:
+            still = True
+        else:
+            still = False
+        
+        if self._detector:
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
+        else:
+            self.getChannelObject("take_dark").setValue(take_dark)
+            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
-        self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
-        self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
-       
+      if self._detector:
+          self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
+      else:
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
+          self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
+          self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
+
     @task
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         if osc_range < 1E-4:
             # still image
-            return (start, start+osc_range)
+            pass
         else:
-            self.execute_command("prepare_oscillation", start, start+osc_range, exptime, npass)
-            return (start, start+osc_range)
-        
-    @task
-    def do_oscillation(self, start, end, exptime, npass):
-        self.execute_command("do_oscillation", start, end, exptime, npass)
+            self.collect_obj.do_prepare_oscillation(start, start+osc_range, exptime, npass)
+        return (start, start+osc_range)
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-        self.execute_command("start_acquisition")  
-      
+        if self._detector:
+            self._detector.start_acquisition(exptime, npass, first_frame)
+        else:
+            self.execute_command("start_acquisition")
+
+    @task
+    def no_oscillation(self, exptime):
+        self.collect_obj.open_fast_shutter()
+        time.sleep(exptime)
+        self.collect_obj.close_fast_shutter()
+ 
+    @task
+    def do_oscillation(self, start, end, exptime, npass):
+      still = math.fabs(end-start) < 1E-4
+      if still:
+          self.no_oscillation(exptime)
+      else:
+          self.collect_obj.oscil(start, end, exptime, npass)
+   
     @task
     def write_image(self, last_frame):
-        if last_frame:
-            self.execute_command("flush_detector")
+        if self._detector:
+            self._detector.write_image(last_frame)
         else:
-            self.execute_command("write_image")
-
-    @task
+            if last_frame:
+                self.execute_command("flush_detector")
+            else:
+                self.execute_command("write_image")
+    
     def stop_acquisition(self):
-        self.execute_command("detector_readout")
-      
-    @task
-    def reset_detector(self):   
-        self.getCommandObject("reset_detector").abort()
-        self.execute_command("reset_detector")
+        # detector readout
+        if self._detector:
+            self._detector.stop_acquisition()
+        else:
+            self.execute_command("detector_readout")
 
+    @task
+    def reset_detector(self):     
+        if self._detector:
+            self._detector.stop()
+        else:
+            self.getCommandObject("reset_detector").abort()
+            self.execute_command("reset_detector")
+ 
 
 class PixelDetector:
     def __init__(self, detector_class=None):
@@ -478,9 +524,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
             if r.status != 200:
                 logging.error("Could not create input file")
-                return
-
-            hkl_file.write(r.read())
+            else:
+                hkl_file.write(r.read())
             hkl_file.close()
             os.chmod(hkl_file_path, 0666)
 
@@ -491,8 +536,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           r = conn.getresponse()
           if r.status != 200:
             logging.error("Could not create input file")
-            return
-          xds_file.write(r.read())
+          else:
+            xds_file.write(r.read())
           xds_file.close()
           os.chmod(xds_input_file, 0666)
 
@@ -668,6 +713,31 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_flux(self):
         return self.bl_control.flux.getCurrentFlux()
 
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        directories = filename.split(os.path.sep)
+        try:
+            if directories[2]=='visitor':
+                beamline = directories[4]
+                proposal = directories[3]
+            else:
+                beamline = directories[2]
+                proposal = directories[4]
+        except:
+            beamline = "unknown"
+            proposal = "unknown" 
+        conn = httplib.HTTPConnection("mxedna.esrf.fr",37180)
+        params = urllib.urlencode({"image_path":filename,
+                                   "jpeg_path":jpeg_path,
+                                   "jpeg_thumbnail_path":jpeg_thumbnail_path,
+                                   "initiator": beamline,
+                                   "externalRef": proposal,
+                                   "reuseCase": "true" })
+        conn.request("POST", 
+                     "/BES/bridge/rest/processes/CreateThumbnails/RUN?%s" % params, 
+                     headers={"Accept":"text/plain"})
+        r = conn.getresponse()
+
     """
     getOscillation
         Description: Returns the parameters (and results) of an oscillation.
@@ -706,23 +776,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def set_helical_pos(self, helical_oscil_pos):
-        self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
+        self.getChannelObject('helical_pos').setValue(helical_oscil_pos)
 
 
     def get_archive_directory(self, directory):
-        res = None
-       
-        dir_path_list = directory.split(os.path.sep)
-        try:
-          suffix_path=os.path.join(*dir_path_list[4:])
-        except TypeError:
-          return None
-        else:
-          if 'inhouse' in directory:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
-          else:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
-          if archive_dir[-1] != os.path.sep:
-            archive_dir += os.path.sep
-            
-          return archive_dir
+        pt = PathTemplate()
+        pt.directory = directory
+        return pt.get_archive_directory()
