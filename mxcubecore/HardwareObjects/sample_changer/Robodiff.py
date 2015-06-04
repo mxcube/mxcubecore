@@ -87,9 +87,10 @@ class Robodiff(SampleChanger):
 
     def getBasketList(self):
         basket_list = []
-        for basket in self.getComponents():
-            if isinstance(basket, Basket):
-                basket_list.append(basket)
+        for cell in self.getComponents():
+            for basket in cell.getComponents(): 
+                if isinstance(basket, Basket):
+                    basket_list.append(basket)
         return basket_list
 
 
