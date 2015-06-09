@@ -154,8 +154,8 @@ class CommandContainer:
         
     
     def getChannelObject(self, channelName):
-        return self.__channels[channelName]
-        
+        #return self.__channels[channelName]
+        return self.__channels.get(channelName) 
 
     def getChannelNamesList(self):
         return self.__channels.keys()
@@ -241,6 +241,19 @@ class CommandContainer:
               newChannel = EpicsChannel(channelName, channel, **attributesDict)
             except:
               logging.getLogger().exception('%s: cannot add EPICS channel %s (hint: check PV name)', self.name(), channelName)
+        elif channelType.lower() == 'tine':
+            if not 'tinename' in attributesDict:
+                try:
+                    attributesDict['tinename'] = self.tinename
+                except AttributeError:
+                    pass
+
+            try:
+                from Command.Tine import TineChannel
+                newChannel = TineChannel(channelName, channel, **attributesDict)
+            except:
+                logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
+
             
         if newChannel is not None:
             if channelOnChange is not None:
@@ -271,8 +284,8 @@ class CommandContainer:
             
     
     def getCommandObject(self, cmdName):
-        return self.__commands[cmdName]
-        
+        #return self.__commands[cmdName]
+        return self.__commands.get(cmdName) 
 
     def getCommands(self):
         for cmd in self.__commands.itervalues():
@@ -389,6 +402,19 @@ class CommandContainer:
                 raise ConnectionError
             except:
                 logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+        elif cmdType.lower() == 'tine':
+            if not 'tinename' in attributesDict:
+                try:
+                    attributesDict['tinename'] = self.tinename
+                except AttributeError:
+                    pass
+
+            try:
+                from Command.Tine import TineCommand
+                newCommand = TineCommand(cmdName, cmd, **attributesDict)
+            except:
+                logging.getLogger().exception('%s: could not add command "%s" (hint: check command attributes)', self.name(), cmdName)
+
                 
         if newCommand is not None:
             self.__commands[cmdName] = newCommand
