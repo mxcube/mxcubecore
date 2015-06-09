@@ -17,6 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import time
 import gevent
 
@@ -45,7 +46,11 @@ class Qt4_VideoMockup(Device):
         Descript. :
         """ 
         self.image = QImage()
-        self.image.load(self.getProperty("file_name"))
+
+        current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
+        current_path = os.path.join(*current_path[1:-1])
+        image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
+        self.image.load(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
  
