@@ -67,7 +67,7 @@ class InstanceServer(Procedure):
 
         if BlissFramework.get_gui_version() == "qt3":
             from qt import qApp
-            self.guiConfiguration=qt.qApp.mainWidget().configuration     
+            self.guiConfiguration = qApp.mainWidget().configuration     
         elif BlissFramework.get_gui_version() == "qt4":
             from PyQt4.QtGui import QApplication
             self.guiConfiguration = QApplication.activeWindow().configuration
