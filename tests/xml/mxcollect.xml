@@ -1,5 +1,5 @@
 <object class="MultiCollectMockup">
-  <object href="/mini-diff-mockup" role="diffractometer"/>
+  <object href="/diffractometer-mockup" role="diffractometer"/>
   <object href="/mxlocal" role="beamline_configuration"/>
   <object href="/sc-mockup" role="sample_changer"/>
   <object href="/energy-mockup" role="energy"/>

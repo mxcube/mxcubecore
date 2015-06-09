@@ -1,4 +1,7 @@
-<device class="DetectorMockup">
+<equipment class = "DetectorMockup">
+  <tempThreshold>33.5</tempThreshold>
+  <humidityThreshold>20.0</humidityThreshold>
+  <tolerance>0.2</tolerance>
   <type>pilatus</type>
   <model>6M_F</model>
   <manufacturer>DECTRIS</manufacturer>
@@ -6,8 +9,4 @@
   <py>0.172</py>
   <hasShutterless>True</hasShutterless>
   <fileSuffix>cbf</fileSuffix>
-  <collectName>simdetector</collectName>
-  <useIcsShutter>False</useIcsShutter>
-  <shutterName>shutter</shutterName>
-  <detectorModes>{"0": 0, "C18": 1, "C2": 2}</detectorModes>
-</device>
+</equipment>
