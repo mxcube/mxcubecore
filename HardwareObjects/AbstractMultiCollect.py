@@ -408,8 +408,6 @@ class AbstractMultiCollect(object):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
 
-        self.close_fast_shutter()
-
         # reset collection id on each data collect
         self.collection_id = None
 
@@ -437,9 +435,11 @@ class AbstractMultiCollect(object):
         if self.bl_control.lims:
             data_collect_parameters["collection_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
             if self.bl_control.machine_current is not None:
+                logging.getLogger("user_level_log").info("Getting synchrotron filling mode")
                 data_collect_parameters["synchrotronMode"] = self.get_machine_fill_mode()
             data_collect_parameters["status"] = "failed"
 
+            logging.getLogger("user_level_log").info("Storing data collection in LIMS")
             (self.collection_id, detector_id) = \
                                  self.bl_control.lims.store_data_collection(data_collect_parameters, self.bl_config)
               
@@ -449,10 +449,12 @@ class AbstractMultiCollect(object):
                 data_collect_parameters['detector_id'] = detector_id
               
         # Creating the directory for images and processing information
+        logging.getLogger("user_level_log").info("Creating directory for images and processing")
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory, self.hkl2000_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
         data_collect_parameters['xds_dir'] = self.xds_directory
 
+        logging.getLogger("user_level_log").info("Getting sample info from parameters")
 	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
 
@@ -463,6 +465,7 @@ class AbstractMultiCollect(object):
                 data_collect_parameters["actualContainerBarcode"] = \
                     self.bl_control.sample_changer.getLoadedSample().getContainer().getID()
 
+                logging.getLogger("user_level_log").info("Getting loaded sample coords")
                 basket, vial = self.bl_control.sample_changer.getLoadedSample().getCoords()
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
@@ -474,6 +477,24 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
+        logging.getLogger("user_level_log").info("Taking sample snapshosts")
+        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+
+        centring_info = {}
+        try:
+            logging.getLogger("user_level_log").info("Getting centring status")
+            centring_status = self.diffractometer().getCentringStatus()
+        except:
+            pass
+        else:
+            centring_info = dict(centring_status)
+
+        #Save sample centring positions
+        motors = centring_info.get("motors", {})
+        extra_motors = centring_info.get("extraMotors", {})
+
+        positions_str = ""
+
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
         # this is for the LIMS
         positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
@@ -481,6 +502,24 @@ class AbstractMultiCollect(object):
         ###
         self.move_motors(motors_to_move_before_collect)
 
+        for motor, pos in motors.iteritems():
+          if pos is None:
+              positions_str = "%s %s=None" % (positions_str, motor)
+          else:
+              positions_str = "%s %s=%f" % (positions_str, motor, pos)
+              if motor in motors_to_move_before_collect:
+                  continue
+              motors_to_move_before_collect[motor]=pos
+        for motor, pos in extra_motors.iteritems():
+          if pos is None:
+              positions_str = "%s %s=None" % (positions_str, motor)
+          else:
+              positions_str = "%s %s=%f" % (positions_str, motor, pos)
+              if motor in motors_to_move_before_collect:
+                  continue
+              motors_to_move_before_collect[motor]=pos
+
+        data_collect_parameters['actualCenteringPosition'] = positions_str
         # take snapshots, then assign centring status (which contains images) to centring_info variable
         self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
         centring_info = self.bl_control.diffractometer.getCentringStatus()
@@ -491,16 +530,17 @@ class AbstractMultiCollect(object):
           try:
             if self.current_lims_sample:
               self.current_lims_sample['lastKnownCentringPosition'] = positions_str
+              logging.getLogger("user_level_log").info("Updating sample information in LIMS")
               self.bl_control.lims.update_bl_sample(self.current_lims_sample)
           except:
-            logging.getLogger("HWR").exception("Could not update sample infromation in LIMS")
+            logging.getLogger("HWR").exception("Could not update sample information in LIMS")
 
         if centring_info.get('images'):
           # Save snapshots
           snapshot_directory = self.get_archive_directory(file_parameters["directory"])
-          logging.getLogger("HWR").debug("Snapshot directory is %s" % snapshot_directory)
 
           try:
+            logging.getLogger("user_level_log").info("Creating snapshosts directory: %r", snapshot_directory)
             self.create_directories(snapshot_directory)
           except:
               logging.getLogger("HWR").exception("Error creating snapshot directory")
@@ -518,6 +558,7 @@ class AbstractMultiCollect(object):
 
                 try:
                   f = open(full_snapshot, "w")
+                  logging.getLogger("user_level_log").info("Saving snapshot %d", snapshot_i)
                   f.write(img_data)
                 except:
                   logging.getLogger("HWR").exception("Could not save snapshot!")
@@ -538,6 +579,7 @@ class AbstractMultiCollect(object):
 
         if self.bl_control.lims:
             try:
+                logging.getLogger("user_level_log").info("Updating data collection in LIMS")
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")
@@ -579,26 +621,39 @@ class AbstractMultiCollect(object):
         self.data_collection_hook(data_collect_parameters)
 
         if 'transmission' in data_collect_parameters:
+          logging.getLogger("user_level_log").info("Setting transmission to %f", data_collect_parameters["transmission"])
           self.set_transmission(data_collect_parameters["transmission"])
 
         if 'wavelength' in data_collect_parameters:
+          logging.getLogger("user_level_log").info("Setting wavelength to %f", data_collect_parameters["wavelength"])
           self.set_wavelength(data_collect_parameters["wavelength"])
         elif 'energy' in data_collect_parameters:
+          logging.getLogger("user_level_log").info("Setting energy to %f", data_collect_parameters["energy"])
           self.set_energy(data_collect_parameters["energy"])
 
         if 'resolution' in data_collect_parameters:
           resolution = data_collect_parameters["resolution"]["upper"]
+          logging.getLogger("user_level_log").info("Setting resolution to %f", resolution)
           self.set_resolution(resolution)
         elif 'detdistance' in oscillation_parameters:
+          logging.getLogger("user_level_log").info("Moving detector to %f", data_collect_parameters["detdistance"])
           self.move_detector(oscillation_parameters["detdistance"])
 
+        
+        logging.getLogger("user_level_log").info("Closing fast shutter")
+        self.close_fast_shutter()
+
+        logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
+        self.move_motors(motors_to_move_before_collect)
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
+                logging.getLogger("user_level_log").info("Opening safety shutter")
                 self.open_safety_shutter(timeout=10)
 
+            logging.getLogger("user_level_log").info("Preparing intensity monitors")
             self.prepare_intensity_monitors()
 
             frame = start_image_number
@@ -609,6 +664,7 @@ class AbstractMultiCollect(object):
             # update LIMS
             if self.bl_control.lims:
                   try:
+                    logging.getLogger("user_level_log").info("Gathering data for LIMS update")
                     data_collect_parameters["flux"] = self.get_flux()
                     data_collect_parameters["flux_end"] = data_collect_parameters["flux"]
                     data_collect_parameters["wavelength"]= self.get_wavelength()
@@ -635,14 +691,14 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["slitGapHorizontal"] = hor_gap
                     data_collect_parameters["slitGapVertical"] = vert_gap
 
-                    logging.info("Updating data collection in ISPyB")
-
+                    logging.getLogger("user_level_log").info("Updating data collection in LIMS")
                     self.bl_control.lims.update_data_collection(data_collect_parameters, wait=True)
-                    logging.info("Done")
+                    logging.getLogger("user_level_log").info("Done updating data collection in LIMS")
                   except:
                     logging.getLogger("HWR").exception("Could not store data collection into LIMS")
 
             if self.bl_control.lims and self.bl_config.input_files_server:
+                logging.getLogger("user_level_log").info("Asking for input files writing")
                 self.write_input_files(self.collection_id, wait=False) 
 
             # at this point input files should have been written           
@@ -657,6 +713,7 @@ class AbstractMultiCollect(object):
                                        data_collect_parameters.get("sample_reference", {}).get("cell", ""))
  
             for start, wedge_size in wedges_to_collect:
+                logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
                 self.prepare_acquisition(1 if data_collect_parameters.get("dark", 0) else 0,
                                          start,
                                          osc_range,
@@ -727,21 +784,20 @@ class AbstractMultiCollect(object):
                       if data_collect_parameters.get("shutterless"):
 			  while self.last_image_saved() == 0:
                             time.sleep(exptime)
-                          
-                          time.sleep(exptime*wedge_size/100.0)
+                       
                           last_image_saved = self.last_image_saved()
+                          if last_image_saved < wedge_size:
+                              time.sleep(exptime*wedge_size/100.0)
+                              last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          new_j = wedge_size - last_image_saved
-                          if new_j < 1 and j > 1:
-                              # make sure to do finalization
-                              j = 1
-                          else:
-                              j = new_j
+                          j = wedge_size - last_image_saved
                       else:
                           j -= 1
                           self.emit("collectImageTaken", frame)
                           frame += 1
+                          if j == 0:
+                            break
 
                 
     @task
