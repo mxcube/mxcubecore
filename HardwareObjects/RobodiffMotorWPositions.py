@@ -33,6 +33,9 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
             self.sortPredefinedPositionsList()
 
+    def getPositionsData(self):
+        return self["positions"]
+
     def connectNotify(self, signal):
         RobodiffMotor.connectNotify(self, signal)
 
