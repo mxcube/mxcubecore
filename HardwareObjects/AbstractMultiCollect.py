@@ -477,9 +477,6 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        logging.getLogger("user_level_log").info("Taking sample snapshosts")
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-
         centring_info = {}
         try:
             logging.getLogger("user_level_log").info("Getting centring status")
@@ -490,40 +487,30 @@ class AbstractMultiCollect(object):
             centring_info = dict(centring_status)
 
         #Save sample centring positions
-        motors = centring_info.get("motors", {})
-        extra_motors = centring_info.get("extraMotors", {})
-
-        positions_str = ""
+        motors = centring_info.get("motors", {}) #.update(centring_info.get("extraMotors", {}))
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        # this is for the LIMS
-        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
-        data_collect_parameters['actualCenteringPosition'] = positions_str
-        ###
-        self.move_motors(motors_to_move_before_collect)
-
         for motor, pos in motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              if motor in motors_to_move_before_collect:
-                  continue
-              motors_to_move_before_collect[motor]=pos
-        for motor, pos in extra_motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
               if motor in motors_to_move_before_collect:
                   continue
               motors_to_move_before_collect[motor]=pos
 
+        current_diffractometer_position = self.diffractometer().getPositions()
+        for motor in motors_to_move_before_collect.keys():
+            if motors_to_move_before_collect[motor] is None:
+                motors_to_move_before_collect[motor]=current_diffractometer_position[motor]
+
+        # this is for the LIMS
+        positions_str = " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
+
+        self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to centring_info variable
+        logging.getLogger("user_level_log").info("Taking sample snapshosts")
         self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
+        logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
         self.move_motors(motors_to_move_before_collect)
 
         if self.bl_control.lims:
@@ -643,8 +630,6 @@ class AbstractMultiCollect(object):
         logging.getLogger("user_level_log").info("Closing fast shutter")
         self.close_fast_shutter()
 
-        logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
-        self.move_motors(motors_to_move_before_collect)
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
