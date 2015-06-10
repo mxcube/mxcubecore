@@ -1144,7 +1144,7 @@ class CentredPosition(object):
         self.index = None
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
-           setattr(self, motor_name, 0)
+           setattr(self, motor_name, None)
 
         if motor_dict is not None:
           for motor_name, position in motor_dict.iteritems():
@@ -1158,7 +1158,16 @@ class CentredPosition(object):
         return str(self.as_dict())
 
     def __eq__(self, cpos):
-        return all([abs(getattr(self, motor_name) - getattr(cpos, motor_name))<=CentredPosition.MOTOR_POS_DELTA for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES])
+        eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES)*[False]
+        for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
+            self_pos = getattr(self, motor_name)
+            cpos_pos = getattr(cpos, motor_name)
+            eq[i] = self_pos == cpos_pos
+            if None in (self_pos, cpos_pos):
+               continue 
+            if not eq[i]:
+                eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
+        return all(eq)
 
     def __ne__(self, cpos):
         return not (self == cpos)
