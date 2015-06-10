@@ -16,3 +16,6 @@ class ObjectsController(HardwareObject):
 
      for obj_name, obj in objects.iteritems():
        setattr(self, obj_name, obj)
+
+  def centrebeam(self):
+     self.robot.centrebeam()
