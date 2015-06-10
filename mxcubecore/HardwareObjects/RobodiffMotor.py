@@ -35,11 +35,11 @@ class RobodiffMotor(Device):
         if signal == 'positionChanged':
                 self.emit('positionChanged', (self.getPosition(), ))
         elif signal == 'stateChanged':
-                self.updateState()
+                self.updateState(emit=True)
         elif signal == 'limitsChanged':
                 self.motorLimitsChanged()  
  
-    def updateState(self, state=None):
+    def updateState(self, state=None, emit=False):
         self.end_init()
         if state is None:
             state = self.motor.state()
@@ -57,6 +57,8 @@ class RobodiffMotor(Device):
 
         if self.motorState != state:
             self.motorState = state
+            emit = True
+        if emit:
             self.emit('stateChanged', (self.motorState, ))
 
     def getState(self):
