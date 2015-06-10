@@ -14,7 +14,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.9677, 12.812))
 
-        self.helical = False
         self._notify_greenlet = None
 
     @task
@@ -92,7 +91,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         save_diagnostic = False
         operate_shutter = True
         if self.helical: 
-          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic, operate_shutter)
+          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic)
         else:
           try:
               self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
