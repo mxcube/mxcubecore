@@ -345,21 +345,21 @@ class XMLRPCServer(HardwareObject):
         return float(flux)
 
     def set_aperture(self,pos_name, timeout=20):
-        self.diffractometer_hwobj.beam_info.aperture_HO.moveToPosition(pos_name)
+        self.diffractometer_hwobj.beam_info.aperture_hwobj.moveToPosition(pos_name)
         t0=time.time()
-        while self.diffractometer_hwobj.beam_info.aperture_HO.getState() == 'MOVING':
+        while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == 'MOVING':
             time.sleep(0.1)
             if time.time()-t0 > timeout:
                  raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return self.diffractometer_hwobj.beam_info.aperture_HO.getPosition()
+        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getPosition()
 
     def get_aperture_list(self):
         aperture_list=[]
-        for i in range(0, len(self.diffractometer_hwobj.beam_info.aperture_HO['positions'])):
-            aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_HO['positions'][0][i].getProperty('name'))
+        for i in range(0, len(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'])):
+            aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'][0][i].getProperty('name'))
         return aperture_list
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
