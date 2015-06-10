@@ -9,6 +9,7 @@ import logging
 import os
 import gevent
 #import cPickle as pickle
+from PyTango.gevent import DeviceProxy
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
@@ -162,7 +163,10 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def prepare_intensity_monitors(self):
-        return
+        i1 = DeviceProxy("id30/keithley_massif3/i1")
+        i0 = DeviceProxy("id30/keithley_massif3/i0")
+        i1.autorange = False
+        i1.range = i0.range
 
     def get_beam_centre(self):
         return self.bl_control.resolution.get_beam_centre()
