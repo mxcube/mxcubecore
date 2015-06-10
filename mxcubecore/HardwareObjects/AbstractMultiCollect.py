@@ -475,24 +475,8 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualContainerBarcode"] = None
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        
-        for motor, pos in motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              if motor in motors_to_move_before_collect:
-                  continue
-              motors_to_move_before_collect[motor]=pos
-        for motor, pos in extra_motors.iteritems():
-          if pos is None:
-              positions_str = "%s %s=None" % (positions_str, motor)
-          else:
-              positions_str = "%s %s=%f" % (positions_str, motor, pos)
-              if motor in motors_to_move_before_collect:
-                  continue
-              motors_to_move_before_collect[motor]=pos
-
+        # this is for the LIMS
+        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
         ###
         self.move_motors(motors_to_move_before_collect)
