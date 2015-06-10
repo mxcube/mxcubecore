@@ -10,7 +10,7 @@ import decimal
 
 class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.965, 12.8))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.966, 12.8353))
 
         self.helical = False
 
