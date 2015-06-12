@@ -512,20 +512,11 @@ class MiniDiff(Equipment):
 
         res = auto_centring_procedure.get()
         
-        if isinstance(res, gevent.GreenletExit):
+        if res is None or isinstance(res, gevent.GreenletExit):
           logging.error("Could not complete automatic centring")
           self.emitCentringFailed()
-        else: 
-          positions = self.zoomMotor.getPredefinedPositionsList()
-          i = len(positions) / 2
-          #self.zoomMotor.moveToPosition(positions[i-1])
-
-          #be sure zoom stop moving
-          while self.zoomMotor.motorIsMoving():
-              time.sleep(0.1)
-
-          self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
-
+          self.rejectCentring()
+        else:
           if self.user_confirms_centring:
             self.emitCentringSuccessful()
           else:
