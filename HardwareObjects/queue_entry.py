@@ -453,12 +453,11 @@ class SampleQueueEntry(BaseQueueEntry):
                 log.info(msg)
 
     def centring_done(self, success, centring_info):
-        if success:
-            self.sample_centring_result.set(centring_info)
-        else:
+        if not success:
             msg = "Loop centring failed or was cancelled, " +\
                   "please continue manually."
             logging.getLogger("user_level_log").warning(msg)
+        self.sample_centring_result.set(centring_info)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -1353,9 +1352,15 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                 dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
             view.setText(1, "Centring !")
-            async_result.get()
-            view.setText(1, "Centring done !")
-            log.info("Centring saved")
+            centring_result = async_result.get()
+            if centring_result['valid']: 
+                view.setText(1, "Centring done !")
+                log.info("Centring saved")
+            else:
+                if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+                    raise QueueSkippEntryException("Could not center sample, skipping", "")
+                else:
+                    raise RuntimeError("Could not center sample")
         finally:
             dm.disconnect("centringAccepted", centring_done_cb)
 
