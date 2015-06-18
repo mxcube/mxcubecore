@@ -510,18 +510,21 @@ class MiniDiff(Equipment):
         self.emitProgressMessage("")
         self.emit("newAutomaticCentringPoint", (-1,-1))
 
-        res = auto_centring_procedure.get()
-        
-        if res is None or isinstance(res, gevent.GreenletExit):
-          logging.error("Could not complete automatic centring")
-          self.emitCentringFailed()
-          self.rejectCentring()
+        try:
+            res = auto_centring_procedure.get()
+        except Exception:
+            logging.error("Could not complete automatic centring")
+            self.emitCentringFailed()
+            self.rejectCentring()
         else:
-          if self.user_confirms_centring:
-            self.emitCentringSuccessful()
-          else:
-            self.emitCentringSuccessful()
-            self.acceptCentring()
+            if res is None:    
+                logging.error("Could not complete automatic centring")
+                self.emitCentringFailed()
+                self.rejectCentring()
+            else: 
+                self.emitCentringSuccessful()
+                if not self.user_confirms_centring:
+                    self.acceptCentring()
               
     def startAutoCentring(self, sample_info=None, loop_only=False):
         self.currentCentringProcedure = sample_centring.start_auto(self.camera, 
