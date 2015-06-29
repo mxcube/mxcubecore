@@ -309,7 +309,6 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         self.emit_progress_message("3 click centring...")
         self.current_centring_procedure = gevent.spawn(self.manual_centring)
-        print self.current_centring_procedure
         self.current_centring_procedure.link(self.manual_centring_done)	
 
     def start_automatic_centring(self, sample_info = None, loop_only = False):
@@ -550,3 +549,8 @@ class Qt4_DiffractometerMockup(Equipment):
             self.emit('centringSnapshots', (True,))
             self.emit_progress_message("")
         self.emit_progress_message("Sample is centred!")
+
+    def update_values(self):
+        self.emit('zoomMotorPredefinedPositionChanged', None, None)
+        omega_ref = [100, 0]
+        self.emit('omegaReferenceChanged', omega_ref)
