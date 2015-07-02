@@ -12,7 +12,7 @@ class Energy(Equipment):
         self.energy_motor = None
         self.tunable = False
         self.moving = None
-        self.default_en = 0
+        self.default_en = None
         self.en_lims = []
 
         try:
@@ -22,16 +22,15 @@ class Energy(Equipment):
             self.energy_motor = None
 
         try:
+            self.default_en = self.getProperty("default_energy")
+        except:
+            logging.getLogger("HWR").warning('Energy: no default energy')
+
+        try:
             self.tunable = self.getProperty("tunable_energy")
         except:
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
             self.tunable = False
-
-        try:
-            self.default_en = self.getProperty("default_energy")
-            self.tunable = False
-        except:
-            logging.getLogger("HWR").warning('Energy: no default energy')
 
         if self.energy_motor is not None:
             self.energy_motor.connect('positionChanged', self.energyPositionChanged)
@@ -47,7 +46,7 @@ class Energy(Equipment):
         return True
 
     def getCurrentEnergy(self):
-        logging.getLogger("HWR").info("Get current energy")
+        logging.getLogger('user_level_log').debug("Get current energy")
         if self.energy_motor is not None:
             try:
                 return  self.energy_motor.getPosition()
@@ -57,14 +56,14 @@ class Energy(Equipment):
         return self.default_en
 
     def getCurrentWavelength(self):
-        logging.getLogger("HWR").info("Get current wavelength")
+        #logging.getLogger('user_level_log').info("Get current wavelength")
         current_en = self.getCurrentEnergy()
         if current_en is not None:
             return (12.3984/current_en)
         return None
 
     def getEnergyLimits(self):
-        logging.getLogger("HWR").info("Get energy limits")
+        logging.getLogger("HWR").debug("Get energy limits")
         if self.energy_motor is not None:
             try:
                 self.en_lims = self.energy_motor.getLimits()
@@ -75,7 +74,7 @@ class Energy(Equipment):
         return None 
 
     def getWavelengthLimits(self):
-        logging.getLogger("HWR").info("Get wavelength limits")
+        logging.getLogger("HWR").debug("Get wavelength limits")
         lims = None
         self.en_lims = self.getEnergyLimits()
         if self.en_lims is not None:
@@ -128,7 +127,8 @@ class Energy(Equipment):
         self.emit('moveEnergyFinished', ())       
             
     def checkLimits(self, value):
-        logging.getLogger("HWR").info("Checking the move limits")
+        logging.getLogger("HWR").debug("Checking the move limits")
+        self.getEnergyLimits()
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True

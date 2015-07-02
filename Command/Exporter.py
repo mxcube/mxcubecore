@@ -156,6 +156,7 @@ class Exporter(ExporterClient.ExporterClient):
         if value is None:
           return
 
+        #IK TODO make this with eval 
         if '\x1f' in value:
           value = self.parseArray(value)
           try:
@@ -172,7 +173,13 @@ class Exporter(ExporterClient.ExporterClient):
             try:
               value = float(value)
             except:
-              pass
+              try:
+                 if value == 'false':
+                     value = False
+                 elif value == 'true':
+                     value = True
+              except:
+                 pass
         return value
 
 
@@ -206,28 +213,24 @@ class ExporterChannel(ChannelObject):
 
         self.__exporter.register(attribute_name, self.update)        
 
+        logging.getLogger("HWR").debug('Attaching Exporter channel: %s %s ' %(address, name))
+
         self.update()
 
-
     def update(self, value = None):
-        if value is None:
-            value = self.getValue()
+        value = self.getValue()
         if type(value) == types.TupleType:
-          value = list(value)
+            value = list(value)
 
         self.value = value
         self.emit('update', value)
         
-
     def getValue(self):
-        value = self.__exporter.readProperty(self.attributeName) 
-            
-        return value
-
+        self.value = self.__exporter.readProperty(self.attributeName)     
+        return self.value
     
     def setValue(self, newValue):
         self.__exporter.writeProperty(self.attributeName, newValue)
-       
  
     def isConnected(self):
         return self.__exporter.isConnected()
