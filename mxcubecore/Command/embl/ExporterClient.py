@@ -104,7 +104,12 @@ class ExporterClient(StandardClient):
     def readProperty(self,property,timeout=-1):
         cmd=CMD_PROPERTY_READ + " " + property
         ret = self.sendReceive(cmd,timeout)
-        return self.__processReturn(ret)
+        process_return = None
+        try:
+           process_return = self.__processReturn(ret) 
+        except:
+           pass
+        return process_return
 
     def readPropertyAsString(self, property):
         return self.readProperty(property)

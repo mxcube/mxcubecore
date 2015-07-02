@@ -2,14 +2,16 @@ from HardwareRepository.BaseHardwareObjects import Procedure
 import logging
 import time
 import pickle
-import os,tempfile
-import BlissFramework
+import os
+import tempfile
 import operator
 import gevent
 import gevent.server
 import socket
 import pwd
-import qt
+
+import BlissFramework
+
 """
 <procedure class="InstanceServer">
   <host>myhostname</host>
@@ -61,8 +63,20 @@ class InstanceServer(Procedure):
 
     def initializeInstance(self):
         # Remove BlissFramework application lockfile
-        self.guiConfiguration=qt.qApp.mainWidget().configuration
+        #self.guiConfiguration=qt.qApp.mainWidget().configuration
+
+        if BlissFramework.get_gui_version() == "qt3":
+            from qt import qApp
+            self.guiConfiguration = qApp.mainWidget().configuration     
+        elif BlissFramework.get_gui_version() == "qt4":
+            from PyQt4.QtGui import QApplication
+            self.guiConfiguration = QApplication.activeWindow().configuration
+        else:
+            logging.getLogger("HWR").error('InstanceServer: % gui version not supported' % \
+                                            BlissFramework.get_gui_version())
+
         lockfilename=os.path.join(tempfile.gettempdir(), '.%s.lock' % BlissFramework.loggingName)
+        
         try:
             os.unlink(lockfilename)
         except:

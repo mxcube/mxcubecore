@@ -85,25 +85,30 @@ class __HardwareRepositoryClient:
         self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
+        self.__connected = False
         
     def connect(self):
-        self.invalidHardwareObjects = set()
-        self.hardwareObjects = weakref.WeakValueDictionary()
+        if self.__connected:
+            return
+        try:
+            self.invalidHardwareObjects = set()
+            self.hardwareObjects = weakref.WeakValueDictionary()
 
-        if type(self.serverAddress)==types.StringType:
-            mngr = SpecConnectionsManager.SpecConnectionsManager() 
+            if type(self.serverAddress)==types.StringType:
+                mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
-            self.server = mngr.getConnection(self.serverAddress)
+                self.server = mngr.getConnection(self.serverAddress)
       
-            with gevent.Timeout(3): 
-                while not self.server.isSpecConnected():
-                    time.sleep(0.5) 
-            #SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+                with gevent.Timeout(3): 
+                    while not self.server.isSpecConnected():
+                        time.sleep(0.5) 
    
-            # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
-            self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
-        else:
-            self.server = None
+                # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
+                self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+            else:
+                self.server = None
+        finally:
+            self.__connected = True
  
 
     def require(self, mnemonicsList):
