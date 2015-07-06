@@ -1,7 +1,7 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
   <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
   <object href="/attenuators-mockup" role="transmission"/>
-  <object href="/beam-info-mockup" role="beam_info"/>
+  <object href="/beam-info" role="beam_info"/>
   <object href="/sc-mockup" role="sample_changer"/>
   <object href="/energy-mockup" role="energy"/>
   <object href="/resolution-mockup" role="resolution"/>
