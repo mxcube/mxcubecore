@@ -75,7 +75,6 @@ class Qt4_LimaVideo(Device):
 
         try:       
             self.cam_mirror = eval(self.getProperty("mirror"))
-            self.cam_scale_factor = float(self.getProperty("scaleFactor"))
         except:
             pass        
 
@@ -83,18 +82,11 @@ class Qt4_LimaVideo(Device):
             from Lima import Prosilica
             self.camera = Prosilica.Camera(self.cam_address)
             self.interface = Prosilica.Interface(self.camera)	
-        try:
-            self.control = Core.CtControl(self.interface)
-            self.video = self.control.video()
-            self.image_dimensions = list(self.camera.getMaxWidthHeight())
-            if self.cam_scale_factor is not None:
-                self.image_dimensions[0] = self.image_dimensions[0] * \
-                                           self.cam_scale_factor
-                self.image_dimensions[1] = self.image_dimensions[1] * \
-                                           self.cam_scale_factor
-        except KeyError:
-            logging.getLogger().warning("Lima video not initialized.")
 
+        self.control = Core.CtControl(self.interface)
+        self.video = self.control.video()
+        self.image_dimensions = list(self.camera.getMaxWidthHeight())
+      
         self.setIsReady(True)
 
         if self.image_polling is None:
