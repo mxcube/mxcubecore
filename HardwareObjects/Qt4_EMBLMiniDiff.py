@@ -330,7 +330,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """ 
         self.current_phase = phase
-        self.emit('minidiffPhaseChanged', (phase, )) 
+        self.emit('minidiffPhaseChanged', (self.current_phase, )) 
         self.refresh_video()
 
     def get_head_type(self):
