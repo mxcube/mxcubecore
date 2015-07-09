@@ -362,7 +362,7 @@ class AbstractMultiCollect(object):
         remaining_frames = nframes % subwedge_size
         if remaining_frames:
             wedge_sizes_list.append(remaining_frames)
-        
+       
         wedges_to_collect = []
 
         for wedge_size in wedge_sizes_list:
@@ -395,7 +395,6 @@ class AbstractMultiCollect(object):
     def write_input_files(self, collection_id):
         pass
 
-    @task
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
@@ -488,7 +487,7 @@ class AbstractMultiCollect(object):
         positions_str = ""
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        
+
         for motor, pos in motors.iteritems():
           if pos is None:
               positions_str = "%s %s=None" % (positions_str, motor)
