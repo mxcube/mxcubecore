@@ -490,7 +490,6 @@ class AbstractMultiCollect(object):
         motors = centring_info.get("motors", {}) #.update(centring_info.get("extraMotors", {}))
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-
         for motor, pos in motors.iteritems():
               if motor in motors_to_move_before_collect:
                   continue
@@ -500,11 +499,11 @@ class AbstractMultiCollect(object):
         for motor in motors_to_move_before_collect.keys():
             if motors_to_move_before_collect[motor] is None:
                 del motors_to_move_before_collect[motor]
-                positions_str += "%s=%f " % (motor, current_diffractometer_position[motor])
+                if current_diffractometer_position[motor] is not None:
+                    positions_str += "%s=%f " % (motor, current_diffractometer_position[motor])
 
         # this is for the LIMS
         positions_str += " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
-
         data_collect_parameters['actualCenteringPosition'] = positions_str
 
         self.move_motors(motors_to_move_before_collect)
