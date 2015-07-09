@@ -46,7 +46,7 @@ class ID30BeamCmds(HardwareObject):
     def init(self):
         controller = self.getObjectByRole("controller")
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
-        self.prodc_quick_realign = ControllerCommand("Quick realign", controller.align_slits)
+        self.prodc_quick_realign = ControllerCommand("Quick realign", controller.quick_realign)
 
     def getCommands(self):
         return [self.centrebeam, self.prodc_quick_realign] 

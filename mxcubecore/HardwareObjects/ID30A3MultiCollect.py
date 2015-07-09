@@ -76,7 +76,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
-        cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
+        cover_task = gevent.spawn(self.getObjectByRole("eh_controller").detcover.set_out, timeout=15)
         self.getObjectByRole("beamstop").moveToPosition("in")
         self.getObjectByRole("light").wagoOut()
 
@@ -92,12 +92,9 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         save_diagnostic = False
         operate_shutter = True
         if self.helical: 
-          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic)
+              self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic)
         else:
-          try:
               self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
-          except:
-              raise
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
