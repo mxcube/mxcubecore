@@ -50,7 +50,10 @@ class Pilatus:
               time.sleep(1)
 
   def last_image_saved(self):
-      return self.getChannelObject("last_image_saved").getValue() + 1
+      try:
+          return self.getChannelObject("last_image_saved").getValue() + 1
+      except Exception:
+          return 0
 
   def get_deadtime(self):
       return float(self.config.getProperty("deadtime"))
