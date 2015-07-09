@@ -567,10 +567,12 @@ class AbstractMultiCollect(object):
 
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         sample_id = data_collect_parameters['blSampleId']
-        if data_collect_parameters["shutterless"]:
-            subwedge_size = 1 
-        else:
-            subwedge_size = oscillation_parameters["number_of_images"]
+        subwedge_size = oscillation_parameters.get("reference_interval", 1)
+
+        #if data_collect_parameters["shutterless"]:
+        #    subwedge_size = 1 
+        #else:
+        #    subwedge_size = oscillation_parameters["number_of_images"]
        
         wedges_to_collect = self.prepare_wedges_to_collect(oscillation_parameters["start"],
                                                            oscillation_parameters["number_of_images"],
