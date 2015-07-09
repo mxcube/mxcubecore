@@ -740,8 +740,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         pass
 
     def image_taken(self, image_number):
-        # this is to work around the remote access problem
-        dispatcher.send("collect_started")
         num_images = self.get_data_model().acquisitions[0].\
                      acquisition_parameters.num_images
         num_images += self.get_data_model().acquisitions[0].\

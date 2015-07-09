@@ -1,6 +1,7 @@
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.dispatcher import *
+import time
 
 class RobodiffFShut(Equipment):
     def __init__(self, name):
@@ -9,6 +10,7 @@ class RobodiffFShut(Equipment):
     def init(self):
         self.robodiff = self.getObjectByRole("robot")
         self.connect(self.robodiff.controller.fshut, "status", self.valueChanged)
+        self.robodiff.controller.fshut.musst.putget("#ABORT")
         self.wagoState = "unknown"
 
     def connectNotify(self, signal):
@@ -26,12 +28,14 @@ class RobodiffFShut(Equipment):
         
     def getWagoState(self, read=False):
         if read:
-          self.valueChanged(self.robodiff.controller.fshut.status())
+          self.valueChanged(self.robodiff.controller.fshut.state())
         return self.wagoState 
 
     def wagoIn(self):
         self.robodiff.controller.fshut.open()
+        self.getWagoState(read=True)
            
     def wagoOut(self):  
         self.robodiff.controller.fshut.close()
+        self.getWagoState(read=True)
            

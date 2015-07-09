@@ -6,6 +6,7 @@ import time
 import gevent
 import types
 import emotion
+#import emotion.config
 import os
 
 class EmotionMotor(Device):      
@@ -22,7 +23,11 @@ class EmotionMotor(Device):
         self.motorState = EmotionMotor.NOTINITIALIZED
         self.username = self.motor_name
 
-        EmotionMotor.load_config(self.config_file)
+        try:
+            EmotionMotor.load_config(self.config_file)
+        except AttributeError:
+            emotion.config.set_backend("beacon")
+
         self.motor = emotion.get_axis(self.motor_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
@@ -50,7 +55,7 @@ class EmotionMotor(Device):
             state = EmotionMotor.MOVING
         elif state == "READY":
             state = EmotionMotor.READY
-        elif state == "ONLIMIT":
+        elif state == "LIMPOS" or state == 'LIMNEG':
             state = EmotionMotor.ONLIMIT
         else:
             state = EmotionMotor.UNUSABLE
@@ -116,4 +121,4 @@ class EmotionMotor(Device):
         return self.motor_name
 
     def stop(self):
-        self.motor.stop()
+        self.motor.stop(wait=False)
