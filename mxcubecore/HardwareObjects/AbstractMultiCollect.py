@@ -370,7 +370,7 @@ class AbstractMultiCollect(object):
         remaining_frames = nframes % subwedge_size
         if remaining_frames:
             wedge_sizes_list.append(remaining_frames)
-        
+       
         wedges_to_collect = []
 
         for wedge_size in wedge_sizes_list:
@@ -403,7 +403,6 @@ class AbstractMultiCollect(object):
     def write_input_files(self, collection_id):
         pass
 
-    @task
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
@@ -491,6 +490,7 @@ class AbstractMultiCollect(object):
         motors = centring_info.get("motors", {}) #.update(centring_info.get("extraMotors", {}))
 
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
+
         for motor, pos in motors.iteritems():
               if motor in motors_to_move_before_collect:
                   continue
@@ -504,6 +504,7 @@ class AbstractMultiCollect(object):
 
         # this is for the LIMS
         positions_str += " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
+
         data_collect_parameters['actualCenteringPosition'] = positions_str
 
         self.move_motors(motors_to_move_before_collect)
@@ -576,6 +577,12 @@ class AbstractMultiCollect(object):
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         sample_id = data_collect_parameters['blSampleId']
         subwedge_size = oscillation_parameters.get("reference_interval", 1)
+
+        #if data_collect_parameters["shutterless"]:
+        #    subwedge_size = 1 
+        #else:
+        #    subwedge_size = oscillation_parameters["number_of_images"]
+       
         wedges_to_collect = self.prepare_wedges_to_collect(oscillation_parameters["start"],
                                                            oscillation_parameters["number_of_images"],
                                                            oscillation_parameters["range"],
@@ -769,8 +776,8 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-			  while self.last_image_saved() == 0:
-                            time.sleep(exptime)
+			  if self.last_image_saved() == 0:
+                            continue
                        
                           last_image_saved = self.last_image_saved()
                           if last_image_saved < wedge_size:

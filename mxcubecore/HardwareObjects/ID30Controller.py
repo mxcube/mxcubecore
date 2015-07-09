@@ -1,25 +1,17 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-import os
-import sys
+from Khoros import Khoros
 
-class ID30Controller(HardwareObject):
+class ID30Controller(Khoros):
   def __init__(self, *args):
-    HardwareObject.__init__(self, *args)
+     Khoros.__init__(self, *args)
 
   def init(self, *args):  
-     sys.path.insert(0, self.getProperty("source"))
-     config = __import__("config", globals(), locals(), [])
-       
-     cfg_file = os.path.join(self.getProperty("source"), self.getProperty("config_file")) 
-     config.load(cfg_file)
-     #objects = config.get_context_objects()
-     self.__controller = config.get_object("minidiff") #objects["minidiff"]
+     Khoros.init(self)
 
   def set_diagfile(self, diagfile):
-     self.__controller.diagfile = diagfile
+     self.minidiff.diagfile = diagfile
 
   def __getattr__(self, attr):
      if attr.startswith("__"):
        raise AttributeError,attr
-     return getattr(self.__controller, attr)
+     return getattr(self.minidiff, attr)
 
