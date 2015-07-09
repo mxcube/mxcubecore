@@ -764,8 +764,8 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-			  while self.last_image_saved() == 0:
-                            time.sleep(exptime)
+			  if self.last_image_saved() == 0:
+                            continue
                        
                           last_image_saved = self.last_image_saved()
                           if last_image_saved < wedge_size:
