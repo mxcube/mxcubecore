@@ -216,7 +216,7 @@ class PixelDetector:
         self.collect_obj.open_fast_shutter()
         time.sleep(exptime)
         self.collect_obj.close_fast_shutter()
- 
+
     @task
     def do_oscillation(self, start, end, exptime, npass):
       still = math.fabs(end-start) < 1E-4
@@ -228,14 +228,8 @@ class PixelDetector:
                   self.oscillation_task = self.no_oscillation(self.shutterless_exptime, wait=False)
               else:
                   self.oscillation_task = self.collect_obj.oscil(start, end, self.shutterless_exptime, 1, wait=False)
-          else:
-              try:
-                 self.oscillation_task.get(block=False)
-              except gevent.Timeout:
-                 pass #no result yet, it is normal
-              except:
-                 # an exception occured in task! Pilatus server died?
-                 raise
+          if self.oscillation_task.ready():
+              self.oscillation_task.get()
       else:
           if still:
               self.no_oscillation(exptime)
