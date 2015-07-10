@@ -775,9 +775,10 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-			  while self.last_image_saved() == 0:
-                            time.sleep(exptime)
-                       
+                          with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+   			      while self.last_image_saved() == 0:
+                                  time.sleep(exptime)
+                          
                           last_image_saved = self.last_image_saved()
                           if last_image_saved < wedge_size:
                               time.sleep(exptime*wedge_size/100.0)
