@@ -1031,7 +1031,16 @@ class PX2MultiCollect(SOLEILMultiCollect):
 
             self.sync_collect(file_location, filename, image_file_template)
             self.finalize_acquisition()
-
+    
+    def generate_image_jpeg(self, *args):
+        pass
+    
+    def last_image_saved(self, *args):
+        pass
+    
+    def set_helical_pos(self, *args):
+        pass
+    
 def test():
     import os
     hwr_directory = os.environ["XML_FILES_PATH"]
