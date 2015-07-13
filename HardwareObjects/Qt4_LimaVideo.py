@@ -96,6 +96,9 @@ class Qt4_LimaVideo(Device):
             self.image_polling = gevent.spawn(self.do_image_polling,
                  self.getProperty("interval")/1000.0)
 
+        print 111
+        print self.getProperty("interval")
+
     def get_image_dimensions(self):
         return self.image_dimensions
 

@@ -53,7 +53,7 @@ class Qt4_VideoMockup(Device):
         self.image.load(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
- 
+
     def start_camera(self):
         if self.image_polling is None:
             self.image_polling = gevent.spawn(self._do_imagePolling, 1)
