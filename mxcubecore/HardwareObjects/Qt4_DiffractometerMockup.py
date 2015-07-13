@@ -128,8 +128,9 @@ class Qt4_DiffractometerMockup(Equipment):
         self.equipmentReady()
         self.user_clicked_event = AsyncResult()
 
-        self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
-                                getHardwareObject(self.getProperty("beam_info"))
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        #self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
+        #                        getHardwareObject(self.getProperty("beam_info"))
         if self.beam_info_hwobj is not None:
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
         else:
@@ -205,6 +206,17 @@ class Qt4_DiffractometerMockup(Equipment):
             self.centring_status = {"valid":False}
             self.emitProgressMessage("")
             self.emit('centringInvalid', ())
+
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+        """
+        Descript. :
+        """
+        random_num = random.random() 
+        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
+                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                         'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009,
+                         ' kappa_phi': 311.0}
+        return centred_pos_dir
 
     def get_available_centring_methods(self):
         """
