@@ -568,7 +568,9 @@ class SOLEILMultiCollect(AbstractMultiCollect, HardwareObject):
                                detector_distance = self.getObjectByRole("detector_distance"),
                                transmission      = self.getObjectByRole("transmission"),
                                undulators        = self.getObjectByRole("undulators"),
-                               flux              = self.getObjectByRole("flux"))
+                               flux              = self.getObjectByRole("flux"),
+                               detector          = self.getObjectByRole("detector"),
+                               beam_info         = self.getObjectByRole("beam_info"))
 
         #fast_shutter      = self.getObjectByRole("fast_shutter"),
         mxlocalHO = self.getObjectByRole("beamline_configuration")
@@ -582,34 +584,40 @@ class SOLEILMultiCollect(AbstractMultiCollect, HardwareObject):
           undulators = []
         self.setBeamlineConfiguration(directory_prefix = self.getProperty("directory_prefix"),
                                       default_exposure_time = bcm_pars.getProperty("default_exposure_time"),
-                                      default_number_of_passes = bcm_pars.getProperty("default_number_of_passes"),
-                                      maximum_radiation_exposure = bcm_pars.getProperty("maximum_radiation_exposure"),
-                                      nominal_beam_intensity = bcm_pars.getProperty("nominal_beam_intensity"),
                                       minimum_exposure_time = bcm_pars.getProperty("minimum_exposure_time"),
-                                      minimum_phi_speed = bcm_pars.getProperty("minimum_phi_speed"),
-                                      minimum_phi_oscillation = bcm_pars.getProperty("minimum_phi_oscillation"),
-                                      maximum_phi_speed = bcm_pars.getProperty("maximum_phi_speed"),
                                       detector_fileext = bcm_pars.getProperty("FileSuffix"),
                                       detector_type = bcm_pars["detector"].getProperty("type"),
-                                      detector_mode = spec_pars["detector"].getProperty("binning"),
                                       detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer"),
                                       detector_model = bcm_pars["detector"].getProperty("model"),
                                       detector_px = bcm_pars["detector"].getProperty("px"),
                                       detector_py = bcm_pars["detector"].getProperty("py"),
-                                      detector_radius = bcm_pars.getProperty('detector_radius'),     
-                                      beam_ax = spec_pars["beam"].getProperty("ax"),
-                                      beam_ay = spec_pars["beam"].getProperty("ay"),
-                                      beam_bx = spec_pars["beam"].getProperty("bx"),
-                                      beam_by = spec_pars["beam"].getProperty("by"),
                                       undulators = undulators,
                                       focusing_optic = bcm_pars.getProperty('focusing_optic'),
                                       monochromator_type = bcm_pars.getProperty('monochromator'),
                                       beam_divergence_vertical = bcm_pars.getProperty('beam_divergence_vertical'),
                                       beam_divergence_horizontal = bcm_pars.getProperty('beam_divergence_horizontal'),     
-                                      synchrotron_name = bl_pars.getProperty('synchrotron_name'),     
                                       polarisation = bcm_pars.getProperty('polarisation'),
-                                      #auto_processing_server = self.getProperty("auto_processing_server"),
+                                      synchrotron_name = bl_pars.getProperty('synchrotron_name'),
+                                      detector_radius = bcm_pars.getProperty('detector_radius'),
                                       input_files_server = self.getProperty("input_files_server"))
+                                      
+                                      #default_number_of_passes = bcm_pars.getProperty("default_number_of_passes"),
+                                      #maximum_radiation_exposure = bcm_pars.getProperty("maximum_radiation_exposure"),
+                                      #nominal_beam_intensity = bcm_pars.getProperty("nominal_beam_intensity"),
+                                      #minimum_exposure_time = bcm_pars.getProperty("minimum_exposure_time"),
+                                      #minimum_phi_speed = bcm_pars.getProperty("minimum_phi_speed"),
+                                      #minimum_phi_oscillation = bcm_pars.getProperty("minimum_phi_oscillation"),
+                                      #maximum_phi_speed = bcm_pars.getProperty("maximum_phi_speed"),
+                                      #detector_mode = spec_pars["detector"].getProperty("binning"),
+                                      #detector_radius = bcm_pars.getProperty('detector_radius'),     
+                                      #beam_ax = spec_pars["beam"].getProperty("ax"),
+                                      #beam_ay = spec_pars["beam"].getProperty("ay"),
+                                      #beam_bx = spec_pars["beam"].getProperty("bx"),
+                                      #beam_by = spec_pars["beam"].getProperty("by"),
+                                      #synchrotron_name = bl_pars.getProperty('synchrotron_name'),     
+                                      
+                                      #auto_processing_server = self.getProperty("auto_processing_server"),
+                                      
   
         self._detector.initDetector( self.adscname, self.limaadscname, self.xformstatusfile )
         self._tunable_bl.bl_control = self.bl_control
@@ -786,7 +794,7 @@ class SOLEILMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, inverse_beam, overlap):
-        return AbstractMultiCollect.prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, inverse_beam, overlap)
+        return AbstractMultiCollect.prepare_wedges_to_collect(self, start, nframes, osc_range, reference_interval, overlap)
 
     @task
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", lima_overhead=0):
@@ -817,7 +825,7 @@ class SOLEILMultiCollect(AbstractMultiCollect, HardwareObject):
           #time.sleep(0.1)
         self.bl_control.diffractometer.wait()
         self.bl_control.diffractometer.setScanStartAngle(start)
-        self.bl_control.diffractometer.md2.OmegaPosition = start - 0.1
+        self.bl_control.diffractometer.phiMotor.move(start - 0.1)
         self.bl_control.diffractometer.wait()
         
         return self._detector.prepare_oscillation(start, osc_range, exptime, npass)
