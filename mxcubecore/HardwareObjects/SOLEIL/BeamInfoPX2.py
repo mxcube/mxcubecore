@@ -44,7 +44,11 @@ class BeamInfoPX2(Equipment):
         self.shape         = 'rectangular'
 
         self.beam_info_dict  = {'size_x': None, 'size_y': None, 'shape': self.shape}
-
+        
+        self.beam_info_dict['size_x'] = 0.010
+        self.beam_info_dict['size_y'] = 0.005
+        self.beam_info_dict["shape"] = "ellipse"
+        
         # Channels
         self.chanBeamSizeX = None
         self.chanBeamSizeY = None
@@ -85,21 +89,11 @@ class BeamInfoPX2(Equipment):
         self.zoomMotor = self.getDeviceByRole("zoom")
         
         self.beam_position[0], self.beam_position[1] = self.chanBeamPosX.value, self.chanBeamPosY.value
+        
         if self.zoomMotor is not None:
-        #   logging.getLogger().info("Zoom - motor is good ")
-        #   if self.zoomMotor.hasObject('positions'):
-        #       logging.getLogger().info("Zoom - has positions ")
-        #       for position in self.zoomMotor['positions']:
-        #           logging.getLogger().info("   - position " + str(position))
-        #           calibrationData = position['calibrationData']
-        #           self.positionTable[str(position.offset)] = [float(calibrationData.beamPositionX), float(calibrationData.beamPositionY)]
-        #           logging.getLogger().info("Zoom - beam position table loaded")
-        #           logging.getLogger().info(str(self.positionTable))
- 
            self.connect(self.zoomMotor, 'predefinedPositionChanged', self.zoomPositionChanged)
         else:
            logging.getLogger().info("Zoom - motor is not good ")
-
 
     def beamSizeXChanged(self, value):
         logging.getLogger().info('beamSizeX changed. It is %s ' % value)
@@ -125,20 +119,7 @@ class BeamInfoPX2(Equipment):
         logging.getLogger().info('zoom position changed. It is %s / offset=%s ' % (name,offset))
         self.beam_position[0], self.beam_position[1] = self.chanBeamPosX.value, self.chanBeamPosY.value
         logging.getLogger().info('getting info on beam position from channels: x %s y: %s ' % (self.chanBeamPosX.value, self.chanBeamPosY.value))
-        #try:
-           #offs = str( int(offset) )
-           #logging.getLogger().info('looking for  offset %s in table. ' % offs)
-           #logging.getLogger().info(str(self.positionTable))
-           #if offs in self.positionTable:
-              #pos = self.positionTable[offs]
-              #self.beam_position[0], self.beam_position[1] = float(pos[0]), float(pos[1])
-              #logging.getLogger().info('found %s' % str(self.beam_position))
-              #self.positionUpdated() 
-           #else:
-              #logging.getLogger().info('not found')
-        #except:
-           #logging.getLogger().info('not handled')
-            
+
     def sizeUpdated(self):
         self.beam_info_dict['size_x'] = 0.010
         self.beam_info_dict['size_y'] = 0.005
@@ -164,3 +145,20 @@ class BeamInfoPX2(Equipment):
         logging.getLogger().warning('returning beam positions. It is %s ' % str(self.beam_position))
         return self.beam_position	
 
+    def get_beam_size(self):
+        """
+        Descript. : returns beam size in millimeters
+        Return   : list with two integers
+        """
+        #self.evaluate_beam_info()
+        return self.beam_info_dict["size_x"], \
+               self.beam_info_dict["size_y"]
+    
+    def get_beam_shape(self):
+        """
+        Descript. :
+        Arguments :
+        Return    :
+        """
+        self.evaluate_beam_info()
+        return self.beam_info_dict["shape"]
