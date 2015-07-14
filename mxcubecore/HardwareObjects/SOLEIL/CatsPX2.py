@@ -278,6 +278,15 @@ class CatsPX2(SampleChanger):
         argin = ["1", "0", "0", "0", "0"]
         self._executeServerTask(self._cmdUnload, argin)
 
+    
+    def getBasketList(self):
+        basket_list = []
+        for cell in self.getComponents():
+            for basket in cell.getComponents(): 
+                if isinstance(basket, Basket):
+                    basket_list.append(basket)
+        return basket_list
+        
     def clearBasketInfo(self, basket):
         pass
 
