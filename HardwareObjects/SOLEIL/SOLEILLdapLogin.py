@@ -98,13 +98,15 @@ class SOLEILLdapLogin(Procedure):
         
         if not found:
             return self.cleanup(msg="unknown proposal %s" % username)
+        
         if password=="":
             return self.cleanup(msg="invalid password for %s" % username)
 
-	if type(found) != list:
-	    logging.getLogger("HWR").error("LdapLogin: found type: %s" % type(found))
+        if type(found) != list:
+            logging.getLogger("HWR").error("LdapLogin: found type: %s" % type(found))
             return self.cleanup(msg="unknown error %s" % username)
-	    
+        
+        #I don't quite understand this -- check whether it works MS 2015-07-14
         for dn,entry in found:
             dn = str(dn)
 
