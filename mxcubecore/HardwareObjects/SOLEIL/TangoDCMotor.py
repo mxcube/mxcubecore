@@ -148,6 +148,9 @@ class TangoDCMotor(Device):
     def syncQuestionAnswer(self, specSteps, controllerSteps):
         return '0' # This is only for spec motors. 0 means do not change anything on sync
     
+    def getRealPosition(self):
+        return self.positionChan.getValue()
+    
     def getPosition(self):
         pos = self.positionValue
         return pos
