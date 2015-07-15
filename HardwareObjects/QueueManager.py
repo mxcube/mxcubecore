@@ -7,6 +7,7 @@ The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
+import os
 import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -15,7 +16,6 @@ import queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from queue_entry import QueueEntryContainer
-
 
 logger = logging.getLogger('queue_exec')
 try:
