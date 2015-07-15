@@ -7,7 +7,9 @@ The Queue manager acts as both the controller of execution and as the root/
 container of the queue, note the inheritance from QueueEntryContainer. See the
 documentation for the queue_entry module for more information.
 """
+import sys
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import gevent
 import queue_entry
 
@@ -19,7 +21,14 @@ logger = logging.getLogger('queue_exec')
 try:
     formatter = \
               logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr = logging.FileHandler('/users/blissadm/log/queue_exec.log')
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers:
+      if isinstance(handler, TimedRotatingFileHandler):
+         filename = handler.baseFilename
+         hdlr = logging.FileHandler(os.path.join(os.path.dirname(filename), 'queue_exec.log'))
+         break
+    else:
+        hdlr = logging.StreamHandler(sys.stdout)
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
 except:
