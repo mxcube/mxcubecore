@@ -7,6 +7,17 @@ import gevent
 class MD2TimeoutError(Exception):
     pass
 
+"""
+Exaplle xml file:
+<device class="MicrodiffMotor">
+  <username>phiy</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <motor_name>AlignmentY</motor_name>
+  <GUIstep>1.0</GUIstep>
+  <unit>-1e-3</unit>
+</device>
+"""
+
 class MicrodiffMotor(Device):      
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
     EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
@@ -38,7 +49,7 @@ class MicrodiffMotor(Device):
           #TODO: dynamic limits
           #self.motor_limits_attr = self.addChannel({"type":"exporter", "name":"limits"}, self.motor_name+"DynamicLimits" )
           self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
-
+          self.home_cmd = self.addCommand( {"type":"exporter", "name":"homing" }, "startHomingMotor")
 
     def connectNotify(self, signal):
         if signal == 'positionChanged':
@@ -132,3 +143,10 @@ class MicrodiffMotor(Device):
     def stop(self):
         if self.getState() != MicrodiffMotor.NOTINITIALIZED:
           self._motor_abort()
+
+    def homeMotor(self, timeout=None):
+        self.home_cmd(self.motor_name)
+        try:
+            self.waitEndOfMove(timeout)
+        except:
+            raise MD2TimeoutError
