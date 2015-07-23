@@ -2,17 +2,30 @@ import logging
 from HardwareRepository.BaseHardwareObjects import Device
 import time
 
+"""
+Use the exporter to set different MD2 actuators in/out.
+If private_state not specified, True will be send to set in and False for out.
+Example xml file:
+<device class="MicrodiffInOut">
+  <username>Scintilator</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <cmd_name>ScintillatorPosition</cmd_name>
+  <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
+</device>
+"""
 class MicrodiffInOut(Device):
 
     def __init__(self, name):
         Device.__init__(self, name)
         self.actuatorState = "unknown"
+        self.username = "unknown"
         #default timeout - 3 sec
         self.timeout = 3
 
 
     def init(self):
         self.cmdname =  self.getProperty("cmd_name")
+        self.username =  self.getProperty("username")
         self.cmd_attr =  self.addChannel({"type":"exporter", "name":"move" }, self.cmdname)
         self.cmd_attr.connectSignal("update", self.valueChanged)
 
@@ -38,6 +51,7 @@ class MicrodiffInOut(Device):
         except:
             pass
         self.hwstate_attr = self.addChannel({"type":"exporter", "name":"hwstate" }, "HardwareState")
+        self.swstate_attr = self.addChannel({"type":"exporter", "name":"swstate" }, "State")
 
         self.moves =  dict((self.states[k], k) for k in self.states)
 
@@ -50,35 +64,49 @@ class MicrodiffInOut(Device):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit('actuatorStateChanged', (self.actuatorState, ))
         
-    
+    def _ready(self):
+        if self.hwstate_attr.getValue() == "Ready" and self.swstate_attr.getValue() == "Ready":
+            return True
+        return False
+  
+    def _wait_ready(self, timeout=None):
+        if timeout <= 0:
+            timeout = self.timeout
+        tt1 = time.time()
+        while time.time() - tt1 < timeout:
+             if self._ready():
+                 break
+             else:
+                 time.sleep(0.5)
+ 
     def getActuatorState(self):
         if self.actuatorState == "unknown":
             self.connectNotify("actuatorStateChanged")
         return self.actuatorState 
 
     def actuatorIn(self, wait=True):
-        if self.hwstate_attr.getValue() == "Ready":
-            self.cmd_attr.setValue(self.moves["in"])
-            self.valueChanged(self.state_attr.getValue())
-            if wait:
-                tt1 = time.time()
-                while time.time() - tt1 < self.timeout:
-                    if self.state_attr.getValue() != self.moves["in"]:
-                        time.sleep(0.2)
-                    else:
-                        break
+        if self._ready():
+            try:
+                self.cmd_attr.setValue(self.moves["in"])
+                self.valueChanged(self.state_attr.getValue())
+                if wait:
+                    self._wait_ready(self.timeout)
+            except:
+                logging.getLogger('user_level_log').error("Cannot put %s in", self.username)
+        else:
+            logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s in" , self.username)
         self.valueChanged(self.state_attr.getValue())
  
     def actuatorOut(self, wait=True):
-        if self.hwstate_attr.getValue() == "Ready":
-            self.cmd_attr.setValue(self.moves["out"])
-            self.valueChanged(self.state_attr.getValue())
-            if wait:
-                tt1 = time.time()
-                while time.time() - tt1 < self.timeout:
-                    if self.state_attr.getValue() != self.moves["out"]:
-                        time.sleep(0.2)
-                    else:
-                        break
+        if self._ready():
+            try:
+                self.cmd_attr.setValue(self.moves["out"])
+                self.valueChanged(self.state_attr.getValue())
+                if wait:
+                    self._wait_ready(self.timeout)
+            except:
+                logging.getLogger('user_level_log').error("Cannot put %s out", self.username)
+        else:
+            logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s out" , self.username)
         self.valueChanged(self.state_attr.getValue())      
 
