@@ -57,6 +57,11 @@ class ID30BMultiCollect(ESRFMultiCollect):
         return not any([m.motorIsMoving() for m in motors])
 
     @task
+    def preliminary_move_motors(self, motors_to_move_dict):
+        diffr = self.getObjectByRole("diffractometer")
+        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+
+    @task
     def move_motors(self, motors_to_move_dict):
         """
         def wait_ready(timeout=None):
@@ -76,9 +81,10 @@ class ID30BMultiCollect(ESRFMultiCollect):
         """
   
         diffr = self.getObjectByRole("diffractometer")
-        #cover_task = self.getObjectByRole("khoros").detcover.set_out(wait=False, timeout=15)
-        diffr.moveToPhase("DataCollection", wait=True, timeout=20)
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=20)
+        diffr.moveToPhase("DataCollection", wait=True, timeout=200)
+        logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
+        cover_task = self.getObjectByRole("khoros").detcover.set_out()
+        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
         #cover_task.get()
 
     @task
@@ -88,9 +94,10 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
+        print "------------->", exptime
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
-            diffr.oscilScan4d(start, end, self.helical_pos, exptime, wait=True)
+            diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
 
