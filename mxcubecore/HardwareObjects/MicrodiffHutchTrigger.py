@@ -6,10 +6,14 @@ import time
 import sys
 
 """
+Read the state of the hutch from the PSS device server and take actions
+when enter (1) or interlock (0) the hutch.
 0 = The hutch has been interlocked and the sample environment should be made 
-     ready for data collection.
+     ready for data collection. The actions are extract the detector cover,
+     move the detector to its previous position, set the MD2 to Centring.
 1 = The interlock is cleared and the user is entering the hutch to change
-      the sample(s).
+      the sample(s). The actions are insert the detector cover, move the
+      detecto to a safe position, set MD2 to sample Transfer.
 """
 
 class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
@@ -69,15 +73,18 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info("%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving")
         dtox = self.getObjectByRole("detector_distance")
         udiff_ctrl = self.getObjectByRole("predefined")
+        ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:
+            ctrl_obj.detcover.set_out()
             if old["dtox"] is not None:
-                dtox.move(old["dtox"],wait=False)
+                print "Moving %s to %g" % (dtox.name(), old["dtox"])
+                dtox.move(old["dtox"])
             udiff_ctrl.moveToPhase(phase="Centring",wait=True)
-        else: 
-          old["dtox"] = dtox.getPosition()
-          dtox.move(700,wait=False)
-          udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
-        dtox.waitEndOfMove()
+        else:
+            ctrl_obj.detcover.set_in()
+            old["dtox"] = dtox.getPosition()
+            dtox.move(700)
+            udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
 
     def poll(self):
         a=self.device.GetInterlockState([self.card-1, 2*(self.channel-1)])[0]
