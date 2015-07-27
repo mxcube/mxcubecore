@@ -3,34 +3,31 @@ Descript. :
 """
 
 import os
+import math
 import time
 import gevent
 import logging
 import PyChooch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import Equipment
 
-class EMBLEnergyScan(Equipment):
-    """
-    Descript. :
-    """
+from AbstractEnergyScan import AbstractEnergyScan
+from HardwareRepository.TaskUtils import *
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
+
     def __init__(self, name):
-        """
-        Descript. :
-        """
-        Equipment.__init__(self, name)
+        AbstractEnergyScan.__init__(self)
+        HardwareObject.__init__(self, name)
+        self._tunable_bl = True
+
         self.can_scan = None
         self.ready_event = None
         self.scanning = False
         self.energy_motor = None
         self.archive_prefix = None
-        self._element = None
-        self._edge = None
         self.thEdge = None
-        self.previousResolution = None
-        self.lastResolution = None
         self.scanData = None
         
         self.energy2WavelengthConstant = None
@@ -93,9 +90,6 @@ class EMBLEnergyScan(Equipment):
         except:
             logging.getLogger("HWR").warning('EMBLEnergyScan: unable to connect to scan channel(s)')
          
-        if self.isConnected():
-            self.sConnected()
-
     def scan_start_update(self, values):
         """
         Descript. :
@@ -155,17 +149,11 @@ class EMBLEnergyScan(Equipment):
         """
         return True
 
-    def sConnected(self):
-        """
-        Descript. :
-        """
+    """def sConnected(self):
         self.emit('connected', ())
 
     def sDisconnected(self):
-        """
-        Descript. :
-        """
-        self.emit('disconnected', ())
+        self.emit('disconnected', ())"""
 
     def canScanEnergy(self):
         """
@@ -183,8 +171,6 @@ class EMBLEnergyScan(Equipment):
             self.scanCommandAborted() 
             return
  
-        self._element = element
-        self._edge = edge
         self.scanInfo = {"sessionId": session_id, "blSampleId": blsample_id,
                        "element": element,"edgeEnergy": edge}
         self.scanData = []
@@ -207,6 +193,9 @@ class EMBLEnergyScan(Equipment):
                 self.scanCommandStarted()
             else:
                 logging.getLogger("HWR").error('Another energy scan in progress. Please wait when the scan is finished')
+                self.emit('energyScanStatusChanged', ("Another energy scan in progress. Please wait when the scan is finished"))
+                self.scanCommandFailed()
+                return False
         except:
             logging.getLogger("HWR").error('EnergyScan: error in executing energy scan command')
             self.emit('energyScanStatusChanged', ("Error in executing energy scan command",))
@@ -221,20 +210,6 @@ class EMBLEnergyScan(Equipment):
         if self.scanning:
             self.cmd_scan_abort()
             self.scanCommandAborted()
-
-    def scanCommandReady(self):
-        """
-        Descript. :
-        """ 
-        if not self.scanning:
-            self.emit('energyScanReady', (True,))
-
-    def scanCommandNotReady(self):
-        """
-        Descript. :
-        """
-        if not self.scanning:
-            self.emit('energyScanReady', (False,))
 
     def scanCommandStarted(self, *args):
         """
@@ -327,9 +302,11 @@ class EMBLEnergyScan(Equipment):
           pk = 0
           ip = 0
           rm = self.thEdge + 0.03
-          comm = 'Calculated peak (%f) is more that 10eV away from the theoretical value (%f). Please check your scan' % (savpk, self.thEdge)
-   
-          logging.getLogger("HWR").warning('EMBLEnergyScan: calculated peak (%f) is more that 20eV %s the theoretical value (%f). Please check your scan and choose the energies manually' % (savpk, (self.thEdge - ip) > 0.02 and "below" or "above", self.thEdge))"""
+          comm = 'Calculated peak (%f) is more that 10eV away from the theoretical value (%f). Please check your scan' % \
+                 (savpk, self.thEdge)
+
+          logging.getLogger("HWR").warning('EnergyScan: calculated peak (%f) is more that 20eV %s the theoretical value (%f). Please check your scan and choose the energies manually' % \
+                   (savpk, (self.thEdge - ip) > 0.02 and "below" or "above", self.thEdge))
 
         archiveEfsFile = os.path.extsep.join((scanArchiveFilePrefix, "efs"))
         try:
