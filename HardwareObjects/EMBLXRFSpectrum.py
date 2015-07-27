@@ -6,12 +6,15 @@ import logging
 import time
 import gevent
 import numpy
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import cleanup	
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-class EMBLXRFSpectrum(Equipment):
+from AbstractXRFSpectrum import AbstractXRFSpectrum
+from HardwareRepository.TaskUtils import cleanup
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+
+class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
     """
     Descript. 
     """
@@ -19,7 +22,9 @@ class EMBLXRFSpectrum(Equipment):
         """
         Descript. :
         """
-        Equipment.__init__(self, name)
+        AbstractXRFSpectrum.__init__(self)
+        HardwareObject.__init__(self, name)
+
         self.can_scan = None
         self.ready_event = None
         self.scanning = None

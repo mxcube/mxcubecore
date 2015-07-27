@@ -1,8 +1,9 @@
-from HardwareRepository.BaseHardwareObjects import Device
 import math
 import logging
 import time
-import gevent
+from gevent import Timeout
+from AbstractMotor import AbstractMotor
+from HardwareRepository.BaseHardwareObjects import Device
 
 class MD2TimeoutError(Exception):
     pass
@@ -31,16 +32,26 @@ class MicrodiffMotor(Device):
                                 "HighLim": ONLIMIT }
 
     def __init__(self, name):
+        AbstractMotor.__init__(self) 
         Device.__init__(self, name)
         self.motor_pos_attr_suffix = "Position"
 
     def init(self): 
+        self.position = -1e3
+        self.old_position = -1e3
+ 
+        self.motor_resolution = self.getProperty("resolution")
+        if self.motor_resolution is None:
+           self.motor_resolution = 0.0001
+
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.motor_name
 
         self.motorState = MicrodiffMotor.NOTINITIALIZED
 
-        self.position_attr = self.addChannel({"type":"exporter", "name":"position"  }, self.motor_name+self.motor_pos_attr_suffix)
+        self.position_attr = self.addChannel({"type": "exporter", 
+                                              "name": "%sPosition" %self.motor_name}, 
+                                               self.motor_name + self.motor_pos_attr_suffix)
         if self.position_attr is not None:
           self.position_attr.connectSignal("update", self.motorPositionChanged)
           self.state_attr = self.addChannel({"type":"exporter", "name":"state" }, "State")
@@ -66,14 +77,19 @@ class MicrodiffMotor(Device):
 
     def updateMotorState(self, motor_states):
         d = dict([x.split("=") for x in motor_states])
-        new_motor_state = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[d[self.motor_name]]
+        #Some are like motors but have no state
+        # we set them to ready
+        if d.get(self.motor_name) is None:
+            new_motor_state = MicrodiffMotor.READY    
+        else:
+            new_motor_state = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[d[self.motor_name]]
         if self.motorState == new_motor_state:
           return
         self.motorState = new_motor_state
         self.motorStateChanged(self.motorState)
 
     def motorStateChanged(self, state):
-        logging.getLogger().debug("%s: in motorStateChanged: motor state changed to %s", self.name(), state)
+        #logging.getLogger().debug("%s: in motorStateChanged: motor state changed to %s", self.name(), state)
         self.updateState()
         self.emit('stateChanged', (self.motorState, ))
 
@@ -89,9 +105,21 @@ class MicrodiffMotor(Device):
         self.emit('limitsChanged', (self.getLimits(), ))
                      
     def getLimits(self):
-        return (-1E4,1E4)
+        dynamic_limits = self.getDynamicLimits()
+        if dynamic_limits != (-1E4, 1E4):
+            return dynamic_limits
+        else: 
+            try:
+              low_lim,hi_lim = map(float, self.get_limits_cmd(self.motor_name))
+              if low_lim==float(1E999) or hi_lim==float(1E999):
+                  raise ValueError
+              return low_lim, hi_lim
+            except:
+              return (-1E4, 1E4)
+
+    def getDynamicLimits(self):
         try:
-          low_lim,hi_lim = map(float, self.get_limits_cmd(self.motor_name))
+          low_lim,hi_lim = map(float, self.get_dynamic_limits_cmd(self.motor_name))
           if low_lim==float(1E999) or hi_lim==float(1E999):
             raise ValueError
           return low_lim, hi_lim
@@ -99,23 +127,28 @@ class MicrodiffMotor(Device):
           return (-1E4, 1E4)
  
     def motorPositionChanged(self, absolutePosition, private={}):
-        if math.fabs(absolutePosition - private.get("old_pos", 1E12))<=1E-3:
+        if None in (absolutePosition, self.old_position):
+          return
+        if abs(absolutePosition - self.old_position)<=1E-3:
           return 
-        private["old_pos"]=absolutePosition 
-
+        self.old_position = self.position
+        self.position = absolutePosition 
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
-        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
-          return self.position_attr.getValue()
+        #if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+        #  print "MicrodiffMotor.NOTINITIALIZED:"
+        if self.position_attr is not None:   
+            self.position = self.position_attr.getValue()
+        return self.position
 
     def getDialPosition(self):
         return self.getPosition()
 
     def move(self, absolutePosition):
-        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
-          self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
-          self.motorStateChanged(MicrodiffMotor.MOVING)
+        #if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+        if abs(self.position - absolutePosition) >= self.motor_resolution:
+           self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -124,7 +157,7 @@ class MicrodiffMotor(Device):
         return self.syncMove(self.getPosition() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
-        with gevent.Timeout(timeout):
+        with Timeout(timeout):
            time.sleep(0.1)
            while self.motorState == MicrodiffMotor.MOVING:
               time.sleep(0.1) 
