@@ -1,10 +1,25 @@
 import sys
 import time
 import logging
-import math
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import *
 
+"""
+Example xml file:
+  - for tunable wavelength beamline:
+<object class="Energy">
+  <object href="/energy" role="energy"/>
+  <object href="/khoros" role="controller"/>
+  <tunable_energy>True</tunable_energy>
+</object>
+The energy should have methods getPosition, getLimits and move.
+If used, the controller should have method moveEnergy.
+
+  - for fixed wavelength beamline:
+<object class="Energy">
+  <default_energy>12.8123</tunable_energy>
+</object>
+"""
 class Energy(Equipment):
 
     def init(self):
@@ -13,26 +28,30 @@ class Energy(Equipment):
         self.tunable = False
         self.moving = None
         self.default_en = None
+        self.ctrl = None
         self.en_lims = []
 
         try:
             self.energy_motor =  self.getObjectByRole("energy")
         except KeyError:
             logging.getLogger("HWR").warning('Energy: error initializing energy motor')
-            self.energy_motor = None
 
         try:
             self.default_en = self.getProperty("default_energy")
-        except:
+        except KeyError:
             logging.getLogger("HWR").warning('Energy: no default energy')
 
         try:
             self.tunable = self.getProperty("tunable_energy")
-        except:
+        exceptKeyError :
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
-            self.tunable = False
 
-        if self.energy_motor is not None:
+        try:
+            self.ctrl = self.getObjectByRole("controller")
+        except KeyError:
+            logging.getLogger("HWR").info("No controller used")
+
+        if self.energy_motor:
             self.energy_motor.connect('positionChanged', self.energyPositionChanged)
             self.energy_motor.connect('stateChanged', self.energyStateChanged)
 
@@ -47,7 +66,7 @@ class Energy(Equipment):
 
     def getCurrentEnergy(self):
         logging.getLogger('user_level_log').debug("Get current energy")
-        if self.energy_motor is not None:
+        if self.energy_motor:
             try:
                 return  self.energy_motor.getPosition()
             except:
@@ -56,15 +75,18 @@ class Energy(Equipment):
         return self.default_en
 
     def getCurrentWavelength(self):
-        #logging.getLogger('user_level_log').info("Get current wavelength")
+        #logging.getLogger('user_level_log').debug("Get current wavelength")
         current_en = self.getCurrentEnergy()
-        if current_en is not None:
+        if current_en:
             return (12.3984/current_en)
         return None
 
     def getEnergyLimits(self):
         logging.getLogger("HWR").debug("Get energy limits")
-        if self.energy_motor is not None:
+        if not self.tunable:
+            return None
+
+        if self.energy_motor:
             try:
                 self.en_lims = self.energy_motor.getLimits()
                 return self.en_lims 
@@ -75,9 +97,10 @@ class Energy(Equipment):
 
     def getWavelengthLimits(self):
         logging.getLogger("HWR").debug("Get wavelength limits")
-        lims = None
+        if not self.tunable:
+            return None
         self.en_lims = self.getEnergyLimits()
-        if self.en_lims is not None:
+        if self.en_lims:
             lims=(12.3984/self.en_lims[1], 12.3984/self.en_lims[0])
         return lims
             
@@ -85,6 +108,9 @@ class Energy(Equipment):
     the energy is in keV
     """
     def startMoveEnergy(self, value, wait=True):
+        if not self.tunable:
+            return False
+
         try:
             value=float(value)
         except (TypeError,ValueError),diag:
@@ -92,8 +118,8 @@ class Energy(Equipment):
             return False
 
         current_en = self.getCurrentEnergy()
-        if current_en is not None:
-            if math.fabs(value - current_en) < 0.001:
+        if current_en:
+            if abs(value - current_en) < 0.001:
                 self.moveEnergyCmdFinished(True)
         if self.checkLimits(value) is False:
             return False
@@ -128,11 +154,11 @@ class Energy(Equipment):
             
     def checkLimits(self, value):
         logging.getLogger("HWR").debug("Checking the move limits")
-        self.getEnergyLimits()
-        if value >= self.en_lims[0] and value <= self.en_lims[1]:
-            logging.getLogger("HWR").info("Limits ok")
-            return True
-        logging.getLogger().info("Requested value is out of limits")
+        if self.getEnergyLimits():
+            if value >= self.en_lims[0] and value <= self.en_lims[1]:
+                logging.getLogger("HWR").info("Limits ok")
+                return True
+            logging.getLogger('user_level_log').info("Requested value is out of limits")
         return False
         
     def startMoveWavelength(self, value, wait=True):
@@ -145,25 +171,32 @@ class Energy(Equipment):
 
     def move_energy(self, energy, wait=True):
         current_en = self.getCurrentEnergy()
-        pos = math.fabs(current_en - energy)
+        pos = abs(current_en - energy)
         if pos < 0.001:
             logging.getLogger('user_level_log').debug("Energy: already at %g, not moving", energy)
         else:
             logging.getLogger('user_level_log').debug("Energy: moving energy to %g", energy)
             if pos > 0.02:
-                self.executeCommand("moveEnergy", energy, wait=True)
+                try:
+                    if self.ctrl:
+                        self.ctrl.moveEnergy(energy)
+                        self.ctrl.quick_realign()
+                    else:
+                        self.executeCommand("moveEnergy", energy, wait=True)
+                except RuntimeError, AttributeError:
+                    self.energy_motor.move(energy, wait=True)
             else:
                 self.energy_motor.move(energy, wait=True)
 
     def energyPositionChanged(self,pos):
-        wav=12.3984/pos
-        if wav is not None:
-            self.emit('energyChanged', (pos,wav))
+        wl=12.3984/pos
+        if wl:
+            self.emit('energyChanged', (pos,wl))
             self.emit('valueChanged', (pos, ))
 
     def energyStateChanged(self, state):
         print state
 
     def get_value(self):
-        #generic method to be used by beamline setup
+        #generic method used by the beamline setup
         return self.getCurrentEnergy()
