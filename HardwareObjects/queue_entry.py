@@ -541,8 +541,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        if len(self.shape_history.selected_shapes):
-            pos = self.shape_history.selected_shapes.values()[0]
+        if len(self.shape_history.get_selected_shapes()):
+            pos = self.shape_history.get_selected_shapes()[0]
         #elif len(self.shape_history.shapes):
         #    pos = self.shape_history.shapes.values()[0]
         else:
