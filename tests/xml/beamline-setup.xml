@@ -8,6 +8,7 @@
   <object href="/diff-kappa" role="kappa_axis"/>
   <object href="/diff-kappaphi" role="kappa_phi_axis"/>
   <object href="/sc-mockup" role="sample_changer"/>    
+  <object href="/plate-manipulator" role="plate_manipulator"/>
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
 
