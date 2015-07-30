@@ -289,7 +289,6 @@ class Sample(TaskNode):
         self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
         self.location_plate = plate_sample[5]
         self.set_name(self.loc_str)
-        self.code=sc_sample[0]
 
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
@@ -406,16 +405,21 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = self._basket_object.getCoords()
-            self.name = "%s %d" % (name, self.location[0])
-            if len(self.location) == 2:
-                self.name = "Cell %d, puck %d" % self.location
+            self.name = "Puck %d" % self.location 
+        """
+        self.location = int(sc_basket[0])
+        if name == "Row":
+            self.name = "%s %s" % (name, chr(65 + self.location))
+        else:
+            self.name = "%s %d" % (name, self.location)
+        self._basket_object = sc_basket[1]
 
     def get_name(self):
         return self.name
 
     def get_location(self):
-        return self.location
+        #return int(self.location[0])
+        return self.location 
 
     def get_is_present(self):
         return self._basket_object.present
@@ -1030,7 +1034,7 @@ class PathTemplate(object):
 
     @staticmethod
     def set_path_template_style(synchotron_name):
-        PathTemplate.synchotron_name = synchotron_name
+        PathTemplate.synchotron_name = synchotron_name 
 
     def __init__(self):
         object.__init__(self)
@@ -1081,22 +1085,23 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Returns the archive directory, for longer term storage.
-
-        :returns: Archive directory.
-        :rtype: str
+        Descript. : Returns the archive directory, for longer term storage.
+                    synchotron_name is set via static function calles from session hwobj
+        Return    : Archive directory. :rtype: str
         """
-        # TODO make this more general. Add option to enable/disable archive
-        # Also archive path template needs to be defined in xml
+        folders = self.directory.split('/')
         if PathTemplate.synchotron_name == "MAXLAB":
-            folders = self.directory.split('/')
             archive_directory = self.directory
             archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
             archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
             archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
+        elif PathTemplate.synchotron_name == "EMBL": 
+            archive_directory = os.path.join(PathTemplate.archive_base_directory,
+                                             PathTemplate.archive_folder)
+            archive_directory = os.path.join(archive_directory,
+                                             *folders[3:])
         else:
             directory = self.directory[len(PathTemplate.base_directory):]
-            folders = directory.split('/') 
             if 'visitor' in folders:
                 endstation_name = folders[3]
                 folders[1] = PathTemplate.archive_folder

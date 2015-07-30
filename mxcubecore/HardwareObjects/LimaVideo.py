@@ -1,163 +1,315 @@
 """
 Lima video HO to capture images from camera
+Example xml:
+<device class="LimaVideo">
+   <type>prosilica</type>
+   <address>169.254.1.3</address>
+   <mirror>(True, False)</mirror>
+   <scaleFactor>1.5</scaleFactor>
+   <imageType>rgb</imageType>
+   <interval>40</interval>
+</device>
 """
+import os
 import time
 import logging
 import gevent
-from Lima import Core
+
+from Lima import Core 
+from Lima import Prosilica
+
 from Qub.CTools import pixmaptools
-from HardwareRepository import BaseHardwareObjects
-from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, MmapType, RawType
+from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.Camera import JpegType, BayerType, \
+     MmapType, RawType, RGBType
 
-class LimaVideo(BaseHardwareObjects.Device):
-
+class LimaVideo(Device):
+    """
+    Descript. : 
+    """
     def __init__(self, name):
-	BaseHardwareObjects.Device.__init__(self, name)
+        """
+        Descript. :
+        """
+        Device.__init__(self, name)
+        self.scaling = None
+        self.scaling_type = None 
+        self.do_scaling = None
+        self.force_update = None
+        self.cam_type = None
+        self.cam_address = None
+        self.cam_mirror = None
+        
+        self.brightness_exists = None 
+        self.contrast_exists = None
+        self.gain_exists = None
+        self.gamma_exists = None
 
-        self.scaling = pixmaptools.LUT.Scaling()
+        self.image_format = None
+        self.image_dimensions = None
 
-    def _init(self):
-	self.scalingType = None	
-	self.forceUpdate = False
+        self.camera = None
+        self.interface = None
+        self.control = None
+        self.video = None 
 
-	self.__brightnessExists = False
-	self.__contrastExists = False
-	self.__gainExists = False
-	self.__gammaExists = False 
+        self.image_polling = None
 
-	self.camType = self.getProperty("type").lower()
-	self.camAddress = self.getProperty("address")
-        try:
- 	  self.camMirror = eval(self.getProperty("mirror_hor_ver"))
-        except:
-          self.camMirror = None
+    def init(self):
+        """
+        Descript. : 
+        """
+        self.force_update = False
+        self.scaling = pixmaptools.LUT.Scaling() 
+        self.cam_type = self.getProperty("type").lower()
+        self.cam_address = self.getProperty("address")
+        self.cam_mirror = eval(self.getProperty("mirror"))
 
-	if self.camType == 'prosilica':
-	    from Lima import Prosilica
-	    self.camera = Prosilica.Camera(self.camAddress)
+        if self.cam_type == 'prosilica':
+            from Lima import Prosilica
+            self.camera = Prosilica.Camera(self.cam_address)
             self.interface = Prosilica.Interface(self.camera)	
-        if self.camType == 'simulation':
-            from Lima import Simulator
-            self.camera = Simulator.Camera()
-            self.interface = Simulator.Interface(self.camera)
+        if self.cam_type == 'ueye':
+            from Lima import Ueye
+            self.camera = Ueye.Camera(self.cam_address)
+            self.interface = Ueye.Interface(self.camera)
         try:
-	    self.control = Core.CtControl(self.interface)
-	    self.video = self.control.video()
-	    self.video.setExposure(self.getProperty("interval")/1000.0)	
-	    self.__imageDimensions = self.camera.getMaxWidthHeight()
+            self.control = Core.CtControl(self.interface)
+            self.video = self.control.video()
+            self.image_dimensions = list(self.camera.getMaxWidthHeight())
         except KeyError:
-            logging.getLogger().warning('%s: not initialized. Check camera settings', self.name())
+            logging.getLogger().warning("Lima video not initialized.")
 
-	self.setImageTypeFromXml('imagetype')
- 	self.setIsReady(True)
+        self.setImageTypeFromXml('imageType')
+        self.setIsReady(True)
+
+        if self.image_polling is None:
+            self.video.startLive()
+            self.change_owner()
+
+            self.image_polling = gevent.spawn(self.do_image_polling,
+                 self.getProperty("interval")/1000.0)
 
     def setImageTypeFromXml(self, property_name):
-        image_type = self.getProperty(property_name) or 'Jpeg'
-        if image_type.lower() == 'jpeg':
-            self.imgtype = JpegType()
-        elif image_type.lower().startswith("bayer:"):
-            self.imgtype = BayerType(image_type.split(":")[1])
-	    if image_type.lower() == "bayer:8":
-		self.scalingType = pixmaptools.LUT.Scaling.BAYER_RG8
-	    elif image_type.lower() == "bayer:16":  	
-		self.scalingType = pixmaptools.LUT.Scaling.BAYER_RG16
-        elif image_type.lower().startswith("raw") :
-            self.imgtype = RawType()
-        elif image_type.lower().startswith("mmap:"):
-            self.imgtype = MmapType(image_type.split(":")[1])
+        """
+        Descript. :
+        """
+        image_format = self.getProperty(property_name) or 'Jpeg'
+        if image_format.lower() == 'jpeg':
+            self.image_format = JpegType()
+        elif image_format.lower().startswith("bayer:"):
+            self.image_format = BayerType(image_format.split(":")[1])
+            if image_format.lower() == "bayer:8":
+                self.scaling_type = pixmaptools.LUT.Scaling.BAYER_RG8
+            elif image_format.lower() == "bayer:16":  	
+                self.scaling_type = pixmaptools.LUT.Scaling.BAYER_RG16
+        elif image_format.lower().startswith("y:"):
+            self.image_format = BayerType(image_format.split(":")[1])
+            if image_format.lower() == "y:8":
+                self.scaling_type = pixmaptools.LUT.Scaling.Y8
+        elif image_format.lower().startswith("raw") :
+            self.image_format = RawType()
+        elif image_format.lower() == 'rgb':
+            self.image_format = RGBType()
+            self.scaling_type = pixmaptools.LUT.Scaling.RGB24
+        elif image_format.lower().startswith("mmap:"):
+            self.image_format = MmapType(image_format.split(":")[1])
 
     def imageType(self):
-        """Returns a 'jpeg' or 'bayer' type object depending on the image type"""
-        return self.imgtype
+        """
+        Descript. : returns image type
+        """
+        return self.image_format
 
     #############   CONTRAST   #################
     def contrastExists(self):
-        return self.__contrastExists
+        """
+        Descript. :
+        """
+        return self.contrast_exists
 
     def setContrast(self, contrast):
-        pass
+        """
+        Descript. :
+        """
+        return
 
     def getContrast(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     def getContrastMinMax(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     #############   BRIGHTNESS   #################
     def brightnessExists(self):
-        return self.__brightnessExists
+        """
+        Descript. :
+        """
+        return self.brightness_exists
 
     def setBrightness(self, brightness):
-	pass
+        """
+        Descript. :
+        """
+        return
 
     def getBrightness(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     def getBrightnessMinMax(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     #############   GAIN   #################
     def gainExists(self):
-        return self.__gainExists
+        """
+        Descript. :
+        """
+        return self.gain_exists
 
     def setGain(self, gain):
-	self.video.setGain(gain)
+        """
+        Descript. :
+        """
+        return
+	#self.video.setGain(gain)
 
     def getGain(self):
-	return self.video.getGain()
+        """
+        Descript. :
+        """
+        return self.video.getGain()
 
     def getGainMinMax(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     #############   GAMMA   #################
     def gammaExists(self):
-        return self.__gammaExists
+        """
+        Descript. :
+        """
+        return self.gamma_exists
 
     def setGamma(self, gamma):
- 	pass
+        """
+        Descript. :
+        """
+        return
 
     def getGamma(self):
-	return 
+        """
+        Descript. :
+        """
+        return 
 
     def getGammaMinMax(self):
-	return (0, 1)
+        """
+        Descript. :
+        """
+        return (0, 1)
 
     def setLive(self, mode):
-	if mode:
-	    self.video.startLive()
+        """
+        Descript. :
+        """
+        return
+
+        if mode:
+            self.video.startLive()
+            self.change_owner()
         else:
-	    self.video.stopLive()
+            self.video.stopLive()
     
+    def change_owner(self):
+        """
+        Descript. :
+        """
+        if os.getuid() == 0:
+            try:
+                os.setgid(int(os.getenv("SUDO_GID")))
+                os.setuid(int(os.getenv("SUDO_UID")))
+            except:
+                logging.getLogger().warning('%s: failed to change the process ownership.', self.name())
+ 
     def getWidth(self):
-	return self.__imageDimensions[0]
+        """
+        Descript. :
+        """
+        return self.image_dimensions[0]
 	
     def getHeight(self):
-	return self.__imageDimensions[1]
+        """
+        Descript. :
+        """
+        return self.image_dimensions[1]
 
-    def _do_imagePolling(self, sleep_time):
-        while True:
-              self.newImage()
-              time.sleep(sleep_time)
+    def do_image_polling(self, sleep_time):
+        """
+        Descript. :
+        """
+        self.do_scaling = True 
+        while self.video.getLive():
+            self.get_new_image()
+            time.sleep(sleep_time)
 	     	
     def connectNotify(self, signal):
-	if signal=="imageReceived":
-            self.__imagePolling = gevent.spawn(self._do_imagePolling, self.getProperty("interval")/1000.0)
+        """
+        Descript. :
+        """
+        return
+        """if signal == "imageReceived" and self.image_polling is None:
+            self.image_polling = gevent.spawn(self.do_image_polling,
+                 self.getProperty("interval")/1000.0)"""
 
-    def newImage(self):
-	if self.video.getLive():
- 	    image = self.video.getLastImage()
-            qimage = None
-	    if image.frameNumber() > -1:
-      		raw_buffer = image.buffer()	
-			
-	        self.scaling.autoscale_plus_minus_sigma(raw_buffer,
-                                          image.width(), image.height(),
-                                          self.scalingType)
-                validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
-                                                                      image.width(), image.height(),
-                                                                      self.scalingType,
-                                                                      self.scaling)
-		if validFlag:
-                    if self.camMirror is not None:
-                        qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])     
-   	            self.emit("imageReceived", qimage, qimage.width(), qimage.height(), self.forceUpdate)
+    def refresh_video(self):
+        """
+        Descript. :
+        """
+        self.do_scaling = True
+
+    def get_new_image(self):
+        """
+        Descript. :
+        """
+        image = self.video.getLastImage()
+        if image.frameNumber() > -1:
+            raw_buffer = image.buffer()	
+            if self.do_scaling:
+                self.scaling.autoscale_min_max(raw_buffer,
+                     image.width(), image.height(), self.scaling_type)
+                self.do_scaling = False
+            valid_flag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
+                        image.width(),image.height(), self.scaling_type, self.scaling)
+            if valid_flag:
+                if self.cam_mirror is not None:
+                    qimage = qimage.mirror(self.cam_mirror[0], self.cam_mirror[1])     
+                self.emit("imageReceived", qimage, qimage.width(),
+                          qimage.height(), self.force_update)
+                return qimage
+
+    def take_snapshot(self, filename, bw=False):
+        """
+        Descript. :
+        """
+        try:   
+           qimage = self.get_new_image()
+           #TODO convert to grayscale
+           #if bw:
+           #    qimage.setNumColors(0)
+           qimage.save(filename, 'PNG')
+        except:
+           logging.getLogger().error("LimaVideo: unable to save snapshot: %s" %filename)
