@@ -1,6 +1,7 @@
 import sys
 import time
 import logging
+import math
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import *
 
@@ -43,7 +44,7 @@ class Energy(Equipment):
 
         try:
             self.tunable = self.getProperty("tunable_energy")
-        exceptKeyError :
+        except KeyError :
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
 
         try:
@@ -119,7 +120,7 @@ class Energy(Equipment):
 
         current_en = self.getCurrentEnergy()
         if current_en:
-            if abs(value - current_en) < 0.001:
+            if math.fabs(value - current_en) < 0.001:
                 self.moveEnergyCmdFinished(True)
         if self.checkLimits(value) is False:
             return False
@@ -171,7 +172,7 @@ class Energy(Equipment):
 
     def move_energy(self, energy, wait=True):
         current_en = self.getCurrentEnergy()
-        pos = abs(current_en - energy)
+        pos = math.fabs(current_en - energy)
         if pos < 0.001:
             logging.getLogger('user_level_log').debug("Energy: already at %g, not moving", energy)
         else:
