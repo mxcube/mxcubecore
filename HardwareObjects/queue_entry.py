@@ -1175,10 +1175,8 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
 
         qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumStarted',
                    self.xrf_spectrum_started)
-
         qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumFinished',
                    self.xrf_spectrum_finished)
-
         qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumFailed',
                    self.xrf_spectrum_failed)
 
