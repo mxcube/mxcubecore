@@ -1,12 +1,14 @@
+from AbstractMotor import AbstractMotor
 from HardwareRepository import BaseHardwareObjects
 import logging
 import math
 
-class Resolution(BaseHardwareObjects.HardwareObject):
+class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
     def __init__(self, *args, **kwargs):
+        AbstractMotor.__init__(self)
         BaseHardwareObjects.HardwareObject.__init__(self, *args, **kwargs)
 
-        self.get_value = self.getPosition
+        #self.get_value = self.getPosition
         self.valid = True
 
     def init(self):
@@ -51,7 +53,13 @@ class Resolution(BaseHardwareObjects.HardwareObject):
         self.det_radius =  min(self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y)
 
     def getWavelength(self):
-        return self.energy.getCurrentWavelength()
+        try:
+            return self.energy.getCurrentWavelength()
+        except:
+            current_en = self.energy.getPosition()
+            if current_en:
+                return (12.3984/current_en)
+            return None
 
     def res2dist(self, res=None):
         current_wavelength = self.getWavelength()
