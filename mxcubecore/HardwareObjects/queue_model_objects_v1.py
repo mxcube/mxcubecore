@@ -830,9 +830,9 @@ class EnergyScanResult(object):
         self.title = None
 
 
-class XRFScan(TaskNode):
+class XRFSpectrum(TaskNode):
     """
-    Descript. : Class represents XRF scan task
+    Descript. : Class represents XRF spectrum task
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
@@ -850,7 +850,7 @@ class XRFScan(TaskNode):
         else:
             self.path_template = path_template
 
-        self.result = XRFScanResult()
+        self.result = XRFSpectrumResult()
 
     def get_run_number(self):
         return self.path_template.run_number
@@ -883,7 +883,7 @@ class XRFScan(TaskNode):
     def set_collected(self, collected):
         return self.set_executed(collected)
 
-    def get_scan_result(self):
+    def get_spectrum_result(self):
         return self.result
 
     def copy(self):
@@ -896,7 +896,7 @@ class XRFScan(TaskNode):
                 new_node.centred_position.snapshot_image = snapshot_image_copy
         return new_node
 
-class XRFScanResult(object):
+class XRFSpectrumResult(object):
     def __init__(self):
         object.__init__(self)
         self.mca_data = None
