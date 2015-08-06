@@ -63,7 +63,7 @@ class MicrodiffAperture(MD2Motor):
         else:
             pos = pos
 
-        if self.aperture_inout.getActuatorState() is not 'in':
+        if self.aperture_inout.getActuatorState() != 'in':
             pos = self.predefinedPositions.__len__() - 1
 
         try:
@@ -82,7 +82,7 @@ class MicrodiffAperture(MD2Motor):
                 self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
             except:
                 logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName()))
-            if self.aperture_inout.getActuatorState() is not 'in':
+            if self.aperture_inout.getActuatorState() != 'in':
                 self.aperture_inout.actuatorIn(wait=True)
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
