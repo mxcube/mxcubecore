@@ -20,4 +20,5 @@
   <object href="/beamline-setup" role="beamline_setup"/>
   <object href="/queue" role="queue"/>
   <object href="/queue-model" role="queue_model"/>
+  <object href="/annealing" role="cryoshutter"/>
 </object>
