@@ -48,8 +48,11 @@ class Microdiff(MiniDiff.MiniDiff):
         return (1.0/self.x_calib.getValue(), 1.0/self.y_calib.getValue())
 
     def emitCentringSuccessful(self):
+        #check first if all the motors have stopped
+        self._wait_ready(10)
+
         # save position in MD2 software
-        self.getCommandObject("save_centring_positions")
+        self.getCommandObject("save_centring_positions")()
  
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
