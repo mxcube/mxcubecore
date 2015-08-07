@@ -91,7 +91,7 @@ class MD2Motor(AbstractMotor, Device):
             return dynamic_limits
         else:
             try:
-                low_lim,hi_lim = map(float, self.get_limits_cmd(self.motor_name))
+                low_lim,hi_lim = map(float, self.get_dynamic_limits_cmd(self.motor_name))
                 if low_lim==float(1E999) or hi_lim==float(1E999):
                     raise ValueError
                 return low_lim, hi_lim
@@ -99,7 +99,6 @@ class MD2Motor(AbstractMotor, Device):
                 return (-1E4, 1E4)
 
     def getLimits(self):
-
         try:
             low_lim,hi_lim = map(float, self.get_limits_cmd(self.motor_name))
             if low_lim==float(1E999) or hi_lim==float(1E999):
@@ -110,14 +109,14 @@ class MD2Motor(AbstractMotor, Device):
 
     def motorPositionChanged(self, absolutePosition, private={}):
         if abs(absolutePosition - private.get("old_pos", 1E12))<=self.motor_resolution:
-          return
+            return
         private["old_pos"]=absolutePosition
 
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
         if self.getState() != MD2Motor.NOTINITIALIZED:
-          return self.position_attr.getValue()
+            return self.position_attr.getValue()
 
     def getDialPosition(self):
         return self.getPosition()
