@@ -1,8 +1,9 @@
 from ESRFMultiCollect import *
+from detectors.TacoMar import Mar225
 
 class BM14MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, CcdDetector(), TunableEnergy())
+        ESRFMultiCollect.__init__(self, name, CcdDetector(Mar225), TunableEnergy())
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -18,10 +19,14 @@ class BM14MultiCollect(ESRFMultiCollect):
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
 
-
     def get_detector_distance(self):
         return self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition())
 
+    def get_undulators_gaps(self):
+        return []
+
+    def generate_image_jpeg(self, *args, **kwargs):
+        return
 
     def get_flux(self):
         return 0 
