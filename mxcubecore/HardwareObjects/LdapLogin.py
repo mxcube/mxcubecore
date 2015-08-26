@@ -1,3 +1,8 @@
+"""
+This module serves to connect to and Ldap server.
+
+It works in principle for both the ESRF and Soleil Proxima beamlines
+"""
 from HardwareRepository.BaseHardwareObjects import Procedure
 import logging
 import ldap
@@ -6,6 +11,7 @@ import ldap
 <procedure class="LdapLogin">
   <ldaphost>ldaphost.mydomain</ldaphost>
   <ldapport>389</ldapport>
+  <ldapdomain>example.com</ldapdomain>
 </procedure>
 """
 
@@ -19,11 +25,13 @@ class LdapLogin(Procedure):
 
     # Initializes the hardware object
     def init(self):
-        ldaphost=self.getProperty('ldaphost')
+        ldaphost = self.getProperty('ldaphost')
+        ldapport = self.getProperty('ldapport')
+        domain   = self.getProperty('ldapdomain')
+
         if ldaphost is None:
             logging.getLogger("HWR").error("LdapLogin: you must specify the LDAP hostname")
         else:
-            ldapport=self.getProperty('ldapport')
 
             if ldapport is None:
                 logging.getLogger("HWR").debug("LdapLogin: connecting to LDAP server %s",ldaphost)
@@ -31,6 +39,20 @@ class LdapLogin(Procedure):
             else:
                 logging.getLogger("HWR").debug("LdapLogin: connecting to LDAP server %s:%s",ldaphost,ldapport)
                 self.ldapConnection=ldap.open(ldaphost,int(ldapport))
+
+            logging.getLogger("HWR").debug("LdapLogin: got connection %s" % str(self.ldapConnection))
+
+        if domain is not None:
+            domparts = domain.split(".")
+            domstr = ""
+            comma = ""
+            for part in domparts:
+                 domstr += "%sdc=%s" %(comma,part)
+                 comma   = ","
+            self.domstr = domstr
+            logging.getLogger("HWR").debug("LdapLogin: got connection %s" % str(self.ldapConnection))
+        else:
+            self.domstr = "dc=esrf,dc=fr" # default is esrf.fr
 
     # Creates a new connection to LDAP if there's an exception on the current connection
     def reconnect(self):
@@ -64,10 +86,12 @@ class LdapLogin(Procedure):
         if self.ldapConnection is None:
             return self.cleanup(msg="no LDAP server configured")
 
-        logging.getLogger("HWR").debug("LdapLogin: searching for %s" % username)
+        logging.getLogger("HWR").debug("LdapLogin: searching for %s / %s" % (username, self.domstr))
         try:
-            found=self.ldapConnection.search_s("ou=People,dc=esrf,dc=fr",\
-                ldap.SCOPE_ONELEVEL,"uid="+username,["uid"])
+            #search_str = "ou=People,"+self.domstr
+            search_str = self.domstr
+            #found=self.ldapConnection.search_s(search_str, ldap.SCOPE_ONELEVEL,"uid="+username,["uid"])
+            found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,["uid"])
         except ldap.LDAPError,err:
             if retry:
                 self.cleanup(ex=err)
@@ -81,7 +105,10 @@ class LdapLogin(Procedure):
             return self.cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("LdapLogin: validating %s" % username)
-        handle=self.ldapConnection.simple_bind("uid=%s,ou=people,dc=esrf,dc=fr" % username,password)
+        #bind_str = "uid=%s, ou=people,%s" % (username, self.domstr)
+        bind_str = "uid=%s,%s" % (username, self.domstr)
+        logging.getLogger("HWR").debug("LdapLogin: binding to %s / %s" % (bind_str, password))
+        handle=self.ldapConnection.simple_bind(bind_str,password)
         try:
             result=self.ldapConnection.result(handle)
         except ldap.INVALID_CREDENTIALS:
