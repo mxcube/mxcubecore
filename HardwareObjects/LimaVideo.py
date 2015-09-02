@@ -32,9 +32,14 @@ class LimaVideo(BaseHardwareObjects.Device):
         except:
           self.camMirror = None
 
+        try:
+          monitor = self.getProperty("monitor")
+        except:
+          monitor = False
+
 	if self.camType == 'prosilica':
 	    from Lima import Prosilica
-	    self.camera = Prosilica.Camera(self.camAddress)
+	    self.camera = Prosilica.Camera(self.camAddress, not monitor)
             self.interface = Prosilica.Interface(self.camera)	
         if self.camType == 'simulation':
             from Lima import Simulator
@@ -43,7 +48,8 @@ class LimaVideo(BaseHardwareObjects.Device):
         try:
 	    self.control = Core.CtControl(self.interface)
 	    self.video = self.control.video()
-	    self.video.setExposure(self.getProperty("interval")/1000.0)	
+            if not monitor:
+  	        self.video.setExposure(self.getProperty("interval")/1000.0)	
 	    self.__imageDimensions = self.camera.getMaxWidthHeight()
         except KeyError:
             logging.getLogger().warning('%s: not initialized. Check camera settings', self.name())
