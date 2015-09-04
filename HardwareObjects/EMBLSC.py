@@ -62,9 +62,9 @@ class EMBLSC(SampleChanger):
             basket = Basket(self,i+1)
             self._addComponent(basket)
 
-        self.chan_puck_switches = self.getChannelObject("chanPuckSwitches")       
+        """self.chan_puck_switches = self.getChannelObject("chanPuckSwitches")       
         self.chan_selected_puck = self.getChannelObject("chanSelectedPuck")
-        self.chan_selected_sample = self.getChannelObject("chanSelectedSample") 
+        self.chan_selected_sample = self.getChannelObject("chanSelectedSample") """
  
         """self.chan_status = self.getChannelObject("chanStatus")
         self.chan_door_switch = self.getChannelObject("chanDoorSwitch") 
@@ -139,7 +139,7 @@ class EMBLSC(SampleChanger):
         # updates the selected component directly:
         # self._updateSelection()
         self._updateState()               
-        self._updateLoadedSample()
+        #self._updateLoadedSample()
                     
     def _doChangeMode(self,mode):
         """
@@ -445,7 +445,7 @@ class EMBLSC(SampleChanger):
         :rtype: None
         """
 
-        loadedSampleLid = 0
+        loadedSampleLid = 1
         loadedSampleNum = 1
         #loadedSampleLid = self._chnLidLoadedSample.getValue()
         #loadedSampleNum = self._chnNumLoadedSample.getValue()
@@ -587,7 +587,9 @@ class EMBLSC(SampleChanger):
         :rtype: None
         """
         #self._extractStatus()
-        puck_switches = int(self.chan_puck_switches.getValue())
+        #puck_switches = int(self.chan_puck_switches.getValue())
+        #IK TODO
+        puck_switches = -1
         for basket_index in range(EMBLSC.NO_OF_BASKETS):            
             basket=self.getComponents()[basket_index]
             if puck_switches & pow(2, basket_index) > 0:
@@ -629,6 +631,7 @@ class EMBLSC(SampleChanger):
           isSample : SmpleYes, SmplNo 
         """
         return 
+        #IK TODO 
         status_string = self.chan_status.getValue() 
         status_dict = {}
         status_list = status_string.split("|")
