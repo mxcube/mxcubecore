@@ -125,6 +125,7 @@ class MiniDiff(Equipment):
         self.imgHeight = None
         self.centredTime = 0
         self.user_confirms_centring = True
+        self.do_centring = True
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -389,6 +390,14 @@ class MiniDiff(Equipment):
 
 
     def startCentringMethod(self,method,sample_info=None):
+        if not self.do_centring:
+            self.emitCentringStarted(method)
+            def fake_centring_procedure():
+              return { "motors": {}, "method":method, "valid":True }
+            self.currentCentringProcedure = gevent.spawn(fake_centring_procedure)
+            self.emitCentringSuccessful()
+            return
+
         if self.currentCentringMethod is not None:
             logging.getLogger("HWR").error("MiniDiff: already in centring method %s" % self.currentCentringMethod)
             return
