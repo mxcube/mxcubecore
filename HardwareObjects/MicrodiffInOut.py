@@ -36,7 +36,7 @@ class MicrodiffInOut(Device):
         self.state_attr = self.addChannel({"type":"exporter", "name":"state" }, self.statecmdname)
         self.state_attr.connectSignal("update", self.valueChanged)
 
-        self.states = {"true":"in", "false":"out"}
+        self.states = {True:"in", False:"out"}
         self.offset = self.getProperty("offset")
         if self.offset > 0:
             self.states = {self.offset:"out", self.offset-1:"in",}
