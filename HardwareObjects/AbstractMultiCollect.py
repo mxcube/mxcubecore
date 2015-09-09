@@ -403,7 +403,6 @@ class AbstractMultiCollect(object):
     def write_input_files(self, collection_id):
         pass
 
-    @task
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
@@ -453,7 +452,7 @@ class AbstractMultiCollect(object):
         self.xds_directory, self.mosflm_directory, self.hkl2000_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
         data_collect_parameters['xds_dir'] = self.xds_directory
 
-	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
+        sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
 
         if self.bl_control.sample_changer is not None:
@@ -474,17 +473,43 @@ class AbstractMultiCollect(object):
             data_collect_parameters["actualSampleBarcode"] = None
             data_collect_parameters["actualContainerBarcode"] = None
 
-        motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
-        # this is for the LIMS
-        positions_str = " ".join([motor+"="+("None" if pos is None else "%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
-        data_collect_parameters['actualCenteringPosition'] = positions_str
-        ###
-        self.move_motors(motors_to_move_before_collect)
+        centring_info = {}
+        try:
+            logging.getLogger("user_level_log").info("Getting centring status")
+            centring_status = self.diffractometer().getCentringStatus()
+        except:
+            pass
+        else:
+            centring_info = dict(centring_status)
 
+        #Save sample centring positions
+        positions_str = ""
+        motors = centring_info.get("motors", {}) #.update(centring_info.get("extraMotors", {}))
+
+        motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
+        for motor, pos in motors.iteritems():
+              if motor in motors_to_move_before_collect:
+                  continue
+              motors_to_move_before_collect[motor]=pos
+
+        current_diffractometer_position = self.diffractometer().getPositions()
+        for motor in motors_to_move_before_collect.keys():
+            if motors_to_move_before_collect[motor] is None:
+                del motors_to_move_before_collect[motor]
+                if current_diffractometer_position[motor] is not None:
+                    positions_str += "%s=%f " % (motor, current_diffractometer_position[motor])
+
+        # this is for the LIMS
+        positions_str += " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
+        data_collect_parameters['actualCenteringPosition'] = positions_str
+
+        self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to centring_info variable
+        logging.getLogger("user_level_log").info("Taking sample snapshosts")
         self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
+        logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
         self.move_motors(motors_to_move_before_collect)
 
         if self.bl_control.lims:
@@ -545,6 +570,12 @@ class AbstractMultiCollect(object):
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         sample_id = data_collect_parameters['blSampleId']
         subwedge_size = oscillation_parameters.get("reference_interval", 1)
+
+        #if data_collect_parameters["shutterless"]:
+        #    subwedge_size = 1 
+        #else:
+        #    subwedge_size = oscillation_parameters["number_of_images"]
+       
         wedges_to_collect = self.prepare_wedges_to_collect(oscillation_parameters["start"],
                                                            oscillation_parameters["number_of_images"],
                                                            oscillation_parameters["range"],
@@ -725,23 +756,20 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-			  while self.last_image_saved() == 0:
-                            time.sleep(exptime)
+                          with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+   			      while self.last_image_saved() == 0:
+                                  time.sleep(exptime)
                           
-                          time.sleep(exptime*wedge_size/100.0)
                           last_image_saved = self.last_image_saved()
                           frame = max(start_image_number+1, start_image_number+last_image_saved-1)
                           self.emit("collectImageTaken", frame)
-                          new_j = wedge_size - last_image_saved
-                          if new_j < 1 and j > 1:
-                              # make sure to do finalization
-                              j = 1
-                          else:
-                              j = new_j
+                          j = wedge_size - last_image_saved
                       else:
                           j -= 1
                           self.emit("collectImageTaken", frame)
                           frame += 1
+                          if j == 0:
+                            break
 
                 
     @task
