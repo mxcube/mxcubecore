@@ -33,6 +33,9 @@ class RobodiffMotorWPositions(RobodiffMotor):
 
             self.sortPredefinedPositionsList()
 
+    def getPositionsData(self):
+        return self["positions"]
+
     def connectNotify(self, signal):
         RobodiffMotor.connectNotify(self, signal)
 
@@ -45,14 +48,12 @@ class RobodiffMotorWPositions(RobodiffMotor):
                 self.emit(signal, ('', None))
             else:
                 self.emit(signal, (positionName, pos))
-        elif signal == 'stateChanged':
-            self.emit(signal, (self.getState(), ))
             
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
 	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y]))) 
         
-    def updateState(self, state=None):
+    def updateState(self, state=None, emit=False):
        RobodiffMotor.updateState(self, state)
        
        if self.motorState==RobodiffMotor.READY: 

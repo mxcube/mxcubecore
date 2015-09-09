@@ -349,9 +349,12 @@ class Basket(TaskNode):
         return self.get_is_present()
 
     def init_from_sc_basket(self, sc_basket):
-        self.location = sc_basket[0]
-        self.name = "Puck %d" % self.location
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
+        self.location = self._basket_object.getCoords() #sc_basket[0]
+        if len(self.location) == 2:
+            self.name = "Cell %d, puck %d" % self.location
+        else:
+            self.name = "Puck %d" % self.location
 
     def get_name(self):
         return self.name
@@ -961,8 +964,13 @@ class Acquisition(object):
 
 class PathTemplate(object):
     @staticmethod
+    def set_data_base_path(base_directory):
+        # os.path.abspath returns path without trailing slash, if any
+        # eg. '/data/' => '/data'.
+        PathTemplate.base_directory = os.path.abspath(base_directory)
+    @staticmethod
     def set_archive_path(archive_base_directory, archive_folder):
-        PathTemplate.archive_base_directory = archive_base_directory
+        PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
         PathTemplate.archive_folder = archive_folder
 
     def __init__(self):
@@ -1019,25 +1027,24 @@ class PathTemplate(object):
         :returns: Archive directory.
         :rtype: str
         """
-
         # TODO make this more general. Add option to enable/disable archive
         # Also archive path template needs to be defined in xml
-
-        folders = self.directory.split('/')
+        directory = self.directory[len(PathTemplate.base_directory):]
+        folders = directory.split('/') 
         endstation_name = None
         
         if 'visitor' in folders:
-            endstation_name = folders[4]
-            folders[2] = PathTemplate.archive_folder
-            temp = folders[3]
-            folders[3] = folders[4]
-            folders[4] = temp
+            endstation_name = folders[3]
+            folders[1] = PathTemplate.archive_folder
+            temp = folders[2]
+            folders[2] = folders[3]
+            folders[3] = temp
         else:
-            endstation_name = folders[2]
-            folders[2] = PathTemplate.archive_folder
-            folders[3] = endstation_name
+            endstation_name = folders[1]
+            folders[1] = PathTemplate.archive_folder
+            folders[2] = endstation_name
 
-        archive_directory = os.path.join(os.path.join(PathTemplate.archive_base_directory, *folders[2:]))
+        archive_directory = os.path.join(PathTemplate.archive_base_directory, *folders[1:])
 
         return archive_directory
 
@@ -1141,7 +1148,7 @@ class CentredPosition(object):
         self.index = None
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
-           setattr(self, motor_name, 0)
+           setattr(self, motor_name, None)
 
         if motor_dict is not None:
           for motor_name, position in motor_dict.iteritems():
@@ -1155,7 +1162,16 @@ class CentredPosition(object):
         return str(self.as_dict())
 
     def __eq__(self, cpos):
-        return all([abs(getattr(self, motor_name) - getattr(cpos, motor_name))<=CentredPosition.MOTOR_POS_DELTA for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES])
+        eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES)*[False]
+        for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
+            self_pos = getattr(self, motor_name)
+            cpos_pos = getattr(cpos, motor_name)
+            eq[i] = self_pos == cpos_pos
+            if None in (self_pos, cpos_pos):
+               continue 
+            if not eq[i]:
+                eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
+        return all(eq)
 
     def __ne__(self, cpos):
         return not (self == cpos)

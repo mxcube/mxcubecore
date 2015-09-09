@@ -210,6 +210,13 @@ def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
 
   info, x, y = lucid.find_loop(snapshot_filename, debug=False,pixels_per_mm_horizontal=pixelsPerMm_Hor, chi_angle=chi_angle)
   
+ 
+  try:
+    x = float(x)
+    y = float(y)
+  except Exception:
+    return -1, -1
+ 
   if callable(msg_cb):
     msg_cb("Loop found: %s (%d, %d)" % (info, x, y))
   if callable(new_point_cb):
@@ -254,11 +261,12 @@ def auto_center(camera,
             x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb) 
             #logging.info("in autocentre, x=%f, y=%f",x,y)
             if x < 0 or y < 0:
-              for i in range(1,5):
-                logging.debug("loop not found - moving back")
-                phi.syncMoveRelative(-20)
-                xold, yold = x, y
+              for i in range(1,18):
+                #logging.info("loop not found - moving back %d" % i)
+                phi.syncMoveRelative(5)
                 x, y = find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb)
+                if -1 in (x, y):
+                    continue
                 if x >=0:
                   if y < imgHeight/2:
                     y = 0
@@ -272,12 +280,10 @@ def auto_center(camera,
                         new_point_cb((x,y))
                     user_click(x,y,wait=True)
                     break
-                if i == 4:
-                  logging.debug("loop not found - trying with last coordinates")
-                  if callable(new_point_cb):
-                      new_point_cb((xold,yold))
-                  user_click(xold, yold, wait=True)
-              phi.syncMoveRelative(i*20)
+              if -1 in (x,y):
+                centring_greenlet.kill()
+                raise RuntimeError("Could not centre sample automatically.")
+              phi.syncMoveRelative(-i*5)
             else:
               user_click(x,y,wait=True)
 
