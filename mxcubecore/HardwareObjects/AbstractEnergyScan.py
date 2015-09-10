@@ -99,7 +99,6 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     @task
     def calculate_und_gaps(self, energy):
         """
