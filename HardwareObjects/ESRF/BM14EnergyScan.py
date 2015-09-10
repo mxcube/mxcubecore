@@ -8,7 +8,6 @@ class BM14EnergyScan(ESRFEnergyScan):
     @task
     def energy_scan_hook(self, energy_scan_parameters):
         self.energy = energy_scan_parameters["edgeEnergy"]
-        self.move_undulators(self.calculate_und_gaps(self.energy, "u21d"))
         if self.energy_scan_parameters['findattEnergy']:
             ESRFEnergyScan.move_energy(self,energy_scan_parameters['findattEnergy'])
 
@@ -16,16 +15,15 @@ class BM14EnergyScan(ESRFEnergyScan):
     def move_undulators(self, gaps):
         return
       
-    def calculate_und_gaps(self, energy, undulator="u21d"):
-        return {}
-
     @task
     def set_mca_roi(self, eroi_min, eroi_max):
         self.execute_command("calculateMcaRoi",eroi_min, eroi_max)
 
     @task
     def choose_attenuation(self):
-        self.execute_command("chooseAttenuation")
+        if self.execute_command("chooseAttenuation") == -1:
+            logging.getLogger("user_level_log").error("Cannot find appropriate attenuation")
+            raise RuntimeError("Cannot find appropriate attenuation")
         self.energy_scan_parameters["transmissionFactor"] = self.transmission.getAttFactor()
 
     @task
