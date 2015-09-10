@@ -210,6 +210,8 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         gevent.spawn(StoreEnergyScanThread, self.dbConnection,self.energy_scan_parameters)
 
     def doChooch(self, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
+        self.energy_scan_parameters['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+
         symbol = "_".join((elt, edge))
         scanArchiveFilePrefix = "_".join((scanArchiveFilePrefix, symbol))
 
@@ -337,7 +339,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         except:
           logging.getLogger("HWR").exception("could not save figure")
 
-        self.energy_scan_parameters['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         self.storeEnergyScan()
 
         logging.getLogger("HWR").info("<chooch> returning" )
