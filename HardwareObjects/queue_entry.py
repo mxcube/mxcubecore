@@ -950,6 +950,12 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
 
+class AdvancedScanQueueEntry(DataCollectionQueueEntry):
+    """
+    Defines the behaviour of a characterisation
+    """
+    def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
+        DataCollectionQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
 class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
@@ -1373,6 +1379,7 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
      queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
+     queue_model_objects.AdvancedScan: AdvancedScanQueueEntry,
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
