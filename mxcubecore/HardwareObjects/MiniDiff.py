@@ -244,6 +244,8 @@ class MiniDiff(Equipment):
             self.connect(self.aperture, 'predefinedPositionChanged', self.apertureChanged)
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
 
+        #Agree on a correct method name
+        self.move_to_coord = self.moveToBeam()
 
     def save_snapshot(self, filename):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
