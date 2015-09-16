@@ -218,7 +218,7 @@ class ExporterChannel(ChannelObject):
         self.update()
 
     def update(self, value = None):
-        value = self.getValue()
+        value = value or self.getValue()
         if type(value) == types.TupleType:
             value = list(value)
 
