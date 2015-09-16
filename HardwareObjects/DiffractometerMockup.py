@@ -199,7 +199,7 @@ class DiffractometerMockup(Equipment):
 	self._drawing = drawing
 
     def use_sample_changer(self):
-        return True
+        return False
 
     def in_plate_mode(self):
         #currently not used for mockup version
