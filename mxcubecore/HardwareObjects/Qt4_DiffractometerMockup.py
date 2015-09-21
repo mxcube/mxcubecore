@@ -25,18 +25,20 @@ import tempfile
 import gevent
 import random
 
+import lucid2
+
 import queue_model_objects_v1 as qmo
 
 from gevent.event import AsyncResult
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 last_centred_position = [200, 200]
 
 
-class Qt4_DiffractometerMockup(Equipment):
+class Qt4_DiffractometerMockup(HardwareObject):
     """
     Descript. :
     """
@@ -48,18 +50,11 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        Equipment.__init__(self, *args)
+        HardwareObject.__init__(self, *args)
 
-        qmo.CentredPosition.set_diffractometer_motor_names("phi",
-                                                           "focus",
-                                                           "phiz",
-                                                           "phiy",
-                                                           "zoom",
-                                                           "sampx",
-                                                           "sampy",
-                                                           "kappa",
-                                                           "kappa_phi")
-
+        qmo.CentredPosition.set_diffractometer_motor_names(\
+            "phi", "focus", "phiz", "phiy", "zoom",
+            "sampx", "sampy", "kappa", "kappa_phi")
         self.phiMotor = None
         self.phizMotor = None
         self.phiyMotor = None
@@ -68,7 +63,6 @@ class Qt4_DiffractometerMockup(Equipment):
         self.sampleXMotor = None
         self.sampleYMotor = None
         self.camera = None
-        self.beam_info_hwobj = None
 
         self.beam_position = None
         self.x_calib = None
@@ -93,10 +87,14 @@ class Qt4_DiffractometerMockup(Equipment):
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)
 
         #IK - this will be sorted out
-        self.startCentringMethod = self.start_centring_method 
+        self.startCentringMethod = self.start_centring_method
+        self.cancelCentringMethod = self.cancel_centring_method
         self.imageClicked = self.image_clicked
         self.acceptCentring = self.accept_centring
         self.rejectCentring = self.reject_centring
+        self.getCentringStatus = self.get_centring_status
+        self.takeSnapshots = self.take_snapshots
+        self.moveMotors = self.move_motors
 
     def init(self):
         """
@@ -117,6 +115,7 @@ class Qt4_DiffractometerMockup(Equipment):
                                        'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
                                        'focus' : 0, 'kappa': 0, 'kappa_phi': 0,
                                        'beam_x': 0, 'beam_y': 0} 
+        self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
         self.user_confirms_centring = True
@@ -128,24 +127,40 @@ class Qt4_DiffractometerMockup(Equipment):
         self.equipmentReady()
         self.user_clicked_event = AsyncResult()
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        #self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
-        #                        getHardwareObject(self.getProperty("beam_info"))
-        if self.beam_info_hwobj is not None:
-            self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
-        else:
-            logging.getLogger("HWR").debug('Minidiff: Beaminfo is not defined')
+        self.phi_motor_hwobj = self.getObjectByRole('phi')
+        if self.phi_motor_hwobj is not None:
+            self.connect(self.phi_motor_hwobj, 'stateChanged', self.phi_motor_state_changed)
+            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
+
+        self.reversing_rotation = self.getProperty("reversingRotation")
+        try:
+            self.grid_direction = eval(self.getProperty("gridDirection"))
+        except:
+            self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
 
         try:
             self.phase_list = eval(self.getProperty("phaseList"))
         except:
             self.phase_list = ['demo']
 
+
     def getStatus(self):
         """
         Descript. :
         """
         return "ready"
+
+    def in_plate_mode(self):
+        return True
+
+    def is_reversing_rotation(self):
+        return True
+
+    def get_grid_direction(self):
+        """
+        Descript. :
+        """
+        return self.grid_direction
 
     def manual_centring(self):
         """
@@ -198,6 +213,22 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         self.emit('minidiffNotReady', ())
 
+    def phi_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.current_positions_dict["phi"] = pos
+        self.emit_diffractometer_moved()
+        self.emit("phiMotorMoved", pos)
+        #self.emit('stateChanged', (self.current_state_dict["phi"], ))
+
+    def phi_motor_state_changed(self, state):
+        """
+        Descript. :
+        """
+        self.current_state_dict["phi"] = state
+        self.emit('stateChanged', (state, ))
+
     def invalidate_centring(self):
         """
         Descript. :
@@ -213,9 +244,9 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         random_num = random.random() 
         centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009,
-                         ' kappa_phi': 311.0}
+                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                          'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009,
+                          'kappa_phi': 311.0}
         return centred_pos_dir
 
     def get_available_centring_methods(self):
@@ -356,7 +387,6 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        print "minidiff move_to_pos: ", centred_pos 
         time.sleep(1)
    
     def moveToCentredPosition(self, centred_position, wait = False):
@@ -372,7 +402,6 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        print "image_clicked: ",x ,y 
         self.user_clicked_event.set((x, y))
 	
     def emit_cetring_started(self, method):
@@ -380,7 +409,7 @@ class Qt4_DiffractometerMockup(Equipment):
         Descript. :
         """
         self.current_centring_method = method
-        self.emit('centringStarted', (method, False))
+        self.emit('centringStarted', method, False)
 
     def accept_centring(self):
         """
@@ -427,14 +456,13 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        print self.current_centring_procedure
         if self.current_centring_procedure is not None:
             curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.centring_status["endTime"] = curr_time
             random_num = random.random()
             motors = {'phiy': random_num * 10,  'phiz': random_num*20,
                       'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53, 'phi': 311.1, 
-		      'focus': -0.42, 'kappa': 0.0009, ' kappa_phi': 311.0}
+		      'focus': -0.42, 'kappa': 0.0009, 'kappa_phi': 311.0}
 
             motors["beam_x"] = 0.1
             motors["beam_y"] = 0.1
@@ -493,6 +521,7 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
+        self.emit("minidiffStateChanged", 'testState')
         if self.beam_info_hwobj: 
             self.beam_info_hwobj.beam_pos_hor_changed(300) 
             self.beam_info_hwobj.beam_pos_ver_changed(200)
@@ -507,10 +536,12 @@ class Qt4_DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        print "move_to_coord: ", x, y 
+        return
+
+    def move_motors(self, motors_dict):
         return
      
-    def start_2D_centring(self):
+    def start_2D_centring(self, coord_x=None, coord_y=None, omega=None):
         """
         Descript. :
         """
@@ -537,8 +568,8 @@ class Qt4_DiffractometerMockup(Equipment):
         centred_images = []
         for index in range(image_count):
             logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", index + 1)
-            centred_images.append((0, str(myimage(drawing))))
-            centred_images.reverse() 
+            #centred_images.append((0, str(myimage(drawing))))
+            #centred_images.reverse() 
         return centred_images
 
     def take_snapshots(self, image_count, wait = False):
@@ -572,7 +603,7 @@ class Qt4_DiffractometerMockup(Equipment):
 
     def update_values(self):
         self.emit('zoomMotorPredefinedPositionChanged', None, None)
-        omega_ref = [100, 0]
+        omega_ref = [300, 0]
         self.emit('omegaReferenceChanged', omega_ref)
 
     def get_phase_list(self):
