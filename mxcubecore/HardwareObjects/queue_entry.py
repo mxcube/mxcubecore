@@ -415,6 +415,7 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
+        self.plate_manipulator_hwobj = None
         self.sample_centring_result = None
 
     def execute(self):
@@ -424,11 +425,14 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if self.sample_changer_hwobj is not None:
+            if self.diffractometer_hwobj.in_plate_mode():
+                mount_device = self.plate_manipulator_hwobj
+            else:
+                mount_device = self.sample_changer_hwobj
+            if mount_device is not None:
                 log.info("Loading sample " + self._data_model.loc_str)
 
-                sample_mounted = self.sample_changer_hwobj.\
-                                 is_mounted_sample(self._data_model.location)
+                sample_mounted = mount_device.is_mounted_sample(self._data_model.location)
 
                 if not sample_mounted:
                     self.sample_centring_result = gevent.event.AsyncResult()
@@ -464,6 +468,7 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
@@ -1091,8 +1096,6 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         except:
             pass
 
-        #energy_scan.result = sample.crystals[0].energy_scan_result
-
         logging.getLogger("user_level_log").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
                  (sample.crystals[0].energy_scan_result.peak,
@@ -1317,48 +1320,60 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
     loc = data_model.location
     holder_length = data_model.holder_length
 
-    if hasattr(beamline_setup_hwobj.sample_changer_hwobj, '__TYPE__')\
-       and (beamline_setup_hwobj.sample_changer_hwobj.__TYPE__ == 'CATS'):
-        element = '%d:%02d' % loc
-        beamline_setup_hwobj.sample_changer_hwobj.load(sample=element, wait=True)
+    # This is a possible solution how to deal with two devices that
+    # can move sample on beam (sample changer, plate holder, in future 
+    # also harvester)
+    # TODO make sample_Changer_one, sample_changer_two
+    if beamline_setup_hwobj.diffractometer_hwobj.in_plate_mode():
+        sample_mount_device = beamline_setup_hwobj.plate_manipulator_hwobj
     else:
-        if beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
-                                                              sample_location=loc,
-                                                              wait=True) == False:
+        sample_mount_device = beamline_setup_hwobj.sample_changer_hwobj
+
+    if hasattr(sample_mount_device, '__TYPE__'):
+        if sample_mount_device.__TYPE__ in ['Marvin','CATS']:
+            element = '%d:%02d' % loc
+            sample_mount_device.load(sample=element, wait=True)
+        elif sample_mount_device.__TYPE__ == "PlateManipulator":
+            element = '%s%d:%d' % (chr(65 + loc[0]), loc[1], loc[2])
+            sample_mount_device.load(sample=element, wait=True)
+    else:
+        if sample_mount_device.load_sample(holder_length, sample_location=loc, wait=True) == False:
             # WARNING: explicit test of False return value.
             # This is to preserve backward compatibility (load_sample was supposed to return None);
             # if sample could not be loaded, but no exception is raised, let's skip the sample
             raise QueueSkippEntryException("Sample changer could not load sample", "")
 
-    dm = beamline_setup_hwobj.diffractometer_hwobj
+    if not sample_mount_device.hasLoadedSample():
+        #Disables all related collections
+        view.setOn(False)
+        raise QueueSkippEntryException("Sample not loaded", "")
+    else:
+        dm = beamline_setup_hwobj.diffractometer_hwobj
+        if dm is not None:
+            try:
+                dm.connect("centringAccepted", centring_done_cb)
+                centring_method = view.listView().parent().\
+                                  centring_method
+                if centring_method == CENTRING_METHOD.MANUAL:
+                    log.warning("Manual centring used, waiting for" +\
+                                " user to center sample")
+                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
+                elif centring_method == CENTRING_METHOD.LOOP:
+                    dm.startCentringMethod(dm.C3D_MODE)
+                    log.warning("Centring in progress. Please save" +\
+                                " the suggested centring or re-center")
+                elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+                    log.info("Centring sample, please wait.")
+                    dm.startCentringMethod(dm.C3D_MODE)
+                else:
+                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
-    if dm is not None:
-        try:
-            dm.connect("centringAccepted", centring_done_cb)
-            centring_method = view.listView().parent().\
-                              centring_method
-                  
-            if centring_method == CENTRING_METHOD.MANUAL:
-                log.warning("Manual centring used, waiting for" +\
-                            " user to center sample")
-                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
-            elif centring_method == CENTRING_METHOD.LOOP:
-                dm.startCentringMethod(dm.C3D_MODE)
-                log.warning("Centring in progress. Please save" +\
-                            " the suggested centring or re-center")
-            elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                log.info("Centring sample, please wait.")
-                dm.startCentringMethod(dm.C3D_MODE)
-            else:
-                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
-
-            view.setText(1, "Centring !")
-            async_result.get()
-            view.setText(1, "Centring done !")
-            log.info("Centring saved")
-        finally:
-            dm.disconnect("centringAccepted", centring_done_cb)
-
+                view.setText(1, "Centring !")
+                async_result.get()
+                view.setText(1, "Centring done !")
+                log.info("Centring saved")
+            finally:
+                dm.disconnect("centringAccepted", centring_done_cb)
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
