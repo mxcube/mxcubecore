@@ -1,12 +1,9 @@
 from ESRFMultiCollect import *
 from detectors.LimaPilatus import Pilatus
 import gevent
-import socket
 import shutil
 import logging
 import os
-import gevent
-#import cPickle as pickle
 
 class ID30BMultiCollect(ESRFMultiCollect):
     def __init__(self, name):
@@ -57,44 +54,30 @@ class ID30BMultiCollect(ESRFMultiCollect):
         return not any([m.motorIsMoving() for m in motors])
 
     @task
-    def preliminary_move_motors(self, motors_to_move_dict):
-        diffr = self.getObjectByRole("diffractometer")
-        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
-
-    @task
     def move_motors(self, motors_to_move_dict):
-        """
-        def wait_ready(timeout=None):
-            with gevent.Timeout(timeout):
-                while not self.ready(*motors_to_move_dict.keys()):
-                    time.sleep(0.1)
-
-        wait_ready(timeout=30)
-
-        if not ready(*motors_to_move_dict.keys()):
-            raise RuntimeError("Motors not ready")
-
-        for motor, position in motors_to_move_dict.iteritems():
-            motor.move(position)
-  
-        wait_ready()
-        """
-  
         diffr = self.getObjectByRole("diffractometer")
-        diffr.moveToPhase("DataCollection", wait=True, timeout=200)
-        logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         cover_task = self.getObjectByRole("khoros").detcover.set_out()
+        try:
+            motors_to_move_dict.pop('kappa')
+            motors_to_move_dict.pop('kappa_phi')
+        except:
+            pass
         diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
-        #cover_task.get()
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
+        diffr = self.getObjectByRole("diffractometer")
+        #move to DataCollection phase
+        if diffr.getPhase() != "DataCollection":
+            logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
+            diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
-        self.getObjectByRole("diffractometer").getObjectByRole("flight").move(2)
+        diffr.getObjectByRole("flight").move(2)
+        #take the back light out
+        diffr.getObjectByRole("lightInOut").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass):
-        print "------------->", exptime
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
@@ -113,7 +96,6 @@ class ID30BMultiCollect(ESRFMultiCollect):
         self.helical = helical_on
 
     def set_helical_pos(self, helical_oscil_pos):
-        #import pdb; pdb.set_trace()
         self.helical_pos = helical_oscil_pos
 
     def set_transmission(self, transmission):
