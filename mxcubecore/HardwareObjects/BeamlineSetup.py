@@ -17,7 +17,7 @@ class BeamlineSetup(HardwareObject):
 
         # For hardware objects that we would like to access as:
         # self.<role_name>_hwrobj. Just to make it more elegant syntactically.
-        self._role_list = ['transmission', 'diffractometer', 'sample_changer',
+        self._role_list = ['transmission', 'diffractometer', 'sample_changer','plate_manipulator',
                            'resolution', 'shape_history', 'session', 'beam_info',
                            'data_analysis', 'workflow', 'lims_client',
                            'omega_axis', 'kappa_axis', 'kappa_phi_axis',

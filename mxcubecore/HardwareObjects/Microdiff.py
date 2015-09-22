@@ -11,6 +11,7 @@ import MiniDiff
 from HardwareRepository import EnhancedPopen
 import copy
 import gevent
+import sample_centring
 
 MICRODIFF = None
 
@@ -23,7 +24,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.exporter_addr = self.phiMotor.exporter_address
         self.x_calib = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"x_calib" }, "CoaxCamScaleX")
         self.y_calib = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"y_calib" }, "CoaxCamScaleY")       
-
+        self.head_type = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"head_type" }, "HeadType")
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
         self.readPhase =  self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"read_phase" }, "CurrentPhase")
@@ -80,6 +81,8 @@ class Microdiff(MiniDiff.MiniDiff):
                     if not timeout:
                         timeout = 40
                     self._wait_ready(timeout)
+        else:
+            print "moveToPhase - Ready is: ", self._ready()
     
     def getPhase(self):
         return self.readPhase.getValue()
@@ -126,6 +129,30 @@ class Microdiff(MiniDiff.MiniDiff):
             self._wait_ready(900) #timeout of 15 min
             print "finished at ---------->", time.time()
 
+    def in_plate_mode(self):
+        return self.head_type.getValue() == "Plate"
+
+    def start3ClickCentring(self, sample_info=None):
+        if self.in_plate_mode():
+            phi_range = 10
+            self.currentCentringProcedure = sample_centring.start_plate({"phi":self.centringPhi,
+                                                                         "phiy":self.centringPhiy,
+                                                                         "sampx": self.centringSamplex,
+                                                                         "sampy": self.centringSampley,
+                                                                         "phiz": self.centringPhiz }, 
+                                                                        self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                                        self.getBeamPosX(), self.getBeamPosY(), phi_range = phi_range)
+        else:
+            self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
+                                                                   "phiy":self.centringPhiy,
+                                                                   "sampx": self.centringSamplex,
+                                                                   "sampy": self.centringSampley,
+                                                                   "phiz": self.centringPhiz }, 
+                                                                  self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                                  self.getBeamPosX(), self.getBeamPosY())
+                                                                         
+        self.currentCentringProcedure.link(self.manualCentringDone)
+
 def set_light_in(light, light_motor, zoom):
     """
     The move to centring phase can be quite slow, so we use the front
@@ -159,6 +186,7 @@ def set_light_in(light, light_motor, zoom):
         if light_level:
             light_motor.move(light_level)
     """
-    MICRODIFF.getDeviceByRole("flight").move(2)
+    MICRODIFF.getDeviceByRole("flight").move(0)
+    MICRODIFF.getDeviceByRole("lightInOut").actuatorIn()
 
 MiniDiff.set_light_in = set_light_in

@@ -1,8 +1,39 @@
 """
+[Name] PlateManipulator
+
+[Description]
+Plate manipulator hardware object is used to use diffractometer in plate mode.
+It is compatable with md2, md3 diffractometers. Class is based on 
+SampleChanger, so it has all the sample changed functionalities, like
+mount, unmount sample (in this case move to plate position).
+Plate is organized in rows and columns. Each cell (Cell) contains drop (Drop).
+Each drop could contain several crystals (Xtal). If CRIMS is available then
+each drop could have several crystals.
+
+[Channels]
+
+ - self.chan_current_phase   : diffractometer phase 
+ - self.chan_plate_location  : plate location (col, row)
+ - self.chan_state           : diffractometer state
+
+[Commands]
+
+ - self.cmd_move_to_location : move to plate location
+
+[Emited signals]
+
+ - emited signals defined in SampleChanger class 
+
+[Included Hardware Objects]
+-----------------------------------------------------------------------
+| name            | signals          | functions
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 """
-import time
-import functools
+
 from sample_changer.GenericSampleChanger import *
+import time
+import gevent
 
 class Xtal(Sample):
     __NAME_PROPERTY__ = "Name"
@@ -107,36 +138,56 @@ class Cell(Container):
 class PlateManipulator(SampleChanger):
     """
     """    
-    __TYPE__ = "Plate manipulator"    
+    __TYPE__ = "PlateManipulator"    
 
     def __init__(self, *args, **kwargs):
         super(PlateManipulator, self).__init__(self.__TYPE__,False, *args, **kwargs)
 
-        self.num_coll = None
-        self.num_row = None
+        self.num_cols = None
+        self.num_rows = None
         self.current_phase = None
-        #self._setTransient(True)
+        self.reference_pos_x = None
+        self.timeout = 3 #default timeout
+
             
-    def init(self):      
+    def init(self):
         """
         Descript. :
         """
-        self.num_coll = self.getProperty("numColls")
-        self.num_row = self.getProperty("numRows")
-        self.num_drops = self.getProperty("numDrops")
-        self.reference_pos_x = self.getProperty("referencePosX") 
+        cmd_get_config = self.getChannelObject("GetPlateConfig")
+        if cmd_get_config:
+            self.num_rows, self.num_cols, self.num_drops = cmd_get_config.getValue()
+        else:
+            self.num_cols = self.getProperty("numCols")
+            self.num_rows = self.getProperty("numRows")
+            self.num_drops = self.getProperty("numDrops")
+            self.reference_pos_x = self.getProperty("referencePosX")
+            if not self.reference_pos_x:
+                self.reference_pos_x = 0.5
 
+        try:
+            self.cmd_move_to_drop = self.getCommandObject("MoveToDrop")
+            self.cmd_move_to_location = None
+        except:
+            self.cmd_move_to_location = self.getCommandObject("startMovePlateToLocation")
+            self.cmd_move_to_drop = None
+    
         self._initSCContents()
-        self.cmd_move_to_location = self.getCommandObject("cmd_move_plate_to_location")
-        self.chan_current_phase = self.getChannelObject("chan_current_phase")
-        self.chan_plate_location = self.getChannelObject("chan_plate_location")
-        self.chan_state = self.getChannelObject("chan_state")
+
+        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.chan_plate_location = self.getChannelObject("PlateLocation")
+        
+        self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self._onStateChanged)
        
-        SampleChanger.init(self) 
+        SampleChanger.init(self)
 
-    def _onStateChanged(self,state):
+    def _onStateChanged(self, state):
+        """
+        Descript. : state change callback. Based on diffractometer state
+                    sets PlateManipulator state.
+        """
         if state is None:
             self._setState(SampleChangerState.Unknown)
         else:
@@ -151,12 +202,12 @@ class PlateManipulator(SampleChanger):
 
     def _initSCContents(self):
         """
-        Descript. :
+        Descript. : Initializes content of plate.
         """
         self._setInfo(False, None, False)
         self._clearComponents()
-        for row in range(self.num_row):
-            for col in range(self.num_coll):
+        for row in range(self.num_rows):
+            for col in range(self.num_cols):
                 cell = Cell(self, chr(65 + row), col + 1, self.num_drops)
                 self._addComponent(cell)
 
@@ -170,12 +221,12 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        if mode==SampleChangerMode.Charging:
+        if mode == SampleChangerMode.Charging:
             self._set_phase("Transfer")
-        elif mode==SampleChangerMode.Normal:
+        elif mode == SampleChangerMode.Normal:
             self._set_phase("Centring")
 
-    def _doLoad(self,sample=None):
+    def _doLoad(self, sample=None):
         """
         Descript. :
         """
@@ -186,11 +237,37 @@ class PlateManipulator(SampleChanger):
             if (sample!=selected):
                 self._doSelect(sample)
             self._setLoadedSample(sample)
-        #TODO: Add pre-positioning and image matching
 
     def load_sample(self, sample_location=None):
-        pos_y = float(sample_location[2]) / (self.num_drops + 1)   
-        self.cmd_move_to_location(sample_location[0], sample_location[1] - 1, self.reference_pos_x, pos_y) 
+        """
+        Descript. : function to move to plate location.
+                    Location is estimated by sample location and reference positions.
+        """
+        row =  sample_location[0]
+        col =  sample_location[1]
+        drop = sample_location[2]
+
+        if self.cmd_move_to_location:
+            pos_y = float(drop) / (self.num_drops + 1)
+            self.cmd_move_to_location(row, col - 1, self.reference_pos_x, pos_y)
+            self._wait_ready()
+        elif self.cmd_move_to_drop:
+	    self.cmd_move_to_drop(row, col - 1, drop-1)
+            self._wait_ready()
+        else:
+            #No actual move cmd defined. Act like a mockup
+            cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col))
+            drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col, drop))
+            new_sample = drop.getSample()
+            old_sample = self.getLoadedSample()
+            new_sample = drop.getSample()
+            if old_sample != new_sample:
+                if old_sample is not None:
+                    old_sample._setLoaded(False, True)
+                if new_sample is not None:
+                    new_sample._setLoaded(True, True)
+
+            #new_sample._setLoaded(True, True)
         
     def _doUnload(self,sample_slot=None):
         """
@@ -242,51 +319,57 @@ class PlateManipulator(SampleChanger):
         Descript. :
         """
         self._updateState()
+        #TODO remove self._updateLoadedSample and add event to self.chan_plate_location
         self._updateLoadedSample()
 
     def _updateState(self):
         """
         Descript. :
-        """ 
-        return "Ready"
-        state = self.chan_state.getValue()
-        if (state == "Ready") or (self.current_phase is None):
-            self.current_phase =  self.chan_current_phase.getValue()
-        self._onStateChanged(state)
+        """
+        state = None
+        if self.chan_state is not None:
+            state = self.chan_state.getValue()
+            if (state == "Ready") or (self.current_phase is None):
+                self.current_phase =  self.chan_current_phase.getValue()
+            self._onStateChanged(state)
         return state
 
     def _updateLoadedSample(self):
         """
-        Descript. :
+        Descript. : function to update plate location. It is called by 1 sec
+                    timer. 
         """
-        #plate_location = self.chan_plate_location.getValue()
-        """row = int(plate_location[0])
-        col = int(plate_location[1])
-        y_pos = float(plate_location[3])
-        drop_index = abs(y_pos * self.num_drops) + 1
-        if drop_index > self.num_drops:
-            drop_index = self.num_drops"""
+        plate_location = None
+        if self.chan_plate_location is not None:
+            plate_location = self.chan_plate_location.getValue()
 
-        row = 2
-        col = 2
-        drop_index = 2
+        if plate_location is not None:
+            row = int(plate_location[0])
+            col = int(plate_location[1])
+            y_pos = float(plate_location[3])
+            drop_index = abs(y_pos * self.num_drops) + 1
+            if drop_index > self.num_drops:
+                drop_index = self.num_drops
 
-        cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col + 1))
-        old_sample = self.getLoadedSample()
-        drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col + 1, drop_index))
-        new_sample = drop.getSample()
+            cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col + 1))
 
-        if old_sample != new_sample:
-            if old_sample is not None:
-                # there was a sample on the gonio
-                loaded = False
-                has_been_loaded = True
-                old_sample._setLoaded(loaded, has_been_loaded)
-            if new_sample is not None:
-                #self._updateSampleBarcode(new_sample)
-                loaded = True
-                has_been_loaded = True
-                new_sample._setLoaded(loaded, has_been_loaded)    
+            if cell is None:
+                return
+            old_sample = self.getLoadedSample()
+            drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col + 1, drop_index))
+            new_sample = drop.getSample()
+
+            if old_sample != new_sample:
+                if old_sample is not None:
+                    # there was a sample on the gonio
+                    loaded = False
+                    has_been_loaded = True
+                    old_sample._setLoaded(loaded, has_been_loaded)
+                if new_sample is not None:
+                    #self._updateSampleBarcode(new_sample)
+                    loaded = True
+                    has_been_loaded = True
+                    new_sample._setLoaded(loaded, has_been_loaded)    
 
     def getSampleList(self):
         """
@@ -299,3 +382,18 @@ class PlateManipulator(SampleChanger):
                     #sample_list.append(drop)
                     sample_list.append(drop.getSample())
         return sample_list
+
+    def _ready(self):
+        if self._updateState() == "Ready"
+            return True
+        return False
+
+    def _wait_ready(self, timeout=None):
+        if timeout <= 0:
+            timeout = self.timeout
+        tt1 = time.time()
+        while time.time() - tt1 < timeout:
+             if self._ready():
+                 break
+             else:
+                 gevent.sleep(0.5)
