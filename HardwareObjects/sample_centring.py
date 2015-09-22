@@ -65,10 +65,31 @@ def prepare(centring_motors_dict):
   return phi, phiy, phiz, sampx, sampy
   
 def start(centring_motors_dict,
-          pixelsPerMm_Hor, pixelsPerMm_Ver, 
+          pixelsPerMm_Hor, pixelsPerMm_Ver,
           beam_xc, beam_yc,
           chi_angle = 0,
           n_points = 3):
+  global CURRENT_CENTRING
+
+  phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+
+  CURRENT_CENTRING = gevent.spawn(center,
+                                  phi,
+                                  phiy,
+                                  phiz,
+                                  sampx,
+                                  sampy,
+                                  pixelsPerMm_Hor, pixelsPerMm_Ver, 
+                                  beam_xc, beam_yc,
+                                  chi_angle,
+                                  n_points)
+  return CURRENT_CENTRING
+
+def start_plate(centring_motors_dict,
+          pixelsPerMm_Hor, pixelsPerMm_Ver, 
+          beam_xc, beam_yc,
+          chi_angle = 0,
+          n_points = 3, phi_range = 10):
   global CURRENT_CENTRING
 
   phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
@@ -82,7 +103,7 @@ def start(centring_motors_dict,
                                   pixelsPerMm_Hor, pixelsPerMm_Ver, 
                                   beam_xc, beam_yc,
                                   chi_angle,
-                                  n_points)
+                                  n_points, phi_range)
   return CURRENT_CENTRING
 
 def ready(*motors):
@@ -116,19 +137,20 @@ def center(phi, phiy, phiz,
            pixelsPerMm_Hor, pixelsPerMm_Ver, 
            beam_xc, beam_yc,
            chi_angle,
-           n_points):
+           n_points, phi_range= 180):
   global USER_CLICKED_EVENT
   X, Y, phi_positions = [], [], []
 
-  phi_angle = 180.0/(n_points-1)
+  #phi_angle = 180.0/(n_points-1)
+  phi_angle = phi_range/(n_points-1)
 
   try:
     i = 0
     while i < n_points:
       try:
-          x, y = USER_CLICKED_EVENT.get()
+        x, y = USER_CLICKED_EVENT.get()
       except:
-          raise RuntimeError("Aborted while waiting for point selection")
+        raise RuntimeError("Aborted while waiting for point selection")
       USER_CLICKED_EVENT = gevent.event.AsyncResult()
       X.append(x / float(pixelsPerMm_Hor))
       Y.append(y / float(pixelsPerMm_Ver))
@@ -152,8 +174,7 @@ def center(phi, phiy, phiz,
   dy = r * numpy.sin(a)
   dx = r * numpy.cos(a)
   
-  d = chiRotMatrix.transpose()*numpy.matrix([[avg_pos],
-                                             [offset]])
+  d = chiRotMatrix.transpose()*numpy.matrix([[avg_pos], [offset]])
 
   d_horizontal =  d[0] - (beam_xc / float(pixelsPerMm_Hor))
   d_vertical =  d[1] - (beam_yc / float(pixelsPerMm_Ver))
