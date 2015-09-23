@@ -1336,12 +1336,12 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
         elif sample_mount_device.__TYPE__ == "PlateManipulator":
             element = '%s%d:%d' % (chr(65 + loc[0]), loc[1], loc[2])
             sample_mount_device.load(sample=element, wait=True)
-    else:
-        if sample_mount_device.load_sample(holder_length, sample_location=loc, wait=True) == False:
-            # WARNING: explicit test of False return value.
-            # This is to preserve backward compatibility (load_sample was supposed to return None);
-            # if sample could not be loaded, but no exception is raised, let's skip the sample
-            raise QueueSkippEntryException("Sample changer could not load sample", "")
+        else:
+            if sample_mount_device.load_sample(holder_length, sample_location=loc, wait=True) == False:
+                # WARNING: explicit test of False return value.
+                # This is to preserve backward compatibility (load_sample was supposed to return None);
+                # if sample could not be loaded, but no exception is raised, let's skip the sample
+                raise QueueSkippEntryException("Sample changer could not load sample", "")
 
     if not sample_mount_device.hasLoadedSample():
         #Disables all related collections
