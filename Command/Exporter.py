@@ -6,7 +6,6 @@ from .embl import ExporterClient
 import time
 import gevent
 import gevent.queue
-
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
 
 exporter_clients = {}
@@ -21,44 +20,17 @@ def start_exporter(address, port, timeout=3, retries=1):
   else:
     return exporter_clients[(address, port)]
 
-"""
-class BoundMethodWeakref:
-    def __init__(self, bound_method):
-        self.func_ref = weakref.ref(bound_method.im_func)
-        self.obj_ref = weakref.ref(bound_method.im_self)
-
-
-    def __call__(self):
-        obj = self.obj_ref()
-        if obj is not None:
-            func = self.func_ref()
-            if func is not None:
-                return func.__get__(obj)
-
-
-    def __hash__(self):
-        return id(self)
-
-    
-    def __cmp__(self, other):
-        if other.__class__ == self.__class__:
-            return cmp( (self.func_ref, self.obj_ref), (other.func_ref, other.obj_ref) )
-        else:
-            return cmp(self, other)
-"""
-
 class ExporterCommand(CommandObject):
     def __init__(self, name, command, username = None, address = None, port = None, timeout=3,  **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
-        
-        self.command = command
-       
-        self.__exporter = start_exporter(address, port, timeout) 
 
+        self.command = command
+
+        self.__exporter = start_exporter(address, port, timeout)
 
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
-        
+
         try:
             ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
         except:
@@ -68,21 +40,17 @@ class ExporterCommand(CommandObject):
         else:
             self.emit('commandReplyArrived', (ret, str(self.name())))
             return ret
-        
-
 
     def abort(self):
         # TODO: implement async commands
         pass
         
-
     def get_state(self):
         return self.__exporter.get_state()
 
     def isConnected(self):
         return self.__exporter.isConnected()
 
-    
 class Exporter(ExporterClient.ExporterClient):
     STATE_EVENT                     = "State"
     STATUS_EVENT                    = "Status"
@@ -127,7 +95,7 @@ class Exporter(ExporterClient.ExporterClient):
         return self._to_python_value(ret)
 
     def get_state(self):
-        return self.execute("getState") 
+        return self.execute("getState")
 
     def readProperty(self, *args, **kwargs):
         ret = ExporterClient.ExporterClient.readProperty(self, *args, **kwargs)
@@ -147,11 +115,11 @@ class Exporter(ExporterClient.ExporterClient):
        pass #self.reconnect()
 
     def register(self, name, cb):
-       if callable(cb): 
-         self.callbacks.setdefault(name, []).append(cb) 
+       if callable(cb):
+         self.callbacks.setdefault(name, []).append(cb)
        if not self.events_processing_task:
          self.events_processing_task = gevent.spawn(self.processEventsFromQueue)
-   
+
     def _to_python_value(self, value):
         if value is None:
           return
@@ -182,10 +150,8 @@ class Exporter(ExporterClient.ExporterClient):
                  pass
         return value
 
-
     def onEvent(self, name, value, timestamp):
         self.events_queue.put((name, value))
-
 
     def processEventsFromQueue(self):
         while True:
@@ -200,7 +166,6 @@ class Exporter(ExporterClient.ExporterClient):
             except:
               logging.exception("Exception while executing callback %s for event %s", cb, name)
               continue
-        
 
 class ExporterChannel(ChannelObject):
     def __init__(self, name, attribute_name, username = None, address = None, port = None, timeout=3, **kwargs):
@@ -211,27 +176,26 @@ class ExporterChannel(ChannelObject):
         self.attributeName = attribute_name
         self.value = None
 
-        self.__exporter.register(attribute_name, self.update)        
+        self.__exporter.register(attribute_name, self.update)
 
         logging.getLogger("HWR").debug('Attaching Exporter channel: %s %s ' %(address, name))
 
         self.update()
 
     def update(self, value = None):
-        value = self.getValue()
+        value = value or self.getValue()
         if type(value) == types.TupleType:
             value = list(value)
 
         self.value = value
         self.emit('update', value)
-        
+
     def getValue(self):
-        self.value = self.__exporter.readProperty(self.attributeName)     
-        return self.value
-    
+        value = self.__exporter.readProperty(self.attributeName)
+        return value
+
     def setValue(self, newValue):
         self.__exporter.writeProperty(self.attributeName, newValue)
  
     def isConnected(self):
         return self.__exporter.isConnected()
-
