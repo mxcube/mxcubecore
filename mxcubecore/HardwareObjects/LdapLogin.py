@@ -32,7 +32,6 @@ class LdapLogin(Procedure):
         if ldaphost is None:
             logging.getLogger("HWR").error("LdapLogin: you must specify the LDAP hostname")
         else:
-
             if ldapport is None:
                 logging.getLogger("HWR").debug("LdapLogin: connecting to LDAP server %s",ldaphost)
                 self.ldapConnection=ldap.open(ldaphost)
@@ -88,9 +87,7 @@ class LdapLogin(Procedure):
 
         logging.getLogger("HWR").debug("LdapLogin: searching for %s / %s" % (username, self.domstr))
         try:
-            #search_str = "ou=People,"+self.domstr
             search_str = self.domstr
-            #found=self.ldapConnection.search_s(search_str, ldap.SCOPE_ONELEVEL,"uid="+username,["uid"])
             found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,["uid"])
         except ldap.LDAPError,err:
             if retry:
@@ -105,14 +102,19 @@ class LdapLogin(Procedure):
             return self.cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("LdapLogin: validating %s" % username)
-        #bind_str = "uid=%s, ou=people,%s" % (username, self.domstr)
         bind_str = "uid=%s,%s" % (username, self.domstr)
-        logging.getLogger("HWR").debug("LdapLogin: binding to %s / %s" % (bind_str, password))
-        handle=self.ldapConnection.simple_bind(bind_str,password)
+        logging.getLogger("HWR").debug("LdapLogin: binding to %s" % bind_str)
+        handle = self.ldapConnection.simple_bind(bind_str,password)
         try:
             result=self.ldapConnection.result(handle)
         except ldap.INVALID_CREDENTIALS:
-            return self.cleanup(msg="invalid password for %s" % username)
+            #try second time with different binf_str
+            bind_str = "uid=%s, ou=people,%s" % (username, self.domstr)
+            handle = self.ldapConnection.simple_bind(bind_str,password)
+            try:
+                result=self.ldapConnection.result(handle)
+            except:
+                return self.cleanup(msg="invalid password for %s" % username)
         except ldap.LDAPError,err:
             if retry:
                 self.cleanup(ex=err)
