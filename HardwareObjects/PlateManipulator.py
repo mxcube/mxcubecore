@@ -384,7 +384,7 @@ class PlateManipulator(SampleChanger):
         return sample_list
 
     def _ready(self):
-        if self._updateState() == "Ready"
+        if self._updateState() == "Ready":
             return True
         return False
 
