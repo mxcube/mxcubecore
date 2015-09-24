@@ -7,6 +7,7 @@ import os
 import httplib
 import urllib
 import math
+from queue_model_objects_v1 import PathTemplate
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -215,7 +216,7 @@ class PixelDetector:
         self.collect_obj.open_fast_shutter()
         time.sleep(exptime)
         self.collect_obj.close_fast_shutter()
- 
+
     @task
     def do_oscillation(self, start, end, exptime, npass):
       still = math.fabs(end-start) < 1E-4
@@ -227,14 +228,8 @@ class PixelDetector:
                   self.oscillation_task = self.no_oscillation(self.shutterless_exptime, wait=False)
               else:
                   self.oscillation_task = self.collect_obj.oscil(start, end, self.shutterless_exptime, 1, wait=False)
-          else:
-              try:
-                 self.oscillation_task.get(block=False)
-              except gevent.Timeout:
-                 pass #no result yet, it is normal
-              except:
-                 # an exception occured in task! Pilatus server died?
-                 raise
+          if self.oscillation_task.ready():
+              self.oscillation_task.get()
       else:
           if still:
               self.no_oscillation(exptime)
@@ -715,7 +710,18 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         directories = filename.split(os.path.sep)
         try:
-            if directories[2]=='visitor':
+            if directories[1] == "data" and directories[2] == "gz":
+                if directories[3] == "visitor":
+                    proposal = directories[4]
+                    beamline = directories[5]
+                elif directories[4] == "inhouse":
+                    proposal = directories[5]
+                    beamline = directories[3]
+                else:
+                    proposal = "unknown"
+                    beamline = "unknown"
+
+            elif directories[2] == 'visitor':
                 beamline = directories[4]
                 proposal = directories[3]
             else:
@@ -780,19 +786,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_archive_directory(self, directory):
-        res = None
-       
-        dir_path_list = directory.split(os.path.sep)
-        try:
-          suffix_path=os.path.join(*dir_path_list[4:])
-        except TypeError:
-          return None
-        else:
-          if 'inhouse' in directory:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[2], suffix_path)
-          else:
-            archive_dir = os.path.join('/data/pyarch/', dir_path_list[4], dir_path_list[3], *dir_path_list[5:])
-          if archive_dir[-1] != os.path.sep:
-            archive_dir += os.path.sep
-            
-          return archive_dir
+        pt = PathTemplate()
+        pt.directory = directory
+        return pt.get_archive_directory()

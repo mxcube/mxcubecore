@@ -964,8 +964,13 @@ class Acquisition(object):
 
 class PathTemplate(object):
     @staticmethod
+    def set_data_base_path(base_directory):
+        # os.path.abspath returns path without trailing slash, if any
+        # eg. '/data/' => '/data'.
+        PathTemplate.base_directory = os.path.abspath(base_directory)
+    @staticmethod
     def set_archive_path(archive_base_directory, archive_folder):
-        PathTemplate.archive_base_directory = archive_base_directory
+        PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
         PathTemplate.archive_folder = archive_folder
 
     def __init__(self):
@@ -1022,25 +1027,24 @@ class PathTemplate(object):
         :returns: Archive directory.
         :rtype: str
         """
-
         # TODO make this more general. Add option to enable/disable archive
         # Also archive path template needs to be defined in xml
-
-        folders = self.directory.split('/')
+        directory = self.directory[len(PathTemplate.base_directory):]
+        folders = directory.split('/') 
         endstation_name = None
         
         if 'visitor' in folders:
-            endstation_name = folders[4]
-            folders[2] = PathTemplate.archive_folder
-            temp = folders[3]
-            folders[3] = folders[4]
-            folders[4] = temp
+            endstation_name = folders[3]
+            folders[1] = PathTemplate.archive_folder
+            temp = folders[2]
+            folders[2] = folders[3]
+            folders[3] = temp
         else:
-            endstation_name = folders[2]
-            folders[2] = PathTemplate.archive_folder
-            folders[3] = endstation_name
+            endstation_name = folders[1]
+            folders[1] = PathTemplate.archive_folder
+            folders[2] = endstation_name
 
-        archive_directory = os.path.join(os.path.join(PathTemplate.archive_base_directory, *folders[2:]))
+        archive_directory = os.path.join(PathTemplate.archive_base_directory, *folders[1:])
 
         return archive_directory
 
