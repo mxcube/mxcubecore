@@ -87,27 +87,28 @@ class MicrodiffInOut(Device):
         if self._ready():
             try:
                 self.cmd_attr.setValue(self.moves["in"])
-                self.valueChanged(self.state_attr.getValue())
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
+                self.valueChanged(self.state_attr.getValue())
             except:
                 logging.getLogger('user_level_log').error("Cannot put %s in", self.username)
         else:
             logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s in" , self.username)
+        
         self.valueChanged(self.state_attr.getValue())
  
     def actuatorOut(self, wait=True, timeout=None):
         if self._ready():
             try:
                 self.cmd_attr.setValue(self.moves["out"])
-                self.valueChanged(self.state_attr.getValue())
                 if wait:
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
+                self.valueChanged(self.state_attr.getValue())
             except:
                 logging.getLogger('user_level_log').error("Cannot put %s out", self.username)
         else:
             logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s out" , self.username)
-        self.valueChanged(self.state_attr.getValue())      
+        self.valueChanged(self.state_attr.getValue())
 
