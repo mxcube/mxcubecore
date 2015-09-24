@@ -199,7 +199,6 @@ class Sample(TaskNode):
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
-        self.location_plate = None
         self.lims_location = (None, None)
 
         # Crystal information
@@ -243,17 +242,6 @@ class Sample(TaskNode):
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = ":".join(map(str,sc_sample[-1]))
         self.location = sc_sample[-1]
-        self.set_name(self.loc_str)
-
-    def init_from_plate_sample(self, plate_sample):
-        """
-        Descript. : location : col, row, index
-        """
-        self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
-                                    str(plate_sample[2]),
-                                    str(plate_sample[3]))
-        self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
-        self.location_plate = plate_sample[5]
         self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
@@ -340,6 +328,7 @@ class Sample(TaskNode):
         processing_params.cell_c = self.crystals[0].cell_c
         processing_params.cell_gamma = self.crystals[0].cell_gamma
         processing_params.protein_acronym = self.crystals[0].protein_acronym
+     
 
         return processing_params
 
@@ -359,20 +348,13 @@ class Basket(TaskNode):
     def is_present(self):
         return self.get_is_present()
 
-    def init_from_sc_basket(self, sc_basket, name="Basket"):
+    def init_from_sc_basket(self, sc_basket):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
-        """
         self.location = self._basket_object.getCoords() #sc_basket[0]
         if len(self.location) == 2:
             self.name = "Cell %d, puck %d" % self.location
         else:
             self.name = "Puck %d" % self.location
-        """
-        self.location = int(sc_basket[0])
-        if name == "Row":
-            self.name = "%s %s" % (name, chr(65 + self.location))
-        else:
-            self.name = "%s %d" % (name, self.location)
 
     def get_name(self):
         return self.name
@@ -848,9 +830,9 @@ class EnergyScanResult(object):
         self.title = None
 
 
-class XRFSpectrum(TaskNode):
+class XRFScan(TaskNode):
     """
-    Descript. : Class represents XRF spectrum task
+    Descript. : Class represents XRF scan task
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
@@ -868,7 +850,7 @@ class XRFSpectrum(TaskNode):
         else:
             self.path_template = path_template
 
-        self.result = XRFSpectrumResult()
+        self.result = XRFScanResult()
 
     def get_run_number(self):
         return self.path_template.run_number
@@ -901,7 +883,7 @@ class XRFSpectrum(TaskNode):
     def set_collected(self, collected):
         return self.set_executed(collected)
 
-    def get_spectrum_result(self):
+    def get_scan_result(self):
         return self.result
 
     def copy(self):
@@ -914,7 +896,7 @@ class XRFSpectrum(TaskNode):
                 new_node.centred_position.snapshot_image = snapshot_image_copy
         return new_node
 
-class XRFSpectrumResult(object):
+class XRFScanResult(object):
     def __init__(self):
         object.__init__(self)
         self.mca_data = None
@@ -982,13 +964,14 @@ class Acquisition(object):
 
 class PathTemplate(object):
     @staticmethod
-    def set_archive_path(archive_base_directory, archive_folder):
-        PathTemplate.archive_base_directory = archive_base_directory
-        PathTemplate.archive_folder = archive_folder
-
+    def set_data_base_path(base_directory):
+        # os.path.abspath returns path without trailing slash, if any
+        # eg. '/data/' => '/data'.
+        PathTemplate.base_directory = os.path.abspath(base_directory)
     @staticmethod
-    def set_path_template_style(synchotron_name):
-        PathTemplate.synchotron_name = synchotron_name
+    def set_archive_path(archive_base_directory, archive_folder):
+        PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
+        PathTemplate.archive_folder = archive_folder
 
     def __init__(self):
         object.__init__(self)
@@ -1039,35 +1022,29 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Descr:  Returns the archive directory, for longer term storage.
-                synchotron_name is set via static function called from
-                session hwobj.
-        Return: Archive directory. :rtype: str
+        Returns the archive directory, for longer term storage.
+
+        :returns: Archive directory.
+        :rtype: str
         """
-
-        archive_directory = None
-
-        folders = self.directory.split('/')
+        # TODO make this more general. Add option to enable/disable archive
+        # Also archive path template needs to be defined in xml
+        directory = self.directory[len(PathTemplate.base_directory):]
+        folders = directory.split('/') 
         endstation_name = None
+        
+        if 'visitor' in folders:
+            endstation_name = folders[3]
+            folders[1] = PathTemplate.archive_folder
+            temp = folders[2]
+            folders[2] = folders[3]
+            folders[3] = temp
+        else:
+            endstation_name = folders[1]
+            folders[1] = PathTemplate.archive_folder
+            folders[2] = endstation_name
 
-        if PathTemplate.synchotron_name == "EMBL": 
-            archive_directory = os.path.join(
-                PathTemplate.archive_base_directory,
-                PathTemplate.archive_folder, *folders[3:])
-
-        if PathTemplate.synchotron_name == "ESRF": 
-            if 'visitor' in folders:
-                endstation_name = folders[4]
-                folders[2] = PathTemplate.archive_folder
-                temp = folders[3]
-                folders[3] = folders[4]
-                folders[4] = temp
-            else:
-                endstation_name = folders[2]
-                folders[2] = PathTemplate.archive_folder
-                folders[3] = endstation_name
-
-            archive_directory =os.path.join(PathTemplate.archive_base_directory, *folders[2:])
+        archive_directory = os.path.join(PathTemplate.archive_base_directory, *folders[1:])
 
         return archive_directory
 
@@ -1171,7 +1148,7 @@ class CentredPosition(object):
         self.index = None
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
-           setattr(self, motor_name, 0)
+           setattr(self, motor_name, None)
 
         if motor_dict is not None:
           for motor_name, position in motor_dict.iteritems():
@@ -1185,7 +1162,16 @@ class CentredPosition(object):
         return str(self.as_dict())
 
     def __eq__(self, cpos):
-        return all([abs(getattr(self, motor_name) - getattr(cpos, motor_name))<=CentredPosition.MOTOR_POS_DELTA for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES])
+        eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES)*[False]
+        for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
+            self_pos = getattr(self, motor_name)
+            cpos_pos = getattr(cpos, motor_name)
+            eq[i] = self_pos == cpos_pos
+            if None in (self_pos, cpos_pos):
+               continue 
+            if not eq[i]:
+                eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
+        return all(eq)
 
     def __ne__(self, cpos):
         return not (self == cpos)

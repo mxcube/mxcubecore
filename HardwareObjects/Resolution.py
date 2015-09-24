@@ -130,12 +130,9 @@ class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
             self.dtoxStateChanged(self.dtox.getState())
 
     def dtoxStateChanged(self, state):
-        if (state == self.dtox.NOTINITIALIZED) or (state > self.dtox.UNUSABLE):
-          self.emit("stateChanged", (state, ))
-          if state == self.dtox.READY:
-            self.recalculateResolution()
-        else:
-          self.dtox.updateState("READY")
+        self.emit("stateChanged", (state, ))
+        if state == self.dtox.READY:
+          self.recalculateResolution()
 
     def dtoxPositionChanged(self, pos):
         self.update_beam_centre(pos)
