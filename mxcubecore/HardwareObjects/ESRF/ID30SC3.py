@@ -16,7 +16,7 @@ class Command:
         self.cmd(*args, **kwargs)
 
 
-class ESRFID30SC3(ESRFSC3.ESRFSC3):
+class ID30SC3(ESRFSC3.ESRFSC3):
     def __init__(self, *args, **kwargs):
         ESRFSC3.ESRFSC3.__init__(self, *args, **kwargs)
 

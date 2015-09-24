@@ -1,41 +1,31 @@
 from ESRFMultiCollect import *
-#from detectors.TacoMar import Mar225
-#from detectors.LimaEiger import Eiger
+import HardwareRepository
 from detectors.LimaPilatus import Pilatus
 import gevent
-import socket
 import shutil
 import logging
 import os
-import gevent
-#import cPickle as pickle
+import PyTango
+import decimal
 
-class ID30A3MultiCollect(ESRFMultiCollect):
+class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.9677, 12.812))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.966, 12.8353))
 
         self.helical = False
-        self._notify_greenlet = None
 
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+      # are we doing shutterless ?
+      shutterless = data_collect_parameters.get("shutterless")
+      if oscillation_parameters["overlap"] != 0:
+        shutterless = False
+      self._detector.shutterless = True if shutterless else False
  
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
-
-      self._detector.shutterless = data_collect_parameters["shutterless"]
-      
-      """
-      try:
-          albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-          albula_socket.connect(('localhost', 31337))
-      except:
-          pass
-      else:
-          albula_socket.sendall(pickle.dumps({"type":"newcollection"}))
-      """
 
     @task
     def get_beam_size(self):
@@ -43,7 +33,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
  
     @task
     def get_slit_gaps(self):
-        return (self.bl_control.diffractometer.controller.hgap.position(), self.bl_control.diffractometer.controller.vgap.position())
+        return (0.1, 0.1)
 
     def get_measured_intensity(self):
         return 0
@@ -57,13 +47,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         det_distance = self.getObjectByRole("distance")
         det_distance.move(detector_distance)
         while det_distance.motorIsMoving():
-          gevent.sleep(0.1)
+          time.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
-          gevent.sleep(0.1)
+          time.sleep(0.1)
 
     def get_resolution_at_corner(self):
         return self.bl_control.resolution.get_value_at_corner()
@@ -77,6 +67,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
         cover_task = self.getObjectByRole("eh_controller").detcover.set_out(wait=False, timeout=15)
+
         self.getObjectByRole("beamstop").moveToPosition("in")
         self.getObjectByRole("light").wagoOut()
 
@@ -89,15 +80,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
-        save_diagnostic = False
+        save_diagnostic = True
         operate_shutter = True
         if self.helical: 
-          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic, operate_shutter)
+          self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, npass, save_diagnostic, operate_shutter)
         else:
-          try:
-              self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
-          except:
-              raise
+          self.getObjectByRole("diffractometer").oscil(start, end, exptime, npass, save_diagnostic, operate_shutter)
 
     def open_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.open()
@@ -117,52 +105,13 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def get_transmission(self):
         return self.getObjectByRole("transmission").get_value()
 
-    def get_cryo_temperature(self):
-        return 0
-
-    @task
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        self.last_image_filename = filename
-        return ESRFMultiCollect.set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
-       
- 
-    def adxv_notify(self, image_filename):
-        logging.info("adxv_notify %r", image_filename)
-        try:
-            adxv_notify_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
-            adxv_notify_socket.sendall("load_image %s\n" % image_filename)
-            adxv_notify_socket.close()
-        except:
-            pass
-        else:
-            gevent.sleep(3)
-        
-    """
-    def albula_notify(self, image_filename):
-       try:
-          albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-          albula_socket.connect(('localhost', 31337))
-      except:
-          pass
-      else:
-          albula_socket.sendall(pickle.dumps({ "type":"newimage", "path": image_filename }))
-    """
-
-    @task
-    def write_image(self, last_frame):
-        ESRFMultiCollect.write_image(self, last_frame)
-        if last_frame:
-            gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
-        else:
-            if self._notify_greenlet is None or self._notify_greenlet.ready():
-                self._notify_greenlet = gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
-
-#    def trigger_auto_processing(self, *args, **kw):
-#        return
-
     @task
     def prepare_intensity_monitors(self):
+        self.getObjectByRole("diffractometer").controller.set_diode_autorange('i0', True, 'i1', False) 
+        self.getObjectByRole("diffractometer").controller.diode(True, False)
+        i0_range = decimal.Decimal(str(self.getObjectByRole("diffractometer").controller.get_diode_range()[0]))
+        i1_range = float(str(i0_range.as_tuple().digits[0])+ 'e' + str(len(i0_range.as_tuple().digits[1:]) + i0_range.as_tuple().exponent))        
+        self.getObjectByRole("diffractometer").controller.set_i1_range(i1_range)
         return
 
     def get_beam_centre(self):
@@ -179,10 +128,9 @@ class ID30A3MultiCollect(ESRFMultiCollect):
                     dest = os.path.join(dir,filename)
                     if os.path.exists(dest):
                         continue
-                    shutil.copyfile(os.path.join("/data/pyarch/id30a3", filename), dest)
+                    shutil.copyfile(os.path.join("/data/id30a1/inhouse/opid30a1/", filename), dest)
         except:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)
-
 

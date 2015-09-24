@@ -7,6 +7,7 @@ import logging
 import time
 import queue_model_objects_v1 as qmo
 import copy
+import gevent
 
 class Robodiff(MiniDiff.MiniDiff):      
     def __init__(self, name):
@@ -62,7 +63,7 @@ class Robodiff(MiniDiff.MiniDiff):
                                                                "sampx": self.centringSamplex,
                                                                "sampy": self.centringSampley,
                                                                "phiz": self.centringPhiz },
-                                                              self.pixelsPerMmY, self.pixelsPerMmZ,
+                                                               self.pixelsPerMmY, self.pixelsPerMmZ,
                                                               self.getBeamPosX(), self.getBeamPosY(),
                                                               chi_angle=-self.chiMotor.getPosition())
         self.currentCentringProcedure.link(self.manualCentringDone)
@@ -108,6 +109,8 @@ class Robodiff(MiniDiff.MiniDiff):
                   "z": self.zMotor,
                   "zoom": self.zoomMotor }
 
+        _aperture_move = gevent.spawn(self.controller.move_to_last_known_aperture)
+
         for role, pos in roles_positions_dict.iteritems():
            logging.info("moving motor %s to %f", role, pos)
            motor[role].move(pos)
@@ -119,6 +122,8 @@ class Robodiff(MiniDiff.MiniDiff):
 
         while any([m.getState() == m.MOVING for m in motor.itervalues()]):
            time.sleep(0.1)
+
+        _aperture_move.get()
 
         if any([m.getState() == m.ONLIMIT for m in motor.itervalues()]):
            raise RuntimeError("Motor %s on limit" % m.username)

@@ -457,12 +457,11 @@ class SampleQueueEntry(BaseQueueEntry):
                 log.info(msg)
 
     def centring_done(self, success, centring_info):
-        if success:
-            self.sample_centring_result.set(centring_info)
-        else:
+        if not success:
             msg = "Loop centring failed or was cancelled, " +\
                   "please continue manually."
             logging.getLogger("user_level_log").warning(msg)
+        self.sample_centring_result.set(centring_info)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)

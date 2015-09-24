@@ -457,7 +457,7 @@ class AbstractMultiCollect(object):
         data_collect_parameters['xds_dir'] = self.xds_directory
 
         logging.getLogger("user_level_log").info("Getting sample info from parameters")
-	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
+        sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
 
         if self.bl_control.sample_changer is not None:
