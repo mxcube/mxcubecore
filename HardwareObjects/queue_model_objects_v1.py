@@ -199,6 +199,7 @@ class Sample(TaskNode):
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
+        self.location_plate = None
         self.lims_location = (None, None)
 
         # Crystal information
@@ -242,6 +243,17 @@ class Sample(TaskNode):
     def init_from_sc_sample(self, sc_sample):
         self.loc_str = ":".join(map(str,sc_sample[-1]))
         self.location = sc_sample[-1]
+        self.set_name(self.loc_str)
+
+    def init_from_plate_sample(self, plate_sample):
+        """
+        Descript. : location : col, row, index
+        """
+        self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
+                                    str(plate_sample[2]),
+                                    str(plate_sample[3]))
+        self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
+        self.location_plate = plate_sample[5]
         self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
@@ -328,7 +340,6 @@ class Sample(TaskNode):
         processing_params.cell_c = self.crystals[0].cell_c
         processing_params.cell_gamma = self.crystals[0].cell_gamma
         processing_params.protein_acronym = self.crystals[0].protein_acronym
-     
 
         return processing_params
 
@@ -348,13 +359,20 @@ class Basket(TaskNode):
     def is_present(self):
         return self.get_is_present()
 
-    def init_from_sc_basket(self, sc_basket):
+    def init_from_sc_basket(self, sc_basket, name="Basket"):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
+        """
         self.location = self._basket_object.getCoords() #sc_basket[0]
         if len(self.location) == 2:
             self.name = "Cell %d, puck %d" % self.location
         else:
             self.name = "Puck %d" % self.location
+        """
+        self.location = int(sc_basket[0])
+        if name == "Row":
+            self.name = "%s %s" % (name, chr(65 + self.location))
+        else:
+            self.name = "%s %d" % (name, self.location)
 
     def get_name(self):
         return self.name
