@@ -1,4 +1,4 @@
-from ESRFEnergyScan import *
+from ESRF.ESRFEnergyScan import *
 import logging
 from datetime import datetime
 import id30b_calc_gaps as calc_gaps
