@@ -991,6 +991,10 @@ class PathTemplate(object):
         PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
         PathTemplate.archive_folder = archive_folder
 
+    @staticmethod
+    def set_path_template_style(synchotron_name):
+        PathTemplate.synchotron_name = synchotron_name
+
     def __init__(self):
         object.__init__(self)
 
