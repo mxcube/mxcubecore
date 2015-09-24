@@ -6,7 +6,6 @@ import time
 import os
 import httplib
 import math
-import calc_gaps
 import PyChooch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg

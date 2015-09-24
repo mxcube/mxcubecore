@@ -48,6 +48,10 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.connected()
  
 
+    def hutchIsOpened(self):
+        return self.hutch_opened
+
+
     def isConnected(self):
         return True
 
@@ -68,24 +72,21 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         logging.info("%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving")
         eh_controller = self.getObjectByRole("eh_controller")
         if not entering_hutch:
-          detcover_task = eh_controller.detcover.set_out(wait=False)
           if old["dtox"] is not None:
             eh_controller.DtoX.move(old["dtox"], wait=False)
           if self.getObjectByRole("aperture") and old["aperture"] is not None:
             self.getObjectByRole("aperture").moveToPosition(old["aperture"])
           self.getObjectByRole("beamstop").moveToPosition("in")
-          detcover_task.get()
           eh_controller.DtoX.wait_move()
         else: 
           old["dtox"] = eh_controller.DtoX.position()
           if self.getObjectByRole("aperture"): 
               old["aperture"] = self.getObjectByRole("aperture").getPosition()
-          detcover_task = eh_controller.detcover.set_in(wait=False)
           eh_controller.DtoX.move(700, wait=False)
           if self.getObjectByRole("aperture"):
               self.getObjectByRole("aperture").moveToPosition("Outbeam")
           self.getObjectByRole("beamstop").moveToPosition("out")
-          detcover_task.get()
+          eh_controller.detcover.set_in()
           eh_controller.DtoX.wait_move()
 
  
@@ -108,6 +109,6 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
                 self.emit('hutchTrigger', (1, ))
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
-
+        self.hutch_opened = 1-value
 	self.initialized = True
 

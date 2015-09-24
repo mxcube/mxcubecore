@@ -30,7 +30,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def emitCentringSuccessful(self):
         # save position in MD2 software
-        self.getCommandObject("save_centring_position")()
+        self.getCommandObject("save_centring_positions")()
  
         # do normal stuff
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
