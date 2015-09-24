@@ -1,4 +1,4 @@
-from ESRFMultiCollect import *
+from ESRF.ESRFMultiCollect import *
 from detectors.LimaPilatus import Pilatus
 import gevent
 import shutil
