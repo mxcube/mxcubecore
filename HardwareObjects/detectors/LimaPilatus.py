@@ -29,11 +29,10 @@ class Pilatus:
                           channel_name)
 
       pilatus_tg_device = DeviceProxy(pilatus_device)
-      if hasattr(pilatus_tg_device, "energy_threshold"):
-          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"energy_threshold")
-      else:
+      if hasattr(pilatus_tg_device, "working_energy"):
           self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"working_energy")
- 
+      else:
+          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"energy_threshold")
 
       self.addCommand({ "type": "tango",
                         "name": "prepare_acq",
