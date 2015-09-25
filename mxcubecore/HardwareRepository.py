@@ -550,7 +550,10 @@ class __HardwareRepositoryClient:
                 d["children"] = {}
                 
                 for ho in ho.getDevices():
-                    d["children"][ho.name()] = self.getInfo(ho.name())
+                    try:
+                        d["children"][ho.name()] = self.getInfo(ho.name())
+                    except Exception:
+                        continue
                     
             return d
         
