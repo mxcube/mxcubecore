@@ -4,6 +4,7 @@ import subprocess
 import os
 import math
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from PyTango import DeviceProxy
 
 class Pilatus:
 
@@ -11,7 +12,7 @@ class Pilatus:
       self.config = config
       self.collect_obj = collect_obj
       self.header = dict()
-
+ 
       lima_device = config.getProperty("lima_device")
       pilatus_device = config.getProperty("pilatus_device")
 
@@ -23,9 +24,17 @@ class Pilatus:
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": lima_device },
                            channel_name)
 
-      for channel_name in ("fill_mode", "working_energy", "threshold"):
+      for channel_name in ("fill_mode", "threshold"):
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": pilatus_device },
                           channel_name)
+
+      pilatus_tg_device = DeviceProxy(pilatus_device)
+      import pdb;pdb.set_trace()
+      if hasattr(pilatus_tg_device, "energy_threshold"):
+          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"energy_threshold")
+      else:
+          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"working_energy")
+ 
 
       self.addCommand({ "type": "tango",
                         "name": "prepare_acq",
@@ -50,7 +59,10 @@ class Pilatus:
               time.sleep(1)
 
   def last_image_saved(self):
-      return self.getChannelObject("last_image_saved").getValue() + 1
+      try:
+          return self.getChannelObject("last_image_saved").getValue() + 1
+      except Exception:
+          return 0
 
   def get_deadtime(self):
       return float(self.config.getProperty("deadtime"))
@@ -65,8 +77,14 @@ class Pilatus:
       self.header["N_oscillations"]=number_of_images
       self.header["Oscillation_axis"]="omega"
       self.header["Chi"]="0.0000 deg."
-      self.header["Phi"]="%0.4f deg." % diffractometer_positions.get("kappa_phi", -9999)
-      self.header["Kappa"]="%0.4f deg." % diffractometer_positions.get("kappa", -9999)
+      kappa_phi = diffractometer_positions.get("kappa_phi", -9999)
+      if kappa_phi is None:
+          kappa_phi = -9999
+      kappa = diffractometer_positions.get("kappa", -9999)
+      if kappa is None:
+          kappa = -9999
+      self.header["Phi"]="%0.4f deg." % kappa_phi
+      self.header["Kappa"]="%0.4f deg." % kappa
       self.header["Alpha"]="0.0000 deg."
       self.header["Polarization"]=self.collect_obj.bl_config.polarisation
       self.header["Detector_2theta"]="0.0000 deg."
@@ -109,12 +127,12 @@ class Pilatus:
       if energy < minE:
         energy = minE
       
-      working_energy_chan = self.getChannelObject("working_energy")
-      working_energy = working_energy_chan.getValue()
-      if math.fabs(working_energy - energy) > 0.1:
-        working_energy_chan.setValue(energy)
+      energy_threshold_chan = self.getChannelObject("energy_threshold")
+      energy_threshold = energy_threshold_chan.getValue()
+      if math.fabs(energy_threshold - energy) > 0.1:
+        energy_threshold_chan.setValue(energy)
         
-        while math.fabs(working_energy_chan.getValue() - energy) > 0.1:
+        while math.fabs(energy_threshold_chan.getValue() - energy) > 0.1:
           time.sleep(1)    
       
       self.getChannelObject("fill_mode").setValue("ON")
