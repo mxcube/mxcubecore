@@ -98,7 +98,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_aperture_list)
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
- 
+        self._server.register_function(self.anneal) 
+
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
             apis = next(self.getObjects("apis"))
@@ -115,7 +116,20 @@ class XMLRPCServer(HardwareObject):
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
+                	
 
+    def anneal(self, time):
+        cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
+        try:
+            cryoshutter_hwobj.getCommandObject("anneal")(time)
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return True
+    	
+	
+	
     def _add_to_queue(self, task, set_on = True):
         """
         Adds the TaskNode objects contained in the
