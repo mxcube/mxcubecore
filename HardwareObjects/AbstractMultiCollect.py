@@ -370,7 +370,7 @@ class AbstractMultiCollect(object):
         remaining_frames = nframes % subwedge_size
         if remaining_frames:
             wedge_sizes_list.append(remaining_frames)
-       
+        
         wedges_to_collect = []
 
         for wedge_size in wedge_sizes_list:
@@ -406,6 +406,9 @@ class AbstractMultiCollect(object):
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
+
+        logging.getLogger("user_level_log").info("Closing fast shutter")
+        self.close_fast_shutter()
 
         # reset collection id on each data collect
         self.collection_id = None
@@ -454,7 +457,7 @@ class AbstractMultiCollect(object):
         data_collect_parameters['xds_dir'] = self.xds_directory
 
         logging.getLogger("user_level_log").info("Getting sample info from parameters")
-	sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
+        sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id
 
         if self.bl_control.sample_changer is not None:
@@ -634,10 +637,6 @@ class AbstractMultiCollect(object):
           logging.getLogger("user_level_log").info("Moving detector to %f", data_collect_parameters["detdistance"])
           self.move_detector(oscillation_parameters["detdistance"])
 
-        
-        logging.getLogger("user_level_log").info("Closing fast shutter")
-        self.close_fast_shutter()
-
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
@@ -669,12 +668,12 @@ class AbstractMultiCollect(object):
                     data_collect_parameters["yBeam"] = beam_centre_y
 
                     und = self.get_undulators_gaps()
-                    for i, key in enumerate(und):
-                        if i>=2:
-                          break
-                        self.bl_config.undulators[i].type = key
-                        data_collect_parameters["undulatorGap%d" % (i+1)] = und[key]  
-
+                    i = 1
+                    for jj in self.bl_config.undulators:
+                        key = jj.type
+                        if und.has_key(key):
+                            data_collect_parameters["undulatorGap%d" % (i)] = und[key]
+                            i += 1
                     data_collect_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
                     beam_size_x, beam_size_y = self.get_beam_size()
                     data_collect_parameters["beamSizeAtSampleX"] = beam_size_x

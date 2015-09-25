@@ -965,10 +965,12 @@ class Acquisition(object):
 class PathTemplate(object):
     @staticmethod
     def set_data_base_path(base_directory):
-        PathTemplate.base_directory = base_directory
+        # os.path.abspath returns path without trailing slash, if any
+        # eg. '/data/' => '/data'.
+        PathTemplate.base_directory = os.path.abspath(base_directory)
     @staticmethod
     def set_archive_path(archive_base_directory, archive_folder):
-        PathTemplate.archive_base_directory = archive_base_directory
+        PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
         PathTemplate.archive_folder = archive_folder
 
     def __init__(self):
