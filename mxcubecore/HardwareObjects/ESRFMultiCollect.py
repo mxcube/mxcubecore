@@ -633,7 +633,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_machine_current(self):
         if self.bl_control.machine_current:
-            return self.bl_control.machine_current.getCurrent()
+            try:
+                return self.bl_control.machine_current.getCurrent()
+            except:
+                return -1
         else:
             return 0
 
