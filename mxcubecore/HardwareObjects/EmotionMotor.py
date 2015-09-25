@@ -46,7 +46,7 @@ class EmotionMotor(Device):
           self.updateState("READY")
         else:
           self.updateState("MOVING")
- 
+    
     def updateState(self, state=None):
         if state is None:
             state = self.motor.state()
@@ -115,7 +115,7 @@ class EmotionMotor(Device):
         self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
-        return self.motor.state() == 'MOVING'
+        return self.motorState == EmotionMotor.MOVING
  
     def getMotorMnemonic(self):
         return self.motor_name
