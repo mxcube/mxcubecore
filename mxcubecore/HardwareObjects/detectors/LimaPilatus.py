@@ -29,7 +29,6 @@ class Pilatus:
                           channel_name)
 
       pilatus_tg_device = DeviceProxy(pilatus_device)
-      import pdb;pdb.set_trace()
       if hasattr(pilatus_tg_device, "energy_threshold"):
           self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"energy_threshold")
       else:
