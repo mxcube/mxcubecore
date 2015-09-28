@@ -361,18 +361,15 @@ class Basket(TaskNode):
 
     def init_from_sc_basket(self, sc_basket, name="Basket"):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
-        """
+
         self.location = self._basket_object.getCoords() #sc_basket[0]
         if len(self.location) == 2:
             self.name = "Cell %d, puck %d" % self.location
         else:
-            self.name = "Puck %d" % self.location
-        """
-        self.location = int(sc_basket[0])
-        if name == "Row":
-            self.name = "%s %s" % (name, chr(65 + self.location))
-        else:
-            self.name = "%s %d" % (name, self.location)
+            if name == "Row":
+                self.name = "%s %s" % (name, chr(65 + self.location[0]))
+            else:
+                self.name = "%s %d" % (name, self.location[0])
 
     def get_name(self):
         return self.name
