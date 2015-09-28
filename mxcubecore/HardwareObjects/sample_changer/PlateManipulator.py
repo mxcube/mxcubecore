@@ -31,7 +31,7 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-from sample_changer.GenericSampleChanger import *
+from .GenericSampleChanger import *
 import time
 import gevent
 
