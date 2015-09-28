@@ -13,7 +13,6 @@ class Command:
 
     @task
     def __call__(self, *args, **kwargs):
-        import pdb; pdb.set_trace()
         self.cmd(*args, **kwargs)
 
 
