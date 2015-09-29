@@ -1,6 +1,9 @@
 import gevent
 from gevent.event import AsyncResult
-from Qub.Tools import QubImageSave
+try:
+    from Qub.Tools import QubImageSave
+except ImportError:
+    pass
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import *
 import tempfile
