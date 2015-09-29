@@ -1370,11 +1370,18 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                     dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
                 view.setText(1, "Centring !")
-                async_result.get()
-                view.setText(1, "Centring done !")
-                log.info("Centring saved")
+                centring_result = async_result.get()
+                if centring_result['valid']: 
+                    view.setText(1, "Centring done !")
+                    log.info("Centring saved")
+                else:
+                    if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+                        raise QueueSkippEntryException("Could not center sample, skipping", "")
+                    else:
+                        raise RuntimeError("Could not center sample")
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
+
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
