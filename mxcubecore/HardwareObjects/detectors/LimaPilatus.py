@@ -4,6 +4,7 @@ import subprocess
 import os
 import math
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from PyTango import DeviceProxy
 
 class Pilatus:
 
@@ -11,7 +12,7 @@ class Pilatus:
       self.config = config
       self.collect_obj = collect_obj
       self.header = dict()
-
+ 
       lima_device = config.getProperty("lima_device")
       pilatus_device = config.getProperty("pilatus_device")
 
@@ -23,9 +24,15 @@ class Pilatus:
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": lima_device },
                            channel_name)
 
-      for channel_name in ("fill_mode", "working_energy", "threshold"):
+      for channel_name in ("fill_mode", "threshold"):
           self.addChannel({"type":"tango", "name": channel_name, "tangoname": pilatus_device },
                           channel_name)
+
+      pilatus_tg_device = DeviceProxy(pilatus_device)
+      if hasattr(pilatus_tg_device, "working_energy"):
+          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"working_energy")
+      else:
+          self.addChannel({"type":"tango", "name": "energy_threshold", "tangoname": pilatus_device},"energy_threshold")
 
       self.addCommand({ "type": "tango",
                         "name": "prepare_acq",
@@ -118,12 +125,12 @@ class Pilatus:
       if energy < minE:
         energy = minE
       
-      working_energy_chan = self.getChannelObject("working_energy")
-      working_energy = working_energy_chan.getValue()
-      if math.fabs(working_energy - energy) > 0.1:
-        working_energy_chan.setValue(energy)
+      energy_threshold_chan = self.getChannelObject("energy_threshold")
+      energy_threshold = energy_threshold_chan.getValue()
+      if math.fabs(energy_threshold - energy) > 0.1:
+        energy_threshold_chan.setValue(energy)
         
-        while math.fabs(working_energy_chan.getValue() - energy) > 0.1:
+        while math.fabs(energy_threshold_chan.getValue() - energy) > 0.1:
           time.sleep(1)    
       
       self.getChannelObject("fill_mode").setValue("ON")

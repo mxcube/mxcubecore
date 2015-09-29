@@ -8,9 +8,12 @@ import os
 import tempfile
 
 try:
-  import lucid
+  import lucid2 as lucid
 except ImportError:
-  logging.warning("lucid cannot load: automatic centring is disabled")
+  try:
+      import lucid
+  except ImportError:
+      logging.warning("Could not find autocentring library, automatic centring is disabled")
 
 
 def multiPointCentre(z,phis) :
@@ -207,10 +210,9 @@ def start_auto(camera,  centring_motors_dict,
 def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
   snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
   camera.takeSnapshot(snapshot_filename, bw=True)
-
+  
   info, x, y = lucid.find_loop(snapshot_filename, debug=False,pixels_per_mm_horizontal=pixelsPerMm_Hor, chi_angle=chi_angle)
   
- 
   try:
     x = float(x)
     y = float(y)
@@ -245,7 +247,8 @@ def auto_center(camera,
                 msg_cb("No loop detected, aborting")
             return
     
-    for k in range(2):
+    # Number of lucid2 runs increased to 3 (Olof June 26th 2015)
+    for k in range(3):
       if callable(msg_cb):
             msg_cb("Doing automatic centring")
             

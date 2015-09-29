@@ -395,7 +395,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         while any([motor.motorIsMoving() for motor in motor_position_dict.iterkeys()]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
-            time.sleep(0.5)  
+            time.sleep(0.02)  
 
 
     @task
@@ -628,7 +628,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_machine_current(self):
         if self.bl_control.machine_current:
-            return self.bl_control.machine_current.getCurrent()
+            try:
+                return self.bl_control.machine_current.getCurrent()
+            except:
+                return -1
         else:
             return 0
 
