@@ -13,7 +13,7 @@ __version__ = 1.0
 import types
 import weakref
 import logging
-from .dispatcher import *
+from dispatcher import *
 
 
 class ConnectionError(Exception):
