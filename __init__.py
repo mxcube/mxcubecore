@@ -14,9 +14,8 @@ sys.path.insert(0, hwrpath)
 # standard Hardware Objects easily
 #
 def getStdHardwareObjectsPath():
-    stdhardwareobjectspkg = __import__('HardwareRepository.HardwareObjects', {}, {}, [''])
-
-    return os.path.dirname(stdhardwareobjectspkg.__file__)
+    import HardwareObjects #first looks in containing package
+    return os.path.dirname(HardwareObjects.__file__)
 
 sys.path.insert(0, getStdHardwareObjectsPath())
 

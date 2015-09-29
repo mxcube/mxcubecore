@@ -28,7 +28,7 @@ except ImportError:
  
 import HardwareObjectFileParser
 import BaseHardwareObjects
-from .dispatcher import *
+from dispatcher import *
 
 _instance = None
 _hwrserver = None
