@@ -28,11 +28,14 @@ class Microdiff(MiniDiff.MiniDiff):
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
         self.readPhase =  self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"read_phase" }, "CurrentPhase")
-        self.hwstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"hwstate" }, "HardwareState")
+        use_hwstate = self.getProperty("use_hwstate")
+        if use_hwstate:
+            self.hwstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"hwstate" }, "HardwareState")
+        else:
+            self.hwstate_attr = None
         self.swstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"swstate" }, "State")
 
         MiniDiff.MiniDiff.init(self)
-        #self.hwstate_attr.connectSignal("update", self.valueChanged)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
 
@@ -44,7 +47,7 @@ class Microdiff(MiniDiff.MiniDiff):
                                   "sampx":"CentringX", "sampy":"CentringY",
                                   "zoom":"Zoom"}
         return MOTOR_TO_EXPORTER_NAME
-        
+
     def getCalibrationData(self, offset):
         return (1.0/self.x_calib.getValue(), 1.0/self.y_calib.getValue())
 
@@ -59,8 +62,12 @@ class Microdiff(MiniDiff.MiniDiff):
         return MiniDiff.MiniDiff.emitCentringSuccessful(self)
 
     def _ready(self):
-        if self.hwstate_attr.getValue() == "Ready" and self.swstate_attr.getValue() == "Ready":
-            return True
+        if self.hwstate_attr:
+            if self.hwstate_attr.getValue() == "Ready" and self.swstate_attr.getValue() == "Ready":
+                return True
+        else:
+            if self.swstate_attr.getValue() == "Ready":
+                return True
         return False
 
     def _wait_ready(self, timeout=None):
@@ -83,7 +90,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     self._wait_ready(timeout)
         else:
             print "moveToPhase - Ready is: ", self._ready()
-    
+
     def getPhase(self):
         return self.readPhase.getValue()
 
@@ -101,7 +108,7 @@ class Microdiff(MiniDiff.MiniDiff):
             while not self._ready():
                 time.sleep(0.5)
         #print "end moving motors =============", time.time()
-            
+
     def oscilScan(self, start, end, exptime, wait=False):
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
@@ -132,6 +139,10 @@ class Microdiff(MiniDiff.MiniDiff):
     def in_plate_mode(self):
         return self.head_type.getValue() == "Plate"
 
+    def in_kappa_mode(self):
+        kappa = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"kappa_enable" }, "KappaIsEnabled") 
+        return self.head_type.getValue() == "MiniKappa" and kappa.getValue()
+
     def start3ClickCentring(self, sample_info=None):
         if self.in_plate_mode():
             phi_range = 10
@@ -154,38 +165,6 @@ class Microdiff(MiniDiff.MiniDiff):
         self.currentCentringProcedure.link(self.manualCentringDone)
 
 def set_light_in(light, light_motor, zoom):
-    """
-    The move to centring phase can be quite slow, so we use the front
-    light instead.
-    """
-    #MICRODIFF.moveToPhase(phase="Centring",  wait=True, timeout=40)
-    """
-    diffr = MICRODIFF.getDeviceByRole("beamstop")
-    pos = diffr.getActuatorState()
-    if pos == 'in':
-        try:
-            diffr.actuatorOut(wait=True)
-            print "Now put the %s in"% light.username
-            print diffr.getActuatorState()
-            print MICRODIFF._ready()
-            light.actuatorIn(wait=True)
-        except Exception, error:
-            print str(error)
-    
-    # No light level, choose default
-    if light_motor.getPosition() == 0:
-        zoom_level = int(zoom.getPosition())
-        light_level = None
-
-        try:
-            light_level = zoom['positions'][0][zoom_level].getProperty('lightLevel')
-        except IndexError:
-            logging.getLogger("HWR").info("Could not get default light level")
-            light_level = 1
-
-        if light_level:
-            light_motor.move(light_level)
-    """
     MICRODIFF.getDeviceByRole("flight").move(0)
     MICRODIFF.getDeviceByRole("lightInOut").actuatorIn()
 

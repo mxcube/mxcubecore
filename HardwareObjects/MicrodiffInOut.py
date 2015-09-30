@@ -11,6 +11,7 @@ Example xml file:
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <cmd_name>ScintillatorPosition</cmd_name>
   <private_state>{"PARK":"out", "SCINTILLATOR":"in"}</private_state>
+  <use_hwstate>True</use_hwstate>
 </device>
 """
 class MicrodiffInOut(Device):
@@ -21,6 +22,7 @@ class MicrodiffInOut(Device):
         self.username = "unknown"
         #default timeout - 3 sec
         self.timeout = 3
+        self.hwstate_attr = None
 
 
     def init(self):
@@ -50,7 +52,11 @@ class MicrodiffInOut(Device):
             self.timeout = tt
         except:
             pass
-        self.hwstate_attr = self.addChannel({"type":"exporter", "name":"hwstate" }, "HardwareState")
+
+        use_hwstate = self.getProperty("use_hwstate")
+        if use_hwstate:
+            self.hwstate_attr = self.addChannel({"type":"exporter", "name":"hwstate" }, "HardwareState")
+
         self.swstate_attr = self.addChannel({"type":"exporter", "name":"swstate" }, "State")
 
         self.moves =  dict((self.states[k], k) for k in self.states)
@@ -65,8 +71,12 @@ class MicrodiffInOut(Device):
         self.emit('actuatorStateChanged', (self.actuatorState, ))
         
     def _ready(self):
-        if self.hwstate_attr.getValue() == "Ready" and self.swstate_attr.getValue() == "Ready":
-            return True
+        if self.hwstate_attr:
+            if self.hwstate_attr.getValue() == "Ready" and self.swstate_attr.getValue() == "Ready":
+                return True
+        else:
+            if self.swstate_attr.getValue() == "Ready":
+                return True
         return False
   
     def _wait_ready(self, timeout=None):
