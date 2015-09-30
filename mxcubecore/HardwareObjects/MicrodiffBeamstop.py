@@ -1,6 +1,49 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 
+"""
+Move the beamstop or the capillary, using the exporter protocol
+Example xml file:
+<equipment class="MicrodiffBeamstop">
+  <username>Beamstop</username>
+  <device role="beamstop" hwrid="/udiff_beamstop"></device>
+  <save_cmd_name>saveBeamstopBeamPosition</save_cmd_name>
+  <motors>
+    <device role="horizontal" hwrid="/bstopy"></device>
+    <device role="vertical" hwrid="/bstopz"></device>
+  </motors>
+</equipment>
+
+Example udiff_beamstop.xml
+<device class="MicrodiffInOut">
+  <username>Beamstop</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <cmd_name>BeamstopPosition</cmd_name>
+  <private_state>{"OFF":"out", "BEAM":"in"}</private_state>
+  <timeout>100</timeout>
+</device>
+
+Example bstopy.xml (for bstopz only the motor name changes)
+<device class="MD2Motor">
+  <username>bstopy</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <motor_name>BeamstopY</motor_name>
+  <GUIstep>0.01</GUIstep>
+   <unit>1e-3</unit>
+</device>
+
+When used with capillary, only the command and motor names change.
+Example capillary xml file:
+<equipment class="MicrodiffBeamstop">
+  <username>Capillary</username>
+  <device role="beamstop" hwrid="/udiff_capillary"></device>
+  <save_cmd_name>saveCapillaryBeamPosition</save_cmd_name>
+  <motors>
+    <device role="horizontal" hwrid="/capy"></device>
+    <device role="vertical" hwrid="/capz"></device>
+  </motors>
+</equipment>
+"""
 
 class MicrodiffBeamstop(Equipment):
     def init(self):

@@ -1,7 +1,4 @@
 from MD2Motor import MD2Motor
-import logging
-import time
-import math
 
 class MicrodiffHolderlength(MD2Motor):
     def __init__(self, *args):

@@ -1,5 +1,6 @@
 from MD2Motor import MD2Motor
 import logging
+import math
 
 class MicrodiffZoom(MD2Motor):
     def __init__(self, name):
@@ -52,7 +53,7 @@ class MicrodiffZoom(MD2Motor):
         pos = self.predefined_position_attr.getValue()
 
         for positionName in self.predefinedPositions:
-          if abs(self.predefinedPositions[positionName] - pos) <= 1E-3:
+          if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
             return positionName
         return ''
 
