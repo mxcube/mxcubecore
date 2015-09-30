@@ -26,8 +26,9 @@ class MicrodiffMotor(Device):
                                 "Moving": MOVING,
                                 "Created": NOTINITIALIZED,
                                 "Initializing": NOTINITIALIZED,
-                                "Unknown": UNUSABLE }
-
+                                "Unknown": UNUSABLE,
+                                "LowLim": ONLIMIT,
+                                "HighLim": ONLIMIT }
     def __init__(self, name):
         Device.__init__(self, name)
         self.motor_pos_attr_suffix = "Position"
