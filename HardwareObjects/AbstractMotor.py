@@ -33,12 +33,15 @@ class AbstractMotor(object):
                                 "Moving": MOVING,
                                 "Created": NOTINITIALIZED,
                                 "Initializing": NOTINITIALIZED,
-                                "Unknown": UNUSABLE }
+                                "Unknown": UNUSABLE,
+                                "LowLim": ONLIMIT,
+                                "HighLim": ONLIMIT }
 
     def __init__(self):
         """
         Descript. :
         """
+        self.motor_name = None
         self.motor_state = AbstractMotor.NOTINITIALIZED
  
         self.static_limits = (-1E4, 1E4)
@@ -51,7 +54,7 @@ class AbstractMotor(object):
         """
         Descript. :
         """
-        return
+        return self.motor_name
 
     def updateState(self):
         """
