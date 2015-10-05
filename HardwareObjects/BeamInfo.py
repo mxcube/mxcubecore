@@ -75,8 +75,13 @@ class BeamInfo(Equipment):
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")
 
-        default_beam_divergence_vertical = int(self.getProperty("beam_divergence_vertical"))
-        default_beam_divergence_horizontal = int(self.getProperty("beam_divergence_horizontal"))
+        default_beam_divergence_vertical = None
+        default_beam_divergence_horizontal = None
+        try: 
+           default_beam_divergence_vertical = int(self.getProperty("beam_divergence_vertical"))
+           default_beam_divergence_horizontal = int(self.getProperty("beam_divergence_horizontal"))
+        except:
+           pass
         self.default_beam_divergence = [default_beam_divergence_horizontal, default_beam_divergence_vertical]
 
     def connectNotify(self, *args):

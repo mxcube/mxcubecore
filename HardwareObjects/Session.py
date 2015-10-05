@@ -46,11 +46,14 @@ class Session(HardwareObject):
         self.processed_data_folder_name = self["file_info"].\
             getProperty('processed_data_folder_name')
 
-        inhouse_proposals = self["inhouse_users"]["proposal"]
-
-        for prop in inhouse_proposals:
-            self.in_house_users.append((prop.getProperty('code'),
-                str(prop.getProperty('number'))))
+        try:
+           inhouse_proposals = self["inhouse_users"]["proposal"]
+ 
+           for prop in inhouse_proposals:
+               self.in_house_users.append((prop.getProperty('code'),
+                   str(prop.getProperty('number'))))
+        except:
+           pass
 
         queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
         queue_model_objects.PathTemplate.set_archive_path(self['file_info'].getProperty('archive_base_directory'),

@@ -130,12 +130,12 @@ class ISPyBClient2(HardwareObject):
         self.session_hwobj = self.getObjectByRole('session')
         self.beamline_name = self.session_hwobj.beamline_name
 
-        if self.getProperty('ws_username'):
-            global _WS_USERNAME
-            _WS_USERNAME = self.getProperty('ws_username')
-        if self.getProperty('ws_password'):
-            global _WS_PASSWORD
-            _WS_PASSWORD = self.getProperty('ws_password')
+        self.ws_username = self.getProperty('ws_username')
+        if not self.ws_username:
+            self.ws_username = _WS_USERNAME
+        self.ws_password = self.getProperty('ws_password')
+        if not self.ws_password:
+            self.ws_password = _WS_PASSWORD
 
         try:
             # ws_root is a property in the configuration xml file
@@ -154,16 +154,16 @@ class ISPyBClient2(HardwareObject):
                 _WS_COLLECTION_URL = _WSDL_ROOT + \
                     'ToolsForCollectionWebService?wsdl'
 
-                t1 = HttpAuthenticated(username = _WS_USERNAME,
-                                      password = _WS_PASSWORD)
-
-                t2 = HttpAuthenticated(username = _WS_USERNAME,
-                                      password = _WS_PASSWORD)
-
-                t3 = HttpAuthenticated(username = _WS_USERNAME,
-                                      password = _WS_PASSWORD)
-
-                try:
+                t1 = HttpAuthenticated(username = self.ws_username, 
+                                      password = self.ws_password)
+                
+                t2 = HttpAuthenticated(username = self.ws_username, 
+                                      password = self.ws_password)
+                
+                t3 = HttpAuthenticated(username = self.ws_username, 
+                                      password = self.ws_password)
+                
+                try: 
                     self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3,
                                              transport = t1, cache = None)
                     self.__collection = Client(_WS_COLLECTION_URL, timeout = 3,
@@ -202,8 +202,7 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
-
-    def translate(self, code, what):
+    def translate(self, code, what):  
         """
         Given a proposal code, returns the correct code to use in the GUI,
         or what to send to LDAP, user office database, or the ISPyB database.
@@ -1384,6 +1383,93 @@ class ISPyBClient2(HardwareObject):
             logging.getLogger("ispyb_client").exception(msg)
 
         return pos_id
+
+    @trace
+    def get_proposals_by_user(self, user_name):
+        proposal_list = []
+        res_proposal = []
+
+        if self.__disabled:
+            return proposal_list
+
+        if self.__shipping:
+            try:
+               proposals = eval(self.__shipping.service.getProposalsByLoginName(user_name))  
+               if proposal_list is not None:
+                   for proposal in proposals:
+                        if proposal['type'].upper() in ['MX', 'MB']:
+                           proposal_list.append(proposal)
+            except WebFault, e:
+               proposal_list = []
+               logging.getLogger("ispyb_client").exception(e.message)
+
+            res_proposal = []
+            if len(proposal_list) > 0:
+                for proposal in proposal_list:
+
+                    proposal_code = proposal['code']
+                    proposal_number = proposal['number']
+
+                    #person
+                    try:
+                        person = self.__shipping.service.\
+                                      findPersonByProposal(proposal_code,
+                                                           proposal_number)
+                        if not person:
+                            person = {}
+                    except WebFault, e:
+                        logging.getLogger("ispyb_client").exception(e.message)
+                        person = {}
+
+                    #lab
+                    try:
+                        lab = self.__shipping.service.\
+                                   findLaboratoryByProposal(proposal_code,
+                                                            proposal_number)
+                        if not lab:
+                            lab = {}
+                    except WebFault, e:
+                        logging.getLogger("ispyb_client").exception(e.message)
+                        lab = {}
+
+                    #sessions
+                    try:
+                        res_sessions = self.__collection.service.\
+                               findSessionsByProposalAndBeamLine(proposal_code,
+                                                                 proposal_number,
+                                                                 self.beamline_name)
+                        sessions = []
+                        for session in res_sessions:
+                            if session is not None :
+                                try:
+                                    session.startDate = \
+                                        datetime.strftime(session.startDate,
+                                                          "%Y-%m-%d %H:%M:%S")
+                                    session.endDate = \
+                                        datetime.strftime(session.endDate,
+                                                          "%Y-%m-%d %H:%M:%S")
+                                except:
+                                    pass
+                                sessions.append(utf_encode(asdict(session)))
+
+                    except WebFault, e:
+                        logging.getLogger("ispyb_client").exception(e.message)
+                        sessions = []
+
+                    
+                    res_proposal.append({'Proposal': proposal,
+                                         'Person': utf_encode(asdict(person)),
+                                         'Laboratory': utf_encode(asdict(lab)),
+                                         'Sessions' : sessions})
+            else:
+                logging.getLogger("ispyb_client").\
+                   warning("No proposals for user %s found" %user_name)
+        else:
+            logging.getLogger("ispyb_client").\
+                exception("Error in get_proposal: Could not connect to server," + \
+                          " returning empty proposal")
+        return res_proposal 
+
 
     # Bindings to methods called from older bricks.
     getProposal = get_proposal

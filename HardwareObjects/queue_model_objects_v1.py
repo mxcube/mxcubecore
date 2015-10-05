@@ -962,6 +962,11 @@ class XRFSpectrumResult(object):
         self.mca_calib = None
         self.mca_config = None
 
+class AdvancedScan(TaskNode):
+    def __init__(self, acquisition_list=None, crystal=None,
+                 processing_parameters=None, name=''):
+        TaskNode.__init__(self)
+
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
