@@ -15,24 +15,22 @@ class BeamlineSetup(HardwareObject):
         self._object_by_path = {}
         self._plate_mode = False
 
-        # For hardware objects that we would like to access as:
-        # self.<role_name>_hwrobj. Just to make it more elegant syntactically.
-        self._role_list = ['transmission', 'diffractometer', 'sample_changer','plate_manipulator',
-                           'resolution', 'shape_history', 'session', 'beam_info',
-                           'data_analysis', 'workflow', 'lims_client',
-                           'omega_axis', 'kappa_axis', 'kappa_phi_axis',
-                           'collect', 'energy', 'xrf_spectrum', 'detector', 'energyscan']
-
     def init(self):
         """
         Framework 2 init, inherited from HardwareObject.
         """
-        for role in self._role_list:
+        for role in self.getRoles():
             self._get_object_by_role(role)
 
         self._object_by_path['/beamline/energy'] = self.energy_hwobj
         self._object_by_path['/beamline/resolution'] = self.resolution_hwobj
         self._object_by_path['/beamline/transmission'] = self.transmission_hwobj
+
+        self.advanced_methods = []
+        try:
+           self.advanced_methods = eval(self.getProperty("advancedMethods"))
+        except:
+           pass
 
     def _get_object_by_role(self, role):
         """
@@ -75,6 +73,9 @@ class BeamlineSetup(HardwareObject):
                 raise KeyError('Invalid path')
 
         return value
+
+    def get_advanced_methods(self):
+        return self.advanced_methods
 
     def set_plate_mode(self, state):
         """
