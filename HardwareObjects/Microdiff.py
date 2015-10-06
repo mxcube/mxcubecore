@@ -28,8 +28,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
         self.readPhase =  self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"read_phase" }, "CurrentPhase")
-        use_hwstate = self.getProperty("use_hwstate")
-        if use_hwstate:
+        if self.getProperty("use_hwstate"):
             self.hwstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"hwstate" }, "HardwareState")
         else:
             self.hwstate_attr = None
