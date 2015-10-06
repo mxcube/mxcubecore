@@ -15,7 +15,8 @@ class MicrodiffKappaMotor(MD2Motor):
     def __init__(self, name):
         MD2Motor.__init__(self, name)
       
-    def init(self): 
+    def init(self):
+        self.motor_name = self.getProperty("motor_name")
         if not self.getMotorMnemonic() in ('Kappa', 'Phi'):
             raise RuntimeError("MicrodiffKappaMotor class is only for kappa motors")
         MicrodiffKappaMotor.motors[self.getMotorMnemonic()]=self

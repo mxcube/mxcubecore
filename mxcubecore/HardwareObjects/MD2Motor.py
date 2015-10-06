@@ -17,6 +17,8 @@ class MD2Motor(AbstractMotor, Device):
 
     def init(self):
         self.motorState = MD2Motor.NOTINITIALIZED
+        if self.motor_name is None:
+            self.motor_name = self.getProperty("motor_name")
 
         self.motor_resolution = self.getProperty("resolution")
         if self.motor_resolution is None:
