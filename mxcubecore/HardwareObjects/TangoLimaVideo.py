@@ -40,7 +40,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             self.device = BaseHardwareObjects.Null()
         else:
             self.setExposure(self.getProperty("interval")/1000.0)
-            self.device.video_mode = "BAYER RG16"
+            self.device.video_mode = "BAYER_RG16"
 
         self.setIsReady(True)
 

@@ -415,6 +415,7 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model)
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
+        self.plate_manipulator_hwobj = None
         self.sample_centring_result = None
 
     def execute(self):
@@ -424,11 +425,14 @@ class SampleQueueEntry(BaseQueueEntry):
 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
-            if self.sample_changer_hwobj is not None:
+            if self.diffractometer_hwobj.in_plate_mode():
+                mount_device = self.plate_manipulator_hwobj
+            else:
+                mount_device = self.sample_changer_hwobj
+            if mount_device is not None:
                 log.info("Loading sample " + self._data_model.loc_str)
 
-                sample_mounted = self.sample_changer_hwobj.\
-                                 is_mounted_sample(self._data_model.location)
+                sample_mounted = mount_device.is_mounted_sample(self._data_model.location)
 
                 if not sample_mounted:
                     self.sample_centring_result = gevent.event.AsyncResult()
@@ -463,6 +467,7 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
@@ -1085,9 +1090,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.chooch_graph_y1 = chooch_graph_y1
         energy_scan.result.chooch_graph_y2 = chooch_graph_y2
         energy_scan.result.title = title
-        energy_scan.result.data = self.energy_scan_hwobj.get_scan_data()
-
-        #energy_scan.result = sample.crystals[0].energy_scan_result
+        try:
+            energy_scan.result.data = self.energy_scan_hwobj.get_scan_data()
+        except:
+            pass
 
         logging.getLogger("user_level_log").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
@@ -1121,101 +1127,98 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
 
-class XRFScanQueueEntry(BaseQueueEntry):
+class XRFSpectrumQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
-        self.xrf_scan_hwobj = None
+        self.xrf_spectrum_hwobj = None
         self.session_hwobj = None
-        self.xrf_scan_task = None
+        self.xrf_spectrum_task = None
         self._failed = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        if self.xrf_scan_hwobj is not None:
-            xrf_scan = self.get_data_model()
-            self.get_view().setText(1, "Starting xrf scan")
+        if self.xrf_spectrum_hwobj is not None:
+            xrf_spectrum = self.get_data_model()
+            self.get_view().setText(1, "Starting xrf spectrum")
 
             sample_model = self.get_data_model().\
                            get_parent().get_parent()
 
             sample_lims_id = sample_model.lims_id
-            # No sample id, pass None to startEnergyScan
+            # No sample id, pass None to startEnergySpectrum
             if sample_lims_id == -1:
                 sample_lims_id = None
 
-            self.xrf_scan_task = \
-                gevent.spawn(self.xrf_scan_hwobj.startXrfSpectrum,
-                             xrf_scan.count_time,
-                             xrf_scan.path_template.directory,
-                             xrf_scan.path_template.get_prefix(),
+            self.xrf_spectrum_task = \
+                gevent.spawn(self.xrf_spectrum_hwobj.startXrfSpectrum,
+                             xrf_spectrum.count_time,
+                             xrf_spectrum.path_template.directory,
+                             xrf_spectrum.path_template.get_prefix(),
                              self.session_hwobj.session_id,
                              sample_lims_id)
        
-            self.xrf_scan_task.get()
-            self.xrf_scan_hwobj.ready_event.wait()
-            self.xrf_scan_hwobj.ready_event.clear()
+            self.xrf_spectrum_task.get()
+            self.xrf_spectrum_hwobj.ready_event.wait()
+            self.xrf_spectrum_hwobj.ready_event.clear()
         else:
-            self.xrf_scan_failed ()
+            self.xrf_spectrum_failed ()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self._failed = False
-        self.xrf_scan_hwobj = self.beamline_setup.xrf_scan_hwobj
+        self.xrf_spectrum_hwobj = self.beamline_setup.xrf_spectrum_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
         qc = self.get_queue_controller()
+        qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumStatusChanged',
+                   self.xrf_spectrum_status_changed)
 
-        qc.connect(self.xrf_scan_hwobj, 'xrfScanStatusChanged',
-                   self.xrf_scan_status_changed)
-
-        qc.connect(self.xrf_scan_hwobj, 'xrfScanStarted',
-                   self.xrf_scan_started)
-
-        qc.connect(self.xrf_scan_hwobj, 'xrfScanFinished',
-                   self.xrf_scan_finished)
-
-        qc.connect(self.xrf_scan_hwobj, 'xrfScanFailed',
-                   self.xrf_scan_failed)
+        qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumStarted',
+                   self.xrf_spectrum_started)
+        qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumFinished',
+                   self.xrf_spectrum_finished)
+        qc.connect(self.xrf_spectrum_hwobj, 'xrfSpectrumFailed',
+                   self.xrf_spectrum_failed)
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
-        qc.disconnect(self.xrf_scan_hwobj, 'xrfScanStatusChanged',
-                      self.xrf_scan_status_changed)
+        qc.disconnect(self.xrf_spectrum_hwobj, 'xrfSpectrumStatusChanged',
+                      self.xrf_spectrum_status_changed)
 
-        qc.disconnect(self.xrf_scan_hwobj, 'xrfScanStarted',
-                      self.xrf_scan_started)
+        qc.disconnect(self.xrf_spectrum_hwobj, 'xrfSpectrumStarted',
+                      self.xrf_spectrum_started)
 
-        qc.disconnect(self.xrf_scan_hwobj, 'xrfScanFinished',
-                      self.xrf_scan_finished)
+        qc.disconnect(self.xrf_spectrum_hwobj, 'xrfSpectrumFinished',
+                      self.xrf_spectrum_finished)
 
-        qc.disconnect(self.xrf_scan_hwobj, 'xrfScanFailed',
-                      self.xrf_scan_failed)
+        qc.disconnect(self.xrf_spectrum_hwobj, 'xrfSpectrumFailed',
+                      self.xrf_spectrum_failed)
         if self._failed:
             raise QueueAbortedException('Queue stopped', self)
 
-    def xrf_scan_status_changed(self, msg):
+    def xrf_spectrum_status_changed(self, msg):
         logging.getLogger("user_level_log").info(msg)
 
-    def xrf_scan_started(self):
-        logging.getLogger("user_level_log").info("XRF scan started.")
+    def xrf_spectrum_started(self):
+        logging.getLogger("user_level_log").info("XRF spectrum started.")
         self.get_view().setText(1, "In progress")
 
-    def xrf_scan_finished(self, mcaData, mcaCalib, mcaConfig):
-        xrf_scan = self.get_data_model()
-        scan_file_path = os.path.join(xrf_scan.path_template.directory,
-                                      xrf_scan.path_template.get_prefix())
-        scan_file_archive_path = os.path.join(xrf_scan.path_template.\
+    def xrf_spectrum_finished(self, mcaData, mcaCalib, mcaConfig):
+        xrf_spectrum = self.get_data_model()
+        spectrum_file_path = os.path.join(xrf_spectrum.path_template.directory,
+                                      xrf_spectrum.path_template.get_prefix())
+        spectrum_file_archive_path = os.path.join(xrf_spectrum.path_template.\
                                               get_archive_directory(),
-                                              xrf_scan.path_template.get_prefix())
+                                              xrf_spectrum.path_template.get_prefix())
 
-        xrf_scan.result.mca_data = mcaData
-        xrf_scan.result.mca_calib = mcaCalib
-        xrf_scan.result.mca_config = mcaConfig
+        xrf_spectrum.result.mca_data = mcaData
+        xrf_spectrum.result.mca_calib = mcaCalib
+        xrf_spectrum.result.mca_config = mcaConfig
 
         self.get_view().setText(1, "Done")
 
-    def xrf_scan_failed(self):
+    def xrf_spectrum_failed(self):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
@@ -1314,60 +1317,66 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
     loc = data_model.location
     holder_length = data_model.holder_length
 
-    if hasattr(beamline_setup_hwobj.sample_changer_hwobj, '__TYPE__')\
-       and (beamline_setup_hwobj.sample_changer_hwobj.__TYPE__ == 'CATS'):
-        element = '%d:%02d' % loc
-        beamline_setup_hwobj.sample_changer_hwobj.load(sample=element, wait=True)
+    # This is a possible solution how to deal with two devices that
+    # can move sample on beam (sample changer, plate holder, in future 
+    # also harvester)
+    # TODO make sample_Changer_one, sample_changer_two
+    if beamline_setup_hwobj.diffractometer_hwobj.in_plate_mode():
+        sample_mount_device = beamline_setup_hwobj.plate_manipulator_hwobj
     else:
-        if beamline_setup_hwobj.sample_changer_hwobj.load_sample(holder_length,
-                                                              sample_location=loc,
-                                                              wait=True) == False:
-            # WARNING: explicit test of False return value.
-            # This is to preserve backward compatibility (load_sample was supposed to return None);
-            # if sample could not be loaded, but no exception is raised, let's skip the sample
-            raise QueueSkippEntryException("Sample changer could not load sample", "")
+        sample_mount_device = beamline_setup_hwobj.sample_changer_hwobj
 
-    dm = beamline_setup_hwobj.diffractometer_hwobj
+    if hasattr(sample_mount_device, '__TYPE__'):
+        if sample_mount_device.__TYPE__ in ['Marvin','CATS']:
+            element = '%d:%02d' % loc
+            sample_mount_device.load(sample=element, wait=True)
+        elif sample_mount_device.__TYPE__ == "PlateManipulator":
+            element = '%s%d:%d' % (chr(65 + loc[0]), loc[1], loc[2])
+            sample_mount_device.load(sample=element, wait=True)
+        else:
+            if sample_mount_device.load_sample(holder_length, sample_location=loc, wait=True) == False:
+                # WARNING: explicit test of False return value.
+                # This is to preserve backward compatibility (load_sample was supposed to return None);
+                # if sample could not be loaded, but no exception is raised, let's skip the sample
+                raise QueueSkippEntryException("Sample changer could not load sample", "")
 
-    if dm is not None:
-        try:
-            dm.connect("centringAccepted", centring_done_cb)
-            centring_method = view.listView().parent().\
-                              centring_method
-                  
-            if centring_method == CENTRING_METHOD.MANUAL:
-                log.warning("Manual centring used, waiting for" +\
-                            " user to center sample")
-                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
-            elif centring_method == CENTRING_METHOD.LOOP:
-                dm.startCentringMethod(dm.C3D_MODE)
-                log.warning("Centring in progress. Please save" +\
-                            " the suggested centring or re-center")
-            elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                log.info("Centring sample, please wait.")
-                dm.startCentringMethod(dm.C3D_MODE)
-            else:
-                dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
+    if not sample_mount_device.hasLoadedSample():
+        #Disables all related collections
+        view.setOn(False)
+        raise QueueSkippEntryException("Sample not loaded", "")
+    else:
+        dm = beamline_setup_hwobj.diffractometer_hwobj
+        if dm is not None:
+            try:
+                dm.connect("centringAccepted", centring_done_cb)
+                centring_method = view.listView().parent().\
+                                  centring_method
+                if centring_method == CENTRING_METHOD.MANUAL:
+                    log.warning("Manual centring used, waiting for" +\
+                                " user to center sample")
+                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
+                elif centring_method == CENTRING_METHOD.LOOP:
+                    dm.startCentringMethod(dm.C3D_MODE)
+                    log.warning("Centring in progress. Please save" +\
+                                " the suggested centring or re-center")
+                elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
+                    log.info("Centring sample, please wait.")
+                    dm.startCentringMethod(dm.C3D_MODE)
+                else:
+                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
 
-            view.setText(1, "Centring !")
-            centring_result = async_result.get()
-            if centring_result['valid']: 
+                view.setText(1, "Centring !")
+                async_result.get()
                 view.setText(1, "Centring done !")
                 log.info("Centring saved")
-            else:
-                if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
-                    raise QueueSkippEntryException("Could not center sample, skipping", "")
-                else:
-                    raise RuntimeError("Could not center sample")
-        finally:
-            dm.disconnect("centringAccepted", centring_done_cb)
-
+            finally:
+                dm.disconnect("centringAccepted", centring_done_cb)
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
      queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
-     queue_model_objects.XRFScan: XRFScanQueueEntry,
+     queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
      queue_model_objects.Basket: BasketQueueEntry,

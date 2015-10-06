@@ -1,17 +1,18 @@
-from MicrodiffMotor import MicrodiffMotor
+from MD2Motor import MD2Motor
 import logging
 import math
 
-class MicrodiffSamplePseudo(MicrodiffMotor):      
+class MicrodiffSamplePseudo(MD2Motor):
     def __init__(self, name):
-        MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
         
         self.motor_name = name
         self.sampx = None
         self.sampy = None
         self.phi = None
         self.direction = None
-        self.motorState = MicrodiffMotor.NOTINITIALIZED 
+
+        self.motorState = MD2Motor.NOTINITIALIZED
 
     def init(self): 
         self.direction = self.getProperty("direction")
@@ -26,19 +27,20 @@ class MicrodiffSamplePseudo(MicrodiffMotor):
         self.connect(self.phi, "stateChanged", self.real_motor_changed)
 
     def real_motor_moved(self, _):
+
         self.motorPositionChanged(self.getPosition())
           
     def updateMotorState(self):
         states = [m.getState() for m in (self.sampx, self.sampy, self.phi)]
-        error_states = [state in (MicrodiffMotor.UNUSABLE, MicrodiffMotor.NOTINITIALIZED, MicrodiffMotor.ONLIMIT) for state in states]
-        moving_state = [state in (MicrodiffMotor.MOVING, MicrodiffMotor.MOVESTARTED) for state in states]
+        error_states = [state in (MD2Motor.UNUSABLE, MD2Motor.NOTINITIALIZED, MD2Motor.ONLIMIT) for state in states]
+        moving_state = [state in (MD2Motor.MOVING, MD2Motor.MOVESTARTED) for state in states]
  
         if any(error_states):
-          self.motorState = MicrodiffMotor.UNUSABLE
+          self.motorState = MD2Motor.UNUSABLE
         elif any(moving_state):
-          self.motorState = MicrodiffMotor.MOVING
+          self.motorState = MD2Motor.MOVING
         else:
-          self.motorState = MicrodiffMotor.READY
+          self.motorState = MD2Motor.READY
  
         self.motorStateChanged(self.motorState)
     
@@ -57,7 +59,7 @@ class MicrodiffSamplePseudo(MicrodiffMotor):
         return new_pos
 
     def getState(self):
-        if self.motorState == MicrodiffMotor.NOTINITIALIZED:
+        if self.motorState == MD2Motor.NOTINITIALIZED:
           self.updateMotorState()
         return self.motorState
    

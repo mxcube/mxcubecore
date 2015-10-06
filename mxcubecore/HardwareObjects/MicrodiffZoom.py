@@ -1,17 +1,17 @@
-import MicrodiffMotor
+from MD2Motor import MD2Motor
 import logging
 import math
 
-class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):      
+class MicrodiffZoom(MD2Motor):
     def __init__(self, name):
-        MicrodiffMotor.MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
 
     def init(self):
         self.motor_name = "Zoom"
         self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
  
-        MicrodiffMotor.MicrodiffMotor.init(self)
+        MD2Motor.init(self)
 
         self.predefined_position_attr = self.addChannel({"type":"exporter", "name":"predefined_position"  }, "CoaxialCameraZoomValue")
 
@@ -33,7 +33,7 @@ class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):
             else:
                 self.emit(signal, (positionName, pos))
         else:
-            return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
+            return MD2Motor.connectNotify.im_func(self, signal)
 
     def getLimits(self):
         return (1,10)
@@ -42,7 +42,7 @@ class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MicrodiffMotor.MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         if self._last_position_name != positionName:
@@ -66,5 +66,3 @@ class MicrodiffZoom(MicrodiffMotor.MicrodiffMotor):
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
-
-    

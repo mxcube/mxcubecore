@@ -516,7 +516,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             r = conn.getresponse()
 
             if r.status != 200:
-                logging.error("Could not create input file")
+                logging.error("Could not create hkl input file")
             else:
                 hkl_file.write(r.read())
             hkl_file.close()
@@ -528,7 +528,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           xds_file = open(xds_input_file, "w")
           r = conn.getresponse()
           if r.status != 200:
-            logging.error("Could not create input file")
+            logging.error("Could not create xds input file")
           else:
             xds_file.write(r.read())
           xds_file.close()

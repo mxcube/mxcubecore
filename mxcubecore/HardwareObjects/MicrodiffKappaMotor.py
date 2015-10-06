@@ -1,5 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
-from MicrodiffMotor import MicrodiffMotor
+from MD2Motor import MD2Motor
 import math
 import logging
 import time
@@ -7,13 +7,13 @@ import gevent
 import numpy as np
 import logging
 
-class MicrodiffKappaMotor(MicrodiffMotor):      
+class MicrodiffKappaMotor(MD2Motor):      
     lock = gevent.lock.Semaphore()
     motors = dict()
     conf = dict()
  
     def __init__(self, name):
-        MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
       
     def init(self): 
         if not self.getMotorMnemonic() in ('Kappa', 'Phi'):
@@ -25,7 +25,7 @@ class MicrodiffKappaMotor(MicrodiffMotor):
         elif self.getMotorMnemonic() == 'Phi':
             MicrodiffKappaMotor.conf['PhiTrans'] = self.stringToList(self.phiTrans)
             MicrodiffKappaMotor.conf['PhiTransD'] = self.stringToList(self.phiTransD)
-        MicrodiffMotor.init(self)
+        MD2Motor.init(self)
         self.sampx = self.getObjectByRole("sampx")
         self.sampy = self.getObjectByRole("sampy")
         self.phiy = self.getObjectByRole("phiy")
@@ -47,9 +47,9 @@ class MicrodiffKappaMotor(MicrodiffMotor):
         phiy_start_pos = self.phiy.getPosition()
 
         with MicrodiffKappaMotor.lock:
-            if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+            if self.getState() != MD2Motor.NOTINITIALIZED:
                 self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
-                self.motorStateChanged(MicrodiffMotor.MOVING)
+                self.motorStateChanged(MD2Motor.MOVING)
             
             #calculations
             newSamplePositions = self.getNewSamplePosition(kappa_start_pos, 
@@ -66,14 +66,14 @@ class MicrodiffKappaMotor(MicrodiffMotor):
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
            time.sleep(0.1)
-           while self.motorState == MicrodiffMotor.MOVING:
+           while self.motorState == MD2Motor.MOVING:
               time.sleep(0.1) 
            self.sampx.waitEndOfMove()
            self.sampy.waitEndOfMove()
            self.phiy.waitEndOfMove()
 
     def stop(self):
-        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+        if self.getState() != MD2Motor.NOTINITIALIZED:
           self._motor_abort()
         for m in (self.sampx, self.sampy, self.phiy):
           m.stop()
