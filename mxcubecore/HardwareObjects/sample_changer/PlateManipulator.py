@@ -145,6 +145,7 @@ class PlateManipulator(SampleChanger):
 
         self.num_cols = None
         self.num_rows = None
+        self.num_drops = None
         self.current_phase = None
         self.reference_pos_x = None
         self.timeout = 3 #default timeout
@@ -156,7 +157,10 @@ class PlateManipulator(SampleChanger):
         """
         cmd_get_config = self.getChannelObject("GetPlateConfig")
         if cmd_get_config:
-            self.num_rows, self.num_cols, self.num_drops = cmd_get_config.getValue()
+            try:
+                self.num_rows, self.num_cols, self.num_drops = cmd_get_config.getValue()
+            except:
+                pass
         else:
             self.num_cols = self.getProperty("numCols")
             self.num_rows = self.getProperty("numRows")
@@ -204,6 +208,8 @@ class PlateManipulator(SampleChanger):
         """
         Descript. : Initializes content of plate.
         """
+        if self.num_rows is None:
+            return
         self._setInfo(False, None, False)
         self._clearComponents()
         for row in range(self.num_rows):
