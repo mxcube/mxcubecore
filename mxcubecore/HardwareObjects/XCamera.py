@@ -37,7 +37,7 @@ class XCamera(TacoDevice.TacoDevice):
             return self.device.DevCcdYSize()
 
 
-    def setSize(self, with, height):
+    def setSize(self, width, height):
         if self.isReady():
             return self.device.DevCcdOutputSize(width, height)
 
