@@ -1,27 +1,30 @@
-import MicrodiffMotor
+from MD2Motor import MD2Motor
 import logging
 import math
 
-class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):      
+class MicrodiffAperture(MD2Motor):
     def __init__(self, name):
-        MicrodiffMotor.MicrodiffMotor.__init__(self, name)
+        MD2Motor.__init__(self, name)
 
     def init(self):
         self.motor_name = "CurrentApertureDiameter"
         self.motor_pos_attr_suffix = "Index"
-        MicrodiffMotor.MicrodiffMotor.init(self)
+        MD2Motor.init(self)
 
+        self.aperture_inout = self.getObjectByRole('inout')
         self.predefinedPositions = {}
         self.labels = self.addChannel({"type":"exporter", "name":"ap_labels" }, "ApertureDiameters")
         self.filters = self.labels.getValue()
         self.nb = len(self.filters)
         j = 0
         while j < self.nb :
-          for i in self.filters: #.split() :
+          for i in self.filters:
             if int(i) >= 300:
               i = "Outbeam"
             self.predefinedPositions[i] = j
             j = j+1
+        if not "Outbeam" in self.predefinedPositions:
+            self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
         self.sortPredefinedPositionsList()
         
     def sortPredefinedPositionsList(self):
@@ -31,7 +34,6 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
     def connectNotify(self, signal):
         if signal == 'predefinedPositionChanged':
             positionName = self.getCurrentPositionName()
-
             try:
                 pos = self.predefinedPositions[positionName]
             except KeyError:
@@ -41,7 +43,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
         elif signal == 'apertureChanged':
                 self.emit('apertureChanged', (self.getApertureSize(), ))
         else:
-            return MicrodiffMotor.MicrodiffMotor.connectNotify.im_func(self, signal)
+            return MD2Motor.connectNotify.im_func(self, signal)
 
     def getLimits(self):
         return (1,self.nb)
@@ -50,7 +52,7 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MicrodiffMotor.MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
@@ -58,9 +60,13 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
     def getCurrentPositionName(self, pos=None):
         if self.getPosition() is not None:
-          pos = pos or self.getPosition()
-        else :
-          pos = pos
+            pos = pos or self.getPosition()
+        else:
+            pos = pos
+
+        if self.aperture_inout.getActuatorState() != 'in':
+            pos = self.predefinedPositions.__len__() - 1
+
         try:
             for positionName in self.predefinedPositions:
                 if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
@@ -70,10 +76,15 @@ class MicrodiffAperture(MicrodiffMotor.MicrodiffMotor):
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
-        try:
-            self.move(self.predefinedPositions[positionName])
-        except:
-            logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName()))
+        if positionName == 'Outbeam':
+            self.aperture_inout.actuatorOut(wait=True)
+        else:
+            try:
+                self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
+            except:
+                logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName()))
+            if self.aperture_inout.getActuatorState() != 'in':
+                self.aperture_inout.actuatorIn(wait=True)
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError

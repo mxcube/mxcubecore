@@ -18,7 +18,7 @@ class Transmission(HardwareObject):
 
         self.__matt = matt_control.MattControl(self.getProperty("wago_ip"), len(self['filter']), 0, self.getProperty('type'),
                                    self.getProperty('alternate'), self.getProperty('status_module'),
-                                   self.getProperty('control_module'))
+                                   self.getProperty('control_module'),self.getProperty('datafile'))
         self.__matt.connect()
 
     def isReady(self):

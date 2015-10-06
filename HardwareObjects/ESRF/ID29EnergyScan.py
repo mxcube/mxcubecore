@@ -1,6 +1,6 @@
 from ESRFEnergyScan import *
 import logging
-import calc_gaps
+import id29_calc_gaps as calc_gaps
 
 class ID29EnergyScan(ESRFEnergyScan):
     def __init__(self, name):

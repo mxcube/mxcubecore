@@ -77,7 +77,7 @@ def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
 
   set_light_in(light, light_motor, zoom)
 
-  for i, angle in enumerate([-90]*number_of_snapshots):
+  for i, angle in enumerate([0]+[-90]*(number_of_snapshots-1)):
      logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", i+1)
      centredImages.append((phi.getPosition(),str(myimage(drawing))))
      phi.syncMoveRelative(angle)
@@ -266,6 +266,9 @@ class MiniDiff(Equipment):
             self.phiyMotor is not None and \
             self.camera is not None
 
+
+    def in_plate_mode(self):
+        return False
 
     def apertureChanged(self, *args):
         # will trigger minidiffReady signal for update of beam size in video

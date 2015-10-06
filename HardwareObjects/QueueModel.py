@@ -17,9 +17,12 @@ class QueueModel(HardwareObject):
         self._ispyb_model._node_id = 0
         self._free_pin_model = queue_model_objects.RootNode()
         self._free_pin_model._node_id = 0
+        self._plate_model = queue_model_objects.RootNode()
+        self._plate_model._node_id = 0
 
         self._models = {'ispyb': self._ispyb_model,
-                        'free-pin': self._free_pin_model}
+                        'free-pin': self._free_pin_model,
+                        'plate': self._plate_model}
 
         self._selected_model = self._ispyb_model
 

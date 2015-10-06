@@ -16,10 +16,16 @@ class ESRFSC3(SC3.SC3):
     def init(self):
         SC3.SC3.init(self)
 
-        operationalChan = self.getChannelObject("OperationalFlags")
-        operationalChan.connectSignal("update", self.operationalFlagsChanged)
         try:
-            self.operationalFlagsChanged(operationalChan.getValue())
+            operationalChan = self.getChannelObject("OperationalFlags")
+            chan = operationalChan.getValue()
+            operationalChan.connectSignal("update", self.operationalFlagsChanged)
+        except:
+            operationalChan = self.getProperty("OperationalFlags")
+            chan = operationalChan
+        
+        try:
+            self.operationalFlagsChanged(chan)
         except:
             logging.getLogger("HWR").exception("%s: error getting SC vs MD operational flags" % self.name())
 
@@ -69,17 +75,17 @@ class ESRFSC3(SC3.SC3):
                     logging.getLogger("HWR").debug("%s: preparing minidiff for sample centring", self.name())
                     self.emit("stateChanged", SC3.SampleChangerState.Moving)
                     self.emit("statusChanged", "Preparing minidiff for sample centring")
-
-                    if not self.prepareCentring.isSpecConnected():
-                        # this is not to wait for 30 seconds if spec is not running, in fact
-                        raise RuntimeError("spec is not connected")
-
-                    self.prepareCentring(wait=True, timeout=30)
+                    self.prepareCentring(wait=True, timeout=1000)
               
                 self.emit("statusChanged", "Ready")
  
                 if callable(sampleIsLoadedCallback):
                     sampleIsLoadedCallback()
+
+
+    def _getLoadingState(self):
+        # if needed, should wait for SC to be able to load (loading state)
+        pass
 
 
     def __loadSample(self, holderLength, sample_id, sample_location):
@@ -98,10 +104,7 @@ class ESRFSC3(SC3.SC3):
 
         self.emit("stateChanged", SC3.SampleChangerState.Moving)
         self.emit("statusChanged", "Moving diffractometer to loading position")
-        if self._moveToLoadingPosition.isSpecConnected():
-          self._moveToLoadingPosition(holderLength, wait=True, timeout=30)
-        else:
-          raise RuntimeError("spec is not connected")
+        self._moveToLoadingPosition(holderLength, wait=True, timeout=10000)
 
         try:
             SC3.SC3.load(self, sample, wait=True)
@@ -109,6 +112,7 @@ class ESRFSC3(SC3.SC3):
             self.emit("statusChanged", str(err))
             raise
 
+        self._getLoadingState()
         return self.getLoadedSample() == sample
 
     def load_sample(self, *args, **kwargs):
@@ -144,13 +148,11 @@ class ESRFSC3(SC3.SC3):
 
         self.emit("stateChanged", SC3.SampleChangerState.Moving)
         self.emit("statusChanged", "Moving diffractometer to unloading position")
-        if self._moveToUnloadingPosition.isSpecConnected():
-          self._moveToUnloadingPosition(holderLength, wait=True, timeout=30)
-        else:
-          raise RuntimeError("spec is not connected")
 
+        self._moveToUnloadingPosition(holderLength, wait=True, timeout=10000)
         SC3.SC3.unload(self, sample, wait=True)
  
+        self._getLoadingState()
         return not self.hasLoadedSample()
 
     def moveCryoIn(self):
