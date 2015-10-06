@@ -86,13 +86,6 @@ class BeamlineSetup(HardwareObject):
         """
         self._plate_mode = state
 
-    def in_plate_mode(self):
-        """
-        :returns: True if plates are used otherwise False
-        :rtype: bool
-        """
-        return self._plate_mode
-
     def detector_has_shutterless(self):
         """
         :returns: True if the detector is capable of shuterless.
