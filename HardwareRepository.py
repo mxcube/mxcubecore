@@ -28,7 +28,7 @@ except ImportError:
  
 import HardwareObjectFileParser
 import BaseHardwareObjects
-from .dispatcher import *
+from dispatcher import *
 
 _instance = None
 _hwrserver = None
@@ -550,7 +550,10 @@ class __HardwareRepositoryClient:
                 d["children"] = {}
                 
                 for ho in ho.getDevices():
-                    d["children"][ho.name()] = self.getInfo(ho.name())
+                    try:
+                        d["children"][ho.name()] = self.getInfo(ho.name())
+                    except Exception:
+                        continue
                     
             return d
         

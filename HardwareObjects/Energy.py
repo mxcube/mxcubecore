@@ -185,9 +185,9 @@ class Energy(Equipment):
                     else:
                         self.executeCommand("moveEnergy", energy, wait=True)
                 except RuntimeError, AttributeError:
-                    self.energy_motor.move(energy, wait=True)
+                    self.energy_motor.move(energy)
             else:
-                self.energy_motor.move(energy, wait=True)
+                self.energy_motor.move(energy)
 
     def energyPositionChanged(self,pos):
         wl=12.3984/pos
