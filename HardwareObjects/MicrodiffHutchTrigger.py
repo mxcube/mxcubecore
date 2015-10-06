@@ -53,6 +53,8 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
             self.pollingTask = gevent.spawn(self._do_polling)
         self.connected()
  
+    def hutchIsOpened(self):
+        return self.hutch_opened
 
     def isConnected(self):
         return True
@@ -97,7 +99,6 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
             self.__oldValue = value
 
         self.valueChanged(value)
-        
 
     def valueChanged(self, value, *args):
         if value == 0:
@@ -106,5 +107,6 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
 
+        self.hutch_opened = 1-value
 	self.initialized = True
 
