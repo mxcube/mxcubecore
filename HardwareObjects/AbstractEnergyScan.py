@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import abc
 import logging
@@ -99,7 +98,6 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     @task
     def calculate_und_gaps(self, energy):
         """
@@ -109,7 +107,6 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     @task
     def move_undulators(self, undulators):
         """
@@ -165,11 +162,17 @@ class AbstractEnergyScan(object):
         #Set the energy from the element and edge parameters
         STATICPARS_DICT = self.get_static_parameters(element,edge)
         
+        self.energy_scan_parameters = STATICPARS_DICT
+        self.energy_scan_parameters["element"] = element
+        self.energy_scan_parameters["edge"] = edge
+        self.energy_scan_parameters["directory"] = directory
+
         #Calculate the MCA ROI (if needed)
         try:
             self.set_mca_roi(STATICPARS_DICT['eroi_min'], STATICPARS_DICT['eroi_max'])
         except:
             pass
+
         #Calculate undulator gaps (if any)
         GAPS = {}
         try:
@@ -177,10 +180,6 @@ class AbstractEnergyScan(object):
         except:
             pass
 
-        self.energy_scan_parameters = STATICPARS_DICT
-        self.energy_scan_parameters["element"] = element
-        self.energy_scan_parameters["edge"] = edge
-        self.energy_scan_parameters["directory"] = directory
         #create the directory if needed
         if not os.path.exists(directory):
              os.makedirs(directory)
