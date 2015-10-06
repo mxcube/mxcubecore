@@ -53,8 +53,7 @@ class MicrodiffInOut(Device):
         except:
             pass
 
-        use_hwstate = self.getProperty("use_hwstate")
-        if use_hwstate:
+        if self.getProperty("use_hwstate"):
             self.hwstate_attr = self.addChannel({"type":"exporter", "name":"hwstate" }, "HardwareState")
 
         self.swstate_attr = self.addChannel({"type":"exporter", "name":"swstate" }, "State")

@@ -6,7 +6,7 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
     def __init__(self, *args):
         BeamInfo.BeamInfo.__init__(self, *args)
 
-    def init(self): 
+    def init(self):
         self.chan_beam_size_microns = None 
         self.chan_beam_shape_ellipse = None 
         BeamInfo.BeamInfo.init(self)
