@@ -73,6 +73,8 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """
+        self.run_without_loop = True
+
         self.ready_event = gevent.event.Event()
         self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
                                sample_changer = self.getObjectByRole("sample_changer"),
@@ -97,11 +99,10 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
                undulators.append(undulator)
         except:
            pass  
-
         self.exp_type_dict = {'Mesh': 'raster',
                               'Helical': 'Helical'}
-      
-        self.setBeamlineConfiguration(directory_prefix = self.getProperty("directory_prefix"),
+        self.setBeamlineConfiguration(synchrotron_name = self.bl_control.lims.session_hwobj.synchrotron_name,
+                                      directory_prefix = self.getProperty("directory_prefix"),
                                       default_exposure_time = self.bl_control.detector.getProperty("default_exposure_time"),
                                       minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
                                       detector_fileext = self.bl_control.detector.getProperty("fileSuffix"),
@@ -160,12 +161,12 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
-    def send_collection_cmd(self, p):
+    def execute_collect_without_loop(self, p):
         """
         Descript. : main collection command
         """
         if self._actual_collect_status in ["ready", "unknown", "error"]:
-            comment = 'Comment: %s' % str(p['comments'])
+            comment = 'Comment: %s' % str(p.get('comments', ""))
             self._error_msg = ""
             self._collecting = True
             self.cmd_collect_description(comment)
@@ -333,6 +334,13 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
                 logging.debug("Unable to store image in ISPyB")  
         self.trigger_auto_processing("image", self.actual_data_collect_parameters, frame)
 
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        pass
+
+    def last_image_saved(self):
+        pass
+
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
         Descript. : 
@@ -452,7 +460,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """        
-        self.bl_control.diffractometer.move_motors(motor_position_dict.as_dict())
+        self.bl_control.diffractometer.move_motors(motor_position_dict)
 
     def frameEmitter(self, frame):
         """
@@ -547,7 +555,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         #self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
         #self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
         
-        return xds_directory, mosflm_directory
+        return xds_directory, mosflm_directory, ""
 
     @task
     def write_input_files(self, collection_id):
@@ -589,13 +597,14 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         Descript. : 
         """
         if self.bl_control.transmission is not None:
-            return self.bl_control.transmission.transmissionValueGet()
+            return self.bl_control.transmission.getAttFactor()
 
     def get_undulators_gaps(self):
         """
         Descript. : return triplet with gaps. In our case we have one gap, 
                     others are 0        
         """
+        #TODO 
         if self.chan_undulator_gap:
             und_gaps = self.chan_undulator_gap.getValue()
             if type(und_gaps) in (list, tuple):
@@ -603,7 +612,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
             else: 
                 return (und_gaps)
         else:
-            return () 
+            return {} 
 
     def get_resolution_at_corner(self):
         """
@@ -700,24 +709,11 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         return True
  
-    def sampleChangerHO(self):
-        """
-        Descript. : 
-        """
-        return self.bl_control.sample_changer
-
-
     def diffractometer(self):
         """
         Descript. : 
         """
         return self.bl_control.diffractometer
-
-    def dbServerHO(self):
-        """
-        Descript. : 
-        """
-        return self.bl_control.lims
 
     def sanityCheck(self, collect_params):
         """
