@@ -24,7 +24,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
-class AbstractXRFScan(object):
+class AbstractXRFSpectrum(object):
     """
     Descript. 
     """
@@ -118,14 +118,12 @@ class AbstractXRFScan(object):
         self.execute_spectrum_command(ct, filename)
         return True
 
-    @abc.abstractmethod
     def execute_spectrum_command(self, count_time, filename):    
         """
         Descript. :
         """
         pass
    
-    @abc.abstractmethod 
     def cancel_spectrum(self, *args):
         """
         Descript. :

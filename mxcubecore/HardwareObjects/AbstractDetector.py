@@ -15,8 +15,12 @@ class AbstractDetector(object):
         self.distance_limits_static = [None, None]
         self.binding_mode = None
         self.roi_mode = None
+ 
+        self.roi_modes_list = []
 
         self.distance_motor_hwobj = None
+
+        
 
     @abc.abstractmethod
     def get_distance(self):
@@ -39,6 +43,12 @@ class AbstractDetector(object):
         """
         return
 
+    def get_roi_modes(self):
+        """
+        Descript. : 
+        """
+        return self.roi_modes_list
+
     def get_pixel_min(self):
         """
         Descript. : Returns minimal pixel size
@@ -52,6 +62,12 @@ class AbstractDetector(object):
         return self.pixel_max
 
     def set_distance(self, value):
+        """
+        Descript. : 
+        """
+        return
+
+    def set_detector_mode(self, value):
         """
         Descript. : 
         """
