@@ -51,6 +51,13 @@ class Container(Component):
                 samples.extend(c.getSampleList())
         return samples
 
+    def getBasketList(self):
+        basket_list = []
+        for basket in self.components:
+            if isinstance(basket, Basket):
+                basket_list.append(basket)
+        return basket_list
+
     def getPresentSamples(self):
         """
         Returns the list of all Sample objects under of this container (recursivelly) tagged as present
@@ -167,4 +174,41 @@ class Container(Component):
             for c in self.getComponents():
                 c._setSelected(False)        
         Component._setSelected(self, selected)
+
+class Basket(Container):
+    __TYPE__ = "Puck"
+    #NO_OF_SAMPLES_PER_PUCK = 10
+
+    def __init__(self, container, number, samples_num=10, name="Puck"):
+        super(Basket, self).__init__(self.__TYPE__,container,Basket.getBasketAddress(number),True)
+
+        self.name = name
+        for i in range(samples_num):
+            slot = Pin(self,number,i+1)
+            self._addComponent(slot)
+
+    @staticmethod
+    def getBasketAddress(basket_number):
+        return str(basket_number)
+
+    def clearInfo(self):
+        #self.getContainer()._reset_basket_info(self.getIndex()+1)
+        self.getContainer()._triggerInfoChangedEvent()
+
+class Pin(Sample):
+    STD_HOLDERLENGTH = 22.0
+
+    def __init__(self,basket,basket_no,sample_no):
+        super(Pin, self).__init__(basket, Pin.getSampleAddress(basket_no,sample_no), False)
+        self._setHolderLength(Pin.STD_HOLDERLENGTH)
+
+    def getBasketNo(self):
+        return self.getContainer().getIndex()+1
+
+    def getVialNo(self):
+        return self.getIndex()+1
+
+    @staticmethod
+    def getSampleAddress(basket_number, sample_number):
+        return str(basket_number) + ":" + "%02d" % (sample_number)
         

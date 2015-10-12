@@ -183,7 +183,6 @@ class ISPyBClient2(HardwareObject):
         # to a directory. Used by translate()
         try:
             proposals = self.session_hwobj['proposals']
-
             for proposal in proposals:
                 code = proposal.code
                 self.__translations[code] = {}

@@ -22,7 +22,7 @@ class Session(HardwareObject):
         self.session_start_date = None
         self.user_group = ''
 
-        self.default_precision = '04'
+        self.default_precision = '05'
         self.suffix = None
         self.base_directory = None
         self.base_process_directory = None
@@ -32,6 +32,7 @@ class Session(HardwareObject):
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
+        self.synchrotron_name = self.getProperty('synchrotron_name')
         self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].\
@@ -55,6 +56,7 @@ class Session(HardwareObject):
         except:
            pass
 
+        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name) 
         queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
         queue_model_objects.PathTemplate.set_archive_path(self['file_info'].getProperty('archive_base_directory'),
                                                           self['file_info'].getProperty('archive_folder'))
@@ -73,21 +75,30 @@ class Session(HardwareObject):
         user_category = ''
         directory = ''
 
-        if self.session_start_date:
-            start_time = self.session_start_date.split(' ')[0].replace('-', '')
-        else:
+        if self.synchrotron_name == "PETRA":
             start_time = time.strftime("%Y%m%d")
+            if os.getenv("SUDO_USER"):
+                user = os.getenv("SUDO_USER")
+            else:
+                user = os.getenv("USER")
+            directory = os.path.join(self.base_directory, str(os.getuid()) + '_'\
+                                     + str(os.getgid()), user, start_time)
+        else: 
+            if self.session_start_date:
+                start_time = self.session_start_date.split(' ')[0].replace('-', '')
+            else:
+                start_time = time.strftime("%Y%m%d")
 
-        if self.is_inhouse():
-            user_category = 'inhouse'
-            directory = os.path.join(self.base_directory, self.endstation_name,
-                                     user_category, self.get_proposal(),
-                                     start_time)
-        else:
-            user_category = 'visitor'
-            directory = os.path.join(self.base_directory, user_category,
-                                     self.get_proposal(), self.endstation_name,
-                                     start_time)
+            if self.is_inhouse():
+                user_category = 'inhouse'
+                directory = os.path.join(self.base_directory, self.endstation_name,
+                                         user_category, self.get_proposal(),
+                                         start_time)
+            else:
+                user_category = 'visitor'
+                directory = os.path.join(self.base_directory, user_category,
+                                         self.get_proposal(), self.endstation_name,
+                                         start_time)
 
         return directory
 
