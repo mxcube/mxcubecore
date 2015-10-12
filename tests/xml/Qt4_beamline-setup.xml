@@ -2,7 +2,13 @@
   <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
   <object href="/attenuators-mockup" role="transmission"/>
   <object href="/beam-info" role="beam_info"/>
+
+  <object href="/sc-mockup" role="sample_changer_one"/>
+  <object href="/plate-manipulator" role="sample_changer_two"/>
+
   <object href="/sc-mockup" role="sample_changer"/>
+  <object href="/plate-manipulator" role="plate_manipulator"/>
+
   <object href="/energy-mockup" role="energy"/>
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/diff-omega-mockup" role="omega_axis"/>
@@ -11,11 +17,22 @@
   <object href="/detector-mockup" role="detector"/>
   <object href="/Qt4_graphics-manager" role="shape_history"/>
   <object href="/session" role="session"/>
-  <object href="/data-analysis" role="data_analysis"/>
-  <object href="/xrf-scan-mockup" role="xrf"/>
+
+  <!-- collection methods -->
   <object href="/Qt4_mxcollect" role="collect"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/energyscan-mockup" role="energyscan"/>
+  <object href="/xrf-scan-mockup" role="xrf"/>
+  <object href="/data-analysis" role="data_analysis"/>
+
+  <!-- advanced methods are defined as a list with method names.
+       Each name is then converted to class name.
+       For example Mesh scan -> MeshScan, Xray centring -> XrayCentring
+       and used as a queue_entry. If queue entry is missing
+       then queue skip exception will be raised.
+  -->
+
+  <advancedMethods>["Mesh scan", "Xray centring"]</advancedMethods> 
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->
