@@ -1380,6 +1380,8 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                         raise QueueSkippEntryException("Could not center sample, skipping", "")
                     else:
                         raise RuntimeError("Could not center sample")
+            except:
+                pass
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
 
