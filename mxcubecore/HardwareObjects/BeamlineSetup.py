@@ -175,13 +175,13 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
+        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.detector_mode = self._get_roi_modes()
+
         acq_parameters.inverse_beam = False
-        acq_parameters.shutterless = shutterless
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
         acq_parameters.take_snapshots = True
-
-        acq_parameters.detector_mode = detector_mode
 
         return acq_parameters
 
@@ -270,6 +270,7 @@ class BeamlineSetup(HardwareObject):
             detector_mode = self.detector_hwobj.default_mode() 
         except AttributeError:
             detector_mode = None
+
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
         acq_parameters.osc_start = self._get_omega_axis_position()
@@ -283,13 +284,13 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.energy = self._get_energy()
         acq_parameters.transmission = self._get_transmission()
 
+        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.detector_mode = self._get_roi_modes()
+
         acq_parameters.inverse_beam = False
-        acq_parameters.shutterless = shutterless
         acq_parameters.take_dark_current = True
         acq_parameters.skip_existing_images = False
         acq_parameters.take_snapshots = True
-
-        acq_parameters.detector_mode = detector_mode
 
         return acq_parameters
 
@@ -382,16 +383,6 @@ class BeamlineSetup(HardwareObject):
 
         return resolution
  
-    #def _get_detector_mode(self):
-    #    """
-    #    Descript. :
-    #    """
-    #    try:
-    #        detector_mode = int(self.detector_hwobj.get_detector_mode())
-    #    except (AttributeError, TypeError):
-    #        detector_mode = 1
-    #    return detector_mode
-
     def _get_omega_axis_position(self):
         result = 0
 
@@ -426,4 +417,27 @@ class BeamlineSetup(HardwareObject):
             result = round(float(self.kappa_phi_axis_hwobj.getPosition()), 2)
         except:
             pass
+        return result
+
+    def _has_shutterless(self):
+        """
+        Descript. :
+        """
+        result = False
+        try:
+           result = self.detector_hwobj.has_shutterless()
+        except:
+           pass
+        return result
+
+
+    def _get_roi_modes(self):
+        """
+        Descript. :
+        """
+        result = []
+        try: 
+           result = self.detector_hwobj.get_roi_modes()
+        except:
+           pass
         return result

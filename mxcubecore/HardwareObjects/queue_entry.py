@@ -686,7 +686,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     mesh_steps = acq_1.acquisition_parameters.mesh_steps
                     mesh_range = acq_1.acquisition_parameters.mesh_range
                     self.collect_hwobj.setMeshScanParameters(mesh_steps, mesh_range)
-                    self.collect_hwobj.setHelical(0)
+                    self.collect_hwobj.set_helical(False)
                 else:
                     self.collect_hwobj.set_helical(False)
 
@@ -744,11 +744,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         pass
 
     def image_taken(self, image_number):
-        num_images = self.get_data_model().acquisitions[0].\
-                     acquisition_parameters.num_images
-        num_images += self.get_data_model().acquisitions[0].\
-                      acquisition_parameters.first_image - 1
-        self.get_view().setText(1, str(image_number) + "/" + str(num_images))
+        if image_number > 0:
+            num_images = self.get_data_model().acquisitions[0].\
+                         acquisition_parameters.num_images
+            num_images += self.get_data_model().acquisitions[0].\
+                          acquisition_parameters.first_image - 1
+            self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
     def preparing_collect(self, number_images=0, exposure_time=0):
         self.get_view().setText(1, "Collecting")
