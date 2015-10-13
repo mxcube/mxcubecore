@@ -10,9 +10,10 @@ class ID30BEnergyScan(ESRFEnergyScan):
     @task
     def energy_scan_hook(self, energy_scan_parameters):
         self.energy = energy_scan_parameters["edgeEnergy"]
-        self.move_undulators(self.calculate_und_gaps(self.energy))
         if energy_scan_parameters['findattEnergy']:
             ESRFEnergyScan.move_energy(self,energy_scan_parameters['findattEnergy'])
+        else:
+            self.move_undulators(self.calculate_und_gaps(self.energy))
 
     @task
     def move_undulators(self, gaps):
