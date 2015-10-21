@@ -35,6 +35,7 @@ class ID30BEnergyScan(ESRFEnergyScan):
     @task
     def set_mca_roi(self, eroi_min, eroi_max):
         self.mca = self.getObjectByRole("MCA")
+        self.energy_scan_parameters['fluorescenceDetector'] = self.mca.userName()
         #check if roi in ev or keV
         if eroi_min > 1000:
             eroi_min /= 1000
