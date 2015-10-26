@@ -689,6 +689,7 @@ class Point(Shape):
         self.qub_point.move(new_positions[0][0], new_positions[0][1])
 
     def highlight(self):
+        return 
         try:
             if self.point_index:
                 text = "Point no. %d selected" % self.point_index
