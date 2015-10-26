@@ -66,7 +66,7 @@ class MaxLdapLogin(Procedure):
 
         logging.getLogger("HWR").debug("MaxLdapLogin: searching for %s" % username)
         try:
-            found=self.ldapConnection.search_s("ou=People,dc=maxlab,dc=lu,dc=se",\
+            found=self.ldapConnection.search_s("ou=maxivusers,dc=maxlab,dc=lu,dc=se",\
                 ldap.SCOPE_ONELEVEL,"uid="+username,["uid"])
         except ldap.LDAPError,err:
             if retry:
@@ -81,7 +81,7 @@ class MaxLdapLogin(Procedure):
             return self.cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("MaxLdapLogin: validating %s" % username)
-        handle=self.ldapConnection.simple_bind("uid=%s,ou=people,dc=maxlab,dc=lu,dc=se" % username,password)
+        handle=self.ldapConnection.simple_bind("uid=%s,ou=maxivusers,dc=maxlab,dc=lu,dc=se" % username,password)
         try:
             result=self.ldapConnection.result(handle)
         except ldap.INVALID_CREDENTIALS:
