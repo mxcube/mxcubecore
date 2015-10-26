@@ -20,6 +20,7 @@ class ElementAnalysis(Procedure):
     def init(self):
         
 #        print "\n\n\n\n\n ElemenyAnalysis:init...................\n\n\n\n"
+         
         
         self.configOk=True
         if self.getProperty('specversion') is None:
@@ -46,7 +47,13 @@ class ElementAnalysis(Procedure):
                     except AttributeError:
                         pass
                 exec("self.%sChannel=channel"% chan)
-            
+
+
+            self.energy=self.getChannelObject("energy")
+            self.energy_value=self.energy.getValue()
+            if self.energy is not None:
+                self.energy.connectSignal("update", self.energyChanged)
+
             #print "<<<<<<<<<<self.%sChannel=channel"% chan, channel
             #print "<<<<<<<<<<self.%sChannel.getValue()"% chan, channel.getValue()
 #           commands=self.getCommands()
@@ -278,3 +285,6 @@ class ElementAnalysis(Procedure):
         f.close()
         qt.QObject.disconnect(self.xraycalc,qt.SIGNAL("processExited()"),self.processEnergies)
         self.safeEmit("processEnergiesUpdated",(data,))
+    def energyChanged(self,value):
+        self.energy_value=self.energy.getValue() 
+	self.emit("energyUpdated")
