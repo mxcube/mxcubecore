@@ -221,6 +221,83 @@ class ISPyBClient2(HardwareObject):
         raise NotImplementedException("Depricated ?")
 
     @trace
+    def get_proposal_by_username(self, username):
+
+        proposal_code   = ""
+        proposal_number = 0
+
+        empty_dict = {'Proposal': {}, 'Person': {}, 'Laboratory': {}, 'Session': {}, 'status': {'code':'error'}}
+
+        if not self.__shipping:
+           logging.getLogger("ispyb_client").\
+                warning("Error in get_proposal: Could not connect to server," + \
+                          " returning empty proposal")
+           return empty_dict
+
+
+        try:
+            try:
+                person = self.__shipping.service.findPersonByLogin(username, os.environ["SMIS_BEAMLINE_NAME"])
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                person = {}
+
+            try:
+                proposal = self.__shipping.service.findProposalByLoginAndBeamline(username, os.environ["SMIS_BEAMLINE_NAME"])
+                if not proposal:
+                    logging.getLogger("ispyb_client").warning("Error in get_proposal: No proposal has been found to  the user, returning empty proposal")
+                    return empty_dict
+                proposal_code   = proposal.code
+                proposal_number = proposal.number
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                proposal = {}
+
+            try:
+                lab = self.__shipping.service.findLaboratoryByCodeAndNumber(proposal_code, proposal_number)
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                lab = {}
+
+            try:
+                res_sessions = self.__collection.service.\
+                    findSessionsByProposalAndBeamLine(proposal_code,
+                                                           proposal_number,
+                                                           os.environ["SMIS_BEAMLINE_NAME"])
+                sessions = []
+
+                # Handels a list of sessions
+                for session in res_sessions:
+                    if session is not None :
+                        try:
+                            session.startDate = \
+                                datetime.strftime(session.startDate,
+                                                  "%Y-%m-%d %H:%M:%S")
+                            session.endDate = \
+                                datetime.strftime(session.endDate,
+                                                  "%Y-%m-%d %H:%M:%S")
+                        except:
+                            pass
+
+                        sessions.append(utf_encode(asdict(session)))
+
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                sessions = []
+
+        except URLError:
+            logging.getLogger("ispyb_client").warning(_CONNECTION_ERROR_MSG)
+            return empty_dict
+
+
+        logging.getLogger("ispyb_client").info( str(sessions) )
+        return  {'Proposal': utf_encode(asdict(proposal)),
+                 'Person': utf_encode(asdict(person)),
+                 'Laboratory': utf_encode(asdict(lab)),
+                 'Session': sessions,
+                 'status': {'code':'ok'}}
+
+    @trace
     def get_proposal(self, proposal_code, proposal_number):
         """
         Returns the tuple (Proposal, Person, Laboratory, Session, Status).

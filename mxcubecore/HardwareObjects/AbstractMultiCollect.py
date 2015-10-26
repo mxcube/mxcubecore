@@ -10,7 +10,6 @@ import gevent
 import autoprocessing
 import gevent
 from HardwareRepository.TaskUtils import *
-
 BeamlineControl = collections.namedtuple('BeamlineControl',
                                          ['diffractometer',
                                           'sample_changer',
@@ -38,8 +37,8 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'detector_px',
                                          'detector_py',
                                          'undulators',
-                                         'focusing_optic', 
-                                         'monochromator_type', 
+                                         'focusing_optic',
+                                         'monochromator_type',
                                          'beam_divergence_vertical',
                                          'beam_divergence_horizontal',
                                          'polarisation',
