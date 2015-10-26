@@ -25,10 +25,8 @@ _WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
 _WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
-#_WS_USERNAME = 'ispybadm'
-#_WS_PASSWORD = '1nv1$1ble'
-_WS_USERNAME = 'albnar'
-_WS_PASSWORD = 'abc123'
+_WS_USERNAME = 'ispybadm'
+_WS_PASSWORD = '1nv1$1ble'
 
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
@@ -260,7 +258,7 @@ class MaxLabISPybClient2(HardwareObject):
 
             try:
                 res_sessions = self.__collection.service.\
-                    findSessionsByCodeAndNumberAndBeamLine(proposal_code,
+                    findSessionsByProposalAndBeamLine(proposal_code,
                                                            proposal_number,
                                                            os.environ["SMIS_BEAMLINE_NAME"])
                 sessions = []

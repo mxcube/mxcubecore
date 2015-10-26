@@ -13,7 +13,7 @@ class MaxLabMicrodiff(MiniDiff.MiniDiff):
 
         MiniDiff.MiniDiff.init(self)
 
-        self.phiy_direction = -1
+        self.centringPhiy.direction = -1
 
     def getCalibrationData(self, offset):
         return (1.0/self.x_calib.getValue(), 1.0/self.y_calib.getValue())
@@ -40,5 +40,4 @@ class MaxLabMicrodiff(MiniDiff.MiniDiff):
 
         #get_beam_info = self.getCommandObject("getBeamInfo")
         #get_beam_info(callback=update_beam_callback, error_callback=None, wait=True)
-
 
