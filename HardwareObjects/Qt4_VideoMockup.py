@@ -20,8 +20,10 @@
 import os
 import time
 import gevent
+from datetime import datetime
 
-from PyQt4.QtGui import QImage
+from PyQt4 import QtGui
+from PyQt4 import QtCore
 
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -40,23 +42,24 @@ class Qt4_VideoMockup(Device):
         self.image_polling = None
         self.image_type = None
         self.image = None
+        self.sleep_time = 1
 
     def init(self):
         """
         Descript. :
         """ 
-        self.image = QImage()
-
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-1])
         image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
-        self.image.load(image_path)
+        self.image = QtGui.QPixmap(image_path)
+        self.painter = QtGui.QPainter(self.image)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
+        self.sleep_time = self.getProperty("interval")
 
     def start_camera(self):
         if self.image_polling is None:
-            self.image_polling = gevent.spawn(self._do_imagePolling, 1)
+            self.image_polling = gevent.spawn(self._do_imagePolling, 1.0 / self.sleep_time)
 
     def get_image_dimensions(self):
         return self.image_dimensions
@@ -186,5 +189,8 @@ class Qt4_VideoMockup(Device):
         Descript. :
         """ 
         while True:
+            #datestr = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')
+            #self.painter.fillRect(40, 30, 200, 30, QtCore.Qt.white)  
+            #self.painter.drawText(50, 50, datestr)
             self.emit("imageReceived", self.image)
             gevent.sleep(sleep_time)
