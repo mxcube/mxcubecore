@@ -24,8 +24,6 @@ class MarvinSC(SampleChanger):
     """
     """    
     __TYPE__ = "Marvin"    
-    NO_OF_BASKETS = 9
-    NO_OF_SAMPLES_PER_PUCK = 10
 
     def __init__(self, *args, **kwargs):
         super(MarvinSC, self).__init__(self.__TYPE__,False, *args, **kwargs)
@@ -33,6 +31,7 @@ class MarvinSC(SampleChanger):
         self._selected_basket = None
         self._scIsCharging = None
 
+        self._num_baskets = None
         self._status_string = None
         self._state_string = None
         self._puck_switches = None
@@ -51,8 +50,11 @@ class MarvinSC(SampleChanger):
             
     def init(self):      
         self._puck_switches = 0
+        self._num_basket = self.getProperty("numBaskets")
+        if not self._num_basket:
+            self._num_basket = 10
 
-        for i in range(MarvinSC.NO_OF_BASKETS):
+        for i in range(self._num_basket):
             basket = Basket(self, i + 1)
             self._addComponent(basket)
 
@@ -85,8 +87,8 @@ class MarvinSC(SampleChanger):
         self._updateSCContents()
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
-        self._mounted_sample = mounted_sample_puck[0] 
-        self._mounted_puck = mounted_sample_puck[1]
+        self._mounted_sample = mounted_sample_puck[0] -1 
+        self._mounted_puck = mounted_sample_puck[1] -1 
         self._updateLoadedSample()
 
     def getSampleProperties(self):
@@ -107,7 +109,7 @@ class MarvinSC(SampleChanger):
         basket = None
         sample = None
         try:
-          if basket_no is not None and basket_no>0 and basket_no <=MarvinSC.NO_OF_BASKETS:
+          if basket_no is not None and basket_no>0 and basket_no <=self._num_basket:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             if sample_no is not None and sample_no>0 and sample_no <=Basket.NO_OF_SAMPLES_PER_PUCK:
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
@@ -216,10 +218,10 @@ class MarvinSC(SampleChanger):
             arg_arr.append(arg) 
         task_id = method(arg_arr)
         ret=None
+
         if task_id is None: #Reset
-            self._waitDeviceReady(60)
-            #while self._isDeviceBusy(60):
-            #    gevent.sleep(0.1)
+            while self._isDeviceBusy():
+                gevent.sleep(0.1)
         else:
             # introduced wait because it takes some time before the attribute PathRunning is set
             # after launching a transfer
@@ -228,6 +230,7 @@ class MarvinSC(SampleChanger):
             #hile self.state != SampleChangerState.Ready: 
             #   gevent.sleep(0.1)            
             ret = True
+        gevent.sleep(2)
         return ret
 
     def _updateState(self):
@@ -275,7 +278,7 @@ class MarvinSC(SampleChanger):
         """
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self._isDeviceReady():
-                gevent.sleep(0.1)
+                gevent.sleep(1)
                 #gevent.sleep(0.01)
             
     def _updateSelection(self):    
@@ -286,7 +289,7 @@ class MarvinSC(SampleChanger):
         sample=None
         try:
           basket_no = self._selected_basket
-          if basket_no is not None and basket_no>0 and basket_no <= MarvinSC.NO_OF_BASKETS:
+          if basket_no is not None and basket_no>0 and basket_no <= self._num_basket:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             sample_no = self._selected_sample
             if sample_no is not None and sample_no>0 and sample_no <= Basket.NO_OF_SAMPLES_PER_PUCK:
@@ -307,7 +310,7 @@ class MarvinSC(SampleChanger):
                   Pin.getSampleAddress(self._mounted_puck, self._mounted_sample))
         else:
             new_sample = None
- 
+
         if self.getLoadedSample() != new_sample:
             # import pdb; pdb.set_trace()
             # remove 'loaded' flag from old sample but keep all other information
@@ -338,8 +341,8 @@ class MarvinSC(SampleChanger):
         """
         Descript : Initializes the sample changer content with default values.
         """
-        basket_list= [('', 4)] * MarvinSC.NO_OF_BASKETS
-        for basket_index in range(MarvinSC.NO_OF_BASKETS):            
+        basket_list= [('', 4)] * self._num_basket
+        for basket_index in range(self._num_basket):            
             basket=self.getComponents()[basket_index]
             datamatrix = None
             present = scanned = False
@@ -347,8 +350,8 @@ class MarvinSC(SampleChanger):
 
         # create temporary list with default sample information and indices
         sample_list=[]
-        for basket_index in range(MarvinSC.NO_OF_BASKETS):            
-            for sample_index in range(MarvinSC.NO_OF_SAMPLES_PER_PUCK):
+        for basket_index in range(self._num_basket):            
+            for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
                 sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH)) 
         # write the default sample information into permanent Pin objects 
         for spl in sample_list:
@@ -362,7 +365,7 @@ class MarvinSC(SampleChanger):
     def _updateSCContents(self):
         """
         """
-        for basket_index in range(MarvinSC.NO_OF_BASKETS):            
+        for basket_index in range(self._num_basket):            
             basket=self.getComponents()[basket_index]
 
             if (int(self._puck_switches) & pow(2, basket_index) > 0) or \
@@ -420,8 +423,8 @@ class MarvinSC(SampleChanger):
                 sample_is_mounted = prop_value == "Mount"
                 if self._sample_is_mounted != sample_is_mounted:
                     self._sample_is_mounted = sample_is_mounted
-                    #if not self._sample_is_mounted:
-                    #    self._mounted_sample = -1
+                    if not self._sample_is_mounted:
+                        self._mounted_sample = -1
                     self._updateLoadedSample()
             elif prop_name == "Prgs":
                 if int(prop_value) != self._progress:
