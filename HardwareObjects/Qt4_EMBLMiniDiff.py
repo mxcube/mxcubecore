@@ -29,9 +29,9 @@ class Qt4_EMBLMiniDiff(Equipment):
     C3D_MODE = "Computer automatic"
     MOVE_TO_BEAM_MODE = "Move to Beam"
 
-    MINIKAPPA = "MiniKappa"
-    PLATE = "Plate"
-    SC = "SC"
+    HEAD_TYPE = {minikappa : "MiniKappa",
+                 plate : "Plate",
+                 permanent= "Permanent"}
 
     def __init__(self, *args):
         """
@@ -44,23 +44,25 @@ class Qt4_EMBLMiniDiff(Equipment):
                                             "phiy", "zoom", "sampx", 
                                             "sampy", "kappa", "kappa_phi",
                                             "beam_x", "beam_y")
-        self.phiMotor = None
-        self.phizMotor = None
-        self.phiyMotor = None
-        self.lightMotor = None
-        self.zoomMotor = None
-        self.sampleXMotor = None
-        self.sampleYMotor = None
+
+        # Hardware objects ----------------------------------------------------
+        self.phi_motor_hwobj = None
+        self.phiz_motor_hwobj = None
+        self.phiy_motor_hwobj = None
+        self.zoom_motor_hwobj = None
+        self.sample_x_motor_hwobj = None
+        self.sample_y_motor_hwobj = None
         self.camera_hwobj = None
-        self.focusMotor = None
-        self.kappaMotor = None
-        self.kappaPhiMotor = None
+        self.focus_motor_hwobj = None
+        self.kappa_motor_hwobj = None
+        self.kappa_phi_motor_hwobj = None
         self.omega_reference_motor = None
-        self.sample_changer_hwobj = None
         self.beam_info_hwobj = None
         self.centring_hwobj = None
         self.minikappa_correction_hwobj = None
-  
+
+       
+        # Channels and commands -----------------------------------------------
         self.chan_calib_x = None
         self.chan_calib_y = None
         self.chan_head_type = None
@@ -69,6 +71,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         self.cmd_start_set_phase = None
         self.cmd_start_auto_focus = None   
 
+        # Internal values -----------------------------------------------------
         self.beam_position = None
         self.zoom_centre = None
         self.pixels_per_mm_x = None
@@ -119,18 +122,22 @@ class Qt4_EMBLMiniDiff(Equipment):
         self.centring_time = 0 
         self.user_confirms_centring = True 
         self.user_clicked_event = AsyncResult()
-        self.head_type = "MiniKappa"
-
-        self.camera_hwobj = self.getDeviceByRole('camera')   
-        self.centring_hwobj = self.getDeviceByRole('centring')
-        self.minikappa_correction_hwobj = self.getDeviceByRole('minikappa_correction')
+        self.head_type = HEAD_TYPE.minikappa
 
         self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
-        self.chan_calib_y = self.getChannelObject('CoaxCamScaleY') 
+        self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        self.update_pixels_per_mm()
+
         self.chan_head_type = self.getChannelObject('HeadType')
         if self.chan_head_type is not None:
             self.head_type = self.chan_head_type.getValue()
+
         self.chan_current_phase = self.getChannelObject('CurrentPhase')
+        if self.chan_current_phase is not None:
+            self.connect(self.chan_current_phase, "update", self.current_phase_changed)
+        else:
+            logging.getLogger("HWR").debug('EMBLMinidiff: Current phase channel not defined')
+
         self.chan_fast_shutter_is_open = self.getChannelObject('FastShutterIsOpen')
         if self.chan_fast_shutter_is_open is not None: 
             self.chan_fast_shutter_is_open.connectSignal("update", self.fast_shutter_state_changed)
@@ -138,38 +145,43 @@ class Qt4_EMBLMiniDiff(Equipment):
         self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
         self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
 
-        self.phiMotor = self.getDeviceByRole('phi')
-        self.phizMotor = self.getDeviceByRole('phiz')
-        self.phiyMotor = self.getDeviceByRole('phiy')
-        self.zoomMotor = self.getDeviceByRole('zoom')
-        self.lightMotor = self.getDeviceByRole('light')
-        self.focusMotor = self.getDeviceByRole('focus')
-        self.sampleXMotor = self.getDeviceByRole('sampx')
-        self.sampleYMotor = self.getDeviceByRole('sampy')
-       
-        if self.head_type == "MiniKappa":
-            self.kappaMotor = self.getDeviceByRole('kappa')
-            self.kappaPhiMotor = self.getDeviceByRole('kappa_phi')
+        self.camera_hwobj = self.getDeviceByRole('camera')
+        self.centring_hwobj = self.getDeviceByRole('centring')
+        if self.centring_hwobj is None:
+            logging.getLogger("HWR").debug('EMBLMinidiff: Centring math is not defined')
 
-            if self.kappaMotor is not None:
-                self.connect(self.kappaMotor, 'stateChanged', self.kappa_motor_state_changed)
-                self.connect(self.kappaMotor, "positionChanged", self.kappa_motor_moved)
+        self.minikappa_correction_hwobj = self.getDeviceByRole('minikappa_correction')
+        if self.minikappa_correction_hwobj is None:
+            logging.getLogger("HWR").debug('EMBLMinidiff: Minikappa correction is not defined')
+
+
+        self.phi_motor_hwobj = self.getDeviceByRole('phi')
+        self.phiz_motor_hwobj = self.getDeviceByRole('phiz')
+        self.phiy_motor_hwobj = self.getDeviceByRole('phiy')
+        self.zoom_motor_hwobj = self.getDeviceByRole('zoom')
+        self.focus_motor_hwobj = self.getDeviceByRole('focus')
+        self.sample_x_motor_hwobj = self.getDeviceByRole('sampx')
+        self.sample_y_motor_hwobj = self.getDeviceByRole('sampy')
+       
+        if self.head_type == HEAD_TYPE.minikappa:
+            self.kappa_motor_hwobj = self.getDeviceByRole('kappa')
+            self.kappa_phi_motor_hwobj = self.getDeviceByRole('kappa_phi')
+
+            if self.kappa_motor_hwobj is not None:
+                self.connect(self.kappa_motor_hwobj, 'stateChanged', self.kappa_motor_state_changed)
+                self.connect(self.kappa_motor_hwobj, "positionChanged", self.kappa_motor_moved)
             else:
                 logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: kappa motor is not defined')
 
-            if self.kappaPhiMotor is not None:
-                self.connect(self.kappaPhiMotor, 'stateChanged', self.kappa_phi_motor_state_changed)
-                self.connect(self.kappaPhiMotor, 'positionChanged', self.kappa_phi_motor_moved)
+            if self.kappa_phi_motor_hwobj is not None:
+                self.connect(self.kappa_phi_motor_hwobj, 'stateChanged', self.kappa_phi_motor_state_changed)
+                self.connect(self.kappa_phi_motor_hwobj, 'positionChanged', self.kappa_phi_motor_moved)
             else:
                 logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: kappa phi motor is not defined')
         else:
             logging.getLogger("HWR").debug('EMBLMinidiff: Kappa and Phi motors not initialized (Plate mode detected).')
 
-        if self.chan_current_phase is not None:
-            self.connect(self.chan_current_phase, "update", self.current_phase_changed)
-        else:
-            logging.getLogger("HWR").debug('EMBLMinidiff: Current phase channel not defined') 
-
+    
         self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
                                 getHardwareObject(self.getProperty("beaminfo"))
         if self.beam_info_hwobj is not None:  
@@ -177,54 +189,45 @@ class Qt4_EMBLMiniDiff(Equipment):
         else:
             logging.getLogger("HWR").debug('EMBLMinidiff: Beaminfo is not defined')
 
-        if self.centring_hwobj is None:
-            logging.getLogger("HWR").debug('EMBLMinidiff: Centring math is not defined')
-
-        if self.minikappa_correction_hwobj is None:
-            logging.getLogger("HWR").debug('EMBLMinidiff: Minikappa correction is not defined')
-        
-        if self.phiMotor is not None:
-            self.connect(self.phiMotor, 'stateChanged', self.phi_motor_state_changed)
-            self.connect(self.phiMotor, "positionChanged", self.phi_motor_moved)
+        if self.phi_motor_hwobj is not None:
+            self.connect(self.phi_motor_hwobj, 'stateChanged', self.phi_motor_state_changed)
+            self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Phi motor is not defined')
 
-        if self.phizMotor is not None:
-            self.connect(self.phizMotor, 'stateChanged', self.phiz_motor_state_changed)
-            self.connect(self.phizMotor, 'positionChanged', self.phiz_motor_moved)
+        if self.phiz_motor_hwobj is not None:
+            self.connect(self.phiz_motor_hwobj, 'stateChanged', self.phiz_motor_state_changed)
+            self.connect(self.phiz_motor_hwobj, 'positionChanged', self.phiz_motor_moved)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Phiz motor is not defined')
 
-        if self.phiyMotor is not None:
-            self.connect(self.phiyMotor, 'stateChanged', self.phiy_motor_state_changed)
-            self.connect(self.phiyMotor, 'positionChanged', self.phiy_motor_moved)
+        if self.phiy_motor_hwobj is not None:
+            self.connect(self.phiy_motor_hwobj, 'stateChanged', self.phiy_motor_state_changed)
+            self.connect(self.phiy_motor_hwobj, 'positionChanged', self.phiy_motor_moved)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Phiy motor is not defined')
 
-        if self.zoomMotor is not None:
-            self.connect(self.zoomMotor, 'predefinedPositionChanged', 
-                                          self.zoom_motor_predefined_position_changed)
-            self.connect(self.zoomMotor, 'stateChanged', self.zoom_motor_state_changed)
+        if self.zoom_motor_hwobj is not None:
+            self.connect(self.zoom_motor_hwobj, 'positionChanged', self.update_pixels_per_mm)
+            self.connect(self.zoom_motor_hwobj, 'predefinedPositionChanged', self.update_pixels_per_mm)
+            self.connect(self.zoom_motor_hwobj, 'stateChanged', self.zoom_motor_state_changed)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Zoom motor is not defined')
 
-        if self.sampleXMotor is not None:
-            self.connect(self.sampleXMotor, 'stateChanged', self.sampleX_motor_state_changed)
-            self.connect(self.sampleXMotor, 'positionChanged', self.sampleX_motor_moved)
+        if self.sample_x_motor_hwobj is not None:
+            self.connect(self.sample_x_motor_hwobj, 'stateChanged', self.sampleX_motor_state_changed)
+            self.connect(self.sample_x_motor_hwobj, 'positionChanged', self.sampleX_motor_moved)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Sampx motor is not defined')
 
-        if self.sampleYMotor is not None:
-            self.connect(self.sampleYMotor, 'stateChanged', self.sampleY_motor_state_changed)
-            self.connect(self.sampleYMotor, 'positionChanged', self.sampleY_motor_moved)
+        if self.sample_y_motor_hwobj is not None:
+            self.connect(self.sample_y_motor_hwobj, 'stateChanged', self.sampleY_motor_state_changed)
+            self.connect(self.sample_y_motor_hwobj, 'positionChanged', self.sampleY_motor_moved)
         else:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Sampx motor is not defined')
 
-        if self.focusMotor is not None:
-            self.connect(self.focusMotor, 'positionChanged', self.focus_motor_moved)
-
-        if self.zoomMotor is not None:
-            self.connect(self.zoomMotor, 'positionChanged', self.zoom_motor_moved)
+        if self.focus_motor_hwobj is not None:
+            self.connect(self.focus_motor_hwobj, 'positionChanged', self.focus_motor_moved)
 
         if self.camera_hwobj is None:
             logging.getLogger("HWR").error('Qt4_EMBLMiniDiff: Camera is not defined')
@@ -268,7 +271,8 @@ class Qt4_EMBLMiniDiff(Equipment):
          
 
     def in_plate_mode(self):
-        return self.head_type == "Plate" 
+        self.head_type = self.chan_head_type.getValue()
+        return self.head_type == HEAD_TYPE.plate
 
     def use_sample_changer(self):
         return False
@@ -299,14 +303,14 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """  
         if self.isValid():
-            for motor in (self.sampleXMotor, 
-                          self.sampleYMotor, 
-                          self.zoomMotor,
-                          self.phiMotor, 
-                          self.phizMotor, 
-                          self.phiyMotor,
-                          self.kappaMotor,
-                          self.kappaPhiMotor):
+            for motor in (self.sample_x_motor_hwobj, 
+                          self.sample_y_motor_hwobj, 
+                          self.zoom_motor_hwobj,
+                          self.phi_motor_hwobj, 
+                          self.phiz_motor_hwobj, 
+                          self.phiy_motor_hwobj,
+                          self.kappa_motor_hwobj,
+                          self.kappa_phi_motor_hwobj):
                 if motor is not None:
                     if motor.motorIsMoving():
                         return False
@@ -318,12 +322,12 @@ class Qt4_EMBLMiniDiff(Equipment):
         """
         Descript. :
         """
-        return self.sampleXMotor is not None and \
-            self.sampleYMotor is not None and \
-            self.zoomMotor is not None and \
-            self.phiMotor is not None and \
-            self.phizMotor is not None and \
-            self.phiyMotor is not None
+        return self.sample_x_motor_hwobj is not None and \
+            self.sample_y_motor_hwobj is not None and \
+            self.zoom_motor_hwobj is not None and \
+            self.phi_motor_hwobj is not None and \
+            self.phiz_motor_hwobj is not None and \
+            self.phiy_motor_hwobj is not None
 
     def current_phase_changed(self, phase):
         """
@@ -358,14 +362,14 @@ class Qt4_EMBLMiniDiff(Equipment):
         self.current_positions_dict["phi"] = pos
         self.emit_diffractometer_moved() 
         self.emit("phiMotorMoved", pos)
-        #self.emit('minidiffStateChanged', (self.current_state_dict["phi"], ))
+        #self.emit('stateChanged', (self.current_state_dict["phi"], ))
 
     def phi_motor_state_changed(self, state):
         """
         Descript. :
         """
         self.current_state_dict["phi"] = state
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def phiz_motor_moved(self, pos):
         """
@@ -380,13 +384,13 @@ class Qt4_EMBLMiniDiff(Equipment):
         """
         Descript. :
         """
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def phiy_motor_state_changed(self, state):
         """
         Descript. :
         """
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def phiy_motor_moved(self, pos):
         """
@@ -405,7 +409,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-        self.emit('minidiffStateChanged', (self.current_state_dict["kappa"], ))
+        self.emit('stateChanged', (self.current_state_dict["kappa"], ))
         self.emit("kappaMotorMoved", pos)
 
     def kappa_motor_state_changed(self, state):
@@ -413,7 +417,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """
         self.current_state_dict["kappa"] = state
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def kappa_phi_motor_moved(self, pos):
         """
@@ -423,7 +427,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-        self.emit('minidiffStateChanged', (self.current_state_dict["kappa_phi"], ))
+        self.emit('stateChanged', (self.current_state_dict["kappa_phi"], ))
         self.emit("kappaPhiMotorMoved", pos)
 
     def kappa_phi_motor_state_changed(self, state):
@@ -431,14 +435,13 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """
         self.current_state_dict["kappa_phi"] = state
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def zoom_motor_predefined_position_changed(self, position_name, offset):
         """
         Descript. :
         """
-        self.pixels_per_mm_x, self.pixels_per_mm_y = \
-              self.get_calibration_data(offset)
+        self.update_pixels_per_mm()
         self.emit('zoomMotorPredefinedPositionChanged',
                (position_name, offset, ))
 
@@ -446,7 +449,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         """
         Descript. :
         """
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
         self.refresh_video()
 
     def sampleX_motor_moved(self, pos):
@@ -463,7 +466,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """
         self.current_state_dict["sampx"] = state
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def sampleY_motor_moved(self, pos):
         """
@@ -479,7 +482,7 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """
         self.current_state_dict["sampy"] = state
-        self.emit('minidiffStateChanged', (state, ))
+        self.emit('stateChanged', (state, ))
 
     def focus_motor_moved(self, pos):
         """
@@ -543,12 +546,13 @@ class Qt4_EMBLMiniDiff(Equipment):
         """
         return self.centring_methods.keys()
 
-    def get_calibration_data(self, offset):
+    def update_pixels_per_mm(self, *args):
         """
         Descript. :
         """
-        return (1.0 / self.chan_calib_x.getValue(),
-                1.0 / self.chan_calib_y.getValue())
+        self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
+        self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue() 
+        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
 
     def get_pixels_per_mm(self):
         """
@@ -795,15 +799,15 @@ class Qt4_EMBLMiniDiff(Equipment):
             self.centring_hwobj.appendCentringDataPoint(
                  {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
                   "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
-            if self.head_type == "MiniKappa":
-                if click < 2:
-                    self.phiMotor.moveRelative(90)
-            elif self.head_type == "Plate":
-                dynamic_limits = self.phiMotor.getDynamicLimits()
+            if self.in_plate_mode():
+                dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
-                    self.phiMotor.move(dynamic_limits[0])
+                    self.phi_motor_hwobj.move(dynamic_limits[0])
                 elif click == 1:
-                    self.phiMotor.move(dynamic_limits[1])
+                    self.phi_motor_hwobj.move(dynamic_limits[1])
+            else:
+                if click < 2:
+                    self.phi_motor_hwobj.moveRelative(90)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -855,8 +859,8 @@ class Qt4_EMBLMiniDiff(Equipment):
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                if self.chan_head_type.getValue() == "MiniKappa":
-                    self.phiMotor.syncMoveRelative(-180)
+                if not self.in_plate_mode():
+                    self.phi_motor_hwobj.syncMoveRelative(-180)
             #logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -888,8 +892,8 @@ class Qt4_EMBLMiniDiff(Equipment):
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                if self.chan_head_type.getValue() == "MiniKappa":
-                    self.phiMotor.syncMoveRelative(-180)
+                if not self.in_plate_mode():
+                    self.phi_motor_hwobj.syncMoveRelative(-180)
             #logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -906,17 +910,17 @@ class Qt4_EMBLMiniDiff(Equipment):
                       self.pixels_per_mm_x - x
                 dy = (self.beam_position[1] - self.zoom_centre['y']) / \
                       self.pixels_per_mm_y - y
-                motor_pos = {self.sampleXMotor: centred_position.sampx,
-                             self.sampleYMotor: centred_position.sampy,
-                             self.phiMotor: centred_position.phi,
-                             self.phiyMotor: centred_position.phiy + \
-                                  self.centring_hwobj.camera2alignmentMotor(self.phiyMotor, \
+                motor_pos = {self.sample_x_motor_hwobj: centred_position.sampx,
+                             self.sample_y_motor_hwobj: centred_position.sampy,
+                             self.phi_motor_hwobj: centred_position.phi,
+                             self.phiy_motor_hwobj: centred_position.phiy + \
+                                  self.centring_hwobj.camera2alignmentMotor(self.phiy_motor_hwobj, \
                                   {"X" : dx, "Y" : dy}), 
-                             self.phizMotor: centred_position.phiz + \
-                                  self.centring_hwobj.camera2alignmentMotor(self.phizMotor, \
+                             self.phiz_motor_hwobj: centred_position.phiz + \
+                                  self.centring_hwobj.camera2alignmentMotor(self.phiz_motor_hwobj, \
                                   {"X" : dx, "Y" : dy}),
-                             self.kappaMotor: centred_position.kappa,
-                             self.kappaPhiMotor: centred_position.kappa_phi}
+                             self.kappa_motor_hwobj: centred_position.kappa,
+                             self.kappa_phi_motor_hwobj: centred_position.kappa_phi}
                 self.move_to_motors_positions(motor_pos)
             except:
                 logging.exception("Could not move to centred position")
@@ -943,17 +947,17 @@ class Qt4_EMBLMiniDiff(Equipment):
 
         if (kappa, kappa_phi ) != (new_kappa, new_kappa_phi) \
          and self.minikappa_correction_hwobj is not None:
-            sampx = self.sampleXMotor.getPosition()
-            sampy = self.sampleYMotor.getPosition()
-            phiy = self.phiyMotor.getPosition()
+            sampx = self.sample_x_motor_hwobj.getPosition()
+            sampy = self.sample_y_motor_hwobj.getPosition()
+            phiy = self.phiy_motor_hwobj.getPosition()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift( 
                                 kappa, kappa_phi, [sampx, sampy, phiy] , new_kappa, new_kappa_phi)
             
-            motor_pos_dict[self.kappaMotor] = new_kappa
-            motor_pos_dict[self.kappaPhiMotor] = new_kappa_phi
-            motor_pos_dict[self.sampleXMotor] = new_sampx
-            motor_pos_dict[self.sampleYMotor] = new_sampy
-            motor_pos_dict[self.phiyMotor] = new_phiy
+            motor_pos_dict[self.kappa_motor_hwobj] = new_kappa
+            motor_pos_dict[self.kappa_phi_motor_hwobj] = new_kappa_phi
+            motor_pos_dict[self.sample_x_motor_hwobj] = new_sampx
+            motor_pos_dict[self.sample_y_motor_hwobj] = new_sampy
+            motor_pos_dict[self.phiy_motor_hwobj] = new_phiy
 
             self.move_motors(motor_pos_dict)
  
@@ -971,19 +975,19 @@ class Qt4_EMBLMiniDiff(Equipment):
         Descript. :
         """
         if motor_name == 'phi':
-            return self.phiMotor
+            return self.phi_motor_hwobj
         elif motor_name == 'phiz':
-            return self.phizMotor
+            return self.phiz_motor_hwobj
         elif motor_name == 'phiy':
-            return self.phiyMotor
+            return self.phiy_motor_hwobj
         elif motor_name == 'sampx':
-            return self.sampleXMotor
+            return self.sample_x_motor_hwobj
         elif motor_name == 'sampy':
-            return self.sampleYMotor
+            return self.sample_y_motor_hwobj
         elif motor_name == 'kappa':
-            return self.kappaMotor
+            return self.kappa_motor_hwobj
         elif motor_name == 'kappa_phi':
-            return self.kappaPhiMotor
+            return self.kappa_phi_motor_hwobj
 
     def move_motors(self, motor_position_dict):
         """
@@ -1120,9 +1124,9 @@ class Qt4_EMBLMiniDiff(Equipment):
         centred_images = []
         for index in range(image_count):
             logging.getLogger("HWR").info("Qt4_EMBLMiniDiff: taking snapshot #%d", index + 1)
-            #centred_images.append((self.phiMotor.getPosition(), str(myimage(drawing))))
-            if (self.head_type == "MiniKappa"and image_count > 1):
-                self.phiMotor.syncMoveRelative(-90)
+            #centred_images.append((self.phi_motor_hwobj.getPosition(), str(myimage(drawing))))
+            if (not self.in_plate_mode() and image_count > 1):
+                self.phi_motor_hwobj.syncMoveRelative(-90)
             centred_images.reverse() # snapshot order must be according to positive rotation direction
         return centred_images
 
@@ -1161,25 +1165,23 @@ class Qt4_EMBLMiniDiff(Equipment):
         """
         Descript. :
         """
-        self.head_type = self.chan_head_type.getValue()
-        if self.head_type == "Plate":
+        if self.in_plate_mode():
             logging.getLogger("HWR").info("Qt4_EMBLMiniDiff: Visual align not available in Plate mode") 
-            return
+        else:
+            cpos_1 = point_1.centred_position
+            cpos_2 = point_2.centred_position
 
-        cpos_1 = point_1.centred_position
-        cpos_2 = point_2.centred_position
-
-        t1 =[cpos_1.sampx, cpos_1.sampy, cpos_1.phiy]
-        t2 =[cpos_2.sampx, cpos_2.sampy, cpos_2.phiy]
-        kappa = self.kappaMotor.getPosition()
-        phi = self.kappaPhiMotor.getPosition()
-        new_kappa, new_phi, (new_sampx, new_sampy, new_phiy) = \
-             self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
-	self.move_to_motors_positions({self.kappaMotor:new_kappa, 
-                                       self.kappaPhiMotor:new_phi, 
-                                       self.sampleXMotor:new_sampx,
-                                       self.sampleYMotor:new_sampy, 
-                                       self.phiyMotor:new_phiy})
+            t1 =[cpos_1.sampx, cpos_1.sampy, cpos_1.phiy]
+            t2 =[cpos_2.sampx, cpos_2.sampy, cpos_2.phiy]
+            kappa = self.kappa_motor_hwobj.getPosition()
+            phi = self.kappa_phi_motor_hwobj.getPosition()
+            new_kappa, new_phi, (new_sampx, new_sampy, new_phiy) = \
+                 self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
+	    self.move_to_motors_positions({self.kappa_motor_hwobj:new_kappa, 
+                                           self.kappa_phi_motor_hwobj:new_phi, 
+                                           self.sample_x_motor_hwobj:new_sampx,
+                                           self.sample_y_motor_hwobj:new_sampy, 
+                                           self.phiy_motor_hwobj:new_phiy})
 
     def update_values(self):
         self.emit('minidiffPhaseChanged', (self.current_phase, ))            
