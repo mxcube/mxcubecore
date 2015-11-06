@@ -700,10 +700,7 @@ class AbstractMultiCollect(object):
                 self.write_input_files(self.collection_id, wait=False) 
 
             # at this point input files should have been written           
-
-            # Change parameters here 
-            # Todo 
-            """
+            # TODO aggree what parameters will be sent to this function
             if data_collect_parameters.get("processing", False)=="True":
                 self.trigger_auto_processing("before",
                                        self.xds_directory,
@@ -713,7 +710,6 @@ class AbstractMultiCollect(object):
                                        data_collect_parameters["do_inducedraddam"],
                                        data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                        data_collect_parameters.get("sample_reference", {}).get("cell", ""))
-            """
             if self.run_without_loop:
                 self.execute_collect_without_loop(data_collect_parameters)
             else: 
