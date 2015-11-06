@@ -23,6 +23,7 @@ class ISPyBClient2Mockup(HardwareObject):
         HardwareObject.__init__(self, name)
         self.__translations = {}
         self.__disabled = False
+        self.__test_proposal = None
 
     def init(self):
         """
@@ -61,22 +62,7 @@ class ISPyBClient2Mockup(HardwareObject):
                  'person': prop['Person'],
                  'laboratory': prop['Laboratory']}
 
-    def get_proposal(self, proposal_code, proposal_number):
-        """
-        Returns the tuple (Proposal, Person, Laboratory, Session, Status).
-        Containing the data from the coresponding tables in the database
-        the status of the database operations are returned in Status.
-        
-        :param proposal_code: The proposal code
-        :type proposal_code: str
-        :param proposal_number: The proposal number
-        :type propsoal_number: int
-
-        :returns: The dict (Proposal, Person, Laboratory, Sessions, Status).
-        :rtype: dict
-        """
-
-        return {'status': {'code': 'ok'},
+        self.__test_proposal = {'status': {'code': 'ok'},
                 'Person': {'personId': 1,
                            'laboratoryId': 1,
                            'login': None,
@@ -98,7 +84,24 @@ class ISPyBClient2Mockup(HardwareObject):
                 'Laboratory': {'laboratoryId': 1,
                                'name': 'TEST eh1'}}
 
+    def get_proposal(self, proposal_code, proposal_number):
+        """
+        Returns the tuple (Proposal, Person, Laboratory, Session, Status).
+        Containing the data from the coresponding tables in the database
+        the status of the database operations are returned in Status.
+        
+        :param proposal_code: The proposal code
+        :type proposal_code: str
+        :param proposal_number: The proposal number
+        :type propsoal_number: int
 
+        :returns: The dict (Proposal, Person, Laboratory, Sessions, Status).
+        :rtype: dict
+        """
+        return self.__test_proposal
+
+    def get_proposals_by_user(self, user_name):
+        return [self.__test_proposal]
 
     def get_session_local_contact(self, session_id):
         return  {'personId': 1,
