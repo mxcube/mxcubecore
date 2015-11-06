@@ -176,8 +176,11 @@ class EMBLEnergy(Device):
             self.emit('energyStateChanged', ('ready', ))
         else:
             logging.getLogger('user_level_log').debug("Energy: moving energy to %g", energy)
-            self.cmd_set_energy(energy)
-            #elf.energy_motor_hwobj.move(12.3984/energy)
+            if self.cmd_set_energy:
+                self.cmd_set_energy(energy)
+            else:
+                #Mockup mode
+                self.energyPositionChanged([energy * 1000])
 
     def energyPositionChanged(self, pos):
         #self.moveEnergyCmdFinished(True)

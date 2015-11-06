@@ -138,6 +138,12 @@ class Qt4_DiffractometerMockup(HardwareObject):
         except:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
 
+        self.reversing_rotation = self.getProperty("reversingRotation")
+        try:
+            self.grid_direction = eval(self.getProperty("gridDirection"))
+        except:
+            self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
+
         try:
             self.phase_list = eval(self.getProperty("phaseList"))
         except:
