@@ -27,7 +27,8 @@ BeamlineControl = collections.namedtuple('BeamlineControl',
                                           'beam_info'])
 
 BeamlineConfig = collections.namedtuple('BeamlineConfig',
-                                        ['directory_prefix',
+                                        ['synchrotron_name',
+                                         'directory_prefix',
                                          'default_exposure_time',
                                          'minimum_exposure_time',
                                          'detector_fileext',
@@ -50,11 +51,12 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*14)
-        self.bl_config = BeamlineConfig(*[None]*16)
+        self.bl_config = BeamlineConfig(*[None]*17)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None
         self.__safety_shutter_close_task = None
+        self.run_without_loop = None
 
 
     def setControlObjects(self, **control_objects):
@@ -78,7 +80,6 @@ class AbstractMultiCollect(object):
         """
         if self.bl_control.detector is not None:
             self.bl_control.detector.set_detector_mode(detector_mode)
-
 
     @abc.abstractmethod
     @task
@@ -341,7 +342,8 @@ class AbstractMultiCollect(object):
           return self.take_crystal_snapshots(4)
         else:
           return
-      return self.take_crystal_snapshots(number_of_snapshots)
+      else: 
+          return self.take_crystal_snapshots(number_of_snapshots)
 
 
     @abc.abstractmethod
@@ -400,6 +402,9 @@ class AbstractMultiCollect(object):
     @task
     def write_input_files(self, collection_id):
         pass
+
+    def execute_collect_without_loop(self, data_collect_parameters):
+        return
 
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
@@ -489,8 +494,8 @@ class AbstractMultiCollect(object):
         #Save sample centring positions
         positions_str = ""
         motors = centring_info.get("motors", {}) #.update(centring_info.get("extraMotors", {}))
-
         motors_to_move_before_collect = data_collect_parameters.setdefault("motors", {})
+
         for motor, pos in motors.iteritems():
               if motor in motors_to_move_before_collect:
                   continue
@@ -695,6 +700,10 @@ class AbstractMultiCollect(object):
                 self.write_input_files(self.collection_id, wait=False) 
 
             # at this point input files should have been written           
+
+            # Change parameters here 
+            # Todo 
+            """
             if data_collect_parameters.get("processing", False)=="True":
                 self.trigger_auto_processing("before",
                                        self.xds_directory,
@@ -704,97 +713,96 @@ class AbstractMultiCollect(object):
                                        data_collect_parameters["do_inducedraddam"],
                                        data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                        data_collect_parameters.get("sample_reference", {}).get("cell", ""))
- 
-            for start, wedge_size in wedges_to_collect:
-                logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
-                self.prepare_acquisition(1 if data_collect_parameters.get("dark", 0) else 0,
-                                         start,
-                                         osc_range,
-                                         exptime,
-                                         npass,
-                                         wedge_size,
-                                         data_collect_parameters["comment"])
-                data_collect_parameters["dark"] = 0
+            """
+            if self.run_without_loop:
+                self.execute_collect_without_loop(data_collect_parameters)
+            else: 
+                for start, wedge_size in wedges_to_collect:
+                    logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
+                    self.prepare_acquisition(1 if data_collect_parameters.get("dark", 0) else 0,
+                                             start,
+                                             osc_range,
+                                             exptime,
+                                             npass,
+                                             wedge_size,
+                                             data_collect_parameters["comment"])
+                    data_collect_parameters["dark"] = 0
 
-                i = 0
-                j = wedge_size
-                while j > 0: 
-                  frame_start = start+i*osc_range
-                  i+=1
+                    i = 0
+                    j = wedge_size
+                    while j > 0: 
+                      frame_start = start+i*osc_range
+                      i+=1
 
-                  filename = image_file_template % frame
-                  try:
-                    jpeg_full_path = jpeg_file_template % frame
-                    jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame
-                  except:
-                    jpeg_full_path = None
-                    jpeg_thumbnail_full_path = None
-                  file_location = file_parameters["directory"]
-                  file_path  = os.path.join(file_location, filename)
+                      filename = image_file_template % frame
+                      try:
+                        jpeg_full_path = jpeg_file_template % frame
+                        jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame
+                      except:
+                        jpeg_full_path = None
+                        jpeg_thumbnail_full_path = None
+                      file_location = file_parameters["directory"]
+                      file_path  = os.path.join(file_location, filename)
 
-                  self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
-                  osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
+                      self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
+                      osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
 
-                  with error_cleanup(self.reset_detector):
-                      self.start_acquisition(exptime, npass, j == wedge_size)
-                      self.do_oscillation(osc_start, osc_end, exptime, npass)
-                      self.stop_acquisition()
-                      self.write_image(j == 1)
+                      with error_cleanup(self.reset_detector):
+                          self.start_acquisition(exptime, npass, j == wedge_size)
+                          self.do_oscillation(osc_start, osc_end, exptime, npass)
+                          self.stop_acquisition()
+                          self.write_image(j == 1)
                                      
-                      # Store image in lims
-                      if self.bl_control.lims:
-                        if self.store_image_in_lims(frame, j == wedge_size, j == 1):
-                          lims_image={'dataCollectionId': self.collection_id,
-                                      'fileName': filename,
-                                      'fileLocation': file_location,
-                                      'imageNumber': frame,
-                                      'measuredIntensity': self.get_measured_intensity(),
-                                      'synchrotronCurrent': self.get_machine_current(),
-                                      'machineMessage': self.get_machine_message(),
-                                      'temperature': self.get_cryo_temperature()}
+                          # Store image in lims
+                          if self.bl_control.lims:
+                            if self.store_image_in_lims(frame, j == wedge_size, j == 1):
+                              lims_image={'dataCollectionId': self.collection_id,
+                                          'fileName': filename,
+                                          'fileLocation': file_location,
+                                          'imageNumber': frame,
+                                          'measuredIntensity': self.get_measured_intensity(),
+                                          'synchrotronCurrent': self.get_machine_current(),
+                                          'machineMessage': self.get_machine_message(),
+                                          'temperature': self.get_cryo_temperature()}
 
-                          if archive_directory:
-                            lims_image['jpegFileFullPath'] = jpeg_full_path
-                            lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
+                              if archive_directory:
+                                lims_image['jpegFileFullPath'] = jpeg_full_path
+                                lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
 
-                          try:
-                              self.bl_control.lims.store_image(lims_image)
-                          except:
-                              logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                              try:
+                                  self.bl_control.lims.store_image(lims_image)
+                              except:
+                                  logging.getLogger("HWR").exception("Could not store store image in LIMS")
                           
-                          self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
-                
-                      if data_collect_parameters.get("processing", False)=="True":
-                        self.trigger_auto_processing("image",
-                                                     self.xds_directory, 
-                                                     data_collect_parameters["EDNA_files_dir"],
-                                                     data_collect_parameters["anomalous"],
-                                                     data_collect_parameters["residues"],
-                                                     data_collect_parameters["do_inducedraddam"],
-                                                     data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
-                                                     data_collect_parameters.get("sample_reference", {}).get("cell", ""))
+                              self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
+                          if data_collect_parameters.get("processing", False)=="True":
+                            self.trigger_auto_processing("image",
+                                                         self.xds_directory, 
+                                                         data_collect_parameters["EDNA_files_dir"],
+                                                         data_collect_parameters["anomalous"],
+                                                         data_collect_parameters["residues"],
+                                                         data_collect_parameters["do_inducedraddam"],
+                                                         data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
+                                                         data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
-                      if data_collect_parameters.get("shutterless"):
-                          with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
-   			      while self.last_image_saved() == 0:
-                                  time.sleep(exptime)
+                          if data_collect_parameters.get("shutterless"):
+                              with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+   			          while self.last_image_saved() == 0:
+                                      time.sleep(exptime)
                           
-                          last_image_saved = self.last_image_saved()
-                          if last_image_saved < wedge_size:
-                              time.sleep(exptime*wedge_size/100.0)
                               last_image_saved = self.last_image_saved()
-                          frame = max(start_image_number+1, start_image_number+last_image_saved-1)
-                          self.emit("collectImageTaken", frame)
-                          new_j = wedge_size - last_image_saved
-                          if new_j < 1 and j > 1:
-                              # make sure to do finalization
-                              j = 1
+                              if last_image_saved < wedge_size:
+                                  time.sleep(exptime*wedge_size/100.0)
+                                  last_image_saved = self.last_image_saved()
+                              frame = max(start_image_number+1, start_image_number+last_image_saved-1)
+                              self.emit("collectImageTaken", frame)
+                              j = wedge_size - last_image_saved
                           else:
-                              j = new_j
-                      else:
-                          j -= 1
-                          self.emit("collectImageTaken", frame)
-                          frame += 1
+                              j -= 1
+                              self.emit("collectImageTaken", frame)
+                              frame += 1
+                              if j == 0:
+                                break
 
                 
     @task
@@ -869,9 +877,40 @@ class AbstractMultiCollect(object):
            self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
            self.emit("collectReady", (True, ))
 
+    def collect_without_loop(self, data_collect_parameters_list):
+        in_multicollect = len(data_collect_parameters_list) > 1
+        collections_analyse_params = []
+        self.emit("collectReady", (False, ))
+        #self.emit("collectStarted", (self.owner, 1))
+        total_frames = 0
+        total_time_sec = 0
+        # in principle data_collect_parameters_list always has one element
+        # Two options: rename this module to AbstractCollect
+        # or fully implement multicollect 
+        for data_collect_parameters in data_collect_parameters_list:
+            total_frames = total_frames + data_collect_parameters['oscillation_sequence'][0]['number_of_images']
+            total_time_sec = total_time_sec + total_frames + 2* \
+                             (data_collect_parameters['oscillation_sequence'][0]['exposure_time'] + 0.02)
+        self.emit("collectOverallFramesTime", (total_frames, int(total_time_sec)))
+        for data_collect_parameters in data_collect_parameters_list:
+            self.actual_data_collect_parameters = data_collect_parameters
+            self.osc_id, sample_id, sample_code, sample_location = \
+                 self.update_oscillations_history(self.actual_data_collect_parameters)
+            self.emit('collectOscillationStarted', (self.owner, sample_id, \
+                 sample_code, sample_location, self.actual_data_collect_parameters, self.osc_id))
+            self.actual_data_collect_parameters["status"]='Running'
+            self.do_collect(self.owner, self.actual_data_collect_parameters)
 
     def collect(self, owner, data_collect_parameters_list): #, finished_callback=None):
-        self.data_collect_task = self.loop(owner, data_collect_parameters_list, wait = False)
+        if self.run_without_loop: 
+            self.owner = owner
+            self.ready_event.clear()
+            self.data_collect_task = gevent.spawn(self.collect_without_loop,
+                                         data_collect_parameters_list)
+            self.ready_event.wait()
+            self.ready_event.clear()
+        else:
+            self.data_collect_task = self.loop(owner, data_collect_parameters_list, wait = False)
         return self.data_collect_task
 
 
