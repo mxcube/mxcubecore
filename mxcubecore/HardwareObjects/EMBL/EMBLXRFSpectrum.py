@@ -129,7 +129,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 os.makedirs(directory)
             except OSError, diag:
                 logging.getLogger().error("EMBLXRFSpectrum: error creating directory %s (%s)" % (directory, str(diag)))
-                self.emit('xrfScanStatusChanged', ("Error creating directory", ))
+                self.emit('xrfScanStatusChanged', "Error creating directory")
                 self.spectrumCommandAborted()
                 return False
 
@@ -176,7 +176,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.cmd_scan_start(ct)
         except:
             logging.getLogger().exception('EMBLXRFSpectrum: problem in starting scan')
-            self.emit('xrfScanStatusChanged', ("Error problem in starting scan",))
+            self.emit('xrfScanStatusChanged', "Error problem in starting scan")
             self.spectrumCommandAborted()
 
     def cancelXrfSpectrum(self, *args):
@@ -287,7 +287,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         Descript. :
         """
-        self.emit('xrfScanStatusChanged', (status, ))
+        self.emit('xrfScanStatusChanged', status)
 
     def store_xrf_spectrum(self):
         """

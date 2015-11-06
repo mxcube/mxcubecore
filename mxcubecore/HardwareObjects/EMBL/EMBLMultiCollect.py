@@ -302,10 +302,16 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         self.collect_frame = frame
         self.emit("collectImageTaken", frame) 
 
-    def process_image(self, frame):
+    def process_image(self, frame, motor_position_id=None):
         """
         Descript. :
         """
+        # Dont save mesh first and last images
+        # Mesh images (best positions) are stored after data analysis
+        if self.actual_data_collect_parameters['experiment_type'] in ('Mesh') and \
+           motor_position_id is None:
+            return
+        image_id = None
         if self.bl_control.lims:
             try:
                 file_location = self.actual_data_collect_parameters["fileinfo"]["directory"]
@@ -329,10 +335,13 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
                     jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame
                     lims_image['jpegFileFullPath'] = jpeg_full_path
                     lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
-                self.bl_control.lims.store_image(lims_image) 
+                if motor_position_id:
+                    lims_image['motorPositionId'] = motor_position_id
+                image_id = self.bl_control.lims.store_image(lims_image) 
             except:
                 logging.debug("Unable to store image in ISPyB")  
         self.trigger_auto_processing("image", self.actual_data_collect_parameters, frame)
+        return image_id 
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):

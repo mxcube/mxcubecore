@@ -351,7 +351,7 @@ class MarvinSC(SampleChanger):
         # create temporary list with default sample information and indices
         sample_list=[]
         for basket_index in range(self._num_basket):            
-            for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
+            for sample_index in range(10):
                 sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH)) 
         # write the default sample information into permanent Pin objects 
         for spl in sample_list:
