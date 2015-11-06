@@ -13,7 +13,7 @@ ExperimentType = namedtuple('ExperimentType', ['SAD','SAD_INV', 'MAD',
 EXPERIMENT_TYPE = ExperimentType(0,1,2,3,4,5,6,7,8)
 EXPERIMENT_TYPE_STR = ExperimentType('SAD','SAD - Inverse Beam','MAD',
                                      'MAD - Inverse Beam', 'OSC','Helical',
-                                     'Characterization', 'OSC', 'MESH')
+                                     'Characterization', 'OSC', 'Mesh')
 
 StrategyOption = namedtuple('StrategyOption', ['AVG'])
 STRATEGY_OPTION = StrategyOption(0)
@@ -28,8 +28,8 @@ EDNA_NUM_REF_IMAGES = EDNARefImages(0, 1, 2, 3)
 CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'FULLY_AUTOMATIC', "NO"])
 CENTRING_METHOD = CentringMethod(0, 1, 2, 3)
 
-WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2'])
-WORKFLOW_TYPE = WorkflowType(0, 1, 2)
+WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2', 'LineScan', 'MeshScan', 'XrayCentring'])
+WORKFLOW_TYPE = WorkflowType(0, 1, 2, 3, 4, 5)
 
 XTAL_SPACEGROUPS = ['', 'P1', 'P2', 'P21', 'C2', 'P222', 'P2221', 'P21212',
                     'P212121', 'C222 ', 'C2221', 'F222', 'I222', 'I212121',

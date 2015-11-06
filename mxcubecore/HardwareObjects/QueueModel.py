@@ -20,11 +20,19 @@ class QueueModel(HardwareObject):
         self._plate_model = queue_model_objects.RootNode()
         self._plate_model._node_id = 0
 
+        self._sc_one_model = queue_model_objects.RootNode()
+        self._sc_one_model._node_id = 0
+        self._sc_two_model = queue_model_objects.RootNode()
+        self._sc_two_model._node_id = 0
+
         self._models = {'ispyb': self._ispyb_model,
                         'free-pin': self._free_pin_model,
-                        'plate': self._plate_model}
+                        'plate': self._plate_model,
+                        'sc_one' : self._sc_one_model,
+                        'sc_two' : self._sc_two_model}
 
-        self._selected_model = self._ispyb_model
+        #self._selected_model = self._ispyb_model
+        self._selected_model = self._sc_one_model
 
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
@@ -120,6 +128,7 @@ class QueueModel(HardwareObject):
         else:
             raise TypeError("Expected type TaskNode, got %s "\
                             % str(type(child)))
+
 
     def add_child_at_id(self, _id, child):
         """

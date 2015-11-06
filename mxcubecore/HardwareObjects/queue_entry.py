@@ -28,14 +28,8 @@ import queue_model_objects_v1 as queue_model_objects
 import os
 import autoprocessing
 
-#import edna_test_data
-#from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
-
 from collections import namedtuple
-from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
-from queue_model_enumerables_v1 import CENTRING_METHOD
-from queue_model_enumerables_v1 import EXPERIMENT_TYPE
-from BlissFramework.Utils import widget_colors
+from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
 
 
@@ -422,6 +416,7 @@ class SampleQueueEntry(BaseQueueEntry):
         log = logging.getLogger('queue_exec')
         sc_used = not self._data_model.free_pin_mode
 
+ 
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
             if self.diffractometer_hwobj.in_plate_mode():
@@ -578,6 +573,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
+        #If centring is executed once then we dont have to execute it again
+        self.get_view().set_checkable(False)
         BaseQueueEntry.post_execute(self)
 
 
@@ -678,14 +675,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
-
                     #msg = "Helical data collection, moving to start position"
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
-                    mesh_steps = acq_1.acquisition_parameters.mesh_steps
-                    mesh_range = acq_1.acquisition_parameters.mesh_range
-                    self.collect_hwobj.setMeshScanParameters(mesh_steps, mesh_range)
+                    self.collect_hwobj.setMeshScanParameters(\
+                         acq_1.acquisition_parameters.num_lines,
+                         acq_1.acquisition_parameters.num_images / acq_1.acquisition_parameters.num_lines, 
+                         acq_1.acquisition_parameters.mesh_range)
                     self.collect_hwobj.set_helical(False)
                 else:
                     self.collect_hwobj.set_helical(False)
@@ -951,7 +948,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
 
-class AdvancedScanQueueEntry(DataCollectionQueueEntry):
+class MeshScanQueueEntry(DataCollectionQueueEntry):
     """
     Defines the behaviour of a characterisation
     """
@@ -1047,6 +1044,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         if self._failed:
             raise QueueAbortedException('Queue stopped', self)
+        self.get_view().set_checkable(False)
 
     def energy_scan_status_changed(self, msg):
         logging.getLogger("user_level_log").info(msg)
@@ -1060,19 +1058,23 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         #fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
         #scan_file_path = os.path.join(energy_scan.path_template.directory,
         #                              fname)
-        scan_file_path = os.path.join(energy_scan.path_template.directory,
-                                      energy_scan.path_template.get_prefix())
+        #scan_file_path = os.path.join(energy_scan.path_template.directory,
+        #                              energy_scan.path_template.get_prefix())
 
-        scan_file_archive_path = os.path.join(energy_scan.path_template.\
-                                              get_archive_directory(),
-                                              energy_scan.path_template.get_prefix())
+        #scan_file_archive_path = os.path.join(energy_scan.path_template.\
+        #                                      get_archive_directory(),
+        #                                      energy_scan.path_template.get_prefix())
 
         (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm,
          chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title) = \
          self.energy_scan_hwobj.doChooch(energy_scan.element_symbol,
                                          energy_scan.edge,
-                                         scan_file_archive_path,
-                                         scan_file_path)
+                                         energy_scan.path_template.directory,
+                                         energy_scan.path_template.get_archive_directory(),
+                                         "%s_%d" %(energy_scan.path_template.get_prefix(),
+                                         energy_scan.path_template.run_number))     
+                                         #scan_file_archive_path,
+                                         #scan_file_path)
 
         #scan_info = self.energy_scan_hwobj.scanInfo
 
@@ -1202,6 +1204,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
                       self.xrf_spectrum_failed)
         if self._failed:
             raise QueueAbortedException('Queue stopped', self)
+        self.get_view().set_checkable(False)
 
     def xrf_spectrum_status_changed(self, msg):
         logging.getLogger("user_level_log").info(msg)
@@ -1314,7 +1317,109 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, 'Stopped')
         raise QueueAbortedException('Queue stopped', self)
 
-def mount_sample(beamline_setup_hwobj, view, data_model,
+class AdvancedGroupQueueEntry(BaseQueueEntry):
+    """
+    Used to group (couple) a CollectionQueueEntry and a
+    AdvancedQueueEntry, creating a virtual entry for characterisation.
+    """
+    def __init__(self, view=None, data_model=None,
+                 view_set_queue_entry=True):
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+
+        self.dc_qe = None
+        self.advanced_qe = None
+        self.in_queue = False
+        self.processing_task = None
+
+        self.parallel_processing_hwobj = None
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+      
+        self.processing_task = gevent.spawn(\
+             self.parallel_processing_hwobj.run_parallel_processing,
+             self.advanced_qe.reference_image_collection,
+             self.advanced_qe.get_associated_grid())
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+
+        self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+        self.collect_hwobj = self.beamline_setup.collect_hwobj
+
+        self.advanced_qe = self.get_data_model()
+        reference_image_collection = self.advanced_qe.reference_image_collection
+
+        # Trick to make sure that the reference collection has a sample.
+        # and lims group id
+        reference_image_collection._parent = self.advanced_qe.get_parent()
+        reference_image_collection.lims_group_id = self.advanced_qe.get_parent().lims_group_id
+
+        # Enqueue the reference collection
+        dc_qe = DataCollectionQueueEntry(self.get_view(),
+                                         reference_image_collection,
+                                         view_set_queue_entry=False)
+        dc_qe.set_enabled(True)
+        dc_qe.do_processing = True
+
+        dc_qe.in_queue = self.in_queue
+        self.enqueue(dc_qe)
+        self.dc_qe = dc_qe
+
+        if self.advanced_qe.method_type != "MeshScan":
+        #if self.advanced_qe.method_type != WORKFLOW_TYPE.MeshScan:
+            #If more actions to do then Control entry is added     
+            advanced_control_qe = AdvancedControlQueueEntry(self.get_view(),
+                 self.advanced_qe, view_set_queue_entry=False)
+            advanced_control_qe.set_enabled(True)
+            self.enqueue(advanced_control_qe)
+            self.advanced_control_qe = advanced_control_qe
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+        self.get_view().set_checkable(False)      
+
+class AdvancedControlQueueEntry(BaseQueueEntry):
+    """
+    Defines the behaviour of an Advanced scan
+    """
+    def __init__(self, view=None, data_model=None,
+                 view_set_queue_entry=True):
+
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+        self.parallel_processing_hwobj = None
+        self.advanced_qe = None
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        log = logging.getLogger("user_level_log")
+
+        self.advanced_qe = self.get_data_model()
+        self.advanced_qe.first_processing_results = \
+             self.parallel_processing_hwobj.get_last_processing_results()
+        best_positions = self.advanced_qe.first_processing_results.\
+             get("best_positions", [])
+        
+
+        if len(best_positions) == 0:
+            advanced.set_executed(False)
+            self.status = QUEUE_ENTRY_STATUS.FAILED
+            raise QueueSkippEntryException('No diffraction spots found', self)
+        else:
+            advanced.set_executed(True)
+            self.get_view().setHighlighted(True)
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+        self.get_view().setOn(True)
+        self.get_view().setHighlighted(False)
+        self.parallle_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+
+def mount_sample(sample_changer_hwobj, beamline_setup_hwobj,
+                 view, data_model,
                  centring_done_cb, async_result):
     view.setText(1, "Loading sample")
     beamline_setup_hwobj.shape_history_hwobj.clear_all()
@@ -1345,12 +1450,14 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
                 # if sample could not be loaded, but no exception is raised, let's skip the sample
                 raise QueueSkippEntryException("Sample changer could not load sample", "")
 
-    if not sample_mount_device.hasLoadedSample():
+    if not sample_changer_hwobj.hasLoadedSample():
         #Disables all related collections
         view.setOn(False)
+        view.setText(1, "Sample not loaded")
         raise QueueSkippEntryException("Sample not loaded", "")
     else:
-        dm = beamline_setup_hwobj.diffractometer_hwobj
+        view.setText(1, "Sample loaded")
+        dm = beamline_setup_hwobj.diffractometer_hwobj 
         if dm is not None:
             try:
                 dm.connect("centringAccepted", centring_done_cb)
@@ -1389,11 +1496,11 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
      queue_model_objects.Characterisation: CharacterisationGroupQueueEntry,
-     queue_model_objects.AdvancedScan: AdvancedScanQueueEntry,
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
      queue_model_objects.Basket: BasketQueueEntry,
      queue_model_objects.TaskGroup: TaskGroupQueueEntry,
-     queue_model_objects.Workflow: GenericWorkflowQueueEntry}
+     queue_model_objects.Workflow: GenericWorkflowQueueEntry,
+     queue_model_objects.Advanced: AdvancedGroupQueueEntry}

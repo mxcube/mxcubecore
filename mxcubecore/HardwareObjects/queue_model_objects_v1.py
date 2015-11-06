@@ -408,8 +408,9 @@ class Basket(TaskNode):
             self.name = "Puck %d" % self.location 
         """
         self.location = int(sc_basket[0])
+        name = sc_basket[2]
         if name == "Row":
-            self.name = "%s %s" % (name, chr(65 + self.location))
+            self.name = "%s %s" % (name, chr(65 + self.location - 1))
         else:
             self.name = "%s %d" % (name, self.location)
         self._basket_object = sc_basket[1]
@@ -962,10 +963,53 @@ class XRFSpectrumResult(object):
         self.mca_calib = None
         self.mca_config = None
 
-class AdvancedScan(TaskNode):
-    def __init__(self, acquisition_list=None, crystal=None,
-                 processing_parameters=None, name=''):
+class Advanced(TaskNode):
+    def __init__(self, method_type=None, ref_data_collection=None, grid_object=None,
+                 crystal=None):
         TaskNode.__init__(self)
+
+        self.method_type = method_type
+        self.set_requires_centring(False)
+
+        if not ref_data_collection:
+            ref_data_collection = DataCollection()
+
+        if not crystal:
+            crystal = Crystal()
+
+        self.reference_image_collection = ref_data_collection
+        self.crystal = crystal
+        self.grid_object = grid_object
+
+        self.html_report = None
+        self.first_processing_results = None
+        self.second_processing_results = None
+
+    def get_associated_grid(self):
+        return self.grid_object
+
+    def get_path_template(self):
+        return self.reference_image_collection.acquisitions[0].\
+               path_template
+
+    def get_files_to_be_written(self):
+        path_template = self.reference_image_collection.acquisitions[0].\
+                        path_template
+
+        file_locations = path_template.get_files_to_be_written()
+
+        return file_locations
+
+    def get_display_name(self):
+        name = self.method_type
+        if self.grid_object:
+            name += " (%s)" % self.grid_object.get_display_name()
+        else:
+            name += " (Static grid)"
+        return name
+
+    def get_processing_results(self):
+        return self.first_processing_results
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
@@ -1221,7 +1265,6 @@ class AcquisitionParameters(object):
         self.skip_existing_images = False
         self.detector_mode = str()
         self.induce_burn = False
-        self.mesh_steps = int()
         self.mesh_range = ()        
         self.mesh_snapshot = None
         self.comments = ""
@@ -1261,6 +1304,7 @@ class CentredPosition(object):
         self.snapshot_image = None
         self.centring_method = True
         self.index = None
+        self.used_for_collection = 0
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
            setattr(self, motor_name, None)
@@ -1273,6 +1317,12 @@ class CentredPosition(object):
         return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
+    def as_str(self):
+        motor_str = ""
+        for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
+            motor_str += "%s: %.3f " %(motor_name, abs(getattr(self, motor_name)))
+        return motor_str
+
     def __repr__(self):
         return str(self.as_dict())
 
@@ -1281,11 +1331,9 @@ class CentredPosition(object):
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
             self_pos = getattr(self, motor_name)
             cpos_pos = getattr(cpos, motor_name)
-            eq[i] = self_pos == cpos_pos
+            eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
             if None in (self_pos, cpos_pos):
                continue 
-            if not eq[i]:
-                eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
         return all(eq)
 
     def __ne__(self, cpos):
@@ -1302,14 +1350,6 @@ class CentredPosition(object):
 
     def get_kappa_phi_value(self):
         return self.kappa_phi
-
-    def __eq__(self, cpos):
-        result = (self.sampx == cpos.sampx) and (self.sampy == cpos.sampy) and \
-                 (self.phi == cpos.phi) and (self.phiz == cpos.phiz) and \
-                 (self.phiy == cpos.phiy) and (self.zoom == cpos.zoom)
-
-        return result
-
 
 class Workflow(TaskNode):
     def __init__(self):
@@ -1379,6 +1419,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
              'fileinfo': {'directory': acquisition.path_template.directory,
                           'prefix': acquisition.path_template.get_prefix(),
                           'run_number': acquisition.path_template.run_number,
+                          'archive_directory' : acquisition.\
+                          path_template.get_archive_directory(),
                           'process_directory': acquisition.\
                           path_template.process_directory},
              'in_queue': acq_params.in_queue,
