@@ -20,11 +20,12 @@ class MicrodiffAperture(MD2Motor):
         while j < self.nb :
           for i in self.filters:
             if int(i) >= 300:
-              i = "Outbeam"
+                i = "Outbeam"
             self.predefinedPositions[i] = j
             j = j+1
         if not "Outbeam" in self.predefinedPositions:
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
+        self.predefinedPositions.pop("Outbeam")
         self.sortPredefinedPositionsList()
         
     def sortPredefinedPositionsList(self):
@@ -64,9 +65,6 @@ class MicrodiffAperture(MD2Motor):
         else:
             pos = pos
 
-        if self.aperture_inout.getActuatorState() != 'in':
-            pos = self.predefinedPositions.__len__() - 1
-
         try:
             for positionName in self.predefinedPositions:
                 if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
@@ -77,14 +75,14 @@ class MicrodiffAperture(MD2Motor):
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
         if positionName == 'Outbeam':
-            self.aperture_inout.actuatorOut(wait=True)
+            self.aperture_inout.actuatorOut()
         else:
             try:
                 self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
             except:
                 logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName()))
             if self.aperture_inout.getActuatorState() != 'in':
-                self.aperture_inout.actuatorIn(wait=True)
+                self.aperture_inout.actuatorIn()
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError

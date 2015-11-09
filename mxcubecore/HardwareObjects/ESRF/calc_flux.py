@@ -1,13 +1,13 @@
 import logging
-import numpy as np
-import scipy.interpolate as sp
+import numpy
+import sys
 
 class CalculateFlux:
 
     def __init__(self, fname=None):
         self.FLUX = {}
 
-    def init(self, fname="/users/blissadm/local/calibrated_diodes.dat"):
+    def init(self, fname="/users/blissadm/local/beamline_control/configuration/calibrated_diodes.dat"):
         self.calib_array=self._load_flux_calibration(fname)
 
     def _load_flux_calibration(self, fname):
@@ -32,7 +32,6 @@ class CalculateFlux:
         except IOError:
             logging.exception("Cannot read calibrated diodes file")
         self.FLUX = dict(zip(self.labels, idx))
-
         return array
 
     def calc_flux_coef(self, en):
@@ -49,8 +48,20 @@ class CalculateFlux:
 
     def _interpol(self, arr, val, debug=0):
         larr = []
-        for vals in enumerate(arr):
-            if abs(vals[0] - val)  < 0.01:
+        idx = -1
+        if val >= arr[0][0]:
+            idx = 0
+        elif val <= arr[len(arr)-1][0]:
+            idx = len(arr)-1
+
+        if idx > -1:
+            try:
+                return [arr[0][1],arr[0][2]]
+            except:
+                return arr[0][1]
+
+        for i, vals in enumerate(arr):
+            if abs(vals[0] - val)  < 10:
                 try:
                     return [vals[1],vals[2]]
                 except:
@@ -65,12 +76,10 @@ class CalculateFlux:
             pass
         if debug:
             print arr[min_index]
-        if x1 > val and min_index > 0:
+        if x1 < val and min_index > 0:
             min_index -= 1
-        elif x1 < val and min_index <  len(arr)-1:
+        elif x1 > val and min_index < len(arr)-1:
             min_index += 1
-        elif x1 < val and min_index >= len(arr)-1:
-            min_index -=1
         else:
             return None
         if debug:
@@ -89,20 +98,13 @@ class CalculateFlux:
             return [aa+bb*val, cc+dd*val]
         except:
             return aa+bb*val
-
-    def _interpol_np(self, arr, val):
-        larr = np.flipud(np.array(arr))
-        y1arr = sp.interp1d(larr[:,0], larr[:,1])
-        try:
-            y2arr = sp.interp1d(larr[:,0], larr[:,2])
-            return [float(y1arr(val)), float(y2arr(val))]
-        except:
-            return float(y1arr(val))
+    
 
 if __name__ == '__main__' :
     fl = CalculateFlux()
-    fl.init("/users/blissadm/local/spec/userconf/calibrated_diodes.dat")
-    ab = fl.calc_flux_coef(6199.19)
+    fname = sys.argv[1]
+    fl.init(fname)
+    en = float(sys.argv[2])*1000
+    ab = fl.calc_flux_coef(en)
     print ab
-    ab = fl.calc_flux_coef(6716)
-    print ab
+    

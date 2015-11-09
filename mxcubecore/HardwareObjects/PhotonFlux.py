@@ -8,6 +8,7 @@ class PhotonFlux(Equipment):
 
     def init(self):
         self.read_counts_chan = self.getChannelObject("counts")
+        self.gain = 1e6
         self.calibration_chan = self.getChannelObject("calibration")
         try:
             self.aperture = self.getObjectByRole("aperture")
@@ -43,7 +44,7 @@ class PhotonFlux(Equipment):
           return
  
         try:
-          counts = counts[self.index]
+          counts = counts[self.index]*self.gain
         except TypeError:
           logging.getLogger("HWR").error("%s: counts is None", self.name())
           return
@@ -61,6 +62,7 @@ class PhotonFlux(Equipment):
             else:
               calibs = [(float(c["energy"]), float(c[self.counter])) for c in calib_dict.itervalues()]
               calibs.sort()
+              print c
               E = [c[0] for c in calibs]
               C = [c[1] for c in calibs]
           except:

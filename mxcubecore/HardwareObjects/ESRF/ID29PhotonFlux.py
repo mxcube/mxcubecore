@@ -36,7 +36,7 @@ class ID29PhotonFlux(Equipment):
 
     def _get_counts(self):
         try:
-            counts = self.counter.getValue()[0]
+            counts = self.counter.getCorrectedPhysValue()
             if counts == -9999 :
                 counts = 0
         except:
