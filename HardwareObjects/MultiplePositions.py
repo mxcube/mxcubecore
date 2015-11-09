@@ -210,7 +210,7 @@ class MultiplePositions(Equipment):
         self.emit("stateChanged", (state,))
 
  
-    def moveToPosition(self, name):
+    def moveToPosition(self, name, wait=False):
         move_list = []
         for role in self.roles:
             device = self.getDeviceByRole(role)
@@ -220,6 +220,9 @@ class MultiplePositions(Equipment):
         for mot, pos in move_list:
             if mot is not None:
                 mot.move(pos)
+
+        if wait:
+            [mot.waitEndOfMove() for mot, pos in move_list if mot is not None]
         """
         for mne,pos in self.positions[name].items():
         self.motors[mne].move(pos)
