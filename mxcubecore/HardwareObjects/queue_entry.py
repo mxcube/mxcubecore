@@ -1330,9 +1330,8 @@ def mount_sample(beamline_setup_hwobj, view, data_model,
         if sample_mount_device.__TYPE__ in ['Marvin','CATS']:
             element = '%d:%02d' % loc
             sample_mount_device.load(sample=element, wait=True)
-        elif sample_mount_device.__TYPE__ == "PlateManipulator":
-            element = '%s%d:%d' % (chr(65 + loc[0]), loc[1], loc[2])
-            sample_mount_device.load(sample=element, wait=True)
+        elif sample_mount_device.__TYPE__ == "PlateManipulator": 
+            sample_mount_device.load_sample(sample_location=loc)
         else:
             if sample_mount_device.load_sample(holder_length, sample_location=loc, wait=True) == False:
                 # WARNING: explicit test of False return value.

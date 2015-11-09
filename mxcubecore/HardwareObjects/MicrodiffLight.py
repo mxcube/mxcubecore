@@ -1,7 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
 import math
-# can we get rid of this?
-from qt import *
 import logging
 import time
 
@@ -18,8 +16,6 @@ class MicrodiffLight(Device):
         self.position_attr = self.addChannel({"type":"exporter", "name":"position" }, self.motor_name+self.motor_pos_attr_suffix)
         self.position_attr.connectSignal("update", self.motorPositionChanged)
         self.setIsReady(True)
-        # this is ugly : I added it to make the centring procedure happy
-        self.specName = self.motor_name
 
     def connectNotify(self, signal):
         if self.position_attr.isConnected():

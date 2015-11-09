@@ -72,6 +72,7 @@ def start(centring_motors_dict,
   global CURRENT_CENTRING
 
   phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+  
 
   CURRENT_CENTRING = gevent.spawn(center,
                                   phi,
@@ -87,61 +88,40 @@ def start(centring_motors_dict,
 
 def start_plate(centring_motors_dict,
           pixelsPerMm_Hor, pixelsPerMm_Ver, 
-          beam_xc, beam_yc,
+          beam_xc, beam_yc, plate_vertical,
           chi_angle = 0,
-          n_points = 3, phi_range = 10):
+          n_points = 3, phi_range = 10, lim_pos=314.):
   global CURRENT_CENTRING
 
-  phi, phiy, phiz, sampx, sampy = prepare(centring_motors_dict)
+  plateTranslation = centring_motors_dict["plateTranslation"]
+  centring_motors_dict.pop("plateTranslation")
+  phi, phiy,phiz, sampx, sampy = prepare(centring_motors_dict)
 
-  CURRENT_CENTRING = gevent.spawn(center, 
+  phi.move(lim_pos)
+
+  CURRENT_CENTRING = gevent.spawn(centre_plate, 
                                   phi,
                                   phiy,
                                   phiz,
                                   sampx, 
-                                  sampy, 
+                                  sampy,
+                                  plateTranslation,
                                   pixelsPerMm_Hor, pixelsPerMm_Ver, 
                                   beam_xc, beam_yc,
+                                  plate_vertical,
                                   chi_angle,
                                   n_points, phi_range)
   return CURRENT_CENTRING
 
-def ready(*motors):
-  return not any([m.motorIsMoving() for m in motors])
-
-def move_motors(motor_positions_dict):
-  #import pdb; pdb.set_trace()
-  def wait_ready(timeout=None):
-    with gevent.Timeout(timeout):
-      while not ready(*motor_positions_dict.keys()):
-        time.sleep(0.1)
-
-  wait_ready(timeout=30)
-
-  if not ready(*motor_positions_dict.keys()):
-    raise RuntimeError("Motors not ready")
-
-  for motor, position in motor_positions_dict.iteritems():
-    motor.move(position)
-  
-  wait_ready()
-  
-def user_click(x,y, wait=False):
-  READY_FOR_NEXT_POINT.clear()
-  USER_CLICKED_EVENT.set((x,y))
-  if wait:
-    READY_FOR_NEXT_POINT.wait()
-  
-def center(phi, phiy, phiz,
-           sampx, sampy, 
+def centre_plate(phi, phiy, phiz,
+           sampx, sampy, plateTranslation,
            pixelsPerMm_Hor, pixelsPerMm_Ver, 
-           beam_xc, beam_yc,
+           beam_xc, beam_yc, plate_vertical,
            chi_angle,
-           n_points, phi_range= 180):
+           n_points, phi_range = 40):
   global USER_CLICKED_EVENT
   X, Y, phi_positions = [], [], []
 
-  #phi_angle = 180.0/(n_points-1)
   phi_angle = phi_range/(n_points-1)
 
   try:
@@ -155,7 +135,8 @@ def center(phi, phiy, phiz,
       X.append(x / float(pixelsPerMm_Hor))
       Y.append(y / float(pixelsPerMm_Ver))
       phi_positions.append(phi.direction*math.radians(phi.getPosition()))
-      phi.syncMoveRelative(phi.direction*phi_angle)
+      if i != n_points-1:
+        phi.syncMoveRelative(phi.direction*phi_angle)
       READY_FOR_NEXT_POINT.set()
       i += 1
   except:
@@ -195,6 +176,111 @@ def center(phi, phiy, phiz,
       centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
                            sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
                            phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+
+  
+  move_motors(centred_pos)
+  plate_vertical()
+  """
+  try:
+    x, y = USER_CLICKED_EVENT.get()
+  except:
+    raise RuntimeError("Aborted while waiting for point selection")
+  USER_CLICKED_EVENT = gevent.event.AsyncResult()
+  y_offset = -(y-beam_yc)  / float(pixelsPerMm_Ver)
+  plateTranslation.moveRelative(y_offset)
+  """
+
+  return centred_pos
+
+def ready(*motors):
+  return not any([m.motorIsMoving() for m in motors])
+
+def move_motors(motor_positions_dict):
+  def wait_ready(timeout=None):
+    with gevent.Timeout(timeout):
+      while not ready(*motor_positions_dict.keys()):
+        time.sleep(0.1)
+
+  wait_ready(timeout=30)
+
+  if not ready(*motor_positions_dict.keys()):
+    raise RuntimeError("Motors not ready")
+
+  for motor, position in motor_positions_dict.iteritems():
+    motor.move(position)
+  
+  wait_ready()
+  
+def user_click(x,y, wait=False):
+  READY_FOR_NEXT_POINT.clear()
+  USER_CLICKED_EVENT.set((x,y))
+  if wait:
+    READY_FOR_NEXT_POINT.wait()
+  
+def center(phi, phiy, phiz,
+           sampx, sampy, 
+           pixelsPerMm_Hor, pixelsPerMm_Ver, 
+           beam_xc, beam_yc,
+           chi_angle,
+           n_points, phi_range= 180):
+  global USER_CLICKED_EVENT
+  X, Y, phi_positions = [], [], []
+
+  phi_angle = phi_range/(n_points-1)
+
+  try:
+    i = 0
+    while i < n_points:
+      try:
+        x, y = USER_CLICKED_EVENT.get()
+      except:
+        raise RuntimeError("Aborted while waiting for point selection")
+      USER_CLICKED_EVENT = gevent.event.AsyncResult()
+      X.append(x / float(pixelsPerMm_Hor))
+      Y.append(y / float(pixelsPerMm_Ver))
+      phi_positions.append(phi.direction*math.radians(phi.getPosition()))
+      if i != n_points-1:
+        phi.syncMoveRelative(phi.direction*phi_angle)
+      READY_FOR_NEXT_POINT.set()
+      i += 1
+  except:
+    logging.exception("Exception while centring")
+    move_motors(SAVED_INITIAL_POSITIONS)
+    raise
+
+  #logging.info("X=%s,Y=%s", X, Y)
+  chi_angle = math.radians(chi_angle)
+  chiRotMatrix = numpy.matrix([[math.cos(chi_angle), -math.sin(chi_angle)],
+                               [math.sin(chi_angle), math.cos(chi_angle)]])
+  Z = chiRotMatrix*numpy.matrix([X,Y])
+  z = Z[1]; avg_pos = Z[0].mean()
+
+  r, a, offset = multiPointCentre(numpy.array(z).flatten(), phi_positions)
+  dy = r * numpy.sin(a)
+  dx = r * numpy.cos(a)
+  
+  d = chiRotMatrix.transpose()*numpy.matrix([[avg_pos], [offset]])
+
+  d_horizontal =  d[0] - (beam_xc / float(pixelsPerMm_Hor))
+  d_vertical =  d[1] - (beam_yc / float(pixelsPerMm_Ver))
+
+
+  phi_pos = math.radians(phi.direction*phi.getPosition())
+  phiRotMatrix = numpy.matrix([[math.cos(phi_pos), -math.sin(phi_pos)],
+                               [math.sin(phi_pos), math.cos(phi_pos)]])
+  vertical_move = phiRotMatrix*numpy.matrix([[0],d_vertical])
+  
+  centred_pos = SAVED_INITIAL_POSITIONS.copy()
+  if phiz.reference_position is None:
+      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
+                           sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
+                           phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]),
+                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+  else:
+      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
+                           sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
+                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+
   return centred_pos
 
 def end(centred_pos=None):
