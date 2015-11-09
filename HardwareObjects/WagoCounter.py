@@ -10,6 +10,7 @@ class WagoCounter(TacoDevice.TacoDevice):
         self.wagoid    = None
         self.wagoname  = None
         self.gainid    = None
+        self.value = None
         
 
     def init(self):
@@ -59,3 +60,25 @@ class WagoCounter(TacoDevice.TacoDevice):
         #print self.device.devname," --> ", gain, "x", value, " = " ,gain*value
 	
 	self.emit('valueChanged', (value,) )
+        return value
+
+    def getValue(self):
+        return self.device.DevReadDigi(self.wagoid)
+
+    def getPhysValue(self):
+        return self.device.DevReadPhys(self.wagoid)
+
+    def getCorrectedPhysValue(self):
+        value = self.getPhysValue()[0]
+        gn = self.getGain()
+        
+        if gn < 0:
+            # invalid gain
+            value = None
+	else:
+            gain = math.pow(self.gainfactor, gn)
+            value = gain * value
+        return value
+
+
+
