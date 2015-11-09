@@ -256,10 +256,10 @@ class PlateManipulator(SampleChanger):
         if self.cmd_move_to_location:
             pos_y = float(drop) / (self.num_drops + 1)
             self.cmd_move_to_location(row, col - 1, self.reference_pos_x, pos_y)
-            self._wait_ready()
+            self._wait_ready(60)
         elif self.cmd_move_to_drop:
 	    self.cmd_move_to_drop(row, col - 1, drop-1)
-            self._wait_ready()
+            self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup
             cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col))
@@ -389,7 +389,11 @@ class PlateManipulator(SampleChanger):
                     sample_list.append(drop.getSample())
         return sample_list
 
+    def is_mounted_sample(self, sample_location):
+        return True
+
     def _ready(self):
+        print "update state", self._updateState()
         if self._updateState() == "Ready":
             return True
         return False
@@ -397,9 +401,13 @@ class PlateManipulator(SampleChanger):
     def _wait_ready(self, timeout=None):
         if timeout <= 0:
             timeout = self.timeout
+        print timeout
         tt1 = time.time()
         while time.time() - tt1 < timeout:
              if self._ready():
                  break
              else:
                  gevent.sleep(0.5)
+
+
+ 

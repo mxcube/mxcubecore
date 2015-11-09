@@ -9,7 +9,6 @@ import gevent
 
 class XRFSpectrum(Equipment):
     def init(self):
-         
         self.scanning = None
         self.ready_event = gevent.event.Event()
 
@@ -291,7 +290,6 @@ class XRFSpectrum(Equipment):
         except:
             return
         blsampleid=self.spectrumInfo['blSampleId']
-        self.spectrumInfo.pop('blSampleId')
 
         db_status=self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
 

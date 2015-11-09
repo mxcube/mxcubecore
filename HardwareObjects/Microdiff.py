@@ -24,6 +24,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.y_calib = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"y_calib" }, "CoaxCamScaleY")       
         self.moveMultipleMotors = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_multiple_motors" }, "SyncMoveMotors")
         self.head_type = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"head_type" }, "HeadType")
+        self.kappa = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"kappa_enable" }, "KappaIsEnabled") 
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
         self.readPhase =  self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"read_phase" }, "CurrentPhase")
@@ -32,7 +33,7 @@ class Microdiff(MiniDiff.MiniDiff):
         else:
             self.hwstate_attr = None
         self.swstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"swstate" }, "State")
-
+        
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
@@ -148,19 +149,46 @@ class Microdiff(MiniDiff.MiniDiff):
         return self.head_type.getValue() == "Plate"
 
     def in_kappa_mode(self):
-        kappa = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"kappa_enable" }, "KappaIsEnabled") 
-        return self.head_type.getValue() == "MiniKappa" and kappa.getValue()
+        return self.head_type.getValue() == "MiniKappa" and self.kappa.getValue()
+
+    def getPositions(self):
+        pos = { "phi": float(self.phiMotor.getPosition()),
+                "focus": float(self.focusMotor.getPosition()),
+                "phiy": float(self.phiyMotor.getPosition()),
+                "phiz": float(self.phizMotor.getPosition()),
+                "sampx": float(self.sampleXMotor.getPosition()),
+                "sampy": float(self.sampleYMotor.getPosition()), "zoom": float(self.zoomMotor.getPosition())}
+        if self.in_kappa_mode() == True:
+            pos.update({"kappa": float(self.kappaMotor.getPosition()), "kappa_phi": float(self.kappaPhiMotor.getPosition())})
+        return pos
+
+    def moveMotors(self, roles_positions_dict):
+        if not self.in_kappa_mode():
+            try:
+                roles_positions_dict.pop["kappa"]
+                roles_positions_dict.pop["kappa_phi"]
+            except:
+                pass
+            
+        self.moveSyncMotors(roles_positions_dict, wait=True)
 
     def start3ClickCentring(self, sample_info=None):
         if self.in_plate_mode():
-            phi_range = 10
+            plateTranslation = self.getDeviceByRole('plateTranslation')
+            cmd_set_plate_vertical = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"plate_vertical" }, "setPlateVertical")
+            low_lim, high_lim = self.phiMotor.getDynamicLimits()
+            phi_range = math.fabs(high_lim - low_lim -1)
+
             self.currentCentringProcedure = sample_centring.start_plate({"phi":self.centringPhi,
                                                                          "phiy":self.centringPhiy,
                                                                          "sampx": self.centringSamplex,
                                                                          "sampy": self.centringSampley,
-                                                                         "phiz": self.centringPhiz }, 
+                                                                         "phiz": self.centringPhiz,
+                                                                         "plateTranslation": plateTranslation}, 
                                                                         self.pixelsPerMmY, self.pixelsPerMmZ, 
-                                                                        self.getBeamPosX(), self.getBeamPosY(), phi_range = phi_range)
+                                                                        self.getBeamPosX(), self.getBeamPosY(),
+                                                                        cmd_set_plate_vertical,
+                                                                        phi_range = phi_range,lim_pos=high_lim-0.5)
         else:
             self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
                                                                    "phiy":self.centringPhiy,
