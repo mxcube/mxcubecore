@@ -64,7 +64,6 @@ class MicrodiffInOut(Device):
         if signal=='actuatorStateChanged':
             self.valueChanged(self.state_attr.getValue())
 
-
     def valueChanged(self, value):
         self.actuatorState = self.states.get(value, "unknown")
         self.emit('actuatorStateChanged', (self.actuatorState, ))
@@ -87,9 +86,14 @@ class MicrodiffInOut(Device):
              else:
                  time.sleep(0.5)
  
-    def getActuatorState(self):
-        if self.actuatorState == "unknown":
+    def getActuatorState(self, read=False):
+        if read is True:
+            value = self.state_attr.getValue()
+            self.actuatorState = self.states.get(value, "unknown")
             self.connectNotify("actuatorStateChanged")
+        else:
+            if self.actuatorState == "unknown":
+                self.connectNotify("actuatorStateChanged")
         return self.actuatorState 
 
     def actuatorIn(self, wait=True, timeout=None):
@@ -104,8 +108,6 @@ class MicrodiffInOut(Device):
                 logging.getLogger('user_level_log').error("Cannot put %s in", self.username)
         else:
             logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s in" , self.username)
-        
-        self.valueChanged(self.state_attr.getValue())
  
     def actuatorOut(self, wait=True, timeout=None):
         if self._ready():
@@ -119,5 +121,4 @@ class MicrodiffInOut(Device):
                 logging.getLogger('user_level_log').error("Cannot put %s out", self.username)
         else:
             logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s out" , self.username)
-        self.valueChanged(self.state_attr.getValue())
 

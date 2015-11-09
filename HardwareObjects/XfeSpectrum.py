@@ -237,7 +237,7 @@ class XfeSpectrum(Equipment):
         except:
             return
         blsampleid=self.spectrumInfo['blSampleId']
-        self.spectrumInfo.pop('blSampleId')
+        #self.spectrumInfo.pop('blSampleId')
         db_status=self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXfeSpectrum(self,spectrum_id,jpeg_spectrum_filename):

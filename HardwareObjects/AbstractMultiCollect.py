@@ -299,7 +299,6 @@ class AbstractMultiCollect(object):
     def get_sample_info_from_parameters(self, parameters):
         """Returns sample_id, sample_location and sample_code from data collection parameters"""
         sample_info = parameters.get("sample_reference")
-        
         try:
             sample_id = int(sample_info["blSampleId"])
         except:

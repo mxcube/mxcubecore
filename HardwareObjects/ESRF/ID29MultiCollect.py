@@ -28,6 +28,30 @@ class ID29MultiCollect(ESRFMultiCollect):
       self.execute_command("prepare_beamline")
 
     @task
+    def data_collection_cleanup(self):
+        state = self.getObjectByRole("fastshut").getActuatorState(read=True)
+        if state != "out":
+            print "-----------------------> Closing fast shutter"
+            self.close_fast_shutter()
+
+    def open_fast_shutter(self):
+        self.getObjectByRole("fastshut").actuatorIn()
+
+    def close_fast_shutter(self):
+        self.getObjectByRole("fastshut").actuatorOut()
+
+    @task
+    def move_motors(self, motors_to_move_dict):
+        diffr = self.bl_control.diffractometer
+        #cover_task = self.getObjectByRole("khoros").detcover.set_out()
+        try:
+            motors_to_move_dict.pop('kappa')
+            motors_to_move_dict.pop('kappa_phi')
+        except:
+            pass
+        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+
+    @task
     def move_detector(self, detector_distance):
         self.bl_control.detector_distance.move(detector_distance)
         while self.bl_control.resolution.motorIsMoving():

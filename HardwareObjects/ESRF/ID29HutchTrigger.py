@@ -44,6 +44,9 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.connected()
  
 
+    def hutchIsOpened(self):
+        return self.hutch_opened
+
     def isConnected(self):
         return True
 
@@ -94,5 +97,6 @@ class ID29HutchTrigger(BaseHardwareObjects.HardwareObject):
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
 
+        self.hutch_opened = 1-value
 	self.initialized = True
 

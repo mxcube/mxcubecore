@@ -1,5 +1,3 @@
-from qt import *
-from Qub.Tools import QubImageSave
 from HardwareRepository.BaseHardwareObjects import Equipment
 import tempfile
 import logging
@@ -24,6 +22,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.exporter_addr = self.phiMotor.exporter_address
         self.x_calib = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"x_calib" }, "CoaxCamScaleX")
         self.y_calib = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"y_calib" }, "CoaxCamScaleY")       
+        self.moveMultipleMotors = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_multiple_motors" }, "SyncMoveMotors")
         self.head_type = self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"head_type" }, "HeadType")
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
@@ -47,6 +46,16 @@ class Microdiff(MiniDiff.MiniDiff):
                                   "zoom":"Zoom"}
         return MOTOR_TO_EXPORTER_NAME
 
+
+    def getMotorToExporterNames(self):
+        #only temporary. Get the names from the xml files
+        MOTOR_TO_EXPORTER_NAME = {"focus":"AlignmentX", "kappa":"Kappa",
+                                  "kappa_phi":"Phi", "phi": "Omega",
+                                  "phiy":"AlignmentY", "phiz":"AlignmentZ",
+                                  "sampx":"CentringX", "sampy":"CentringY",
+                                  "zoom":"Zoom"}
+        return MOTOR_TO_EXPORTER_NAME
+ 
     def getCalibrationData(self, offset):
         return (1.0/self.x_calib.getValue(), 1.0/self.y_calib.getValue())
 
@@ -89,7 +98,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     self._wait_ready(timeout)
         else:
             print "moveToPhase - Ready is: ", self._ready()
-
+    
     def getPhase(self):
         return self.readPhase.getValue()
 
@@ -107,7 +116,7 @@ class Microdiff(MiniDiff.MiniDiff):
             while not self._ready():
                 time.sleep(0.5)
         #print "end moving motors =============", time.time()
-
+            
     def oscilScan(self, start, end, exptime, wait=False):
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
