@@ -91,13 +91,13 @@ class EmotionMotor(Device):
     def getDialPosition(self):
         return self.getPosition()
 
-    @task
+    """@task
     def _wait_ready(self):
         while self.motorIsMoving():
             time.sleep(0.02)
-
+    """
     def move(self, position):
-        self._wait_ready(timeout=1)
+        #self._wait_ready(timeout=15)
         self.motor.move(position, wait=False) #.link(self.updateState)
 
     def moveRelative(self, relativePosition):
