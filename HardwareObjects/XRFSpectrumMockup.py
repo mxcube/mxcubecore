@@ -6,7 +6,7 @@ import numpy
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import cleanup
 
-class XRFScanMockup(Equipment):
+class XRFSpectrumMockup(Equipment):
     def init(self):
         self.ready_event = gevent.event.Event()
 
@@ -27,7 +27,7 @@ class XRFScanMockup(Equipment):
     def startXrfSpectrum(self, ct, directory, prefix, session_id = None, blsample_id = None):
 
         self.scanning = True
-        self.emit('xrfScanStarted', ())
+        self.emit('xrfSpectrumStarted', ())
 
         with cleanup(self.ready_event.set):
             self.spectrumInfo["sessionId"] = session_id
@@ -50,4 +50,4 @@ class XRFScanMockup(Equipment):
 
             time.sleep(3)
 
-            self.emit('xrfScanFinished', (mcaData, mcaCalib, mcaConfig))
+            self.emit('xrfSpectrumFinished', (mcaData, mcaCalib, mcaConfig))

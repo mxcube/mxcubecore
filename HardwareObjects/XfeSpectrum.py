@@ -164,17 +164,20 @@ class XfeSpectrum(Equipment):
     def spectrumCommandReady(self):
         if not self.scanning:
             self.emit('xfeSpectrumReady', (True,))
+            self.emit('xrfSpectrumReady', (True,))
             self.emit('xrfScanReady', (True,))
 
     def spectrumCommandNotReady(self):
         if not self.scanning:
             self.emit('xfeSpectrumReady', (False,))
+            self.emit('xrfSpectrumReady', (False,))
             self.emit('xrfScanReady', (False,))
 
     def spectrumCommandStarted(self, *args):
         self.spectrumInfo['startTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
         self.emit('xfeSpectrumStarted', ())
+        self.emit('xrfSpectrumStarted', ())
         self.emit('xrfScanStarted', ())
 
     def spectrumCommandFailed(self, *args):
@@ -182,12 +185,14 @@ class XfeSpectrum(Equipment):
         self.scanning = False
         self.storeXfeSpectrum()
         self.emit('xfeSpectrumFailed', ())
+        self.emit('xrfSpectrumFailed', ())
         self.emit('xrfScanFailed', ())
         self.ready_event.set()
     
     def spectrumCommandAborted(self, *args):
         self.scanning = False
         self.emit('xfeSpectrumFailed', ())
+        self.emit('xrfSpectrumFailed', ())
         self.emit('xrfScanFailed', ())
         self.ready_event.set()
 
@@ -218,6 +223,7 @@ class XfeSpectrum(Equipment):
             logging.getLogger().debug("finished %r", self.spectrumInfo)
             self.storeXfeSpectrum()
             self.emit('xfeSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
+            self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
             self.emit('xrfScanFinished', (mcaData,mcaCalib,mcaConfig))
         else:
             self.spectrumCommandFailed()
