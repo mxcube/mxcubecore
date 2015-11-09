@@ -108,8 +108,12 @@ class Microdiff(MiniDiff.MiniDiff):
         #print "start moving motors =============", time.time()
         for motor in motors_dict.keys():
             position = motors_dict[motor]
+            if position is None:
+                continue
             name=self.MOTOR_TO_EXPORTER_NAME[motor]
             argin += "%s=%0.3f;" % (name, position)
+        if not argin:
+            return
         move_sync_motors = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_sync_motors" }, "startSimultaneousMoveMotors")
         move_sync_motors(argin)
 
