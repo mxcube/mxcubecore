@@ -178,8 +178,7 @@ class ISPyBRestClient(HardwareObject):
 
         if self.__rest_token:
              response = get(self.__rest_root + self.__rest_token + \
-                 #"/proposal/session/%d/localcontact" % session_id)
-                 "/proposal/karpics/shipping/labcontact/list")
+                 "/proposal/session/%d/localcontact" % session_id)
         else:
             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
         return result

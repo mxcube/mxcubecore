@@ -253,9 +253,6 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     def diffractometer(self):
         return self.bl_control.diffractometer
 
-    def dbServerHO(self):
-        return self.bl_control.lims
-
     def sanityCheck(self, collect_params):
         return
     
