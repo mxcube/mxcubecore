@@ -30,11 +30,9 @@ class TunableEnergy:
 
     
 class GetStaticParameters:
-    def __init__(self, element, edge):
+    def __init__(self, config_file, element, edge):
         self.element = element
         self.edge = edge
-        #config_file = "/users/blissadm/local/spec/userconf/EdgeScan.dat"
-        config_file = "/users/blissadm/local/beamline_control/configuration/EdgeScan.dat"
         self.STATICPARS_DICT = {}
         self.STATICPARS_DICT = self._readParamsFromFile(config_file)
 
@@ -50,7 +48,7 @@ class GetStaticParameters:
                 else:
                     pass
         except:
-            return []
+            return {}
         else:
             larr = []
             for k in range(len(array)):
@@ -115,9 +113,8 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         return True
 
     @task
-    def get_static_parameters(self, element, edge):
-
-        pars = GetStaticParameters(element, edge).STATICPARS_DICT
+    def get_static_parameters(self, config_file, element, edge):
+        pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
         
         offset_keV = self.getProperty("offset_keV")
         pars["startEnergy"] += offset_keV
