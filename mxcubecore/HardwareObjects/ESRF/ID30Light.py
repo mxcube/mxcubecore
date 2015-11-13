@@ -82,6 +82,7 @@ class ID30Light(Device):
 
     def move(self, abs_pos):
         self.wago_controller.set(self.light_level, abs_pos)
+        self.emit("positionChanged", abs_pos)
 
     def moveRelative(self, rel_pos):
         abs_pos = self.getPosition() + rel_pos
