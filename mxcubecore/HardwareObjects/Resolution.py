@@ -29,6 +29,7 @@ class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
 
         self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
         self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged) 
+        self.connect(self.energy, "valueChanged", self.energyChanged)
 
     def isReady(self):
         if self.valid:
@@ -60,6 +61,9 @@ class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
             if current_en:
                 return (12.3984/current_en)
             return None
+
+    def energyChanged(self, egy):
+        return self.recalculateResolution() 
 
     def res2dist(self, res=None):
         current_wavelength = self.getWavelength()
