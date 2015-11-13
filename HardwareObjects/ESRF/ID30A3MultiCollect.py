@@ -77,9 +77,8 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
         cover_task = gevent.spawn(self.getObjectByRole("eh_controller").detcover.set_out, timeout=15)
-        self.getObjectByRole("beamstop").moveToPosition("in")
+        self.getObjectByRole("beamstop").moveToPosition("in", wait=True)
         self.getObjectByRole("light").wagoOut()
-
         motion.get()
         cover_task.get()
 
