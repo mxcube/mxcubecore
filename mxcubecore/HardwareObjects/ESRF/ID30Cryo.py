@@ -53,5 +53,14 @@ class ID30Cryo(Device):
             while self.wago_controller.get(self.out_key) == 0:
                 time.sleep(0.5)
 
+    def getActuatorState(self):
+        return self.getWagoState()
+
+    def actuatorIn(self):
+        return self.wagoIn()
+
+    def actuatorOut(self):
+         return self.wagoOut()
+
     def getState(self):
         return ID30Cryo.READY
