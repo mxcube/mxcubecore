@@ -46,6 +46,9 @@ class ID30Light(Device):
     def getWagoState(self):
         return ID30Light.states.get(self._state, "unknown")
 
+    def getActuatorState(self):
+         return self.getWagoState()    
+  
     def wagoIn(self):
         with gevent.Timeout(5):
             self.wago_controller.set(self.command_key, 1)
@@ -54,6 +57,9 @@ class ID30Light(Device):
             self._state = self.wago_controller.get(self.in_key)
         self.emit("wagoStateChanged", (self.getWagoState(), ))
 
+    def actuatorIn(self):
+        return self.wagoIn()
+
     def wagoOut(self):
         with gevent.Timeout(5):
             self.wago_controller.set(self.command_key, 0)
@@ -61,6 +67,9 @@ class ID30Light(Device):
                 time.sleep(0.5)
             self._state = self.wago_controller.get(self.in_key)
         self.emit("wagoStateChanged", (self.getWagoState(), ))
+
+    def actuatorOut(self):
+        return self.wagoOut()
 
     def getPosition(self):
         return self.wago_controller.get(self.light_level)
@@ -73,6 +82,7 @@ class ID30Light(Device):
 
     def move(self, abs_pos):
         self.wago_controller.set(self.light_level, abs_pos)
+        self.emit("positionChanged", abs_pos)
 
     def moveRelative(self, rel_pos):
         abs_pos = self.getPosition() + rel_pos
