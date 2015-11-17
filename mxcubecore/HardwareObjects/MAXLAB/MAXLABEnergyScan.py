@@ -23,26 +23,20 @@ class MAXLABEnergyScan(Equipment):
         self.defaultWavelength=None
         self._element = None
         self._edge = None
-        try:
-            self.defaultWavelengthChannel=self.getChannelObject('default_wavelength')
-        except KeyError:
-            self.defaultWavelengthChannel=None
-        else:
+        
+        self.defaultWavelengthChannel=self.getChannelObject('default_wavelength')
+        if  self.defaultWavelengthChannel is not None:
             self.defaultWavelengthChannel.connectSignal("connected", self.sConnected) 
             self.defaultWavelengthChannel.connectSignal("disconnected", self.sDisconnected)
-
-        if self.defaultWavelengthChannel is None:
+        else:
             #MAD beamline
-            try:
-                self.energyScanArgs=self.getChannelObject('escan_args')
-            except KeyError:
+                
+            self.energyScanArgs=self.getChannelObject('escan_args')
+            if self.energyScanArgs is None:
                 logging.getLogger("HWR").warning('EnergyScan: error initializing energy scan arguments (missing channel)')
-                self.energyScanArgs=None
 
-            try:
-                self.scanStatusMessage=self.getChannelObject('scanStatusMsg')
-            except KeyError:
-                self.scanStatusMessage=None
+            self.scanStatusMessage=self.getChannelObject('scanStatusMsg')
+            if self.scanStatusMessage is None:
                 logging.getLogger("HWR").warning('EnergyScan: energy messages will not appear (missing channel)')
             else:
                 self.connect(self.scanStatusMessage,'update',self.scanStatusChanged)
