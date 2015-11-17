@@ -245,7 +245,7 @@ class MiniDiff(Equipment):
             self.connect(self.aperture, 'positionReached', self.apertureChanged)
 
         #Agree on a correct method name
-        self.move_to_coord = self.moveToBeam()
+        #self.move_to_coord = self.moveToBeam()
 
     def save_snapshot(self, filename):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
@@ -382,10 +382,6 @@ class MiniDiff(Equipment):
 
     def getBeamPosY(self):
         return self.imgHeight / 2
-
-    def getBeamInfo(self, update_beam_callback):
-        get_beam_info = self.getCommandObject("getBeamInfo")
-        get_beam_info(callback=update_beam_callback, error_callback=None, wait=True)
 
     def moveToBeam(self, x, y):
         try:
