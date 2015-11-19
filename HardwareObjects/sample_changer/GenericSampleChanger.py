@@ -93,12 +93,17 @@ class SampleChanger(Container,Equipment):
         self._token=None
         self._timer_update_inverval = 5 # defines the interval in periods of 100 ms
         self._timer_update_counter = 0            
-        task1s=self.__timer_1s_task(wait=False)
-        task1s.link(self._onTimer1sExit)
-        updateTask=self.__update_timer_task(wait=False)
-        updateTask.link(self._onTimerUpdateExit)
-        
+
     def init(self):
+        use_update_timer = self.getProperty("useUpdateTimer")
+        if use_update_timer is None:
+            use_update_timer = True
+
+        if use_update_timer:
+            task1s=self.__timer_1s_task(wait=False)
+            task1s.link(self._onTimer1sExit)
+            updateTask=self.__update_timer_task(wait=False)
+            updateTask.link(self._onTimerUpdateExit)
         self.updateInfo()
         
         

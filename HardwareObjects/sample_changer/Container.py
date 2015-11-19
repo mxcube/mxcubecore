@@ -182,7 +182,7 @@ class Basket(Container):
     def __init__(self, container, number, samples_num=10, name="Puck"):
         super(Basket, self).__init__(self.__TYPE__,container,Basket.getBasketAddress(number),True)
 
-        self.name = name
+        self._name = name
         for i in range(samples_num):
             slot = Pin(self,number,i+1)
             self._addComponent(slot)

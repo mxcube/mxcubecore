@@ -9,7 +9,7 @@ def getImage(url):
     img=f.read() 
     return img
 
-class Xtal:
+class CrimsXtal:
     def __init__(self, *args):
         self.CrystalUUID=""
         self.PinID=""
@@ -31,11 +31,15 @@ class Xtal:
         return "%s%02d-%d" % (self.Row,self.Column,self.Shelf)
 
     def getImage(self):
+        print self.IMG_URL
         if len(self.IMG_URL) > 0:
             try:
+               print 22
                if self.IMG_URL.startswith("http://"):
-                   self.IMG_URL = "https://" + self.IMG_URL[7];
+                   self.IMG_URL = "https://" + self.IMG_URL[7]
                image_string = urllib.urlopen(self.IMG_URL).read()           
+               print image_string
+               print 23
                return image_string
             except:
                return 
@@ -47,9 +51,9 @@ class Xtal:
         
 class Plate:
     def __init__(self, *args):
-        self.Barcode=""
-        self.PlateType=""
-        self.Xtal=[]
+        self.Barcode = ""
+        self.PlateType = ""
+        self.xtal_list = []
 
 class ProcessingPlan:
     def __init__(self, *args):
@@ -72,7 +76,7 @@ def getProcessingPlan(barcode, crims_url):
         pp.Plate.PlateType = plate.find("PlateType").text
 
         for x in plate.findall("Xtal"):
-            xtal=Xtal()
+            xtal=CrimsXtal()
             xtal.CrystalUUID=x.find("CrystalUUID").text
             xtal.Label = x.find("Label").text
             xtal.Login = x.find("Login").text
@@ -88,7 +92,7 @@ def getProcessingPlan(barcode, crims_url):
             xtal.IMG_Date = x.find("IMG_Date").text
             xtal.ImageRotation = float(x.find("ImageRotation").text)
             xtal.SUMMARY_URL = x.find("SUMMARY_URL").text
-            pp.Plate.Xtal.append(xtal)
+            pp.Plate.xtal_list.append(xtal)
         return pp
     except:
         return
