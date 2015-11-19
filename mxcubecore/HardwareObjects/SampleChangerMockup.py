@@ -1,24 +1,6 @@
-from sample_changer import SC3
 from sample_changer.GenericSampleChanger import *
 
-LOADED_SAMPLES = [('', 1, 1, '', 1), ('', 1, 2, '', 1), ('', 1, 3, '', 1), 
-                  ('', 1, 4,'', 1), ('', 1, 5, '', 1), ('', 1, 6, '', 1), 
-                  ('', 1, 7, '', 1), ('', 1, 8, '', 1), ('', 1, 9, '', 1), 
-                  ('', 1, 10, '', 1), ('', 2, 1, '', 18), ('', 2, 2, '', 18), 
-                  ('', 2, 3, '', 1), ('', 2, 4, '', 1), ('', 2, 5, '', 1), 
-                  ('', 2, 6, '', 18), ('', 2, 7, '', 18), ('', 2, 8, '', 18), 
-                  ('', 2, 9, '', 1), ('', 2, 10, '', 1), ('', 3, 1, '', 1), 
-                  ('', 3, 2, '', 18), ('', 3, 3, '', 18), ('', 3, 4, '', 18), 
-                  ('', 3, 5, '', 1), ('', 3, 6, '', 1), ('', 3, 7, '', 18), 
-                  ('', 3, 8, '', 18), ('', 3, 9, '', 1), ('', 3, 10, '', 1), 
-                  ('', 4, 1, '', 18), ('', 4, 2, '', 18), ('', 4, 3, '', 18), 
-                  ('', 4, 4, '', 18),('', 4, 5, '', 18), ('', 4, 6, '', 1), 
-                  ('', 4, 7, '', 1), ('', 4, 8, '', 1), ('', 4, 9, '', 18), 
-                  ('', 4, 10, '', 18), ('', 5, 1, '', 18), ('', 5, 2, '', 18), 
-                  ('', 5, 3, '', 18), ('', 5, 4, '', 18), ('', 5, 5, '', 18), 
-                  ('', 5, 6, '', 18), ('', 5, 7, '', 18), ('', 5, 8, '', 18), 
-                  ('', 5, 9, '', 18), ('', 5, 10, '', 18)]
-
+"""
 class Pin(Sample):
     STD_HOLDERLENGTH = 22.0
 
@@ -52,40 +34,32 @@ class Basket(Container):
 
     def clearInfo(self):
         self.getContainer()._triggerInfoChangedEvent()
+"""
 
+class SampleChangerMockup(SampleChanger):
 
-class SampleChangerMockup(SC3.SC3):
-
+    __TYPE__ = "SC3"
     NO_OF_BASKETS = 17
-
     def __init__(self, *args, **kwargs):
-        super(SampleChangerMockup, self).__init__(*args, **kwargs)
+        super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
 
     def init(self):
-        for channel_name in ("_state", "_selected_basket", "_selected_sample"):
-            fun = lambda x: x
-            setattr(self, channel_name, fun)
-           
-        for command_name in ("_abort", "_getInfo", "_is_task_running", \
-                             "_check_task_result", "_load", "_unload",\
-                             "_chained_load", "_set_sample_charge", "_scan_basket",\
-                             "_scan_samples", "_select_sample", "_select_basket", "_reset", "_reset_basket_info"):
-            fun = lambda x: x
-            setattr(self, command_name, fun)
+        self._selected_sample = 1
+        self._selected_basket = 1
+        self._scIsCharging = None
 
-        for i in range(SampleChangerMockup.NO_OF_BASKETS):
+        for i in range(5):
             basket = Basket(self,i+1)
             self._addComponent(basket)
 
-    def hasLoadedSample(self):
-        return True
+        self._initSCContents()
+        SampleChanger.init(self)
 
     def load_sample(self, holder_length, sample_location, wait):
         return
 
     def load(self, sample, wait):
-        import pdb
-        pdb.set_trace()
+        self._setState(SampleChangerState.Ready)  
         return sample
 
     def unload(self, sample_slot, wait):
@@ -97,3 +71,64 @@ class SampleChangerMockup(SC3.SC3):
             if isinstance(basket, Basket):
                 basket_list.append(basket)
         return basket_list
+
+    def _doAbort(self):
+        return
+
+    def _doChangeMode(self):
+        return
+
+    def _doUpdateInfo(self):
+        return
+
+    def _doChangeMode(self,mode):
+        return
+
+    def _doSelect(self,component):
+        return
+
+    def _doScan(self,component,recursive):
+        return
+
+    def _doLoad(self,sample=None):
+        return
+
+    def _doUnload(self,sample_slot=None):
+        return
+
+    def _doAbort(self):
+        return
+
+    def _doReset(self):
+        return
+
+    def _initSCContents(self):
+        """
+        Initializes the sample changer content with default values.
+
+        :returns: None
+        :rtype: None
+        """
+        basket_list= [('', 4)] * 5
+
+        for basket_index in range(5):
+            basket=self.getComponents()[basket_index]
+            datamatrix = None
+            present = scanned = False
+            basket._setInfo(present, datamatrix, scanned)
+
+        sample_list=[]
+        for basket_index in range(5):
+            for sample_index in range(10):
+                sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
+        for spl in sample_list:
+            sample = self.getComponentByAddress(Pin.getSampleAddress(spl[1], spl[2]))
+            datamatrix = "matr%d_%d" %(spl[1], spl[2])
+            present = scanned = loaded = has_been_loaded = False
+            sample._setInfo(present, datamatrix, scanned)
+            sample._setLoaded(loaded, has_been_loaded)
+            sample._setHolderLength(spl[4])
+
+        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1,1))
+        mounted_sample._setLoaded(True, False)  
+        self._setState(SampleChangerState.Ready)

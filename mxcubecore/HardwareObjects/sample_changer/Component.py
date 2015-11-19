@@ -14,9 +14,12 @@ class Component(object):
         self.scanned=False
         self.dirty=False
         self._leaf=False
-    
+        self._name = ""      
     
     #########################           PUBLIC           #########################
+
+    def getName(self):
+        return self._name
     
     def getID(self):
         """
