@@ -303,6 +303,8 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        if not self._chnPowered.getValue():
+            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
             
         selected=self.getSelectedSample()            
         if sample is not None:
