@@ -39,6 +39,8 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.chan_scan_status = None
         self.chan_scan_consts = None
 
+        self.config_filename = None
+
     def init(self):
         """
         Descript. :
@@ -69,6 +71,8 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.can_scan = True
         if self.isConnected():
             self.sConnected()
+
+        self.config_filename = self.getProperty("configFile")
 
     def scan_status_update(self, status):
         """
@@ -114,69 +118,60 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         return self.can_scan
 
-    def startXrfSpectrum(self, ct, directory, prefix, session_id = None, blsample_id = None):
+    def startXrfSpectrum(self, ct, scan_directory, archive_directory, prefix,
+            session_id = None, blsample_id = None, adjust_transmission = True):
         """
         Descript. :
         """
         if not self.can_scan:
             self.spectrumCommandAborted()
-            return False 
-  
+            return False
+
         self.spectrum_info = {"sessionId": session_id, "blSampleId": blsample_id}
-        if not os.path.isdir(directory):
-            logging.getLogger().debug("EMBLXRFSpectrum: creating directory %s" % directory)
+        if not os.path.isdir(archive_directory):
+            logging.getLogger().debug("EMBLXRFSpectrum: creating directory %s" % archive_directory)
             try:
-                os.makedirs(directory)
+                if not os.path.exists(archive_directory):
+                    os.makedirs(archive_directory)
+                if not os.path.exists(scan_directory):
+                    os.makedirs(scan_directory)
             except OSError, diag:
-                logging.getLogger().error("EMBLXRFSpectrum: error creating directory %s (%s)" % (directory, str(diag)))
-                self.emit('xrfScanStatusChanged', "Error creating directory")
+                logging.getLogger().error("EMBLXRFSpectrum: error creating directory %s (%s)" % (archive_directory, str(diag)))
+                self.emit('xrfScanStatusChanged', ("Error creating directory", ))
                 self.spectrumCommandAborted()
                 return False
 
-        if not os.path.exists(directory):
-            try:
-                logging.getLogger().debug("EMBLXRFSpectrum: creating %s", directory)
-                os.makedirs(directory)
-            except:
-                logging.getLogger().error("EMBLXRFSpectrum: error creating archive directory")
+        archive_file_template = os.path.join(archive_directory, prefix) 
+        scan_file_template = os.path.join(scan_directory, prefix)
+        if os.path.exists(archive_file_template + ".dat"):
+            i = 1
+            while os.path.exists(archive_file_template + "%d.dat" %i):
+                  i = i + 1
+            archive_file_template += "_%d" % i
+            scan_file_template += "_%d" % i
+            prefix += "_%d" % i
 
-        filename_pattern = os.path.join(directory, "%s_%s_%%02d" % (prefix, time.strftime("%d_%b_%Y")))
-        aname_pattern = os.path.join("%s/%s_%s_%%02d" % (directory, prefix, time.strftime("%d_%b_%Y")))
+        scan_file_dat_filename = os.path.extsep.join((scan_file_template, "dat")) 
+        archive_file_dat_filename = os.path.extsep.join((archive_file_template, "dat"))
+        archive_file_png_filename = os.path.extsep.join((archive_file_template, "png"))
+        archive_file_html_filename = os.path.extsep.join((archive_file_template, "html"))
 
-        filename_pattern = os.path.extsep.join((filename_pattern, "dat"))
-        html_pattern = os.path.extsep.join((aname_pattern, "html"))
-        aname_pattern = os.path.extsep.join((aname_pattern, "png"))
-        filename = filename_pattern % 1
-        aname = aname_pattern % 1
-        htmlname = html_pattern % 1
-
-        i = 2
-        while os.path.isfile(filename):
-            filename = filename_pattern % i
-            aname = aname_pattern % i
-            htmlname = html_pattern % i
-            i = i + 1
-
-        self.spectrum_info["filename"] = filename
-        self.spectrum_info["scanFileFullPath"] = filename
-        self.spectrum_info["jpegScanFileFullPath"] = aname
+        self.spectrum_info["filename"] = prefix
+        self.spectrum_info["scanFilePath"] = scan_file_dat_filename
+        self.spectrum_info["scanFileFullPath"] = archive_file_dat_filename
+        self.spectrum_info["jpegScanFileFullPath"] = archive_file_png_filename
         self.spectrum_info["exposureTime"] = ct
-        self.spectrum_info["annotatedPymcaXfeSpectrum"] = htmlname
-        self.spectrum_info["htmldir"] = directory
+        self.spectrum_info["annotatedPymcaXfeSpectrum"] = archive_file_html_filename
+        self.spectrum_info["htmldir"] = archive_directory
         self.spectrumCommandStarted()
-        logging.getLogger().debug("EMBLXRFSpectrum: archive file is %s", aname)
-        self.reallyStartXrfSpectrum(ct, filename)
-        return True
-        
-    def reallyStartXrfSpectrum(self, ct, filename):    
-        """
-        Descript. :
-        """
+        logging.getLogger().debug("EMBLXRFSpectrum: scan dat file is %s", scan_file_dat_filename)
+        logging.getLogger().debug("EMBLXRFSpectrum: archive file is %s", archive_file_dat_filename)
+
         try:
-            self.cmd_scan_start(ct)
+            self.cmd_scan_start((ct, adjust_transmission))
         except:
             logging.getLogger().exception('EMBLXRFSpectrum: problem in starting scan')
-            self.emit('xrfScanStatusChanged', "Error problem in starting scan")
+            self.emit('xrfScanStatusChanged', ("Error problem in starting scan",))
             self.spectrumCommandAborted()
 
     def cancelXrfSpectrum(self, *args):
@@ -242,14 +237,30 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             mcaCalib = self.chan_scan_consts.getValue()[::-1]
             mcaData = []
             calibrated_data = []
+
+            try:
+               scan_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
+               archive_file_raw = open(self.spectrum_info["scanFilePath"], "w")
+            except:
+               logging.getLogger("HWR").exception("EMBLXRFSpectrum: could not create spectrum result raw file %s" %self.spectrum_info["scanFileFullPath"])
+
             for n, value in enumerate(values):
-                mcaData.append((n / 1000.0, value))
                 energy = (mcaCalib[2] + mcaCalib[1] * n + mcaCalib[0] * n * n) / 1000
-                if value > xmax:
-                    xmax = value
-                if value < xmin:
-                    xmin = value
-                calibrated_data.append([energy, value])
+                if energy < 13:
+                    if energy > xmax:
+                        xmax = value
+                    if energy < xmin:
+                        xmin = value
+                    calibrated_data.append([energy, value])
+                    mcaData.append((n / 1000.0, value))
+                    if scan_file_raw:
+                        scan_file_raw.write("%f,%f\r\n" % (energy, value))
+                    if archive_file_raw:
+                        archive_file_raw.write("%f,%f\r\n" % (energy, value)) 
+            if scan_file_raw:
+                scan_file_raw.close()
+            if archive_file_raw:
+                archive_file_raw.close()
 
             calibrated_array = numpy.array(calibrated_data)
 
@@ -260,11 +271,13 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
 
             mcaConfig = {}
-            mcaConfig["legend"] = "Xfe spectrum"
+            mcaConfig["legend"] = self.spectrum_info["filename"]
+            mcaConfig["file"] = self.config_filename
             mcaConfig["min"] = xmin
             mcaConfig["max"] = xmax
             mcaConfig["htmldir"] = self.spectrum_info["htmldir"]
             self.spectrum_info.pop("htmldir")
+            self.spectrum_info.pop("scanFilePath")
 
             fig = Figure(figsize=(15, 11))
             ax = fig.add_subplot(111)
@@ -279,7 +292,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             canvas.print_figure(self.spectrum_info["jpegScanFileFullPath"], dpi = 80)
             #logging.getLogger().debug("Copying .fit file to: %s", a_dir)
             #tmpname=filename.split(".")
-            logging.getLogger().debug("finished %r", self.spectrum_info)
+            #logging.getLogger().debug("finished %r", self.spectrum_info)
             self.store_xrf_spectrum()
             self.emit('xrfScanFinished', (mcaData, mcaCalib, mcaConfig))
             
@@ -287,14 +300,14 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """
         Descript. :
         """
-        self.emit('xrfScanStatusChanged', status)
+        self.emit('xrfScanStatusChanged', (status, ))
 
     def store_xrf_spectrum(self):
         """
         Descript. :
         """
         #logging.getLogger().debug("db connection %r", self.db_connection_HO)
-        logging.getLogger().debug("spectrum info %r", self.spectrum_info)
+        #logging.getLogger().debug("spectrum info %r", self.spectrum_info)
         if self.db_connection_hwobj:
             try:
                 session_id = int(self.spectrum_info['sessionId'])
