@@ -403,7 +403,8 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """
-        self.bl_control.diffractometer.take_snapshots(image_count, wait=True)
+        pass
+        #self.bl_control.diffractometer.take_snapshots(image_count, wait=True)
     
     def set_transmission(self, transmission_percent):
         """

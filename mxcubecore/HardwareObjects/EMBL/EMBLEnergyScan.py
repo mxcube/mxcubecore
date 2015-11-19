@@ -199,7 +199,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         title = "%s %s: %s %s" % (self.scanInfo["sessionId"], 
             self.scanInfo["blSampleId"], self.scanInfo["element"], self.scanInfo["edgeEnergy"])
         dic = {'xlabel': 'energy', 'ylabel': 'counts', 'scaletype': 'normal', 'title': title}
-        self.emit('scanStart', (dic, ))
         self.scanInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
         self.emit('energyScanStarted', ())
@@ -418,7 +417,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def get_scan_data(self):
         """
-        Descript. :
+        Descript. : returns energy scan data.
+                    List contains tuples of (energy, counts)
         """
         return self.scanData 
 

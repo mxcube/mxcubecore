@@ -94,8 +94,6 @@ class ParallelProcessing(HardwareObject):
         processing_params["beamstop_size"] = beamstop_size
         processing_params["beamstop_distance"] = beamstop_distance
         processing_params["beamstop_direction"] = beamstop_direction
-        #processing_params["workflow_type"] = data_collection.advanced_method_type_str
-
         processing_params["status"] = "Started"
         processing_params["title"] = "%s_%d_xxxxx.cbf (%d - %d)" % \
              (acquisition.path_template.get_prefix(),
@@ -106,7 +104,6 @@ class ParallelProcessing(HardwareObject):
              (lines_num, images_num / lines_num )
 
         if lines_num > 1:
-            #processing_params["grid_direction"] = grid_direction
             processing_params["dx_mm"] = grid_params["dx_mm"]
             processing_params["dy_mm"] = grid_params["dy_mm"]
             processing_params["steps_x"] = grid_params["steps_x"]
@@ -198,7 +195,6 @@ class ParallelProcessing(HardwareObject):
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
-        """
         if not os.path.isfile(self.start_dozor_command):
             self.dozor_done_event.set()
             msg = "ParallelProcessing: EDNA dozor command %s is not executable" % self.start_dozor_command 
@@ -214,7 +210,6 @@ class ParallelProcessing(HardwareObject):
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
-        """
 
         self.do_processing_result_polling(processing_params, file_wait_timeout, grid_object)
         
@@ -243,7 +238,6 @@ class ParallelProcessing(HardwareObject):
         processing_params["status"] = "Success"
         failed = False
 
-        """
         do_polling = True
         result_file_index = 0
         _result_place = []
@@ -310,7 +304,7 @@ class ParallelProcessing(HardwareObject):
             result_file_index += 1
 
         """
-        gevent.sleep(10)
+        gevent.sleep(3)
         #This is for test...
         for image_index in range(processing_params["images_num"]):
             processing_result["image_num"][image_index] = 0
@@ -324,11 +318,13 @@ class ParallelProcessing(HardwareObject):
                      processing_result, processing_params, grid_object)
                 self.emit("paralleProcessingResults", (self.processing_results, processing_params, False))
                 gevent.sleep(1)
-        processing_result["score"][2] = 100
+        processing_result["score"][2] = 80
         processing_result["score"][1] = 50
         processing_result["score"][0] = 20
+        processing_result["score"][len(processing_result["score"]) / 2] = 100 
         processing_result["score"][-2] = 10
-        processing_result["score"][-1] = 0
+        processing_result["score"][-1] = 43
+        """
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid_object)
