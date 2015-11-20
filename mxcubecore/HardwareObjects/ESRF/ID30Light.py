@@ -41,6 +41,7 @@ class ID30Light(Device):
             if self._state != reading:
                 self._state = reading
                 self.emit("wagoStateChanged", (self.getWagoState(), ))
+                self.emit("actuatorStateChanged", (self.getWagoState(), ))
             time.sleep(1)
 
     def getWagoState(self):
