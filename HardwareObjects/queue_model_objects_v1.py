@@ -405,15 +405,10 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.name = "Puck %d" % self.location 
-        """
-        self.location = int(sc_basket[0])
-        name = sc_basket[2]
-        if name == "Row":
-            self.name = "%s %s" % (name, chr(65 + self.location - 1))
-        else:
-            self.name = "%s %d" % (name, self.location)
-        self._basket_object = sc_basket[1]
+            self.location = self._basket_object.getCoords()
+            self.name = "%s %d" % (name, self.location[0])
+            if len(self.location) == 2:
+                self.name = "Cell %d, puck %d" % self.location
 
     def get_name(self):
         return self.name
