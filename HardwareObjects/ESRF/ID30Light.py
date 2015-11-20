@@ -41,6 +41,7 @@ class ID30Light(Device):
             if self._state != reading:
                 self._state = reading
                 self.emit("wagoStateChanged", (self.getWagoState(), ))
+                self.emit("actuatorStateChanged", (self.getWagoState(), ))
             time.sleep(1)
 
     def getWagoState(self):
@@ -56,6 +57,7 @@ class ID30Light(Device):
                 time.sleep(0.5)
             self._state = self.wago_controller.get(self.in_key)
         self.emit("wagoStateChanged", (self.getWagoState(), ))
+        self.emit("actuatorStateChanged", (self.getWagoState(), ))
 
     def actuatorIn(self):
         return self.wagoIn()
@@ -67,6 +69,7 @@ class ID30Light(Device):
                 time.sleep(0.5)
             self._state = self.wago_controller.get(self.in_key)
         self.emit("wagoStateChanged", (self.getWagoState(), ))
+        self.emit("actuatorStateChanged", (self.getWagoState(), ))
 
     def actuatorOut(self):
         return self.wagoOut()
