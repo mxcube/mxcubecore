@@ -7,7 +7,7 @@
 self.chan_temperature : temperature in C (float)
 self.chan_humidity : humidity in % (float)
 self.chan_status : status (string)
-self.chan_collect_mode : collection mode "0", "C18", "C2" (string)
+self.chan_roi_mode : collection mode "0", "C18", "C2" (string)
 self.chan_frame_rate : frame rate (float)
 
 [Commands] :
@@ -54,7 +54,8 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.temperature = 0
         self.humidity = 0
         self.tolerance = 0.1
-        self.collect_mode = 0
+        self.roi_mode = None
+        self.roi_modes = []
         self.collect_name = None
         self.shutter_name = None
         self.temp_treshold = None
@@ -64,7 +65,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_temperature = None
         self.chan_humidity = None
         self.chan_status = None
-        self.chan_collect_mode = None
+        self.chan_roi_mode = None
         self.chan_frame_rate = None
 
     def init(self):
@@ -92,10 +93,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         else:
             logging.getLogger().error("Detector: Status channel not defined")
     
-        self.chan_collect_mode = self.getChannelObject('chanCollectMode')
-        if self.chan_collect_mode is not None:
-            self.chan_collect_mode.connectSignal('update', \
-                 self.collect_mode_changed)
+        self.chan_roi_mode = self.getChannelObject('chanRoiMode')
+        if self.chan_roi_mode is not None:
+            self.chan_roi_mode.connectSignal('update', self.roi_mode_changed)
         else:
             logging.getLogger().error("Detector: Collect mode channel not defined")
 
@@ -117,7 +117,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
         
-        self.collect_mode_dict = eval(self.getProperty("collectModes"))
+        self.roi_modes = eval(self.getProperty("roiModes"))
 
     def get_distance(self):
         """
@@ -197,12 +197,12 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             status_message = status_message + "Cannot start a collection at the moment."
         self.emit('statusChanged', (status, status_message, ))
 
-    def collect_mode_changed(self, mode):
+    def roi_mode_changed(self, mode):
         """
         Descript. :
         """
-        self.collect_mode = self.collect_mode_dict[mode]          
-        self.emit('detectorModeChanged', (self.collect_mode, ))
+        self.roi_mode = self.roi_modes.index(mode)
+        self.emit('detectorModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
         """
@@ -212,24 +212,24 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             self.exp_time_limits = (1 / float(frame_rate), 6000)
         self.emit('expTimeLimitsChanged', (self.exp_time_limits, )) 
 
-    def set_collect_mode(self, mode):
+    def set_roi_mode(self, mode):
         """
         Descript. :
         """
-        mode = self.collect_mode_dict.keys()[self.collect_mode_dict.values().index(mode)]
-        self.chan_collect_mode.setValue(mode)  
+        #mode = self.roi_mode_dict.keys()[self.collect_mode_dict.values().index(mode)]
+        self.chan_roi_mode.setValue(self.roi_modes[mode])  
 
-    def get_collect_mode(self):
+    def get_roi_mode(self):
         """
         Descript. :
         """
-        return self.collect_mode
+        return self.roi_mode
 
-    def get_collect_mode_list(self):
+    def get_roi_modes(self):
         """
         Descript. :
         """
-        return self.collect_mode_dict.keys()	
+        return self.roi_modes
 
     def get_exposure_time_limits(self):
         """
@@ -253,7 +253,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        self.emit('detectorModeChanged', (self.collect_mode, )) 
+        self.emit('detectorModeChanged', (self.roi_mode, )) 
         temp = self.chan_temperature.getValue()
         self.emit('temperatureChanged', (temp, temp < self.temp_treshold))
         hum = self.chan_humidity.getValue()

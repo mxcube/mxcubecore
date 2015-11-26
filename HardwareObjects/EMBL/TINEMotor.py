@@ -1,109 +1,174 @@
-from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.BaseHardwareObjects import Null
-from HardwareRepository import HardwareRepository
-import math
-import logging 
-import _tine as tine
-from qt import *
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-(NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
+import logging
+import gevent
+
+from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository import HardwareRepository
+
+(NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
 def energyConverter(wavelength):
-    energy = float(12.398425/wavelength)
+    """
+    Descript. :
+    """
+    if wavelength != 0:	
+        energy = float(12.398425 / wavelength)
+    else:
+        energy = 0	
     return energy
 
 class TINEMotor(Device):    
+    """
+    Descript. :
+    """
+
+    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5) 
   
     def __init__(self, name): 
+        """
+        Descript. :
+        """
         Device.__init__(self, name)	
-        """ TINE Motor Class """ 
-	self.objName = name  
+        self.objName = name  
         self.motorState = READY
         self.motorState2 = 'noninit'
-        self.limits = (None, None)
-	self.previousPosition = 0.0
+        self.limits = None
+        self.staticLimits = None
+        self.current_position = None
+        self.previousPosition = None
+        self.static_limits = None
+
+        self.chan_position = None
+        self.chan_state = None
+        self.chan_limits = None
+        self.cmd_set_position = None
+        self.cmd_stop_axis = None
+
+        self.converter = None
+        self.epsilon = None
+        self.verboseUpdate = None
+        self.maxMotorPosition = None
+        self.moveConditions = None
+        self.moveHOSignals = None
 	
     def init(self):
+        """
+        Descript. :
+        """
+        self.current_position = -10.0
+        self.previousPosition = -10.0
+
+        self.chan_position = self.getChannelObject('axisPosition')
+        if self.chan_position is not None:
+            self.chan_position.connectSignal('update', self.motor_position_changed)
+          
+        self.chan_state = self.getChannelObject('axisState')
+        if self.chan_state is not None:
+            self.chan_state.connectSignal('update', self.motor_state_changed)
         
-        self.chanMotorPosition = self.getChannelObject('axisposition')
-        self.chanMotorPosition.connectSignal('update', self.motorPositionChanged)
+        self.chan_limits = self.getChannelObject('axisLimits')
+        if self.chan_limits is not None:  
+            self.chan_limits.connectSignal('update', self.motor_limits_changed)
+        else:
+            try:
+                self.static_limits = self.getProperty("staticLimits")
+                self.static_limits = eval(self.static_limits)
+                self.motor_limits_changed(self.static_limits)
+            except:
+                pass
 
-        try:
-            self.chanMotorState = self.getChannelObject('axisstate')
-            self.chanMotorState.connectSignal('update', self.motorStateChanged)
-        except KeyError:
-            pass
-
-        try:
-            self.chanMotorLimits = self.getChannelObject('axisLimits')
-            self.chanMotorLimits.connectSignal('update', self.motorLimitsChanged)
-        except KeyError:
-            pass
-
-        try:
-            self.cmdsetPosition = self.getCommandObject('setPosition')
-            self.cmdsetPosition.connectSignal('connected', self.connected)
-            self.cmdsetPosition.connectSignal('disconnected', self.disconnected)
-        except KeyError:
-            pass    
+        self.cmd_set_position = self.getCommandObject('setPosition')
+        if self.cmd_set_position:
+            self.cmd_set_position.connectSignal('connected', self.connected)
+            self.cmd_set_position.connectSignal('disconnected', self.disconnected)
     
-        try:
-            self.cmdstopAxis = self.getCommandObject('stopAxis')
-            self.cmdstopAxis.connectSignal('connected', self.connected)
-            self.cmdstopAxis.connectSignal('disconnected', self.disconnected)
-        except KeyError:
-            pass    
+        self.cmd_stop_axis = self.getCommandObject('stopAxis')
+        if self.cmd_stop_axis:
+            self.cmd_stop_axis.connectSignal('connected', self.connected)
+            self.cmd_stop_axis.connectSignal('disconnected', self.disconnected)
 
- 	self.converter = self.getProperty("converter") 
-	self.epsilon = self.getProperty("epsilon")    
-	self.verboseUpdate = self.getProperty("verboseUpdate")
+        self.converter = self.getProperty("converter") 
+        self.epsilon = self.getProperty("epsilon")    
+        self.verboseUpdate = self.getProperty("verboseUpdate")
         self.maxMotorPosition = self.getProperty("maxMotorPosition")
         self.moveConditions = self.getProperty("moveConditions")
         self.moveHOSignals = self.getProperty("moveHOSignals")
-
-        try:
-            hoSignals = eval(self.moveHOSignals)
-            for ho in hoSignals:
-                hobj = HardwareRepository.HardwareRepository().getHardwareObject("/%s" % ho)
-                if hobj is None:
-                    logging.getLogger("HWR").error('TINEMotor: invalid %s hardware object' % ho)
-                else:
-                    exec("self.%s=hobj" % ho)
-                    self.connect(eval("self.%s" % ho), PYSIGNAL(hoSignals[ho]), self.getState)
-        except:
-            pass
-             
+      
+    def isConnected(self):
+        """
+        Descript. :
+        """
+        return True
+               
     def connected(self):
+        """
+        Descript. :
+        """
         self.setIsReady(True) 
      
     def disconnected(self):
+        """
+        Descript. :
+        """
         self.setIsReady(True)
 
     def connectNotify(self, signal):
+        """
+        Descript. :
+        """
         if self.connected():
             if signal == 'stateChanged':
-                self.motorStateChanged()
+                self.motor_state_changed()
             elif signal == 'limitsChanged':
-                self.motorLimitsChanged(self.getLimits())
+                self.motor_limits_changed(self.getLimits())
             elif signal == 'positionChanged':
-                self.motorPositionChanged(self.getPosition())
+                self.motor_position_changed(self.getPosition())
     
-    def motorLimitsChanged(self, limits):
+    def motor_limits_changed(self, limits):
+        """
+        Descript. :
+        """
         self.emit('limitsChanged', (limits, ))
 
     def getLimits(self):
-        self.limits = self.chanMotorLimits.getValue()
+        """
+        Descript. :
+        """
+        if self.chan_limits:
+            self.limits = self.chan_limits.getValue()
+        else:
+            self.limits = self.static_limits
         return self.limits
   
     def getState(self):
-
+        """
+        Descript. :
+        """
         if (self.moveConditions and not self.checkConditions(self.moveConditions)):
             self.motorState = UNUSABLE
             self.motorState2 = 'unusable'
             self.emit('stateChanged', (self.motorState, ))
             return self.motorState
 
-        actualState = self.chanMotorState.getValue()
+        actualState = self.chan_state.getValue()
 
         if (actualState != self.motorState2):
             if actualState == 'ready':
@@ -120,52 +185,70 @@ class TINEMotor(Device):
             self.motorState = MOVING
         return self.motorState 
         
-       
-    #Returns the position
     def getPosition(self):
-        value = self.chanMotorPosition.getValue()
-	
-	if self.converter is not None:
-	    value = eval(self.converter)(value)
+        """
+        Descript. :
+        """
+        value = self.chan_position.getValue()
+        if self.converter is not None:
+            value = eval(self.converter)(value)
         return value
 
     def stop(self):
-        self.cmdstopAxis()
+        """
+        Descript. :
+        """
+        self.cmd_stop_axis()
     
-    def move(self, target):
-	self.__changeMotorState(MOVING)
-        self.chanMotorState.setOldValue('moving')
-        self.cmdsetPosition(target)
+    def move(self, target, wait=False):
+        """
+        Descript. :
+        """
+        self.__changeMotorState(MOVING)
+        if self.chan_state is not None:
+            self.chan_state.setOldValue('moving')
+        self.cmd_set_position(target)
+
+        if wait:
+            self._waitDeviceReady(30)  
 
     def __changeMotorState(self, state):
-        """Private method for changing the SpecMotor object's internal state
-
-        Arguments:
-        state -- the motor state
+        """
+        Descript. :
         """
         self.motorState = state
         self.emit('stateChanged', (state, ))
         
-    def motorStateChanged(self, dummyState):
-        """Callback to take into account a motor state update
+    def motor_state_changed(self, dummy_state):
+        """
+        Descript. :
         """
         state = self.getState()
         self.emit('stateChanged', (state, ))
         
-    def motorPositionChanged(self, dummyArgument):
-	position = self.getPosition()
-	if ( self.epsilon is None ) or (abs(float(position)-float(self.previousPosition)) > float(self.epsilon) ) : 
-
-	    self.emit('positionChanged', (position,))
-	    if (self.verboseUpdate == True ) :
-		logging.getLogger().debug('Updating motor postion %s to %s from %s ' %(self.objName,position,self.previousPosition))
-            self.previousPosition = position
+    def motor_position_changed(self, dummy_argument):
+        """
+        Descript. :
+        """
+        position = self.getPosition()    
+        if (self.epsilon is None) or (abs(float(position) - float(self.previousPosition)) > float(self.epsilon)) : 
+            self.emit('positionChanged', (position, ))
+            self.current_position = position
+            if (self.verboseUpdate == True):
+                logging.getLogger().debug('Updating motor postion %s to %s from %s ' \
+                  %(self.objName, position, self.previousPosition))
+                self.previousPosition = position
 
     def getMotorMnemonic(self):
+        """
+        Descript. :
+        """
         return "TINEMotor"
 
-    def getMotorStatus(self, motorName):
-
+    def getMotorStatus(self, motor_name):
+        """
+        Descript. :
+        """
         state_message = ""
         state_OK = True
 
@@ -177,9 +260,23 @@ class TINEMotor(Device):
         return state_OK, state_message
             
     def checkConditions(self, cond_dict):
+        """
+        Descript. :
+        """
         conditions = eval(cond_dict)
         for cond in conditions:
             if (conditions[cond] != eval("self.%s" % cond)):
                 return False
         return True
-    
+
+    def update_values(self):    
+        self.emit('limitsChanged', (self.limits, ))
+        self.emit('positionChanged', (self.current_position, ))
+
+    def _isDeviceReady(self):
+        return self.motorState == READY
+
+    def _waitDeviceReady(self,timeout=None):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self._isDeviceReady():
+                gevent.sleep(0.05)

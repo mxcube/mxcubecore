@@ -312,6 +312,8 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
            motor_position_id is None:
             return
         image_id = None
+
+        print "process_image... ", frame
         if self.bl_control.lims:
             try:
                 file_location = self.actual_data_collect_parameters["fileinfo"]["directory"]
@@ -390,7 +392,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         self.cmd_collect_raster_lines(num_lines)
         self.cmd_collect_num_images(num_images_per_line)        
-        self.cmd_collect_raster_range(mesh_range)
+        self.cmd_collect_raster_range(mesh_range[::-1])
 
     def log_message_from_spec(self, msg):
         """
