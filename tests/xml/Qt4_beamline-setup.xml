@@ -25,6 +25,8 @@
   <object href="/xrf-scan-mockup" role="xrf"/>
   <object href="/data-analysis" role="data_analysis"/>
 
+  <object href="/paralell-processing" role="paralell_processing"/>
+
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.
        For example Mesh scan -> MeshScan, Xray centring -> XrayCentring
