@@ -86,7 +86,7 @@ class Qt4_LimaVideo(Device):
         self.control = Core.CtControl(self.interface)
         self.video = self.control.video()
         self.image_dimensions = list(self.camera.getMaxWidthHeight())
-      
+     
         self.setIsReady(True)
 
         if self.image_polling is None:
@@ -95,9 +95,6 @@ class Qt4_LimaVideo(Device):
 
             self.image_polling = gevent.spawn(self.do_image_polling,
                  self.getProperty("interval")/1000.0)
-
-        print 111
-        print self.getProperty("interval")
 
     def get_image_dimensions(self):
         return self.image_dimensions
@@ -187,4 +184,5 @@ class Qt4_LimaVideo(Device):
             qimage = QtGui.QImage(raw_buffer, image.width(),image.height(), QtGui.QImage.Format_RGB888)
             if self.cam_mirror is not None:
                 qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
+            qimage = QtGui.QPixmap(qimage)
             self.emit("imageReceived", qimage)

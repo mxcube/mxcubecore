@@ -4,7 +4,7 @@ import gevent
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-class EMBLShutter(Device):
+class EMBLSafetyShutter(Device):
     shutterState = {
         3: 'unknown',
         1: 'closed',
