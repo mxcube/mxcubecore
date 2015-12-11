@@ -1,5 +1,8 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
   <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
+  <object href="/Qt4_graphics-manager" role="shape_history"/>
+  <object href="/Qt4_mxcollect" role="collect"/>
+
   <object href="/attenuators-mockup" role="transmission"/>
   <object href="/beam-info" role="beam_info"/>
 
@@ -15,17 +18,14 @@
   <object href="/diff-kappa-mockup" role="kappa_axis"/>
   <object href="/diff-kappaphi-mockup" role="kappa_phi_axis"/>
   <object href="/detector-mockup" role="detector"/>
-  <object href="/Qt4_graphics-manager" role="shape_history"/>
   <object href="/session" role="session"/>
 
   <!-- collection methods -->
-  <object href="/Qt4_mxcollect" role="collect"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/energyscan-mockup" role="energyscan"/>
-  <object href="/xrf-scan-mockup" role="xrf"/>
+  <object href="/xrf-spectrum-mockup" role="xrf"/>
   <object href="/data-analysis" role="data_analysis"/>
-
-  <object href="/paralell-processing" role="paralell_processing"/>
+  <object href="/parallel-processing" role="parallel_processing"/>
 
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.
