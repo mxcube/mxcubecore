@@ -45,11 +45,14 @@ class ParallelProcessing(HardwareObject):
         self.collect_hwobj = self.getObjectByRole("collect")
         self.detector_hwobj = self.collect_hwobj.bl_control.detector
         if self.detector_hwobj is None:
-            logging.info("ParallelProcessing: Unable to set detector hwobj")
+            logging.info("ParallelProcessing: No detector hwobj defined")
         self.lims_hwobj = self.collect_hwobj.bl_control.lims
 
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
-        self.processing_start_command = self.getProperty("processing_command")        
+        if self.beamstop_hwobj is None:
+            logging.info("ParallelProcessing: No beamstop hwobj defined")
+
+        self.processing_start_command = str(self.getProperty("processing_command"))        
 
     def create_processing_input(self, data_collection, processing_params, grid_object):
         """
@@ -74,13 +77,26 @@ class ParallelProcessing(HardwareObject):
         run_number = acquisition.path_template.run_number
         lines_num = acq_params.num_lines
         
-        grid_params = grid_object.get_properties()
+        pixel_min = 0
+        pixel_max = 0
+        beamstop_size = 0
+        beamstop_distance = 0
+        beamstop_direction = 0
 
-        pixel_min = self.detector_hwobj.get_pixel_min()
-        pixel_max = self.detector_hwobj.get_pixel_max()
-        beamstop_size = self.beamstop_hwobj.get_beamstop_size()
-        beamstop_distance = self.beamstop_hwobj.get_beamstop_distance()
-        beamstop_direction = self.beamstop_hwobj.get_beamstop_direction()
+        try: 
+           pixel_min = self.detector_hwobj.get_pixel_min()
+           pixel_max = self.detector_hwobj.get_pixel_max()
+        except:
+           pass
+      
+        try:
+           beamstop_size = self.beamstop_hwobj.get_beamstop_size()
+           beamstop_distance = self.beamstop_hwobj.get_beamstop_distance()
+           beamstop_direction = self.beamstop_hwobj.get_beamstop_direction()
+        except:
+           pass
+
+        grid_params = grid_object.get_properties()
         reversing_rotation = grid_params["reversing_rotation"]
 
         processing_params["template"] = template
@@ -189,43 +205,44 @@ class ParallelProcessing(HardwareObject):
         #processing_params["associated_grid"] = associated_grid
         #processing_params["associated_data_collection"] = data_collection
         processing_params["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
- 
+
+
         processing_input, processing_params = self.create_processing_input(\
              data_collection, processing_params, grid_object) 
+        """
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
-        if not os.path.isfile(self.start_dozor_command):
-            self.dozor_done_event.set()
-            msg = "ParallelProcessing: EDNA dozor command %s is not executable" % self.start_dozor_command 
+        if not os.path.isfile(self.processing_start_command):
+            self.processing_done_event.set()
+            msg = "ParallelProcessing: Start command %s is not executable" % self.processing_start_command
             logging.getLogger("queue_exec").error(msg)
             self.emit("processingFailed")
             return       
         else:
-            msg = "ParallelProcessing: Starting EDNA dozor using xml file %s" %processing_input_file
+            msg = "ParallelProcessing: Starting processing using xml file %s" % processing_input_file
             logging.getLogger("queue_exec").info(msg)
-            line_to_execute = self.start_dozor_command + ' ' + \
+            line_to_execute = self.processing_start_command + ' ' + \
                               processing_input_file + ' ' + \
                               processing_directory
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
+        """
 
         self.do_processing_result_polling(processing_params, file_wait_timeout, grid_object)
         
     def do_processing_result_polling(self, processing_params, wait_timeout, grid_object):
-        """
-        Descript. : Method polls processing results. Based on the polling of 
-                    edna result files. After each result file results are 
-                    aligned to match diffractometer configuration
-                    If processing do not fail (files appear before timeout)
-                    heat map is created and results are stored in ispyb.
-                    If processing was executed for helical line then heat map
-                    as a line plot is generated and best positions are estimated.
-                    If processing was executed for a grid then 2d plot is generated,
-                    best positions are estimated and stored in ispyb. Also mesh
-                    parameters and processing results as a workflow are stored
-                    in ispyb.
+        """Method polls processing results. Based on the polling of edna 
+           result files. After each result file results are aligned to match 
+           the diffractometer configuration.
+           If processing succed (files appear before timeout) then a heat map 
+           is created and results are stored in ispyb.
+           If processing was executed for helical line then heat map as a 
+           line plot is generated and best positions are estimated.
+           If processing was executed for a grid then 2d plot is generated,
+           best positions are estimated and stored in ispyb. Also mesh
+           parameters and processing results as a workflow are stored in ispyb.
         Args.     : wait_timeout (file waiting timeout is sec.)
         Return.   : list of 10 best positions. If processing fails returns None 
         """
@@ -238,6 +255,7 @@ class ParallelProcessing(HardwareObject):
         processing_params["status"] = "Success"
         failed = False
 
+        """
         do_polling = True
         result_file_index = 0
         _result_place = []
@@ -249,12 +267,12 @@ class ParallelProcessing(HardwareObject):
            _result_place = glob.glob(os.path.join(processing_params["directory"],"EDApplication*/"))
            gevent.sleep(0.2)
         if _result_place == [] : 
-           #self.dozor_done_event.set()
            msg = "ParallelProcessing: Failed to read dozor result directory %s" % processing_params["directory"]
            logging.error(msg)
            processing_params["status"] = "Failed"
            processing_params["comments"] += "Failed: " + msg
            self.emit("processingFailed")
+           self.processing_done_event.set()
            failed = True
 
         while do_polling and not failed:
@@ -302,32 +320,19 @@ class ParallelProcessing(HardwareObject):
             aligned_result = self.align_processing_results(dozor_result, processing_params)
             self.emit("processingSetResult", (aligned_result, processing_params, False))
             result_file_index += 1
-
         """
-        gevent.sleep(3)
+
+        gevent.sleep(5)
         #This is for test...
-        for image_index in range(processing_params["images_num"]):
-            processing_result["image_num"][image_index] = 0
-            processing_result["spots_num"][image_index] = 0
-            processing_result["spots_int_aver"][image_index] = 0
-            processing_result["spots_resolution"][image_index] = 0
-            processing_result["score"][image_index] = 0
 
-            if image_index % 30 == 0:
-                self.processing_results = self.align_processing_results(\
-                     processing_result, processing_params, grid_object)
-                self.emit("paralleProcessingResults", (self.processing_results, processing_params, False))
-                gevent.sleep(1)
-        processing_result["score"][2] = 80
-        processing_result["score"][1] = 50
-        processing_result["score"][0] = 20
-        processing_result["score"][len(processing_result["score"]) / 2] = 100 
-        processing_result["score"][-2] = 10
-        processing_result["score"][-1] = 43
-        """
+        for key in processing_result.keys():
+            processing_result[key] = numpy.linspace(0, 
+                 processing_params["images_num"], 
+                 processing_params["images_num"]).astype('uint8')
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid_object)
+
         self.emit("paralleProcessingResults", (self.processing_results, processing_params, True)) 
 
         #Processing finished. Results are aligned and 10 best positions estimated
@@ -366,7 +371,8 @@ class ParallelProcessing(HardwareObject):
                     motor_pos_id = self.lims_hwobj.store_centred_position(\
                            image["cpos"], image['col'], image['row'])     
                     # Corresponding image is stored
-                    image_id = self.collect_hwobj.process_image(image['index'], motor_pos_id)
+                    image_id = self.collect_hwobj.store_image_in_lims_by_frame_num(\
+                         image['index'], motor_pos_id)
                     # Image quality indicators are stored 
                     image["image_id"] = image_id  
                     image["auto_proc_program"] = autoproc_program_id 
@@ -515,16 +521,15 @@ class ParallelProcessing(HardwareObject):
         num_rows = processing_params["steps_y"]
         first_image_number = processing_params["first_image_num"]
 
-        if result_array.max() != 0:
-            result_array = result_array / result_array.max()
-        results = numpy.zeros(num_lines * num_images_per_line).\
+        aligned_result_array = numpy.zeros(num_lines * num_images_per_line).\
                         reshape(num_colls, num_rows)        
-        for cell_index in range(first_image_number, results.size + first_image_number):
-            col, row = grid_object.get_col_row_from_image_serial(cell_index)
-            if (col < results.shape[0] and 
-                row < results.shape[1]):
-                results[col][row] = result_array[cell_index - first_image_number]
-        return numpy.transpose(results)
+
+        for cell_index in range(aligned_result_array.size):
+            col, row = grid_object.get_col_row_from_image_serial(cell_index + first_image_number)
+            if (col < aligned_result_array.shape[0] and 
+                row < aligned_result_array.shape[1]):
+                aligned_result_array[col][row] = result_array[cell_index]
+        return aligned_result_array
 
     def get_last_processing_results(self):
         return self.processing_results 

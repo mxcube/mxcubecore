@@ -209,7 +209,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
             if self._actual_collect_status == "error":
                 self.emit_collection_failed()
             elif self._actual_collect_status == "collecting":
-                self.process_image(1)
+                self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
                     logging.info("Preparing collecting...")  
@@ -266,7 +266,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
 
         last_frame = self.actual_data_collect_parameters['oscillation_sequence'][0]['number_of_images']
         if last_frame > 1:
-            self.process_image(last_frame)
+            self.store_image_in_lims_by_frame_num(last_frame)
         if (self.actual_data_collect_parameters['experiment_type'] in ('OSC', 'Helical') and
             self.actual_data_collect_parameters['oscillation_sequence'][0]['overlap'] == 0 and
             self.actual_data_collect_parameters['oscillation_sequence'][0]['number_of_images'] > 19):
@@ -302,7 +302,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         self.collect_frame = frame
         self.emit("collectImageTaken", frame) 
 
-    def process_image(self, frame, motor_position_id=None):
+    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
         Descript. :
         """
@@ -313,7 +313,6 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
             return
         image_id = None
 
-        print "process_image... ", frame
         if self.bl_control.lims:
             try:
                 file_location = self.actual_data_collect_parameters["fileinfo"]["directory"]

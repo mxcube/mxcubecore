@@ -116,8 +116,13 @@ class EMBLDetector(AbstractDetector, HardwareObject):
  
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
-        
-        self.roi_modes = eval(self.getProperty("roiModes"))
+
+        try:        
+           self.roi_modes = eval(self.getProperty("roiModes"))
+        except:
+           self.roi_modes = ()
+
+        print self.roi_modes
 
     def get_distance(self):
         """
@@ -201,7 +206,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
+        print mode
         self.roi_mode = self.roi_modes.index(mode)
+        print self.roi_mode
+        print type(self.roi_modes)
         self.emit('detectorModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
@@ -253,7 +261,8 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        self.emit('detectorModeChanged', (self.roi_mode, )) 
+        if self.roi_mode:
+            self.emit('detectorModeChanged', (self.roi_mode, )) 
         temp = self.chan_temperature.getValue()
         self.emit('temperatureChanged', (temp, temp < self.temp_treshold))
         hum = self.chan_humidity.getValue()
