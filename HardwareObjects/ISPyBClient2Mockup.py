@@ -533,15 +533,24 @@ class ISPyBClient2Mockup(HardwareObject):
         :rtype: int
         """
         pass
-    
 
     def _store_data_collection_group(self, group_data):
         pass
 
-
-    def store_centred_position(self, end_cpos):
+    def store_centred_position(self, end_cpos, gridx=None, gridy=None):
         pass
 
+    def store_autoproc_program(self, autoproc_program_dict):
+        pass
+
+    def store_workflow(self, *args, **kwargs):
+        return 1, 1, 1
+
+    def _store_workflow(self, info_dict):
+        pass
+
+    def store_image_quality_indicators(self, image_dict):
+        pass
 
     # Bindings to methods called from older bricks.
     getProposal = get_proposal
