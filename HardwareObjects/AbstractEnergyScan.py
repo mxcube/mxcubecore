@@ -71,7 +71,7 @@ class AbstractEnergyScan(object):
 
     @abc.abstractmethod
     @task
-    def get_static_parameters(self, element, edge):
+    def get_static_parameters(self, config_file, element, edge):
         """
         Get any parameters, which are known before hand. Some of them are
         known from the theory, like the peak energy, others are equipment
@@ -160,7 +160,7 @@ class AbstractEnergyScan(object):
         self.emit('energyScanStarted', ())
         STATICPARS_DICT = {}
         #Set the energy from the element and edge parameters
-        STATICPARS_DICT = self.get_static_parameters(element,edge)
+        STATICPARS_DICT = self.get_static_parameters(self.getProperty("config_file"), element,edge)
         
         self.energy_scan_parameters = STATICPARS_DICT
         self.energy_scan_parameters["element"] = element
