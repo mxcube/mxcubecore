@@ -190,7 +190,188 @@ class ISPyBClient2Mockup(HardwareObject):
 
 
     def get_samples(self, proposal_id, session_id):
-        pass
+        return [{"cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "1", 
+      "crystalSpaceGroup": "P212121", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457980, 
+        "experimentKind": "Default", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "Default", 
+      "proteinAcronym": "A-TIM", 
+      "sampleId": 515485, 
+      "sampleLocation": "1", 
+      "sampleName": "fghfg", 
+      "smiles": None
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457833, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515419, 
+      "sampleLocation": "1", 
+      "sampleName": "sample"
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457834, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515420, 
+      "sampleLocation": "2", 
+      "sampleName": "sample"
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457835, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515421, 
+      "sampleLocation": "3", 
+      "sampleName": "sample"
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457836, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515422, 
+      "sampleLocation": "5", 
+      "sampleName": "sample"
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457837, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515423, 
+      "sampleLocation": "6", 
+      "sampleName": "sample"
+    }, 
+    {
+      "cellA": 0.0, 
+      "cellAlpha": 0.0, 
+      "cellB": 0.0, 
+      "cellBeta": 0.0, 
+      "cellC": 0.0, 
+      "cellGamma": 0.0, 
+      "containerSampleChangerLocation": "2", 
+      "crystalSpaceGroup": "P2", 
+      "diffractionPlan": {
+        "diffractionPlanId": 457838, 
+        "experimentKind": "OSC", 
+        "numberOfPositions": 0, 
+        "observedResolution": 0.0, 
+        "preferredBeamDiameter": 0.0, 
+        "radiationSensitivity": 0.0, 
+        "requiredCompleteness": 0.0, 
+        "requiredMultiplicity": 0.0, 
+        "requiredResolution": 0.0
+      }, 
+      "experimentType": "OSC", 
+      "proteinAcronym": "B2 hexa", 
+      "sampleId": 515424, 
+      "sampleLocation": "7", 
+      "sampleName": "sample"
+    }]
     
         
     def get_session_samples(self, proposal_id, session_id, sample_refs):
@@ -217,7 +398,6 @@ class ISPyBClient2Mockup(HardwareObject):
         :rtype: list
         """
         pass
-
     
     def get_bl_sample(self, bl_sample_id):
         """
