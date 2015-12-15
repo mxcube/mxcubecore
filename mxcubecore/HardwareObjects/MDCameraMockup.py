@@ -22,8 +22,10 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         self.badimg       = 0
         self.pollInterval = 500
         self.connected    = False
-        self.tangoname = self.getProperty("tangoname")
-        self.image = self.getProperty("image_path")
+        self.image_name = self.getProperty("image_name")
+        cwd = os.getcwd()
+        path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
+        self.image = os.path.join(path, self.image_name)
         try:
             pass
         except PyTango.DevFailed, traceback:
@@ -43,6 +45,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
             self.pollInterval = self.getProperty("interval")
         self.stopper = False#self.pollingTimer(self.pollInterval, self.poll)
         thread = Thread(target=self.poll)
+        thread.daemon = True
         thread.start()
 
     def udiffVersionChanged(self, value):
@@ -71,8 +74,10 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                 #img = base64.b64encode(img)
                 self.emit("imageReceived", img, 659, 493)
                 #logging.getLogger("HWR").info( "polling images")
-            except PyTango.ConnectionFailed:
-                self.connected = False  
+            except KeyboardInterrupt:
+                self.connected = False
+                self.stopper = True
+                logging.getLogger("HWR").info( "poll images stopped")
                 return
             except:
                 import traceback
