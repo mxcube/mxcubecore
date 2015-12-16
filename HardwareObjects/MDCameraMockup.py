@@ -3,7 +3,6 @@
 from HardwareRepository import BaseHardwareObjects
 import logging
 import os, time, datetime
-import PyTango
 from PIL import Image
 import numpy as np
 from threading import Event, Thread
@@ -26,16 +25,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
         cwd = os.getcwd()
         path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
         self.image = os.path.join(path, self.image_name)
-        try:
-            pass
-        except PyTango.DevFailed, traceback:
-            last_error = traceback[-1]
-            print "last error ",str(last_error)
-            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
-    
-            self.device = BaseHardwareObjects.Null()
-        else:
-           self.setIsReady(True)
+        self.setIsReady(True)
   
     def init(self):
         logging.getLogger("HWR").info( "initializing camera object")
@@ -80,8 +70,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                 logging.getLogger("HWR").info( "poll images stopped")
                 return
             except:
-                import traceback
-                traceback.print_exc()
+                logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):
        print "<HW> got new image"
