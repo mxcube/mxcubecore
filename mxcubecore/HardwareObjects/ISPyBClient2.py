@@ -1,5 +1,5 @@
 """
-A client for ISPyB Webservices. 
+A client for ISPyB Webservices.
 """
 
 import logging
@@ -21,7 +21,7 @@ from pprint import pformat
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
 
 # The WSDL root is configured in the hardware object XML file.
-_WSDL_ROOT = '' 
+_WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
 _WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
@@ -39,16 +39,16 @@ SampleReference = namedtuple('SampleReference', ['code',
                                                  'container_code'])
 
 def trace(fun):
-    def _trace(*args):      
+    def _trace(*args):
         log_msg = "lims client " + fun.__name__ + " called with: "
-        
+
         for arg in args[1:]:
             try:
                 log_msg += pformat(arg, indent = 4, width = 80) + ', '
             except:
                 pass
 
-        logging.getLogger("ispyb_client").debug(log_msg)        
+        logging.getLogger("ispyb_client").debug(log_msg)
         result = fun(*args)
 
         try:
@@ -56,7 +56,7 @@ def trace(fun):
                 " returned  with: " + pformat(result, indent = 4, width = 80)
         except:
             pass
-            
+
         logging.getLogger("ispyb_client").debug(result_msg)
         return result
 
@@ -66,13 +66,13 @@ def trace(fun):
 def in_greenlet(fun):
     def _in_greenlet(*args, **kwargs):
         log_msg = "lims client " + fun.__name__ + " called with: "
-        
+
         for arg in args[1:]:
             try:
                 log_msg += pformat(arg, indent = 4, width = 80) + ', '
             except:
                 pass
-                
+
         logging.getLogger("ispyb_client").debug(log_msg)
         task = gevent.spawn(fun, *args)
         if kwargs.get("wait", False):
@@ -85,7 +85,7 @@ def utf_encode(res_d):
     for key in res_d.iterkeys():
         if isinstance(res_d[key], dict):
             utf_encode(res_d)
-        
+
         if isinstance(res_d[key], suds.sax.text.Text):
             try:
                 res_d[key] = res_d[key].encode('utf8', 'ignore')
@@ -108,27 +108,27 @@ class ISPyBClient2(HardwareObject):
         self.__translations = {}
         self.__disabled = False
         self.beamline_name = False
-        
+
         logger = logging.getLogger('ispyb_client')
-        
+
         try:
             formatter = \
                 logging.Formatter('%(asctime)s %(levelname)s %(message)s')
             hdlr = logging.FileHandler('/users/blissadm/log/ispyb_client.log')
             hdlr.setFormatter(formatter)
-            logger.addHandler(hdlr) 
+            logger.addHandler(hdlr)
         except:
             pass
 
         logger.setLevel(logging.INFO)
 
-      
+
     def init(self):
         """
         Init method declared by HardwareObject.
         """
         session_hwobj = self.getObjectByRole('session')
-        
+
         try:
             # ws_root is a property in the configuration xml file
             if self.ws_root:
@@ -146,23 +146,23 @@ class ISPyBClient2(HardwareObject):
                 _WS_COLLECTION_URL = _WSDL_ROOT + \
                     'ToolsForCollectionWebService?wsdl'
 
-                t1 = HttpAuthenticated(username = _WS_USERNAME, 
+                t1 = HttpAuthenticated(username = _WS_USERNAME,
                                       password = _WS_PASSWORD)
-                
-                t2 = HttpAuthenticated(username = _WS_USERNAME, 
+
+                t2 = HttpAuthenticated(username = _WS_USERNAME,
                                       password = _WS_PASSWORD)
-                
-                t3 = HttpAuthenticated(username = _WS_USERNAME, 
+
+                t3 = HttpAuthenticated(username = _WS_USERNAME,
                                       password = _WS_PASSWORD)
-                
-                try: 
+
+                try:
                     self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3,
                                              transport = t1, cache = None)
                     self.__collection = Client(_WS_COLLECTION_URL, timeout = 3,
                                                transport = t2, cache = None)
                     self.__tools_ws = Client(_WS_BL_SAMPLE_URL, timeout = 3,
                                              transport = t3, cache = None)
-                    
+
                 except URLError:
                     logging.getLogger("ispyb_client")\
                         .exception(_CONNECTION_ERROR_MSG)
@@ -170,12 +170,12 @@ class ISPyBClient2(HardwareObject):
         except:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
             return
- 
+
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
             proposals = session_hwobj['proposals']
-            
+
             for proposal in proposals:
                 code = proposal.code
                 self.__translations[code] = {}
@@ -196,7 +196,7 @@ class ISPyBClient2(HardwareObject):
 
         self.beamline_name = session_hwobj.beamline_name
 
-    def translate(self, code, what):  
+    def translate(self, code, what):
         """
         Given a proposal code, returns the correct code to use in the GUI,
         or what to send to LDAP, user office database, or the ISPyB database.
@@ -207,11 +207,11 @@ class ISPyBClient2(HardwareObject):
             translated = code
         return translated
 
-    
+
     def clear_daily_email(self):
         raise NotImplementedException("Depricated ?")
 
-    
+
     def send_email(self):
         raise NotImplementedException("Depricated ?")
 
@@ -221,7 +221,7 @@ class ISPyBClient2(HardwareObject):
         Returns the tuple (Proposal, Person, Laboratory, Session, Status).
         Containing the data from the coresponding tables in the database
         the status of the database operations are returned in Status.
-        
+
         :param proposal_code: The proposal code
         :type proposal_code: str
         :param proposal_number: The proposal number
@@ -231,10 +231,10 @@ class ISPyBClient2(HardwareObject):
         :rtype: dict
         """
         if self.__shipping:
-            try:         
+            try:
                 try:
                     person = self.__shipping.service.\
-                             findPersonByProposal(proposal_code, 
+                             findPersonByProposal(proposal_code,
                                                   proposal_number)
                     if not person:
                         person = {}
@@ -242,35 +242,35 @@ class ISPyBClient2(HardwareObject):
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     person = {}
- 
-                try: 
+
+                try:
                     proposal = self.__shipping.service.\
-                        findProposal(proposal_code, 
+                        findProposal(proposal_code,
                                      proposal_number)
 
                     if proposal:
                         proposal.code = proposal_code
                     else:
-                        return {'Proposal': {}, 
-                                'Person': {}, 
-                                'Laboratory': {}, 
-                                'Session': {}, 
+                        return {'Proposal': {},
+                                'Person': {},
+                                'Laboratory': {},
+                                'Session': {},
                                 'status': {'code':'error'}}
 
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     proposal = {}
 
-                try: 
+                try:
                     # lab = self.__shipping.service.\
-                    #     findLaboratoryByProposal(proposal_code, 
+                    #     findLaboratoryByProposal(proposal_code,
                     #                              proposal_number)
 
                     lab = None
 
                     if not lab:
                         lab = {}
-                    
+
                 except WebFault, e:
                     logging.getLogger("ispyb_client").exception(e.message)
                     lab = {}
@@ -286,10 +286,10 @@ class ISPyBClient2(HardwareObject):
                         if session is not None :
                             try:
                                 session.startDate = \
-                                    datetime.strftime(session.startDate, 
+                                    datetime.strftime(session.startDate,
                                                       "%Y-%m-%d %H:%M:%S")
                                 session.endDate = \
-                                    datetime.strftime(session.endDate, 
+                                    datetime.strftime(session.endDate,
                                                       "%Y-%m-%d %H:%M:%S")
                             except:
                                 pass
@@ -302,34 +302,34 @@ class ISPyBClient2(HardwareObject):
 
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-                return {'Proposal': {}, 
-                        'Person': {}, 
-                        'Laboratory': {}, 
-                        'Session': {}, 
+                return {'Proposal': {},
+                        'Person': {},
+                        'Laboratory': {},
+                        'Session': {},
                         'status': {'code':'error'}}
 
-            return  {'Proposal': utf_encode(asdict(proposal)), 
-                     'Person': utf_encode(asdict(person)), 
-                     'Laboratory': utf_encode(asdict(lab)), 
-                     'Session': sessions, 
+            return  {'Proposal': utf_encode(asdict(proposal)),
+                     'Person': utf_encode(asdict(person)),
+                     'Laboratory': utf_encode(asdict(lab)),
+                     'Session': sessions,
                      'status': {'code':'ok'}}
-        
+
         else:
             logging.getLogger("ispyb_client").\
                 exception("Error in get_proposal: Could not connect to server," + \
                           " returning empty proposal")
 
-            return {'Proposal': {}, 
-                    'Person': {}, 
-                    'Laboratory': {}, 
-                    'Session': {}, 
+            return {'Proposal': {},
+                    'Person': {},
+                    'Laboratory': {},
+                    'Session': {},
                     'status': {'code':'error'}}
 
     @trace
     def get_session_local_contact(self, session_id):
         """
         Retrieves the person entry associated with the session id <session_id>
-        
+
         :param session_id:
         :type session_id: int
         :returns: Person object as dict.
@@ -337,7 +337,7 @@ class ISPyBClient2(HardwareObject):
         """
 
         if self.__shipping:
-        
+
             try:
                 person = self.__shipping.service.\
                     findPersonBySessionIdLocalContact(session_id)
@@ -352,7 +352,7 @@ class ISPyBClient2(HardwareObject):
                 return {}
             else:
                 utf_encode(asdict(person))
-            
+
         else:
             logging.getLogger("ispyb_client").\
                 exception("Error in get_session_local_contact: Could not get " + \
@@ -371,7 +371,7 @@ class ISPyBClient2(HardwareObject):
           # (not a fatal error), but display exception still
           logging.exception("Could not store data collection")
           return (0,0,0)
-          
+
 
     def _store_data_collection(self, mx_collection, beamline_setup = None):
         """
@@ -380,7 +380,7 @@ class ISPyBClient2(HardwareObject):
 
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
-        
+
         :param beamline_setup: The beamline setup.
         :type beamline_setup: dict
 
@@ -389,20 +389,20 @@ class ISPyBClient2(HardwareObject):
         """
         if self.__disabled:
             return (0,0,0)
-        
+
         if self.__collection:
             data_collection = ISPyBValueFactory().\
                 from_data_collect_parameters(self.__collection, mx_collection)
 
             #group_id = self.store_data_collection_group(mx_collection)
-            
+
             #if group_id:
             #    data_collection.dataCollectionGroupId = group_id
 
             if beamline_setup:
                 lims_beamline_setup = ISPyBValueFactory.\
                     from_bl_config(self.__collection, beamline_setup)
-          
+
                 lims_beamline_setup.synchrotronMode = \
                     data_collection.synchrotronMode
 
@@ -412,14 +412,14 @@ class ISPyBClient2(HardwareObject):
                 detector_params = \
                     ISPyBValueFactory().detector_from_blc(beamline_setup,
                                                           mx_collection)
-                
+
                 detector = self.find_detector(*detector_params)
                 detector_id = 0
-                
+
                 if detector:
                     detector_id = detector.detectorId
                     data_collection.detectorId = detector_id
-                
+
             collection_id = self.__collection.service.\
                             storeOrUpdateDataCollection(data_collection)
 
@@ -445,12 +445,12 @@ class ISPyBClient2(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-       
+
         blSetupId = None
         if self.__collection:
-        
+
             session = {}
-       
+
             try:
                 session = self.get_session(session_id)
             except:
@@ -461,10 +461,10 @@ class ISPyBClient2(HardwareObject):
                     try:
                         blSetupId = self.__collection.service.\
                                      storeOrUpdateBeamLineSetup(beamline_setup)
-                        
+
                         session['beamLineSetupId'] = blSetupId
                         self.update_session(session)
-                        
+
                     except WebFault, e:
                         logging.getLogger("ispyb_client").exception(e.message)
                     except URLError:
@@ -489,7 +489,7 @@ class ISPyBClient2(HardwareObject):
         :type mx_collection: dict
 
         :returns: None
-        """  
+        """
         if self.__disabled:
             return
 
@@ -498,10 +498,10 @@ class ISPyBClient2(HardwareObject):
                 try:
                     # Update the data collection group
                     self.store_data_collection_group(mx_collection)
-                
+
                     data_collection = ISPyBValueFactory().\
                         from_data_collect_parameters(self.__collection, mx_collection)
-  
+
                     self.__collection.service.\
                         storeOrUpdateDataCollection(data_collection)
                 except WebFault:
@@ -512,7 +512,7 @@ class ISPyBClient2(HardwareObject):
             else:
                 logging.getLogger("ispyb_client").error("Error in update_data_collection: " + \
                                         "collection-id missing, the ISPyB data-collection is not updated.")
-                
+
         else:
             logging.getLogger("ispyb_client").\
                 exception("Error in update_data_collection: could not connect" + \
@@ -522,7 +522,7 @@ class ISPyBClient2(HardwareObject):
     @trace
     def update_bl_sample(self, bl_sample):
         """
-        Creates or stos a BLSample entry. 
+        Creates or stos a BLSample entry.
 
         :param sample_dict: A dictonary with the properties for the entry.
         :type sample_dict: dict
@@ -550,7 +550,7 @@ class ISPyBClient2(HardwareObject):
     def store_image(self, image_dict):
         """
         Stores the image (image parameters) <image_dict>
-        
+
         :param image_dict: A dictonary with image pramaters.
         :type image_dict: dict
 
@@ -558,7 +558,7 @@ class ISPyBClient2(HardwareObject):
         """
         if self.__disabled:
             return
-        
+
         if self.__collection:
             if 'dataCollectionId' in image_dict:
                 try:
@@ -574,18 +574,18 @@ class ISPyBClient2(HardwareObject):
         else:
             logging.getLogger("ispyb_client").\
                 exception("Error in store_image: could not connect to server")
-        
-    
+
+
     def __find_sample(self, sample_ref_list, code = None, location = None):
         """
         Returns the sample with the matching "search criteria" <code> and/or
         <location> with-in the list sample_ref_list.
 
         The sample_ref object is defined in the head of the file.
-        
+
         :param sample_ref_list: The list of sample_refs to search.
         :type sample_ref: list
-        
+
         :param code: The vial datamatrix code (or bar code)
         :param type: str
 
@@ -593,7 +593,7 @@ class ISPyBClient2(HardwareObject):
         :type location: tuple
         """
         for sample_ref in sample_ref_list:
-            
+
             if code and location:
                 if sample_ref.code == code and \
                         sample_ref.container_reference == location[0] and \
@@ -610,15 +610,15 @@ class ISPyBClient2(HardwareObject):
         return None
 
 
-    @trace 
+    @trace
     def get_samples(self, proposal_id, session_id):
         response_samples = None
 
         if self.__tools_ws:
             try:
                 response_samples = self.__tools_ws.service.\
-                    findSampleInfoLightForProposal(proposal_id, 
-                                                   self.beamline_name) 
+                    findSampleInfoLightForProposal(proposal_id,
+                                                   self.beamline_name)
             except WebFault, e:
                 logging.getLogger("ispyb_client").exception(e.message)
             except URLError:
@@ -642,7 +642,7 @@ class ISPyBClient2(HardwareObject):
 
         :param proposal_id: ISPyB proposal id.
         :type proposal_id: int
-        
+
         :param session_id: ISPyB session id to retreive samples for.
         :type session_id: int
 
@@ -654,7 +654,7 @@ class ISPyBClient2(HardwareObject):
         :returns: A list with sample_ref objects.
         :rtype: list
         """
-        if self.__tools_ws: 
+        if self.__tools_ws:
             sample_references = []
             session = self.get_session(session_id)
             response_samples = []
@@ -662,17 +662,17 @@ class ISPyBClient2(HardwareObject):
             for sample_ref in sample_refs:
                 sample_reference = SampleReference(*sample_ref)
                 sample_references.append(sample_reference)
-            
+
             try:
                 response_samples = self.__tools_ws.service.\
-                    findSampleInfoLightForProposal(proposal_id, 
+                    findSampleInfoLightForProposal(proposal_id,
                                                    self.beamline_name)
 
             except WebFault, e:
                 logging.getLogger("ispyb_client").exception(e.message)
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-                
+
             samples = []
             for sample in response_samples:
                 try:
@@ -682,8 +682,8 @@ class ISPyBClient2(HardwareObject):
                     except:
                       pass
                     try:
-                      loc[1]=int(sample.sampleLocation) 
-                    except: 
+                      loc[1]=int(sample.sampleLocation)
+                    except:
                       pass
 
                     # Unmatched sample, just catch and do nothing
@@ -703,21 +703,21 @@ class ISPyBClient2(HardwareObject):
                         if not sc_sample:
                             sc_sample = self.__find_sample(sample_references,
                                                            location = loc)
-                            
+
                             if sc_sample.code != '':
                                 sample.code = sc_sample.code
 
                         sample_references.remove(sc_sample)
-                            
-                            
-                    # Only location was found, update with the code 
+
+
+                    # Only location was found, update with the code
                     # from sample changer if it exists.
                     elif sample.sampleLocation:
                         sc_sample = \
                             self.__find_sample(sample_references,
                                                location = loc)
                         if sc_sample:
-                            sample.sampleCode = sc_sample.code 
+                            sample.sampleCode = sc_sample.code
                             sample_references.remove(sc_sample)
 
                     # Sample code was found in ISPyB but dosent match with
@@ -738,12 +738,12 @@ class ISPyBClient2(HardwareObject):
                             self.__find_sample(sample_references,
                                                location = loc)
                         if sc_sample:
-                            sample.code = sc_sample.code 
+                            sample.code = sc_sample.code
                             sample_references.remove(sc_sample)
 
 
                     samples.append(utf_encode(asdict(sample)))
-                    
+
 #                         {'BLSample': utf_encode(asdict(sample.blSample)),
 #                          'Container': utf_encode(asdict(sample.container)),
 #                          'Crystal': utf_encode(asdict(sample.crystal)),
@@ -757,11 +757,11 @@ class ISPyBClient2(HardwareObject):
             # Add the unmatched samples to the result from ISPyB
             for sample_ref in sample_references:
                 samples.append(
-                    {'code': sample_ref.code, 
+                    {'code': sample_ref.code,
                      'location': sample_ref.sample_reference,
                      'containerSampleChangerLocation': sample_ref.container_reference})
                 #  samples.append(
-#                     {'BLSample': {'code': sample_ref.code, 
+#                     {'BLSample': {'code': sample_ref.code,
 #                                   'location': \
 #                                   sample_ref.sample_reference},
 #                      'Container': {'sampleChangerLocation': \
@@ -770,8 +770,8 @@ class ISPyBClient2(HardwareObject):
 #                      'DiffractionPlan_BLSample': {},
 #                      'Protein': {}})
 
-            
-            return {'loaded_sample': samples, 
+
+            return {'loaded_sample': samples,
                     'status': {'code':'ok'}}
         else:
             logging.getLogger("ispyb_client").\
@@ -795,7 +795,7 @@ class ISPyBClient2(HardwareObject):
         if self.__tools_ws:
 
             try:
-                result = self.__tools_ws.service.findBLSample(bl_sample_id) 
+                result = self.__tools_ws.service.findBLSample(bl_sample_id)
             except WebFault, e:
                 logging.getLogger("ispyb_client").exception(e.message)
             except URLError:
@@ -815,14 +815,14 @@ class ISPyBClient2(HardwareObject):
         :param session_dict: Dictonary with session parameters.
         :type session_dict: dict
 
-        :returns: The session id of the created session. 
+        :returns: The session id of the created session.
         :rtype: int
         """
         if self.__collection:
 
             try:
                 # The old API used date formated strings and the new
-                # one uses DateTime objects. 
+                # one uses DateTime objects.
                 session_dict["startDate"]  = datetime.\
                     strptime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
                 session_dict["endDate"] = datetime.\
@@ -853,28 +853,28 @@ class ISPyBClient2(HardwareObject):
     @trace
     def update_session(self, session_dict):
         """
-        Update the session with the data in <session_dict>, the attribute 
-        sessionId in <session_dict> must be set. 
+        Update the session with the data in <session_dict>, the attribute
+        sessionId in <session_dict> must be set.
 
         Warning: Missing attibutes in <session_dict> will set to null,
-                 this could leed to loss of data. 
-        
+                 this could leed to loss of data.
+
         :param session_dict: The session to update.
-        :type session_dict: dict 
-                 
+        :type session_dict: dict
+
         :returns: None
         """
         if self.__collection:
             return self.create_session(session_dict)
         else:
             logging.getLogger("ispyb_client").\
-                exception("Error in update_session: could not connect to server")  
+                exception("Error in update_session: could not connect to server")
 
     @trace
     def store_energy_scan(self, energyscan_dict):
         """
         Store energyscan.
-        
+
         :param energyscan_dict: Energyscan data to store.
         :type energyscan_dict: dict
 
@@ -882,7 +882,7 @@ class ISPyBClient2(HardwareObject):
         :rtype: dict
         """
         if self.__collection:
-        
+
             status = {'energyScanId': -1}
 
             try:
@@ -893,7 +893,7 @@ class ISPyBClient2(HardwareObject):
                     strptime(energyscan_dict["endTime"], "%Y-%m-%d %H:%M:%S")
 
                 try:
-                  del energyscan_dict['remoteEnergy'] 
+                  del energyscan_dict['remoteEnergy']
                 except KeyError:
                   pass
 
@@ -916,7 +916,7 @@ class ISPyBClient2(HardwareObject):
     def associate_bl_sample_and_energy_scan(self, entry_dict):
 
         if self.__collection:
-        
+
             try:
                 result = self.__collection.service.\
                     storeBLSampleHasEnergyScan(entry_dict['energyScanId'],
@@ -945,7 +945,7 @@ class ISPyBClient2(HardwareObject):
         :rtype: dict
         """
         if self.__collection:
-        
+
             try:
                 dc_response = self.__collection.service.\
                     findDataCollection(data_collection_id)
@@ -968,18 +968,18 @@ class ISPyBClient2(HardwareObject):
             logging.getLogger("ispyb_client").\
                 exception("Error in get_data_collection: could not connect" + \
                           " to server")
-            
-    
+
+
     @trace
     def get_data_collection_id(self, dc_dict):
 
         if self.__collection.service:
-        
+
             try:
                 dc = self.__collection.service.\
                     findDataCollectionFromImageDirectoryAndImagePrefixAndNumber(
-                    dc_dict['directory'], dc_dict['prefix'], 
-                    dc_dict['run_number']) 
+                    dc_dict['directory'], dc_dict['prefix'],
+                    dc_dict['run_number'])
             except WebFault, e:
                 dc = {}
                 logging.getLogger("ispyb_client").exception(e.message)
@@ -1013,9 +1013,9 @@ class ISPyBClient2(HardwareObject):
                     findSession(session_id)
 
                 if session is not None :
-                    session.startDate = datetime.strftime(session.startDate, 
+                    session.startDate = datetime.strftime(session.startDate,
                                                           "%Y-%m-%d %H:%M:%S")
-                    session.endDate = datetime.strftime(session.endDate, 
+                    session.endDate = datetime.strftime(session.endDate,
                                                         "%Y-%m-%d %H:%M:%S")
                     session = utf_encode(asdict(session))
 
@@ -1063,13 +1063,13 @@ class ISPyBClient2(HardwareObject):
             return status
         else:
             logging.getLogger("ispyb_client").\
-                exception("Error in store_xfe_spectrum: could not connect to" + 
+                exception("Error in store_xfe_spectrum: could not connect to" +
                       " server")
 
     def disable(self):
         self.__disabled = True
 
- 
+
     def enable(self):
         self.__disabled = False
 
@@ -1079,7 +1079,7 @@ class ISPyBClient2(HardwareObject):
         Returns True if the proposal is considered to be a
         in-house user.
 
-        :param proposal_code: 
+        :param proposal_code:
         :type proposal_code: str
 
         :param proposal_number:
@@ -1098,7 +1098,7 @@ class ISPyBClient2(HardwareObject):
                       model, mode):
         """
         Returns the Detector3VO object with the characteristics
-        matching the ones given.        
+        matching the ones given.
         """
 
         if self.__collection:
@@ -1111,7 +1111,7 @@ class ISPyBClient2(HardwareObject):
                     exception("ISPyBClient: exception in find_detector")
         else:
             logging.getLogger("ispyb_client").\
-                exception("Error find_detector: could not connect to" + 
+                exception("Error find_detector: could not connect to" +
                       " server")
 
 
@@ -1120,7 +1120,7 @@ class ISPyBClient2(HardwareObject):
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
         mx_collection dictionary is set to an exisitng
-        DataCollectionGroup id. 
+        DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
         :type mx_collection: dict
@@ -1161,7 +1161,7 @@ class ISPyBClient2(HardwareObject):
 
         msg = 'Storing position in LIMS'
         logging.getLogger("user_level_log").info(msg)
-        
+
         try:
             pos_id = self.__collection.service.\
                      storeOrUpdateMotorPosition(mpos_dict)
@@ -1187,7 +1187,7 @@ class ISPyBClient2(HardwareObject):
     storeImage = store_image
     storeEnergyScan = store_energy_scan
     storeXfeSpectrum = store_xfe_spectrum
-   
+
     # Methods that seems to be unused
     getSampleLastDataCollection = get_sample_last_data_collection
     getDataCollectionId = get_data_collection_id
@@ -1201,7 +1201,7 @@ class ISPyBValueFactory():
     def detector_from_blc(bl_config, mx_collect_dict):
         try:
             detector_manufacturer = bl_config.detector_manufacturer
-            
+
             if type(detector_manufacturer) is str:
                 detector_manufacturer = detector_manufacturer.upper()
         except:
@@ -1216,7 +1216,7 @@ class ISPyBValueFactory():
             detector_model = bl_config.detector_model
         except:
             detector_model = ""
-        
+
         try:
             modes=("Software binned", "Unbinned", "Hardware binned")
             det_mode = int(mx_collect_dict['detector_mode'])
@@ -1227,7 +1227,7 @@ class ISPyBValueFactory():
         return (detector_type, detector_manufacturer,
                 detector_model, detector_mode)
 
-    
+
     @staticmethod
     def from_bl_config(ws_client, bl_config):
         """
@@ -1235,17 +1235,17 @@ class ISPyBValueFactory():
         :rtype: beamLineSetup3VO
         """
         beamline_setup = None
-        
+
         try:
             beamline_setup = ws_client.factory.create('ns0:beamLineSetup3VO')
         except:
             raise
-        try:      
+        try:
             synchrotron_name = \
                              bl_config.synchrotron_name
             beamline_setup.synchrotronName = synchrotron_name
         except (IndexError, AttributeError), e:
-            beamline_setup.synchrotronName = "ESRF"  
+            beamline_setup.synchrotronName = "ESRF"
 
         if bl_config.undulators:
           i = 1
@@ -1256,25 +1256,25 @@ class ISPyBValueFactory():
         try:
           beamline_setup.monochromatorType = \
               bl_config.monochromator_type
-          
+
           beamline_setup.focusingOptic = \
               bl_config.focusing_optic
-          
+
           beamline_setup.beamDivergenceVertical = \
               bl_config.beam_divergence_vertical
-          
+
           beamline_setup.beamDivergenceHorizontal = \
               bl_config.beam_divergence_horizontal
-          
+
           beamline_setup.polarisation = \
               bl_config.polarisation
 
           beamline_setup.minExposureTimePerImage = \
               bl_config.minimum_exposure_time
-          
+
           beamline_setup.goniostatMaxOscillationSpeed = \
               bl_config.maximum_phi_speed
-          
+
           beamline_setup.goniostatMinOscillationWidth = \
               bl_config.minimum_phi_oscillation
 
@@ -1285,7 +1285,7 @@ class ISPyBValueFactory():
 
         return beamline_setup
 
-    
+
     @staticmethod
     def dcg_from_dc_params(ws_client, mx_collect_dict):
         """
@@ -1300,27 +1300,27 @@ class ISPyBValueFactory():
         except:
             raise
         else:
-            try:    
+            try:
                 group.actualContainerBarcode = \
                     mx_collect_dict['actualContainerBarcode']
             except:
                 pass
 
-            try:   
+            try:
                 group.actualContainerSlotInSC = \
                     mx_collect_dict['actualContainerSlotInSC']
             except KeyError:
                 pass
 
 
-            try:        
+            try:
                 group.actualSampleBarcode = \
                     mx_collect_dict['actualSampleBarcode']
             except KeyError:
                 pass
 
 
-            try:     
+            try:
                 group.actualSampleSlotInContainer = \
                     mx_collect_dict['actualSampleSlotInContiner']
             except KeyError:
@@ -1385,7 +1385,7 @@ class ISPyBValueFactory():
                                     'Mesh: phiz:' +  str(mx_collect_dict['motors'].values()[0]) + \
                                     ', phiy' + str(mx_collect_dict['motors'].values()[1])
                             except:
-                                mx_collect_dict['comment'] = 'Mesh: Unknown motor positions'   
+                                mx_collect_dict['comment'] = 'Mesh: Unknown motor positions'
 
                 group.experimentType = mx_collect_dict['experiment_type']
             except KeyError,diag:
@@ -1412,7 +1412,7 @@ class ISPyBValueFactory():
 
             return group
 
-        
+
     @staticmethod
     def from_data_collect_parameters(ws_client, mx_collect_dict):
         """
@@ -1434,7 +1434,7 @@ class ISPyBValueFactory():
         osc_seq = mx_collect_dict['oscillation_sequence'][0]
 
         try:
-            data_collection.runStatus = mx_collect_dict["status"] 
+            data_collection.runStatus = mx_collect_dict["status"]
             data_collection.axisStart = osc_seq['start']
 
             data_collection.axisEnd = (\
@@ -1453,7 +1453,7 @@ class ISPyBValueFactory():
 
             if osc_seq.has_key('kappaStart'):
                 if osc_seq['kappaStart']!=0 and osc_seq['kappaStart']!=-9999:
-                    data_collection.rotationAxis = 'Omega' 
+                    data_collection.rotationAxis = 'Omega'
                     data_collection.omegaStart = osc_seq['start']
                 else:
                     data_collection.rotationAxis = 'Phi'
@@ -1470,7 +1470,7 @@ class ISPyBValueFactory():
                 "ISPyBClient: error storing a data collection (%s)" % str(diag)
             raise ISPyBArgumentError(err_msg)
 
-        data_collection.detector2theta = 0 
+        data_collection.detector2theta = 0
 
         try:
             data_collection.dataCollectionId = \
@@ -1522,7 +1522,7 @@ class ISPyBValueFactory():
                 mx_collect_dict['beamSizeAtSampleY']
         except KeyError:
             pass
-            
+
         try:
             data_collection.beamShape = mx_collect_dict['beamShape']
         except KeyError:
@@ -1541,7 +1541,7 @@ class ISPyBValueFactory():
         except KeyError,diag:
             pass
 
-        try:                
+        try:
             data_collection.imageSuffix = mx_collect_dict['fileinfo']['suffix']
         except KeyError,diag:
             pass
@@ -1599,7 +1599,7 @@ class ISPyBValueFactory():
         except KeyError :
             pass
 
-        try:   
+        try:
             data_collection.actualCenteringPosition = \
                 mx_collect_dict['actualCenteringPosition']
         except KeyError:
@@ -1616,13 +1616,13 @@ class ISPyBValueFactory():
             data_collection.detectorId = mx_collect_dict["detector_id"]
         except KeyError:
             pass
-                
+
         try:
              data_collection.strategySubWedgeOrigId = \
                  mx_collect_dict['screening_sub_wedge_id']
         except:
              pass
-         
+
         try:
             start_time = mx_collect_dict["collection_start_time"]
             start_time = datetime.\
