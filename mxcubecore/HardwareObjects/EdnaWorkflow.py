@@ -14,9 +14,6 @@ class EdnaWorkflow(Device):
         self.state.connectSignal('update', self.state_changed)
         logging.getLogger('HWR').debug('got state channel %r with value %r', self.state, self.state.value)
 
-        self.current_actor = self.getChannelObject('current_actor')
-        self.current_actor.connectSignal('update', self.current_actor_changed)
-
         self.start_command = self.getCommandObject('start')
         self.start_command.connectSignal('commandFailed', self.set_command_failed)
 
@@ -44,10 +41,6 @@ class EdnaWorkflow(Device):
             params = self.get_parameters()
             self.emit('parametersNeeded', (params, ))
             
-    def current_actor_changed(self, new_value):
-        logging.getLogger('HWR').debug('%s: current actor changed to %r', str(self.name()), new_value)
-        self.emit('currentActorChanged', (new_value, ))
-
     def get_parameters(self):
         params = None
         try:
