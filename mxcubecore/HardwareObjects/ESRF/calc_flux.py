@@ -1,5 +1,4 @@
 import logging
-import numpy
 import sys
 
 class CalculateFlux:
@@ -38,34 +37,30 @@ class CalculateFlux:
         if en < 4:
             logging.exception("Cannot calculate flux - unknown energy")
             raise ValueError
+        #calculations are made in eV, input might be in KeV
         if en < 1000:
             en *= 1000
-        calib = self._interpol(self.calib_array,en)
-        self.FLUX[self.labels[0]] = en
-        for i in range(calib.__len__()):
-            self.FLUX[self.labels[i+1]] = calib[i]
+
+        self.FLUX[self.labels[0]] = int(en)
+
+        if en >= self.calib_array[0][0]:
+            calib = self.calib_array[0][1:]
+        elif en <= self.calib_array[-1][0]:
+            calib = self.calib_array[-1][1:]
+        else:
+            calib = self._interpol(self.calib_array, int(en))
+
+        for i in calib:
+            self.FLUX[self.labels[calib.index(i)+1]] = i
+
         return calib
 
     def _interpol(self, arr, val, debug=0):
         larr = []
-        idx = -1
-        if val >= arr[0][0]:
-            idx = 0
-        elif val <= arr[len(arr)-1][0]:
-            idx = len(arr)-1
-
-        if idx > -1:
-            try:
-                return [arr[0][1],arr[0][2]]
-            except:
-                return arr[0][1]
-
         for i, vals in enumerate(arr):
             if abs(vals[0] - val)  < 10:
-                try:
-                    return [vals[1],vals[2]]
-                except:
-                    return vals[1]
+                return vals[1:]
+
             larr.append(abs(vals[0] - val))
         min_index = larr.index(min(larr))
         x1 = arr[min_index][0]
@@ -107,4 +102,3 @@ if __name__ == '__main__' :
     en = float(sys.argv[2])*1000
     ab = fl.calc_flux_coef(en)
     print ab
-    
