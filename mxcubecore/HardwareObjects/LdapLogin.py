@@ -1,17 +1,22 @@
 """
 This module serves to connect to and Ldap server.
 
-It works in principle for both the ESRF and Soleil Proxima beamlines
+It works in principle for ESRF, Soleil Proxima and MAXIV beamlines
 """
 from HardwareRepository.BaseHardwareObjects import Procedure
 import logging
 import ldap
 
 """
+ldapou is optional, if ldapou is not defined, 
+the bind_str (simple_bind) will be "uid=xxx,dc=xx,dc=xx", 
+otherwise it is uid=xxx,ou=xxx,dc=xx,dc=xx
+
 <procedure class="LdapLogin">
   <ldaphost>ldaphost.mydomain</ldaphost>
   <ldapport>389</ldapport>
   <ldapdomain>example.com</ldapdomain>
+  <ldapou>maxivusers</ldapou>
 </procedure>
 """
 
@@ -28,6 +33,7 @@ class LdapLogin(Procedure):
         ldaphost = self.getProperty('ldaphost')
         ldapport = self.getProperty('ldapport')
         domain   = self.getProperty('ldapdomain')
+	ldapou   = self.getProperty('ldapou')
 
         if ldaphost is None:
             logging.getLogger("HWR").error("LdapLogin: you must specify the LDAP hostname")
@@ -102,7 +108,10 @@ class LdapLogin(Procedure):
             return self.cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("LdapLogin: validating %s" % username)
-        bind_str = "uid=%s,%s" % (username, self.domstr)
+	try:
+            bind_str = "uid=%s, ou=%s, %s" % (username,self.ldapou, self.domstr)
+        except AttributeError, attr:
+            bind_str = "uid=%s,%s" % (username, self.domstr)
         logging.getLogger("HWR").debug("LdapLogin: binding to %s" % bind_str)
         handle = self.ldapConnection.simple_bind(bind_str,password)
         try:
