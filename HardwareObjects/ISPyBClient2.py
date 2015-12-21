@@ -6,7 +6,7 @@ import logging
 import gevent
 import suds; logging.getLogger("suds").setLevel(logging.INFO)
 import os
-import re
+import itertools
 import time
 
 from suds.transport.http import HttpAuthenticated
@@ -107,43 +107,35 @@ class ISPyBClient2(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.ldapConnection=None
+        self.beamline_name = "unknown"
         self.__shipping = None
         self.__collection = None
         self.__tools_ws = None
         self.__translations = {}
         self.__disabled = False
-        self.beamline_name = False
-
-        logger = logging.getLogger('ispyb_client')
-
-        try:
-            formatter = \
-                logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-            hdlr = logging.FileHandler('/users/blissadm/log/ispyb_client.log')
-            hdlr.setFormatter(formatter)
-            logger.addHandler(hdlr)
-        except:
-            pass
-
-        logger.setLevel(logging.INFO)
-
 
     def init(self):
         """
         Init method declared by HardwareObject.
         """
+        self.authServerType = self.getProperty('authServerType') or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
             self.ldapConnection=self.getObjectByRole('ldapServer')
             if self.ldapConnection is None:
                 logging.getLogger("HWR").debug('LDAP Server is not available')
 
+        self.loginType = self.getProperty("loginType") or "proposal"
+        self.loginTranslate = self.getProperty("loginTranslate") or True
         self.session_hwobj = self.getObjectByRole('session')
+        self.beamline_name = self.session_hwobj.beamline_name
 
-        if self.ws_username :
-            _WS_USERNAME = self.ws_username
-        if self.ws_password :
-            _WS_PASSWORD = self.ws_password
+        if self.getProperty('ws_username'):
+            global _WS_USERNAME
+            _WS_USERNAME = self.getProperty('ws_username')
+        if self.getProperty('ws_password'):
+            global _WS_PASSWORD
+            _WS_PASSWORD = self.getProperty('ws_password')
 
         try:
             # ws_root is a property in the configuration xml file
@@ -210,7 +202,6 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
-        self.beamline_name = self.session_hwobj.beamline_name
 
     def translate(self, code, what):
         """
@@ -256,7 +247,7 @@ class ISPyBClient2(HardwareObject):
                         person = {}
 
                 except WebFault, e:
-                    logging.getLogger("ispyb_client").exception(e.message)
+                    logging.getLogger("ispyb_client").exception(str(e))
                     person = {}
 
                 try:
@@ -274,7 +265,7 @@ class ISPyBClient2(HardwareObject):
                                 'status': {'code':'error'}}
 
                 except WebFault, e:
-                    logging.getLogger("ispyb_client").exception(e.message)
+                    logging.getLogger("ispyb_client").exception(str(e))
                     proposal = {}
 
                 try:
@@ -284,13 +275,13 @@ class ISPyBClient2(HardwareObject):
 
                     lab = None
                     lab = self.__shipping.service.findLaboratoryByCodeAndNumber(proposal_code, proposal_number)
-                    logging.getLogger('HWR').info("lab in get_proposal is %s", lab)
 
                     if not lab:
                         lab = {}
 
                 except WebFault, e:
-                    logging.getLogger("ispyb_client").exception(e.message)
+                    logging.getLogger("ispyb_client").exception(str(e))
+
                     lab = {}
                 try:
                     res_sessions = self.__collection.service.\
@@ -315,7 +306,7 @@ class ISPyBClient2(HardwareObject):
                             sessions.append(utf_encode(asdict(session)))
 
                 except WebFault, e:
-                    logging.getLogger("ispyb_client").exception(e.message)
+                    logging.getLogger("ispyb_client").exception(str(e))
                     sessions = []
 
             except URLError:
@@ -362,7 +353,7 @@ class ISPyBClient2(HardwareObject):
             try:
                 person = self.__shipping.service.findPersonByLogin(username, os.environ["SMIS_BEAMLINE_NAME"])
             except WebFault, e:
-                logging.getLogger("ispyb_client").warning(e.message)
+                logging.getLogger("ispyb_client").warning(str(e))
                 person = {}
 
             try:
@@ -373,13 +364,13 @@ class ISPyBClient2(HardwareObject):
                 proposal_code   = proposal.code
                 proposal_number = proposal.number
             except WebFault, e:
-                logging.getLogger("ispyb_client").warning(e.message)
+                logging.getLogger("ispyb_client").warning(str(e))
                 proposal = {}
 
             try:
                 lab = self.__shipping.service.findLaboratoryByCodeAndNumber(proposal_code, proposal_number)
             except WebFault, e:
-                logging.getLogger("ispyb_client").warning(e.message)
+                logging.getLogger("ispyb_client").warning(str(e))
                 lab = {}
 
             try:
@@ -405,7 +396,7 @@ class ISPyBClient2(HardwareObject):
                         sessions.append(utf_encode(asdict(session)))
 
             except WebFault, e:
-                logging.getLogger("ispyb_client").warning(e.message)
+                logging.getLogger("ispyb_client").warning(str(e))
                 sessions = []
 
         except URLError:
@@ -437,7 +428,7 @@ class ISPyBClient2(HardwareObject):
                 person = self.__shipping.service.\
                     findPersonBySessionIdLocalContact(session_id)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
                 person = {}
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -458,28 +449,28 @@ class ISPyBClient2(HardwareObject):
         # to do, check how it is done in EMBL
         return
 
-    def login (self,loginID, psd):
+    def login (self,loginID, psd, ldap_connection=None):
+        if ldap_connection is None:
+            ldap_connection = self.ldapConnection
         login_name=loginID
         prpopsal_code = ""
         prpopsal_number = ""
 
         # For porposal login, split the loginID to code and numbers
         if self.loginType == "proposal" :
-            proposal_match= re.search(r'([a-zA-Z]+)([\d]+)', loginID)
-            proposal_code = proposal_match.group(1)
-            proposal_number=proposal_match.group(2)
+            proposal_code = "".join(itertools.takewhile(lambda c: not c.isdigit(), loginID))
+            proposal_number = loginID[len(proposal_code):]
 
         # if translation of the loginID is needed, need to be tested by ESRF
         if self.loginTranslate is True:
-            login_name=self.dbConnection.translate(proposal_code,'ldap')+str(proposal_number)
-        logging.getLogger('HWR').info('lalalal')
+            login_name=self.translate(proposal_code,'ldap')+str(proposal_number)
 
         # Authentication
         if self.authServerType == 'ldap':
-            logging.getLogger('HWR').info('LDAP login')
-            ok, msg=self.ldapConnection.login(login_name,psd)
+            logging.getLogger('HWR').debug('LDAP login')
+            ok, msg=ldap_connection.login(login_name,psd)
         elif self.authServerType == 'ispyb':
-            logging.getLogger('HWR').info('ISPyB login')
+            logging.getLogger('HWR').debug('ISPyB login')
             ok, msg=self._ispybLogin(login_name,psd)
         else:
             raise Exception ("Authentication server type is not defined")
@@ -550,7 +541,7 @@ class ISPyBClient2(HardwareObject):
                         end_time=time.mktime(end_struct)
                         current_time=time.time()
                         # Check beamline name
-                        if beamline==beamline_name:
+                        if beamline==self.beamline_name:
                             # Check date
                             if current_time>=start_time and current_time<=end_time:
                                 todays_session=session
@@ -586,7 +577,6 @@ class ISPyBClient2(HardwareObject):
             logging.getLogger('HWR').debug('getting local contact for %s' % session_id)
             localcontact=self.get_session_local_contact(session_id)
 
-#        logging.getLogger('HWR').debug(self.session_hwobj)
         is_inhouse = self.session_hwobj.is_inhouse(prop['Proposal']["code"], prop['Proposal']["number"])
         return {"session": todays_session,"new_session_flag":new_session_flag, "is_inhouse": is_inhouse}
 
@@ -698,7 +688,7 @@ class ISPyBClient2(HardwareObject):
                         self.update_session(session)
 
                     except WebFault, e:
-                        logging.getLogger("ispyb_client").exception(e.message)
+                        logging.getLogger("ispyb_client").exception(str(e))
                     except URLError:
                         logging.getLogger("ispyb_client").\
                             exception(_CONNECTION_ERROR_MSG)
@@ -767,7 +757,7 @@ class ISPyBClient2(HardwareObject):
                 status = self.__tools_ws.service.\
                     storeOrUpdateBLSample(bl_sample)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
                 status = {}
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -852,7 +842,7 @@ class ISPyBClient2(HardwareObject):
                     findSampleInfoLightForProposal(proposal_id,
                                                    self.beamline_name)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
@@ -901,7 +891,7 @@ class ISPyBClient2(HardwareObject):
                                                    self.beamline_name)
 
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1029,7 +1019,7 @@ class ISPyBClient2(HardwareObject):
             try:
                 result = self.__tools_ws.service.findBLSample(bl_sample_id)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1072,7 +1062,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 session = {}
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1156,7 +1146,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 result = -1
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1190,7 +1180,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 dc = {}
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 dc = {}
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -1214,7 +1204,7 @@ class ISPyBClient2(HardwareObject):
                     dc_dict['run_number'])
             except WebFault, e:
                 dc = {}
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1252,7 +1242,7 @@ class ISPyBClient2(HardwareObject):
                     session = utf_encode(asdict(session))
 
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(e.message)
+                logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
