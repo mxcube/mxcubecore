@@ -5,6 +5,9 @@ A client for ISPyB Webservices.
 import logging
 import gevent
 import suds; logging.getLogger("suds").setLevel(logging.INFO)
+import os
+import re
+import time
 
 from suds.transport.http import HttpAuthenticated
 from suds.client import Client
@@ -21,6 +24,7 @@ from pprint import pformat
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
 
 # The WSDL root is configured in the hardware object XML file.
+#_WS_USERNAME, _WS_PASSWORD can be configured in the HardwareObject XML file.
 _WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
@@ -102,6 +106,7 @@ class ISPyBClient2(HardwareObject):
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+        self.ldapConnection=None
         self.__shipping = None
         self.__collection = None
         self.__tools_ws = None
@@ -127,7 +132,18 @@ class ISPyBClient2(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        session_hwobj = self.getObjectByRole('session')
+        if self.authServerType == "ldap":
+            # Initialize ldap
+            self.ldapConnection=self.getObjectByRole('ldapServer')
+            if self.ldapConnection is None:
+                logging.getLogger("HWR").debug('LDAP Server is not available')
+
+        self.session_hwobj = self.getObjectByRole('session')
+
+        if self.ws_username :
+            _WS_USERNAME = self.ws_username
+        if self.ws_password :
+            _WS_PASSWORD = self.ws_password
 
         try:
             # ws_root is a property in the configuration xml file
@@ -174,7 +190,7 @@ class ISPyBClient2(HardwareObject):
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
-            proposals = session_hwobj['proposals']
+            proposals = self.session_hwobj['proposals']
 
             for proposal in proposals:
                 code = proposal.code
@@ -194,7 +210,7 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
-        self.beamline_name = session_hwobj.beamline_name
+        self.beamline_name = self.session_hwobj.beamline_name
 
     def translate(self, code, what):
         """
@@ -267,6 +283,8 @@ class ISPyBClient2(HardwareObject):
                     #                              proposal_number)
 
                     lab = None
+                    lab = self.__shipping.service.findLaboratoryByCodeAndNumber(proposal_code, proposal_number)
+                    logging.getLogger('HWR').info("lab in get_proposal is %s", lab)
 
                     if not lab:
                         lab = {}
@@ -326,6 +344,83 @@ class ISPyBClient2(HardwareObject):
                     'status': {'code':'error'}}
 
     @trace
+    def get_proposal_by_username(self, username):
+
+        proposal_code   = ""
+        proposal_number = 0
+
+        empty_dict = {'Proposal': {}, 'Person': {}, 'Laboratory': {}, 'Session': {}, 'status': {'code':'error'}}
+
+        if not self.__shipping:
+           logging.getLogger("ispyb_client").\
+                warning("Error in get_proposal: Could not connect to server," + \
+                          " returning empty proposal")
+           return empty_dict
+
+
+        try:
+            try:
+                person = self.__shipping.service.findPersonByLogin(username, os.environ["SMIS_BEAMLINE_NAME"])
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                person = {}
+
+            try:
+                proposal = self.__shipping.service.findProposalByLoginAndBeamline(username, os.environ["SMIS_BEAMLINE_NAME"])
+                if not proposal:
+                    logging.getLogger("ispyb_client").warning("Error in get_proposal: No proposal has been found to  the user, returning empty proposal")
+                    return empty_dict
+                proposal_code   = proposal.code
+                proposal_number = proposal.number
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                proposal = {}
+
+            try:
+                lab = self.__shipping.service.findLaboratoryByCodeAndNumber(proposal_code, proposal_number)
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                lab = {}
+
+            try:
+                res_sessions = self.__collection.service.\
+                    findSessionsByProposalAndBeamLine(proposal_code,
+                                                           proposal_number,
+                                                           os.environ["SMIS_BEAMLINE_NAME"])
+                sessions = []
+
+                # Handels a list of sessions
+                for session in res_sessions:
+                    if session is not None :
+                        try:
+                            session.startDate = \
+                                datetime.strftime(session.startDate,
+                                                  "%Y-%m-%d %H:%M:%S")
+                            session.endDate = \
+                                datetime.strftime(session.endDate,
+                                                  "%Y-%m-%d %H:%M:%S")
+                        except:
+                            pass
+
+                        sessions.append(utf_encode(asdict(session)))
+
+            except WebFault, e:
+                logging.getLogger("ispyb_client").warning(e.message)
+                sessions = []
+
+        except URLError:
+            logging.getLogger("ispyb_client").warning(_CONNECTION_ERROR_MSG)
+            return empty_dict
+
+
+        logging.getLogger("ispyb_client").info( str(sessions) )
+        return  {'Proposal': utf_encode(asdict(proposal)),
+                 'Person': utf_encode(asdict(person)),
+                 'Laboratory': utf_encode(asdict(lab)),
+                 'Session': sessions,
+                 'status': {'code':'ok'}}
+
+    @trace
     def get_session_local_contact(self, session_id):
         """
         Retrieves the person entry associated with the session id <session_id>
@@ -358,6 +453,143 @@ class ISPyBClient2(HardwareObject):
                 exception("Error in get_session_local_contact: Could not get " + \
                           "local contact")
             return {}
+
+    def _ispybLogin (self, loginID, psd):
+        # to do, check how it is done in EMBL
+        return
+
+    def login (self,loginID, psd):
+        login_name=loginID
+        prpopsal_code = ""
+        prpopsal_number = ""
+
+        # For porposal login, split the loginID to code and numbers
+        if self.loginType == "proposal" :
+            proposal_match= re.search(r'([a-zA-Z]+)([\d]+)', loginID)
+            proposal_code = proposal_match.group(1)
+            proposal_number=proposal_match.group(2)
+
+        # if translation of the loginID is needed, need to be tested by ESRF
+        if self.loginTranslate is True:
+            login_name=self.dbConnection.translate(proposal_code,'ldap')+str(proposal_number)
+        logging.getLogger('HWR').info('lalalal')
+
+        # Authentication
+        if self.authServerType == 'ldap':
+            logging.getLogger('HWR').info('LDAP login')
+            ok, msg=self.ldapConnection.login(login_name,psd)
+        elif self.authServerType == 'ispyb':
+            logging.getLogger('HWR').info('ISPyB login')
+            ok, msg=self._ispybLogin(login_name,psd)
+        else:
+            raise Exception ("Authentication server type is not defined")
+
+        if not ok:
+            msg="%s." % msg.capitalize()
+            # refuse Login
+            return {'status':{ "code": "error", "msg": msg }, 'Proposal': None, 'session': None}
+
+        # login succeed, get proposal and sessions
+        #logging.getLogger('HWR').debug('Logged in: querying ISPyB database...')
+        if self.loginType == "proposal":
+            # get the proposal ID
+            prop=self.get_proposal(proposal_code,proposal_number)
+        elif self.loginType =="user":
+            prop=self.get_proposal_by_username(loginID)
+
+        # Check if everything went ok
+        prop_ok=True
+        try:
+            prop_ok=(prop['status']['code']=='ok')
+        except KeyError:
+            prop_ok=False
+        if not prop_ok:
+#todo
+            msg =  "Couldn't contact the ISPyB database server: you've been logged as the local user.\nYour experiments' information will not be stored in ISPyB"
+            return {'status':{ "code": "ispybDown", "msg": msg }, 'Proposal': None, 'session': None}
+
+#        logging.getLogger('HWR').debug('Proposal is fine, get sessions from ISPyB...')
+#        logging.getLogger('HWR').debug(prop)
+
+        proposal=prop['Proposal']
+        todays_session=self.get_todays_session(prop)
+
+#        logging.getLogger('HWR').debug(todays_session)
+        return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
+        'session': todays_session,
+        "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
+        "person": prop['Person'],
+        "laboratory": prop['Laboratory']}
+
+    def get_todays_session(self, prop):
+        try:
+            sessions=prop['Session']
+        except KeyError:
+            sessions=None
+        # Check if there are sessions in the proposal
+        todays_session=None
+        if sessions is None or len(sessions)==0:
+            pass
+        else:
+            # Check for today's session
+            for session in sessions:
+                beamline=session['beamlineName']
+                start_date="%s 00:00:00" % session['startDate'].split()[0]
+                end_date="%s 23:59:59" % session['endDate'].split()[0]
+                try:
+                    start_struct=time.strptime(start_date,"%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    pass
+                else:
+                    try:
+                        end_struct=time.strptime(end_date,"%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        pass
+                    else:
+                        start_time=time.mktime(start_struct)
+                        end_time=time.mktime(end_struct)
+                        current_time=time.time()
+                        # Check beamline name
+                        if beamline==beamline_name:
+                            # Check date
+                            if current_time>=start_time and current_time<=end_time:
+                                todays_session=session
+                                break
+        new_session_flag= False
+        if todays_session is None:
+            # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
+            new_session_flag= True
+            current_time=time.localtime()
+            start_time=time.strftime("%Y-%m-%d 00:00:00", current_time)
+            end_time=time.mktime(current_time)+60*60*24
+            tomorrow=time.localtime(end_time)
+            end_time=time.strftime("%Y-%m-%d 07:59:59", tomorrow)
+
+            # Create a session
+            new_session_dict={}
+            new_session_dict['proposalId']=prop['Proposal']['proposalId']
+            new_session_dict['startDate']=start_time
+            new_session_dict['endDate']=end_time
+            new_session_dict['beamlineName']=self.beamline_name
+            new_session_dict['scheduled']=0
+            new_session_dict['nbShifts']=3
+            new_session_dict['comments']="Session created by the BCM"
+            session_id=self.create_session(new_session_dict)
+            new_session_dict['sessionId']=session_id
+
+            todays_session=new_session_dict
+            localcontact=None
+            logging.getLogger('HWR').debug('create new session')
+
+        else:
+            session_id=todays_session['sessionId']
+            logging.getLogger('HWR').debug('getting local contact for %s' % session_id)
+            localcontact=self.get_session_local_contact(session_id)
+
+#        logging.getLogger('HWR').debug(self.session_hwobj)
+        is_inhouse = self.session_hwobj.is_inhouse(prop['Proposal']["code"], prop['Proposal']["number"])
+        return {"session": todays_session,"new_session_flag":new_session_flag, "is_inhouse": is_inhouse}
+
 
     @trace
     def store_data_collection(self, *args, **kwargs):
