@@ -12,7 +12,7 @@ class ControllerCommand(CommandObject):
     def isConnected(self):
         return True
 
-   def getArguments(self):
+    def getArguments(self):
         if self.name() == 'Anneal':
             self._arguments.append(("Time [s]", "float"))
         return self._arguments
@@ -53,4 +53,4 @@ class ID30BeamCmds(HardwareObject):
         self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 
     def getCommands(self):
-        return [self.centrebeam, self.quick_realign, self.anneal] 
+        return [self.centrebeam, self.quick_realign, self.anneal]
