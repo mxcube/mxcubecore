@@ -186,3 +186,33 @@ class Qt4_LimaVideo(Device):
                 qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
             qimage = QtGui.QPixmap(qimage)
             self.emit("imageReceived", qimage)
+
+    def get_contrast(self):
+        return
+
+    def set_contrast(self, contrast_value):
+        return
+
+    def get_brightness(self):
+        return
+
+    def set_brightness(self, brightness_value):
+        return
+
+    def get_gain(self):
+        return
+
+    def set_gain(self, gain_value):
+        return
+
+    def get_gamma(self):
+        return
+
+    def set_gamma(self, gamma_value):
+        return
+
+    def get_exposure_time(self):
+        return
+
+    def set_exposure_time(self, exposure_time_value):
+        return
