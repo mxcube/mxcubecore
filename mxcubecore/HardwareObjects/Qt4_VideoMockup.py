@@ -68,102 +68,6 @@ class Qt4_VideoMockup(Device):
         """
         return
 
-    def contrastExists(self):
-        """
-        Descript. :
-        """
-        return
-
-    def setContrast(self, contrast):
-        """
-        Descript. :
-        """
-        return
-
-    def getContrast(self):
-        """
-        Descript. :
-        """
-        return 
-
-    def getContrastMinMax(self):
-        """
-        Descript. :
-        """
-        return 
-
-    def brightnessExists(self):
-        """
-        Descript. :
-        """
-        return
-
-    def setBrightness(self, brightness):
-        """
-        Descript. :
-        """
-        return
-
-    def getBrightness(self):
-        """
-        Descript. :
-        """ 
-        return 
-
-    def getBrightnessMinMax(self):
-        """
-        Descript. :
-        """
-        return 
-
-    def gainExists(self):
-        """
-        Descript. :
-        """
-        return
-
-    def setGain(self, gain):
-        """
-        Descript. :
-        """
-        return
-
-    def getGain(self):
-        """
-        Descript. :
-        """
-        return
-
-    def getGainMinMax(self):
-        """
-        Descript. :
-        """
-        return 
-
-    def gammaExists(self):
-        """
-        Descript. :
-        """
-        return
-
-    def setGamma(self, gamma):
-        """
-        Descript. :
-        """
-        return
-
-    def getGamma(self):
-        """
-        Descript. :
-        """
-        return 
-
-    def getGammaMinMax(self):
-        """
-        Descript. :
-        """ 
-        return (0, 1)
-
     def setLive(self, mode):
         """
         Descript. :
@@ -220,3 +124,33 @@ class Qt4_VideoMockup(Device):
                 return qimage.convertToFormat(QtGui.QImage.Format_Mono) 
             else:
                 return qimage
+
+    def get_contrast(self):
+        return 34
+
+    def set_contrast(self, contrast_value):
+        return
+
+    def get_brightness(self):
+        return 54
+
+    def set_brightness(self, brightness_value):
+        return
+  
+    def get_gain(self):
+        return 32
+  
+    def set_gain(self, gain_value):
+        return
+
+    def get_gamma(self):
+        return 22
+
+    def set_gamma(self, gamma_value):
+        return
+
+    def get_exposure_time(self):
+        return 0.23
+
+    def set_exposure_time(self, exposure_time_value):
+        return
