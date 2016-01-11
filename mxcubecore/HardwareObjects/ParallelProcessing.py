@@ -142,7 +142,7 @@ class ParallelProcessing(HardwareObject):
 
         return processing_input_file, processing_params
 
-    def run_parallel_processing(self, data_collection, grid_object):
+    def run_processing(self, data_collection, grid_object):
         """
         Descript. : Main parallel processing method.
                     At first EDNA input file is generated based on acq parameters.
@@ -322,7 +322,7 @@ class ParallelProcessing(HardwareObject):
             result_file_index += 1
         """
 
-        gevent.sleep(5)
+        gevent.sleep(10)
         #This is for test...
 
         for key in processing_result.keys():
@@ -344,11 +344,10 @@ class ParallelProcessing(HardwareObject):
         #Autoprocessin program
 
         if processing_params["lines_num"] > 1:
-            logging.getLogger("HWR").info("ParallelProcessing: Saving information about autoprocessing program in ISPyB...")
+            logging.getLogger("HWR").info("ParallelProcessing: Saving autoprocessing program in ISPyB")
             autoproc_program_id = self.lims_hwobj.store_autoproc_program(processing_params)             
-            logging.getLogger("HWR").info("ParallelProcessing: Done")
 
-            logging.getLogger("HWR").info("ParallelProcessing: Saving processing results as MeshScan workflow in ISPyB...")
+            logging.getLogger("HWR").info("ParallelProcessing: Saving processing results in ISPyB")
             workflow_id, workflow_mesh_id, grid_info_id = \
                  self.lims_hwobj.store_workflow(processing_params)
             processing_params["workflow_id"] = workflow_id
@@ -357,11 +356,10 @@ class ParallelProcessing(HardwareObject):
 
             self.collect_hwobj.update_lims_with_workflow(workflow_id, 
                  processing_params["grid_snapshot_filename"])
-            logging.getLogger("HWR").info("ParallelProcessing: Done")
 
             #If best positions detected then save them in ispyb 
             if len(best_positions) > 0:
-                logging.getLogger("HWR").info("ParallelProcessing: Saving %d best positions in ISPyB..." % \
+                logging.getLogger("HWR").info("ParallelProcessing: Saving %d best positions in ISPyB" % \
                        len(best_positions))
 
                 motor_pos_id_list = []
@@ -384,11 +382,9 @@ class ParallelProcessing(HardwareObject):
                
                 processing_params["best_position_id"] = motor_pos_id_list[0]
                 processing_params["best_image_id"] = image_id_list[0] 
-                logging.getLogger("HWR").info("ParallelProcessing: Done")
 
-                logging.getLogger("HWR").info("ParallelProcessing: Updating best position of MeshScan workflow in ISPyB...")
+                logging.getLogger("HWR").info("ParallelProcessing: Updating best position in ISPyB")
                 self.lims_hwobj.store_workflow(processing_params)
-                logging.getLogger("HWR").info("ParallelProcessing: Done")
             else:
                 logging.getLogger("HWR").info("ParallelProcessing: No best positions found during the scan")
 
@@ -403,10 +399,13 @@ class ParallelProcessing(HardwareObject):
         fig, ax = plt.subplots(nrows=1, ncols=1 )
         if processing_params["lines_num"] > 1: 
             #If mesh scan then a 2D plot
-            im = ax.imshow(self.processing_results["score"], interpolation = 'none', aspect='auto')
+            im = ax.imshow(self.processing_results["score"], 
+                           interpolation = 'none', aspect='auto',
+                           extent = [0, self.processing_results["score"].shape[1], 0, 
+                                     self.processing_results["score"].shape[0]])
             if len(best_positions) > 0:
-                plt.axvline(x = best_positions[0]["col"] - 1, linewidth=0.5)
-                plt.axhline(y = best_positions[0]["row"] - 1, linewidth=0.5)
+                plt.axvline(x = best_positions[0]["col"] - 0.5, linewidth=0.5)
+                plt.axhline(y = best_positions[0]["row"] - 0.5, linewidth=0.5)
 
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size=0.1, pad=0.05)
@@ -499,9 +498,8 @@ class ParallelProcessing(HardwareObject):
                        #cpos = processing_params["associated_data_collection"].get_motor_pos(index, as_cpos=True)
                        cpos = None
                        #TODO Add best position for helical line
-
                    best_position["col"] = col + 1
-                   best_position["row"] = row + 1
+                   best_position["row"] = processing_params["steps_y"] - row
                    best_position['cpos'] = cpos
                    best_positions_list.append(best_position) 
         aligned_results["best_positions"] = best_positions_list
@@ -525,11 +523,13 @@ class ParallelProcessing(HardwareObject):
                         reshape(num_colls, num_rows)        
 
         for cell_index in range(aligned_result_array.size):
-            col, row = grid_object.get_col_row_from_image_serial(cell_index + first_image_number)
+           
+            col, row = grid_object.get_col_row_from_image_serial(\
+                cell_index + first_image_number)
             if (col < aligned_result_array.shape[0] and 
                 row < aligned_result_array.shape[1]):
                 aligned_result_array[col][row] = result_array[cell_index]
-        return aligned_result_array
+        return numpy.transpose(aligned_result_array)
 
     def get_last_processing_results(self):
         return self.processing_results 
