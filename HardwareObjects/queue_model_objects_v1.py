@@ -215,7 +215,7 @@ class TaskGroup(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
         self.lims_group_id = None
-
+        self.interleave_num_images = None
 
 class Sample(TaskNode):
     def __init__(self):
@@ -233,7 +233,6 @@ class Sample(TaskNode):
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
-        self.location_plate = None
         self.lims_location = (None, None)
 
         # Crystal information
@@ -553,7 +552,6 @@ class DataCollection(TaskNode):
 
     def copy(self):
         new_node = copy.deepcopy(self)
-
         cpos = self.acquisitions[0].acquisition_parameters.\
                centred_position
 
@@ -656,6 +654,7 @@ class Characterisation(TaskNode):
         self.set_name(name)
 
         self.html_report = None
+        self.run_characterisation = True
         self.characterisation_software = None
 
     def get_name(self):
@@ -977,22 +976,18 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        self.first_processing_results = None
-        self.second_processing_results = None
+        self.first_processing_results = {}
+        self.second_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
 
     def get_path_template(self):
-        return self.reference_image_collection.acquisitions[0].\
-               path_template
+        return self.reference_image_collection.acquisitions[0].path_template
 
     def get_files_to_be_written(self):
-        path_template = self.reference_image_collection.acquisitions[0].\
-                        path_template
-
+        path_template = self.reference_image_collection.acquisitions[0].path_template
         file_locations = path_template.get_files_to_be_written()
-
         return file_locations
 
     def get_display_name(self):
@@ -1003,7 +998,7 @@ class Advanced(TaskNode):
             name += " (Static grid)"
         return name
 
-    def get_processing_results(self):
+    def get_first_processing_results(self):
         return self.first_processing_results
 
 class SampleCentring(TaskNode):
@@ -1096,6 +1091,25 @@ class PathTemplate(object):
         self.start_num = int()
         self.num_files = int()
 
+    def as_dict(self):
+        return {"directory" : self.directory,
+                "process_directory" : self.process_directory,
+                "xds_dir" : self.xds_dir,
+                "base_prefix" : self.base_prefix,
+                "mad_prefix" : self.mad_prefix,
+                "reference_image_prefix" : self.reference_image_prefix,
+                "wedge_prefix" : self.wedge_prefix,
+                "run_number" : self.run_number,
+                "suffix" : self.suffix,
+                "precision" : self.precision,
+                "start_num" : self.start_num,
+                "num_files" : self.num_files}
+
+    def set_from_dict(self, params_dict):
+        for key, value in params_dict.iteritems():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
     def get_prefix(self):
         prefix = self.base_prefix
 
@@ -1157,6 +1171,7 @@ class PathTemplate(object):
                 folders[2] = endstation_name
 
             archive_directory = os.path.join(PathTemplate.archive_base_directory, *folders[1:])
+
         return archive_directory
 
     def get_files_to_be_written(self):
@@ -1265,6 +1280,13 @@ class AcquisitionParameters(object):
         self.comments = ""
         self.in_queue = False 
 
+    def set_from_dict(self, params_dict):
+        for key, value in params_dict.iteritems():
+            if hasattr(self, key):
+                if key == "centred_position": 
+                    self.centred_position.set_from_dict(value)     
+                else:
+                    setattr(self, key, value)
 
 class Crystal(object):
     def __init__(self):
@@ -1311,6 +1333,11 @@ class CentredPosition(object):
     def as_dict(self):
         return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
+
+    def set_from_dict(self, params_dict):
+        for key, value in params_dict.iteritems():
+            if hasattr(self, key):
+                setattr(self, key, value)   
 
     def as_str(self):
         motor_str = ""
@@ -1651,3 +1678,53 @@ def create_inverse_beam_sw(num_images, sw_size, osc_range,
     subwedges = [sw_pair for pair in zip(w1, w2) for sw_pair in pair]
     
     return subwedges
+
+def create_interleave_sw(interleave_list, num_images, sw_size):
+    """
+    Creates subwedges for interleved collection.
+    Wedges W1, W2, Wm (where m is num_collections) are created:
+    (W1_1, W2_1, ..., W1_m), ... (W1_n-1, W2_n-1, ..., Wm_n-1), 
+    (W1_n, W2_n, ..., Wm_n)
+
+    :param interleave_list: list of interleaved items
+    :type interleave_list: list of dict
+
+    :param num_images: number of images of first collection. Based on the 
+    first collection certain number of subwedges will be created. If 
+    first collection contains more images than others then in the end 
+    the rest of images from first collections are created as last subwedge
+    :type num_images: int
+
+    :param sw_size: Number of images in each subwedge
+    :type sw_size: int
+
+    :returns: A list of tuples containing the swb wedges.
+              The tuples are in the form:
+              (collection_index, subwedge_index, subwedge_firt_image, 
+               subwedge_start_osc)
+    :rtype: List [(...), (...)]
+    """
+    subwedges = []
+    sw_first_image = None
+    for sw_index in range(num_images / sw_size):
+        for collection_index in range(len(interleave_list)):
+            collection_osc_start = interleave_list[collection_index]["data_model"].\
+               acquisitions[0].acquisition_parameters.osc_start
+            collection_osc_range = interleave_list[collection_index]["data_model"].\
+               acquisitions[0].acquisition_parameters.osc_range
+            collection_first_image = interleave_list[collection_index]["data_model"].\
+               acquisitions[0].acquisition_parameters.first_image
+            collection_num_images = interleave_list[collection_index]["data_model"].\
+               acquisitions[0].acquisition_parameters.num_images
+            if sw_index * sw_size <= collection_num_images:
+                sw_actual_size = sw_size
+                if sw_size > collection_num_images - (sw_index + 1) * sw_size > 0:
+                    sw_actual_size = collection_num_images % sw_size
+                sw_first_image = collection_first_image + sw_index * sw_size
+                sw_osc_start = collection_osc_start + collection_osc_range * sw_index * sw_size
+                sw_osc_range = collection_osc_range * sw_actual_size
+                subwedges.append((collection_index, sw_index, sw_first_image, 
+                                  sw_actual_size, sw_osc_start, sw_osc_range))
+        sw_first_image += sw_actual_size 
+    return subwedges
+            

@@ -18,9 +18,8 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import time
 import gevent
-from datetime import datetime
+import numpy as np
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -52,7 +51,6 @@ class Qt4_VideoMockup(Device):
         current_path = os.path.join(*current_path[1:-1])
         image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
         self.image = QtGui.QPixmap(image_path)
-        self.painter = QtGui.QPainter(self.image)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
         self.sleep_time = self.getProperty("interval")
@@ -189,8 +187,36 @@ class Qt4_VideoMockup(Device):
         Descript. :
         """ 
         while True:
-            #datestr = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')
-            #self.painter.fillRect(40, 30, 200, 30, QtCore.Qt.white)  
-            #self.painter.drawText(50, 50, datestr)
             self.emit("imageReceived", self.image)
             gevent.sleep(sleep_time)
+
+    def get_frame(self, bw=None, return_as_array=None):
+        qimage = QtGui.QImage(self.image)
+        if return_as_array:
+            result_shape = (qimage.height(), qimage.width())
+            temp_shape = (qimage.height(), qimage.bytesPerLine() * 8 / qimage.depth())
+            if qimage.format() in (QtGui.QImage.Format_ARGB32_Premultiplied,
+                                   QtGui.QImage.Format_ARGB32,
+                                   QtGui.QImage.Format_RGB32):
+               dtype = np.uint8
+               result_shape += (4, )
+               temp_shape += (4, )
+            elif qimage.format() == QtGui.QImage.Format_Indexed8:
+               dtype = np.uint8
+            else:
+               raise ValueError("qimage2numpy only supports 32bit and 8bit images")
+	    buf = qimage.bits().asstring(qimage.numBytes())
+            result = np.frombuffer(buf, dtype).reshape(temp_shape)
+            if result_shape != temp_shape:
+                result = result[:,:result_shape[1]]
+            if qimage.format() == QtGui.QImage.Format_RGB32 and dtype == np.uint8:
+                result = result[...,:3]
+            if bw:
+                return np.dot(result[...,:3], [0.299, 0.587, 0.144]) 
+            else:
+                return result
+        else:
+            if bw:
+                return qimage.convertToFormat(QtGui.QImage.Format_Mono) 
+            else:
+                return qimage
