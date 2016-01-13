@@ -55,7 +55,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def move_motors(self, motors_to_move_dict):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.bl_control.diffractometer
         cover_task = self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
@@ -63,6 +63,13 @@ class ID30BMultiCollect(ESRFMultiCollect):
         except:
             pass
         diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+
+    @task
+    def take_crystal_snapshots(self, number_of_snapshots):
+        if self.bl_control.diffractometer.in_plate_mode():
+            if number_of_snapshots > 0:
+                number_of_snapshots = 1
+        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
