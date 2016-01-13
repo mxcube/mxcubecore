@@ -43,7 +43,7 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
-        #cover_task = self.getObjectByRole("khoros").detcover.set_out()
+        #cover_task = self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
