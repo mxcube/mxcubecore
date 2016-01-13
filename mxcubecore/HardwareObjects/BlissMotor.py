@@ -5,30 +5,22 @@ import logging
 import time
 import gevent
 import types
-import emotion
-#import emotion.config
+from bliss.config.motors import get_axis, set_backend
 import os
 
-class EmotionMotor(Device):      
+class BlissMotor(Device):      
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
-
-    @staticmethod
-    def load_config(config_file):
-        emotion.load_cfg(config_file,clear=False)    
 
     def __init__(self, name):
         Device.__init__(self, name)
 
     def init(self): 
-        self.motorState = EmotionMotor.NOTINITIALIZED
+        self.motorState = BlissMotor.NOTINITIALIZED
         self.username = self.motor_name
 
-        try:
-            EmotionMotor.load_config(self.config_file)
-        except AttributeError:
-            emotion.config.set_backend("beacon")
+        set_backend("beacon")
 
-        self.motor = emotion.get_axis(self.motor_name)
+        self.motor = get_axis(self.motor_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
         self.connect(self.motor, "move_done", self._move_done)
@@ -52,15 +44,15 @@ class EmotionMotor(Device):
             state = self.motor.state()
         # convert from grob state to Hardware Object motor state
         if state == "MOVING":
-            state = EmotionMotor.MOVING
+            state = BlissMotor.MOVING
         elif state == "READY":
-            state = EmotionMotor.READY
+            state = BlissMotor.READY
         elif state == "LIMPOS" or state == 'LIMNEG':
-            state = EmotionMotor.ONLIMIT
+            state = BlissMotor.ONLIMIT
         else:
-            state = EmotionMotor.UNUSABLE
+            state = BlissMotor.UNUSABLE
 
-        self.setIsReady(state > EmotionMotor.UNUSABLE)
+        self.setIsReady(state > BlissMotor.UNUSABLE)
 
         if self.motorState != state:
             self.motorState = state
@@ -115,7 +107,7 @@ class EmotionMotor(Device):
         self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
-        return self.motorState == EmotionMotor.MOVING
+        return self.motorState == BlissMotor.MOVING
  
     def getMotorMnemonic(self):
         return self.motor_name
