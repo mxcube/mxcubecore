@@ -19,7 +19,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
  
     @task
     def get_slit_gaps(self):
-        khoros = self.getObjectByRole("khoros")
+        controller = self.getObjectByRole("controller")
 
         return (None,None)
 
@@ -56,7 +56,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.getObjectByRole("diffractometer")
-        cover_task = self.getObjectByRole("khoros").detcover.set_out()
+        cover_task = self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
