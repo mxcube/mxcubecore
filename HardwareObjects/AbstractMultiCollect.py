@@ -501,8 +501,11 @@ class AbstractMultiCollect(object):
         for motor in motors_to_move_before_collect.keys():
             if motors_to_move_before_collect[motor] is None:
                 del motors_to_move_before_collect[motor]
-                if current_diffractometer_position[motor] is not None:
-                    positions_str += "%s=%f " % (motor, current_diffractometer_position[motor])
+                try:
+                    if current_diffractometer_position[motor] is not None:
+                        positions_str += "%s=%f " % (motor, current_diffractometer_position[motor])
+                except:
+                    pass
 
         # this is for the LIMS
         positions_str += " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
