@@ -351,13 +351,13 @@ class ISPyBClient2(HardwareObject):
 
         try:
             try:
-                person = self.__shipping.service.findPersonByLogin(username, os.environ["SMIS_BEAMLINE_NAME"])
+                person = self.__shipping.service.findPersonByLogin(username, self.beamline_name)
             except WebFault, e:
                 logging.getLogger("ispyb_client").warning(str(e))
                 person = {}
 
             try:
-                proposal = self.__shipping.service.findProposalByLoginAndBeamline(username, os.environ["SMIS_BEAMLINE_NAME"])
+                proposal = self.__shipping.service.findProposalByLoginAndBeamline(username, self.beamline_name)
                 if not proposal:
                     logging.getLogger("ispyb_client").warning("Error in get_proposal: No proposal has been found to  the user, returning empty proposal")
                     return empty_dict
@@ -377,7 +377,7 @@ class ISPyBClient2(HardwareObject):
                 res_sessions = self.__collection.service.\
                     findSessionsByProposalAndBeamLine(proposal_code,
                                                            proposal_number,
-                                                           os.environ["SMIS_BEAMLINE_NAME"])
+                                                           self.beamline_name)
                 sessions = []
 
                 # Handels a list of sessions
