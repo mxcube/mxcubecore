@@ -20,6 +20,24 @@ class ISPyBClient2Mockup(HardwareObject):
         self.__translations = {}
         self.__disabled = False
 
+    def init(self):
+        """
+        Init method declared by HardwareObject.
+        """
+        self.authServerType = self.getProperty('authServerType') or "ldap"
+        if self.authServerType == "ldap":
+            # Initialize ldap
+            self.ldapConnection=self.getObjectByRole('ldapServer')
+            if self.ldapConnection is None:
+                logging.getLogger("HWR").debug('LDAP Server is not available')
+
+        self.loginType = self.getProperty("loginType") or "proposal"
+        self.session_hwobj = self.getObjectByRole('session')
+        self.beamline_name = self.session_hwobj.beamline_name
+
+    def login (self,loginID, psd, ldap_connection=None):
+        return self.get_proposal(loginID,"")
+
 
     def get_proposal(self, proposal_code, proposal_number):
         """
