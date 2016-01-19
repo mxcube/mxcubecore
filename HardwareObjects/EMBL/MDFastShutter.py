@@ -30,13 +30,12 @@ class MDFastShutter(Device):
         if self.chan_shutter_state:
             self.chan_shutter_state.connectSignal("update", self.shutter_state_changed)
 
-
     def shutter_state_changed(self, value):
         if self.current_phase == "BeamLocation":
             self.state = self.states_dict.get(value, "unknown")
         else:
             self.state = "disabled"
-        self.emit('shutterStateChanged', (self.state, ))
+        self.emit('shutterStateChanged', (self.state, self.state.title()))
 
     def current_phase_changed(self, value):
         self.current_phase = value

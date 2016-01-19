@@ -160,7 +160,6 @@ class Qt4_DiffractometerMockup(HardwareObject):
         """
         Descript. :
         """
-        print self.grid_direction
         return self.grid_direction
 
     def manual_centring(self):

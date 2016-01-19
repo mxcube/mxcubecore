@@ -122,8 +122,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         except:
            self.roi_modes = ()
 
-        print self.roi_modes
-
     def get_distance(self):
         """
         Descript. : 
@@ -206,10 +204,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        print mode
         self.roi_mode = self.roi_modes.index(mode)
-        print self.roi_mode
-        print type(self.roi_modes)
         self.emit('detectorModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):

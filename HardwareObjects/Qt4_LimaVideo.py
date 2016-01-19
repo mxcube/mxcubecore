@@ -41,9 +41,6 @@ class Qt4_LimaVideo(Device):
         Descript. :
         """
         Device.__init__(self, name)
-        self.scaling = None
-        self.scaling_type = None 
-        self.do_scaling = None
         self.force_update = None
         self.cam_type = None
         self.cam_address = None
@@ -55,6 +52,7 @@ class Qt4_LimaVideo(Device):
         self.gain_exists = None
         self.gamma_exists = None
 
+        self.qimage = None
         self.image_format = None
         self.image_dimensions = None
 
@@ -154,7 +152,6 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
-        self.do_scaling = True 
         while self.video.getLive():
             self.get_new_image()
             time.sleep(sleep_time)
@@ -172,8 +169,8 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
-        self.do_scaling = True
-
+        pass
+ 
     def get_new_image(self):
         """
         Descript. :
@@ -181,11 +178,17 @@ class Qt4_LimaVideo(Device):
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
             raw_buffer = image.buffer()	
-            qimage = QtGui.QImage(raw_buffer, image.width(),image.height(), QtGui.QImage.Format_RGB888)
+            qimage = QtGui.QImage(raw_buffer, image.width(), image.height(), 
+                                  QtGui.QImage.Format_RGB888)
             if self.cam_mirror is not None:
                 qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
             qimage = QtGui.QPixmap(qimage)
             self.emit("imageReceived", qimage)
+            return qimage
+
+    def save_snapshot(self, filename):
+        qimage = self.get_new_image() 
+        qimage.save(filename) 
 
     def get_contrast(self):
         return

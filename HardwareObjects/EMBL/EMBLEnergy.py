@@ -44,7 +44,7 @@ class EMBLEnergy(Device):
             self.tunable = self.getProperty("tunableEnergy")
         except:
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
-            self.tunable = False
+
 	try:
 	    self.default_en = self.getProperty("defaultEnergy")
 	except:
@@ -56,14 +56,16 @@ class EMBLEnergy(Device):
             self.en_lims = [None, None]
 
         self.get_energy_limits = self.getEnergyLimits
+        if not self.chan_energy:
+            self.energyPositionChanged(self.default_en * 1000)
 
-    """
-    read tunable_energy from the HO, return True/False
-    """
-    def canMoveEnergy(self):
+    def can_move_energy(self):
         return self.tunable
     
     def isConnected(self):
+        return True
+
+    def isReady(self):
         return True
 
     def getCurrentEnergy(self):
@@ -184,7 +186,9 @@ class EMBLEnergy(Device):
 
     def energyPositionChanged(self, pos):
         #self.moveEnergyCmdFinished(True)
-        energy = pos[0] / 1000
+        if type(pos) in (list, tuple):
+            pos = pos[0]
+        energy = pos / 1000
         if abs(energy - self.current_energy) > 1e-2:
             self.current_energy = energy
             self.current_wav=12.3984 / energy
