@@ -108,7 +108,7 @@ class EMBLMachineInfo(Equipment):
 	#Intensity current ranges
         self.values_dict = {}
         self.values_dict['current'] = None
-        self.values_dict['stateText'] = None
+        self.values_dict['stateText'] = ""
         self.values_dict['intens'] = {}
         self.values_dict['intens']['value'] = None
         self.values_dict['cryo'] = None
@@ -117,8 +117,8 @@ class EMBLMachineInfo(Equipment):
         self.values_in_range_dict['current'] = None
         self.values_in_range_dict['intens'] = None
         self.values_in_range_dict['cryo'] = None
-        self.temp_hum_values = [-1, -1]
-        self.temp_hum_in_range = [None, None]
+        self.temp_hum_values = [0, 0]
+        self.temp_hum_in_range = [False, False]
 
         self.intens_range = None
         self.ampl_chan_index = None
@@ -159,39 +159,40 @@ class EMBLMachineInfo(Equipment):
         self.values_dict['intens']['ranges'] = \
              sorted(self.values_dict['intens']['ranges'], \
              key=lambda item: item['max'])
-	
+
+        	
         self.chan_mach_curr = self.getChannelObject('machCurrent')
-        if self.chan_mach_curr is not None: 
-            self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
+        #if self.chan_mach_curr is not None: 
+        #    self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
         self.chan_state_text = self.getChannelObject('machStateText')
-        if self.chan_state_text is not None:
-            self.chan_state_text.connectSignal('update', self.state_text_changed)
+        #if self.chan_state_text is not None:
+        #    self.chan_state_text.connectSignal('update', self.state_text_changed)
 
         self.chan_intens_mean = self.getChannelObject('intensMean')
-        if self.chan_intens_mean is not None:
-            self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
+        #if self.chan_intens_mean is not None:
+        #    self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
         self.chan_intens_range = self.getChannelObject('intensRange')
 
         self.cmd_set_intens_resolution = self.getCommandObject('setIntensResolution')
         self.cmd_set_intens_acq_time = self.getCommandObject('setIntensAcqTime')
-        if self.cmd_set_intens_acq_time is not None:
-            self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
+        #if self.cmd_set_intens_acq_time is not None:
+        #    self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
         self.cmd_set_intens_range = self.getCommandObject('setIntensRange')
 
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
-        if self.chan_cryojet_in is not None:
-            self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
-            self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
-        else:
-            logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
+        #if self.chan_cryojet_in is not None:
+        #    self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
+        #    self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
+        #else:
+        #    logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
 
         self.shutter_is_opened = False
         self.shutter_hwobj = self.getObjectByRole('shutter')
         if self.shutter_hwobj is not None:
             self.connect(self.shutter_hwobj, 'shutterStateChanged', self.shutter_state_changed)
 
-        self.temp_hum_polling = spawn(self.get_temp_hum_values, 
-             self.getProperty("updateIntervalS"))
+        #self.temp_hum_polling = spawn(self.get_temp_hum_values, 
+        #     self.getProperty("updateIntervalS"))
 
     def has_cryo(self):
         """
@@ -204,7 +205,7 @@ class EMBLMachineInfo(Equipment):
         Descript. :
         """ 
         self.values_in_range_dict['cryo'] = value == 1
-        self.update_values()
+        #self.update_values()
 
     def mach_current_changed(self, value):
         """
@@ -217,7 +218,7 @@ class EMBLMachineInfo(Equipment):
             self.values_dict['current'] = value
             self.values_in_range_dict['current'] = self.values_dict['current'] > \
                  self.limits_dict['current']
-            self.update_values()
+            #self.update_values()
 
     def state_text_changed(self, text):
         """
@@ -226,7 +227,7 @@ class EMBLMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict['stateText'] = str(text)
-        self.update_values()
+        #self.update_values()
 
     def intens_mean_changed(self, value):
         """
@@ -283,6 +284,7 @@ class EMBLMachineInfo(Equipment):
         values_to_send.append(self.values_dict['cryo'])       
         self.emit('valuesChanged', values_to_send)
         self.emit('inRangeChanged', self.values_in_range_dict)
+        self.emit('tempHumChanged', (self.temp_hum_values, self.temp_hum_in_range))
 
     def get_values(self):
         """

@@ -17,6 +17,7 @@ Hardware object for Marvin sample changer
 -----------------------------------------------------------------------
 """
 
+import logging
 from sample_changer.GenericSampleChanger import *
 
 
@@ -38,7 +39,9 @@ class MarvinSC(SampleChanger):
         self._mounted_puck = None
         self._mounted_sample = None
         self._sample_is_mounted = None
+        self._puck_in_center = None
         self._progress = None
+        self._door_is_closed = True
 
         self.chan_status = None
         self.chan_puck_switched = None
@@ -47,6 +50,8 @@ class MarvinSC(SampleChanger):
         self.cmd_mount_sample = None
         self.cmd_unmount_sample = None
         self.cmd_dry_gripper = None
+
+        self.detector_distance_hwobj = None 
             
     def init(self):      
         self._puck_switches = 0
@@ -73,23 +78,26 @@ class MarvinSC(SampleChanger):
         self.cmd_mount_sample = self.getCommandObject("cmdMountSample")
         self.cmd_unmount_sample = self.getCommandObject("cmdUnmountSample")
 
-        """if None in (self.chan_puck_switches, self.chan_status, \
-             self.cmd_mount_sample, self.cmd_unmount_sample):
-            msg = "Sample changer not initialized. "
-            msg += "Please check the communication to sample changer and restart MXCuBE"
-            logging.getLogger("user_level_log").error(msg)"""
+        self.detector_distance_hwobj = self.getObjectByRole('detector_distance')
 
         self._initSCContents()
-        SampleChanger.init(self)  
+        self._updateState()
+        self._updateSCContents()
+        self._updateLoadedSample()
+        SampleChanger.init(self)
 
     def puck_switches_changed(self, puck_switches):
         self._puck_switches = int(puck_switches)
         self._updateSCContents()
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
-        self._mounted_sample = mounted_sample_puck[0] -1 
-        self._mounted_puck = mounted_sample_puck[1] -1 
-        self._updateLoadedSample()
+        mounted_sample = mounted_sample_puck[0] - 1
+        self._mounted_puck = mounted_sample_puck[1] -1
+        if mounted_sample != self._mounted_sample:
+            self._mounted_sample = mounted_sample
+            #if not self._sample_is_mounted:
+            #    self._mounted_sample = None
+            self._updateLoadedSample()
 
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
@@ -108,13 +116,16 @@ class MarvinSC(SampleChanger):
     def _directlyUpdateSelectedComponent(self, basket_no, sample_no):    
         basket = None
         sample = None
-        try:
-          if basket_no is not None and basket_no>0 and basket_no <=self._num_basket:
+        #try:
+        if True:
+          if basket_no is not None and basket_no>0 and \
+             basket_no <=self._num_basket:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
-            if sample_no is not None and sample_no>0 and sample_no <=Basket.NO_OF_SAMPLES_PER_PUCK:
+            if sample_no is not None and sample_no>0 and \
+               sample_no <= len(basket.getSampleList()) - 1:
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
-        except:
-          pass
+        #except:
+        #  pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
 
@@ -124,12 +135,13 @@ class MarvinSC(SampleChanger):
                     Uses method >_directlyUpdateSelectedComponent< to actually 
                     search and select the corrected positions.
         """
-        if isinstance(component, Sample):
+        if type(component) in (Pin, Sample):
             selected_basket_no = component.getBasketNo()
             selected_sample_no = component.getIndex()+1
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
             selected_basket_no = component.getIndex()+1
             selected_sample_no = None
+
         self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
             
     def _doScan(self,component,recursive):
@@ -146,21 +158,21 @@ class MarvinSC(SampleChanger):
                     empty, and a sample exchange (unmount of old + mount of 
                     new sample) if a sample is already mounted on the diffractometer.
         """
-        selected=self.getSelectedSample()            
+        selected=self.getSelectedSample()
 
         if sample is not None:
             if sample != selected:
                 self._doSelect(sample)
-                selected=self.getSelectedSample()            
+                selected=self.getSelectedSample()
         else:
             if selected is not None:
                  sample = selected
             else:
                raise Exception("No sample selected")
 
-        basket = selected.getBasketNo() 
+        basket = selected.getBasketNo()
         sample = selected.getVialNo()
-       
+
         if self.hasLoadedSample():
             if selected==self.getLoadedSample():
                 msq = "The sample " + \
@@ -168,19 +180,61 @@ class MarvinSC(SampleChanger):
                       " is already loaded"
                 raise Exception(msg)
             else:
-                self._executeServerTask(self.cmd_unmount_sample, self._mounted_sample, self._mounted_puck)
-                self._executeServerTask(self.cmd_mount_sample, int(sample), int(basket))
+                msg = "Sample changer: Unloading sample %d:%d" %(\
+                    self._mounted_puck, self._mounted_sample)
+                self.emit("progressInit", (msg, 100))
+
+                if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+                    logging.getLogger("user_level_log").info("Moving detector to save position")
+                    self.detector_distance_hwobj.move(500, wait=True)
+
+                logging.getLogger("user_level_log").debug(msg + ". Please wait...")
+                self._executeServerTask(self.cmd_unmount_sample,
+                                        self._mounted_sample,
+                                        self._mounted_puck)
+                logging.getLogger("user_level_log").debug("Sample changer: Sample unloading done")
+
+                msg = "Sample changer: Loading sample %d:%d" %(\
+                    int(basket), int(sample))
+                logging.getLogger("user_level_log").debug(msg + ". Please wait...")
+                self.emit("progressInit", (msg, 100))
+                self._executeServerTask(self.cmd_mount_sample,
+                                        int(sample),
+                                        int(basket))
+                logging.getLogger("user_level_log").debug(\
+                    "Sample changer: Sample loading done")
         else:
-            self._executeServerTask(self.cmd_mount_sample, int(sample), int(basket))
+            msg = "Sample changer: Loading sample %d:%d" %(\
+                    int(basket), int(sample))
+            self.emit("progressInit", (msg, 100))
+
+            if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+                logging.getLogger("user_level_log").info("Moving detector to save position")
+                self.detector_distance_hwobj.move(500, wait=True)
+
+            logging.getLogger("user_level_log").info(msg + " Please wait...")
+            self._executeServerTask(self.cmd_mount_sample,
+                                    int(sample),
+                                    int(basket))
+            logging.getLogger("user_level_log").info("Sample changer: Sample loading done")
 
     def _doUnload(self, sample_slot = None):
         """
         Descript. : Unloads a sample from the diffractometer.
         """
-        #self.cmd_unmount_sample(self._mounted_sample, self._mounted_puck)
-        #if (sample_slot is not None):
-        #    self._doSelect(sample_slot)
-        self._executeServerTask(self.cmd_unmount_sample, int(self._mounted_sample), int(self._mounted_puck))
+        msg = "Sample changer: Unloading sample %d:%d" %(\
+                    self._mounted_puck, self._mounted_sample)
+        self.emit("progressInit", (msg, 100))
+
+        if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+            logging.getLogger("user_level_log").info("Moving detector to save position")
+            self.detector_distance_hwobj.move(500, wait=True)
+
+        logging.getLogger("user_level_log").info(msg + ". Please wait...")
+        self._executeServerTask(self.cmd_unmount_sample,
+                                int(self._mounted_sample),
+                                int(self._mounted_puck))
+        logging.getLogger("user_level_log").info("Sample changer: Sample unloading done") 
 
     def clearBasketInfo(self, basket):
         return
@@ -209,29 +263,15 @@ class MarvinSC(SampleChanger):
         self._scIsCharging = not value
 
     def _executeServerTask(self, method, *args):
-        self._waitDeviceReady(3.0)
         self._state_string = "Bsy"
-        self.emit("progressInit", ("Sample changer", 100))
-        #task_id = method(*args)
         arg_arr = []
         for arg in args:
-            arg_arr.append(arg) 
+            arg_arr.append(arg)
         task_id = method(arg_arr)
-        ret=None
-
-        if task_id is None: #Reset
-            while self._isDeviceBusy():
-                gevent.sleep(0.1)
-        else:
-            # introduced wait because it takes some time before the attribute PathRunning is set
-            # after launching a transfer
-            time.sleep(2.0)
-            self._waitDeviceReady(3.0)
-            #hile self.state != SampleChangerState.Ready: 
-            #   gevent.sleep(0.1)            
-            ret = True
-        gevent.sleep(2)
-        return ret
+        gevent.sleep(1)
+        self._waitDeviceReady(120.0)
+        gevent.sleep(1)
+        self._updateLoadedSample()
 
     def _updateState(self):
         state = self._readState()
@@ -303,17 +343,13 @@ class MarvinSC(SampleChanger):
         """
         Descript. : updates loaded sample
         """
-        if not self._sample_is_mounted:
-            new_sample = None
-        elif self._mounted_puck and self._mounted_sample:
+        new_sample = None
+
+        if self._sample_is_mounted and self._mounted_puck and self._mounted_sample:
             new_sample = self.getComponentByAddress(\
                   Pin.getSampleAddress(self._mounted_puck, self._mounted_sample))
-        else:
-            new_sample = None
 
         if self.getLoadedSample() != new_sample:
-            # import pdb; pdb.set_trace()
-            # remove 'loaded' flag from old sample but keep all other information
             old_sample = self.getLoadedSample()
             if old_sample is not None:
                 # there was a sample on the gonio
@@ -382,7 +418,7 @@ class MarvinSC(SampleChanger):
                 datamatrix = None
             basket._setInfo(present, datamatrix, scanned)
             # set the information for all dependent samples
-            for sample_index in range(Basket.NO_OF_SAMPLES_PER_PUCK):
+            for sample_index in range(10):
                 sample = self.getComponentByAddress(Pin.getSampleAddress((basket_index + 1), (sample_index + 1)))
                 present = sample.getContainer().isPresent()
                 if present:
@@ -409,7 +445,7 @@ class MarvinSC(SampleChanger):
         self._status_string = status_string[:180].replace(" ", "")
 
         status_list = self._status_string.split(';')
-        for status in status_list: 
+        for status in status_list:
             property_status_list = status.split(':')
             if len(property_status_list) < 2:
                 continue
@@ -419,14 +455,29 @@ class MarvinSC(SampleChanger):
                 if self._state_string != prop_value:
                     self._state_string = prop_value
                     self._updateState()
-            elif prop_name == "MD":  
+            elif prop_name == "MD":
                 sample_is_mounted = prop_value == "Mount"
                 if self._sample_is_mounted != sample_is_mounted:
                     self._sample_is_mounted = sample_is_mounted
-                    if not self._sample_is_mounted:
-                        self._mounted_sample = -1
-                    self._updateLoadedSample()
+                    #if not self._sample_is_mounted:
+                    #    self._mounted_sample = None
+                    #self._updateLoadedSample()
+            elif prop_name == "CDor":
+                door_is_closed =  prop_value == "Cls"
+                if self._door_is_closed != door_is_closed:
+                    self._door_is_closed = door_is_closed
+                    if not self._door_is_closed:
+                        msg = "Sample changer: Robot cage door is opened. " + \
+                              "Close the door to enable sample changer."
+                        logging.getLogger("user_level_log").warning(msg)
+            elif prop_name == "CPuck":
+                puck_in_center = prop_value == "1"
+                if self._puck_in_center != puck_in_center:
+                    self._puck_in_center = puck_in_center
+                    #if not self._puck_in_center:
+                    #    self._mounted_puck = None
             elif prop_name == "Prgs":
                 if int(prop_value) != self._progress:
                     self._progress = int(prop_value)
                     self.emit("progressStep", self._progress)
+

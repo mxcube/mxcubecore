@@ -166,6 +166,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         Descript. : main collection command
         """
         if self._actual_collect_status in ["ready", "unknown", "error"]:
+            self.emit("progressInit", ("Data collection", 100))
             comment = 'Comment: %s' % str(p.get('comments', ""))
             self._error_msg = ""
             self._collecting = True
@@ -259,6 +260,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
               self.collection_id, self.osc_id, self.actual_data_collect_parameters))
         self.emit("collectEnded", self.owner, success_msg)
         self.emit("collectReady", (True, ))
+        self.emit("progressStop", ()) 
         self._collecting = None
         self.ready_event.set()
 
@@ -299,8 +301,12 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """
-        self.collect_frame = frame
-        self.emit("collectImageTaken", frame) 
+        if self._collecting: 
+            self.collect_frame = frame
+            number_of_images = self.actual_data_collect_parameters\
+                 ['oscillation_sequence'][0]['number_of_images']
+            self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
+            self.emit("collectImageTaken", frame) 
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
