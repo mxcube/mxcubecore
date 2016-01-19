@@ -70,19 +70,28 @@ class WagoPneu(TacoDevice.TacoDevice):
              self.wagoState = "unknown"
 
         self.emit('wagoStateChanged', (self.wagoState, ))
+        self.emit('actuatorStateChanged', (self.wagoState, ))
         
     
     def getWagoState(self):
         return self.wagoState 
 
+    def getActuatorState(self, *args):
+        return self.getWagoState()
 
     def wagoIn(self):
         if self.isReady():
             #self.argin = [ self.wagokyin, 0, 1 ]
             self.device.DevWriteDigi([ self.wagokyin, 0, 1 ]) #executeCommand('DevWriteDigi(%s)' % str(self.argin))
 
-            
+    def actuatorIn(self):
+        return self.wagoIn()           
+ 
     def wagoOut(self):
         if self.isReady():
             #self.argin = [ self.wagokyin, 0, 0 ]
             self.device.DevWriteDigi([ self.wagokyin, 0, 0 ]) #executeCommand('DevWriteDigi(%s)' % str(self.argin))
+
+    def actuatorOut(self):
+        return self.wagoOut()
+

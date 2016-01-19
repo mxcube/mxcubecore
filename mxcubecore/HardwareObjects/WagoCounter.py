@@ -74,7 +74,7 @@ class WagoCounter(TacoDevice.TacoDevice):
         
         if gn < 0:
             # invalid gain
-            value = None
+            value = -9999
 	else:
             gain = math.pow(self.gainfactor, gn)
             value = gain * value
