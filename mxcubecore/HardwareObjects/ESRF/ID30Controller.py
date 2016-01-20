@@ -1,11 +1,11 @@
-from Khoros import Khoros
+from Bliss import Bliss
 
-class ID30Controller(Khoros):
+class ID30Controller(Bliss):
   def __init__(self, *args):
-     Khoros.__init__(self, *args)
+     Bliss.__init__(self, *args)
 
   def init(self, *args):  
-     Khoros.init(self)
+     Bliss.init(self)
 
   def set_diagfile(self, diagfile):
      self.minidiff.diagfile = diagfile
