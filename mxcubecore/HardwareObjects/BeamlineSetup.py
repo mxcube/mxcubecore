@@ -91,7 +91,10 @@ class BeamlineSetup(HardwareObject):
         :returns: True if the detector is capable of shuterless.
         :rtype: bool
         """
-        return self.detector_hwobj.has_shutterless()
+        try:
+            return self.detector_hwobj.has_shutterless()
+        except AttributeError:
+            return False
 
     def tunable_wavelength(self):
         """
@@ -152,8 +155,11 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = self.detector_hwobj.has_shutterless()
-        detector_mode = self.detector_hwobj.default_mode() 
+        shutterless = self.detector_has_shutterless()
+        try:
+            detector_mode = self.detector_hwobj.default_mode() 
+        except AttributeError:
+            detector_mode = None
 
         acq_parameters.first_image = int(img_start_num)
         acq_parameters.num_images = int(num_images)
@@ -258,9 +264,11 @@ class BeamlineSetup(HardwareObject):
         overlap = round(float(self[parent_key].getProperty('overlap')), 2)
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        shutterless = self.detector_hwobj.has_shutterless()
-        detector_mode = self.detector_hwobj.default_mode()
-
+        shutterless = self.detector_has_shutterless()
+        try:
+            detector_mode = self.detector_hwobj.default_mode() 
+        except AttributeError:
+            detector_mode = None
         acq_parameters.first_image = img_start_num
         acq_parameters.num_images = num_images
         acq_parameters.osc_start = self._get_omega_axis_position()
