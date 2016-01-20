@@ -1,16 +1,16 @@
-from EmotionMotor import EmotionMotor
+from BlissMotor import BlissMotor
 import math
 import logging
 import time
 import gevent
 import types
 
-class EmotionMotorWPositions(EmotionMotor):      
+class BlissMotorWPositions(BlissMotor):      
     def __init__(self, name):
-        EmotionMotor.__init__(self, name)
+        BlissMotor.__init__(self, name)
 
     def init(self): 
-        EmotionMotor.init(self)
+        BlissMotor.init(self)
 
         self.predefinedPositions = {}
         self.predefinedPositionsNamesList = []
@@ -37,7 +37,7 @@ class EmotionMotorWPositions(EmotionMotor):
         return self["positions"]
 
     def connectNotify(self, signal):
-        EmotionMotor.connectNotify(self, signal)
+        BlissMotor.connectNotify(self, signal)
 
         if signal == 'predefinedPositionChanged':
             positionName = self.getCurrentPositionName()
@@ -56,9 +56,9 @@ class EmotionMotorWPositions(EmotionMotor):
 	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y]))) 
         
     def updateState(self, state=None):
-       EmotionMotor.updateState(self, state)
+       BlissMotor.updateState(self, state)
        
-       if self.motorState==EmotionMotor.READY: 
+       if self.motorState==BlissMotor.READY: 
          pos = self.getPosition()
 
          for positionName in self.predefinedPositions:
