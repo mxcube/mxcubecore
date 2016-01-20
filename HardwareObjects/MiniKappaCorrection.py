@@ -1,8 +1,8 @@
-from HardwareRepository.BaseHardwareObjects import Procedure
+from HardwareRepository.BaseHardwareObjects import Device
 import math
 import numpy as np
 
-class MiniKappaCorrection(Procedure):
+class MiniKappaCorrection(Device):
     """
     this will work on numbers only!
     """
@@ -43,7 +43,6 @@ class MiniKappaCorrection(Procedure):
         return self.mI * cosa + axis['mT'] * (1. - cosa) + axis['mC'] * sina
 
     def alignVector(self, t1, t2, kappa, phi):
-        print t1, t2
         x = np.array(t1) - np.array(t2) # rotating vector
         Rk = self.rotation_matrix(self.kappa, -kappa) # 
         Rp = self.rotation_matrix(self.phi  , -phi)   # 
@@ -71,5 +70,4 @@ class MiniKappaCorrection(Procedure):
         if  abs(np.dot(self.align_direction, np.dot(xp,Rp) )) > d: # choose the correct direction of rotation
            new_phi = -new_phi
 
-        print new_kappa, new_phi
         return new_kappa, new_phi, self.shift(kappa, phi,0.5 *( np.array(t1) + np.array(t2) ), new_kappa, new_phi)
