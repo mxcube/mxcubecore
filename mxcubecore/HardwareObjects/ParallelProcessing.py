@@ -183,7 +183,7 @@ class ParallelProcessing(HardwareObject):
             if grid_object is not None:
                 grid_snapshot_filename = os.path.join(processing_archive_directory, "grid_snapshot.png")
                 logging.getLogger("HWR").info("Saving grid snapshot: %s" % grid_snapshot_filename)
-                grid_snapshot = grid_object.get_grid_snapshot()
+                grid_snapshot = grid_object.get_snapshot()
                 grid_snapshot.save(grid_snapshot_filename, 'PNG')
         except:
             logging.getLogger("HWR").exception("Could not save grid snapshot: %s" \
