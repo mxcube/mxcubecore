@@ -112,7 +112,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def isConnected(self):
         return True
 
-    @task
     def get_static_parameters(self, config_file, element, edge):
         pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
         
@@ -125,29 +124,25 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         try:
             self.getChannelObject("ae_rcm").setValue(pars)
             self.execute_command("setRcmValues")
-        except:
+        except Exception:
             pass
         
         return pars
 
-    @task
     def open_safety_shutter(self):
         self.safety_shutter.openShutter()
         while self.safety_shutter.getShutterState() == 'closed':
             time.sleep(0.1)
 
-
-    @task
     def close_safety_shutter(self):
         self.safety_shutter.closeShutter()
         while self.safety_shutter.getShutterState() == 'opened':
             time.sleep(0.1)
 
-    @task
     def escan_prepare(self):
         try:
             self.execute_command("presetScan")
-        except:
+        except Exception:
             pass
         if self.beamsize:
             bsX = self.beamsize.getCurrentPositionName()
@@ -158,30 +153,26 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters["beamSizeHorizontal"] = bsX
         self.energy_scan_parameters["beamSizeVertical"] = bsY
 
-    @task
     def escan_postscan(self):
         self.execute_command("cleanScan")
         
-    @task
     def escan_cleanup(self):
         self.close_fast_shutter()
         self.close_safety_shutter()
         try:
             self.execute_command("cleanScan")
-        except:
+        except Exception:
             pass
         self.emit("energyScanFailed", ())
         self.ready_event.set()
 
-    @task
     def close_fast_shutter(self):
         self.execute_command("close_fast_shutter")
 
-    @task
+
     def open_fast_shutter(self):
         self.execute_command("open_fast_shutter")
 
-    @task
     def move_energy(self, energy):
         try:
             self._tunable_bl.energy_obj.move_energy(energy)
@@ -205,7 +196,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             return
         try:
             session_id=int(self.energy_scan_parameters['sessionId'])
-        except:
+        except Exception:
             return
 
         #remove unnecessary for ISPyB fields:
