@@ -153,8 +153,7 @@ class DiffractometerMockup(Equipment):
         else:
             logging.getLogger("HWR").error('MiniDiff: kappa phi motor is not defined')
 
-        self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
-                                getHardwareObject(self.getProperty("beam_info"))
+        self.beam_info_hwobj = self.getDeviceByRole("beam_info")
         if self.beam_info_hwobj is not None:
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
         else:
