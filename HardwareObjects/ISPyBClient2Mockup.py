@@ -39,6 +39,9 @@ class ISPyBClient2Mockup(HardwareObject):
         return self.get_proposal(loginID,"")
 
 
+    def login(self, *args):
+        return self.get_proposal(*args)
+
     def get_proposal(self, proposal_code, proposal_number):
         """
         Returns the tuple (Proposal, Person, Laboratory, Session, Status).
