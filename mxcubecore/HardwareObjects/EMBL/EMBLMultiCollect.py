@@ -4,6 +4,7 @@ Descript: EMBLMultiCollect hwobj
 import os
 import logging
 import gevent
+import p13_calc_flux
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractMultiCollect import AbstractMultiCollect
@@ -664,8 +665,37 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """
-        #return 0
-        return 3.000000e+12
+        flux = None
+        if self.bl_control.lims:
+            if self.bl_control.lims.beamline_name == "P13":
+                aperture_pos = self.bl_control.beam_info.get_aperture_pos_name()
+                energy = self.bl_control.energy.getCurrentEnergy()
+                #mode = self.bl_control.beam_info.get_focus_mode()
+                mode = "large"
+
+                flux = p13_calc_flux.calculate_flux(aperture_pos, energy, mode) / 4.0
+                #flux =  2.64E+11 
+            else:
+                fullflux = 3.5e12
+                fullsize_hor = 1.200
+                fullsize_ver =  0.700
+
+                foc = self.bl_control.beam_info.get_focus_mode()
+
+                if foc == 'unfocused':
+                    flux = fullflux * self.get_beam_size()[0] * \
+                           self.get_beam_size()[1] / fullsize_hor / fullsize_ver
+                elif foc == 'horizontal':
+                    flux = fullflux * self.get_beam_size()[1] / fullsize_ver
+                elif foc == 'vertical':
+                    flux = fullflux * self.get_beam_size()[0] / fullsize_hor
+                elif foc == 'double':
+                    flux = fullflux
+                else:
+                    flux = None
+                logging.getLogger("HWR").info("Flux in %s mode %e photon/sec"%(self.bl_control.beam_info.get_focus_mode(),flux))
+        return flux
+
 
     def get_machine_current(self):
         """
@@ -761,7 +791,7 @@ class EMBLMultiCollect(AbstractMultiCollect, HardwareObject):
         """
         Descript. : 
         """
-        return
+        return self.get_measured_intensity()
 
     def getOscillation(self, oscillation_id):
         """
