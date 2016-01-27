@@ -97,7 +97,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         if self.chan_roi_mode is not None:
             self.chan_roi_mode.connectSignal('update', self.roi_mode_changed)
         else:
-            logging.getLogger().error("Detector: Collect mode channel not defined")
+            logging.getLogger().error("Detector: ROI mode channel not defined")
 
         self.chan_frame_rate = self.getChannelObject('chanFrameRate')
         if self.chan_frame_rate is not None:

@@ -87,11 +87,12 @@ class EMBLBeamFocusing(Equipment):
       
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
+       
         self.motors_groups = self.getDevices()
         if len(self.motors_groups) > 0:
             for motors_group in self.motors_groups:
                 self.connect(motors_group, 'mGroupFocModeChanged', 
-                     self.focus_mode_changed)
+                     self.motor_group_focus_mode_changed)
         else:
             logging.getLogger("HWR").debug('BeamFocusing: No motors defined') 
             self.active_focus_mode = self.focus_modes[0]['modeName'] 
@@ -116,7 +117,7 @@ class EMBLBeamFocusing(Equipment):
                     focus_motors.append(motor)
         return focus_motors
 
-    def focus_mode_changed(self, value):
+    def motor_group_focus_mode_changed(self, value):
         """
 	Descript. : called if motors group focusing is changed 
         Arguments : new focus mode name(string                                 
@@ -168,7 +169,6 @@ class EMBLBeamFocusing(Equipment):
             for focus_mode in self.focus_modes:
                 self.size = focus_mode['size']
                 active_focus_mode = focus_mode['modeName']
-
                 for motor in self.focus_motors_dict:
                     if len(self.focus_motors_dict[motor]) == 0:
                         active_focus_mode = None

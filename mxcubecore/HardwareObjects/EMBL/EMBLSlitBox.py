@@ -29,7 +29,7 @@ The BeamSlitBox Hardware Object is used to operate slits.
 - setGap()
 - stopGapHorChange()
 - setFocusingMode()
-- focModeChanged()
+- focusModeChanged()
 - setGapLimits()
 
 [Hardware Objects]      
@@ -155,7 +155,6 @@ class EMBLSlitBox(Equipment):
             self.motors_dict[motor.motorName]['status'] = None
             self.motors_dict[motor.motorName]['focMode'] = []	 
 
-        
         self.motors_groups = self.getDevices()
         if self.motors_groups is not None:
             for motor_group in self.motors_groups:
@@ -163,13 +162,13 @@ class EMBLSlitBox(Equipment):
                      self.motors_group_position_changed)
                 self.connect(motor_group, 'mGroupStatusChanged', 
                      self.motors_group_status_changed)
-        if True: 
-            self.beam_focus_hwobj = HardwareRepository.HardwareRepository().\
-                 getHardwareObject(self.getProperty('focModeEq'))
+
+        self.beam_focus_hwobj = self.getObjectByRole("focusing")
+        if self.beam_focus_hwobj:
             self.connect(self.beam_focus_hwobj, 'definerPosChanged', self.focus_mode_changed)
             self.active_focus_mode = self.beam_focus_hwobj.get_active_focus_mode()
-        #except:
-        #    logging.getLogger("HWR").debug('BeamSlitBox: beamFocus HO not defined')
+        else:
+            logging.getLogger("HWR").debug('EMBLSlitBox: beamFocus HO not defined')
 
     def get_step_sizes(self):
         """
@@ -240,12 +239,21 @@ class EMBLSlitBox(Equipment):
         Return   : -
         """
         new_positions_dict = eval(new_positions_dict)
+        do_update = False
         for motor in new_positions_dict:
-            self.motors_dict[motor]['position'] = new_positions_dict[motor]
-        self.gaps_dict['Hor']['value'] = self.get_gap_hor()
-        self.gaps_dict['Ver']['value'] = self.get_gap_ver()
-        self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'], 
-                                     self.gaps_dict['Ver']['value']])
+            #compare values
+            if self.motors_dict.has_key(motor):
+                if abs(self.motors_dict[motor]['position'] - \
+                       new_positions_dict[motor]) > 0.001: 
+                    self.motors_dict[motor]['position'] = \
+                         new_positions_dict[motor]
+                    do_update = True
+            
+        if do_update:    
+            self.gaps_dict['Hor']['value'] = self.get_gap_hor()
+            self.gaps_dict['Ver']['value'] = self.get_gap_ver()
+            self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'], 
+                 self.gaps_dict['Ver']['value']])
 
     def get_gap_hor(self):
         """
@@ -340,7 +348,7 @@ class EMBLSlitBox(Equipment):
                     self.hor_gap = True
                 if self.active_focus_mode in self.gaps_dict['Ver']['modesAllowed']: 
                     self.ver_gap = True
-            self.emit('focModeChanged', (self.hor_gap, self.ver_gap))
+            self.emit('focusModeChanged', (self.hor_gap, self.ver_gap))
 
     def set_gaps_limits(self, new_gaps_limits):
         """
@@ -355,7 +363,7 @@ class EMBLSlitBox(Equipment):
                                            self.gaps_dict['Ver']['maxGap']])
 
     def update_values(self):
-        self.emit('focModeChanged', (self.hor_gap, self.ver_gap)) 
+        self.emit('focusModeChanged', (self.hor_gap, self.ver_gap)) 
         self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
                                      self.gaps_dict['Ver']['value']])
 
