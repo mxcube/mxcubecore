@@ -92,6 +92,7 @@ class CcdDetector:
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
+
         if self._detector:
             self._detector.start_acquisition(exptime, npass, first_frame)
         else:
@@ -203,13 +204,18 @@ class PixelDetector:
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-      if not first_frame and self.shutterless:
-        pass 
-      else:
-        if self._detector:
-            self._detector.start_acquisition()
+        try:
+            self.collect_obj.getObjectByRole("detector_cover").set_out()
+        except:
+            pass
+
+        if not first_frame and self.shutterless:
+            pass 
         else:
-            self.execute_command("start_acquisition")
+            if self._detector:
+                self._detector.start_acquisition()
+            else:
+                self.execute_command("start_acquisition")
 
     @task
     def no_oscillation(self, exptime):
