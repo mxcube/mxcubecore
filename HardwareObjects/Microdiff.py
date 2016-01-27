@@ -28,6 +28,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.phases = {"Centring":1, "BeamLocation":2, "DataCollection":3, "Transfer":4}
         self.movePhase = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"move_to_phase" }, "startSetPhase")
         self.readPhase =  self.addChannel({ "type":"exporter", "exporter_address": self.exporter_addr, "name":"read_phase" }, "CurrentPhase")
+        self.scanLimits = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"scan_limits" }, "getOmegaMotorDynamicScanLimits")
         if self.getProperty("use_hwstate"):
             self.hwstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"hwstate" }, "HardwareState")
         else:
@@ -123,6 +124,14 @@ class Microdiff(MiniDiff.MiniDiff):
         #print "end moving motors =============", time.time()
             
     def oscilScan(self, start, end, exptime, wait=False):
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end-start) / exptime
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
         scan(scan_params)
@@ -132,6 +141,14 @@ class Microdiff(MiniDiff.MiniDiff):
             print "finished at ---------->", time.time()
 
     def oscilScan4d(self, start, end, exptime,  motors_pos, wait=False):
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end-start) / exptime
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+                
         scan_params = "%0.3f\t%0.3f\t%f\t"% (start, (end-start), exptime)
         scan_params += "%0.3f\t" % motors_pos['1']['phiy']
         scan_params += "%0.3f\t" % motors_pos['1']['phiz']
@@ -150,7 +167,10 @@ class Microdiff(MiniDiff.MiniDiff):
             print "finished at ---------->", time.time()
 
     def in_plate_mode(self):
-        return self.head_type.getValue() == "Plate"
+        try:
+            return self.head_type.getValue() == "Plate"
+        except:
+            return False
 
     def in_kappa_mode(self):
         return self.head_type.getValue() == "MiniKappa" and self.kappa.getValue()
