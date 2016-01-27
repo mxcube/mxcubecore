@@ -160,39 +160,41 @@ class EMBLMachineInfo(Equipment):
              sorted(self.values_dict['intens']['ranges'], \
              key=lambda item: item['max'])
 
-        	
+        """	
         self.chan_mach_curr = self.getChannelObject('machCurrent')
-        #if self.chan_mach_curr is not None: 
-        #    self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
+        if self.chan_mach_curr is not None: 
+            self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
         self.chan_state_text = self.getChannelObject('machStateText')
-        #if self.chan_state_text is not None:
-        #    self.chan_state_text.connectSignal('update', self.state_text_changed)
+        if self.chan_state_text is not None:
+            self.chan_state_text.connectSignal('update', self.state_text_changed)
+        
 
         self.chan_intens_mean = self.getChannelObject('intensMean')
-        #if self.chan_intens_mean is not None:
-        #    self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
+        if self.chan_intens_mean is not None:
+            self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
         self.chan_intens_range = self.getChannelObject('intensRange')
 
         self.cmd_set_intens_resolution = self.getCommandObject('setIntensResolution')
         self.cmd_set_intens_acq_time = self.getCommandObject('setIntensAcqTime')
-        #if self.cmd_set_intens_acq_time is not None:
-        #    self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
+        if self.cmd_set_intens_acq_time is not None:
+            self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
         self.cmd_set_intens_range = self.getCommandObject('setIntensRange')
 
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
-        #if self.chan_cryojet_in is not None:
-        #    self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
-        #    self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
-        #else:
-        #    logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
+        if self.chan_cryojet_in is not None:
+            self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
+            self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
+        else:
+            logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
 
         self.shutter_is_opened = False
         self.shutter_hwobj = self.getObjectByRole('shutter')
         if self.shutter_hwobj is not None:
             self.connect(self.shutter_hwobj, 'shutterStateChanged', self.shutter_state_changed)
+        """
 
-        #self.temp_hum_polling = spawn(self.get_temp_hum_values, 
-        #     self.getProperty("updateIntervalS"))
+        self.temp_hum_polling = spawn(self.get_temp_hum_values, 
+             self.getProperty("updateIntervalS"))
 
     def has_cryo(self):
         """
