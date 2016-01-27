@@ -16,7 +16,7 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 
-from Qub.Tools import QubImageSave
+#from Qub.Tools import QubImageSave
 
 class myimage:
     """

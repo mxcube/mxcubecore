@@ -175,7 +175,6 @@ class XRFSpectrum(Equipment):
         return True
         
     def reallyStartXrfSpectrum(self, ct, filename):
-        
         if self.doSpectrum:
             try:
                 res = self.doSpectrum(ct, filename, wait=True)
@@ -228,7 +227,7 @@ class XRFSpectrum(Equipment):
         self.spectrumInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
         logging.getLogger().debug("XRFSpectrum: XRF spectrum result is %s" % result)
         self.scanning = False
-        if result:
+        if result is not False:
             try:
                 mcaData = self.getChannelObject('mca_data').getValue()
                 mcaCalib = self.getChannelObject('calib_data').getValue()
