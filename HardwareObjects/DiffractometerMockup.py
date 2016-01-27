@@ -113,6 +113,8 @@ class DiffractometerMockup(Equipment):
         self.getCentringStatus = self.get_centring_status
         self.takeSnapshots = self.take_snapshots
         self.moveMotors = self.move_motors
+        self.start3ClickCentring = self.start_3Click_centring
+        self.startAutoCentring = self.start_automatic_centring
 
     def init(self):
         """
@@ -149,6 +151,7 @@ class DiffractometerMockup(Equipment):
         self.sampleXMotor = self.getDeviceByRole('sampx')
         self.sampleYMotor = self.getDeviceByRole('sampy')
         self.camera_hwobj = self.getDeviceByRole('camera')
+        self.beam_info_hwobj = self.getObjectByRole('beam_info')
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, 'stateChanged', self.phiMotorStateChanged)
@@ -170,8 +173,6 @@ class DiffractometerMockup(Equipment):
         else:
             logging.getLogger("HWR").error('MiniDiff: Sampx motor is not defined')
 
-        self.beam_info_hwobj = HardwareRepository.HardwareRepository().\
-                                getHardwareObject(self.getProperty("beam_info"))
         if self.beam_info_hwobj is not None:
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
         else:
@@ -198,11 +199,11 @@ class DiffractometerMockup(Equipment):
 	self._drawing = drawing
 
     def use_sample_changer(self):
-        return False
+        return True
 
     def in_plate_mode(self):
-        #TODO head detection should be used to detect if in plate mode 
-	return True
+        #currently not used for mockup version
+	return False
 
     def toggle_fast_shutter(self):
         self.fast_shutter_is_open = not self.fast_shutter_is_open
@@ -265,6 +266,7 @@ class DiffractometerMockup(Equipment):
         """
         Descript. :
         """
+
         self.user_clicked_event = AsyncResult()
         x, y = self.user_clicked_event.get()
         last_centred_position[0] = x
@@ -436,6 +438,9 @@ class DiffractometerMockup(Equipment):
         """
         Descript. :
         """
+        self.emit_progress_message("Auto centring")
+        self.emit_centring_started(DiffractometerMockup.C3D_MODE)
+        self.emit('centringSuccessful')
         return
 
     def motor_positions_to_screen(self, centred_positions_dict):
