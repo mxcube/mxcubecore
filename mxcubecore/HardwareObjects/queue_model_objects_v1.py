@@ -1313,6 +1313,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
              'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
+             'xds_dir': acquisition.path_template.xds_dir,
              'anomalous': proc_params.anomalous,
              #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
