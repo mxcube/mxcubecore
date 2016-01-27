@@ -26,7 +26,6 @@ import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
 import os
-import ShapeHistory as shape_history
 import autoprocessing
 
 #import edna_test_data
