@@ -36,11 +36,20 @@ class ISPyBClient2Mockup(HardwareObject):
         self.beamline_name = self.session_hwobj.beamline_name
 
     def login (self,loginID, psd, ldap_connection=None):
-        return self.get_proposal(loginID,"")
 
-
-    def login(self, *args):
-        return self.get_proposal(*args)
+        # to simulate wrong loginID
+        if loginID == "wrong":
+	    return {'status':{ "code": "error", "msg": "loginID 'wrong' does not exist!" }, 'Proposal': None, 'Session': None} 
+        # to simulate wrong psd
+        if psd == "wrong":
+	    return {'status':{ "code": "error", "msg": "Wrong password!" }, 'Proposal': None, 'Session': None}
+ 
+        prop=self.get_proposal(loginID,"")
+	return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
+                 'session': prop['Session'],
+                 'local_contact': "BL Scientist",
+                 'person': prop['Person'],
+                 'laboratory': prop['Laboratory']}
 
     def get_proposal(self, proposal_code, proposal_number):
         """
@@ -68,14 +77,14 @@ class ISPyBClient2Mockup(HardwareObject):
                              'number': '000',
                              'proposalId': 1,
                              'type': 'MX'},
-                'Session': [{'scheduled': 0,
+                'Session': {'scheduled': 0,
                              'startDate': '2013-06-11 00:00:00',
                              'endDate': '2013-06-12 07:59:59',
                              'beamlineName': 'ID:TEST',
                              'timeStamp': datetime.datetime(2013, 6, 11, 9, 40, 36),
                              'comments': 'Session created by the BCM',
                              'sessionId': 34591,
-                             'proposalId': 1, 'nbShifts': 3}],
+                             'proposalId': 1, 'nbShifts': 3},
                 'Laboratory': {'laboratoryId': 1,
                                'name': 'TEST eh1'}}
 
