@@ -37,6 +37,9 @@ class SampleChangerMockup(SC3.SC3):
 
         pass
 
+    def hasLoadedSample(self):
+        return True
+
     def load_sample(self, holder_length, sample_location, wait):
         return
 
