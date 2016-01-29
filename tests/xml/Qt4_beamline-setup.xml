@@ -1,29 +1,25 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
+  <object href="/attenuators-mockup" role="transmission"/>
+  <object href="/energy-mockup" role="energy"/>
+  <object href="/attenuators-mockup" role="transmission"/>
+  <object href="/resolution-mockup" role="resolution"/>
+  <object href="/detector-mockup" role="detector"/>
+
+  <object href="/diff-omega-mockup" role="omega_axis"/>
+  <object href="/diff-kappa-mockup" role="kappa_axis"/>
+  <object href="/diff-kappaphi-mockup" role="kappa_phi_axis"/>
+
   <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
   <object href="/Qt4_graphics-manager" role="shape_history"/>
   <object href="/Qt4_mxcollect" role="collect"/>
 
-  <object href="/attenuators-mockup" role="transmission"/>
-  <object href="/beam-info" role="beam_info"/>
-
-  <object href="/sc-mockup" role="sample_changer_one"/>
-  <object href="/plate-manipulator" role="sample_changer_two"/>
-
   <object href="/sc-mockup" role="sample_changer"/>
-  <object href="/plate-manipulator" role="plate_manipulator"/>
+  <object href="/plate-manipulator" role="plate_manipulator"/> 
 
-  <object href="/energy-mockup" role="energy"/>
-  <object href="/resolution-mockup" role="resolution"/>
-  <object href="/diff-omega-mockup" role="omega_axis"/>
-  <object href="/diff-kappa-mockup" role="kappa_axis"/>
-  <object href="/diff-kappaphi-mockup" role="kappa_phi_axis"/>
-  <object href="/detector-mockup" role="detector"/>
   <object href="/session" role="session"/>
-
-  <!-- collection methods -->
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/energyscan-mockup" role="energyscan"/>
-  <object href="/xrf-spectrum-mockup" role="xrf"/>
+  <object href="/xrf-spectrum-mockup" role="xrf_spectrum"/>
   <object href="/data-analysis" role="data_analysis"/>
   <object href="/parallel-processing" role="parallel_processing"/>
 
