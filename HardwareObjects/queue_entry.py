@@ -552,7 +552,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
-            pos = shape_history.Point(None, cpos, None) #, True)
+            #pos = shape_history.Point(None, cpos, None) #, True)
 
         # Get tasks associated with this centring
         tasks = self.get_data_model().get_tasks()
