@@ -38,6 +38,28 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         self.emit("collectReady", (True, ))
 
     @task
+    def loop(self, owner, data_collect_parameters_list):
+        failed_msg = "Data collection failed!"
+        failed = True
+        collections_analyse_params = []
+        self.emit("collectReady", (False, ))
+        self.emit("collectStarted", (owner, 1))
+        
+        for data_collect_parameters in data_collect_parameters_list:
+            logging.debug("collect parameters = %r", data_collect_parameters)
+            failed = False
+       	    data_collect_parameters["status"]='Data collection successful'
+	    osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
+            self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
+            data_collect_parameters["status"]='Running'
+	    data_collect_parameters["status"]='Data collection successful'
+            self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], "12345", osc_id, data_collect_parameters))
+
+	self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
+	logging.getLogger('HWR').info("data collection successful in loop")
+        self.emit("collectReady", (True, ))
+
+    @task
     def take_crystal_snapshots(self, number_of_snapshots):
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 

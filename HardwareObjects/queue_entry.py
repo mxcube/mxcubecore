@@ -26,7 +26,6 @@ import logging
 import time
 import queue_model_objects_v1 as queue_model_objects
 import os
-import ShapeHistory as shape_history
 import autoprocessing
 
 #import edna_test_data
@@ -553,12 +552,12 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             # Create a centred postions of the current postion
             pos_dict = self.diffractometer_hwobj.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
-            pos = shape_history.Point(None, cpos, None) #, True)
+            #pos = shape_history.Point(None, cpos, None) #, True)
 
         # Get tasks associated with this centring
         tasks = self.get_data_model().get_tasks()
 
-        for task in tasks:
+        """for task in tasks:
             cpos = pos.get_centred_positions()[0]
 
             if pos.qub_point is not None:
@@ -568,7 +567,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
                 snapshot = self.shape_history.get_snapshot([])
 
             cpos.snapshot_image = snapshot 
-            task.set_centred_positions(cpos)
+            task.set_centred_positions(cpos)"""
 
         self.get_view().setText(1, 'Input accepted')
 
