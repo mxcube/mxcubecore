@@ -184,7 +184,7 @@ class MarvinSC(SampleChanger):
                     self._mounted_puck, self._mounted_sample)
                 self.emit("progressInit", (msg, 100))
 
-                if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+                if self.detector_distance_hwobj.getPosition() < 500.0:
                     logging.getLogger("user_level_log").info("Moving detector to save position")
                     self.detector_distance_hwobj.move(500, wait=True)
 
@@ -208,7 +208,7 @@ class MarvinSC(SampleChanger):
                     int(basket), int(sample))
             self.emit("progressInit", (msg, 100))
 
-            if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+            if self.detector_distance_hwobj.getPosition() < 500.0:
                 logging.getLogger("user_level_log").info("Moving detector to save position")
                 self.detector_distance_hwobj.move(500, wait=True)
 
@@ -226,7 +226,7 @@ class MarvinSC(SampleChanger):
                     self._mounted_puck, self._mounted_sample)
         self.emit("progressInit", (msg, 100))
 
-        if abs(self.detector_distance_hwobj.getPosition() - 500) > 1:
+        if self.detector_distance_hwobj.getPosition() < 500.0:
             logging.getLogger("user_level_log").info("Moving detector to save position")
             self.detector_distance_hwobj.move(500, wait=True)
 
