@@ -9,6 +9,10 @@ import datetime
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+# to simulate wrong loginID, use "wrong" for loginID
+# to simulate wrong psd, use "wrong" for password
+# to simulate ispybDown, but ldap login succeeds, use "ispybDown" for password
+# to simulate no session scheduled, use "nosession" for password
 
 class ISPyBClient2Mockup(HardwareObject):
     """
@@ -43,10 +47,16 @@ class ISPyBClient2Mockup(HardwareObject):
         # to simulate wrong psd
         if psd == "wrong":
 	    return {'status':{ "code": "error", "msg": "Wrong password!" }, 'Proposal': None, 'Session': None}
+        # to simulate ispybDown, but login succeed
+        if psd == "ispybDown":
+	    return {'status':{ "code": "ispybDown", "msg": "ispyb is down" }, 'Proposal': None, 'Session': None}
  
+        new_session = False
+        if psd == "nosession":
+	    new_session=True
         prop=self.get_proposal(loginID,"")
 	return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
-                 'session': prop['Session'],
+                 'session': {"session": prop['Session'],"new_session_flag":new_session, "is_inhouse": False},
                  'local_contact': "BL Scientist",
                  'person': prop['Person'],
                  'laboratory': prop['Laboratory']}
