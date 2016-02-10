@@ -295,7 +295,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except IndexError:
           undulators = []
 
-        self.setBeamlineConfiguration(directory_prefix = self.getProperty("directory_prefix"),
+        self.setBeamlineConfiguration(synchrotron_name = "ESRF",
+                                      directory_prefix = self.getProperty("directory_prefix"),
                                       default_exposure_time = self.bl_control.detector.getProperty("default_exposure_time"),
                                       minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
                                       detector_fileext = self.bl_control.detector.getProperty("file_suffix"),
