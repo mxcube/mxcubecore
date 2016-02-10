@@ -1,6 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractMCA import *
-from rontec_ctrl.rontec_ctrl import Rontec
+from bliss.controllers.rontec import Rontec
 
 class RontecMCA(AbstractMCA, HardwareObject):
     def __init__(self, name):
