@@ -32,6 +32,8 @@ from collections import namedtuple
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
 
+from BlissFramework.Utils import widget_colors
+
 
 status_list = ['SUCCESS','WARNING', 'FAILED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
@@ -723,6 +725,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
+        """
+        #To be discussed
+
         if self.enable_take_snapshots:
             self.take_snapshots()             
         if self.enable_store_in_lims:
@@ -731,6 +736,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Moving to centred position")
         centred_position = data_model.acquisitions[0].acquisition_parameters.centred_position
         self.diffractometer_hwobj.move_motors(centred_position.as_dict())
+        """
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -1559,7 +1565,7 @@ class AdvancedControlQueueEntry(BaseQueueEntry):
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
 
-def mount_sample(sample_changer_hwobj, beamline_setup_hwobj,
+def mount_sample(beamline_setup_hwobj,
                  view, data_model,
                  centring_done_cb, async_result):
     view.setText(1, "Loading sample")
@@ -1591,7 +1597,7 @@ def mount_sample(sample_changer_hwobj, beamline_setup_hwobj,
                 # if sample could not be loaded, but no exception is raised, let's skip the sample
                 raise QueueSkippEntryException("Sample changer could not load sample", "")
 
-    if not sample_changer_hwobj.hasLoadedSample():
+    if not sample_mount_device.hasLoadedSample():
         #Disables all related collections
         view.setOn(False)
         view.setText(1, "Sample not loaded")
