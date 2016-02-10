@@ -502,7 +502,6 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         log = logging.getLogger('queue_exec')
         sc_used = not self._data_model.free_pin_mode
-
  
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
@@ -625,8 +624,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
         if len(self.shape_history.get_selected_shapes()):
             pos = self.shape_history.get_selected_shapes()[0]
-        #elif len(self.shape_history.shapes):
-        #    pos = self.shape_history.shapes.values()[0]
         else:
             msg = "No centred position selected, using current position."
             log.info(msg)
