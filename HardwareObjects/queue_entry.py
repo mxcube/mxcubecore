@@ -547,7 +547,10 @@ class SampleQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
-        self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
+        try:
+            self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
+        except AttributeError:
+            self.plate_manipulator_hwobj = None
         self.shape_history = self.beamline_setup.shape_history_hwobj
 
     def post_execute(self):
