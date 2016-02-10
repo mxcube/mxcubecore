@@ -476,10 +476,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           i+=1
 
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
-        mosflm_directory = os.path.join(process_directory, mosflm_input_file_dirname)
 
         hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
-        hkl2000_directory = os.path.join(process_directory, hkl2000_dirname)
 
         self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
         self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
@@ -489,13 +487,11 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
           self.create_directories(dir)
           logging.info("Creating XDS processing input file directory: %s", dir)
           os.chmod(dir, 0777)
-        for dir in (self.mosflm_raw_data_input_file_dir, mosflm_directory):
-          self.create_directories(dir)
-          logging.info("Creating MOSFLM processing input file directory: %s", dir)
-          os.chmod(dir, 0777)
-        for dir in (self.raw_hkl2000_dir, hkl2000_directory):
-          self.create_directories(dir)
-          os.chmod(dir, 0777)
+
+        for dir in (self.mosflm_raw_data_input_file_dir, self.raw_hkl2000_dir):
+            self.create_directories(dir)
+            logging.info("Creating processing input file directory: %s", dir)
+            os.chmod(dir, 0777)
  
         try: 
           try: 
@@ -506,7 +502,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except:
             logging.exception("Could not create processing file directory")
 
-        return xds_directory, mosflm_directory, hkl2000_directory
+        return xds_directory, "", ""
 
 
     @task
