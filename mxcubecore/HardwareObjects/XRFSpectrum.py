@@ -336,6 +336,12 @@ class XRFSpectrum(Equipment):
         fluodet_ctrl =  self.getObjectByRole("fluodet_ctrl")
         fluodet_ctrl.actuatorIn()
 
+        #put the beamstop in
+        try:
+            self.ctrl_hwobj.diffractometer.set_phase("DataCollection", wait=True)
+        except Exception:
+            pass
+
         #open the safety and the fast shutter
         safshut.openShutter()
         init_transm = self.transmission_hwobj.getValue()
@@ -347,7 +353,14 @@ class XRFSpectrum(Equipment):
         return ret
 
     def _findAttenuation(self, ct):
-        tf = [0.1, 0.2, 0.3, 0.9, 1.3, 1.9, 2.6, 4.3, 6, 8, 12, 24, 36, 50, 71]
+        try:
+            tf = []
+            table = self.getProperty("transmission_table")
+            for i in table.split(","):
+                tf.append(float(i))
+        except:
+            tf = [0.1, 0.2, 0.3, 0.9, 1.3, 1.9, 2.6, 4.3, 6, 8, 12, 24, 36, 50]
+
         min_cnt = self.getProperty("min_cnt")
         max_cnt = self.getProperty("max_cnt")
         self.mca_hwobj.set_roi(2, 15, channel=1)
@@ -383,7 +396,6 @@ class XRFSpectrum(Equipment):
 
         self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
         self.ctrl_hwobj.diffractometer.msclose()
-
         if ic < min_cnt:
             logging.getLogger("user_level_log").exception('Could not find satisfactory attenuation (is the mca properly set up?), giving up.')
             return False
