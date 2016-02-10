@@ -1160,6 +1160,7 @@ class PathTemplate(object):
                                              *folders[3:])
         else:
             directory = self.directory[len(PathTemplate.base_directory):]
+            folders = directory.split('/')
             if 'visitor' in folders:
                 endstation_name = folders[3]
                 folders[1] = PathTemplate.archive_folder
@@ -1353,9 +1354,9 @@ class CentredPosition(object):
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
             self_pos = getattr(self, motor_name)
             cpos_pos = getattr(cpos, motor_name)
-            eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
             if None in (self_pos, cpos_pos):
-               continue 
+               continue
+            eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
         return all(eq)
 
     def __ne__(self, cpos):
