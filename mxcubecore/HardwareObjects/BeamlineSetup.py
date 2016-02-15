@@ -19,6 +19,10 @@ class BeamlineSetup(HardwareObject):
         """
         Framework 2 init, inherited from HardwareObject.
         """
+
+        self.sample_changer_hwobj = None
+        self.plate_manipulator_hwobj = None
+
         for role in self.getRoles():
             self._get_object_by_role(role)
 
@@ -344,7 +348,11 @@ class BeamlineSetup(HardwareObject):
         path_template.wedge_prefix = ''
         path_template.run_number = self[parent_key].getProperty('run_number')
         path_template.suffix = self.session_hwobj["file_info"].getProperty('file_suffix')
-        path_template.precision = '04'
+        try:
+           path_template.precision = str(self.session_hwobj["file_info"].getProperty('precision'))
+        except:
+           path_template.precision = '04'
+        
         path_template.start_num = int(self[parent_key].getProperty('start_image_number'))
         path_template.num_files = int(self[parent_key].getProperty('number_of_images'))
 

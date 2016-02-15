@@ -115,6 +115,13 @@ class ISPyBClient2(HardwareObject):
         self.__translations = {}
         self.__disabled = False
 
+        self.authServerType = None
+        self.loginType = None
+        self.loginTranslate = None
+
+        self.ws_username = None
+        self.ws_password = None
+
     def init(self):
         """
         Init method declared by HardwareObject.
@@ -185,7 +192,6 @@ class ISPyBClient2(HardwareObject):
                     self.__collection.set_options(cache=None)
                     self.__tools_ws.set_options(cache=None)
                     self.__autoproc_ws.set_options(cache=None)
-    
                 except URLError:
                     logging.getLogger("ispyb_client")\
                         .exception(_CONNECTION_ERROR_MSG)
@@ -534,7 +540,7 @@ class ISPyBClient2(HardwareObject):
 
     def _ispybLogin (self, loginID, psd):
         # to do, check how it is done in EMBL
-        return
+        return True, "True"
 
     def login (self,loginID, psd, ldap_connection=None):
         if ldap_connection is None:

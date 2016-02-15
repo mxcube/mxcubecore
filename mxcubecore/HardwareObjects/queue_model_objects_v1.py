@@ -7,40 +7,6 @@ import copy
 import os
 import queue_model_enumerables_v1 as queue_model_enumerables
 
-XTAL_SPACEGROUPS = ['', 'P1', 'P2 ', 'P21', 'C2', 'P222 ', 'P2221 ', 'P21212',
-                    'P212121', 'C222 ', 'C2221', 'F222', 'I222', 'I212121',
-                    'P4', 'P41', 'P42', 'P43', 'P422', 'P4212', 'P4122',
-                    'P41212', 'P4222', 'P42212', 'P4322', 'P43212', 'I4',
-                    'I41', 'I422', 'I4122', 'P3', 'P31', 'P32', 'P312',
-                    'P321', 'P3112', 'P3121', 'P3212', 'P3221', 'P6', 'P61',
-                    'P65', 'P62', 'P64', 'P63', 'P622', 'P6122', 'P6522',
-                    'P6222', 'P6422', 'P6322', 'R3', 'R32', 'P23', 'P213',
-                    'P432', 'P4232', 'P4332', 'P4132', 'F23', 'F432',
-                    'F4132', 'I23', 'I213', 'I432', 'I4132']
-
-ORIG_EDNA_SPACEGROUPS = {'I4132': '214', 'P21212': '18', 'P432': '207',
-                         'P43212': '96', 'P6222': '180', 'P3': '143',
-                         'C2': '5', 'P6422': '181', 'P212121': '19',
-                         'F432': '209', 'P4132': '213', 'R32': '155',
-                         'P23' : '195', 'I23': '197', 'I212121': '24',
-                         'P3112': '151', 'P1': '1', 'P42212': '94',
-                         'P321': '150', 'P63': '173', 'I422': '97',
-                         'P41': '76', 'P6122': '178', 'P65 ': '170',
-                         'I41': '80', 'P32 ': '145', 'I432 ': '211',
-                         'C222': '21', 'F4132': '210', 'F23 ': '196',
-                         'I222': '23', 'P42 ': '77', 'I213 ': '199',
-                         'P2': '3', 'R3 ': '146', 'P213 ': '198',
-                         'I4122': '98', 'P61': '169', 'P312 ': '149',
-                         'I4': '79', 'P64': '172', 'P222 ': '16',
-                         'P41212': '92', 'P3212 ': '153', 'P21': '4',
-                         'P6': '168', 'P4322 ': '95', 'C2221': '20',
-                         'P422': '89', 'F222': '22', 'P62 ': '171',
-                         'P6322': '182', 'P4 ': '75', 'P31 ': '144',
-                         'P3221': '154', 'P4122 ': '91', 'P6522 ': '179',
-                         'P4212': '90', 'P2221 ': '17', 'P622': '177',
-                         'P43': '78', 'P4222 ': '93', 'P3121 ': '152',
-                         'P4232': '208', 'P4332': '212'}
-
 class TaskNode(object):
     """
     Objects that inherit TaskNode can be added to and handled by
@@ -274,9 +240,17 @@ class Sample(TaskNode):
             return ''
 
     def init_from_sc_sample(self, sc_sample):
-        self.loc_str = ":".join(map(str,sc_sample[-1]))
-        self.location = sc_sample[-1]
-        self.set_name(self.loc_str)
+        #self.loc_str = ":".join(map(str,sc_sample[-1]))
+        #self.location = sc_sample[-1]
+        #self.set_name(self.loc_str)
+        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
+        self.location = (sc_sample[1], sc_sample[2])
+        if sc_sample[3] != "":
+            self.set_name(sc_sample[3])
+            self.location = (sc_sample[1], sc_sample[2], sc_sample[3])
+        else:
+            self.set_name(self.loc_str)
+
 
     def init_from_plate_sample(self, plate_sample):
         """
@@ -404,10 +378,10 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = self._basket_object.getCoords()
-            self.name = "%s %d" % (name, self.location[0])
-            if len(self.location) == 2:
-                self.name = "Cell %d, puck %d" % self.location
+            self.location = self._basket_object.getCoords()[0]
+            self.name = "%s %d" % (name, self.location)
+            #if len(self.location) == 2:
+            #    self.name = "Cell %d, puck %d" % self.location
 
     def get_name(self):
         return self.name
@@ -1445,7 +1419,9 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                           'archive_directory' : acquisition.\
                           path_template.get_archive_directory(),
                           'process_directory': acquisition.\
-                          path_template.process_directory},
+                          path_template.process_directory,
+                          'template': acquisition.\
+                          path_template.get_image_file_name()},
              'in_queue': acq_params.in_queue,
              'detector_mode': acq_params.detector_mode,
              'shutterless': acq_params.shutterless,

@@ -32,7 +32,7 @@ from collections import namedtuple
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
 
-from BlissFramework.Utils import widget_colors
+#from BlissFramework.Utils import widget_colors
 
 
 status_list = ['SUCCESS','WARNING', 'FAILED']
@@ -316,13 +316,17 @@ class BaseQueueEntry(QueueEntryContainer):
         view = self.get_view()
 
         if self.get_data_model().is_executed():
+            """
             if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
                 view.setBackgroundColor(widget_colors.LIGHT_GREEN)
             elif self.status == QUEUE_ENTRY_STATUS.WARNING:
                 view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
             elif self.status == QUEUE_ENTRY_STATUS.FAILED:
                 view.setBackgroundColor(widget_colors.LIGHT_RED)
+            """
+            view.set_background_color(self.status + 1)
         else:
+            view.set_background_color(0)
             view.setBackgroundColor(widget_colors.WHITE)
 
     def stop(self):
@@ -339,7 +343,8 @@ class BaseQueueEntry(QueueEntryContainer):
 
         if view and isinstance(ex, QueueExecutionException):
             if ex.origin is self:
-                view.setBackgroundColor(widget_colors.LIGHT_RED)
+                #view.setBackgroundColor(widget_colors.LIGHT_RED)
+                view.set_background_color(3)
 
     def __str__(self):
         s = '<%s object at %s> [' % (self.__class__.__name__, hex(id(self)))
@@ -545,7 +550,10 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
+        try:
+            self.sample_changer_hwobj = self.beamline_setup.sample_changer_hwobj
+        except AttributeError:
+            self.sample_changer_hwobj = None
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         try:
             self.plate_manipulator_hwobj = self.beamline_setup.plate_manipulator_hwobj
