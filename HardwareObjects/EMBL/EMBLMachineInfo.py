@@ -315,32 +315,19 @@ class EMBLMachineInfo(Equipment):
             
             time.sleep(sleep_time)	
 
-    def getCurrent(self):
+    def get_current(self):
         return self.values_dict['current']
  
-    def getMessage(self):
-        return self.values_dict['stateText']
-
-    def getFillMode(self):
-        return self.values_dict['stateText']
-
-
     def get_current_value(self):
         """
         Descript. :
         """     
         return self.values_dict['current']
 
-    def	get_state_text(self):
+    def	get_message(self):
         """
         Descript :
         """  
-        return self.values_dict['stateText']
-
-    def	getFillMode(self):
-        """
-        Descript. :
-        """
         return self.values_dict['stateText']
 
     def get_external_value(self, addr):
