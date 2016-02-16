@@ -1,5 +1,3 @@
-print 111
-
 import logging
 from AbstractMotor import AbstractMotor
 from HardwareRepository.BaseHardwareObjects import Device

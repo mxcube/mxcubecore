@@ -126,6 +126,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             return
         
         self.emit('centringAllowed', (False, ))
+        self.emit('queue_execute_started', (entry, ))
         self._current_queue_entries.append(entry)
 
         logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))

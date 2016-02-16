@@ -19,7 +19,7 @@ Exaplle xml file:
 </device>
 """
 
-class MicrodiffMotor(Device):      
+class MicrodiffMotor(AbstractMotor, Device):      
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
     EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
                                 "Fault": UNUSABLE,
