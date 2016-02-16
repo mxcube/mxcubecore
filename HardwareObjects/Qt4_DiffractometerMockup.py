@@ -27,7 +27,7 @@ import random
 
 try:
    import lucid2
-except
+except:
    pass
 
 import queue_model_objects_v1 as qmo
