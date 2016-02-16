@@ -13,35 +13,30 @@ class AbstractEnergyScan(object):
         self._egyscan_task = None
         self.scanning = False
 
-    @abc.abstractmethod
     def open_safety_shutter(self, timeout):
         """
         Open the safety shutter. Give a timeout [s] if needed.
         """
         pass
 
-    @abc.abstractmethod
     def close_safety_shutter(self, timeout):
         """
         Close the safety shutter. Give a timeout [s] if needed.
         """
         pass
 
-    @abc.abstractmethod
     def open_fast_shutter(self):
         """
         Open the fast shutter.
         """
         pass
 
-    @abc.abstractmethod
     def close_fast_shutter(self):
         """
         Close the fast shutter.
         """
         pass
 
-    @abc.abstractmethod
     def energy_scan_hook(self, energy_scan_parameters):
         """
         Execute actions, required before running the raw scan(like changing
@@ -50,7 +45,6 @@ class AbstractEnergyScan(object):
         """ 
         pass
 
-    @abc.abstractmethod
     def execute_energy_scan(self, energy_scan_parameters):
         """
         Execute the raw scan sequence. Here is where you pass whatever
@@ -59,7 +53,6 @@ class AbstractEnergyScan(object):
         """       
         pass
 
-    @abc.abstractmethod
     def get_static_parameters(self, config_file, element, edge):
         """
         Get any parameters, which are known before hand. Some of them are
@@ -79,7 +72,6 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     def set_mca_roi(self, eroi_min, eroi_max):
         """
         Configure the fluorescent detector ROI. The input is min/max energy.
@@ -101,14 +93,12 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     def escan_prepare(self):
         """
         Set the nesessary equipment in position for the scan. No need to know the c=scan paramets.
         """
         pass
 
-    @abc.abstractmethod
     def choose_attenuation(self, energy_scan_parameters):
         """
         Procedure to set the minimal attenuation in order no preserve
@@ -116,18 +106,15 @@ class AbstractEnergyScan(object):
         """
         pass
 
-    @abc.abstractmethod
     def move_energy(self, energy):
         """
         Move the monochromator to energy - used before and after the scan.
         """
         pass
 
-    @abc.abstractmethod
     def escan_cleanup(self):
         pass
 
-    @abc.abstractmethod
     def escan_postscan(self):
         """
         set the nesessary equipment in position after the scan
