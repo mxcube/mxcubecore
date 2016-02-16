@@ -77,6 +77,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.detector_hwobj = self.getObjectByRole("detector")
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
+        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
         undulators = []
         try:
@@ -153,8 +154,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         p = self.current_dc_parameters
      
-        print p
-        print self._actual_collect_status
         if self._actual_collect_status in ["ready", "unknown", "error"]:
             self.emit("progressInit", ("Data collection", 100))
             comment = 'Comment: %s' % str(p.get('comments', ""))
@@ -190,7 +189,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         else:
             self.emit_collection_failed()
 
-        print "done"
             
     def collect_status_update(self, status):
         """
@@ -233,8 +231,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
         self.current_dc_parameters["comments"] = "%s\n%s" %(failed_msg, self._error_msg) 
-        self.emit("collectOscillationFailed", (self.owner, False, failed_msg, \
-                                               self.collection_id, self.osc_id))
+        self.emit("collectOscillationFailed", (self.owner, False, 
+             failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
         self.emit("collectEnded", self.owner, failed_msg)
         self.emit("collectReady", (True, ))
         self._collecting = None
@@ -249,7 +247,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
         self.emit("collectOscillationFinished", (self.owner, True, 
-              success_msg, self.current_dc_parameters['collection_id'], 
+              success_msg, self.current_dc_parameters.get('collection_id'), 
               self.osc_id, self.current_dc_parameters))
         self.emit("collectEnded", self.owner, success_msg)
         self.emit("collectReady", (True, ))
@@ -344,9 +342,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         Descript. : 
         """
-        pass
-        #self.bl_control.diffractometer.take_snapshots(image_count, wait=True)
-    
+        self.graphics_manager_hwobj.take_scene_snapshots(filename)
 
     def set_energy(self, value):
         """

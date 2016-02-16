@@ -76,8 +76,6 @@ class AbstractCollect(object):
         self.sample_changer_hwobj = None
         self.transmission_hwobj = None
 
-        self.lims_enabled = True
-        self.snapshots_enabled = True
         self.ready_event = gevent.event.Event()
 
     def set_beamline_configuration(self, **configuration_parameters):
@@ -115,6 +113,7 @@ class AbstractCollect(object):
              time.strftime("%Y-%m-%d %H:%M:%S")
         self.current_dc_parameters["synchrotronMode"] = \
              self.get_machine_fill_mode()
+       
 
         self.store_data_collection_in_lims()
         self.create_file_directories()
@@ -131,9 +130,8 @@ class AbstractCollect(object):
  
         self.move_to_centered_position()
 
-        if self.snapshots_enabled:
-            self.take_crystal_snapshots()
-            self.move_to_centered_position()
+        self.take_crystal_snapshots()
+        self.move_to_centered_position()
 
         if "transmission" in self.current_dc_parameters:
             logging.getLogger("user_level_log").info(\
@@ -160,7 +158,7 @@ class AbstractCollect(object):
                self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
   
-        if self.lims_client_hwobj and self.lims_enabled:
+        if self.lims_client_hwobj:
             self.current_dc_parameters["flux"] = self.get_flux()
             self.current_dc_parameters["wavelength"] = self.get_wavelength()
             self.current_dc_parameters["detectorDistance"] =  self.get_detector_distance()
@@ -203,7 +201,7 @@ class AbstractCollect(object):
         exc_type, exc_value, exc_tb = sys.exc_info()
         failed_msg = 'Data collection failed!\n%s' % exc_value
         self.emit("collectOscillationFailed", (owner, False, failed_msg, 
-           self.current_dc_parameters['collection_id'], 1))
+           self.current_dc_parameters.get('collection_id'), 1))
 
     def stop_collect(self, owner):
         """
@@ -433,7 +431,7 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj and self.lims_enabled:
+        if self.lims_client_hwobj:
             logging.getLogger("user_level_log").info("Storing data collection in LIMS")
             try:
                 (collection_id, detector_id) = self.lims_client_hwobj.\
@@ -449,7 +447,7 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj and self.lims_enabled:
+        if self.lims_client_hwobj:
             logging.getLogger("user_level_log").info("Updating data collection in LIMS")
             try:
                 self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
@@ -460,14 +458,14 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj and self.lims_enabled:
+        if self.lims_client_hwobj:
             logging.getLogger("user_level_log").info("Storing sample info in LIMS")
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
         Descript. :
         """
-        if self.lims_client_hwobj and self.lims_enabled:
+        if self.lims_client_hwobj:
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters['fileinfo']['template']
             filename = image_file_template % frame_number
@@ -552,8 +550,11 @@ class AbstractCollect(object):
         """
         logging.getLogger("user_level_log").info("Moving to centred position") 
         positions_str = ""
-        positions_str += " ".join([motor+("=%f" % pos) for motor, pos in \
-            self.current_dc_parameters['motors'].iteritems()])
+        for motor, position in self.current_dc_parameters['motors'].iteritems():
+            if isinstance(motor, str):
+                positions_str += " %s=%f" % (motor, position)
+            else:
+                positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
         self.current_dc_parameters['actualCenteringPosition'] = positions_str
         self.move_motors(self.current_dc_parameters['motors'])
 
@@ -571,18 +572,30 @@ class AbstractCollect(object):
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
         if number_of_snapshots > 0:
-            logging.getLogger("user_level_log").info("Taking %d sample snapshost(s)" % \
-                 number_of_snapshots)
+            snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
+            if not os.path.exists(snapshot_directory):
+                try:
+                   logging.getLogger("user_level_log").info(\
+                        "Creating snapshots directory: %r", 
+                        snapshot_directory)
+                   self.create_directories(snapshot_directory)
+                except:
+                   logging.getLogger("HWR").exception("Error creating snapshot directory")
+
+            logging.getLogger("user_level_log").info(\
+                 "Taking %d sample snapshot(s)" % number_of_snapshots)
             for snapshot_index in range(number_of_snapshots):
                 snapshot_filename = os.path.join(\
-                    self.current_dc_parameters["fileinfo"]["archive_directory"],
-                    "%s_%s_%s.snapshot.jpeg" % (\
+                       snapshot_directory,
+                       "%s_%s_%s.snapshot.jpeg" % (\
                        self.current_dc_parameters["fileinfo"]["prefix"],
                        self.current_dc_parameters["fileinfo"]["run_number"],
-                       snapshot_index))
+                       (snapshot_index + 1)))
                 self.current_dc_parameters['xtalSnapshotFullPath%i' % \
-                    snapshot_index] = snapshot_filename
+                    (snapshot_index + 1)] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
+                if number_of_snapshots > 1:
+                    self.diffractometer_hwobj.move_omega_relative(90)
         
     @abc.abstractmethod
     @task
@@ -624,4 +637,7 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
+        pass
+
+    def setCentringStatus(self, status):
         pass
