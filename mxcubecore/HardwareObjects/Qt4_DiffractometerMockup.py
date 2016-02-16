@@ -25,7 +25,10 @@ import tempfile
 import gevent
 import random
 
-import lucid2
+try:
+   import lucid2
+except
+   pass
 
 import queue_model_objects_v1 as qmo
 

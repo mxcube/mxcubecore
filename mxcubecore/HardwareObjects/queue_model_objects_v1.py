@@ -1253,7 +1253,8 @@ class AcquisitionParameters(object):
         self.mesh_range = ()        
         self.mesh_snapshot = None
         self.comments = ""
-        self.in_queue = False 
+        self.in_queue = False
+        self.in_interleave = False
 
     def set_from_dict(self, params_dict):
         for key, value in params_dict.iteritems():
@@ -1423,6 +1424,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                           'template': acquisition.\
                           path_template.get_image_file_name()},
              'in_queue': acq_params.in_queue,
+             'in_interleave' : acq_params.in_interleave,
              'detector_mode': acq_params.detector_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,

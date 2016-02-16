@@ -327,7 +327,7 @@ class BaseQueueEntry(QueueEntryContainer):
             view.set_background_color(self.status + 1)
         else:
             view.set_background_color(0)
-            view.setBackgroundColor(widget_colors.WHITE)
+            #view.setBackgroundColor(widget_colors.WHITE)
 
     def stop(self):
         """
@@ -438,17 +438,20 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         for interleave_item in self.interleave_items:
             interleave_item["queue_entry"].set_enabled(False)
             interleave_item["tree_item"].set_checkable(False)
-            interleave_item["queue_entry"].take_snapshots()
-            interleave_item["queue_entry"].store_in_lims()
 
-            interleave_item["queue_entry"].enable_take_snapshots = False
-            interleave_item["queue_entry"].enable_store_in_lims = False
+            #Take snapshot and store in lims
+            #interleave_item["queue_entry"].take_snapshots()
+            #interleave_item["queue_entry"].store_in_lims()
+
+            # Disable snapshots and lims for subwedges
+            #interleave_item["queue_entry"].enable_take_snapshots = False
+            #interleave_item["queue_entry"].enable_store_in_lims = False
 
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(\
               self.interleave_items, ref_num_images, interleave_num_images)
         for item_index, item in enumerate(self.interleave_sw_list):
             if not self.interleave_stoped:
-                self.get_view().setText(1, "Interleaving %d:%d" \
+                self.get_view().setText(1, "Interleaving subwedge %d (total: %d)" \
                      % (item[0] + 1, item[1] + 1))
                 acq_par = self.interleave_items[item[0]]["data_model"].\
                    acquisitions[0].acquisition_parameters
@@ -733,19 +736,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             gid = data_model.get_parent().lims_group_id
             data_model.lims_group_id = gid
 
-        """
-        #To be discussed
-
-        if self.enable_take_snapshots:
-            self.take_snapshots()             
-        if self.enable_store_in_lims:
-            self.store_in_lims()   
-
-        logging.getLogger("user_level_log").info("Moving to centred position")
-        centred_position = data_model.acquisitions[0].acquisition_parameters.centred_position
-        self.diffractometer_hwobj.move_motors(centred_position.as_dict())
-        """
-
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
         qc = self.get_queue_controller()
@@ -900,38 +890,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
 
         raise QueueAbortedException('Queue stopped', self)
-
-
-    def take_snapshots(self):
-        acq_parameters = self.get_data_model().acquisitions[0].acquisition_parameters  
-        path_template = self.get_data_model().acquisitions[0].path_template
-
-        if acq_parameters.take_snapshots > 0:
-            logging.getLogger("user_level_log").info("Moving to centred position")
-            self.diffractometer_hwobj.move_motors(\
-                 acq_parameters.centred_position.as_dict())
-            logging.getLogger("user_level_log").info("Taking %d crystal snapshots" % \
-                 acq_parameters.take_snapshots)
-
-            if not os.path.exists(path_template.get_archive_directory()):
-                try:
-                   logging.getLogger("user_level_log").info(\
-                         "Creating snapshosts directory: %s" % \
-                         path_template.directory)
-                   os.makedirs(path_template.get_archive_directory()) 
-                except:
-                   logging.getLogger("HWR").exception("Error creating snapshot directory")
-
-            for snapshot_index in range(acq_parameters.take_snapshots):
-                snapshot_path = "%s/%s_%d_%d.snapshot.jpeg" % (\
-                   path_template.get_archive_directory(),
-                   path_template.get_prefix(),
-                   path_template.run_number,
-                   snapshot_index)                      
-                self.shape_history.take_scene_snapshots(snapshot_path)
-
-    def store_in_lims(self):
-        logging.getLogger("user_level_log").info("Storing data collection in Lims")
 
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
@@ -1305,7 +1263,8 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             self.xrf_spectrum_hwobj.ready_event.wait()
             self.xrf_spectrum_hwobj.ready_event.clear()
         else:
-            self.xrf_spectrum_failed ()
+            logging.getLogger("user_level_log").info("XRFSpectrum not defined in beamline setup")
+            self.xrf_spectrum_failed()
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
