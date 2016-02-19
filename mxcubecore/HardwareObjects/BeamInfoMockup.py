@@ -34,6 +34,7 @@ class BeamInfoMockup(Equipment):
         self.beam_info_dict = {}
 
     def init(self):
+        self.aperture_hwobj = self.getObjectByRole("aperture")
         self.emit("beamPositionChanged", (self.beam_position, ))
   
     def get_beam_position(self):
@@ -96,3 +97,7 @@ class BeamInfoMockup(Equipment):
 
     def get_beam_divergence_ver(self):
         return 0
+
+    def get_aperture_pos_name(self):
+        if self.aperture_hwobj:
+            return self.aperture_hwobj.get_current_pos_name()

@@ -342,7 +342,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         Descript. : 
         """
-        self.graphics_manager_hwobj.take_scene_snapshots(filename)
+        self.graphics_manager_hwobj.save_scene_snapshot(filename)
 
     def set_energy(self, value):
         """
