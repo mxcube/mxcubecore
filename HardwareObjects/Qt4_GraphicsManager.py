@@ -35,8 +35,10 @@ import tempfile
 import logging
 import numpy as np
 from scipy import ndimage
+from scipy.interpolate import splrep, sproot, splev
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
+from PyQt4 import QtCore
 
 try:
   import lucid2 as lucid
@@ -792,7 +794,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 selected_points.append(shape)
         return sorted(selected_points, key = lambda x : x.index, reverse = False)
 
-    def get_snapshot(self, shape=None, bw=None, return_as_array=None):
+    def get_scene_snapshot(self, shape=None, bw=None, return_as_array=None):
         """Takes a snapshot of the scene
 
         :param shape: shape that needs to be selected
@@ -818,16 +820,24 @@ class Qt4_GraphicsManager(HardwareObject):
         else:
             return image
 
-    def save_snapshot(self, file_name):
+    def save_scene_snapshot(self, filename):
         """Method to save snapshot
         
         :param file_name: file name
         :type file_name: str 
         """
 
-        logging.getLogger("user_level_log").info("Saving snapshot in %s" % file_name)
-        snapshot = self.get_snapshot()
-        snapshot.save(file_name)
+        logging.getLogger("user_level_log").debug("Saving scene snapshot: %s" % filename)
+        snapshot = self.get_scene_snapshot()
+        snapshot.save(filename)
+
+    def get_raw_snapshot(self, bw=False, return_as_array=False):
+        return self.camera_hwobj.get_frame(bw, return_as_array)
+
+    def save_raw_snapshot(self, filename, bw=False, image_type='PNG'):
+        logging.getLogger("user_level_log").debug("Saving raw snapshot: %s" % filename)
+        raw_snapshot = self.camera_hwobj.get_frame(bw)
+        raw_snapshot.save(filename, image_type)
 
     def start_measure_distance(self, wait_click=False):
         """Distance measuring method
@@ -837,7 +847,6 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """ 
 
-        self.camera_hwobj.save_snapshot("/tmp/test_01.png")
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         if wait_click:
             logging.getLogger("user_level_log").info("Click to start " + \
@@ -1110,6 +1119,9 @@ class Qt4_GraphicsManager(HardwareObject):
         return auto_grid
 
     def update_grid_motor_positions(self, grid_object):
+        """Updates grid corner positions
+        """
+       
         grid_center_x, grid_center_y = grid_object.get_center_coord()
         motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(\
             grid_center_x, grid_center_y, return_by_names=True)
@@ -1214,20 +1226,34 @@ class Qt4_GraphicsManager(HardwareObject):
                 item.set_display_beam_shape(display_state)
                 self.graphics_view.graphics_scene.update()
 
-    def detect_shape_coord(self):
-        snapshot = self.camera_hwobj.get_frame(bw=True, return_as_array=False)
-        snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
-        snapshot.save(snapshot_filename)
-        info, x, y = lucid.find_loop(snapshot_filename)
-        surface_info = self.get_surface_info(self.camera_hwobj.get_frame(\
-              bw=True, return_as_array=True))
-        return ((50, 50), (400, 400))
-
-    def get_surface_info(self, image_array):
+    def move_beam_mark_auto(self):
+        """Automatic procedure detects beam positions and updates
+           beam info.
         """
+ 
+        beam_shape_dict = self.detect_object_shape()
+        print beam_shape_dict
+        self.beam_info_hwobj.set_beam_position(\
+             beam_shape_dict["center"][0],
+             beam_shape_dict["center"][1])
+
+    def detect_object_shape(self):
+        """Method used to detect a shape on the image.
+           It is used to detect beam shape and loop       
+        returns: dictionary with parameters:
+                 - center: list with center coordinates
+                 - width: estimated beam width
+                 - height: estimated beam height 
+        """
+
+        object_shape_dict = {}
+        image_array = self.camera_hwobj.get_frame(bw=True, return_as_array=True)        
+        image_array[image_array < 120] = 0
+        image_array[image_array > 120] = 1
+
         hor_sum = image_array.sum(axis=0)
         ver_sum = image_array.sum(axis=1)
-       
+
         half_max = hor_sum.max() / 2.0
         s = splrep(np.linspace(0, hor_sum.size, hor_sum.size), hor_sum - half_max)
         hor_roots = sproot(s)
@@ -1235,23 +1261,18 @@ class Qt4_GraphicsManager(HardwareObject):
         half_max = ver_sum.max() / 2.0
         s = splrep(np.linspace(0, ver_sum.size, ver_sum.size), ver_sum - half_max)
         ver_roots = sproot(s)
-        """
-        return
+
+        if len(hor_roots) and len(ver_roots):
+            object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
+            object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
+
+        image_array = np.transpose(image_array)
+        object_shape_dict["center"] = ndimage.measurements.center_of_mass(image_array)
+                
+        return object_shape_dict 
 
     def display_grid(self, state):
         self.graphics_scale_item.set_display_grid(state) 
-
-    def take_scene_snapshots(self, filename, cpos=None):
-        logging.getLogger("HWR").debug("Saving scene snapshot: %s" % filename)
-        snapshot = self.get_snapshot(cpos)
-        snapshot.save(filename)
-
-    def display_radiation_damage(self, state):
-        test = "Radiation dose per sample: "
-        if state:
-            self.graphics_scale_item.set_radiation_dose_info(test)
-        else:
-            self.graphics_scale_item.set_radiation_dose_info(None)
 
     def create_automatic_line(self):
         pass 
