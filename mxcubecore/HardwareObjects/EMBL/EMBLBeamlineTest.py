@@ -45,10 +45,9 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 TEST_DICT = {"com": "Communication with beamline devices",
              "ppu": "PPU control",
-             "profile" : "Beam profile",
              "focus": "Focusing modes",
-             "slits": "Slits",
              "aperture": "Aperture",
+             "alignbeam": "Align beam position",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure"}
 
@@ -92,7 +91,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.beamline_setup_hwobj = None
         self.beam_focus_hwobj = None
         self.ppu_control_hwobj = None
-        self.diffractometer_hwobj = None
+        self.graphics_manager_hwobj = None
         self.test_directory = None
 
     def init(self):
@@ -101,33 +100,35 @@ class EMBLBeamlineTest(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
+        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
-        if self.beamline_setup_hwobj:
-            self.beam_focus_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.beam_definer_hwobj
-            if self.beam_focus_hwobj is not None:
-                self.connect(self.beam_focus_hwobj, "definerPosChanged", self.focus_mode_changed)
-            else:
-                logging.getLogger("HWR").debug('BeamlineTest: Beam focusing hwobj is not defined')
+        try:
+           self.beam_focus_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.beam_definer_hwobj
+           self.connect(self.beam_focus_hwobj, "definerPosChanged", self.focus_mode_changed)
+        except:
+           logging.getLogger("HWR").warning('BeamlineTest: Beam focusing hwobj is not defined')
 
-            self.ppu_hwobj = self.beamline_setup_hwobj.ppu_control_hwobj
-            if self.ppu_hwobj is not None:
-                self.connect(self.ppu_hwobj, "ppuStatusChanged", self.ppu_status_changed)
-            else:
-                logging.getLogger("HWR").debug("BeamlineTest: PPU control hwobj is not defined")
+        try:  
+           self.ppu_hwobj = self.beamline_setup_hwobj.ppu_control_hwobj
+           self.connect(self.ppu_hwobj, "ppuStatusChanged", self.ppu_status_changed)
+        except:
+           logging.getLogger("HWR").debug("BeamlineTest: PPU control hwobj is not defined")
 
-            self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
-            self.beamline_name = self.beamline_setup_hwobj.session_hwobj.beamline_name 
-         
+        self.beamline_name = self.beamline_setup_hwobj.session_hwobj.beamline_name 
+        
         self.csv_file_name = self.getProperty('defaultCsvFileName')
         self.init_device_list()
 
         try:
             self.test_list = eval(self.getProperty('testList'))
         except:
-            logging.getLogger("HWR").warning('BeamTest: Test list not defined.')            
-        self.test_directory = str(self.getProperty("resultsDir"))
-        if not self.test_directory:
-            logging.getLogger("HWR").warning('BeamTest: Test director not defined.') 
+            logging.getLogger("HWR").debug('BeamlineTest: Test list not defined.')            
+
+        self.test_directory = self.getProperty("resultsDir")
+        if self.test_directory is None:
+            self.test_directory = "/tmp/mxcube"
+            logging.getLogger("HWR").debug("BeamlineTest: Test director not " + \
+                "defined. Set to: %s" % self.test_directory)
 
     def start_test_queue(self, test_list):
         """
@@ -169,10 +170,11 @@ class EMBLBeamlineTest(HardwareObject):
                         self.results_html_list.append("<h3>Detailed results:</h3>")
                         self.results_html_list.extend(test_result["result_details"])
             else:
-                 msg = "<h2><font color=%s>Execution method " + \
-                       "for test with name %s does not exist</font></h3>"
-                 self.results_html_list.append(msg %(TEST_COLORS_FONT[False], test_method_name))
-                 logging.getLogger("HWR").error("BeamTest: Test function %s not available" % test_method_name)
+                 msg = "<h2><font color=%s>Execution method %s " + \
+                       "for the test %s does not exist</font></h3>"
+                 self.results_html_list.append(msg %(TEST_COLORS_FONT[False], 
+                      test_method_name, TEST_DICT[test_name]))
+                 logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
             self.results_html_list.append("</p>\n<hr>")
 
         html_filename = os.path.join(self.test_directory, "mxcube_test_report.html") 
@@ -295,6 +297,8 @@ class EMBLBeamlineTest(HardwareObject):
                               "<th>Details</th></tr>")
         failed_count = 0
         for row, device in enumerate(self.devices_list):
+            msg = "Pinging %s at %s" % (device[0], device[1])
+            logging.getLogger("HWR").debug("BeamlineTest: %s" % msg)
             try:
                 ping_result = os.system("ping -W 2 -c 2 " + device[1]) == 0
                 device_result = "<tr bgcolor=%s><td>%s</td>" %  (TEST_COLORS_TABLE[ping_result], ping_result)
@@ -306,7 +310,9 @@ class EMBLBeamlineTest(HardwareObject):
                 ping_result = False
             if not ping_result:
                 failed_count += 1
-            self.emit("deviceCommunicationTested", (row, ping_result))
+            progress_info = {"progress_total": len(self.devices_list),
+                             "progress_msg": msg}
+            self.emit("testProgress", (row, progress_info))
         result_details.append("</table>")
 
         if failed_count == 0:
@@ -330,7 +336,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.ready_event.set()
         return result
 
-    def test_profile(self):
+    def test_aperture(self):
         """
         Descript. : Test to evaluate beam shape with image processing
                     Depending on the parameters apertures, slits and 
@@ -339,37 +345,52 @@ class EMBLBeamlineTest(HardwareObject):
         result = {}
         result["result_bit"] = False
         result["result_details"] = [] 
+        result["result_short"] = "Test started"
 
-        if self.diffractometer_hwobj:
-            #got to centring phase
+        #got to centring phase
 
-            #check apertures
-            table_header = "<table border='1'>\n<tr>" 
-            table_values = "<tr>"
+        #check apertures
+        table_header = "<table border='1'>\n<tr>" 
+        table_values = "<tr>"
+        table_result = "<tr>"
 
-            aperture_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.aperture_hwobj 
-            aperture_list = aperture_hwobj.get_aperture_list(as_origin=True)
-            for index, value in enumerate(aperture_list):
-                table_header += "<th>%s</th>" % value 
-                aperture_hwobj.set_active_position(index)
-                gevent.sleep(1)
-                beam_image_filename = os.path.join(self.test_directory, 
-                     "aperture_%s.png" % value)
-                table_values += "<td><img src=%s style=width:300px;></td>" % beam_image_filename 
-                last_frame = self.diffractometer_hwobj.get_last_video_frame()
-                #imsave(beam_image_filename, last_frame)
-                last_frame.save(beam_image_filename, 'PNG')
-            table_header += "</tr>"
-            table_values += "</tr>"
+        aperture_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.aperture_hwobj 
+        aperture_list = aperture_hwobj.get_aperture_list(as_origin=True)
+        for index, value in enumerate(aperture_list):
+            msg = "Selecting aperture %s " % value
+            table_header += "<th>%s</th>" % value 
+            aperture_hwobj.set_active_position(index)
+            gevent.sleep(1)
+            beam_image_filename = os.path.join(self.test_directory, 
+                 "aperture_%s.png" % value)
+            table_values += "<td><img src=%s style=width:300px;></td>" % beam_image_filename 
+            self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
+            progress_info = {"progress_total": len(aperture_list),
+                             "progress_msg": msg}
+            self.emit("testProgress", (index, progress_info))
+        table_header += "</tr>"
+        table_values += "</tr>"
 
-            result["result_details"].append(table_header)
-            result["result_details"].append(table_values)
-            result["result_bit"] = True
-            result["result_short"] = "Test passed"
-        else:
-            result["result_short"] = "Test failed (diffractometer hwobj not define)." 
+        result["result_details"].append(table_header)
+        result["result_details"].append(table_values)
+        result["result_details"].append(table_result)
+        result["result_details"].append("</table>")
+        result["result_bit"] = True
+        result["result_short"] = "Test finished"
         self.ready_event.set()
         return result
+
+    def test_alignbeam(self):
+        result = {}
+        result["result_bit"] = False
+        result["result_details"] = []
+        result["result_short"] = "Test started"
+        result["result_details"].append("Beam shape before alignment<br>")
+
+        result["result_details"].append("Beam shape after alignment<br>") 
+
+        self.ready_event.set()
+        return result 
         
     def stop_comm_process(self):
         """

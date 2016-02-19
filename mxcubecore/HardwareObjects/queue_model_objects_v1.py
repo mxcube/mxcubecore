@@ -5,6 +5,7 @@ the QueueModel.
 """
 import copy
 import os
+import logging
 import queue_model_enumerables_v1 as queue_model_enumerables
 
 class TaskNode(object):

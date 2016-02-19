@@ -28,19 +28,20 @@ class BeamInfoMockup(Equipment):
         Equipment.__init__(self, *args)
 
         self.beam_size_slits = [9999, 9999]
-        self.beam_size_aperture = [9999, 9999]
+        self.beam_size_aperture = [0.01, 0.01]
         self.beam_size_definer = [9999, 9999]
 	self.beam_position = [300, 300]
         self.beam_info_dict = {}
 
     def init(self):
-        pass
+        self.emit("beamPositionChanged", (self.beam_position, ))
   
     def get_beam_position(self):
 	return self.beam_position	
 
     def set_beam_position(self, beam_x, beam_y):
 	self.beam_position = [beam_x, beam_y]
+        self.emit("beamPositionChanged", (self.beam_position, ))
 
     def get_beam_info(self):
         return self.evaluate_beam_info()
@@ -89,3 +90,9 @@ class BeamInfoMockup(Equipment):
 	    self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"],\
 					   self.beam_info_dict["size_y"]), ))
             self.emit("beamInfoChanged", (self.beam_info_dict, ))
+
+    def get_beam_divergence_hor(self):
+        return 0
+
+    def get_beam_divergence_ver(self):
+        return 0
