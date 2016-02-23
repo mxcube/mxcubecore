@@ -71,6 +71,23 @@ class QueueEntryContainer(object):
         self._queue_controller = None
         self._parent_container = None
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        print "asdjh,fgadskj fgsadjfkgasdkjfhas b"
+        print id(self._parent_container), id(self)
+        if id(self._parent_container) == id(self):
+            d["_parent_container"] = "self"
+        d["_queue_controller"] = self._queue_controller.name() if self._queue_controller else None
+
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+        if  d["_parent_container"] == "self":
+            self._parent_container = self
+        self._queue_controller = HardwareRepository.HardwareRepository().getHardwareObject(d["_queue_controller"]) if d["_queue_controller"] else None
+
+
     def enqueue(self, queue_entry, queue_controller=None):
         # A queue entry container has a QueueController object
         # which controls the execution of the tasks in the
@@ -205,6 +222,12 @@ class BaseQueueEntry(QueueEntryContainer):
         self.beamline_setup = None
         self._execution_failed = False
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
+
+    # def __getstate__(self):
+    #     return QueueEntryContainer.__getstate__(self)
+    
+    # def __setstate__(self, d):
+    #     return QueueEntryContainer.__setstate__(self, d)
 
     def enqueue(self, queue_entry):
         """
@@ -715,6 +738,31 @@ class DataCollectionQueueEntry(BaseQueueEntry):
  
     def __setstate__(self, d):
         self.__dict__.update(d)
+
+
+    def __getstate__(self):
+        d = BaseQueueEntry.__getstate__(self)
+        print "get state"
+
+        d["collect_hwobj"] = self.collect_hwobj.name() if self.collect_hwobj else None
+        d["diffractometer_hwobj"] = self.diffractometer_hwobj.name() if self.diffractometer_hwobj else None
+        d["collect_task"] = None
+        d["centring_task"] = None
+        d["shape_history"] = self.shape_history.name() if self.shape_history else None
+        d["session"] = self.session.name() if self.session else None
+        d["lims_client_hwobj"] = self.lims_client_hwobj.name() if self.lims_client_hwobj else None
+        print d
+        return d
+ 
+    def __setstate__(self, d):
+        BaseQueueEntry.__setstate__(self, d)
+
+        print "set state"
+        self.collect_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["collect_hwobj"]) if d["collect_hwobj"] else None
+        self.diffractometer_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["diffractometer_hwobj"]) if d["diffractometer_hwobj"] else None
+        self.shape_history = HardwareRepository.HardwareRepository().getHardwareObject(d["shape_history"]) if d["shape_history"] else None
+        self.session = HardwareRepository.HardwareRepository().getHardwareObject(d["session"]) if d["session"]  else None
+        self.lims_client_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["lims_client_hwobj"]) if d["lims_client_hwobj"] else None
 
     def execute(self):
         BaseQueueEntry.execute(self)
