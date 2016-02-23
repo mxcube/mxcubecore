@@ -50,10 +50,6 @@ class HardwareObjectNode:
         self.__references = []
  
 
-    def __setstate__(self, dict):
-        self.__dict__.update(dict)
-    
-    
     def name(self):
         return self.__name
     
@@ -293,6 +289,14 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         #'public' post-initialization method
         pass
 
+
+    def __getstate__(self):
+        return self.name()
+
+    def __setstate__(self, name):
+        o = HardwareRepository.HardwareRepository().getHardwareObject(name)
+        self.__dict__.update(o.__dict__)
+       
     
     def __nonzero__(self):
         return True
