@@ -52,6 +52,16 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._disable_collect = False
         self._is_stopped = False
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d['_root_task'] = None
+        d['_paused_event'] = None  
+        return d      
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+        self._paused_event = gevent.event.Event()
+
     def enqueue(self, queue_entry):
         """
         Method inherited from QueueEntryContainer, enqueues the QueueEntry
