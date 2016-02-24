@@ -51,7 +51,7 @@ class ISPyBClient2Mockup(HardwareObject):
                              'number': '000',
                              'proposalId': 1,
                              'type': 'MX'},
-                'Sessions': [{'scheduled': 0,
+                'Session': [{'scheduled': 0,
                              'startDate': '2013-06-11 00:00:00',
                              'endDate': '2013-06-12 07:59:59',
                              'beamlineName': 'ID:TEST',

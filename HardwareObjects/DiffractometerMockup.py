@@ -94,7 +94,7 @@ class DiffractometerMockup(Equipment):
         self.current_positions_dict = None
         self.current_phase = None
         self.centring_methods = None
-        self.centring_status = None
+        self.centring_status = {"valid":None,"startTime":None,"endTime":None,"motors":None,"accepted":None,"method":None,"images":None}
         self.centring_time = None
         self.user_confirms_centring = None
         self.user_clicked_event = None
@@ -115,6 +115,8 @@ class DiffractometerMockup(Equipment):
         self.moveMotors = self.move_motors
         self.start3ClickCentring = self.start_3Click_centring
         self.startAutoCentring = self.start_automatic_centring
+     
+        self.centringStatus = self.centring_status
 
     def init(self):
         """
@@ -136,6 +138,7 @@ class DiffractometerMockup(Equipment):
                                        'focus' : 0, 'kappa': 0, 'kappa_phi': 0,
                                        'beam_x': 0, 'beam_y': 0} 
         self.centring_status = {"valid": False}
+
         self.centring_time = 0
         self.user_confirms_centring = True
         self.fast_shutter_is_open = False
@@ -152,6 +155,8 @@ class DiffractometerMockup(Equipment):
         self.sampleYMotor = self.getDeviceByRole('sampy')
         self.camera_hwobj = self.getDeviceByRole('camera')
         self.beam_info_hwobj = self.getObjectByRole('beam_info')
+        self.camera = self.camera_hwobj
+        self.beam_info = self.beam_info_hwobj
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, 'stateChanged', self.phiMotorStateChanged)
@@ -261,6 +266,15 @@ class DiffractometerMockup(Equipment):
         Descript. :
         """
         return "ready"
+
+    def saveCurrentPos(self):
+        random_num = random.random()
+        centred_pos_dir = {'phiy': random_num, 'phiz': random_num * 2,
+                           'sampx': random_num * 3, 'sampy': random_num * 4,
+                           'zoom': 8.53, 'phi': 311.1, 'focus': -0.42,
+                           'kappa': 0.0, 'kappa_phi': 0.0}
+        self.centring_status["motors"] = centred_pos_dir
+        self.acceptCentring()
 
     def manual_centring(self):
         """
