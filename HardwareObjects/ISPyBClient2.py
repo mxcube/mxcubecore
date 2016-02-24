@@ -1557,7 +1557,7 @@ class ISPyBClient2(HardwareObject):
                     res_proposal.append({'Proposal': proposal,
                                          'Person': utf_encode(asdict(person)),
                                          'Laboratory': utf_encode(asdict(lab)),
-                                         'Sessions' : sessions})
+                                         'Session' : sessions})
             else:
                 logging.getLogger("ispyb_client").\
                    warning("No proposals for user %s found" %user_name)
