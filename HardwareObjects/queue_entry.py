@@ -75,13 +75,6 @@ class QueueEntryContainer(object):
         self._queue_controller = None
         self._parent_container = None
 
-    def __getstate__(self):
-        d = dict(self.__dict__)
-        return d
- 
-    def __setstate__(self, d):
-        self.__dict__.update(d)
-
     def enqueue(self, queue_entry, queue_controller=None):
         # A queue entry container has a QueueController object
         # which controls the execution of the tasks in the
@@ -515,10 +508,12 @@ class SampleQueueEntry(BaseQueueEntry):
         self.sample_centring_result = None
 
     def __getstate__(self):
-        d = BaseQueueEntry.__getstate__(self)
+        d = dict(self.__dict__)
         d["sample_centring_result"] = None
         return d
  
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -738,11 +733,14 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
 
     def __getstate__(self):
-        d = BaseQueueEntry.__getstate__(self)
+        d = dict(self.__dict__)
         d["collect_task"] = None
         d["centring_task"] = None
         return d
  
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
