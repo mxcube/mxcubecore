@@ -35,7 +35,11 @@ from collections import namedtuple
 from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
 from queue_model_enumerables_v1 import CENTRING_METHOD
 from queue_model_enumerables_v1 import EXPERIMENT_TYPE
-#from BlissFramework.Utils import widget_colors
+from HardwareRepository.BaseHardwareObjects import Null as Mock
+try:
+    from BlissFramework.Utils import widget_colors
+except ImportError:
+    widget_colors = Mock()
 from HardwareRepository.HardwareRepository import dispatcher
 import HardwareRepository
 
