@@ -1,6 +1,6 @@
 """
-Containes the classes:
-* QueueuEntryContainer
+Contains following classes:
+* QueueEntryContainer
 * BaseQueueEntry
 * DummyQueueEntry
 * TaskGroupQueueEntry
