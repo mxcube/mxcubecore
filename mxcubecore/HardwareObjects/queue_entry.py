@@ -32,9 +32,6 @@ from collections import namedtuple
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
 
-#from BlissFramework.Utils import widget_colors
-
-
 status_list = ['SUCCESS','WARNING', 'FAILED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
 QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,)
@@ -506,6 +503,14 @@ class SampleQueueEntry(BaseQueueEntry):
         self.plate_manipulator_hwobj = None
         self.sample_centring_result = None
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["sample_centring_result"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger('queue_exec')
@@ -618,6 +623,14 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.shape_history = None
         self.move_kappa_phi_task = None
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["move_kappa_phi_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def execute(self):
         BaseQueueEntry.execute(self)
 
@@ -690,9 +703,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.shape_history = None
         self.session = None
         self.lims_client_hwobj = None
-
         self.enable_take_snapshots = True
         self.enable_store_in_lims = True
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["collect_task"] = None
+        d["centring_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -954,6 +975,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.edna_result = None
 
+        
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger("user_level_log")
@@ -1072,6 +1094,15 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.energy_scan_task = None
         self._failed = False
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["energy_scan_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -1236,6 +1267,14 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         self.xrf_spectrum_hwobj = None
         self.session_hwobj = None
         self._failed = False
+  
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["xrf_spectrum_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     def execute(self):
         BaseQueueEntry.execute(self)
