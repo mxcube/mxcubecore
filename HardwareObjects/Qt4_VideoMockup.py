@@ -94,34 +94,25 @@ class Qt4_VideoMockup(Device):
             self.emit("imageReceived", self.image)
             gevent.sleep(sleep_time)
 
-    def get_frame(self, bw=None, return_as_array=None):
+    def save_snapshot(self, filename, image_type='PNG'):
+        qimage = QtGui.QImage(self.image)
+        qimage.save(filename, image_type)
+
+    def get_snapshot(self, bw=None, return_as_array=None):
         qimage = QtGui.QImage(self.image)
         if return_as_array:
-            result_shape = (qimage.height(), qimage.width())
-            temp_shape = (qimage.height(), qimage.bytesPerLine() * 8 / qimage.depth())
-            if qimage.format() in (QtGui.QImage.Format_ARGB32_Premultiplied,
-                                   QtGui.QImage.Format_ARGB32,
-                                   QtGui.QImage.Format_RGB32):
-               dtype = np.uint8
-               result_shape += (4, )
-               temp_shape += (4, )
-            elif qimage.format() == QtGui.QImage.Format_Indexed8:
-               dtype = np.uint8
-            else:
-               raise ValueError("qimage2numpy only supports 32bit and 8bit images")
-	    buf = qimage.bits().asstring(qimage.numBytes())
-            result = np.frombuffer(buf, dtype).reshape(temp_shape)
-            if result_shape != temp_shape:
-                result = result[:,:result_shape[1]]
-            if qimage.format() == QtGui.QImage.Format_RGB32 and dtype == np.uint8:
-                result = result[...,:3]
+            qimage = qimage.convertToFormat(4)
+            ptr = qimage.bits()
+            ptr.setsize(qimage.byteCount())
+
+            image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
             if bw:
-                return np.dot(result[...,:3], [0.299, 0.587, 0.144]) 
+                return np.dot(image_array[...,:3], [0.299, 0.587, 0.144])
             else:
-                return result
+                return image_array
         else:
             if bw:
-                return qimage.convertToFormat(QtGui.QImage.Format_Mono) 
+                return qimage.convertToFormat(QtGui.QImage.Format_Mono)
             else:
                 return qimage
 

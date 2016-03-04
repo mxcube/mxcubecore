@@ -71,6 +71,9 @@ class GraphicsItem(QtGui.QGraphicsItem):
         self.pixels_per_mm = [0, 0]
         self.start_coord = [0, 0]
         self.end_coord = [0, 0]
+        self.beam_size_microns = [0, 0]
+        self.beam_size_pix = [0, 0]
+        self.beam_is_rectangle = False
         self.rect = QtCore.QRectF(0, 0, 0, 0)
         self.display_beam_shape = None
 
@@ -160,8 +163,17 @@ class GraphicsItem(QtGui.QGraphicsItem):
         self.setSelected(not self.isSelected()) 
         self.update()
 
-    def set_display_beam_shape(self, display_state):
-        self.display_beam_shape = display_state
+    def set_beam_info(self, beam_info):
+        self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
+        self.beam_size_microns[0] = beam_info.get("size_x", 0)
+        self.beam_size_microns[1] = beam_info.get("size_y", 0) 
+        self.beam_size_pix[0] = self.beam_size_microns[0] * self.pixels_per_mm[0]
+        self.beam_size_pix[1] = self.beam_size_microns[1] * self.pixels_per_mm[1]
+
+    def set_pixels_per_mm(self, pixels_per_mm):
+        self.pixels_per_mm = pixels_per_mm
+        self.beam_size_pix[0] = self.beam_size_microns[0] * self.pixels_per_mm[0]
+        self.beam_size_pix[1] = self.beam_size_microns[1] * self.pixels_per_mm[1]
 
 class GraphicsItemBeam(GraphicsItem):
     """
@@ -169,42 +181,27 @@ class GraphicsItemBeam(GraphicsItem):
     """
     def __init__(self, parent, position_x = 0, position_y= 0):
         GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
-        self.__shape_is_rectangle = True
-        self.__size_microns = [0, 0]
-        self.__size_pix = [0, 0]
+        self.beam_is_rectangle = True
         self.start_coord = [position_x, position_y]
         self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
         
     def paint(self, painter, option, widget):
         self.custom_pen.setColor(QtCore.Qt.blue)
         painter.setPen(self.custom_pen)
-        if self.__shape_is_rectangle:
-            painter.drawRect(self.start_coord[0] - self.__size_pix[0] / 2, 
-                             self.start_coord[1] - self.__size_pix[1] / 2,
-                             self.__size_pix[0], self.__size_pix[1])
+        if self.beam_is_rectangle:
+            painter.drawRect(self.start_coord[0] - self.beam_size_pix[0] / 2, 
+                             self.start_coord[1] - self.beam_size_pix[1] / 2,
+                             self.beam_size_pix[0], self.beam_size_pix[1])
         else:
-            painter.drawEllipse(self.start_coord[0] - self.__size_pix[0] / 2, 
-                                self.start_coord[1] - self.__size_pix[1] / 2,
-                                self.__size_pix[0], self.__size_pix[1])
+            painter.drawEllipse(self.start_coord[0] - self.beam_size_pix[0] / 2, 
+                                self.start_coord[1] - self.beam_size_pix[1] / 2,
+                                self.beam_size_pix[0], self.beam_size_pix[1])
         self.custom_pen.setColor(QtCore.Qt.red) 
         painter.setPen(self.custom_pen)
         painter.drawLine(self.start_coord[0] - 10, self.start_coord[1],
                          self.start_coord[0] + 10, self.start_coord[1]) 
         painter.drawLine(self.start_coord[0], self.start_coord[1] - 10,
                          self.start_coord[0], self.start_coord[1] + 10) 
-
-    def set_beam_info(self, beam_info_dict):
-        self.__shape_is_rectangle = beam_info_dict.get("shape") == "rectangular"
-        self.__size_microns[0] = beam_info_dict["size_x"]
-        self.__size_microns[1] = beam_info_dict["size_y"]
-                               
-        self.__size_pix[0] = self.__size_microns[0] * self.pixels_per_mm[0]
-        self.__size_pix[1] = self.__size_microns[1] * self.pixels_per_mm[1]
-
-    def set_pixels_per_mm(self, pixels_per_mm):
-        self.pixels_per_mm = pixels_per_mm
-        self.__size_pix[0] = self.__size_microns[0] * self.pixels_per_mm[0]
-        self.__size_pix[1] = self.__size_microns[1] * self.pixels_per_mm[1]
 
 
 class GraphicsItemPoint(GraphicsItem):
@@ -240,9 +237,12 @@ class GraphicsItemPoint(GraphicsItem):
         return "Point %d" % self.index
 
     def get_full_name(self):
-        full_name = "Point %d (kappa: %0.2f phi: %0.2f)" % \
-            (self.index, self.__centred_position.kappa,
-             self.__centred_position.kappa_phi)
+        full_name = "Point %d" % self.index
+        if self.__centred_position.kappa and \
+           self.__centred_position.kappa_phi:
+            full_name += " (kappa: %0.2f phi: %0.2f)" % \
+                (self.__centred_position.kappa,
+                 self.__centred_position.kappa_phi)
         return full_name
 
     def get_centred_position(self):
@@ -308,7 +308,21 @@ class GraphicsItemLine(GraphicsItem):
         self.__cp_start = cp_start
         self.__cp_end = cp_end
         self.__num_images = 0
+        self.__display_overlay = False
+        self.__fill_alpha = 120
 
+        brush_color = QtGui.QColor(70, 70, 165)
+        brush_color.setAlpha(5)
+        self.custom_brush.setColor(brush_color)
+
+    def set_fill_alpha(self, value):
+        self.__fill_alpha = value
+        brush_color = QtGui.QColor(70, 70, 165, self.__fill_alpha)
+        self.custom_brush.setColor(brush_color)
+
+    def set_display_overlay(self, state):
+        self.__display_overlay = state
+ 
     def get_display_name(self):
         return "Line %d" % self.index
 
@@ -325,31 +339,42 @@ class GraphicsItemLine(GraphicsItem):
         return [self.__cp_start, self.__cp_end]
 
     def paint(self, painter, option, widget):
-        self.custom_pen.setWidth(2)
+        painter.setBrush(self.custom_brush)
+        (start_cp_x, start_cp_y) = self.__cp_start.get_start_position()
+        (end_cp_x, end_cp_y) = self.__cp_end.get_start_position()
+        mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
+        mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0) 
+
+        if option.state & QtGui.QStyle.State_Selected and \
+           self.__num_images and self.__display_overlay:
+              painter.setPen(QtCore.Qt.NoPen)
+              for beam_index in range(self.__num_images):
+                  coord_x = start_cp_x + (end_cp_x - start_cp_x) * \
+                       beam_index / float(self.__num_images)
+                  coord_y = start_cp_y + (end_cp_y - start_cp_y) * \
+                       beam_index / float(self.__num_images)
+                  painter.drawEllipse(coord_x - self.beam_size_pix[0] / 2, 
+                                      coord_y - self.beam_size_pix[1] / 2, 
+                                      self.beam_size_pix[0], 
+                                      self.beam_size_pix[1])
+
+        info_txt = "Line %d (%d->%d)" % (self.index,
+               self.__cp_start.index, self.__cp_end.index)
 
         if option.state & QtGui.QStyle.State_Selected:
             self.custom_pen.setColor(SELECTED_COLOR)
+            info_txt += " selected"
+            painter.drawText(mid_x + 5, mid_y, info_txt)
+            if self.__num_images:
+                info_txt += " (%d images)" % self.__num_images
         else:
             self.custom_pen.setColor(NORMAL_COLOR)
-        painter.setPen(self.custom_pen)
 
-        #Line starts from the point, t
-        (start_cp_x, start_cp_y) = self.__cp_start.get_start_position()
-        (end_cp_x, end_cp_y) = self.__cp_end.get_start_position()
+        self.custom_pen.setWidth(2)
+        painter.setPen(self.custom_pen)
 
         painter.drawLine(start_cp_x, start_cp_y,
                          end_cp_x, end_cp_y)
-
-        mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
-        mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0) 
-        info_txt = "Line" 
-
-        if self.index:
-            info_txt += " %d" % self.index
-        if self.__num_images:
-            info_txt += " (%d images)" % self.__num_images
-        if option.state & QtGui.QStyle.State_Selected:
-            info_txt += " selected"
         painter.drawText(mid_x + 5, mid_y, info_txt)
 
     def set_num_images(self, num_images):
@@ -384,10 +409,8 @@ class GraphicsItemGrid(GraphicsItem):
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)  
 
         self.pixels_per_mm = pixels_per_mm
-        self.__beam_size_microns = [beam_info.get("size_x") * 1000, 
-                                    beam_info.get("size_y") * 1000]
-        self.__beam_size_pix = [0, 0] 
-        self.__beam_is_rectangle = beam_info.get("shape") == "rectangle"
+        self.beam_size_microns = [beam_info.get("size_x") * 1000, 
+                                  beam_info.get("size_y") * 1000]
         self.__spacing_microns = spacing_microns
         self.__spacing_pix = [0, 0]
         self.__cell_size_microns = [0, 0]
@@ -430,7 +453,7 @@ class GraphicsItemGrid(GraphicsItem):
     def get_full_name(self):
         return "Grid %d (hor. spacing: %.1f, ver. spacing: %.1f, beam size: %d, %d)" % \
                (self.index + 1, self.__spacing_microns[0], self.__spacing_microns[1],
-                self.__beam_size_microns[0], self.__beam_size_microns[1])
+                self.beam_size_microns[0], self.beam_size_microns[1])
   
     def get_col_row_num(self):
         return self.__num_cols, self.__num_rows
@@ -444,12 +467,12 @@ class GraphicsItemGrid(GraphicsItem):
                 float(self.__cell_size_microns[1] * self.__num_rows / 1000)) 
  
     def update_item(self):
-        self.__cell_size_microns = [self.__beam_size_microns[0] + self.__spacing_microns[0] * 2,
-                                    self.__beam_size_microns[1] + self.__spacing_microns[1] * 2]
+        self.__cell_size_microns = [self.beam_size_microns[0] + self.__spacing_microns[0] * 2,
+                                    self.beam_size_microns[1] + self.__spacing_microns[1] * 2]
         self.__spacing_pix = [self.pixels_per_mm[0] * self.__spacing_microns[0] / 1000,
                               self.pixels_per_mm[1] * self.__spacing_microns[1] / 1000]
-        self.__beam_size_pix = [self.pixels_per_mm[0] * self.__beam_size_microns[0] / 1000,
-                                self.pixels_per_mm[1] * self.__beam_size_microns[1] / 1000]
+        self.beam_size_pix = [self.pixels_per_mm[0] * self.beam_size_microns[0] / 1000,
+                              self.pixels_per_mm[1] * self.beam_size_microns[1] / 1000]
         self.__cell_size_pix = [self.pixels_per_mm[0] * self.__cell_size_microns[0] / 1000,
                                 self.pixels_per_mm[1] * self.__cell_size_microns[1] / 1000]
 
@@ -553,8 +576,8 @@ class GraphicsItemGrid(GraphicsItem):
                 "yOffset": self.__spacing_microns[1],  
                 "dx_mm": dx_mm,
                 "dy_mm": dy_mm,
-                "beam_x": self.__beam_size_microns[0], 
-                "beam_y": self.__beam_size_microns[1],
+                "beam_x": self.beam_size_microns[0], 
+                "beam_y": self.beam_size_microns[1],
                 "num_lines": self.__num_lines,
                 "num_images_per_line": self.__num_images_per_line,
                 "first_image_num": self.__first_image_num}
@@ -572,7 +595,6 @@ class GraphicsItemGrid(GraphicsItem):
                                      corner_coord[0][1])
         self.set_draw_end_position(corner_coord[1][0],
                                    corner_coord[1][1])
-        self.fix_grid_position()
         self.__draw_projection = True
         self.__automatic = True
 
@@ -674,16 +696,16 @@ class GraphicsItemGrid(GraphicsItem):
                         else:
                             painter.setBrush(QtCore.Qt.transparent)
 
-                        if self.__beam_is_rectangle:
-                            painter.drawRect(pos_x - self.__beam_size_pix[0] / 2,
-                                             pos_y - self.__beam_size_pix[1] / 2,
-                                             self.__beam_size_pix[0],
-                                             self.__beam_size_pix[1])
+                        if self.beam_is_rectangle:
+                            painter.drawRect(pos_x - self.beam_size_pix[0] / 2,
+                                             pos_y - self.beam_size_pix[1] / 2,
+                                             self.beam_size_pix[0],
+                                             self.beam_size_pix[1])
                         else:
-                            painter.drawEllipse(pos_x - self.__beam_size_pix[0] / 2,
-                                                pos_y - self.__beam_size_pix[1] / 2,
-                                                self.__beam_size_pix[0],
-                                                self.__beam_size_pix[1])
+                            painter.drawEllipse(pos_x - self.beam_size_pix[0] / 2,
+                                                pos_y - self.beam_size_pix[1] / 2,
+                                                self.beam_size_pix[0],
+                                                self.beam_size_pix[1])
                         painter.drawText(paint_rect, QtCore.Qt.AlignCenter, \
                               str(cell_index + self.__first_image_num))
                         cell_index += 1
@@ -836,8 +858,11 @@ class GraphicsItemGrid(GraphicsItem):
         (hor_range, ver_range) = self.get_grid_size_mm()
         hor_range = - hor_range * (self.__num_cols / 2.0 - col) / self.__num_cols
         ver_range = - ver_range * (self.__num_rows / 2.0 - row) / self.__num_rows
+        #image, line, image_serial = self.get_image_from_col_row(col, row)
 
-        #Add osc_range TODO
+        #Add correct omega
+
+
         """
         MD3
         omega_ref = 163.675
@@ -850,9 +875,11 @@ class GraphicsItemGrid(GraphicsItem):
 
         #MD2
         new_point['sampx'] = new_point['sampx'] + ver_range * \
-                             math.sin(math.pi * (self.__osc_start - self.grid_direction["omega_ref"]) / 180.0)
+                             math.sin(math.pi * (self.__osc_start - \
+                             self.grid_direction["omega_ref"]) / 180.0)
         new_point['sampy'] = new_point['sampy'] - ver_range  * \
-                             math.cos(math.pi * (self.__osc_start - self.grid_direction["omega_ref"]) / 180.0)
+                             math.cos(math.pi * (self.__osc_start - \
+                             self.grid_direction["omega_ref"]) / 180.0)
         new_point['phiy'] = new_point['phiy'] - hor_range
 
         if as_cpos:
@@ -995,24 +1022,19 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
     """
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
-        self.__beam_size_pix = None
         self.custom_pen.setColor(SELECTED_COLOR)
-
-    def set_beam_mark(self, beam_info_dict, pixels_per_mm):
-        self.__beam_size_pix = (beam_info_dict['size_x'] * pixels_per_mm[0],
-                                beam_info_dict['size_y'] * pixels_per_mm[1])
 
     def paint(self, painter, option, widget):
         self.custom_pen.setStyle(SOLID_LINE_STYLE)
         painter.setPen(self.custom_pen)
         painter.drawLine(self.start_coord[0], self.start_coord[1],
                          self.end_coord[0], self.end_coord[1])
-        if self.__beam_size_pix:
+        if self.beam_size_pix:
             self.custom_pen.setStyle(QtCore.Qt.DashLine)
             painter.setPen(self.custom_pen)
-            painter.drawEllipse(self.end_coord[0] - self.__beam_size_pix[0] / 2,
-                                self.end_coord[1] - self.__beam_size_pix[1] / 2,
-                                self.__beam_size_pix[0], self.__beam_size_pix[1])
+            painter.drawEllipse(self.end_coord[0] - self.beam_size_pix[0] / 2,
+                                self.end_coord[1] - self.beam_size_pix[1] / 2,
+                                self.beam_size_pix[0], self.beam_size_pix[1])
 
 
 class GraphicsItemBeamDefine(GraphicsItem):
@@ -1023,7 +1045,7 @@ class GraphicsItemBeamDefine(GraphicsItem):
         GraphicsItem.__init__(self, parent)
 
         self.center_coord = [0, 0]
-        self.width_microns =0
+        self.width_microns = 0
         self.height_microns = 0
         
     def paint(self, painter, option, widget):
