@@ -224,6 +224,11 @@ class EMBLBeamInfo(Equipment):
         else: 
             return self.beam_size_slits	
 
+    def set_slits_gap(self, width_microns, height_microns):
+        if self.slits_hwobj:
+            self.slits_hwobj.set_gap("Hor", width_microns / 1000.0)
+            self.slits_hwobj.set_gap("Ver", height_microns / 1000.0)        
+
     def evaluate_beam_info(self):
         """
         Descript. : called if aperture, slits or focusing has been changed
