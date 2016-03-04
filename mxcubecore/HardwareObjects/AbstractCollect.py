@@ -24,7 +24,6 @@ Defines a sequence how data collection is executed.
 
 import os
 import sys
-import types
 import logging
 import time
 import errno
@@ -64,6 +63,9 @@ class AbstractCollect(object):
 
     def __init__(self):
         self.bl_config = BeamlineConfig(*[None]*17)
+        
+        self.data_collect_task = None
+        self.current_dc_parameters = None
 
         self.autoprocessing_hwobj = None
         self.beam_info_hwobj = None
@@ -551,10 +553,11 @@ class AbstractCollect(object):
         logging.getLogger("user_level_log").info("Moving to centred position") 
         positions_str = ""
         for motor, position in self.current_dc_parameters['motors'].iteritems():
-            if isinstance(motor, str):
-                positions_str += " %s=%f" % (motor, position)
-            else:
-                positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
+            if position:
+                if isinstance(motor, str):
+                    positions_str += " %s=%f" % (motor, position)
+                else:
+                    positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
         self.current_dc_parameters['actualCenteringPosition'] = positions_str
         self.move_motors(self.current_dc_parameters['motors'])
 
@@ -575,12 +578,12 @@ class AbstractCollect(object):
             snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
             if not os.path.exists(snapshot_directory):
                 try:
-                   logging.getLogger("user_level_log").info(\
-                        "Creating snapshots directory: %r", 
-                        snapshot_directory)
-                   self.create_directories(snapshot_directory)
+                    logging.getLogger("user_level_log").info(\
+                         "Creating snapshots directory: %r", 
+                         snapshot_directory)
+                    self.create_directories(snapshot_directory)
                 except:
-                   logging.getLogger("HWR").exception("Error creating snapshot directory")
+                    logging.getLogger("HWR").exception("Error creating snapshot directory")
 
             logging.getLogger("user_level_log").info(\
                  "Taking %d sample snapshot(s)" % number_of_snapshots)
