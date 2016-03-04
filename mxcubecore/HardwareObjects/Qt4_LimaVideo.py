@@ -18,10 +18,10 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import scipy
 import time
 import logging
 import gevent
+import numpy as np
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -141,13 +141,13 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
-        return self.image_dimensions[0]
+        return int(self.image_dimensions[0])
 	
     def getHeight(self):
         """
         Descript. :
         """
-        return self.image_dimensions[1]
+        return int(self.image_dimensions[1])
 
     def do_image_polling(self, sleep_time):
         """
@@ -183,13 +183,27 @@ class Qt4_LimaVideo(Device):
                                   QtGui.QImage.Format_RGB888)
             if self.cam_mirror is not None:
                 qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
-            qimage = QtGui.QPixmap(qimage)
-            self.emit("imageReceived", qimage)
+            qpixmap = QtGui.QPixmap(qimage)
+            self.emit("imageReceived", qpixmap)
             return qimage
 
-    def save_snapshot(self, filename):
+    def save_snapshot(self, filename, image_type='PNG'):
         qimage = self.get_new_image() 
-        qimage.save(filename) 
+        qimage.save(filename, image_type) 
+
+    def get_snapshot(self, bw=None, return_as_array=True):
+        qimage = self.get_new_image()
+        if return_as_array:
+            qimage = qimage.convertToFormat(4)
+            ptr = qimage.bits()
+            ptr.setsize(qimage.byteCount())
+            return np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
+            
+        else:
+            if bw:
+                return qimage.convertToFormat(QtGui.QImage.Format_Mono)
+            else:
+                return qimage
 
     def get_contrast(self):
         return
