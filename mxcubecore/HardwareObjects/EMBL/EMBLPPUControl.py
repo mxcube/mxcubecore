@@ -2,6 +2,7 @@
 Descript. :
 """
 import logging
+from gevent import spawn_later
 from HardwareRepository.BaseHardwareObjects import Device
 
 class EMBLPPUControl(Device):    
@@ -41,8 +42,9 @@ class EMBLPPUControl(Device):
 
         self.cmd_all_status = self.getCommandObject('allStatus')
         if self.cmd_all_status is not None:
-            self.cmd_all_status.connectSignal('commandReplyArrived', \
-                 self.status_reply)
+            #self.cmd_all_status.connectSignal('commandReplyArrived', \
+            #     self.status_reply)
+            pass
 
         self.cmd_all_restart = self.getCommandObject('allRestart')
         if self.cmd_all_restart is not None:
@@ -52,7 +54,7 @@ class EMBLPPUControl(Device):
         self.execution_state = self.getProperty("executionState")
         self.error_state = self.getProperty("errorState")
 
-        #self.restart_reply_cb()
+        self.restart_reply_cb()
 
     def restart_reply_cb(self):
         """
@@ -61,7 +63,7 @@ class EMBLPPUControl(Device):
         self.restart_result = self.cmd_furka_restart.get()
         if ((self.restart_result == self.execution_state) or
             (self.restart_result is None)):
-            pass
+            spawn_later(1, self.restart_reply_cb)
             #QTimer.singleShot(1000, self.restart_reply_cb)
         else:
             if (self.restart_result.startswith(self.error_state)):
@@ -76,12 +78,12 @@ class EMBLPPUControl(Device):
         """
         Descript. :
         """
-        self.status_result = self.cmd_all_status.get()
-        if ((self.status_result == self.execution_state) or
-            (self.status_result is None)):
-            pass
-            #QTimer.singleShot(1000, self.status_reply_cb)
+        status_result = self.cmd_all_status.get()
+        if ((status_result == self.execution_state) or
+            (status_result is None)):
+            spawn_later(1, self.status_reply_cb)
         else:
+            self.status_result = status_result
             self.is_error = self.status_result.startswith(self.error_state)
             self.emit('ppuStatusChanged', (self.is_error, self.status_result))
             if self.is_error:
@@ -95,12 +97,12 @@ class EMBLPPUControl(Device):
         """
         Descript. :
         """
-        self.last_resort_result = self.cmd_all_restart.get()
-        if ((self.last_resort_result == self.execution_state) or
-            (self.last_resort_result is None)):
-            pass 
-            #QTimer.singleShot(1000, self.last_resort_reply_cb)
+        last_resort_result = self.cmd_all_restart.get()
+        if ((last_resort_result == self.execution_state) or
+            (last_resort_result is None)):
+            spawn_later(1, self.last_resort_reply_cb)
         else:
+            self.last_resort_result = last_resort_result
             self.is_error = self.last_resort_result.startswith(self.error_state)
             self.emit('ppuStatusChanged', (self.is_error, self.last_resort_result))
             if self.is_error:
@@ -152,6 +154,7 @@ class EMBLPPUControl(Device):
         """
         self.cmd_all_status("")
         self.status_reply_cb()
+        return self.is_error, self.status_result
 
     def restart_all(self):
         """

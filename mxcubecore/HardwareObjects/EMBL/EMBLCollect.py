@@ -356,6 +356,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         self.cmd_collect_resolution(value)
 
+    def set_transmission(self, value):
+        """
+        Descript. : 
+        """
+        self.cmd_collect_transmission(value)
+
     def set_detector_roi_mode(self, roi_mode):
         """
         Descript. : 

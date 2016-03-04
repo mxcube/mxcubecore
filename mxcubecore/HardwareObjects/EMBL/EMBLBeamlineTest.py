@@ -1,8 +1,8 @@
 """
-[Name] BeamTestTool
+[Name] EMBLBeamlineTest
 
 [Description]
-BeamTestTool HO uses beamfocusing HO, ppucontrol HO and md HO to perform 
+EMBLBeamlineTest HO uses beamfocusing HO, ppucontrol HO and md HO to perform 
 beamline tests. 
 
 [Channels]
@@ -15,12 +15,9 @@ beamline tests.
  
 [Included Hardware Objects]
 -----------------------------------------------------------------------
-| name             | signals        | functions
+| name                 | signals        | functions
 -----------------------------------------------------------------------
-| beam_focus_hwobj |  		    |  
-| ppu_hwobj        |		    |	
-| attenuators_hwobj|		    |
-| minidiff_hwobj   |                |
+| beamline_setup_hwobj |                |  
 -----------------------------------------------------------------------
 
 Example Hardware Object XML file :
@@ -35,31 +32,25 @@ Example Hardware Object XML file :
 """
 
 import os
-import time
+import tine
 import gevent
 import logging
+import tempfile
 from csv import reader
-from scipy.misc import imsave
-from HardwareRepository import HardwareRepository
+from datetime import datetime
+#from scipy.misc import imsave
+
+import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-TEST_DICT = {"com": "Communication with beamline devices",
+TEST_DICT = {"summary": "Beamline summary",
+             "com": "Communication with beamline devices",
              "ppu": "PPU control",
-             "focus": "Focusing modes",
+             "focusing": "Focusing modes",
              "aperture": "Aperture",
-             "alignbeam": "Align beam position",
+             "alignbeam": "Alignment of beam position",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure"}
-
-HTML_START = '''<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html; charset=ISO-8859-1"
- http-equiv="content-type">
-  <title>Beamline test summary</title>
-</head>
-<body>'''
-HTML_END ='''</body>'''
 
 TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
 TEST_COLORS_FONT = {False : '#FE0000', True : '#007800'}
@@ -85,50 +76,68 @@ class EMBLBeamlineTest(HardwareObject):
         self.current_test_procedure = None
         self.beamline_name = None
 
-        self.test_list = None 
+        self.available_test_dict = {}
+        self.startup_test_list = []
+        self.results_list = None
         self.results_html_list = None
 
-        self.beamline_setup_hwobj = None
+        self.bl_hwobj = None
         self.beam_focus_hwobj = None
-        self.ppu_control_hwobj = None
         self.graphics_manager_hwobj = None
         self.test_directory = None
+        self.test_source_directory = None
+        self.test_filename = None
 
     def init(self):
         """
         Descrip. :
         """
         self.ready_event = gevent.event.Event()
-        self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
+        self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
         try:
-           self.beam_focus_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.beam_definer_hwobj
-           self.connect(self.beam_focus_hwobj, "definerPosChanged", self.focus_mode_changed)
+            self.beam_focus_hwobj = self.bl_hwobj.beam_info_hwobj.beam_definer_hwobj
         except:
-           logging.getLogger("HWR").warning('BeamlineTest: Beam focusing hwobj is not defined')
+            logging.getLogger("HWR").warning('BeamlineTest: Beam focusing hwobj is not defined')
 
-        try:  
-           self.ppu_hwobj = self.beamline_setup_hwobj.ppu_control_hwobj
-           self.connect(self.ppu_hwobj, "ppuStatusChanged", self.ppu_status_changed)
-        except:
-           logging.getLogger("HWR").debug("BeamlineTest: PPU control hwobj is not defined")
+        if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
+            self.connect(self.bl_hwobj.ppu_control_hwobj, "ppuStatusChanged", self.ppu_status_changed)
+        else:
+            logging.getLogger("HWR").debug("BeamlineTest: PPU control hwobj is not defined")
 
-        self.beamline_name = self.beamline_setup_hwobj.session_hwobj.beamline_name 
-        
-        self.csv_file_name = self.getProperty('defaultCsvFileName')
-        self.init_device_list()
+        self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name 
+        self.csv_file_name = self.getProperty("device_list")
+        self.init_device_list()  
+
+        self.test_directory = self.getProperty("results_directory")
+        if self.test_directory is None:
+            self.test_directory = os.path.join(\
+                tempfile.gettempdir(), "mxcube", "beamline_test")
+            logging.getLogger("HWR").debug("BeamlineTest: directory for test " \
+                "reports not defined. Set to: %s" % self.test_directory)
+        self.test_source_directory = os.path.join(\
+             self.test_directory,
+             datetime.now().strftime("%Y_%m_%d_%H") + "_source")
+
+        self.test_filename = "mxcube_test_report.html"
 
         try:
-            self.test_list = eval(self.getProperty('testList'))
+            for test in eval(self.getProperty("available_tests")):
+                self.available_test_dict[test] = TEST_DICT[test]
         except:
-            logging.getLogger("HWR").debug('BeamlineTest: Test list not defined.')            
+            logging.getLogger("HWR").debug("BeamlineTest: Available tests are " +\
+                "not defined in xml. Setting all tests as available.")
+        if self.available_test_dict is None:
+            self.available_test_dict = TEST_DICT
 
-        self.test_directory = self.getProperty("resultsDir")
-        if self.test_directory is None:
-            self.test_directory = "/tmp/mxcube"
-            logging.getLogger("HWR").debug("BeamlineTest: Test director not " + \
-                "defined. Set to: %s" % self.test_directory)
+        try:
+            self.startup_test_list = eval(self.getProperty("startup_tests"))
+        except:
+            logging.getLogger("HWR").debug('BeamlineTest: Test list not defined.')
+
+        if self.getProperty("run_tests_at_startup") == True:
+            self.start_test_queue(self.startup_test_list)
 
     def start_test_queue(self, test_list):
         """
@@ -136,70 +145,80 @@ class EMBLBeamlineTest(HardwareObject):
         """
         if len(test_list) > 0:
             try:
-                logging.getLogger("HWR").debug('BeamTest: Creating directory %s' % self.test_directory)
+                logging.getLogger("HWR").debug(\
+                    "BeamlineTest: Creating directory %s" % \
+                    self.test_directory)
                 if not os.path.exists(self.test_directory):
                     os.makedirs(self.test_directory)
+                
+                logging.getLogger("HWR").debug(\
+                    "BeamlineTest: Creating source directory %s" % \
+                    self.test_source_directory)
+                if not os.path.exists(self.test_source_directory):
+                    os.makedirs(self.test_source_directory)
             except:
-                logging.getLogger("HWR").warning('BeamTest: Unable to create directory %s' % self.test_directory)
+                logging.getLogger("HWR").warning(\
+                   "BeamlineTest: Unable to create test directories")
                 return 
         else:
-            logging.getLogger("HWR").warning('BeamTest: No test for execution defined')
+            logging.getLogger("HWR").warning('BeamlineTest: No test defined')
             return
 
+        self.results_list = []
         self.results_html_list = []
         for test_index, test_name in enumerate(test_list):
             test_method_name = "test_" + test_name.lower()
             if hasattr(self, test_method_name):
                 if TEST_DICT.has_key(test_name):
-                    logging.getLogger("HWR").debug("BeamTest: Executing test %s" % test_name)
-                    start_time = time.strftime("%Y-%m-%d %H:%M:%S")
-                    self.current_test_procedure = gevent.spawn(getattr(self, test_method_name))
+                    logging.getLogger("HWR").debug(\
+                         "BeamlineTest: Executing test %s (%s)" \
+                         % (test_name, TEST_DICT[test_name]))
+
+                    progress_info = {"progress_total": len(test_list),
+                                     "progress_msg": "executing %s" % TEST_DICT[test_name]}
+                    self.emit("testProgress", (test_index, progress_info))
+
+                    start_time =  datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.current_test_procedure = gevent.spawn(\
+                         getattr(self, test_method_name))
                     test_result = self.current_test_procedure.get()
 
-                    self.ready_event.wait()
-                    self.ready_event.clear()
-                    end_time = time.strftime("%Y-%m-%d %H:%M:%S")
-                   
-                    self.results_html_list.append("<h2>%s</h2>" %TEST_DICT[test_name])
-                    self.results_html_list.append("Started: %s<br>" %start_time)
-                    self.results_html_list.append("Ended: %s<br>" %end_time)
-                    self.results_html_list.append("<h3><font color=%s>Result : %s</font></h3>" % \
-                                                  (TEST_COLORS_FONT[test_result["result_bit"]],
-                                                  test_result["result_short"]))
+                    #self.ready_event.wait()
+                    #self.ready_event.clear()
+                    end_time =  datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.results_list.append({"short_name": test_name,
+                                              "full_name": TEST_DICT[test_name],
+                                              "result_bit": test_result.get("result_bit", False),
+                                              "result_short": test_result.get("result_short", ""),
+                                              "start_time": start_time,
+                                              "end_time": end_time})
+                  
+                    self.results_html_list.append("<h2 id=%s>%s</h2>" % \
+                         (test_name, TEST_DICT[test_name]))
+                    self.results_html_list.append("Started: %s<br>" % \
+                         start_time)
+                    self.results_html_list.append("Ended: %s<br>" % \
+                         end_time)
+                    if test_result.get("result_short"):
+                        self.results_html_list.append(\
+                            "<h3><font color=%s>Result : %s</font></h3>" % \
+                            (TEST_COLORS_FONT[test_result["result_bit"]],
+                            test_result["result_short"]))
                     if len(test_result.get("result_details", [])) > 0:
                         self.results_html_list.append("<h3>Detailed results:</h3>")
-                        self.results_html_list.extend(test_result["result_details"])
+                        self.results_html_list.extend(test_result.get("result_details", []))
             else:
-                 msg = "<h2><font color=%s>Execution method %s " + \
-                       "for the test %s does not exist</font></h3>"
-                 self.results_html_list.append(msg %(TEST_COLORS_FONT[False], 
-                      test_method_name, TEST_DICT[test_name]))
-                 logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
+                msg = "<h2><font color=%s>Execution method %s " + \
+                      "for the test %s does not exist</font></h3>"
+                self.results_html_list.append(msg %(TEST_COLORS_FONT[False], 
+                     test_method_name, TEST_DICT[test_name]))
+                logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
             self.results_html_list.append("</p>\n<hr>")
 
-        html_filename = os.path.join(self.test_directory, "mxcube_test_report.html") 
-        self.generate_html_report(html_filename)
-        #if pdf_filename:
-        #    self.generate_pdf_report(pdf_filename)
+        html_filename = os.path.join(self.test_directory, 
+                                     self.test_filename)
+        self.generate_html_report(test_list)
         self.emit('testFinished', html_filename) 
-
-    def get_image(self):
-        """
-        Descrip. :
-        """
-        return
-
-    def focus_mode_changed(self, name, size):
-        """
-        Descrip. :
-        """
-        self.emit('focModeChanged')	
-
-    def ppu_status_changed(self, is_error, text):
-        """
-        Descrip. :
-        """
-        self.emit('ppuStatusChanged', (is_error, text))
 
     def init_device_list(self):
         """
@@ -214,7 +233,7 @@ class EMBLBeamlineTest(HardwareObject):
                         self.devices_list.append(row)
             return self.devices_list
         else:
-            logging.getLogger("HWR").error("BeamTest: %s Devices csv file not found" %self.csv_file_name)
+            logging.getLogger("HWR").error("BeamlineTest: Device file %s not found" %self.csv_file_name)
 
     def get_device_list(self):
         """
@@ -272,48 +291,47 @@ class EMBLBeamlineTest(HardwareObject):
                 return False
         return True
 
-    def get_ppu_status(self):
+    def ppu_status_changed(self, is_error, text):
         """
-        Descript. :
+        Descrip. :
         """
-        if self.ppu_hwobj is not None:
-            self.ppu_hwobj.get_status()
+        self.emit('ppuStatusChanged', (is_error, text))
 
     def ppu_restart_all(self):
         """
         Descript. :
         """
-        if self.ppu_hwobj is not None:
-            self.ppu_hwobj.restart_all()
+        if self.bl_hwobj.ppu_control_hwobj is not None:
+            self.bl_hwobj.ppu_control_hwobj.restart_all()
 
     def test_com(self):
         """
         Descript. :
         """
         result = {} 
-        result_details = ["<table border='1'>"]
-        result_details.append("<tr><th>Replied</th><th>DNS name</th><th>IP" + \
-                              "</th><th>Location</th><th>MAC address</th>"  + \
-                              "<th>Details</th></tr>")
+        table_header = ["Replied", "DNS name", "IP address", "Location",
+                        "MAC address", "Details"] 
+        table_cells = []
         failed_count = 0
         for row, device in enumerate(self.devices_list):
             msg = "Pinging %s at %s" % (device[0], device[1])
             logging.getLogger("HWR").debug("BeamlineTest: %s" % msg)
+            device_result = ["bgcolor=#FFCCCC" , "False"] + device
             try:
                 ping_result = os.system("ping -W 2 -c 2 " + device[1]) == 0
-                device_result = "<tr bgcolor=%s><td>%s</td>" %  (TEST_COLORS_TABLE[ping_result], ping_result)
-                for info in device:
-                    device_result += "<td>%s</td>" % info
-                device_result += "</tr>"
-                result_details.append(device_result)
+                device_result[0] = "bgcolor=%s" % TEST_COLORS_TABLE[ping_result]
+                device_result[1] = str(ping_result)
             except:
                 ping_result = False
+            table_cells.append(device_result) 
+
             if not ping_result:
                 failed_count += 1
             progress_info = {"progress_total": len(self.devices_list),
                              "progress_msg": msg}
             self.emit("testProgress", (row, progress_info))
-        result_details.append("</table>")
+
+        result["result_details"] = SimpleHTML.create_table(table_header, table_cells)
 
         if failed_count == 0:
             result["result_short"] = "Test passed (got reply from all devices)"
@@ -322,17 +340,26 @@ class EMBLBeamlineTest(HardwareObject):
             result["result_short"] = "Test failed (%d devices from %d did not replied)" % \
                   (failed_count, len(self.devices_list))
             result["result_bit"] = False
-        result["result_details"] = result_details  
         self.ready_event.set()
         return result
 
     def test_ppu(self):
         result = {}
-        result["result_bit"] = False
-        if self.ppu_hwobj:
-            pass
+        if self.bl_hwobj.ppu_control_hwobj:
+            is_error, msg = self.bl_hwobj.ppu_control_hwobj.get_status()
+            result["result_bit"] = not is_error
+            if result["result_bit"]:
+                result["result_short"] = "Test passed"
+            else:
+                result["result_short"] = "Test failed" 
+
+             
+            msg = msg.replace("\n", "\n<br>")
+            result["result_details"] = msg.split("\n")
         else:
+            result["result_bit"] = False
             result["result_short"]  = "Test failed (ppu hwobj not define)."
+
         self.ready_event.set()
         return result
 
@@ -345,7 +372,6 @@ class EMBLBeamlineTest(HardwareObject):
         result = {}
         result["result_bit"] = False
         result["result_details"] = [] 
-        result["result_short"] = "Test started"
 
         #got to centring phase
 
@@ -354,29 +380,37 @@ class EMBLBeamlineTest(HardwareObject):
         table_values = "<tr>"
         table_result = "<tr>"
 
-        aperture_hwobj = self.beamline_setup_hwobj.beam_info_hwobj.aperture_hwobj 
+        self.bl_hwobj.diffractometer_hwobj.set_phase("BeamLocation", timeout=30)
+
+        aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj 
         aperture_list = aperture_hwobj.get_aperture_list(as_origin=True)
+        current_aperture = aperture_hwobj.get_value() 
+
         for index, value in enumerate(aperture_list):
             msg = "Selecting aperture %s " % value
             table_header += "<th>%s</th>" % value 
             aperture_hwobj.set_active_position(index)
             gevent.sleep(1)
-            beam_image_filename = os.path.join(self.test_directory, 
-                 "aperture_%s.png" % value)
+            beam_image_filename = os.path.join(\
+                self.test_source_directory, 
+                "aperture_%s.png" % value)
             table_values += "<td><img src=%s style=width:300px;></td>" % beam_image_filename 
             self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
             progress_info = {"progress_total": len(aperture_list),
                              "progress_msg": msg}
             self.emit("testProgress", (index, progress_info))
+
+        self.bl_hwobj.diffractometer_hwobj.set_phase("Centring", timeout=30)
+        aperture_hwobj.set_active_position(current_aperture)
         table_header += "</tr>"
         table_values += "</tr>"
+
 
         result["result_details"].append(table_header)
         result["result_details"].append(table_values)
         result["result_details"].append(table_result)
         result["result_details"].append("</table>")
         result["result_bit"] = True
-        result["result_short"] = "Test finished"
         self.ready_event.set()
         return result
 
@@ -385,12 +419,109 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_bit"] = False
         result["result_details"] = []
         result["result_short"] = "Test started"
-        result["result_details"].append("Beam shape before alignment<br>")
-
-        result["result_details"].append("Beam shape after alignment<br>") 
+        result["result_details"].append("Beam shape before alignment<br><br>")
+        beam_image_filename = os.path.join(self.test_source_directory,
+                                           "align_beam_before.png")
+        self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
+        result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
+      
+        result["result_details"].append("Beam shape after alignment<br><br>") 
+        beam_image_filename = os.path.join(self.test_source_directory,
+                                           "align_beam_after.png")
+        result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
+        self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
         self.ready_event.set()
-        return result 
+        return result
+
+    def test_autocentring(self):
+        result = {}
+        result["result_bit"] = True
+        result["result_details"] = []
+        result["result_details"].append("Before autocentring<br>")
+
+        beam_image_filename = os.path.join(self.test_source_directory,
+                                           "auto_centring_before.png")
+        self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
+        result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
+
+        self.bl_hwobj.diffractometer_hwobj.start_centring_method(\
+             self.bl_hwobj.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=True)
+
+        result["result_details"].append("After autocentring<br>")
+        beam_image_filename = os.path.join(self.test_source_directory,
+                                           "auto_centring_after.png")
+        self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
+        result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
+
+        self.ready_event.set()
+        return result
+ 
+
+    def test_summary(self):
+        result = {}
+        result["result_bit"] = True
+        result["result_details"] = []
+        table_cells = []
+
+        for tine_prop in self['tine_props']:
+            prop_names = eval(tine_prop.getProperty("prop_names"))
+            if isinstance(prop_names, str):
+                cell_str_list = []
+                cell_str_list.append(tine_prop.getProperty("prop_device"))
+                cell_str_list.append(prop_names)
+                cell_str_list.append(str(tine.get(tine_prop.getProperty("prop_device"), prop_names)))
+                table_cells.append(cell_str_list)
+            else:
+                for index, property_name in enumerate(prop_names):
+                    cell_str_list = []
+                    if index == 0:
+                        cell_str_list.append(tine_prop.getProperty("prop_device"))
+                    else:
+                        cell_str_list.append("")
+                    cell_str_list.append(property_name)
+                    cell_str_list.append(str(tine.get(tine_prop.getProperty("prop_device"), property_name)))
+                    table_cells.append(cell_str_list)                    
+ 
+        result["result_details"] = SimpleHTML.create_table(\
+             ["Context/Server/Device", "Property", "Value"],
+             table_cells)
+        self.ready_event.set()
+        return result
+
+    def test_focusing(self): 
+        result = {}
+        result["result_details"] = []
+
+        active_mode, beam_size = self.get_focus_mode()
+        if active_mode is None:
+            result["result_bit"] = False
+            result["result_short"] = "No focusing mode detected"
+        else:
+            result["result_bit"] = True
+            result["result_short"] = "%s mode detected" % active_mode
+
+        focus_modes = self.get_focus_mode_names()
+        focus_motors_list = self.get_focus_motors()
+
+        table_cells = []
+        if focus_motors_list:
+            for motor in focus_motors_list:
+                table_row = []
+                table_row.append(motor['motorName'])
+                for focus_mode in focus_modes:
+                    res = (focus_mode in motor['focMode'])
+                    table_row.append("<td bgcolor=%s>%.3f/%.3f</td>" % (\
+                         TEST_COLORS_TABLE[res],
+                         motor['focusingModes'][focus_mode], 
+                         motor['position']))                        
+                table_cells.append(table_row)
+        
+        focus_modes = ["Motors"] + list(focus_modes)
+        result["result_details"] = SimpleHTML.create_table(\
+              focus_modes, table_cells)
+        self.ready_event.set()
+        return result
         
     def stop_comm_process(self):
         """
@@ -401,46 +532,85 @@ class EMBLBeamlineTest(HardwareObject):
             self.ready_event.set()
 
     def get_available_tests(self):
-        return TEST_DICT
+        return self.available_test_dict
 
-    def get_test_list(self):
+    def get_startup_test_list(self):
         """
         Descript. :
         """
         test_list = []
-        for test in self.test_list:
+        for test in self.startup_test_list:
             if TEST_DICT.get(test):
                 test_list.append(TEST_DICT[test]) 
         return test_list
 
-    def generate_html_report(self, html_filename):
+    def generate_html_report(self, test_list):
         """
         Descript. :
         """
-        html_str = HTML_START 
+        html_filename = os.path.join(\
+           self.test_directory,
+           self.test_filename)
+        archive_filename = os.path.join(\
+           self.test_directory,
+           datetime.now().strftime("%Y_%m_%d_%H") + "_" + \
+           self.test_filename)
 
-        html_str +="<h1>Beamline %s Test results</h1>" % self.beamline_name
-        html_str += "Report filename: %s\n<hr>\n" % html_filename
+        try:
+            output_file = open(html_filename, "w") 
+            output_file.write(SimpleHTML.create_html_start("Beamline test summary"))
+            output_file.write("<h1>Beamline %s Test results</h1>" % self.beamline_name)
 
-        for test_result in self.results_html_list:
-            html_str += test_result + "\n"
-
-        html_str += HTML_END
-
-        #try:
-        if True: 
-           output = open(html_filename, "w")
-           output.write(html_str)
-           output.close()
-           self.emit("htmlGenerated", html_filename)
-           logging.getLogger("HWR").info("BeamTest: Test result written in file %s" %html_filename)
-        #except:
-        #   logging.getLogger("HWR").error("BeamTest: Unable to write html report in file %s" %html_filename)
+            output_file.write("<h2>Executed tests:</h2>")
+            table_cells = []
+            for test in self.results_list:
+                table_cells.append(["bgcolor=%s" % TEST_COLORS_TABLE[test["result_bit"]],
+                                   "<a href=#%s>%s</a>" % (test["short_name"], test["full_name"]), 
+                                   test["result_short"],
+                                   test["start_time"],
+                                   test["end_time"]])
            
+            table_rec = SimpleHTML.create_table(\
+                ["Name", "Result", "Start time", "End time"], 
+                table_cells)
+            for row in table_rec:
+                output_file.write(row)
+            output_file.write("\n<hr>\n")
+         
+            for test_result in self.results_html_list:
+                output_file.write(test_result + "\n")
+      
+            output_file.write(SimpleHTML.create_html_end())
+            output_file.close()
+ 
+            self.emit("htmlGenerated", html_filename)
+            logging.getLogger("HWR").info(\
+               "BeamlineTest: Test result written in file %s" % html_filename)
+        except:
+            logging.getLogger("HWR").error(\
+               "BeamlineTest: Unable to generate html report file %s" % html_filename)
 
+        try: 
+            output_file = open(html_filename, "r")
+            archive_file = open(archive_filename, "w")
+
+            for line in output_file.readlines():
+                archive_file.write(line)
+            output_file.close()
+            archive_file.close()
+
+            logging.getLogger("HWR").info("Archive file :%s generated" % archive_filename)
+        except:
+            logging.getLogger("HWR").error(\
+              "BeamlineTest: Unable to generate html report file %s" % archive_filename)
+           
+    def get_result_html(self):
+        html_filename = os.path.join(self.test_directory, self.test_filename)
+        if os.path.exists(html_filename):
+            return html_filename
+ 
     def generate_pdf_report(self, pdf_filename):
         """
         Descript. :
         """
         return
-

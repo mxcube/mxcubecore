@@ -132,7 +132,7 @@ class EMBLBeamFocusing(Equipment):
         self.active_focus_mode, self.size = self.get_active_focus_mode()
         
         if prev_mode != self.active_focus_mode:
-            self.emit('definerPosChanged', (self.active_focus_mode, self.size, ))
+            self.emit('definerPosChanged', (self.active_focus_mode, self.size))
             if self.cmd_set_calibration_name and self.active_focus_mode:
                 self.cmd_set_calibration_name(self.active_focus_mode.lower())
 
@@ -234,4 +234,4 @@ class EMBLBeamFocusing(Equipment):
                 return focus_mode['diverg'][1]
 
     def update_values(self):
-        self.emit('definerPosChanged', (self.active_focus_mode, self.size, ))
+        self.emit('definerPosChanged', (self.active_focus_mode, self.size))
