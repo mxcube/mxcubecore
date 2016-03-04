@@ -24,6 +24,7 @@ class ISPyBClient2Mockup(HardwareObject):
         self.__translations = {}
         self.__disabled = False
         self.__test_proposal = None
+        self.loginType = None
 
     def init(self):
         """
@@ -61,6 +62,9 @@ class ISPyBClient2Mockup(HardwareObject):
                              'proposalId': 1, 'nbShifts': 3}],
                 'Laboratory': {'laboratoryId': 1,
                                'name': 'TEST eh1'}}
+
+    def get_login_type(self):
+        self.loginType = self.getProperty("loginType") or "proposal"
 
     def login (self,loginID, psd, ldap_connection=None):
 

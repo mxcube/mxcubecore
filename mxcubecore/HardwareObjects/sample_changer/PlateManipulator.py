@@ -31,7 +31,7 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-from .GenericSampleChanger import *
+from GenericSampleChanger import *
 import time
 import gevent
 
@@ -184,7 +184,7 @@ class PlateManipulator(SampleChanger):
         self.current_phase = None
         self.reference_pos_x = None
         self.timeout = 3 #default timeout
-
+        self.plate_location = None
             
     def init(self):
         """
@@ -215,12 +215,17 @@ class PlateManipulator(SampleChanger):
 
         self.chan_current_phase = self.getChannelObject("CurrentPhase")
         self.chan_plate_location = self.getChannelObject("PlateLocation")
+        if self.chan_plate_location:
+            self.chan_plate_location.connectSignal("update", self.plate_location_changed)
         
         self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self._onStateChanged)
        
         SampleChanger.init(self)
+
+    def plate_location_changed(self, plate_location):
+        self.plate_location = plate_location
 
     def _onStateChanged(self, state):
         """
@@ -453,7 +458,6 @@ class PlateManipulator(SampleChanger):
         return True
 
     def _ready(self):
-        print "update state", self._updateState()
         if self._updateState() == "Ready":
             return True
         return False
@@ -461,7 +465,6 @@ class PlateManipulator(SampleChanger):
     def _wait_ready(self, timeout=None):
         if timeout <= 0:
             timeout = self.timeout
-        print timeout
         tt1 = time.time()
         while time.time() - tt1 < timeout:
              if self._ready():
@@ -469,5 +472,16 @@ class PlateManipulator(SampleChanger):
              else:
                  gevent.sleep(0.5)
 
+    def get_plate_info(self):
+        """
+        Descript. : returns dict with plate info
+        """
+        plate_info_dict = {}
+        plate_info_dict['num_cols'] = self.num_cols
+        plate_info_dict['num_rows'] = self.num_rows
+        plate_info_dict['num_drops'] = self.num_drops
+        plate_info_dict['plate_label'] = "Demo plate label"
+        return plate_info_dict
 
- 
+    def get_plate_location(self):
+        return self.plate_location 
