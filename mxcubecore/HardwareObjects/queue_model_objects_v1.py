@@ -490,6 +490,9 @@ class DataCollection(TaskNode):
         if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
             self.set_requires_centring(False)
 
+    def is_helical(self):
+        return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
+
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
 
@@ -1299,6 +1302,7 @@ class CentredPosition(object):
         self.centring_method = True
         self.index = None
         self.used_for_collection = 0
+        self.motor_pos_delta = CentredPosition.MOTOR_POS_DELTA
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
            setattr(self, motor_name, None)
@@ -1332,7 +1336,7 @@ class CentredPosition(object):
             cpos_pos = getattr(cpos, motor_name)
             if None in (self_pos, cpos_pos):
                continue
-            eq[i] = abs(self_pos - cpos_pos) <= CentredPosition.MOTOR_POS_DELTA
+            eq[i] = abs(self_pos - cpos_pos) <= self.motor_pos_delta
         return all(eq)
 
     def __ne__(self, cpos):
@@ -1340,6 +1344,9 @@ class CentredPosition(object):
 
     def set_index(self, index):
         self.index = index
+
+    def set_motor_pos_delta(self, delta):
+        self.motor_pos_delta = delta
 
     def get_index(self):
         return self.index

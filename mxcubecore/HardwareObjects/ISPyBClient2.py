@@ -222,6 +222,9 @@ class ISPyBClient2(HardwareObject):
         except IndexError:
             pass
 
+    def get_login_type(self):
+        return self.loginType
+
     def translate(self, code, what):  
         """
         Given a proposal code, returns the correct code to use in the GUI,
