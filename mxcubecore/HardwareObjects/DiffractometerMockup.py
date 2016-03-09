@@ -166,8 +166,6 @@ class DiffractometerMockup(Equipment):
         self.back_light_motor = self.getObjectByRole('backlight')
         self.back_light_swtich = self.getObjectByRole('backlightswitch')
 
-
-
         if self.phiMotor is not None:
             self.connect(self.phiMotor, 'stateChanged', self.phiMotorStateChanged)
             self.connect(self.phiMotor, "positionChanged", self.phi_motor_position_changed)
