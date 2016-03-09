@@ -152,6 +152,8 @@ class DiffractometerMockup(Equipment):
         self.sampleYMotor = self.getDeviceByRole('sampy')
         self.camera_hwobj = self.getDeviceByRole('camera')
         self.beam_info_hwobj = self.getObjectByRole('beam_info')
+        self.camera = self.camera_hwobj
+        self.beam_info = self.beam_info_hwobj
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, 'stateChanged', self.phiMotorStateChanged)
