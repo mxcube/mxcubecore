@@ -159,12 +159,6 @@ class DiffractometerMockup(Equipment):
         self.beam_info_hwobj = self.getObjectByRole('beam_info')
         self.camera = self.camera_hwobj
         self.beam_info = self.beam_info_hwobj
-       
-        self.sample_changer = self.getObjectByRole('samplechanger')
-        self.front_light_motor = self.getObjectByRole('frontlight')
-        self.front_light_swtich = self.getObjectByRole('frontlightswitch')
-        self.back_light_motor = self.getObjectByRole('backlight')
-        self.back_light_swtich = self.getObjectByRole('backlightswitch')
 
         if self.phiMotor is not None:
             self.connect(self.phiMotor, 'stateChanged', self.phiMotorStateChanged)
