@@ -10,7 +10,7 @@ import array
 class MD2TimeoutError(Exception):
     pass
 
-class MD2Camera(Device):      
+class MAXIVMD2Camera(Device):      
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
     EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
                                 "Fault": UNUSABLE,
@@ -54,12 +54,8 @@ class MD2Camera(Device):
                 img = self.image_attr.getValue()
                 imgArray = array.array('b', img)
                 imgStr = imgArray.tostring()
-                self.imageaux = self.getProperty("image_aux")
-                f = open(self.imageaux, 'wb')
-                f.write(imgStr)
-                f.close()
                 #self.emit("imageReceived", self.imageaux,1360,1024)
-                self.emit("imageReceived", self.imageaux, 768, 576)
+                self.emit("imageReceived", imgStr, 768, 576)
             except KeyboardInterrupt:
                 self.connected = False
                 self.stopper = True
