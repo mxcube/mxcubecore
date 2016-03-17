@@ -117,6 +117,7 @@ class DiffractometerMockup(Equipment):
         self.startAutoCentring = self.start_automatic_centring
      
         self.centringStatus = self.centring_status
+        self.currentCentringProcedure = self.current_centring_procedure
 
     def init(self):
         """
