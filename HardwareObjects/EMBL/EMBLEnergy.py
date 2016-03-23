@@ -1,21 +1,64 @@
-import sys
-import time
-import logging
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+EMBLEnergy
+"""
+
 import math
+import logging
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.TaskUtils import *
 
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
+
 class EMBLEnergy(Device):
 
-    def init(self):
-        self.ready_event = gevent.event.Event()
+    def __init__(self, name):
+        Device.__init__(self, name)
+
+        self.ready_event = None
         self.tunable = False
         self.current_energy = 0
         self.current_wav = 0
         self.moving = None
-	self.default_en = 0
+        self.default_en = 0
         self.en_lims = [None, None]
-        self.undulator_gaps = [11]
+        self.undulator_gaps = []
+
+        self.cmd_set_energy = None
+        self.chan_energy = None
+        self.chan_limit_low = None
+        self.chan_limit_high = None
+        self.chan_status = None
+        self.chan_undulator_gaps = None
+
+    def init(self):
+        self.ready_event = gevent.event.Event()
 
         self.cmd_set_energy = self.getCommandObject('cmdSetEnergy')
 
@@ -45,10 +88,10 @@ class EMBLEnergy(Device):
         except:
             logging.getLogger("HWR").warning('Energy: will set to fixed energy')
 
-	try:
-	    self.default_en = self.getProperty("defaultEnergy")
-	except:
-	    logging.getLogger("HWR").warning('Energy: no default energy defined')
+        try:
+            self.default_en = self.getProperty("defaultEnergy")
+        except:
+            logging.getLogger("HWR").warning('Energy: no default energy defined')
 
         try:
             self.en_lims = eval(self.getProperty("staticLimits"))
@@ -102,7 +145,7 @@ class EMBLEnergy(Device):
         lims = None
         self.en_lims = self.getEnergyLimits()
         if self.en_lims is not None:
-            lims=(12.3984/self.en_lims[1], 12.3984/self.en_lims[0])
+            lims = (12.3984 / self.en_lims[1], 12.3984 / self.en_lims[0])
         return lims
             
     """
@@ -110,12 +153,12 @@ class EMBLEnergy(Device):
     """
     def startMoveEnergy(self, value, wait=True):
         try:
-            value=float(value)
-        except (TypeError,ValueError),diag:
+            value = float(value)
+        except (TypeError, ValueError), diag:
             logging.getLogger('user_level_log').error("Energy: invalid energy (%s)" % value)
             return False
 
-        current_en = self.getCurrentEnergy()
+        #current_en = self.getCurrentEnergy()
         """
         if current_en is not None:
             if math.fabs(value - current_en) < 0.001:
@@ -146,7 +189,7 @@ class EMBLEnergy(Device):
         self.moving = False
         self.emit('moveEnergyFailed', ())
 
-    def moveEnergyCmdFinished(self,result):
+    def moveEnergyCmdFinished(self, result):
         self.moving = False
         self.emit('moveEnergyFinished', ())       
             
@@ -191,21 +234,21 @@ class EMBLEnergy(Device):
         energy = pos / 1000
         if abs(energy - self.current_energy) > 1e-2:
             self.current_energy = energy
-            self.current_wav=12.3984 / energy
+            self.current_wav = 12.3984 / energy
             if self.current_wav is not None:
                 self.emit('energyChanged', (self.current_energy, self.current_wav))
                 self.emit('valueChanged', (self.current_energy, ))
 
-    def energyLimitsChanged(self,limit):
+    def energyLimitsChanged(self, limit):
         limits = self.getEnergyLimits()
         self.emit('energyLimitsChanged', (limits,))
 
     def energyStateChanged(self, state):
         state = state[0]
         if state == 0:
-           self.moveEnergyCmdFinished(0)
+            self.moveEnergyCmdFinished(0)
         elif state == 1:
-           self.moveEnergyCmdStarted()
+            self.moveEnergyCmdStarted()
         self.emit('energyStateChanged', (state,))
 
     def get_value(self):

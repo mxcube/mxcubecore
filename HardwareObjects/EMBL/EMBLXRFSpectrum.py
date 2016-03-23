@@ -1,17 +1,40 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-Descript. :
+EMBLXRFSpectrum
 """
-import os
+
 import logging
-import time
 import gevent
-import numpy
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from AbstractXRFSpectrum import AbstractXRFSpectrum
-from HardwareRepository.TaskUtils import cleanup
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
@@ -29,17 +52,18 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.ready_event = None
         self.spectrum_running = None
         self.spectrum_info = None
+        self.config_filename = None
 
         self.energy_hwobj = None
         self.transmission_hwobj = None
         self.db_connection_hwobj = None
         self.beam_info_hwobj = None
 
-        self.cmd_spectrum_start = None
         self.chan_spectrum_status = None
         self.chan_spectrum_consts = None
+        self.cmd_spectrum_start = None
+        self.cmd_adjust_transmission = None
 
-        self.config_filename = None
 
     def init(self):
         """
@@ -71,10 +95,9 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.can_spectrum = True
         self.config_filename = self.getProperty("configFile")
 
-    def execute_spectrum_command(self, ct, filename, adjust_transmission=True):
+    def execute_spectrum_command(self, count_sec, filename, adjust_transmission=True):
         try:
-            print 111, ct, adjust_transmission 
-            self.cmd_spectrum_start((ct, adjust_transmission))
+            self.cmd_spectrum_start((count_sec, adjust_transmission))
         except:
             logging.getLogger().exception('XRFSpectrum: problem in starting spectrum')
             self.emit('xrfSpectrumStatusChanged', ("Error problem in starting spectrum",))

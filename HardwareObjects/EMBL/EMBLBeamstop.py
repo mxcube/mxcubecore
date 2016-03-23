@@ -1,5 +1,37 @@
-import logging
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+EMBLBeamstop
+"""
+
 from HardwareRepository.BaseHardwareObjects import Device
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLBeamstop(Device):
     """
@@ -23,13 +55,18 @@ class EMBLBeamstop(Device):
         """
         Descrip. :
         """
-        self.default_beamstop_size = self.getProperty("defaultBeamstopSize")
-        self.default_beamstop_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_beamstop_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_beamstop_size = \
+             self.getProperty("defaultBeamstopSize")
+        self.default_beamstop_distance = \
+             self.getProperty("defaultBeamstopDistance")
+        self.default_beamstop_direction = \
+             self.getProperty("defaultBeamstopDirection")
  
-        self.chan_beamstop_distance = self.getChannelObject('BeamstopDistance')
+        self.chan_beamstop_distance = \
+             self.getChannelObject('BeamstopDistance')
         if self.chan_beamstop_distance is not None:
-            self.chan_beamstop_distance.connectSignal("update", self.beamstop_distance_changed)
+            self.chan_beamstop_distance.connectSignal("update", 
+               self.beamstop_distance_changed)
 
     def isReady(self):
         """
@@ -39,12 +76,12 @@ class EMBLBeamstop(Device):
 
     def beamstop_distance_changed(self, value):
         self.beamstop_distance = value
-	self.emit('beamstopDistanceChanged', (value))
+        self.emit('beamstopDistanceChanged', (value))
 
     def set_positions(self, position):
         if self.chan_beamstop_distance is not None:
-           self.chan_beamstop_distance.setValue(position)
-           self.beamstop_distance_changed(position)           
+            self.chan_beamstop_distance.setValue(position)
+            self.beamstop_distance_changed(position)           
 
     def moveToPosition(self, name):
         pass

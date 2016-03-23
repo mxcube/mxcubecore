@@ -1,6 +1,24 @@
-#Last change: 2014.09.08 by Ivars Karpics (EMBL Hamburg)
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-[Name] BeamFocusing
+[Name] EMBLBeamFocusing
 
 [Description]
 Hardware Object is used to evaluate and set beam focusing mode.
@@ -33,21 +51,22 @@ Example Hardware Object XML file :
            <modeName>Unfocused</modeName>
            <message>'Set beam focusing to Unfocused mode'</message>
       </focusMode>
-    <!-- >Must have spaces before quoted strings here !! <-->
-    <focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI',
-	  'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans', 'ShutterTrans', 
-	  'P14DetHor1', 'P14DetHor2', 'P14DetVer', 'P14DetTilt', 'Out', 
-	  'In', 'Top', 'But']</focusMotors>
-    <device hwrid="/beamFocusingMotors/P14ExpTbl" role="P14ExpTbl"/>
-    <device hwrid="/beamFocusingMotors/P14KB" role="P14KB"/>
-    <device hwrid="/beamFocusingMotors/P14BCU" role="P14BCU"/>
-    <device hwrid="/beamFocusingMotors/P14DetTrans" role="P14DetTrans"/>
-    <device hwrid="/attocubeMotors/attoGroup" role="attocubeMotors"/>
 </equipment>
 """
+
 import logging
 from _tine import query as tinequery
 from HardwareRepository.BaseHardwareObjects import Equipment
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLBeamFocusing(Equipment):
     """
@@ -81,9 +100,9 @@ class EMBLBeamFocusing(Equipment):
 
         focus_motors = []
         try: 
-           focus_motors = eval(self.getProperty('focusMotors'))
+            focus_motors = eval(self.getProperty('focusMotors'))
         except:
-           pass
+            pass
       
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
@@ -99,11 +118,12 @@ class EMBLBeamFocusing(Equipment):
             self.size = self.focus_modes[0]['size']
             self.update_values()
         
-        self.cmd_set_calibration_name = self.getCommandObject('cmdSetCallibrationName')
+        self.cmd_set_calibration_name = self.getCommandObject(\
+            'cmdSetCallibrationName')
         try:
-           self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
+            self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
         except:
-           pass 
+            pass 
 
     def get_focus_motors(self):
         """

@@ -1,9 +1,27 @@
-#Last change: 2014.09.04 - Ivars Karpics (EMBL Hamburg)
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-[Name] MachineInfo
+[Name] EMBLMachineInfo
 
 [Description]
-MachineInfo Hardware Object is used to get relevant machine information 
+Hardware Object is used to get relevant machine information 
 (current, intensity, hutch temperature and humidity, and data storage disc 
 information). Value limits are included
 
@@ -89,6 +107,16 @@ from urllib2 import urlopen
 from datetime import datetime, timedelta
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLMachineInfo(Equipment):
     """

@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] : EMBLDetector(Equipment)
 
@@ -34,6 +53,15 @@ from AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
+
 class EMBLDetector(AbstractDetector, HardwareObject):
     """
     Descript. : Detector class. Contains all information about detector
@@ -41,8 +69,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
                 the status is busy, exposing, ready, etc.
                 the physical property is RH for pilatus, P for rayonix
     """
-
-
 
     def __init__(self, name): 
         """
@@ -62,6 +88,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = None   
         self.exp_time_limits = None
 
+        self.chan_beam_xy = None
         self.chan_temperature = None
         self.chan_humidity = None
         self.chan_status = None
@@ -118,9 +145,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.pixel_max = self.getProperty("px_max")
 
         try:        
-           self.roi_modes = eval(self.getProperty("roiModes"))
+            self.roi_modes = eval(self.getProperty("roiModes"))
         except:
-           self.roi_modes = ()
+            self.roi_modes = ()
 
     def get_distance(self):
         """
@@ -219,7 +246,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        #mode = self.roi_mode_dict.keys()[self.collect_mode_dict.values().index(mode)]
         self.chan_roi_mode.setValue(self.roi_modes[mode])  
 
     def get_roi_mode(self):
