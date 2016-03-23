@@ -189,10 +189,11 @@ class TINEMotor(Device):
         """
         Descript. :
         """
-        value = self.chan_position.getValue()
-        if self.converter is not None:
-            value = eval(self.converter)(value)
-        return value
+        if self.chan_position:
+            value = self.chan_position.getValue()
+            if self.converter is not None:
+                value = eval(self.converter)(value)
+            return value
 
     def stop(self):
         """

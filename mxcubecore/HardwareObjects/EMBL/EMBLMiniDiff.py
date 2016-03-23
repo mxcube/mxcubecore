@@ -1,22 +1,50 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-EMBLMinidiff Class
+EMBLMinidiff
 """
-import os
-import copy
+
 import time
 import logging
 import gevent
 
 try:
-  import lucid2 as lucid
+    import lucid2 as lucid
 except ImportError:
-  try:
-      import lucid
-  except ImportError:
-      logging.warning("Could not find autocentring library, automatic centring is disabled")
+    try:
+        import lucid
+    except ImportError:
+        logging.warning("Could not find autocentring library, " + \
+                        "automatic centring is disabled")
 
 from GenericDiffractometer import GenericDiffractometer
 from HardwareRepository.TaskUtils import *
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
 
 
 class EMBLMiniDiff(GenericDiffractometer):
@@ -50,8 +78,10 @@ class EMBLMiniDiff(GenericDiffractometer):
         # Channels and commands -----------------------------------------------
         self.chan_calib_x = None
         self.chan_calib_y = None
+        self.chan_current_phase = None
         self.chan_head_type = None
         self.chan_fast_shutter_is_open = None
+        self.chan_state = None
         self.chan_sync_move_motors = None
         self.cmd_start_set_phase = None
         self.cmd_start_auto_focus = None   
@@ -181,10 +211,16 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.use_sc = self.getProperty("use_sample_changer")
   
     def in_plate_mode(self):
+        """
+        Description:
+        """
         self.head_type = self.chan_head_type.getValue()
         return self.head_type == GenericDiffractometer.HEAD_TYPE_PLATE
 
     def use_sample_changer(self):
+        """
+        Description:
+        """
         return False
 
     def equipmentReady(self):
@@ -382,12 +418,15 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.emit('omegaReferenceChanged', (self.reference_pos,))
 
     def fast_shutter_state_changed(self, is_open):
+        """
+        Description:
+        """
         self.fast_shutter_is_open = is_open
         if is_open:
             msg = "Opened"
         else:
             msg = "Closed"
-	self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, msg))
+        self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, msg))
 
     def refresh_omega_reference_position(self):
         """
@@ -406,6 +445,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
 
     def set_phase(self, phase, timeout=None):
+        """
+        Description:
+        """
         if timeout:
             self.ready_event.clear()
             set_phase_task = gevent.spawn(self.execute_server_task,
@@ -417,7 +459,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             self.cmd_start_set_phase(phase)
 
-    def start_auto_focus(self, timeout):
+    def start_auto_focus(self, timeout=None):
         """
         Descript. :
         """
@@ -507,9 +549,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         for image in range(EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES):
             x, y, score = self.find_loop()
             if x > -1 and y > -1:
-                 self.centring_hwobj.appendCentringDataPoint(
-                     {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
-                      "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
+                self.centring_hwobj.appendCentringDataPoint(
+                    {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
+                     "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
             surface_score_list.append(score)
             self.phi_motor_hwobj.moveRelative(\
                  360.0 / EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES)
@@ -606,9 +648,9 @@ class EMBLMiniDiff(GenericDiffractometer):
                            'phi', 'focus', 'kappa', 'kappa_phi'):
             mot_obj = self.getObjectByRole(motor_role)
             try:
-               motors[motor_role] = motor_pos[mot_obj]
+                motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
-               motors[motor_role] = mot_obj.getPosition()
+                motors[motor_role] = mot_obj.getPosition()
         motors["beam_x"] = (self.beam_position[0] - \
                             self.zoom_centre['x'] )/self.pixels_per_mm_y
         motors["beam_y"] = (self.beam_position[1] - \
@@ -623,35 +665,50 @@ class EMBLMiniDiff(GenericDiffractometer):
         if self.in_plate_mode():
             logging.getLogger("HWR").info("EMBLMiniDiff: Visual align not available in Plate mode") 
         else:
-            t1 =[point_1.sampx, point_1.sampy, point_1.phiy]
-            t2 =[point_2.sampx, point_2.sampy, point_2.phiy]
+            t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
+            t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
             kappa = self.kappa_motor_hwobj.getPosition()
             phi = self.kappa_phi_motor_hwobj.getPosition()
             new_kappa, new_phi, (new_sampx, new_sampy, new_phiy) = \
                  self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
-	    self.move_to_motors_positions({self.kappa_motor_hwobj:new_kappa, 
+            self.move_to_motors_positions({self.kappa_motor_hwobj:new_kappa, 
                                            self.kappa_phi_motor_hwobj:new_phi, 
                                            self.sample_x_motor_hwobj:new_sampx,
                                            self.sample_y_motor_hwobj:new_sampy, 
                                            self.phiy_motor_hwobj:new_phiy})
 
     def update_values(self):
+        """
+        Description:
+        """
         self.emit('minidiffPhaseChanged', (self.current_phase, ))            
         self.emit('omegaReferenceChanged', (self.reference_pos,))
         self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, ))
 
     def toggle_fast_shutter(self):
+        """
+        Description:
+        """
         if self.chan_fast_shutter_is_open is not None:
             self.chan_fast_shutter_is_open.setValue(not self.fast_shutter_is_open) 
 
     def find_loop(self):
+        """
+        Description:
+        """
         image_array = self.camera_hwobj.get_snapshot(return_as_array=True)
         (info, x, y) = lucid.find_loop(image_array)
         surface_score = 10
         return x, y, surface_score
 
     def get_surface_score(self, image):
+        """
+        Description:
+        """
         return 10
 
     def move_omega_relative(self, relative_angle):
+        """
+        Description:
+        """
         self.phi_motor_hwobj.syncMoveRelative(relative_angle, 5)

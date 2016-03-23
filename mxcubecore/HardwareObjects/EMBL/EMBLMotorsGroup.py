@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] EMBLMotorsGroup
 
@@ -60,6 +79,16 @@ import logging
 import _tine as tine
 from HardwareRepository.BaseHardwareObjects import Device 
 
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
+
 class EMBLMotorsGroup(Device):
     """
     Descript.
@@ -98,21 +127,23 @@ class EMBLMotorsGroup(Device):
             self.motors_list.append(temp_dict)
         
         try:  
-           self.chan_positions = self.addChannel({"type": "tine", 
+            self.chan_positions = self.addChannel({"type": "tine", 
                 "tinename": self.server_address + self.group_address, 
                 "name": self.positionAddr}, self.positionAddr)
-           self.chan_positions.connectSignal('update', self.positions_changed)
+            self.chan_positions.connectSignal('update', self.positions_changed)
         except:
-           logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to add channel %s/%s %s" \
-                   %(self.server_address, self.group_address, self.positionAddr))
+            logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to " + \
+                 "add channel %s/%s %s"  %(self.server_address,  
+                 self.group_address, self.positionAddr))
         try:
-           self.chan_status = self.addChannel({"type": "tine", 
+            self.chan_status = self.addChannel({"type": "tine", 
                 "tinename": self.server_address + self.group_address, 
                 "name": self.statusAddr}, self.statusAddr)
-           self.chan_status.connectSignal('update', self.status_changed)
+            self.chan_status.connectSignal('update', self.status_changed)
         except:
-           logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to add channel %s/%s %s" \
-                   %(self.server_address, self.group_address, self.statusAddr))
+            logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to " + \
+                 "add channel %s/%s %s" % (self.server_address, 
+                 self.group_address, self.statusAddr))
 
     def get_motors_dict(self):
         """

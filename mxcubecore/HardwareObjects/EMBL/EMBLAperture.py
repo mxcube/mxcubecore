@@ -1,14 +1,31 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-[Name] BeamAperture
+[Name] EMBLAperture
 
 [Description]
-The BeamAperture Hardware Object is used to set and get current aperture.
+Hardware Object is used to set and get current aperture.
 
 [Channels]
-- self.chanActivePos
 
 [Commands]
-- self.cmdChangePos
 
 [Emited signals]
 - apertureChanged
@@ -32,9 +49,20 @@ The BeamAperture Hardware Object is used to set and get current aperture.
 Example Hardware Object XML file :
 ==================================
 """
+
 import logging
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLAperture(Device):
     """
@@ -60,7 +88,7 @@ class EMBLAperture(Device):
         for position in self['positions']:
             temp_name = str(position.getProperty('posName'))
             if not temp_name == "Out":
-                temp_name = "%s%sm" %(temp_name, unichr(956))
+                temp_name = "%s%sm" % (temp_name, unichr(956))
             self.positions_list.append({
                  'origin_name' : str(position.getProperty('posName')),
                  'name'   : temp_name,
@@ -83,7 +111,7 @@ class EMBLAperture(Device):
 
         self.active_position = 0
         self.active_focus_mode = "Unfocused"
-	self.evaluate_aperture()
+        self.evaluate_aperture()
 
     def active_position_changed(self, new_position):
         """
@@ -113,8 +141,8 @@ class EMBLAperture(Device):
             and self.chan_active_position:
                 self.chan_active_position.setValue(new_position)	
             else:
-               #Mockup 
-               self.active_position_changed(new_position)
+                 #Mockup 
+                self.active_position_changed(new_position)
         else:
             if self.chan_active_position:
                 self.chan_active_position.setValue(new_position)
