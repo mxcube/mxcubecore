@@ -85,10 +85,11 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.chan_sync_move_motors = None
         self.cmd_start_set_phase = None
         self.cmd_start_auto_focus = None   
+        self.cmd_get_omega_scan_limits = None
 
         # Internal values -----------------------------------------------------
         self.use_sc = False
-        selfreference_pos  = [0, 0]
+        self.omega_reference_pos  = [0, 0]
        
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -125,6 +126,7 @@ class EMBLMiniDiff(GenericDiffractometer):
        
         self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
         self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+        self.cmd_get_omega_scan_limits = self.getCommandObject('getOmegaMotorDynamicScanLimits')
 
         self.centring_hwobj = self.getObjectByRole('centring')
         if self.centring_hwobj is None:
@@ -142,7 +144,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.sample_x_motor_hwobj = self.getObjectByRole('sampx')
         self.sample_y_motor_hwobj = self.getObjectByRole('sampy')
        
-        if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
+        #if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
+        if True:
             self.kappa_motor_hwobj = self.getObjectByRole('kappa')
             self.kappa_phi_motor_hwobj = self.getObjectByRole('kappa_phi')
 
@@ -712,3 +715,12 @@ class EMBLMiniDiff(GenericDiffractometer):
         Description:
         """
         self.phi_motor_hwobj.syncMoveRelative(relative_angle, 5)
+
+    def get_scan_limits(self, speed=None):
+        """
+        Gets scan limits. Necessary for example in the plate mode
+        where osc range is limited
+        """
+        if speed == None:
+            speed = 0
+        return self.cmd_get_omega_scan_limits(speed)

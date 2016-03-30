@@ -73,13 +73,16 @@ class EMBLAperture(Device):
         Description: Active position is defined as index (int)	
         """
         Device.__init__(self, name)
+
         self.active_position = None
         self.default_position = None
         self.positions_list = []
         self.active_focus_mode = None    
-        self.chan_active_position = None
+
+        self.chan_current_aperture_diameter_index = None
+        self.chan_aperture_position = None
   
-        self.beam_focus_hwobj = None
+        self.beam_focusing_hwobj = None
 
     def init(self):
         """
@@ -95,19 +98,21 @@ class EMBLAperture(Device):
                  'modes'  : position.getProperty('modesAllowed'),
                  'size'   : eval(position.getProperty('size'))})
         self.default_position = self.getProperty('defaultPosition')
-        self.chan_active_position = self.getChannelObject('CurrentApertureDiameterIndex')
-        if self.chan_active_position is not None: 
-            self.chan_active_position.connectSignal('update', self.active_position_changed) 	
-            self.active_position_changed(self.chan_active_position.getValue())
+        self.chan_current_aperture_diameter_index = \
+             self.getChannelObject('CurrentApertureDiameterIndex')
+        if self.chan_current_aperture_diameter_index is not None: 
+            self.chan_current_aperture_diameter_index.\
+                 connectSignal('update', self.active_position_changed)
+            self.active_position_changed(\
+                 self.chan_current_aperture_diameter_index.getValue())
 
-        if self.getProperty('beamFocusHO') is not None:	
-            try:
-                self.beam_focus_hwobj = HardwareRepository.HardwareRepository().\
-                     getHardwareObject(self.getProperty('beamFocusHO'))
-                self.connect(self.beam_focus_hwobj, 'definerPosChanged', \
-                     self.beam_focus_changed)
-            except:
-                logging.getLogger("HWR").debug('BeamAperture: Focusing hwobj not defined')
+        self.chan_aperture_position = self.getChannelObject('AperturePosition')
+
+        self.beam_focusing_hwobj = self.getObjectByRole('beam_focusing')
+        if self.beam_focusing_hwobj:
+            self.connect(self.beam_focusing_hwobj, 
+                         'focusingModeChanged', 
+                         self.beam_focus_changed)
 
         self.active_position = 0
         self.active_focus_mode = "Unfocused"
@@ -121,10 +126,13 @@ class EMBLAperture(Device):
             self.active_position = int(new_position)
             self.evaluate_aperture()
 
-    def update_value(self):
-        if self.chan_active_position is not None:
-            self.active_position = self.chan_active_position.getValue()
-        #if self.beam_focus_hwobj is not None:
+    def update_values(self):
+        """
+        Descript. :
+        """
+        if self.chan_current_aperture_diameter_index is not None:
+            self.active_position = self.chan_current_aperture_diameter_index.getValue()
+        #if self.beam_focusing_hwobj is not None:
         #    self.active_focus_mode =  
         self.active_position_changed(self.active_position) 
 	
@@ -138,14 +146,14 @@ class EMBLAperture(Device):
             new_position = self.default_position
         if self.active_focus_mode is not None:
             if self.active_focus_mode in self.positions_list[new_position]['modes'] \
-            and self.chan_active_position:
-                self.chan_active_position.setValue(new_position)	
+            and self.chan_current_aperture_diameter_index:
+                self.chan_current_aperture_diameter_index.setValue(new_position)	
             else:
                  #Mockup 
                 self.active_position_changed(new_position)
         else:
-            if self.chan_active_position:
-                self.chan_active_position.setValue(new_position)
+            if self.chan_current_aperture_diameter_index:
+                self.chan_current_aperture_diameter_index.setValue(new_position)
             else:
                 #Mockup
                 self.active_position_changed(new_position) 
@@ -170,9 +178,15 @@ class EMBLAperture(Device):
         return self.active_position
 
     def get_current_pos_name(self):
+        """
+        Descript. :
+        """
         return self.positions_list[self.active_position]['origin_name'] 
 
     def get_aperture_list(self, as_origin=None):
+        """
+        Descript. :
+        """
         position_names = []
         if len(self.positions_list) > 0:
             for position in self.positions_list:
@@ -182,6 +196,17 @@ class EMBLAperture(Device):
                     position_names.append(position['name'])
         return position_names        
 
+    def set_in(self):
+        """
+        Descript. :
+        """
+        self.chan_aperture_position.setValue('BEAM')
+
+    def set_out(self):
+        """
+        Descript. :
+        """
+        self.chan_aperture_position.setValue('OFF')
 
     def evaluate_aperture(self):	
         """
@@ -189,7 +214,7 @@ class EMBLAperture(Device):
         Arguments : - 
         Return    : -
         """
-        if self.beam_focus_hwobj is None:
+        if self.beam_focusing_hwobj is None:
             self.emit('apertureChanged', (self.active_position, 
                       self.positions_list[self.active_position]['size']))
         else:
