@@ -104,7 +104,7 @@ class EMBLBeamInfo(Equipment):
 
         self.beam_definer_hwobj = self.getObjectByRole("definer")
         if self.beam_definer_hwobj is not None:
-            self.connect(self.beam_definer_hwobj, "definerPosChanged", \
+            self.connect(self.beam_definer_hwobj, "focusingModeChanged", \
                  self.definer_pos_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")

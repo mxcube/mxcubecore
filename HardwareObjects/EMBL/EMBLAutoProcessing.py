@@ -169,6 +169,8 @@ class EMBLAutoProcessing(HardwareObject):
         unit_cell = params.get("sample_reference").get("cell", "")
         if len(unit_cell) > 0:
             autoproc_input.setUnit_cell(XSDataString(unit_cell))
+
+        autoproc_input.setCc_half_cutoff(XSDataDouble(18.0))
        
         #Maybe we have to check if directory is there. Maybe create dir with mxcube
         xds_appeared = False

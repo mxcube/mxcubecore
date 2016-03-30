@@ -552,8 +552,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     flux = fullflux
                 else:
                     flux = None
-                logging.getLogger("HWR").info("Flux in %s mode %e photon/sec" % \
-                    (self.beam_info_hwobj.get_focus_mode(), flux))
+               # logging.getLogger("HWR").info("Flux in %s mode %e photon/sec" % \
+               #     (self.beam_info_hwobj.get_focus_mode(), flux))
         return flux
 
     def get_machine_current(self):

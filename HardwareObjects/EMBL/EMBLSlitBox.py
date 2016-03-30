@@ -193,7 +193,7 @@ class EMBLSlitBox(Equipment):
 
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
-            self.connect(self.beam_focus_hwobj, 'definerPosChanged', self.focus_mode_changed)
+            self.connect(self.beam_focus_hwobj, 'focusingModeChanged', self.focus_mode_changed)
             self.active_focus_mode = self.beam_focus_hwobj.get_active_focus_mode()
         else:
             logging.getLogger("HWR").debug('EMBLSlitBox: beamFocus HO not defined')
@@ -313,8 +313,7 @@ class EMBLSlitBox(Equipment):
         """
         Descript.
         """
-        return 'Horizontal: %0.3f' % self.get_gap_hor() + \
-               ' Vertical: %0.3f' % self.get_gap_ver()
+        return self.get_gap_hor(), self.get_gap_ver()
 	
     def set_gap(self, gap_name, new_gap):
         """
@@ -391,6 +390,9 @@ class EMBLSlitBox(Equipment):
                                            self.gaps_dict['Ver']['maxGap']])
 
     def update_values(self):
+        """
+        Descript. :
+        """
         self.emit('focusModeChanged', (self.hor_gap, self.ver_gap)) 
         self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
                                      self.gaps_dict['Ver']['value']])
