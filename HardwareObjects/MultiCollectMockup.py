@@ -51,6 +51,11 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
        	    data_collect_parameters["status"]='Data collection successful'
 	    osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
             self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
+
+            for image in range(data_collect_parameters["oscillation_sequence"][0]["number_of_images"]):
+                time.sleep(data_collect_parameters["oscillation_sequence"][0]["exposure_time"])
+                self.emit("collectImageTaken", image)
+ 
             data_collect_parameters["status"]='Running'
 	    data_collect_parameters["status"]='Data collection successful'
             self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], "12345", osc_id, data_collect_parameters))
