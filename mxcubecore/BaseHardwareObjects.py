@@ -399,6 +399,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def xml_source(self):
         """Get XML source code"""
         return HardwareRepository.HardwareRepository().xml_source[self.name()]
+
+    def update_values(self):
+        return 
     
 class Procedure(HardwareObject):
     def __init__(self, name):
