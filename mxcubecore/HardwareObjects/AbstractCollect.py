@@ -32,7 +32,6 @@ import collections
 import gevent
 from HardwareRepository.TaskUtils import *
 
-__copyright__ = "Copyright 2012, ESRF"
 __credits__ = ["MXCuBE colaboration"]
 
 __version__ = "2.2."
