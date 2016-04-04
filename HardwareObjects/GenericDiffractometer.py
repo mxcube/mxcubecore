@@ -126,6 +126,7 @@ class GenericDiffractometer(HardwareObject):
     MOTOR_STATUS_CHANGED_EVENT = "motorStatusChanged"
 
     HEAD_TYPE_MINIKAPPA = "MiniKappa"
+    HEAD_TYPE_SMARTMAGNET = "SmartMagnet"
     HEAD_TYPE_PLATE = "Plate"
     HEAD_TYPE_PERMANENT = "Permanent"
 
@@ -140,8 +141,12 @@ class GenericDiffractometer(HardwareObject):
         self.motor_hwobj_dict = {}
         self.camera_hwobj = None
         self.beam_info_hwobj = None
+        self.sample_changer = None
+        self.use_sc = False
 
         # Channels and commands -----------------------------------------------
+
+        self.transfer_mode = None
 
         # Internal values -----------------------------------------------------
         self.ready_event = None
@@ -204,6 +209,18 @@ class GenericDiffractometer(HardwareObject):
         else:
             self.beam_position = [self.image_width / 2, self.image_height / 2]
             logging.getLogger("HWR").debug('Diffractometer: BeamInfo hwobj is not defined')
+
+        self.sample_changer = self.getObjectByRole("samplechanger")
+        if self.sample_changer is None :
+            logging.getLogger("HWR").warning('Sample Changer is not defined')
+        else:
+            #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
+            if self.transfer_mode == "SAMPLE_CHANGER":
+                self.use_sc = True
+
+        if self.transfer_mode is not None:
+            self.connect(self.transfer_mode, "update", self.transfer_mode_changed)
+
 
         # config from xml -----------------------------------------------------
 
@@ -288,6 +305,32 @@ class GenericDiffractometer(HardwareObject):
 
     def use_sample_changer(self):
         return False
+
+    def set_use_sc(self,flag):
+        if flag:
+            # check both transfer_mode and sample_Changer
+            if self.sample_changer is None:
+                logging.getLogger("HWR").error("Sample Changer is not available")
+                return False
+            if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
+                # if transferMode is not defined, ignore the checkup
+                self.use_sc = True
+            else:
+                logging.getLogger("HWR").error("Set the diffractometer TransferMode to SAMPLE_CHANGER first!!"")
+                return False
+        else:
+            self.use_sc = False
+        return True
+
+    def transfer_mode_changed(self, transfer_mode):
+        """
+        Descript. :
+        """
+        logging.getLogger("HWR").info("current_transfer_mode is set to %s" % transfer_mode)
+
+        if transfer_mode != "SAMPLE_CHANGER":
+            self.use_sc = False
+        self.emit('minidiffTransferModeChanged', (transfer_mode, ))
 
     def get_current_phase(self):
         """
@@ -530,7 +573,7 @@ class GenericDiffractometer(HardwareObject):
         self.move_to_motors_positions_procedure = gevent.spawn(\
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
-  
+
     def move_motors(self, motor_positions):
         """
         Descript. : general function to move motors.
@@ -685,7 +728,7 @@ class GenericDiffractometer(HardwareObject):
         motors["beam_y"] = (self.beam_position[1] - \
                             self.zoom_centre['y'] )/self.pixels_per_mm_x
         return motors
- 
+
     def visual_align(self, point_1, point_2):
         """
         Descript. :
