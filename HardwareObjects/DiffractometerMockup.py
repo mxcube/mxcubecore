@@ -228,6 +228,7 @@ class DiffractometerMockup(Equipment):
    
     def set_use_sc(self,state):
         self.use_sc = state
+        return True
 
     def in_plate_mode(self):
         return self.head_type == "Plate"
