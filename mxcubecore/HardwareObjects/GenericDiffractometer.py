@@ -504,7 +504,7 @@ class GenericDiffractometer(HardwareObject):
             else:
                 #if 3 click centring move -180 
                 if not self.in_plate_mode():
-                    self.phi_motor_hwobj.syncMoveRelative(-180)
+                    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
             #logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
