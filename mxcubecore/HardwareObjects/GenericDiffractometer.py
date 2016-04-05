@@ -119,6 +119,7 @@ class GenericDiffractometer(HardwareObject):
                    "kappa_phi",
                    "beam_x",
                    "beam_y"]
+    CHANNEL_NAME = []
 
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
@@ -145,8 +146,9 @@ class GenericDiffractometer(HardwareObject):
         self.use_sc = False
 
         # Channels and commands -----------------------------------------------
-
+        self.channel_dict = {}
         self.transfer_mode = None
+        self.sample_is_loaded = None
 
         # Internal values -----------------------------------------------------
         self.ready_event = None
@@ -186,6 +188,10 @@ class GenericDiffractometer(HardwareObject):
              GenericDiffractometer.CENTRING_METHOD_MOVE_TO_BEAM: \
                  self.start_move_to_beam}
 
+        self.connect(self, 'equipmentReady', self.equipment_ready)
+        self.connect(self, 'equipmentNotReady', self.equipment_not_ready)
+
+
     def init(self):
         # Channels and commands -----------------------------------------------
 
@@ -215,7 +221,8 @@ class GenericDiffractometer(HardwareObject):
             logging.getLogger("HWR").warning('Sample Changer is not defined')
         else:
             #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
-            if self.transfer_mode == "SAMPLE_CHANGER":
+            # if not defined, set use_sc to True
+            if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
                 self.use_sc = True
 
         if self.transfer_mode is not None:
@@ -267,6 +274,24 @@ class GenericDiffractometer(HardwareObject):
         self.moveMotors = self.move_motors
         self.isReady = self.is_ready
 
+   # to make it compatibile
+    def __getattr__(self, attr):
+        if attr.startswith("__"):
+            raise AttributeError(attr)
+        else:
+            if attr == "currentCentringProcedure":
+                return self.current_centring_procedure
+            if attr == "centringStatus" :
+                return self.centring_status
+            if attr == "imageClicked":
+                return self.image_clicked
+            if attr == "cancelCentringMethod":
+                return self.cancel_centring_method
+            if attr == "pixelsPerMmY":
+                return self.pixels_per_mm_x
+            if attr == "pixelsPerMmZ":
+                return self.pixels_per_mm_y
+
     def is_ready(self):
         """
         Detects if device is ready
@@ -316,7 +341,7 @@ class GenericDiffractometer(HardwareObject):
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
             else:
-                logging.getLogger("HWR").error("Set the diffractometer TransferMode to SAMPLE_CHANGER first!!"")
+                logging.getLogger("HWR").error("Set the diffractometer TransferMode to SAMPLE_CHANGER first!!")
                 return False
         else:
             self.use_sc = False
