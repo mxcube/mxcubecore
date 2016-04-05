@@ -1,4 +1,22 @@
-#Last change: 2014.09.04 - Ivars Karpics (EMBL Hamburg)
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] BeamSlitBox
 
@@ -90,9 +108,19 @@ Example Hardware Object XML file :
     <device hwrid="/attocubeMotors/attoGroup" role="attocubeMotors"/>
 </equipment>
 """
+
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLSlitBox(Equipment):
     """
@@ -111,7 +139,7 @@ class EMBLSlitBox(Equipment):
         """
         Decript. :
         """
-	Equipment.__init__(self, *args)
+        Equipment.__init__(self, *args)
         self.decimal_places = None
         self.active_focus_mode = None       
         self.beam_focus_hwobj = None  
@@ -165,7 +193,7 @@ class EMBLSlitBox(Equipment):
 
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
-            self.connect(self.beam_focus_hwobj, 'definerPosChanged', self.focus_mode_changed)
+            self.connect(self.beam_focus_hwobj, 'focusingModeChanged', self.focus_mode_changed)
             self.active_focus_mode = self.beam_focus_hwobj.get_active_focus_mode()
         else:
             logging.getLogger("HWR").debug('EMBLSlitBox: beamFocus HO not defined')
@@ -285,8 +313,7 @@ class EMBLSlitBox(Equipment):
         """
         Descript.
         """
-        return 'Horizontal: %0.3f' % self.get_gap_hor() + \
-               ' Vertical: %0.3f' % self.get_gap_ver()
+        return self.get_gap_hor(), self.get_gap_ver()
 	
     def set_gap(self, gap_name, new_gap):
         """
@@ -363,6 +390,9 @@ class EMBLSlitBox(Equipment):
                                            self.gaps_dict['Ver']['maxGap']])
 
     def update_values(self):
+        """
+        Descript. :
+        """
         self.emit('focusModeChanged', (self.hor_gap, self.ver_gap)) 
         self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
                                      self.gaps_dict['Ver']['value']])

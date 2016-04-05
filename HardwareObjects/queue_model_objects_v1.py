@@ -248,7 +248,6 @@ class Sample(TaskNode):
         self.location = (sc_sample[1], sc_sample[2])
         if sc_sample[3] != "":
             self.set_name(sc_sample[3])
-            self.location = (sc_sample[1], sc_sample[2], sc_sample[3])
         else:
             self.set_name(self.loc_str)
 
@@ -370,8 +369,9 @@ class Basket(TaskNode):
     def is_present(self):
         return self.get_is_present()
 
-    def init_from_sc_basket(self, sc_basket, name="Basket"):
+    def init_from_sc_basket(self, sc_basket, name="Puck"):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
+
         if self._basket_object is None:
             self.location = sc_basket[0]
             if name == "Row":
@@ -379,8 +379,11 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = self._basket_object.getCoords()[0]
-            self.name = "%s %d" % (name, self.location)
+            self.location = sc_basket[0]
+            if name == "Row":
+                self.name = "%s %s" % (name, chr(65 + self.location))
+            else:
+                self.name = "%s %d" % (name, self.location)
             #if len(self.location) == 2:
             #    self.name = "Cell %d, puck %d" % self.location
 

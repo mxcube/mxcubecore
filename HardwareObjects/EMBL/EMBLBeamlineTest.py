@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] EMBLBeamlineTest
 
@@ -38,17 +57,26 @@ import logging
 import tempfile
 from csv import reader
 from datetime import datetime
-#from scipy.misc import imsave
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 TEST_DICT = {"summary": "Beamline summary",
              "com": "Communication with beamline devices",
              "ppu": "PPU control",
              "focusing": "Focusing modes",
              "aperture": "Aperture",
-             "alignbeam": "Alignment of beam position",
+             "alignbeam": "Align beam position",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure"}
 
@@ -76,14 +104,16 @@ class EMBLBeamlineTest(HardwareObject):
         self.current_test_procedure = None
         self.beamline_name = None
 
-        self.available_test_dict = {}
+        self.available_tests_dict = {}
         self.startup_test_list = []
         self.results_list = None
         self.results_html_list = None
+        self.arhive_results = None
 
         self.bl_hwobj = None
         self.beam_focus_hwobj = None
         self.graphics_manager_hwobj = None
+        self.beam_align_hwobj = None
         self.test_directory = None
         self.test_source_directory = None
         self.test_filename = None
@@ -94,12 +124,12 @@ class EMBLBeamlineTest(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
+        self.graphics_manager_hwobj = self.bl_hwobj.shape_history_hwobj
+        self.beam_align_hwobj = self.getObjectByRole("beam_align")
 
-        try:
-            self.beam_focus_hwobj = self.bl_hwobj.beam_info_hwobj.beam_definer_hwobj
-        except:
-            logging.getLogger("HWR").warning('BeamlineTest: Beam focusing hwobj is not defined')
+        self.beam_focus_hwobj = self.bl_hwobj.beam_info_hwobj.beam_definer_hwobj
+        if self.beam_focus_hwobj:
+            self.connect(self.beam_focus_hwobj, "focusingModeChanged", self.focusing_mode_changed)
 
         if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
             self.connect(self.bl_hwobj.ppu_control_hwobj, "ppuStatusChanged", self.ppu_status_changed)
@@ -124,12 +154,12 @@ class EMBLBeamlineTest(HardwareObject):
 
         try:
             for test in eval(self.getProperty("available_tests")):
-                self.available_test_dict[test] = TEST_DICT[test]
+                self.available_tests_dict[test] = TEST_DICT[test]
         except:
             logging.getLogger("HWR").debug("BeamlineTest: Available tests are " +\
                 "not defined in xml. Setting all tests as available.")
-        if self.available_test_dict is None:
-            self.available_test_dict = TEST_DICT
+        if self.available_tests_dict is None:
+            self.available_tests_dict = TEST_DICT
 
         try:
             self.startup_test_list = eval(self.getProperty("startup_tests"))
@@ -139,11 +169,13 @@ class EMBLBeamlineTest(HardwareObject):
         if self.getProperty("run_tests_at_startup") == True:
             self.start_test_queue(self.startup_test_list)
 
-    def start_test_queue(self, test_list):
+        self.arhive_results = self.getProperty("arhive_results")
+
+    def start_test_queue(self, test_list, create_report=True):
         """
         Descrip. :
         """
-        if len(test_list) > 0:
+        if create_report:
             try:
                 logging.getLogger("HWR").debug(\
                     "BeamlineTest: Creating directory %s" % \
@@ -160,9 +192,6 @@ class EMBLBeamlineTest(HardwareObject):
                 logging.getLogger("HWR").warning(\
                    "BeamlineTest: Unable to create test directories")
                 return 
-        else:
-            logging.getLogger("HWR").warning('BeamlineTest: No test defined')
-            return
 
         self.results_list = []
         self.results_html_list = []
@@ -215,9 +244,12 @@ class EMBLBeamlineTest(HardwareObject):
                 logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
             self.results_html_list.append("</p>\n<hr>")
 
-        html_filename = os.path.join(self.test_directory, 
-                                     self.test_filename)
-        self.generate_html_report(test_list)
+        html_filename = None
+        if create_report: 
+            html_filename = os.path.join(self.test_directory, 
+                                         self.test_filename)
+            self.generate_html_report()
+
         self.emit('testFinished', html_filename) 
 
     def init_device_list(self):
@@ -240,6 +272,12 @@ class EMBLBeamlineTest(HardwareObject):
         Descrip. :
         """
         return self.devices_list
+
+    def focusing_mode_changed(self, focusing_mode, beam_size):
+        """
+        Descrip. :
+        """
+        self.emit("focusingModeChanged", focusing_mode, beam_size)
     
     def get_focus_mode_names(self):	 
         """
@@ -261,6 +299,8 @@ class EMBLBeamlineTest(HardwareObject):
         """
         if self.beam_focus_hwobj is not None:
             return self.beam_focus_hwobj.get_active_focus_mode()
+        else:
+            return None, None
 
     def set_focus_mode(self, mode):
         """
@@ -344,6 +384,9 @@ class EMBLBeamlineTest(HardwareObject):
         return result
 
     def test_ppu(self):
+        """
+        Descript. :
+        """
         result = {}
         if self.bl_hwobj.ppu_control_hwobj:
             is_error, msg = self.bl_hwobj.ppu_control_hwobj.get_status()
@@ -394,13 +437,14 @@ class EMBLBeamlineTest(HardwareObject):
             beam_image_filename = os.path.join(\
                 self.test_source_directory, 
                 "aperture_%s.png" % value)
-            table_values += "<td><img src=%s style=width:300px;></td>" % beam_image_filename 
+            table_values += "<td><img src=%s style=width:700px;></td>" % beam_image_filename 
             self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
             progress_info = {"progress_total": len(aperture_list),
                              "progress_msg": msg}
             self.emit("testProgress", (index, progress_info))
 
-        self.bl_hwobj.diffractometer_hwobj.set_phase("Centring", timeout=30)
+        self.bl_hwobj.diffractometer_hwobj.set_phase(\
+             self.bl_hwobj.diffractometer_hwobj.PHASE_CENTRING, timeout = 30)
         aperture_hwobj.set_active_position(current_aperture)
         table_header += "</tr>"
         table_values += "</tr>"
@@ -415,15 +459,24 @@ class EMBLBeamlineTest(HardwareObject):
         return result
 
     def test_alignbeam(self):
+        """
+        Descript. :
+        """
         result = {}
         result["result_bit"] = False
         result["result_details"] = []
         result["result_short"] = "Test started"
+
+        self.bl_hwobj.diffractometer_hwobj.set_phase(\
+             self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM, timeout = 30)
+
         result["result_details"].append("Beam shape before alignment<br><br>")
         beam_image_filename = os.path.join(self.test_source_directory,
                                            "align_beam_before.png")
         self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
         result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
+
+        self.align_beam()
       
         result["result_details"].append("Beam shape after alignment<br><br>") 
         beam_image_filename = os.path.join(self.test_source_directory,
@@ -431,10 +484,51 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
         self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
+        self.bl_hwobj.diffractometer_hwobj.set_phase(\
+             self.bl_hwobj.diffractometer_hwobj.PHASE_CENTRING, timeout = 30)
+
         self.ready_event.set()
         return result
 
+    def align_beam(self):
+        """
+        Align beam procedure:
+        1. Store aperture position and take out the aperture
+        2. Store slits position and open to max
+        3. In a loop take snapshot and move motors
+        4. Put back aperture
+        """
+        aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj
+        slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj 
+
+        #1. Store aperture position and take out the aperture
+        progress_info = {"progress_total": 6,
+                         "progress_msg": "Setting aperture out"}
+
+        self.emit("testProgress", (1, progress_info))
+        aperture_hwobj.set_out() 
+        gevent.sleep(5)
+    
+        #2. Store slits position and open to max
+        if slits_hwobj:
+            progress_info["progress_msg"] = "Setting slits to the maximum"
+            self.emit("testProgress", (2, progress_info))
+            hor_gap, ver_gap = slits_hwobj.get_gaps()
+            (hor_gap_max, ver_gap_max) = slits_hwobj.get_max_gaps() 
+
+        #3. In a loop take snapshot and move motors
+
+
+        #4. Put back aperture
+        progress_info["progress_msg"] = "Setting aperture in"
+        self.emit("testProgress", (6, progress_info))
+        aperture_hwobj.set_in()
+        gevent.sleep(5)
+
     def test_autocentring(self):
+        """
+        Descript. :
+        """
         result = {}
         result["result_bit"] = True
         result["result_details"] = []
@@ -459,6 +553,9 @@ class EMBLBeamlineTest(HardwareObject):
  
 
     def test_summary(self):
+        """
+        Descript. :
+        """
         result = {}
         result["result_bit"] = True
         result["result_details"] = []
@@ -490,6 +587,9 @@ class EMBLBeamlineTest(HardwareObject):
         return result
 
     def test_focusing(self): 
+        """
+        Descript. :
+        """
         result = {}
         result["result_details"] = []
 
@@ -532,7 +632,10 @@ class EMBLBeamlineTest(HardwareObject):
             self.ready_event.set()
 
     def get_available_tests(self):
-        return self.available_test_dict
+        """
+        Descript. :
+        """
+        return self.available_tests_dict
 
     def get_startup_test_list(self):
         """
@@ -544,7 +647,7 @@ class EMBLBeamlineTest(HardwareObject):
                 test_list.append(TEST_DICT[test]) 
         return test_list
 
-    def generate_html_report(self, test_list):
+    def generate_html_report(self):
         """
         Descript. :
         """
@@ -590,21 +693,26 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").error(\
                "BeamlineTest: Unable to generate html report file %s" % html_filename)
 
-        try: 
-            output_file = open(html_filename, "r")
-            archive_file = open(archive_filename, "w")
+        if self.arhive_results:
+            try: 
+                output_file = open(html_filename, "r")
+                archive_file = open(archive_filename, "w")
 
-            for line in output_file.readlines():
-                archive_file.write(line)
-            output_file.close()
-            archive_file.close()
+                for line in output_file.readlines():
+                    archive_file.write(line)
+                output_file.close()
+                archive_file.close()
 
-            logging.getLogger("HWR").info("Archive file :%s generated" % archive_filename)
-        except:
-            logging.getLogger("HWR").error(\
-              "BeamlineTest: Unable to generate html report file %s" % archive_filename)
+                logging.getLogger("HWR").info("Archive file :%s generated" % \
+                       archive_filename)
+            except:
+                logging.getLogger("HWR").error("BeamlineTest: Unable to " +\
+                       "generate html report file %s" % archive_filename)
            
     def get_result_html(self):
+        """
+        Descript. :
+        """
         html_filename = os.path.join(self.test_directory, self.test_filename)
         if os.path.exists(html_filename):
             return html_filename

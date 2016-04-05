@@ -353,7 +353,7 @@ class SampleChanger(Container,Equipment):
 
     def chained_load(self, sample_to_unload, sample_to_load):
         self.unload(sample_to_unload)
-        self.waitReady(timeout=3)
+        self.waitReady(timeout=10)
         return self.load(sample_to_load)
 
     def load(self, sample=None, wait=True):    
