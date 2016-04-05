@@ -61,8 +61,9 @@ class MicrodiffMotor(AbstractMotor, Device):
           self.motors_state_attr = self.addChannel({"type":"exporter", "name":"motor_states"}, "MotorStates")
           self.motors_state_attr.connectSignal("update", self.updateMotorState)
           self._motor_abort = self.addCommand( {"type":"exporter", "name":"abort" }, "abort")
-          #TODO: dynamic limits
-          #self.motor_limits_attr = self.addChannel({"type":"exporter", "name":"limits"}, self.motor_name+"DynamicLimits" )
+          self.get_dynamic_limits_cmd = self.addCommand({"type": "exporter",
+                                                         "name": "get%sDynamicLimits" % self.motor_name},
+                                                         "getMotorDynamicLimits")
           self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
           self.home_cmd = self.addCommand( {"type":"exporter", "name":"homing" }, "startHomingMotor")
 

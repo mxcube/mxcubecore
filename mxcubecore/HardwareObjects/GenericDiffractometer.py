@@ -23,7 +23,6 @@ GenericDiffractometer
 
 import copy
 import time
-import types
 import gevent
 import logging
 
@@ -134,6 +133,11 @@ class GenericDiffractometer(HardwareObject):
     CENTRING_METHOD_MANUAL = "Manual 3-click"
     CENTRING_METHOD_AUTO = "Computer automatic"
     CENTRING_METHOD_MOVE_TO_BEAM = "Move to beam"
+
+    PHASE_TRANSFER = "Transfer"
+    PHASE_CENTRING = "Centring"
+    PHASE_COLLECTION = "DataCollection"
+    PHASE_BEAM = "BeamLocation"
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -762,3 +766,10 @@ class GenericDiffractometer(HardwareObject):
 
     def move_omega_relative(self, relative_angle):
         return
+
+    def get_scan_limits(self, speed=None):
+        """
+        Gets scan limits. Necessary for example in the plate mode
+        where osc range is limited
+        """
+        return 

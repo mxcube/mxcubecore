@@ -1,5 +1,5 @@
 """
-[Name] MarvinSC
+[Name] Marvin
 
 [Description]
 Hardware object for Marvin sample changer
@@ -21,13 +21,13 @@ import logging
 from sample_changer.GenericSampleChanger import *
 
 
-class MarvinSC(SampleChanger):
+class Marvin(SampleChanger):
     """
     """    
     __TYPE__ = "Marvin"    
 
     def __init__(self, *args, **kwargs):
-        super(MarvinSC, self).__init__(self.__TYPE__,False, *args, **kwargs)
+        super(Marvin, self).__init__(self.__TYPE__,False, *args, **kwargs)
         self._selected_sample = None
         self._selected_basket = None
         self._scIsCharging = None
@@ -86,18 +86,29 @@ class MarvinSC(SampleChanger):
         self._updateLoadedSample()
         SampleChanger.init(self)
 
+    def run_test(self):
+        samples_mounted = 0
+        for cycle in range(50):
+            for sample_index in range(1, 11):
+                logging.getLogger("user_level_log").info("Mounting sample 1:%d" % sample_index)
+                self.load("1:%02d" % sample_index, wait=True)
+                logging.getLogger("user_level_log").info("Total mounts done: %d" % (samples_mounted + 1))
+                samples_mounted += 1
+                gevent.sleep(1)                           
+
     def puck_switches_changed(self, puck_switches):
         self._puck_switches = int(puck_switches)
         self._updateSCContents()
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
         mounted_sample = mounted_sample_puck[0] - 1
-        self._mounted_puck = mounted_sample_puck[1] -1
+        self._mounted_puck = mounted_sample_puck[1] - 1
         if mounted_sample != self._mounted_sample:
             self._mounted_sample = mounted_sample
             #if not self._sample_is_mounted:
             #    self._mounted_sample = None
             self._updateLoadedSample()
+            #self.updateInfo()
 
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
@@ -122,7 +133,7 @@ class MarvinSC(SampleChanger):
              basket_no <=self._num_basket:
             basket = self.getComponentByAddress(Basket.getBasketAddress(basket_no))
             if sample_no is not None and sample_no>0 and \
-               sample_no <= len(basket.getSampleList()) - 1:
+               sample_no <= len(basket.getSampleList()):
                 sample = self.getComponentByAddress(Pin.getSampleAddress(basket_no, sample_no))            
         #except:
         #  pass
@@ -263,6 +274,9 @@ class MarvinSC(SampleChanger):
         self._scIsCharging = not value
 
     def _executeServerTask(self, method, *args):
+        #TODO test
+        # self._waitDeviceReady(30)
+ 
         self._state_string = "Bsy"
         arg_arr = []
         for arg in args:
@@ -461,15 +475,21 @@ class MarvinSC(SampleChanger):
                     self._sample_is_mounted = sample_is_mounted
                     #if not self._sample_is_mounted:
                     #    self._mounted_sample = None
-                    #self._updateLoadedSample()
+                    #TODO test this
+                    self._updateLoadedSample()
+                    self.updateInfo()
             elif prop_name == "CDor":
                 door_is_closed =  prop_value == "Cls"
                 if self._door_is_closed != door_is_closed:
                     self._door_is_closed = door_is_closed
-                    if not self._door_is_closed:
+                    if self._door_is_closed:
+                        msg = "Sample changer: Robot cage door is closed."
+                        logging.getLogger("user_level_log").info(msg)                  
+                    else:
                         msg = "Sample changer: Robot cage door is opened. " + \
                               "Close the door to enable sample changer."
                         logging.getLogger("user_level_log").warning(msg)
+                    
             elif prop_name == "CPuck":
                 puck_in_center = prop_value == "1"
                 if self._puck_in_center != puck_in_center:

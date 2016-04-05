@@ -1,5 +1,24 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-Descript: EMBLMultiCollect hwobj
+EMBLMultiCollect
 """
 import os
 import logging
@@ -8,6 +27,16 @@ import p13_calc_flux
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
+
+
+__author__ = "Ivars Karpics"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Ivars Karpics"
+__email__ = "ivars.karpics[at]embl-hamburg.de"
+__status__ = "Draft"
+
 
 class EMBLCollect(AbstractCollect, HardwareObject):
     """
@@ -34,6 +63,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.collect_frame  = None
         self.ready_event = None
 
+        self.exp_type_dict = None
+        
+
         self.chan_collect_status = None
         self.chan_collect_frame = None
         self.chan_collect_error = None
@@ -45,6 +77,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_energy = None
         self.cmd_collect_exposure_time = None
         self.cmd_collect_helical_position = None
+        self.cmd_collect_in_queue = None
         self.cmd_collect_num_images = None
         self.cmd_collect_overlap = None
         self.cmd_collect_range = None
@@ -62,6 +95,17 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_unit_cell = None
         self.cmd_collect_start = None
         self.cmd_collect_abort = None
+
+        self.diffractometer_hwobj = None
+        self.lims_client_hwobj = None
+        self.machine_info_hwobj = None
+        self.energy_hwobj = None
+        self.resolution_hwobj = None
+        self.transmission_hwobj = None
+        self.detector_hwobj = None
+        self.beam_info_hwobj = None
+        self.autoprocessing_hwobj = None
+        self.graphics_manager_hwobj = None
 
     def init(self):
         """
@@ -81,10 +125,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         undulators = []
         try:
-           for undulator in self["undulators"]:
-               undulators.append(undulator)
+            for undulator in self["undulators"]:
+                undulators.append(undulator)
         except:
-           pass  
+            pass  
         self.exp_type_dict = {'Mesh': 'raster',
                               'Helical': 'Helical'}
         self.set_beamline_configuration(\
@@ -230,7 +274,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """ 
         failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
-        self.current_dc_parameters["comments"] = "%s\n%s" %(failed_msg, self._error_msg) 
+        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
         self.emit("collectOscillationFailed", (self.owner, False, 
              failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
         self.emit("collectEnded", self.owner, failed_msg)
@@ -268,12 +312,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
         if self.lims_client_hwobj is not None:
             try:
-               self.current_dc_parameters["workflow_id"] = workflow_id
-               self.current_dc_parameters["xtalSnapshotFullPath3"] = \
-                    grid_snapshot_filename
-               self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
+                self.current_dc_parameters["workflow_id"] = workflow_id
+                self.current_dc_parameters["xtalSnapshotFullPath3"] = \
+                     grid_snapshot_filename
+                self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
             except:
-               logging.getLogger("HWR").exception("Could not store data collection into ISPyB")
+                logging.getLogger("HWR").exception("Could not store data collection into ISPyB")
 
     def collect_frame_update(self, frame):
         """
@@ -508,7 +552,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     flux = fullflux
                 else:
                     flux = None
-                logging.getLogger("HWR").info("Flux in %s mode %e photon/sec"%(self.beam_info_hwobj.get_focus_mode(),flux))
+               # logging.getLogger("HWR").info("Flux in %s mode %e photon/sec" % \
+               #     (self.beam_info_hwobj.get_focus_mode(), flux))
         return flux
 
     def get_machine_current(self):

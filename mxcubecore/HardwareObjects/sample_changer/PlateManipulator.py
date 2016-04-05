@@ -185,6 +185,9 @@ class PlateManipulator(SampleChanger):
         self.reference_pos_x = None
         self.timeout = 3 #default timeout
         self.plate_location = None
+
+        self.cmd_move_to_drop = None
+        self.cmd_move_to_location = None
             
     def init(self):
         """
@@ -204,12 +207,9 @@ class PlateManipulator(SampleChanger):
             if not self.reference_pos_x:
                 self.reference_pos_x = 0.5
 
-        try:
-            self.cmd_move_to_drop = self.getCommandObject("MoveToDrop")
-            self.cmd_move_to_location = None
-        except:
+        self.cmd_move_to_drop = self.getCommandObject("MoveToDrop")
+        if not self.cmd_move_to_drop: 
             self.cmd_move_to_location = self.getCommandObject("startMovePlateToLocation")
-            self.cmd_move_to_drop = None
     
         self._initSCContents()
 
