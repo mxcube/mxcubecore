@@ -9,8 +9,8 @@ from xml.sax.handler import ContentHandler
 
 from SpecClient_gevent import SpecServer
 from SpecClient_gevent import SpecMessage
-from . import Daemonize
-from . import SimpleXMLReadWriteSupport
+import Daemonize
+import SimpleXMLReadWriteSupport
 
  
 class XMLNodesWithRolesReadingHandler(ContentHandler):
@@ -40,7 +40,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
         self.path %= objectIndex
 
         if self.elementName is None:
-            if 'role' in attrs.keys():
+            if 'role' in list(attrs.keys()):
                 self.childDepth = 0
                 self.elementName = name
                 
@@ -48,7 +48,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
                 self.currentValue =  { '__value__': '', '__path__': self.path, '__children__': '' }
                 self.value[str(attrs['role'])] = self.currentValue
                 
-                for key, value in attrs.items():
+                for key, value in list(attrs.items()):
                     # add attributes
                     self.currentValue[str(key)] = str(value)
         else:
@@ -74,7 +74,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
 
 
      def getValue(self):
-         for val in self.value.itervalues():
+         for val in self.value.values():
              val['__children__'].strip()
              
          return self.value
@@ -141,7 +141,7 @@ class XMLReferencesReadingHandler(ContentHandler):
 
 
      def startElement(self, name, attrs):
-          reference = (attrs.has_key('hwrid') and attrs['hwrid']) or (attrs.has_key('href') and attrs['href']) or ''
+          reference = ('hwrid' in attrs and attrs['hwrid']) or ('href' in attrs and attrs['href']) or ''
 
           if len(reference) > 0:
                self.references.append(str(reference))
@@ -161,11 +161,11 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
           elif m.cmd == SpecMessage.CMD_WITH_RETURN:
                self.executeCommandAndReply(replyID = m.sn, cmd = m.data)
           elif m.cmd == SpecMessage.FUNC_WITH_RETURN:
-               print m, m.data
+               print(m, m.data)
                self.executeCommandAndReply(replyID = m.sn, cmd = m.data)
           elif m.cmd == SpecMessage.REGISTER:
                if m.name == 'update':
-                    print "update channel registered !"
+                    print("update channel registered !")
                     self.updateRegistered = True
           else:
                return False
@@ -179,7 +179,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             if os.path.exists(filename):
                 try:
                      ret = SimpleXMLReadWriteSupport.read(filename, path)
-                except SAXParseException, msg:
+                except SAXParseException as msg:
                      return { '__error__': 'Could not parse hardware object file %s : %s' % (hardwareObjectName, msg) }
                 except:
                      return { '__error__': 'Could not read hardware object %s' % hardwareObjectName } 
@@ -194,7 +194,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
 	 	    	
                     tmp = ''
 		    if '__children__' in dict:
-                      for childpath, childname in dict['__children__'].items():
+                      for childpath, childname in list(dict['__children__'].items()):
                         tmp += childname + ':' + childpath + ' '
                       tmp.strip()
                       dict['__children__'] = tmp
@@ -220,7 +220,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     
                 try:
                      xml.sax.parse(filename, curHandler) 
-                except SAXParseException, msg:
+                except SAXParseException as msg:
                      return { '__error__': 'Could not parse the XML file %s' % filename }
                 else:
                      ret = curHandler.getValue()
@@ -247,7 +247,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     
                 try:
                     xml.sax.parse(filename, curHandler) 
-                except SAXParseException, msg:
+                except SAXParseException as msg:
                     return { '__error__': 'Could not parse the XML file %s' % filename }
                 else:
                     ret = curHandler.getValue()
@@ -297,7 +297,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             if os.path.exists(filename):
                 try:
                      return SimpleXMLReadWriteSupport.update(filename, path, value, filename)
-                except SAXParseException, msg:
+                except SAXParseException as msg:
                      return { '__error__': 'Could not parse hardware object file %s : %s' % (hardwareObjectName, msg) }
                 except:
                      return { '__error__': 'Could not update hardware object %s' % hardwareObjectName }
@@ -319,7 +319,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 except:
                      return { '__error__': 'Bad update list format.' }
 
-                if type(pathvalueList) in (types.ListType, types.TupleType):
+                if type(pathvalueList) in (list, tuple):
                     paths = []
                     values = []
                     for path, value in pathvalueList:
@@ -328,7 +328,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                         
                     try:
                          SimpleXMLReadWriteSupport.batchUpdate(filename, paths, values, filename)
-                    except SAXParseException, msg:
+                    except SAXParseException as msg:
                          return { '__error__': 'Could not parse hardware object file %s : %s' % (hardwareObjectName, msg) } 
                     except:
                          return { '__error__': 'Could not update hardware object %s' % hardwareObjectName }
@@ -376,7 +376,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
 
               try:
                    file_stats = os.stat(filename)
-              except OSError, err:
+              except OSError as err:
                    return { 'xmldata':  '' }
               else:
                    mtime = file_stats[stat.ST_MTIME]

@@ -2,9 +2,13 @@ import logging
 import weakref
 import copy
 
-from .. import saferef
-from .. import Poller
-from ..CommandContainer import CommandObject, ChannelObject
+# LNLS
+#from . import saferef
+from saferef import *
+#from . import Poller
+from Poller import *
+#from .CommandContainer import CommandObject, ChannelObject
+from CommandContainer import CommandObject, ChannelObject
 
 try:
     import epics
@@ -52,8 +56,10 @@ class EpicsCommand(CommandObject):
         elif len(args) == 0 and len(self.arglist) > 0:
             # no argument given in the command call but inside the xml file -> use the default argument from the xml file
             args = self.arglist 
-   
-        if self.pv is not None and self.pv_connected:
+
+        # LNLS
+        #if self.pv is not None and self.pv_connected:
+        if self.pv is not None:
             if len(args) == 0:
                 # no arguments available -> get the pv's current value
                 try:
@@ -66,7 +72,9 @@ class EpicsCommand(CommandObject):
             else:
                 # use the given argument to change the pv's value
                 try:
-                    self.pv.put(args[0], wait = True)
+                    # LNLS
+                    #self.pv.put(args[0], wait = True)
+                    self.pv.put(args[0], wait = False)
                 except:
                     logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.pv_name)
                 else:
@@ -144,7 +152,10 @@ class EpicsChannel(ChannelObject):
 
     def getValue(self):
         return self.command()
-      
+    
+    # LNLS
+    def setValue(self, value):
+        self.command(value)
  
     def isConnected(self):
         return self.command.isConnected()

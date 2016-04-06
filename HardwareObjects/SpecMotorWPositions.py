@@ -28,7 +28,7 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
 
 
     def connectNotify(self, signal):
-        SpecMotor.SpecMotor.connectNotify.im_func(self, signal)
+        SpecMotor.SpecMotor.connectNotify.__func__(self, signal)
 
         if signal == 'predefinedPositionChanged':
             positionName = self.getCurrentPositionName()
@@ -44,11 +44,11 @@ class SpecMotorWPositions(SpecMotor.SpecMotor):
             
 
     def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = self.predefinedPositions.keys()
+        self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())
 	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y]))) 
                 
     def motorMoveDone(self, channelValue):
-       SpecMotor.SpecMotor.motorMoveDone.im_func(self, channelValue)
+       SpecMotor.SpecMotor.motorMoveDone.__func__(self, channelValue)
 
        pos = self.getPosition()
        logging.getLogger("HWR").debug("current pos=%s", pos)

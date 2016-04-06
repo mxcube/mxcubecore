@@ -21,7 +21,7 @@ def makeThreadSafeMethod(func):
 
 class ThreadSafeMethodsMetaClass(type):
    def __new__(meta, name, bases, dict):
-      methods = [ v for k,v in dict.iteritems() if isinstance(v, types.FunctionType) and not v.__name__.startswith('__')]
+      methods = [ v for k,v in dict.items() if isinstance(v, types.FunctionType) and not v.__name__.startswith('__')]
       for m in methods:
          dict[m.__name__] = makeThreadSafeMethod(m)
          dict["_monitor_lockObj"] = _global_lock #RLock()
@@ -124,12 +124,12 @@ def dev_debug(flag):
 #	- 0: error
 #  	- 1: OK
 #--------------------------------------------------------------
-   if type(flag) != types.IntType:
-      print "dev_debug: parameter not a number"
+   if type(flag) != int:
+      print("dev_debug: parameter not a number")
    else :
       Dev_deb[0] = flag
       if (Dev_deb[0] != 0) :
-         print " debug mode %d" % Dev_deb[0]
+         print(" debug mode %d" % Dev_deb[0])
 
 
 def dev_init(mdevname):
@@ -157,16 +157,16 @@ def dev_init(mdevname):
          except:
                #         print error
                #         print "dev_init: error on importing device %s" % locname
-               raise Dev_Exception, "dev_init: error on importing device %s" % locname
+               raise Dev_Exception("dev_init: error on importing device %s" % locname)
          else:
                #     create in Tab_dev
                Tab_dev[locname] = { 'cobj': mpt }
                Tab_dev[locname]['cmd'] = dev_query(locname)
                if len(Tab_dev[locname]['cmd']) == 0:
-                     raise Dev_Exception, "Error on importing device %s" % locname
+                     raise Dev_Exception("Error on importing device %s" % locname)
                
    if Dev_deb[0] == 1:      
-         print 'dev_init: leaving OK'
+         print('dev_init: leaving OK')
 
    #print locname, Tab_dev[locname]
    return locname, Tab_dev[locname]['cobj']
@@ -194,16 +194,16 @@ def dev_initC(mdevname):
       except:
 #         print error
 #         print "dev_initC: error on importing device %s" % locname
-         raise Dev_Exception,"dev_initC: error on importing device %s" % locname
+         raise Dev_Exception("dev_initC: error on importing device %s" % locname)
       else:
 #     create in Tab_dev 
          Tab_dev[locname] = { 'cobj': mpt }
          Tab_dev[locname]['cmd'] = dev_queryC(locname)
          if len(Tab_dev[locname]['cmd'])==0:
-            raise Dev_Exception, "Error on importing data collector device %s" % locname
+            raise Dev_Exception("Error on importing data collector device %s" % locname)
 
    if Dev_deb[0] == 1:      
-      print 'dev_initC: leaving OK'
+      print('dev_initC: leaving OK')
 
    return locname,Tab_dev[locname]['cobj']
 
@@ -221,7 +221,7 @@ def dev_query(mdevname):
       cmd: command numeric value
       in_type: input type
       out_type: output type"""
-      if Tab_dev.has_key(mdevname):
+      if mdevname in Tab_dev:
             loc_c_pt = Tab_dev[mdevname]['cobj']
 
             try:
@@ -230,7 +230,7 @@ def dev_query(mdevname):
                   pass
                   #raise Dev_Exception
       else:
-            raise Dev_Exception, "dev_query: no device %s defined" % mdevname
+            raise Dev_Exception("dev_query: no device %s defined" % mdevname)
 
       return {}
 
@@ -251,7 +251,7 @@ def dev_queryC(mdevname):
    try:
       locdict = esrf_dc_info(mdevname)
    except:
-      raise Dev_Exception, "dev_queryC: error on query for device %s" % mdevname
+      raise Dev_Exception("dev_queryC: error on query for device %s" % mdevname)
       return {}
 
    return locdict
@@ -266,20 +266,20 @@ def dev_tcpudp(mdevname,mode):
 #	- 0 if error
 #  	- 1 if OK
 #--------------------------------------------------------------
-   if Tab_dev.has_key(mdevname):
+   if mdevname in Tab_dev:
       loc_c_pt = Tab_dev[mdevname]['cobj']
       if Dev_deb[0] == 1:
-         print loc_c_pt
+         print(loc_c_pt)
       if (mode != "tcp") and (mode != "udp"):
-         print 'usage: dev_tcpudp(<device_name>,udp|tcp)'
+         print('usage: dev_tcpudp(<device_name>,udp|tcp)')
 	 return 0
       try:
          ret = esrf_tcpudp(loc_c_pt,mode)
       except:
-         raise Dev_Exception, "dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname
+         raise Dev_Exception("dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname)
 	 return 0
    else:
-      print "dev_tcpudp: no device %s defined" % mdevname
+      print("dev_tcpudp: no device %s defined" % mdevname)
       return 0
       
    return 1
@@ -296,30 +296,30 @@ def dev_timeout(mdevname,*mtime):
 #	- 0 if error
 #	- time in sec (read or set) if OK
 #--------------------------------------------------------------
-   if Tab_dev.has_key(mdevname):
+   if mdevname in Tab_dev:
       loc_c_pt = Tab_dev[mdevname]['cobj']
       if Dev_deb[0] == 1:
-         print loc_c_pt
+         print(loc_c_pt)
       if (mtime == ()):
-         print 'dev_timeout readmode '
+         print('dev_timeout readmode ')
 	 try:
 	    ret = esrf_timeout(loc_c_pt)
 	 except:
-            raise Dev_Exception, 'error on esrf_timeout for device ' + mdevname
+            raise Dev_Exception('error on esrf_timeout for device ' + mdevname)
 	    return 0
 	 return ret
       else:
          itime = mtime[0]
-	 if type(itime) == types.IntType or type(itime) == types.FloatType:
-            print 'dev_timeout set mode %f' % itime
+	 if type(itime) == int or type(itime) == float:
+            print('dev_timeout set mode %f' % itime)
 	    try:
 	       ret = esrf_timeout(loc_c_pt,itime)
 	    except:
-               raise Dev_Exception,  'error on esrf_timeout for device ' + mdevname
+               raise Dev_Exception('error on esrf_timeout for device ' + mdevname)
 	       return 0	    
 	    return ret
    else:
-      print "dev_timeout: no device %s defined" % mdevname
+      print("dev_timeout: no device %s defined" % mdevname)
       return 0
 #--------------------------------------------------------------
 def dev_getresource(mdevname,resname):
@@ -334,10 +334,10 @@ def dev_getresource(mdevname,resname):
    try:
       ret = esrf_getresource(mdevname,resname)
    except:
-      raise Dev_Exception, "dev_getresource: error for device %s on resource %s" % (mdevname,resname)
+      raise Dev_Exception("dev_getresource: error for device %s on resource %s" % (mdevname,resname))
       return None
    if (Dev_deb[0] == 1):
-     print "string length is %s" % len(ret)
+     print("string length is %s" % len(ret))
    return ret
 
 #--------------------------------------------------------------
@@ -352,12 +352,12 @@ def dev_putresource(mdevname,resname,value):
 #	- 1: if OK
 #	- 0: if error
 #--------------------------------------------------------------
-   if type(value) != types.StringType:
-      print "dev_putresource: resource value must be packed as string"
+   if type(value) != bytes:
+      print("dev_putresource: resource value must be packed as string")
    try:
       ret = esrf_putresource(mdevname,resname,value)
    except:
-      raise Dev_Exception,  "dev_putresource: error for device %s on resource %s" % (mdevname,resname)
+      raise Dev_Exception("dev_putresource: error for device %s on resource %s" % (mdevname,resname))
       return 0
    return 1
 
@@ -375,7 +375,7 @@ def dev_delresource(mdevname,resname):
    try:
       ret = esrf_delresource(mdevname,resname)
    except:
-      raise Dev_Exception,  "dev_delresource: error for device %s on resource %s" % (mdevname,resname)
+      raise Dev_Exception("dev_delresource: error for device %s on resource %s" % (mdevname,resname))
       return 0
    return 1
 
@@ -391,43 +391,43 @@ def dev_io(mdevname,mdevcommand,*parin,**kw):
    #
    #   in case of error, global variable DEV_ERR is set to 1
    if Dev_deb[0] == 1:
-      print 'in dev_io'
+      print('in dev_io')
 
    try:
       loc_c_pt = Tab_dev[mdevname]['cobj']
    except KeyError:
-      raise Dev_Exception,  "dev_io: no device %s defined" % mdevname
+      raise Dev_Exception("dev_io: no device %s defined" % mdevname)
    else:
       if Dev_deb[0] == 1:
-         print loc_c_pt
-         print '  devname : ' + mdevname
-         print '  command : ' + mdevcommand
-         print '  parin : %s' % (parin,)
-         print '  kw : %s' % (kw,)
+         print(loc_c_pt)
+         print('  devname : ' + mdevname)
+         print('  command : ' + mdevcommand)
+         print('  parin : %s' % (parin,))
+         print('  kw : %s' % (kw,))
 
       try:
          io_cmd = Tab_dev[mdevname]['cmd'][mdevcommand][0]
          io_in  = Tab_dev[mdevname]['cmd'][mdevcommand][1]
          io_out = Tab_dev[mdevname]['cmd'][mdevcommand][2]
       except KeyError:
-         raise AttributeError, "dev_io: no command %s for device %s" % (mdevcommand,mdevname)
+         raise AttributeError("dev_io: no command %s for device %s" % (mdevcommand,mdevname))
       else:
          if len(parin) == 1:
-	    if type(parin[0]) == types.TupleType:
+	    if type(parin[0]) == tuple:
 	       parin = parin[0]
-	    elif type(parin[0]) == types.ListType:
+	    elif type(parin[0]) == list:
 	       parin = tuple(parin[0])
 
          if Dev_deb[0] == 1:
-	    print 'esrf_io arg:'
-            print (Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0) + (parin, )
-	    print 'esrf_io dict:'
-	    print kw
+	    print('esrf_io arg:')
+            print((Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0) + (parin, ))
+	    print('esrf_io dict:')
+	    print(kw)
 
 	 try:
             ret = esrf_io(Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0, parin, **kw)
 	 except:
-            raise Dev_Exception, "Cannot execute esrf_io %s,%s"%(mdevname, mdevcommand)
+            raise Dev_Exception("Cannot execute esrf_io %s,%s"%(mdevname, mdevcommand))
          else:
             return ret
 
@@ -444,44 +444,44 @@ def dev_ioC(mdevname,mdevcommand,**kw):
 #   in case of error, global variable DEV_ERR is set to 1
 #--------------------------------------------------------------
    if Dev_deb[0] == 1:
-      print 'in dev_ioC'
-   if Tab_dev.has_key(mdevname):
+      print('in dev_ioC')
+   if mdevname in Tab_dev:
       loc_c_pt = Tab_dev[mdevname]['cobj']
       if Dev_deb[0] == 1:
-         print loc_c_pt
-         print '  devname : ' + mdevname
-         print '  command : ' + mdevcommand
-         print '  kw : %s' % (kw,)
+         print(loc_c_pt)
+         print('  devname : ' + mdevname)
+         print('  command : ' + mdevcommand)
+         print('  kw : %s' % (kw,))
 #  check now that parameters are correct
 
 #  then run the esrf_io commnd
 #  first check that command exists:
-      if Tab_dev[mdevname]['cmd'].has_key(mdevcommand):
+      if mdevcommand in Tab_dev[mdevname]['cmd']:
          io_cmd = Tab_dev[mdevname]['cmd'][mdevcommand][0]
          io_in  = 0	# void
          io_out = Tab_dev[mdevname]['cmd'][mdevcommand][1]
          parin2 = (Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,1) + ((),)
          if Dev_deb[0] == 1:
-	    print 'esrf_io arg:'
-	    print parin2
-	    print 'esrf_io dict:'
-	    print kw
+	    print('esrf_io arg:')
+	    print(parin2)
+	    print('esrf_io dict:')
+	    print(kw)
 	 ret = None
 	 try:
 #	    kw={'out':2}
 #	    kw = {}
-            ret = apply(esrf_io,parin2,kw)
+            ret = esrf_io(*parin2, **kw)
 	    
             if Dev_deb[0] == 1:
-	    	print 'returned from esrf_io: %s' % ret	    
+	    	print('returned from esrf_io: %s' % ret)	    
 	 except:
-            raise Dev_Exception, "esrf_ioC: error on device %s" % mdevname
+            raise Dev_Exception("esrf_ioC: error on device %s" % mdevname)
 	 return ret
       else:
-         print "dev_ioC: no command %s for device %s" % (mdevcommand,mdevname)
+         print("dev_ioC: no command %s for device %s" % (mdevcommand,mdevname))
 	 
    else:
-      print "dev_ioC: no device %s defined" % mdevname
+      print("dev_ioC: no device %s defined" % mdevname)
 
 class TacoCall:
   def __init__(self, devname, command):
@@ -496,8 +496,8 @@ class TacoCall:
       _global_lock.acquire()
     
       if Dev_deb[0] == 1:
-         print 'in device_io'
-         print (self.devname, self.command) + (args, ) + (kwargs, )
+         print('in device_io')
+         print((self.devname, self.command) + (args, ) + (kwargs, ))
     
       return dev_io(self.devname, self.command, *args, **kwargs)
     finally:
@@ -514,8 +514,8 @@ class TacoCallC:
       _global_lock.acquire()
 
       if Dev_deb[0] == 1:
-         print 'in device_io'
-         print (self.devname, self.command) + (args, ) + (kwargs, )
+         print('in device_io')
+         print((self.devname, self.command) + (args, ) + (kwargs, ))
 
       return dev_ioC(self.devname, self.command, *args, **kwargs)
     finally:
@@ -527,8 +527,8 @@ _tacoDevices = {}
 def TacoDevice(name, dc=False):
       try:
             dev = _TacoDevice(name, dc)
-      except Exception, err:
-            print err
+      except Exception as err:
+            print(err)
             return None
       else:
             dev.imported = 1
@@ -548,17 +548,7 @@ def TacoDevice(name, dc=False):
       
 
 #--------------------------------------------------------------
-class _TacoDevice(object):
-   __metaclass__ = ThreadSafeMethodsMetaClass
-   
-#  class attributes:
-#       devname                         # device name
-#       ds_object                       # C ds object pointer
-#	imported			# 1 if succeed, else 0
-#	command				# set when device command
-
-   # print 'creating class TacoDevice'        # executed when imported
-
+class _TacoDevice(object, metaclass=ThreadSafeMethodsMetaClass):
    def __init__(self, name, dc=False):             # constructor     
       # print 'Welcome ' + name
       self.__dc = dc
@@ -577,54 +567,54 @@ class _TacoDevice(object):
             self.ds_object = Listout[1]
       
             if Dev_deb[0] == 1:
-                  print self.devname
+                  print(self.devname)
       finally:
             self._monitor_lockObj.release()
             
 
    def __str__(self):			# for print
-      print 'ds device:         ' + self.devname
-      print " imported: %d" % self.imported
-      print " device object : " 
-      print self.ds_object
+      print('ds device:         ' + self.devname)
+      print(" imported: %d" % self.imported)
+      print(" device object : ") 
+      print(self.ds_object)
       return "0"
 
 
    def CommandList(self):
       if self.__dc:
         locdict = dev_queryC(self.devname)
-        print Tab_devC_head
+        print(Tab_devC_head)
       else:
         locdict = dev_query(self.devname)
-        print Tab_dev_head
+        print(Tab_dev_head)
 
       if len(locdict) > 0:
-         for mykey in locdict.keys():
+         for mykey in list(locdict.keys()):
 	    my_stringtype_in = "%d" % locdict[mykey][1]
 	    my_stringtype_out = "%d" % locdict[mykey][2]
-	    if Tab_dev_type.has_key(my_stringtype_in):
+	    if my_stringtype_in in Tab_dev_type:
 	       myin = Tab_dev_type[my_stringtype_in]
 	    else:
 	       myin = Tab_dev_type_unk
-	    if Tab_dev_type.has_key(my_stringtype_out):
+	    if my_stringtype_out in Tab_dev_type:
 	       myout = Tab_dev_type[my_stringtype_out]
 	    else:
 	       myout = Tab_dev_type_unk	     
-	    print "%s %s %s" % (myin,myout,mykey)
+	    print("%s %s %s" % (myin,myout,mykey))
 
 
    def tcp(self):
       if self.imported == 1:
          ret = dev_tcpudp(self.devname,"tcp")
 	 if ret ==0:
-	    print 'error setting tcp on object' + self.devname
+	    print('error setting tcp on object' + self.devname)
 
 
    def udp(self):
       if self.imported == 1:
          ret = dev_tcpudp(self.devname,"udp")
 	 if ret ==0:
-	    print 'error setting udp on object' + self.devname
+	    print('error setting udp on object' + self.devname)
 
       
    def timeout(self,*mtime):
@@ -632,7 +622,7 @@ class _TacoDevice(object):
          if mtime == ():
 	    ret = dev_timeout(self.devname)
 	    if Dev_deb[0] == 1:
-	       print 'timeout: %f' % ret
+	       print('timeout: %f' % ret)
 	    return ret
 	 else:
 	    ret = dev_timeout(self.devname,mtime[0])
@@ -641,7 +631,7 @@ class _TacoDevice(object):
 
    def __getattr__(self, name):
       if name.startswith('__'):
-         raise AttributeError, name
+         raise AttributeError(name)
       else:
          try:
              self._monitor_lockObj.acquire()
@@ -649,7 +639,7 @@ class _TacoDevice(object):
              try:
                  test_if_command_exists = Tab_dev[self.devname]['cmd'][name][0]
              except KeyError:
-                 raise AttributeError, name
+                 raise AttributeError(name)
              else:
                  if self.__dc:
                    newTacoCall = TacoCallC(self.devname, name)

@@ -35,8 +35,8 @@ _hwrserver = None
 
 
 def addHardwareObjectsDirs(hoDirs):
-    if type(hoDirs) == types.ListType:
-        newHoDirs = filter(os.path.isdir, map(os.path.abspath, hoDirs))
+    if type(hoDirs) == list:
+        newHoDirs = list(filter(os.path.isdir, list(map(os.path.abspath, hoDirs))))
 
         for newHoDir in newHoDirs:
             if not newHoDir in sys.path:
@@ -51,7 +51,7 @@ addHardwareObjectsDirs(default_local_ho_dir)
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
 
-    xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
+    xml_dirs_list = list(filter(os.path.exists, hwrserver.split(os.path.pathsep)))
     if xml_dirs_list:
         _hwrserver = xml_dirs_list
     else:
@@ -90,7 +90,7 @@ class __HardwareRepositoryClient:
         self.invalidHardwareObjects = set()
         self.hardwareObjects = weakref.WeakValueDictionary()
 
-        if type(self.serverAddress)==types.StringType:
+        if type(self.serverAddress)==bytes:
             mngr = SpecConnectionsManager.SpecConnectionsManager() 
 
             self.server = mngr.getConnection(self.serverAddress)
@@ -315,7 +315,7 @@ class __HardwareRepositoryClient:
                 logging.getLogger('HWR').error('Error while doing Hardware Repository files list')
                 return
             else:
-                for name, filename in completeFilesList.iteritems():
+                for name, filename in completeFilesList.items():
                     if name.startswith(startdir):
                         yield (name, filename)
                         
@@ -378,7 +378,7 @@ class __HardwareRepositoryClient:
                     ho = self.loadHardwareObject(objectName)
                 
                 return ho
-        except TypeError, err:
+        except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
         
 

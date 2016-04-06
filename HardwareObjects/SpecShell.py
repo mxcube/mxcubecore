@@ -189,14 +189,14 @@ class SpecShell(Equipment):
     def executeCommand(self,command):
         try:
             self.specShellCommand.executeCommand(command)
-        except SpecClient.SpecClientError.SpecClientError,diag:
+        except SpecClient.SpecClientError.SpecClientError as diag:
             self.emit('failed', (None,))
 
     def abortCommand(self):
         if self.commandRunning:
             try:
                 self.specShellCommand.abort()
-            except SpecClient.SpecClientError.SpecClientError,diag:
+            except SpecClient.SpecClientError.SpecClientError as diag:
                 pass
 
     def outputReceived(self,output):
@@ -236,5 +236,5 @@ class SpecShell(Equipment):
         else:
             try:
                 self.specShellLsdef.executeCommand("lsdef *")
-            except SpecClient.SpecClientError.SpecClientError,diag:
+            except SpecClient.SpecClientError.SpecClientError as diag:
                 self.emit('allCommandsList', ((),))

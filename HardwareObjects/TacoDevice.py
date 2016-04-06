@@ -3,6 +3,7 @@ import logging
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.BaseHardwareObjects import Null
 from HardwareRepository import TacoDevice_MTSafe
+import collections
 
 class TacoDevice(Device):
     def __init__(self, name, dc=False):
@@ -83,7 +84,7 @@ class TacoDevice(Device):
             try:
                 func = getattr(self.device, command)
 
-                if callable(func):
+                if isinstance(func, collections.Callable):
                    result = func(*args)
             except:
                 logging.getLogger().exception('Failed to execute command %s on device %s', command, self.userName())

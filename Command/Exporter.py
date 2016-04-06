@@ -2,11 +2,12 @@ import logging
 import weakref
 import new
 import types
-from .embl import ExporterClient
+from embl import ExporterClient
 import time
 import gevent
 import gevent.queue
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
+import collections
 
 exporter_clients = {}
 
@@ -115,7 +116,7 @@ class Exporter(ExporterClient.ExporterClient):
        pass #self.reconnect()
 
     def register(self, name, cb):
-       if callable(cb):
+       if isinstance(cb, collections.Callable):
          self.callbacks.setdefault(name, []).append(cb)
        if not self.events_processing_task:
          self.events_processing_task = gevent.spawn(self.processEventsFromQueue)
@@ -128,10 +129,10 @@ class Exporter(ExporterClient.ExporterClient):
         if '\x1f' in value:
           value = self.parseArray(value)
           try:
-            value = map(int, value)
+            value = list(map(int, value))
           except:
             try:
-              value = map(float, value)
+              value = list(map(float, value))
             except:
               pass
         else:
@@ -184,7 +185,7 @@ class ExporterChannel(ChannelObject):
 
     def update(self, value = None):
         value = value or self.getValue()
-        if type(value) == types.TupleType:
+        if type(value) == tuple:
             value = list(value)
 
         self.value = value

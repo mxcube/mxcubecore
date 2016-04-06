@@ -2,10 +2,10 @@ import logging
 import weakref
 import copy
 
-from .. import saferef
-from .. import Poller
-from ..CommandContainer import CommandObject, ChannelObject
-from .. import TacoDevice_MTSafe as TacoDevice
+from . import saferef
+from . import Poller
+from .CommandContainer import CommandObject, ChannelObject
+from . import TacoDevice_MTSafe as TacoDevice
 
 class TacoCommand(CommandObject):
     def __init__(self, name, command, taconame = None, username = None, args=None, dc=False, **kwargs):

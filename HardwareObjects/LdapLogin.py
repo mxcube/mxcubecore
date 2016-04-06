@@ -64,7 +64,7 @@ class LdapLogin(Procedure):
         if self.ldapConnection is not None:
             try:
                 self.ldapConnection.result(timeout=0)
-            except ldap.LDAPError,err:
+            except ldap.LDAPError as err:
                 ldaphost=self.getProperty('ldaphost')
                 ldapport=self.getProperty('ldapport')
                 if ldapport is None:
@@ -95,7 +95,7 @@ class LdapLogin(Procedure):
         try:
             search_str = self.domstr
             found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,["uid"])
-        except ldap.LDAPError,err:
+        except ldap.LDAPError as err:
             if retry:
                 self.cleanup(ex=err)
                 return self.login(username,password,retry=False)
@@ -110,7 +110,7 @@ class LdapLogin(Procedure):
         logging.getLogger("HWR").debug("LdapLogin: validating %s" % username)
 	try:
             bind_str = "uid=%s, ou=%s, %s" % (username,self.ldapou, self.domstr)
-        except AttributeError, attr:
+        except AttributeError as attr:
             bind_str = "uid=%s,%s" % (username, self.domstr)
         logging.getLogger("HWR").debug("LdapLogin: binding to %s" % bind_str)
         handle = self.ldapConnection.simple_bind(bind_str,password)
@@ -124,7 +124,7 @@ class LdapLogin(Procedure):
                 result=self.ldapConnection.result(handle)
             except:
                 return self.cleanup(msg="invalid password for %s" % username)
-        except ldap.LDAPError,err:
+        except ldap.LDAPError as err:
             if retry:
                 self.cleanup(ex=err)
                 return self.login(username,password,retry=False)

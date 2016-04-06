@@ -3,14 +3,14 @@ import logging
 import os
 import time
 import types
-from .. import saferef
+from . import saferef
 
 import gevent
 from gevent.event import Event
 from gevent import monkey 
-import Queue
+import queue
 
-from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
+from .CommandContainer import CommandObject, ChannelObject, ConnectionError
 
 from PyTango import DevFailed, ConnectionFailed
 import PyTango
@@ -32,7 +32,7 @@ def processSardanaEvents():
 
         try:
             ev = SardanaObject._eventsQueue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             try:
@@ -59,7 +59,7 @@ class AttributeEvent:
         self.event = event
 
 class SardanaObject(object):
-    _eventsQueue = Queue.Queue()
+    _eventsQueue = queue.Queue()
     _eventReceivers = {}
     _eventsProcessingTimer = gevent.get_hub().loop.async()
 
@@ -75,7 +75,7 @@ class SardanaObject(object):
 class SardanaMacro(CommandObject, SardanaObject):
 
     macroStatusAttr = None
-    INIT, STARTED, RUNNING, DONE = range(4)
+    INIT, STARTED, RUNNING, DONE = list(range(4))
 
     def __init__(self, name, macro, doorname = None, username = None, **kwargs):
         super(SardanaMacro,self).__init__(name,username,**kwargs)
@@ -139,10 +139,10 @@ class SardanaMacro(CommandObject, SardanaObject):
         except TypeError:
             logging.getLogger('HWR').error("%s. Cannot properly format macro code. Format is: %s, args are %s", str(self.name()), self.macro_format, str(args)) 
             self.emit('commandFailed', (-1, self.name()))
-        except DevFailed, error_dict:
+        except DevFailed as error_dict:
             logging.getLogger('HWR').error("%s: Cannot run macro. %s", str(self.name()), error_dict) 
             self.emit('commandFailed', (-1, self.name()))
-        except AttributeError, error_dict:
+        except AttributeError as error_dict:
             logging.getLogger('HWR').error("%s: MacroServer not running?, %s", str(self.name()), error_dict) 
             self.emit('commandFailed', (-1, self.name()))
         except:
@@ -237,7 +237,7 @@ class SardanaCommand(CommandObject):
 
         try:
             self.device = Device(self.taurusname)
-        except DevFailed, traceback:
+        except DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
             self.device = None
@@ -258,7 +258,7 @@ class SardanaCommand(CommandObject):
         try:
             cmdObject = getattr(self.device, self.command)
             ret = cmdObject(*args) 
-        except DevFailed, error_dict:
+        except DevFailed as error_dict:
             logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict)
         except:
             logging.getLogger('HWR').exception("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
@@ -314,7 +314,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             #    except AttributeError:
             #        pass
             logging.getLogger("HWR").info("initialized")
-        except DevFailed, traceback:
+        except DevFailed as traceback:
             self.imported = False
             return
         
@@ -329,7 +329,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
         if self.polling:
-             if type(self.polling) == types.IntType:
+             if type(self.polling) == int:
                   self.attribute.changePollingPeriod(self.polling)
              
              self.attribute.addListener(self.objectListener)
@@ -360,7 +360,7 @@ class SardanaChannel(ChannelObject, SardanaObject):
             if newvalue == None:
                 newvalue = self.getValue()
     
-            if type(newvalue) == types.TupleType:
+            if type(newvalue) == tuple:
                 newvalue = list(newvalue)
     
             self.value = newvalue

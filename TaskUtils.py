@@ -1,7 +1,13 @@
 import sys
 import types
+# LNLS
+try:
+  from types import InstanceType
+except ImportError:
+  InstanceType = object
 import logging
 import gevent
+import collections
 
 class cleanup:
   def __init__(self,*args,**keys) :
@@ -14,7 +20,7 @@ class cleanup:
   def __exit__(self,*args):
     if self.cleanup_funcs:
       for cleanup_func in self.cleanup_funcs:
-        if not callable(cleanup_func):
+        if not isinstance(cleanup_func, collections.Callable):
           continue
         try:
           cleanup_func(**self.keys)
@@ -34,7 +40,7 @@ class error_cleanup:
     if args[0] is not None and self.error_funcs:
       logging.debug("Doing error cleanup")
       for error_func in self.error_funcs:
-        if not callable(error_func):
+        if not isinstance(error_func, collections.Callable):
           continue
         try:
           error_func(**self.keys)
@@ -74,7 +80,7 @@ class wrap_errors(object):
 
 def task(func):
     def start_task(*args, **kwargs):
-        if args and type(args[0]) == types.InstanceType:
+        if args and type(args[0]) == InstanceType:
           logging.debug("Starting %s%s", func.__name__, args[1:])
         else:
           logging.debug("Starting %s%s", func.__name__, args)
@@ -99,7 +105,7 @@ def task(func):
                 ret = t.get(timeout = timeout)
                 if isinstance(ret, TaskException):
                   sys.excepthook(ret.exception, ret.error_string, ret.tb)
-                  raise ret.exception, ret.error_string
+                  raise ret.exception(ret.error_string)
                 else:
                   return ret
             else:           
@@ -108,7 +114,7 @@ def task(func):
                   ret = self._get(*args, **kwargs)
                   if isinstance(ret, TaskException):
                     sys.excepthook(ret.exception, ret.error_string, ret.tb)
-                    raise ret.exception, ret.error_string
+                    raise ret.exception(ret.error_string)
                   else:
                     return ret
                 setattr(t, "get", types.MethodType(special_get, t)) 
