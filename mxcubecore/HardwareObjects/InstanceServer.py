@@ -317,7 +317,7 @@ class InstanceServer(Procedure):
 
     def synchronizeClientWithEvents(self,client_addr):
         #print "SYNCHRONIZE CLIENT WITH EVENTS",client_addr
-        for event_data in self.bricksEventCache.values():
+        for event_data in list(self.bricksEventCache.values()):
             send_data_to_client(client_addr, event_data) 
 
     def sendBrickUpdateMessage(self,brick_name,widget_name,widget_method,widget_method_args,masterSync):
@@ -891,7 +891,7 @@ def handleRemoteClient(client_socket, addr):
       INSTANCE_HO.serverMessageReceived(addr, msg)
 
 def broadcast_to_clients(data, avoid=None):
-  for client_addr in SERVER_CLIENTS.keys(): 
+  for client_addr in list(SERVER_CLIENTS.keys()): 
     if avoid and client_addr in avoid:
       continue
     send_data_to_client(client_addr, data)

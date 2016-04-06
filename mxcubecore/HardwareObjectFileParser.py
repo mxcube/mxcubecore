@@ -34,7 +34,12 @@ def parseString(XMLHardwareObject, name):
     currentXML = XMLHardwareObject
     
     curHandler = HardwareObjectHandler(name)
-    xml.sax.parseString(XMLHardwareObject, curHandler)
+    # LNLS
+    #xml.sax.parseString(XMLHardwareObject, curHandler)
+    xml.sax.parseString(str.encode(XMLHardwareObject), curHandler)
+
+    #print('LIB XML PATH:')
+    #print(xml.sax.__file__)
     
     return curHandler.getHardwareObject()
 
@@ -134,7 +139,7 @@ class HardwareObjectHandler(ContentHandler):
 
         _attrs = attrs
         attrs = {}
-        for k in _attrs.keys():
+        for k in list(_attrs.keys()):
             v = str(_attrs[k])
 
             if v=="None":
@@ -167,7 +172,7 @@ class HardwareObjectHandler(ContentHandler):
         #
         # is element a reference to another hardware object ?
         #
-        ref = attrs.has_key('hwrid') and attrs['hwrid'] or attrs.has_key('href') and attrs['href']
+        ref = 'hwrid' in attrs and attrs['hwrid'] or 'href' in attrs and attrs['href']
         if ref:
             self.elementIsAReference = True
             self.reference = str(ref)
@@ -179,7 +184,7 @@ class HardwareObjectHandler(ContentHandler):
             return
  
         if name in newObjectsClasses:
-            if attrs.has_key('class'):
+            if 'class' in attrs:
                 moduleName = str(attrs['class'])
                 className = moduleName.split('.')[-1]
 
@@ -198,18 +203,18 @@ class HardwareObjectHandler(ContentHandler):
                     
                 self.objects.append(newObject)
         elif name == 'command':
-            if attrs.has_key('name') and attrs.has_key('type'):
+            if 'name' in attrs and 'type' in attrs:
                 #short command notation
                 self.command.update(attrs)
             else:
                 #long command notation (allow arguments)
                 self.objects.append(BaseHardwareObjects.HardwareObjectNode(objectName))
         elif name == 'channel':
-            if attrs.has_key('name') and attrs.has_key('type'):
+            if 'name' in attrs and 'type' in attrs:
                 self.channel.update(attrs)
         else:
             if len(self.objects) == 0:
-                if attrs.has_key('class'):
+                if 'class' in attrs:
                     moduleName = str(attrs['class'])
                     className = moduleName.split('.')[-1]
 
@@ -304,7 +309,7 @@ class XMLStructure:
                 
     def __eq__(self, s):
         if self.xmlpaths.issubset(s.xmlpaths):
-            for xmlpath, attributeSet in self.attributes.iteritems():
+            for xmlpath, attributeSet in self.attributes.items():
                 try:
                     attributeSet2 = s.attributes[xmlpath]
                 except KeyError:
@@ -343,7 +348,7 @@ class XMLStructureRetriever(ContentHandler):
              
         self.path %= index
                 
-        for attr, value in attrs.items():
+        for attr, value in list(attrs.items()):
             if str(attr) == 'hwrid':
                 attr = 'href'
 

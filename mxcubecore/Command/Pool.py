@@ -1,5 +1,5 @@
 import logging
-import Queue
+import queue
 import weakref
 import qt
 import types
@@ -14,8 +14,8 @@ except ImportError:
                     
 class BoundMethodWeakref:
     def __init__(self, bound_method):
-        self.func_ref = weakref.ref(bound_method.im_func)
-        self.obj_ref = weakref.ref(bound_method.im_self)
+        self.func_ref = weakref.ref(bound_method.__func__)
+        self.obj_ref = weakref.ref(bound_method.__self__)
 
 
     def __call__(self):
@@ -47,7 +47,7 @@ class PoolCommand(CommandObject):
         
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
             self.device = None
@@ -68,7 +68,7 @@ class PoolCommand(CommandObject):
                 args=(self.macroName, )+args
                 logging.getLogger("HWR").debug("%s: %s, args=%s", str(self.name()), tangoCmdObject, args)
                 ret = tangoCmdObject(args) #eval('self.device.%s(*%s)' % (self.command, args))
-            except PyTango.DevFailed, error_dict:
+            except PyTango.DevFailed as error_dict:
                 logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict) 
             except:
                 logging.getLogger('HWR').exception("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
@@ -93,7 +93,7 @@ def processTangoEvents():
     while not PoolChannel._tangoEventsQueue.empty():
         try:
             event = PoolChannel._tangoEventsQueue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             try:
@@ -109,7 +109,7 @@ def processTangoEvents():
 
 
 class PoolChannel(ChannelObject):
-    _tangoEventsQueue = Queue.Queue()
+    _tangoEventsQueue = queue.Queue()
     _eventReceivers = {}
     _tangoEventsProcessingTimer = qt.QTimer()
 
@@ -134,7 +134,7 @@ class PoolChannel(ChannelObject):
  
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
         else:
@@ -146,7 +146,7 @@ class PoolChannel(ChannelObject):
             else:
                 self.device.set_timeout_millis(self.timeout)
     
-                if type(polling) == types.IntType:
+                if type(polling) == int:
                    self.pollingTimer = qt.QTimer()
                    self.pollingTimer.connect(self.pollingTimer, qt.SIGNAL("timeout()"), self.poll)          
                    self.pollingTimer.start(polling)

@@ -91,15 +91,15 @@ class StandardClient:
             try:
                 self.__sock__.sendto(msg,(self.server_ip, self.server_port))
             except:
-                raise SocketError,"Socket error:" + str(sys.exc_info()[1])
+                raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received=False
             while received==False:
                 try:
                     ret=self.__sock__.recv(4096)
                 except socket.timeout:
-                    raise TimeoutError,"Timeout error:" + str(sys.exc_info()[1])
+                    raise TimeoutError("Timeout error:" + str(sys.exc_info()[1]))
                 except:
-                    raise SocketError,"Socket error:" + str(sys.exc_info()[1])
+                    raise SocketError("Socket error:" + str(sys.exc_info()[1]))
                 if ret[0:5] == msg_number:
                     received=True;
             ret=ret[5:]
@@ -211,7 +211,7 @@ class StandardClient:
         with gevent.Timeout(self.timeout, TimeoutError):
           while self.received_msg is None:
               if not self.error is None:
-                  raise SocketError,"Socket error:" + str(self.error)
+                  raise SocketError("Socket error:" + str(self.error))
               self.msg_received_event.wait()
           return self.received_msg
 
@@ -235,7 +235,7 @@ class StandardClient:
 
     def send(self,cmd):
         if self.protocol==PROTOCOL.DATAGRAM:
-            raise ProtocolError,"Protocol error: send command not support in datagram clients"
+            raise ProtocolError("Protocol error: send command not support in datagram clients")
         else:
             return self.__sendStream__(cmd)
 

@@ -235,7 +235,7 @@ if __name__ == '__main__':
         SERVER_ADDRESS=args[0]
     class Microdiff (MDEvents):
         def onReceivedEvent(self, name, value, timestamp):
-            print "     Event: " + name + " = " + str(value)
+            print("     Event: " + name + " = " + str(value))
 
     md=Microdiff(SERVER_ADDRESS,SERVER_PORT,PROTOCOL.STREAM,TIMEOUT,RETRIES)
     md.start()
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     while True:
         time.sleep(1.0)
         if not md.isConnected():
-            print "Not Connected"
+            print("Not Connected")
 
     md.stop()
 

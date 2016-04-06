@@ -1,7 +1,7 @@
 import time
 import logging
 import types
-import Queue
+import queue
 import weakref
 import gevent
 
@@ -59,7 +59,7 @@ def emitTineChannelUpdates():
     while not TineChannel.updates.empty():
         try:
             channel_obj_ref, value = TineChannel.updates.get()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             channel_object = channel_obj_ref()
@@ -81,7 +81,7 @@ class TineChannel(ChannelObject):
         "datachange" : tine.update
     }
 
-    updates = Queue.Queue()
+    updates = queue.Queue()
     #updates_emitter = QtCore.QTimer()
     #QtCore.QObject.connect(updates_emitter, QtCore.SIGNAL('timeout()'), emitTineChannelUpdates)
     #updates_emitter.start(20)
@@ -98,19 +98,14 @@ class TineChannel(ChannelObject):
  
         self.callback_fail_counter = 0
        
-        logging.getLogger("HWR").debug('Attaching TINE channel: %s %s'%(self.tineName, self.attributeName))
-        if kwargs.get('size'):
-            self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](\
-                 self.tineName, self.attributeName, self.tineEventCallback,
-                 tine.UNASSIGNED_CALLBACKID, self.timeout, int(kwargs['size']))
-        else:
-            self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](\
-                 self.tineName, self.attributeName, self.tineEventCallback,
-                 tine.UNASSIGNED_CALLBACKID, self.timeout)
-        #except IOError as strerror:
+        #try:
+        if True:
+            logging.getLogger("HWR").debug('Attaching TINE channel: %s %s'%(self.tineName, self.attributeName))
+            self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](self.tineName, self.attributeName, self.tineEventCallback, tine.UNASSIGNED_CALLBACKID, self.timeout)
+ #except IOError as strerror:
         #   logging.getLogger("HWR").error("%s" %strerror)
         #except ValueError:
-        #   logging.getLogger("HWR").error("TINE attach object is not callable")
+        #   logging.getLogger("HWR").error("TINE attach object is not callable") 
 
         if self.linkid > 0 and kwargs.get("attach", "timer") == "datachange":
             tolerance = kwargs.get("tolerance", 0.0)

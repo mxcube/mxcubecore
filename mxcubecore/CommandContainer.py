@@ -29,9 +29,8 @@ class CommandObject:
 
 
     def name(self):
-	return self._name
+        return self._name
 
- 
     def connectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self) 
@@ -44,7 +43,7 @@ class CommandObject:
         signal =  str(signal)
 
         if len(args) == 1:
-            if type(args[0]) == types.TupleType:
+            if type(args[0]) == tuple:
                 args = args[0]
 
         dispatcher.send(signal, self, *args) 
@@ -78,11 +77,11 @@ class ChannelObject:
     def __init__(self, name, username = None, **kwargs):
         self._name = name
         self._username = username
-	self._attributes = kwargs
+        self._attributes = kwargs
         self.__firstUpdate=True
 
     def name(self):
-	return self._name
+        return self._name
 
     def connectSignal(self, signalName, callableFunc):
         try:
@@ -105,7 +104,7 @@ class ChannelObject:
         signal =  str(signal)
 
         if len(args) == 1:
-            if type(args[0]) == types.TupleType:
+            if type(args[0]) == tuple:
                 args = args[0]
 
         dispatcher.send(signal, self, *args)
@@ -148,17 +147,18 @@ class CommandContainer:
 
     def __getattr__(self, attr):
         try:
-            return self.__commands[attr]
+            # LNLS
+            #return self.__commands[attr]
+            return self.getCommandObject(attr)
         except KeyError:
-            raise AttributeError, attr
-        
+            raise AttributeError(attr)
     
     def getChannelObject(self, channelName):
         #return self.__channels[channelName]
         return self.__channels.get(channelName) 
 
     def getChannelNamesList(self):
-        return self.__channels.keys()
+        return list(self.__channels.keys())
         
 
     def addChannel(self, attributesDict, channel, addNow=True):
@@ -262,7 +262,7 @@ class CommandContainer:
                     attributesDict['taurusname'] = self.taurusname
                 except AttributeError:
                     pass
-	    uribase = attributesDict['taurusname']
+            uribase = attributesDict['taurusname']
 
             try:
               from Command.Sardana import SardanaChannel
@@ -298,21 +298,25 @@ class CommandContainer:
 
 
     def getChannels(self):
-        for chan in self.__channels.itervalues():
+        for chan in self.__channels.values():
             yield chan
             
     
     def getCommandObject(self, cmdName):
         #return self.__commands[cmdName]
-        return self.__commands.get(cmdName) 
+        # LNLS
+        try:
+            return self.__commands.get(cmdName)
+        except:
+            return None
 
     def getCommands(self):
-        for cmd in self.__commands.itervalues():
+        for cmd in self.__commands.values():
             yield cmd
         
     
     def getCommandNamesList(self):
-        return self.__commands.keys()
+        return list(self.__commands.keys())
         
 
     def addCommand(self, arg1, arg2 = None, addNow=True):
@@ -321,7 +325,7 @@ class CommandContainer:
             return
         newCommand = None
         
-        if type(arg1) == types.DictType:
+        if type(arg1) == dict:
             attributesDict = arg1
             cmd = arg2
         
@@ -337,7 +341,7 @@ class CommandContainer:
                 cmdName = attributesDict['name']
                 cmdType = attributesDict['type']
                 cmd = attributesDict['toexecute']
-            except KeyError, err:
+            except KeyError as err:
                 logging.getLogger().error('%s: cannot add command: missing "%s" property', self.name(), err.args[0])
                 return
             else:
@@ -507,7 +511,7 @@ class CommandContainer:
         if newCommand is not None:
             self.__commands[cmdName] = newCommand
 
-            if not type(arg1) == types.DictType:
+            if not type(arg1) == dict:
                 i = 1
                 for arg in arg1.getObjects('argument'):
                     onchange=arg.getProperty("onchange")
@@ -526,7 +530,7 @@ class CommandContainer:
                             logging.getLogger().error('%s, command "%s": could not add argument %d, missing type or name', self.name(), cmdName, i)
                             continue
                     else:
-                        if type(comboitems) == types.ListType:
+                        if type(comboitems) == list:
                             combo_items = []
                             for item in comboitems:
                                 name = item.getProperty('name')

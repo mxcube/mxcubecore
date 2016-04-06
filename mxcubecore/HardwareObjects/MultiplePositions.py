@@ -177,7 +177,7 @@ class MultiplePositions(Equipment):
                     self.positions[name] = {}
 
                     motpos = position.getProperties()
-                    motroles = motpos.keys()
+                    motroles = list(motpos.keys())
 
                     for role in self.roles:
                         self.positions[name][role] = motpos[role] 
@@ -197,7 +197,7 @@ class MultiplePositions(Equipment):
             return ""
 			
         state = "READY"
-        for mot in self.motors.itervalues():
+        for mot in self.motors.values():
             if mot.getState() == mot.MOVING:
                 state = "MOVING"
             elif mot.getState() == mot.UNUSABLE:
@@ -232,7 +232,7 @@ class MultiplePositions(Equipment):
         if not self.isReady():
             return None
 
-        for posName, position in self.positions.iteritems():
+        for posName, position in self.positions.items():
             findPosition = 0
 
             for role in self.roles:
@@ -273,7 +273,7 @@ class MultiplePositions(Equipment):
             self.checkPosition()
             return
                 	
-        for role, pos in newPositions.items():
+        for role, pos in list(newPositions.items()):
             self.positions[name][role] = pos
             position.setProperty(role, pos)
 
@@ -304,7 +304,7 @@ class MultiplePositions(Equipment):
                 else:
                     key_el = cElementTree.SubElement(pos, key)
                     key_el.text = value
-                    print cElementTree.tostring(xml_tree)
+                    print(cElementTree.tostring(xml_tree))
                     self.rewrite_xml(cElementTree.tostring(xml_tree))
                     return True
         
@@ -326,7 +326,7 @@ class MultiplePositions(Equipment):
         
         pos = cElementTree.SubElement(positions, "position")
         
-        for key,val in el_dict.iteritems():
+        for key,val in el_dict.items():
             sel = cElementTree.SubElement(pos, key)
             sel.text = val
             

@@ -2,7 +2,9 @@ import logging
 import types
 from dispatcher import *
 from CommandContainer import CommandContainer
-import HardwareRepository
+# LNLS
+#import HardwareRepository
+from HardwareRepository import *
 
       
 class PropertySet(dict):
@@ -19,7 +21,7 @@ class PropertySet(dict):
         
 
     def getPropertiesPath(self):
-        return self.__propertiesPath.iteritems()
+        return iter(self.__propertiesPath.items())
         
     
     def __setitem__(self, name, value):
@@ -32,7 +34,7 @@ class PropertySet(dict):
 
 
     def getChanges(self):
-        for propertyName, value in self.__propertiesChanged.iteritems():
+        for propertyName, value in self.__propertiesChanged.items():
             yield (self.__propertiesPath[propertyName], value)
             
         self.__propertiesChanged = {} #reset changes at commit
@@ -48,7 +50,6 @@ class HardwareObjectNode:
         self._path = ''
         self.__name = nodeName
         self.__references = []
- 
 
     def name(self):
         return self.__name
@@ -59,7 +60,7 @@ class HardwareObjectNode:
      
    
     def getRoles(self):
-        return self._objectsByRole.keys()
+        return list(self._objectsByRole.keys())
 
 
     def setPath(self, path):
@@ -83,23 +84,25 @@ class HardwareObjectNode:
     
     def __getattr__(self, attr):
         if attr.startswith("__"):
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
         try:
             return self._propertySet[attr]
         except KeyError:
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
 
     def __setattr__(self, attr, value):
-        if not attr in self.__dict__ and attr in self._propertySet:
-	    self.setProperty(attr, value)
+        # LNLS
+        #if not attr in self.__dict__ and attr in self._propertySet:
+        if ((self.__dict__ is not None and not attr in self.__dict__) and (self._propertySet is not None and attr in self._propertySet)):
+            self.setProperty(attr, value)
         else:
             self.__dict__[attr] = value
 
         
     def __getitem__(self, key):
-        if type(key) == types.StringType:
+        if type(key) == bytes:
             objectName = key
             
             try:
@@ -112,7 +115,7 @@ class HardwareObjectNode:
                     return obj[0]
                 else:
                     return obj
-        elif type(key) == types.IntType:
+        elif type(key) == int:
             i = key
 
             if i < len(self.__objectsNames):
@@ -151,8 +154,9 @@ class HardwareObjectNode:
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = self.__references.pop()
 
+            # LNLS (import statement fixed)
             object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
-
+            
             if object is not None:
                 self._objectsByRole[role] = object
                 object.__role = role
@@ -264,7 +268,7 @@ class HardwareObjectNode:
         
 
     def getProperty(self, name):
-	try:
+        try:
             return self._propertySet[str(name)]
         except:
             return None
@@ -298,27 +302,27 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         self.__dict__.update(o.__dict__)
        
     
-    def __nonzero__(self):
+    def __bool__(self):
         return True
         
 
     def __getattr__(self, attr):
         if attr.startswith("__"):
-           raise AttributeError, attr
+           raise AttributeError(attr)
+
         try:
             return CommandContainer.__getattr__(self, attr)
         except AttributeError:
             try:
                 return HardwareObjectNode.__getattr__(self, attr)
             except AttributeError:
-                raise AttributeError, attr
-    
+                raise AttributeError(attr)
 
     def emit(self, signal, *args):
-        signal =  str(signal)
+        signal = str(signal)
     
         if len(args)==1:
-          if type(args[0])==types.TupleType:
+          if type(args[0])==tuple:
             args=args[0]
     
         dispatcher.send(signal, self, *args)  
@@ -326,7 +330,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     
     def connect(self, sender, signal, slot=None):
         if slot is None:
-            if type(sender) == types.StringType:
+            # LNLS
+            #if type(sender) == bytes:
+            if type(sender) == str:
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -335,7 +341,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 signal = sender
                 sender = self
             else:
-                raise ValueError, "invalid slot (None)"
+                raise ValueError("invalid slot (None)")
 
         signal = str(signal)
             
@@ -347,7 +353,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def disconnect(self, sender, signal, slot=None):
         if slot is None:
-            if type(sender) == types.StringType:
+            # LNLS
+            #if type(sender) == bytes:
+            if type(sender) == str:
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -356,7 +364,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 signal = sender
                 sender = self
             else:
-                raise ValueError, "invalid slot (None)"
+                raise ValueError("invalid slot (None)")
 
         signal = str(signal)
             
@@ -367,7 +375,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         
  
     def connectNotify(self, signal):
-	pass
+        pass
 
 
     def disconnectNotify(self, signal):
@@ -399,9 +407,6 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def xml_source(self):
         """Get XML source code"""
         return HardwareRepository.HardwareRepository().xml_source[self.name()]
-
-    def update_values(self):
-        return 
     
 class Procedure(HardwareObject):
     def __init__(self, name):
@@ -567,7 +572,7 @@ class Null:
         return self
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         return 0
     
     
