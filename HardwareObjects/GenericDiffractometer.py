@@ -295,6 +295,7 @@ class GenericDiffractometer(HardwareObject):
                 return self.pixels_per_mm_x
             if attr == "pixelsPerMmZ":
                 return self.pixels_per_mm_y
+            return HardwareObject.__getattr__(self,attr) 
 
     def is_ready(self):
         """
