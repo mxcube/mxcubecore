@@ -87,22 +87,30 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            return self._propertySet[attr]
+            # LNLS
+            # python2.7
+            #return self._propertySet[attr]
+            # python3.4
+            return self.__dict__['_propertySet'][attr]
         except KeyError:
             raise AttributeError(attr)
 
 
     def __setattr__(self, attr, value):
-        # LNLS
-        #if not attr in self.__dict__ and attr in self._propertySet:
-        if ((self.__dict__ is not None and not attr in self.__dict__) and (self._propertySet is not None and attr in self._propertySet)):
-            self.setProperty(attr, value)
-        else:
+        # LNLS:: try..except
+        try:
+            if not attr in self.__dict__ and attr in self._propertySet:
+                self.setProperty(attr, value)
+            else:
+                self.__dict__[attr] = value
+        except AttributeError:
             self.__dict__[attr] = value
-
         
     def __getitem__(self, key):
-        if type(key) == bytes:
+        #python2.7
+        #if type(key) == types.StringType:
+        #python3.4
+        if type(key) == str:
             objectName = key
             
             try:
@@ -115,6 +123,9 @@ class HardwareObjectNode:
                     return obj[0]
                 else:
                     return obj
+        #python2.7
+        #elif type(key) == types.IntType:
+        #python3.4
         elif type(key) == int:
             i = key
 
@@ -308,7 +319,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def __getattr__(self, attr):
         if attr.startswith("__"):
-           raise AttributeError(attr)
+            raise AttributeError(attr)
 
         try:
             return CommandContainer.__getattr__(self, attr)
