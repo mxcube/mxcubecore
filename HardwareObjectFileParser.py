@@ -35,12 +35,11 @@ def parseString(XMLHardwareObject, name):
     
     curHandler = HardwareObjectHandler(name)
     # LNLS
+    #python2.7
     #xml.sax.parseString(XMLHardwareObject, curHandler)
+    # python3.4
     xml.sax.parseString(str.encode(XMLHardwareObject), curHandler)
-
-    #print('LIB XML PATH:')
-    #print(xml.sax.__file__)
-    
+   
     return curHandler.getHardwareObject()
 
 
@@ -104,7 +103,6 @@ class HardwareObjectHandler(ContentHandler):
     def getHardwareObject(self):
         if len(self.objects) == 1:
             return self.objects[0]
-    
         
     def startElement(self, name, attrs):
         if self.classError:
@@ -139,6 +137,7 @@ class HardwareObjectHandler(ContentHandler):
 
         _attrs = attrs
         attrs = {}
+
         for k in list(_attrs.keys()):
             v = str(_attrs[k])
 
@@ -237,9 +236,8 @@ class HardwareObjectHandler(ContentHandler):
             else:
                 newObject = BaseHardwareObjects.HardwareObjectNode(objectName)
                 newObject.setPath(self.path)
-            
                 self.objects.append(newObject)
-            
+
                 self.property = name #element is supposed to be a Property            
 
 
@@ -259,7 +257,6 @@ class HardwareObjectHandler(ContentHandler):
         if self.elementIsAReference:
             if len(self.objects) > 0:
                 self.objects[-1].addReference(name, self.reference, role=self.elementRole)
-                #self.objects.append(newObject)
         else:
             try:
                 if name == 'command':

@@ -148,8 +148,10 @@ class CommandContainer:
     def __getattr__(self, attr):
         try:
             # LNLS
+            # python2.7
             #return self.__commands[attr]
-            return self.getCommandObject(attr)
+            # python3.4
+            return self.__dict__['__commands'][attr]
         except KeyError:
             raise AttributeError(attr)
     
@@ -305,9 +307,10 @@ class CommandContainer:
     def getCommandObject(self, cmdName):
         #return self.__commands[cmdName]
         # LNLS
+        # python3.4
         try:
             return self.__commands.get(cmdName)
-        except:
+        except Exception as e:
             return None
 
     def getCommands(self):

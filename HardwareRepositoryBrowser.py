@@ -98,7 +98,7 @@ class __HardwareRepositoryClient:
             with gevent.Timeout(3): 
                 while not self.server.isSpecConnected():
                     time.sleep(0.5) 
-            #SpecWaitObject.waitConnection(self.server, timeout = 3) 	 
+            #SpecWaitObject.waitConnection(self.server, timeout = 3)
    
             # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
             self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
@@ -255,7 +255,7 @@ class __HardwareRepositoryClient:
         Return :
           the Hardware Object, or None if it fails
         """
-	try:
+        try:
             ho = HardwareObjectFileParser.parseString(XMLString, hoName)
         except:
             logging.getLogger('HWR').exception('Cannot parse Hardware Repository file %s', hoName)

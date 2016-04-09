@@ -171,8 +171,7 @@ class __HardwareRepositoryClient:
                    pass
                  break 
 
-        if True:  
-                #print xmldata
+        if True:
                 if len(xmldata) > 0:
                     try:
                         #t0 = time.time()
@@ -375,7 +374,7 @@ class __HardwareRepositoryClient:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
-            
+
                 try:
                     ho = self.hardwareObjects[objectName]
                 except KeyError:
