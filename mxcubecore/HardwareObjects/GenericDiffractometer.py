@@ -107,7 +107,7 @@ class GenericDiffractometer(HardwareObject):
     Abstract base class for diffractometers
     """
 
-    MOTORS_NAME = ["phi", 
+    MOTORS_NAME = ["phi",
                    "focus",
                    "phiz",
                    "phiy",
@@ -117,7 +117,9 @@ class GenericDiffractometer(HardwareObject):
                    "kappa",
                    "kappa_phi",
                    "beam_x",
-                   "beam_y"]
+                   "beam_y",
+                   "back_light",
+                   "front_light"]
     CHANNEL_NAME = []
 
     STATE_CHANGED_EVENT = "stateChanged"
@@ -144,6 +146,8 @@ class GenericDiffractometer(HardwareObject):
 
         # Hardware objects ----------------------------------------------------
         self.motor_hwobj_dict = {}
+        self.front_light_switch = None
+        self.back_light_switch = None
         self.camera_hwobj = None
         self.beam_info_hwobj = None
         self.sample_changer = None
@@ -212,7 +216,7 @@ class GenericDiffractometer(HardwareObject):
         else:
             logging.getLogger("HWR").debug('Diffractometer: Camera hwobj is not defined')
 
-        self.beam_info_hwobj = self.getObjectByRole("beam_info") 
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
         if self.beam_info_hwobj is not None:
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
@@ -245,6 +249,10 @@ class GenericDiffractometer(HardwareObject):
             set_diffractometer_motor_names(*self.used_motors_list)
         for motor_name in self.used_motors_list:
             self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
+
+        self.front_light_swtich = self.getObjectByRole('front_light_swtich')
+        self.back_light_swtich = self.getObjectByRole('back_light_swtich')
+
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -295,7 +303,7 @@ class GenericDiffractometer(HardwareObject):
                 return self.pixels_per_mm_x
             if attr == "pixelsPerMmZ":
                 return self.pixels_per_mm_y
-            return HardwareObject.__getattr__(self,attr) 
+            return HardwareObject.__getattr__(self,attr)
 
     def is_ready(self):
         """
@@ -314,8 +322,8 @@ class GenericDiffractometer(HardwareObject):
 
     def execute_server_task(self, method, timeout=30, *args):
         """
-        Method is used to execute commands and wait till 
-        diffractometer is in ready state    
+        Method is used to execute commands and wait till
+        diffractometer is in ready state
         """
         self.ready_event.clear()
         self.current_state = DiffractometerState.tostring(\
@@ -420,7 +428,7 @@ class GenericDiffractometer(HardwareObject):
         """
         Moves diffractometer motors to the requested positions
 
-        :param motors_dict: dictionary with motor names or hwobj 
+        :param motors_dict: dictionary with motor names or hwobj
                             and target values.
         :type motors_dict: dict
         """
@@ -464,7 +472,7 @@ class GenericDiffractometer(HardwareObject):
                                      self.current_centring_method)
             return
         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.centring_status = {"valid": False, 
+        self.centring_status = {"valid": False,
                                 "startTime": curr_time,
                                 "angleLimit": None}
         self.emit_centring_started(method)
@@ -475,7 +483,7 @@ class GenericDiffractometer(HardwareObject):
             logging.getLogger("HWR").error("Diffractometer: unknown centring method (%s)" % str(diag))
             self.emit_centring_failed()
         else:
-            try:   
+            try:
                 centring_method(sample_info, wait_result=wait)
             except:
                 logging.getLogger("HWR").exception("Diffractometer: problem while centring")
@@ -504,7 +512,7 @@ class GenericDiffractometer(HardwareObject):
             self.emit_centring_failed()
         self.emit_progress_message("")
         if reject:
-            self.reject_centring()   
+            self.reject_centring()
 
     def start_manual_centring(self, sample_info=None, wait_result=None):
         """
@@ -575,7 +583,7 @@ class GenericDiffractometer(HardwareObject):
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                #if 3 click centring move -180 
+                #if 3 click centring move -180
                 if not self.in_plate_mode():
                     self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
             #logging.info("EMITTING CENTRING SUCCESSFUL")
@@ -594,7 +602,7 @@ class GenericDiffractometer(HardwareObject):
         raise NotImplementedError
 
     def move_to_centred_position(self, centred_position):
-        self.move_motors(centred_position) 
+        self.move_motors(centred_position)
 
     def move_to_motors_positions(self, motors_positions, wait = False):
         """
@@ -607,7 +615,7 @@ class GenericDiffractometer(HardwareObject):
     def move_motors(self, motor_positions):
         """
         Descript. : general function to move motors.
-        Arg.      : motors positions in dict. Dictionary can contain motor names 
+        Arg.      : motors positions in dict. Dictionary can contain motor names
                     as str or actual motor hwobj
         """
         for motor in motor_positions.keys():
@@ -650,7 +658,7 @@ class GenericDiffractometer(HardwareObject):
 
     def accept_centring(self):
         """
-        Descript. : 
+        Descript. :
         Arg.      " fully_centred_point. True if 3 click centring
                     else False
         """
@@ -730,7 +738,7 @@ class GenericDiffractometer(HardwareObject):
     def get_point_between_two_points(self, point_one, point_two, frame_num, frame_total):
         """
         Method returns a centring point between two centring points
-        It is used to get a position on a helical line based on 
+        It is used to get a position on a helical line based on
         frame number and total frame number
         """
         new_point = {}
@@ -773,4 +781,4 @@ class GenericDiffractometer(HardwareObject):
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
-        return 
+        return
