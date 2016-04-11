@@ -1,11 +1,14 @@
+import sys
 import logging
 import types
 import dispatcher
 from dispatcher import *
 from CommandContainer import CommandContainer
-import HardwareRepository
-#from HardwareRepository import HardwareRepository
 
+if sys.version_info > (3, 0):
+    from HardwareRepository import * 
+else: 
+    import HardwareRepository
       
 class PropertySet(dict):
     def __init__(self):
@@ -163,17 +166,17 @@ class HardwareObjectNode:
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = self.__references.pop()
 
-            object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
+            hw_object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
             
-            if object is not None:
-                self._objectsByRole[role] = object
-                object.__role = role
+            if hw_object is not None:
+                self._objectsByRole[role] = hw_object
+                hw_object.__role = role
 
                 if objectsNamesIndex >= 0:
                     self.__objectsNames[objectsNamesIndex] = name
-                    self.__objects[objectsIndex] = [ object ]
+                    self.__objects[objectsIndex] = [hw_object]
                 else:
-                    self.__objects[objectsIndex][objectsIndex2] = object
+                    self.__objects[objectsIndex][objectsIndex2] = hw_object
             else:
                 if objectsNamesIndex >= 0:
                     del self.__objectsNames[objectsNamesIndex]
@@ -183,25 +186,25 @@ class HardwareObjectNode:
                     if len(self.objects[objectsIndex]) == 0:
                         del self.objects[objectsIndex]
                 
-        for object in self:
-            object.resolveReferences()
+        for hw_object in self:
+            hw_object.resolveReferences()
             
         
-    def addObject(self, name, object, role = None):
-        if object is None:
+    def addObject(self, name, hw_object, role = None):
+        if hw_object is None:
             return
         elif role is not None:
             role = str(role).lower()
-            self._objectsByRole[role] = object
-            object.__role = role
+            self._objectsByRole[role] = hw_object
+            hw_object.__role = role
         
         try:
             i = self.__objectsNames.index(name)
         except ValueError:
             self.__objectsNames.append(name)
-            self.__objects.append([ object ])
+            self.__objects.append([hw_object])
         else:
-            self.__objects[i].append(object)
+            self.__objects[i].append(hw_object)
             
 
     def hasObject(self, objectName):
