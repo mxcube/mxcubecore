@@ -1,10 +1,10 @@
 import logging
 import types
+import dispatcher
 from dispatcher import *
 from CommandContainer import CommandContainer
-# LNLS
-#import HardwareRepository
-from HardwareRepository import *
+import HardwareRepository
+#from HardwareRepository import HardwareRepository
 
       
 class PropertySet(dict):
@@ -87,7 +87,6 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            # LNLS
             # python2.7
             #return self._propertySet[attr]
             # python3.4
@@ -97,7 +96,6 @@ class HardwareObjectNode:
 
 
     def __setattr__(self, attr, value):
-        # LNLS:: try..except
         try:
             if not attr in self.__dict__ and attr in self._propertySet:
                 self.setProperty(attr, value)
@@ -165,7 +163,6 @@ class HardwareObjectNode:
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = self.__references.pop()
 
-            # LNLS (import statement fixed)
             object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
             
             if object is not None:
@@ -330,18 +327,19 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 raise AttributeError(attr)
 
     def emit(self, signal, *args):
+         
         signal = str(signal)
     
         if len(args)==1:
           if type(args[0])==tuple:
             args=args[0]
-    
         dispatcher.send(signal, self, *args)  
 
     
     def connect(self, sender, signal, slot=None):
         if slot is None:
-            # LNLS
+            # TODO 2to3 
+
             #if type(sender) == bytes:
             if type(sender) == str:
                 # provides syntactic sugar ; for
@@ -364,7 +362,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def disconnect(self, sender, signal, slot=None):
         if slot is None:
-            # LNLS
+            # TODO 2to3
             #if type(sender) == bytes:
             if type(sender) == str:
                 # provides syntactic sugar ; for
