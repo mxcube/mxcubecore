@@ -301,7 +301,7 @@ class PlateManipulator(SampleChanger):
             self.cmd_move_to_location(row, col - 1, self.reference_pos_x, pos_y)
             self._wait_ready(60)
         elif self.cmd_move_to_drop:
-	    self.cmd_move_to_drop(row, col - 1, drop-1)
+            self.cmd_move_to_drop(row, col - 1, drop-1)
             self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup

@@ -331,7 +331,7 @@ class AbstractMultiCollect(object):
         for directory in args:
             try:
                 os.makedirs(directory)
-            except os.error, e:
+            except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
      
@@ -784,7 +784,7 @@ class AbstractMultiCollect(object):
 
                           if data_collect_parameters.get("shutterless"):
                               with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
-   			          while self.last_image_saved() == 0:
+                                 while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
                               last_image_saved = self.last_image_saved()
@@ -953,8 +953,8 @@ class AbstractMultiCollect(object):
         processAnalyseParams['residues'] = residues
         processAnalyseParams["spacegroup"]=spacegroup
         processAnalyseParams["cell"]=cell
-      except Exception,msg:
-        logging.getLogger().exception("DataCollect:processing: %r" % msg)
+      except Exception as msg:
+        logging.getLogger().exception("DataCollect:processing: %r" % str(msg))
       else:
         #logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, do_inducedraddam, spacegroup, cell)
             

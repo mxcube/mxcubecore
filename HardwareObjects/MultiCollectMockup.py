@@ -3,9 +3,14 @@ from AbstractMultiCollect import *
 import logging
 import time
 import os
-import httplib
+import sys
 import math
 import gevent
+
+if sys.version_info > (3, 0):
+    import http.client as httplib
+else:
+    import httplib
 
 
 class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
@@ -49,7 +54,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
             logging.debug("collect parameters = %r", data_collect_parameters)
             failed = False
        	    data_collect_parameters["status"]='Data collection successful'
-	    osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
+            osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
             self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
 
             for image in range(data_collect_parameters["oscillation_sequence"][0]["number_of_images"]):
@@ -57,11 +62,11 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
                 self.emit("collectImageTaken", image)
  
             data_collect_parameters["status"]='Running'
-	    data_collect_parameters["status"]='Data collection successful'
+            data_collect_parameters["status"]='Data collection successful'
             self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], "12345", osc_id, data_collect_parameters))
 
-	self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
-	logging.getLogger('HWR').info("data collection successful in loop")
+        self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
+        logging.getLogger('HWR').info("data collection successful in loop")
         self.emit("collectReady", (True, ))
 
     @task

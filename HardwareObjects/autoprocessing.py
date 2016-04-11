@@ -24,7 +24,7 @@ def grouped_processing(processEvent, params):
             cell_opt = ''
 
         endOfLineToExecute += ' -mode %s -collect %d:%s' % (processEvent, dataCollectionId, param_dict["xds_dir"])
-	endOfLineToExecute += ' -residues ' + str(residues) + ' -anomalous ' + str(anomalous) + \
+        endOfLineToExecute += ' -residues ' + str(residues) + ' -anomalous ' + str(anomalous) + \
                               sg_opt + cell_opt
         # + (param_dict["inverse_beam"] and ' -inverse' or '')
     return endOfLineToExecute
@@ -32,14 +32,14 @@ def grouped_processing(processEvent, params):
 def start(programs, processEvent, paramsDict):
     for program in programs["program"]:
         try:
-	    allowed_events = program.getProperty("event").split(" ")
-	    if processEvent in allowed_events:
-		executable = program.getProperty('executable')
+            allowed_events = program.getProperty("event").split(" ")
+            if processEvent in allowed_events:
+                executable = program.getProperty('executable')
 		
-		if os.path.isfile(executable):
+                if os.path.isfile(executable):
                     if processEvent == "end_multicollect":
                         endOfLineToExecute = grouped_processing("end_multicollect", paramsDict)
-		    elif os.path.isdir(paramsDict["xds_dir"]):
+                    elif os.path.isdir(paramsDict["xds_dir"]):
                         dataCollectionId = paramsDict.get('datacollect_id')
                         residues = paramsDict.get('residues', 0)
                         anomalous = paramsDict.get('anomalous', False)
@@ -55,7 +55,7 @@ def start(programs, processEvent, paramsDict):
                         else:
                             cell_opt = ''
 
-			endOfLineToExecute = ' -path ' + paramsDict["xds_dir"] +\
+                        endOfLineToExecute = ' -path ' + paramsDict["xds_dir"] +\
 					     ' -mode ' + processEvent +\
 					     ' -datacollectionID ' + str(dataCollectionId) +\
 					     ' -residues ' + str(residues) +\
@@ -63,11 +63,11 @@ def start(programs, processEvent, paramsDict):
 					     sg_opt + cell_opt #+\
 					     #(paramsDict["inverse_beam"] and ' -inverse' or '')
                     lineToExecute = executable + endOfLineToExecute + ' 2>&1 > /dev/null &'
-		    logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
+                    logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 
                     subprocess.Popen(str(lineToExecute), shell=True, stdin=None,
                                      stdout=None, stderr=None, close_fds=True)
-		else:
+                else:
                     logging.getLogger().error("No program to execute found (%s)",executable)
         except:
             logging.exception("autoprocessing: an error occurred")
