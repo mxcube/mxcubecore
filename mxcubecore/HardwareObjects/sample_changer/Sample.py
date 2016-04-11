@@ -49,7 +49,7 @@ class Sample(Component):
         Returns true if a property is defined
         :rtype: bool
         """        
-        return self.properties.has_key(name)   
+        return name in self.properties 
     
     def getProperty(self, name):
         """
@@ -72,7 +72,7 @@ class Sample(Component):
                 img=f.read() 
                 return img                
         except:
-            print sys.exc_info()[1]
+            print (sys.exc_info()[1])
     
     def clearInfo(self):        
         Component.clearInfo(self)

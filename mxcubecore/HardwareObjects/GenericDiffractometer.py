@@ -589,7 +589,7 @@ class GenericDiffractometer(HardwareObject):
 
         try:
             centring_method = self.centring_methods[method]
-        except KeyError, diag:
+        except KeyError as diag:
             logging.getLogger("HWR").error("Diffractometer: unknown centring method (%s)" % str(diag))
             self.emit_centring_failed()
         else:
@@ -611,7 +611,7 @@ class GenericDiffractometer(HardwareObject):
             try:
                 #TODO... do we need this at all?
                 fun = self.cancel_centring_methods[self.current_centring_method]
-            except KeyError, diag:
+            except KeyError as diag:
                 self.emit_centring_failed()
             else:
                 try:

@@ -43,10 +43,19 @@ class ParallelProcessing(HardwareObject):
         self.processing_done_event = gevent.event.Event()
 
         self.collect_hwobj = self.getObjectByRole("collect")
-        self.detector_hwobj = self.collect_hwobj.detector_hwobj
+
+        try:
+           self.detector_hwobj = self.collect_hwobj.detector_hwobj
+           self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
+        except:
+           try:
+              self.detector_hwobj = self.collect_hwobj.bl_config.detector_hwobj
+              self.lims_hwobj = self.collect_hwobj.cl_config.lims_client_hwobj
+           except:
+              pass
+
         if self.detector_hwobj is None:
             logging.info("ParallelProcessing: No detector hwobj defined")
-        self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
 
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
         if self.beamstop_hwobj is None:

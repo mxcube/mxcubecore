@@ -192,7 +192,7 @@ class Qt4_GraphicsManager(HardwareObject):
             logging.getLogger("HWR").error("GraphicsManager: Diffractometer hwobj not defined")
 
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj:
+        if self.beam_info_hwobj is not None:
             self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             self.connect(self.beam_info_hwobj, 
@@ -208,7 +208,7 @@ class Qt4_GraphicsManager(HardwareObject):
             logging.getLogger("HWR").error("GraphicsManager: BeamInfo hwobj not defined")
 
         self.camera_hwobj = self.getObjectByRole("camera")
-        if self.camera_hwobj:
+        if self.camera_hwobj is not None:
             self.graphics_scene_size = self.camera_hwobj.get_image_dimensions()
             self.set_graphics_scene_size(self.graphics_scene_size, False)
             self.camera_hwobj.start_camera()
