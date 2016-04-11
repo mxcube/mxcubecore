@@ -118,8 +118,8 @@ class GenericDiffractometer(HardwareObject):
                    "kappa_phi",
                    "beam_x",
                    "beam_y",
-                   "back_light",
-                   "front_light"]
+                   "backlight",
+                   "frontlight"]
     CHANNEL_NAME = []
 
     STATE_CHANGED_EVENT = "stateChanged"
@@ -230,7 +230,7 @@ class GenericDiffractometer(HardwareObject):
         else:
             #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
             # if not defined, set use_sc to True
-            if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
+            if self.transfer_mode is None or self.transfer_mode.getValue() == "SAMPLE_CHANGER":
                 self.use_sc = True
 
         if self.transfer_mode is not None:
@@ -250,8 +250,8 @@ class GenericDiffractometer(HardwareObject):
         for motor_name in self.used_motors_list:
             self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
 
-        self.front_light_swtich = self.getObjectByRole('front_light_swtich')
-        self.back_light_swtich = self.getObjectByRole('back_light_swtich')
+        self.front_light_swtich = self.getObjectByRole('frontlightswtich')
+        self.back_light_swtich = self.getObjectByRole('backlightswtich')
 
 
         try:
@@ -350,7 +350,7 @@ class GenericDiffractometer(HardwareObject):
             if self.sample_changer is None:
                 logging.getLogger("HWR").error("Sample Changer is not available")
                 return False
-            if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
+            if self.transfer_mode is None or self.transfer_mode.getValue() == "SAMPLE_CHANGER":
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
             else:
