@@ -98,6 +98,14 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return (self.execute_command("get_beam_size_x"),
                 self.execute_command("get_beam_size_y"))
 
+    def modify_strategy_option(self, diff_plan, strategy_option):
+        """Helper function for modifying the diffraction plan 'strategyOption' entry"""
+        if diff_plan.getStrategyOption() is None:
+            new_strategy_option = strategy_option
+        else:
+            new_strategy_option = diff_plan.getStrategyOption().getValue() + ' ' + strategy_option
+        diff_plan.setStrategyOption(XSDataString(new_strategy_option))
+
 
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
@@ -186,9 +194,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         # Account for radiation damage
         if char_params.induce_burn:
-            diff_plan.setStrategyOption(XSDataString("-DamPar"))
-        else:
-            diff_plan.setStrategyOption(None)
+            self.modify_strategy_option(diff_plan, "-DamPar")
 
         # Characterisation type - SAD
         if char_params.opt_sad:
@@ -196,7 +202,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             diff_plan.setAnomalousData(XSDataBoolean(True))
           else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
-            diff_plan.setStrategyOption(XSDataString("-SAD yes"))
+            self.modify_strategy_option(diff_plan, "-SAD yes")
             diff_plan.setAimedResolution(XSDataDouble(char_params.sad_res))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
