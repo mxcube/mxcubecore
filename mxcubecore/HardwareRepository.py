@@ -24,7 +24,6 @@ try:
     from SpecClient_gevent import SpecWaitObject
     from SpecClient_gevent import SpecClientError
 except ImportError:
-    print("Error importing SpecClient_gevent!!!")
     pass 
  
 import HardwareObjectFileParser
@@ -40,7 +39,6 @@ def addHardwareObjectsDirs(hoDirs):
 
         for newHoDir in newHoDirs:
             if not newHoDir in sys.path:
-                #print 'inserted in sys.path = %s' % newHoDir
                 sys.path.insert(0, newHoDir)
 
 default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
@@ -55,7 +53,6 @@ def setHardwareRepositoryServer(hwrserver):
         _hwrserver = xml_dirs_list
     else:
         _hwrserver = hwrserver
-    
 
 def HardwareRepository(hwrserver = None):
     """Return the Singleton instance of the Hardware Repository."""
@@ -81,7 +78,11 @@ class __HardwareRepositoryClient:
         serverAddress needs to be the HWR server address (host:port) or
         a list of paths where to find XML files locally (when server is not in use)
         """
-        self.serverAddress = serverAddress
+        if not type(serverAddress) in (list, tuple): 
+            self.serverAddress = [serverAddress]
+        else:
+            self.serverAddress = serverAddress
+        
         self.requiredHardwareObjects = {}
         self.xml_source={}
         self.__connected = False
@@ -150,7 +151,6 @@ class __HardwareRepositoryClient:
             except:
                 logging.getLogger('HWR').exception('Could not load Hardware Object "%s"', hoName)
             else:
-                #print 'loading %s took %s ms' % (hoName, 1000*(time.time()-t0))
                 try:
                   xmldata = replyDict['xmldata']
                   mtime = int(replyDict['mtime'])
@@ -176,7 +176,6 @@ class __HardwareRepositoryClient:
                     try:
                         #t0 = time.time()
                         ho = self.parseXML(xmldata, hoName)
-                        #print 'parsing %s took %s ms' % (hoName, (time.time()-t0)*1000)
                     except:
                         logging.getLogger("HWR").exception("Cannot parse XML file for Hardware Object %s", hoName)
                     else:
@@ -374,7 +373,6 @@ class __HardwareRepositoryClient:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
-
                 try:
                     ho = self.hardwareObjects[objectName]
                 except KeyError:
