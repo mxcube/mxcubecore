@@ -36,13 +36,6 @@ class BIOMAXMiniDiff(GenericDiffractometer):
         self.update_zoom_calibration()
         self.start_set_phase = self.getCommandObject('startSetPhase')
 
-
-        self.front_light_motor = self.getObjectByRole('frontlight')
-        self.front_light_swtich = self.getObjectByRole('frontlightswitch')
-        self.back_light_motor = self.getObjectByRole('backlight')
-        self.back_light_swtich = self.getObjectByRole('backlightswitch')
-
-
         # centring motors
         self.centring_motors_list = ["phiz", "phiy","sampx","sampy"]
         self.centring_phi=sample_centring.CentringMotor(self.motor_hwobj_dict['phi'], direction=-1)
@@ -88,6 +81,11 @@ class BIOMAXMiniDiff(GenericDiffractometer):
 
         # to make it comaptible
         self.camera = self.camera_hwobj
+        self.backlight = self.motor_hwobj_dict['back_light']
+        self.frontlight = self.motor_hwobj_dict['front_light']
+        self.backlightswitch = self.back_light_switch
+        self.frontlightswitch = self.front_light_switch
+        logging.getLogger("HWR").info("front light is defined %s" % (self.frontlight))
 
     # to make it compatibile
     def __getattr__(self, attr):
