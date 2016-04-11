@@ -373,10 +373,17 @@ class __HardwareRepositoryClient:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
-                try:
+
+                if objectName in self.hardwareObjects:
                     ho = self.hardwareObjects[objectName]
-                except KeyError:
+                else:
                     ho = self.loadHardwareObject(objectName)
+
+                #try:
+                #    print (111, self.hardwareObjects, objectName)
+                #    ho = self.hardwareObjects[objectName]
+                #except KeyError:
+                #    ho = self.loadHardwareObject(objectName)
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
