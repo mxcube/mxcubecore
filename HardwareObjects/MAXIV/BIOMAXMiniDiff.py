@@ -81,8 +81,8 @@ class BIOMAXMiniDiff(GenericDiffractometer):
 
         # to make it comaptible
         self.camera = self.camera_hwobj
-        self.backlight = self.motor_hwobj_dict['back_light']
-        self.frontlight = self.motor_hwobj_dict['front_light']
+        self.backlight = self.motor_hwobj_dict['backlight']
+        self.frontlight = self.motor_hwobj_dict['frontlight']
         self.backlightswitch = self.back_light_switch
         self.frontlightswitch = self.front_light_switch
         logging.getLogger("HWR").info("front light is defined %s" % (self.frontlight))
