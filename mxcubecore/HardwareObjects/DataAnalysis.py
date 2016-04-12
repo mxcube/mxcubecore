@@ -97,7 +97,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         diff_plan.setStrategyOption(XSDataString(new_strategy_option))
 
     def modify_strategy_option(self, diff_plan, strategy_option):
-        """Helper function for modifying the diffraction plan 'strategyOption' entry"""
+        """Method for modifying the diffraction plan 'strategyOption' entry"""
         if diff_plan.getStrategyOption() is None:
             new_strategy_option = strategy_option
         else:
