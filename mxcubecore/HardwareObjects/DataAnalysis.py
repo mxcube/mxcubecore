@@ -99,7 +99,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
                 self.execute_command("get_beam_size_y"))
 
     def modify_strategy_option(self, diff_plan, strategy_option):
-        """Helper function for modifying the diffraction plan 'strategyOption' entry"""
+        """Method for modifying the diffraction plan 'strategyOption' entry"""
         if diff_plan.getStrategyOption() is None:
             new_strategy_option = strategy_option
         else:
