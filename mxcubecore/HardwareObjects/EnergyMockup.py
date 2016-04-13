@@ -42,6 +42,26 @@ class EnergyMockup(Equipment):
            lims=(12.3984/self.en_lims[1], 12.3984/self.en_lims[0])
        return lims
 
-   def start_move_energy(self, value, wait=True):
-       self.energy_value = value
-       self.update_values()
+   def start_move_energy(self, value, wait=True):      
+      if wait:
+         self._abort = False
+          
+         if value > self.energy_value:
+            r = range(self.energy_value, int(value) + 1)
+         elif value < self.energy_value:
+            r = range(self.energy_value, int(value) - 1, -1)
+         else:
+            r = [value]
+            
+         for x in r:
+            if self._abort:
+               raise StopIteration("Energy change canceled !")
+
+            self.energy_value = x
+            self.update_values()
+            time.sleep(0.2)
+      else:
+         self.energy_value = value
+         self.update_values()
+               
+             
