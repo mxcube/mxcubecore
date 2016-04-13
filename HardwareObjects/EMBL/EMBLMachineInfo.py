@@ -188,7 +188,6 @@ class EMBLMachineInfo(Equipment):
              sorted(self.values_dict['intens']['ranges'], \
              key=lambda item: item['max'])
 
-        """	
         self.chan_mach_curr = self.getChannelObject('machCurrent')
         if self.chan_mach_curr is not None: 
             self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
@@ -196,7 +195,6 @@ class EMBLMachineInfo(Equipment):
         if self.chan_state_text is not None:
             self.chan_state_text.connectSignal('update', self.state_text_changed)
         
-
         self.chan_intens_mean = self.getChannelObject('intensMean')
         if self.chan_intens_mean is not None:
             self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
@@ -219,7 +217,6 @@ class EMBLMachineInfo(Equipment):
         self.shutter_hwobj = self.getObjectByRole('shutter')
         if self.shutter_hwobj is not None:
             self.connect(self.shutter_hwobj, 'shutterStateChanged', self.shutter_state_changed)
-        """
 
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))

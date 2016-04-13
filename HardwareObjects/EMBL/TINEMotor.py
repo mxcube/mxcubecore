@@ -67,7 +67,7 @@ class TINEMotor(Device):
         self.verboseUpdate = None
         self.maxMotorPosition = None
         self.moveConditions = None
-        self.moveHOSignals = None
+        #self.moveHOSignals = None
 	
     def init(self):
         """
@@ -105,12 +105,21 @@ class TINEMotor(Device):
             self.cmd_stop_axis.connectSignal('connected', self.connected)
             self.cmd_stop_axis.connectSignal('disconnected', self.disconnected)
 
+        self.cmd_set_online = self.getCommandObject('setOnline')
+
         self.converter = self.getProperty("converter") 
         self.epsilon = self.getProperty("epsilon")    
         self.verboseUpdate = self.getProperty("verboseUpdate")
         self.maxMotorPosition = self.getProperty("maxMotorPosition")
         self.moveConditions = self.getProperty("moveConditions")
-        self.moveHOSignals = self.getProperty("moveHOSignals")
+        #self.moveHOSignals = self.getProperty("moveHOSignals")
+
+        self.username = self.getProperty('username')
+
+        try:
+           self.step_limits = eval(self.getProperty("stepLimits"))
+        except:
+           pass
       
     def isConnected(self):
         """
@@ -157,6 +166,12 @@ class TINEMotor(Device):
         else:
             self.limits = self.static_limits
         return self.limits
+
+    def get_step_limits(self):
+        """
+        Descript. :
+        """
+        return self.step_limits
   
     def getState(self):
         """
@@ -169,11 +184,16 @@ class TINEMotor(Device):
             return self.motorState
 
         actualState = self.chan_state.getValue()
+        if type(actualState) in (list, tuple):
+            actualState = actualState[0]
 
         if (actualState != self.motorState2):
             if actualState == 'ready':
                 self.motorState = READY
-            elif actualState == 'moving':
+            elif actualState == 0:
+                self.motorState = READY
+            #else actualState == 'moving':
+            else:
                 self.motorState = MOVING
             self.emit('stateChanged', (self.motorState, ))            
                 
@@ -191,6 +211,8 @@ class TINEMotor(Device):
         """
         if self.chan_position:
             value = self.chan_position.getValue()
+            if type(value) in (list, tuple):
+                value = value[0]
             if self.converter is not None:
                 value = eval(self.converter)(value)
             return value
@@ -208,7 +230,10 @@ class TINEMotor(Device):
         self.__changeMotorState(MOVING)
         if self.chan_state is not None:
             self.chan_state.setOldValue('moving')
-        self.cmd_set_position(target)
+        if target == float('nan'):
+            logging.getLogger().debug('Refusing to move %s to target nan'%(self.objNamem))
+        else:
+            self.cmd_set_position(target)
 
         if wait:
             self._waitDeviceReady(30)  
@@ -231,7 +256,9 @@ class TINEMotor(Device):
         """
         Descript. :
         """
-        position = self.getPosition()    
+        position = self.getPosition()   
+        if type(position) in (list, tuple):
+            position = position[0] 
         if (self.epsilon is None) or (abs(float(position) - float(self.previousPosition)) > float(self.epsilon)) : 
             self.emit('positionChanged', (position, ))
             self.current_position = position
@@ -281,3 +308,16 @@ class TINEMotor(Device):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self._isDeviceReady():
                 gevent.sleep(0.05)
+
+    def enable_motor(self):
+        if self.cmd_set_online:
+            self.cmd_set_online(1)
+
+    def disable_motor(self):
+        if self.cmd_set_online:
+            self.cmd_set_online(0)
+
+    def moveRelative(self, relativePosition):
+        print "Now: ", self.getPosition()
+        print "delta: ", relativePosition
+        self.move(self.getPosition() + relativePosition)
