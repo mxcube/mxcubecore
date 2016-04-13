@@ -1,65 +1,60 @@
 import time
 import urllib
 
-
 import xml.etree.cElementTree as et
 
-def getImage(url):
+def get_image(url):
     f = urllib.urlopen(url)           
-    img=f.read() 
+    img = f.read() 
     return img
 
 class CrimsXtal:
     def __init__(self, *args):
-        self.CrystalUUID=""
-        self.PinID=""
-        self.Login=""
-        self.Sample=""
-        self.Column=0
-        self.idSample=0
-        self.idTrial=0
-        self.Row=""
-        self.Shelf=0
-        self.Comments=""
-        self.offsetX=0.0
-        self.offsetY=0.0
-        self.IMG_URL=""
-        self.ImageRotation=0.0
-        self.SUMMARY_URL=""
+        self.crystal_uuid = ""
+        self.pin_id = ""
+        self.login = ""
+        self.sample = ""
+        self.column = 0
+        self.id_sample = 0
+        self.id_trial = 0
+        self.row = ""
+        self.shelf = 0
+        self.comments = ""
+        self.offset_x = 0.0
+        self.offset_y = 0.0
+        self.image_url = ""
+        self.image_rotation = 0.0
+        self.summary_url = ""
         
-    def getAddress(self):
-        return "%s%02d-%d" % (self.Row,self.Column,self.Shelf)
+    def get_address(self):
+        return "%s%02d-%d" % (self.row, self.column, self.shelf)
 
-    def getImage(self):
-        print self.IMG_URL
-        if len(self.IMG_URL) > 0:
+    def get_image(self):
+        if len(self.image_url) > 0:
             try:
-               print 22
-               if self.IMG_URL.startswith("http://"):
-                   self.IMG_URL = "https://" + self.IMG_URL[7]
-               image_string = urllib.urlopen(self.IMG_URL).read()           
-               print image_string
-               print 23
+               if self.image_url.startswith("http://"):
+                   self.image_url = "https://" + self.image_url[7]
+               image_string = urllib.urlopen(self.image_url).read()           
                return image_string
             except:
                return 
 
-    def getSummaryURL(self):
-        if (len(self.SUMMARY_URL)==0):
+    def get_summary_url(self):
+        if (len(self.summary_url == 0)):
             return None
-        return self.SUMMARY_URL
+        return self.summary_url
         
 class Plate:
     def __init__(self, *args):
-        self.Barcode = ""
-        self.PlateType = ""
+        self.barcode = ""
+        self.plate_type = ""
         self.xtal_list = []
 
 class ProcessingPlan:
     def __init__(self, *args):
-        self.Plate=Plate()
+        self.plate = Plate()
  
-def getProcessingPlan(barcode, crims_url):
+def get_processing_plan(barcode, crims_url):
     try: 
         url = crims_url + "/htxlab/index.php?option=com_crimswebservices" + \
            "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
@@ -67,32 +62,32 @@ def getProcessingPlan(barcode, crims_url):
         xml = f.read()
 
         import xml.etree.cElementTree as et
-        tree=et.fromstring(xml)
+        tree = et.fromstring(xml)
 
-        pp=ProcessingPlan()
+        processing_plan = ProcessingPlan()
         plate = tree.findall("Plate")[0]
 
-        pp.Plate.Barcode = plate.find("Barcode").text
-        pp.Plate.PlateType = plate.find("PlateType").text
+        processing_plan.plate.barcode = plate.find("Barcode").text
+        processing_plan.plate.plate_type = plate.find("PlateType").text
 
         for x in plate.findall("Xtal"):
-            xtal=CrimsXtal()
-            xtal.CrystalUUID=x.find("CrystalUUID").text
-            xtal.Label = x.find("Label").text
-            xtal.Login = x.find("Login").text
-            xtal.Sample = x.find("Sample").text
-            xtal.idSample = int(x.find("idSample").text)
-            xtal.Column = int(x.find("Column").text)
-            xtal.Row = x.find("Row").text
-            xtal.Shelf = int(x.find("Shelf").text)
-            xtal.Comments = x.find("Comments").text
-            xtal.offsetX = float(x.find("offsetX").text) / 100.0
-            xtal.offsetY = float(x.find("offsetY").text) / 100.0
-            xtal.IMG_URL = x.find("IMG_URL").text
-            xtal.IMG_Date = x.find("IMG_Date").text
-            xtal.ImageRotation = float(x.find("ImageRotation").text)
-            xtal.SUMMARY_URL = x.find("SUMMARY_URL").text
-            pp.Plate.xtal_list.append(xtal)
-        return pp
+            xtal = CrimsXtal()
+            xtal.crystal_uuid = x.find("CrystalUUID").text
+            xtal.label = x.find("Label").text
+            xtal.login = x.find("Login").text
+            xtal.sample = x.find("Sample").text
+            xtal.id_sample = int(x.find("idSample").text)
+            xtal.column = int(x.find("Column").text)
+            xtal.row = x.find("Row").text
+            xtal.shelf = int(x.find("Shelf").text)
+            xtal.comments = x.find("Comments").text
+            xtal.offset_x = float(x.find("offsetX").text) / 100.0
+            xtal.offset_y = float(x.find("offsetY").text) / 100.0
+            xtal.image_url = x.find("IMG_URL").text
+            xtal.image_date = x.find("IMG_Date").text
+            xtal.image_rotation = float(x.find("ImageRotation").text)
+            xtal.summary_url = x.find("SUMMARY_URL").text
+            processing_plan.plate.xtal_list.append(xtal)
+        return processing_plan
     except:
         return

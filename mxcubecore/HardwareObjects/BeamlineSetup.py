@@ -298,9 +298,7 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
-    def get_acquisition_limit_values(self):
-        parent_key = "acquisition_limit_values"
-
+    def get_acquisition_limit_values(self, parent_key = "acquisition_limit_values"):
         limits = {}
 
         try:
@@ -328,6 +326,13 @@ class BeamlineSetup(HardwareObject):
             kappa_limit = self[parent_key].getProperty('kappa')
             if kappa_limit is not None:
                 limits['kappa'] = kappa_limit
+        except:
+            pass
+
+        try:
+            kappa_phi_limit = self[parent_key].getProperty('kappa_phi')
+            if kappa_phi_limit is not None:
+                limits['kappa_phi'] = kappa_phi_limit
         except:
             pass
 

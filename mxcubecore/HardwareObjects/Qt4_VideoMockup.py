@@ -54,7 +54,6 @@ class Qt4_VideoMockup(Device):
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
         self.sleep_time = self.getProperty("interval")
-        self.start_camera()
 
     def start_camera(self):
         if self.image_polling is None:
