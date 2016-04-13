@@ -938,7 +938,7 @@ class ISPyBClient2(HardwareObject):
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
             logging.getLogger("ispyb_client").\
-                exception("Error in store_image: could not connect to server")
+                exception("Error in get_samples: could not connect to server")
 
         return response_samples
 
@@ -1494,10 +1494,12 @@ class ISPyBClient2(HardwareObject):
 
         if self.__shipping:
             try:
-               proposals = eval(self.__shipping.service.getProposalsByLoginName(user_name))  
+               proposals = eval(self.__shipping.service.\
+                  findProposalsByLoginName(user_name))  
                if proposal_list is not None:
                    for proposal in proposals:
-                        if proposal['type'].upper() in ['MX', 'MB']:
+                        if proposal['type'].upper() in ['MX', 'MB'] and \
+                           proposal not in proposal_list:
                            proposal_list.append(proposal)
             except WebFault, e:
                proposal_list = []

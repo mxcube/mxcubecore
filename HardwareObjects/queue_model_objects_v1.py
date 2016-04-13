@@ -939,12 +939,12 @@ class XRFSpectrumResult(object):
         self.mca_config = None
 
 class Advanced(TaskNode):
-    def __init__(self, method_type=None, ref_data_collection=None, grid_object=None,
+    def __init__(self, ref_data_collection=None, grid_object=None,
                  crystal=None):
         TaskNode.__init__(self)
 
-        self.method_type = method_type
         self.set_requires_centring(False)
+        self.method_type = "MeshScan"
 
         if not ref_data_collection:
             ref_data_collection = DataCollection()
@@ -957,8 +957,7 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        self.first_processing_results = {}
-        self.second_processing_results = {}
+        #self.first_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
@@ -977,10 +976,16 @@ class Advanced(TaskNode):
             name += " (%s)" % self.grid_object.get_display_name()
         else:
             name += " (Static grid)"
+        print name
         return name
 
     def get_first_processing_results(self):
         return self.first_processing_results
+
+class XrayCentering(Advanced):
+    def __init__(self, *args, **kwargs):
+        Advanced.__init__(self, *args, **kwargs)
+        self.method_type = "XrayCentering"
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
@@ -1137,11 +1142,11 @@ class PathTemplate(object):
             archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
             archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
             archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
-        elif PathTemplate.synchotron_name == "EMBL": 
+        elif PathTemplate.synchotron_name == "EMBL-HH": 
             archive_directory = os.path.join(PathTemplate.archive_base_directory,
                                              PathTemplate.archive_folder)
             archive_directory = os.path.join(archive_directory,
-                                             *folders[3:])
+                                             *folders[4:])
         else:
             directory = self.directory[len(PathTemplate.base_directory):]
             folders = directory.split('/')
@@ -1209,18 +1214,6 @@ class PathTemplate(object):
         return file_locations
 
 
-    def __eq__(self, path_template):
-        result = False
-        lh_dir = os.path.normpath(self.directory)
-        rh_dir = os.path.normpath(path_template.directory)
-
-        if self.get_prefix() == path_template.get_prefix() and \
-                lh_dir == rh_dir:
-            result = True
-
-        return result
-
-
     def is_part_of(self, path_template):
         result = False
         
@@ -1234,6 +1227,9 @@ class PathTemplate(object):
             result = False
 
         return result
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 class AcquisitionParameters(object):
     def __init__(self):
@@ -1279,6 +1275,9 @@ class AcquisitionParameters(object):
                     self.centred_position.set_from_dict(item[1])     
                 else:
                      setattr(self, item[0], item[1])
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 class Crystal(object):
     def __init__(self):
