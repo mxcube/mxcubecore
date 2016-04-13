@@ -25,16 +25,9 @@ class BIOMAXMiniDiff(GenericDiffractometer):
         GenericDiffractometer.init(self)
 
         # initialization channels and command
-        self.x_calib = self.getChannelObject('CoaxCamScaleX')
-        self.y_calib = self.getChannelObject('CoaxCamScaleY')
         self.state = self.getChannelObject('State')
-        self.current_phase = self.getChannelObject('CurrentPhase')
-        self.transfer_mode = self.getChannelObject('TransferMode')
-        self.chan_head_type = self.getChannelObject('HeadType')
-        self.sample_is_loaded = self.getChannelObject('SampleIsLoaded')
 
-        self.update_zoom_calibration()
-        self.start_set_phase = self.getCommandObject('startSetPhase')
+        #self.start_set_phase = self.getCommandObject('startSetPhase')
 
         # centring motors
         self.centring_motors_list = ["phiz", "phiy","sampx","sampy"]
@@ -67,103 +60,10 @@ class BIOMAXMiniDiff(GenericDiffractometer):
             self.current_state = self.state.getValue()
             self.state.connectSignal("update", self.state_changed)
 
-        # connect channel signals
-        if self.chan_head_type is not None:
-            self.connect(self.chan_head_type, "update", self.head_type_changed)
-            if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA or \
-               self.head_type == GenericDiffractometer.HEAD_TYPE_SMARTMAGNET:
-               self.connect(self.sample_is_loaded,"update",self.sample_is_loaded_changed)
-            else:
-               logging.getLogger("HWR").info("SmartMagnet is not available, only works for Minikappa and SmartMagnet head")
-
-        if self.current_phase is not None:
-            self.connect(self.current_phase, "update", self.current_phase_changed)
-
         # to make it comaptible
         self.camera = self.camera_hwobj
-        self.backlight = self.motor_hwobj_dict['backlight']
-        self.frontlight = self.motor_hwobj_dict['frontlight']
-        self.backlightswitch = self.back_light_switch
-        self.frontlightswitch = self.front_light_switch
-        logging.getLogger("HWR").info("front light is defined %s" % (self.frontlight))
-
-    # to make it compatibile
-    def __getattr__(self, attr):
-        if attr.startswith("__"):
-            raise AttributeError(attr)
-        else:
-            if attr == "currentCentringProcedure":
-                return self.current_centring_procedure
-            if attr == "centringStatus" :
-                return self.centring_status
-            if attr == "imageClicked":
-                return self.image_clicked
-            if attr == "cancelCentringMethod":
-                return self.cancel_centring_method
-            if attr == "pixelsPerMmY":
-                return self.pixels_per_mm_x
-            if attr == "pixelsPerMmZ":
-                return self.pixels_per_mm_y
-            return GenericDiffractometer.__getattr__(self, attr)
-
-    def head_type_changed(self, head_type):
-        """
-        Descript. :
-        """
-        self.head_type = head_type
-        try:
-           self.disconnect(self.sample_is_loaded,"update",self.sample_is_loaded_changed)
-        except:
-           pass
-
-        if head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA or \
-           head_type == GenericDiffractometer.HEAD_TYPE_SMARTMAGNET:
-           self.connect(self.sample_is_loaded,"update",self.sample_is_loaded_changed)
-        else:
-           logging.getLogger("HWR").info("SmartMagnet is not available, only works for Minikappa and SmartMagnet head")
-
-        logging.getLogger("HWR").info("new head type is %s" % head_type)
-        self.emit('minidiffHeadTypeChanged', (head_type, ))
-
-    def sample_is_loaded_changed(self, sample_is_loaded):
-        """
-        Descript. :
-        """
-        logging.getLogger("HWR").info("sample is loaded changed %s" % sample_is_loaded)
-        self.emit('minidiffSampleIsLoadedChanged', (sample_is_loaded, ))
 
 
-    def current_phase_changed(self, current_phase):
-        """
-        Descript. :
-        """
-        logging.getLogger("HWR").info("current_phase_changed to %s" % current_phase)
-        self.emit('minidiffPhaseChanged', (current_phase, ))
-
-    def get_pixels_per_mm(self):
-        """
-        Get the values from coaxCamScaleX and coaxCamScaleY channels diretly
-
-        :returns: list with two floats
-        """
-        return (1/self.x_calib.getValue(), 1/self.y_calib.getValue())
-
-    def set_phase(self, phase, timeout=None):
-        # available phase is Centring, BeamLocation, DataCollection, Transfer
-        if timeout:
-            self.ready_event.clear()
-            set_phase_task = gevent.spawn(self.execute_server_task,
-                                          self.cmd_start_set_phase,
-                                          timeout,
-                                          phase)
-            self.ready_event.wait()
-            self.ready_event.clear()
-        else:
-            self.start_set_phase(phase)
-
-    def get_transfer_mode(self):
-        # available mode is DIRECT, KAPPA, SAMPLE_CHANGER, CLEARED, UNKNOWN
-        return self.transfer_mode.getValue()
 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -272,6 +172,10 @@ class BIOMAXMiniDiff(GenericDiffractometer):
     def image_clicked(self, x, y, xi, yi):
         sample_centring.user_click(x,y)
 
-    def update_zoom_calibration(self):
-        self.pixels_per_mm_x = 1.0/self.x_calib.getValue()
-        self.pixels_per_mm_y = 1.0/self.y_calib.getValue()
+    def get_pixels_per_mm(self):
+        """
+        Get the values from coaxCamScaleX and coaxCamScaleY channels diretly
+
+        :returns: list with two floats
+        """
+        return (1/self.channel_dict["CoaxCamScaleX"].getValue(), 1/self.channel_dict["CoaxCamScaleY"].getValue())

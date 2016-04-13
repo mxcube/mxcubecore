@@ -118,9 +118,18 @@ class GenericDiffractometer(HardwareObject):
                    "kappa_phi",
                    "beam_x",
                    "beam_y",
-                   "backlight",
-                   "frontlight"]
-    CHANNEL_NAME = []
+                   "back_light",
+                   "front_light"]
+    CHANNELS_NAME = ["CoaxCamScaleX",
+                    "CoaxCamScaleY",
+                    "State",
+                    "CurrentPhase",
+                    "TransferMode",
+                    "SampleIsLoaded",
+                    "HeadType",
+                    ]
+    COMMANDS_NAME = ["startSetPhase"
+                    ]
 
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
@@ -146,6 +155,7 @@ class GenericDiffractometer(HardwareObject):
 
         # Hardware objects ----------------------------------------------------
         self.motor_hwobj_dict = {}
+        self.used_motors_list = GenericDiffractometer.MOTORS_NAME
         self.front_light_switch = None
         self.back_light_switch = None
         self.camera_hwobj = None
@@ -155,8 +165,9 @@ class GenericDiffractometer(HardwareObject):
 
         # Channels and commands -----------------------------------------------
         self.channel_dict = {}
-        self.transfer_mode = None
-        self.sample_is_loaded = None
+        self.used_channels_list = GenericDiffractometer.CHANNELS_NAME
+        self.command_dict = {}
+        self.used_commands_list = GenericDiffractometer.COMMANDS_NAME
 
         # Internal values -----------------------------------------------------
         self.ready_event = None
@@ -174,6 +185,7 @@ class GenericDiffractometer(HardwareObject):
 
         self.current_state = None
         self.current_phase = None
+        self.transfer_mode = None
         self.current_centring_procedure = None
         self.current_centring_method = None
         self.current_motor_positions = {}
@@ -224,31 +236,52 @@ class GenericDiffractometer(HardwareObject):
             self.beam_position = [self.image_width / 2, self.image_height / 2]
             logging.getLogger("HWR").debug('Diffractometer: BeamInfo hwobj is not defined')
 
-        self.sample_changer = self.getObjectByRole("samplechanger")
-        if self.sample_changer is None :
-            logging.getLogger("HWR").warning('Sample Changer is not defined')
-        else:
-            #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
-            # if not defined, set use_sc to True
-            if self.transfer_mode is None or self.transfer_mode.getValue() == "SAMPLE_CHANGER":
-                self.use_sc = True
 
-        if self.transfer_mode is not None:
-            self.connect(self.transfer_mode, "update", self.transfer_mode_changed)
-
-
-        # config from xml -----------------------------------------------------
-
+        # config motors from xml -----------------------------------------------------
         try:
            self.used_motors_list = eval(self.getProperty("used_motors"))
         except:
-           self.used_motors_list = None
-        if self.used_motors_list is None:
-            self.used_motors_list = GenericDiffractometer.MOTORS_NAME
+           pass # used the default value
+
         queue_model_objects.CentredPosition.\
             set_diffractometer_motor_names(*self.used_motors_list)
         for motor_name in self.used_motors_list:
             self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
+
+        # config channels from xml -----------------------------------------------------
+        # xml example <used_channels>["CoaxCamScaleX","CoaxCamScaleY","State","TransferMode","SampleIsLoaded","HeadType","CurrentPhase""]</used_channels>
+        # if using SampleIsLoaded, HeadType needs to be added as well, but put after SampleIsLoaded
+        try:
+           self.used_channels_list = eval(self.getProperty("used_channels"))
+        except:
+           pass # used the default value
+        for channel_name in self.used_channels_list:
+            self.channel_dict[channel_name] = self.getChannelObject(channel_name)
+            if self.channel_dict[channel_name] is None:
+                continue
+            if channel_name == "TransferMode":
+                self.connect(self.channel_dict["TransferMode"], "update", self.transfer_mode_changed)
+            elif channel_name =="CurrentPhase":
+                self.connect(self.channel_dict["CurrentPhase"], "update", self.current_phase_changed)
+	    elif channel_name =="HeadType":
+                self.connect(self.channel_dict["HeadType"], "update", self.head_type_changed)
+
+        # config motors from xml -----------------------------------------------------
+        try:
+            self.used_commands_list = eval(self.getProperty("used_commands"))
+        except:
+            pass # used the default value
+        for command_name in self.used_commands_list:
+            self.command_dict[command_name] = self.getCommandObject(command_name)
+
+        self.sample_changer = self.getObjectByRole("samplechanger")
+        if self.sample_changer is None :
+            logging.getLogger("HWR").warning('Sample Changer is not defined')
+        else: #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
+            # if not defined, set use_sc to True
+            if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
+                self.use_sc = True
+
 
         self.front_light_swtich = self.getObjectByRole('frontlightswtich')
         self.back_light_swtich = self.getObjectByRole('backlightswtich')
@@ -350,7 +383,8 @@ class GenericDiffractometer(HardwareObject):
             if self.sample_changer is None:
                 logging.getLogger("HWR").error("Sample Changer is not available")
                 return False
-            if self.transfer_mode is None or self.transfer_mode.getValue() == "SAMPLE_CHANGER":
+
+            if self.transfer_mode is None or self.channel_dict['TransferMode'].getValue() == "SAMPLE_CHANGER":
                 # if transferMode is not defined, ignore the checkup
                 self.use_sc = True
             else:
@@ -365,10 +399,13 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         logging.getLogger("HWR").info("current_transfer_mode is set to %s" % transfer_mode)
-
+        self.transfer_mode = transfer_mode
         if transfer_mode != "SAMPLE_CHANGER":
             self.use_sc = False
         self.emit('minidiffTransferModeChanged', (transfer_mode, ))
+
+    def get_transfer_mode(self):
+        return self.transfer_mode
 
     def get_current_phase(self):
         """
@@ -782,3 +819,58 @@ class GenericDiffractometer(HardwareObject):
         where osc range is limited
         """
         return
+
+    def set_phase(self, phase, timeout=None):
+        # available phase is Centring, BeamLocation, DataCollection, Transfer
+        if timeout:
+            self.ready_event.clear()
+            set_phase_task = gevent.spawn(self.execute_server_task,
+                                          self.command_dict["startSetPhase"],
+                                          timeout,
+                                          phase)
+            self.ready_event.wait()
+            self.ready_event.clear()
+        else:
+            self.command_dict["startSetPhase"](phase)
+
+    def update_zoom_calibration(self):
+        self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
+        self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
+
+    def current_phase_changed(self, current_phase):
+        """
+        Descript. :
+        """
+        self.current_phase = current_phase
+        logging.getLogger("HWR").info("current_phase_changed to %s" % current_phase)
+        self.emit('minidiffPhaseChanged', (current_phase, ))
+
+    def sample_is_loaded_changed(self, sample_is_loaded):
+        """
+        Descript. :
+        """
+        self.sample_is_loaded = sample_is_loaded
+        logging.getLogger("HWR").info("sample is loaded changed %s" % sample_is_loaded)
+        self.emit('minidiffSampleIsLoadedChanged', (sample_is_loaded, ))
+
+    def head_type_changed(self, head_type):
+        """
+        Descript. :
+        """
+        self.head_type = head_type
+        logging.getLogger("HWR").info("new head type is %s" % head_type)
+        self.emit('minidiffHeadTypeChanged', (head_type, ))
+
+        if "SampleIsLoaded" not in str(self.used_channels_list):
+           return
+        try:
+           self.disconnect(self.channel_dict["SampleIsLoaded"],"update",self.sample_is_loaded_changed)
+        except:
+           pass
+
+        if head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA or \
+           head_type == GenericDiffractometer.HEAD_TYPE_SMARTMAGNET:
+           self.connect(self.channel_dict["SampleIsLoaded"],"update",self.sample_is_loaded_changed)
+        else:
+           logging.getLogger("HWR").info("SmartMagnet is not available, only works for Minikappa and SmartMagnet head")
+
