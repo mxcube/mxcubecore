@@ -805,7 +805,7 @@ class GenericDiffractometer(HardwareObject):
         self.move_to_motors_positions_procedure = gevent.spawn(\
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
-
+  
     def move_motors(self, motor_positions, timeout=15):
         """
         Moves diffractometer motors to the requested positions
@@ -987,6 +987,7 @@ class GenericDiffractometer(HardwareObject):
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
+<<<<<<< HEAD
         return
 
     def set_phase(self, phase, timeout=None):
