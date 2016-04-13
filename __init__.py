@@ -25,7 +25,7 @@ sys.path.insert(0, getStdHardwareObjectsPath())
 _logger = logging.getLogger('HWR')
 _logger.setLevel(logging.DEBUG)
 _oldLevel = logging.DEBUG
-_formatter = logging.Formatter('* [%(name)s] %(levelname)s %(asctime)s %(message)s')
+_formatter = logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
 
 if len(logging.root.handlers) == 0:
     #
