@@ -335,6 +335,7 @@ class EMBLMiniDiff(GenericDiffractometer):
     def zoom_position_changed(self, value):
         self.update_pixels_per_mm()
         self.current_motor_positions["zoom"] = value
+        self.refresh_omega_reference_position()
 
     def zoom_motor_predefined_position_changed(self, position_name, offset):
         """
@@ -611,7 +612,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             logging.getLogger("HWR").debug("Move to centred position disabled in BeamLocation phase.")
 
-    def move_kappa_and_phi(self, kappa, kappa_phi, wait = False):
+    def move_kappa_and_phi(self, kappa, kappa_phi, wait=False):
         """
         Descript. :
         """
@@ -643,7 +644,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             motor_pos_dict[self.sample_y_motor_hwobj] = new_sampy
             motor_pos_dict[self.phiy_motor_hwobj] = new_phiy
 
-            self.move_motors(motor_pos_dict)
+            self.move_motors(motor_pos_dict, timeout=30)
  
     def convert_from_obj_to_name(self, motor_pos):
         motors = {}
@@ -724,3 +725,11 @@ class EMBLMiniDiff(GenericDiffractometer):
         if speed == None:
             speed = 0
         return self.cmd_get_omega_scan_limits(speed)
+
+    def close_kappa(self):
+        """
+        Descript. :
+        """
+        self.kappa_motor_hwobj.homeMotor()
+        self.wait_device_ready(30)
+        self.kappa_phi_motor_hwobj.homeMotor()
