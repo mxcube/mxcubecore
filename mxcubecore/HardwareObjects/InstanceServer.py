@@ -70,7 +70,10 @@ class InstanceServer(Procedure):
             self.guiConfiguration = qApp.mainWidget().configuration     
         elif BlissFramework.get_gui_version() == "qt4":
             from PyQt4.QtGui import QApplication
-            self.guiConfiguration = QApplication.activeWindow().configuration
+            for widget in QApplication.allWidgets():
+                if hasattr(widget, 'configuration'):
+                    self.guiConfiguration = widget.configuration
+                    break
         else:
             logging.getLogger("HWR").error('InstanceServer: % gui version not supported' % \
                                             BlissFramework.get_gui_version())
