@@ -1,4 +1,5 @@
 <object class="Qt4_GraphicsManager">
    <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
+   <object href="/Qt4_video-mockup" role="camera"/>
 </object>
