@@ -837,6 +837,13 @@ class GenericDiffractometer(HardwareObject):
         self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
         self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
 
+    def equipment_ready(self):
+        self.emit('minidiffReady', ())
+
+    def equipment_not_ready(self):
+        self.emit('minidiffNotReady', ())
+
+
     def current_phase_changed(self, current_phase):
         """
         Descript. :
