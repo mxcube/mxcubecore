@@ -247,8 +247,6 @@ class GenericDiffractometer(HardwareObject):
         except:
            pass # used the default value
 
-        queue_model_objects.CentredPosition.\
-            set_diffractometer_motor_names(*self.used_motors_list)
         for motor_name in self.used_motors_list:
             self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
 
@@ -290,6 +288,8 @@ class GenericDiffractometer(HardwareObject):
 
         # centring motors
         self.centring_motors_list = ["phiz", "phiy","sampx","sampy"]
+        queue_model_objects.CentredPosition.\
+            set_diffractometer_motor_names(*self.centring_motors_list)
 	try:
            self.use_sample_centring = self.getProperty("sample_centring")
 	   if self.use_sample_centring:
