@@ -7,7 +7,7 @@ class EnergyMockup(Equipment):
    def init(self):
        self.energy_motor = None
        self.tunable = True
-       self.moving = None
+       self.moving = False
        self.default_en = 12
        self.en_lims = []
        self.energy_value = 12
@@ -52,6 +52,7 @@ class EnergyMockup(Equipment):
    def start_move_energy(self, value, wait=True):      
       if wait:
          self._abort = False
+         self.moving = True
           
          if value > self.energy_value:
             r = range(self.energy_value, int(value) + 1)
@@ -62,7 +63,8 @@ class EnergyMockup(Equipment):
             
          for x in r:
             if self._abort:
-               raise StopIteration("Energy change canceled !")
+               self.moving = False
+               raise StopIteration("Energy change cancelled !")
 
             self.energy_value = x
             self.update_values()
@@ -70,5 +72,7 @@ class EnergyMockup(Equipment):
       else:
          self.energy_value = value
          self.update_values()
+
+      self.moving = False
                
              
