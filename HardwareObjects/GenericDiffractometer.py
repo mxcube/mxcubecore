@@ -247,8 +247,6 @@ class GenericDiffractometer(HardwareObject):
         except:
            pass # used the default value
 
-        queue_model_objects.CentredPosition.\
-            set_diffractometer_motor_names(*self.used_motors_list)
         for motor_name in self.used_motors_list:
             self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
 
@@ -272,7 +270,6 @@ class GenericDiffractometer(HardwareObject):
 	    elif channel_name =="State":
                 self.connect(self.channel_dict["State"], "update", self.state_changed)
 
-
         # config motors from xml -----------------------------------------------------
         try:
             self.used_commands_list = eval(self.getProperty("used_commands"))
@@ -289,9 +286,10 @@ class GenericDiffractometer(HardwareObject):
             if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
                 self.use_sc = True
 
-
         # centring motors
         self.centring_motors_list = ["phiz", "phiy","sampx","sampy"]
+        queue_model_objects.CentredPosition.\
+            set_diffractometer_motor_names(*self.centring_motors_list)
 	try:
            self.use_sample_centring = self.getProperty("sample_centring")
 	   if self.use_sample_centring:
@@ -302,7 +300,6 @@ class GenericDiffractometer(HardwareObject):
         	self.centring_sampy=sample_centring.CentringMotor(self.motor_hwobj_dict['sampy'])
         except:
            pass # used the default value
-        
 
         for motor_name in self.centring_motors_list:
             if self.motor_hwobj_dict[motor_name] is not None:
@@ -318,11 +315,14 @@ class GenericDiffractometer(HardwareObject):
             logging.getLogger("HWR").error('Phi motor is not defined')
 
 	# other motors
-	# to add, zoom
+        if "zoom" in str(self.used_motors_list) and self.motor_hwobj_dict["zoom"] is not None:
+            self.connect(self.motor_hwobj_dict["zoom"], 'predefinedPositionChanged', self.zoom_motor_predefined_position_changed)
+            self.connect(self.motor_hwobj_dict["zoom"], 'stateChanged', self.zoom_motor_state_changed)
+        else:
+            logging.getLogger("HWR").error('zoom motor is not defined')
 
         self.front_light_swtich = self.getObjectByRole('frontlightswtich')
         self.back_light_swtich = self.getObjectByRole('backlightswtich')
-
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -930,6 +930,14 @@ class GenericDiffractometer(HardwareObject):
     def update_zoom_calibration(self):
         self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
         self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
+
+    def zoom_motor_state_changed(self, state):
+        self.emit('zoomMotorStateChanged', (state, ))
+        self.emit('minidiffStateChanged', (state,))
+
+    def zoom_motor_predefined_position_changed(self, position_name, offset):
+        self.update_zoom_calibration()
+        self.emit('zoomMotorPredefinedPositionChanged', (position_name, offset, ))
 
     def equipment_ready(self):
         self.emit('minidiffReady', ())
