@@ -108,27 +108,22 @@ class GenericDiffractometer(HardwareObject):
     Abstract base class for diffractometers
     """
 
-    MOTORS_NAME = ["phi",
-                   "focus",
-                   "phiz",
-                   "phiy",
-                   "zoom",
-                   "sampx",
-                   "sampy",
-                   "kappa",
-                   "kappa_phi",
-                   "beam_x",
-                   "beam_y",
-                   "back_light",
-                   "front_light"]
+    CENTRING_MOTORS_NAME = ["phi",
+                            "focus",
+                            "phiz",
+                            "phiy",
+                            "zoom",
+                            "sampx",
+                            "sampy",
+                            "kappa",
+                            "kappa_phi"]
     CHANNELS_NAME = ["CoaxCamScaleX",
-                    "CoaxCamScaleY",
-                    "State",
-                    "CurrentPhase",
-                    "TransferMode",
-                    "SampleIsLoaded",
-                    "HeadType",
-                    ]
+                     "CoaxCamScaleY",
+                     "State",
+                     "CurrentPhase",
+                     "TransferMode",
+                     "SampleIsLoaded",
+                     "HeadType"]
     COMMANDS_NAME = ["startSetPhase"
                     ]
 
@@ -156,7 +151,7 @@ class GenericDiffractometer(HardwareObject):
 
         # Hardware objects ----------------------------------------------------
         self.motor_hwobj_dict = {}
-        self.used_motors_list = GenericDiffractometer.MOTORS_NAME
+        self.centring_motors_list = None
         self.front_light_switch = None
         self.back_light_switch = None
         self.camera_hwobj = None
@@ -217,8 +212,6 @@ class GenericDiffractometer(HardwareObject):
 
 
     def init(self):
-        # Channels and commands -----------------------------------------------
-
         # Internal values -----------------------------------------------------
         self.ready_event = gevent.event.Event()
         self.user_clicked_event = gevent.event.AsyncResult()
@@ -238,17 +231,44 @@ class GenericDiffractometer(HardwareObject):
             self.connect(self.beam_info_hwobj, 'beamPosChanged', self.beam_position_changed)
         else:
             self.beam_position = [self.image_width / 2, self.image_height / 2]
-            logging.getLogger("HWR").debug('Diffractometer: BeamInfo hwobj is not defined')
+            logging.getLogger("HWR").warning('Diffractometer: BeamInfo hwobj is not defined')
 
+        self.front_light_swtich = self.getObjectByRole('frontlightswtich')
+        self.back_light_swtich = self.getObjectByRole('backlightswtich')
 
-        # config motors from xml -----------------------------------------------------
+        # Centring motors ----------------------------------------------------
         try:
-           self.used_motors_list = eval(self.getProperty("used_motors"))
+           self.centring_motors_list = eval(self.getProperty("centring_motors"))
         except:
-           pass # used the default value
+           self.centring_motors_list = GenericDiffractometer.CENTRING_MOTORS_NAME
 
-        for motor_name in self.used_motors_list:
-            self.motor_hwobj_dict[motor_name] = self.getObjectByRole(motor_name)
+        queue_model_objects.CentredPosition.\
+            set_diffractometer_motor_names(*self.centring_motors_list)
+
+        for motor_name in self.centring_motors_list:
+            temp_motor_hwobj = self.getObjectByRole(motor_name)
+            if temp_motor_hwobj is not None:
+                logging.getLogger("HWR").debug("Diffractometer: Adding " + \
+                  "%s motor to centring motors" % motor_name)
+            else:
+                logging.getLogger("HWR").warning("Diffractometer: Motor " + \
+                  "%s listed in the centring motor list, but not initalized" % motor_name)
+
+            self.motor_hwobj_dict[motor_name] = temp_motor_hwobj
+            self.connect(temp_motor_hwobj, 'stateChanged', self.motor_state_changed)     
+            self.connect(temp_motor_hwobj, "positionChanged", self.centring_motor_moved)
+
+            if motor_name == "phi":
+                self.connect(temp_motor_hwobj, 
+                             "positionChanged", 
+                             self.emit_diffractometer_moved)
+            elif motor_name == "zoom": 
+                self.connect(temp_motor_hwobj, 
+                             "predefinedPositionChanged", 
+                             self.zoom_motor_predefined_position_changed)
+                self.connect(temp_motor_hwobj, 
+                             "stateChanged",
+                             self.zoom_motor_state_changed)
 
         # config channels from xml -----------------------------------------------------
         # xml example <used_channels>["CoaxCamScaleX","CoaxCamScaleY","State","TransferMode","SampleIsLoaded","HeadType","CurrentPhase""]</used_channels>
@@ -278,52 +298,32 @@ class GenericDiffractometer(HardwareObject):
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.getCommandObject(command_name)
 
+        # sample changer -----------------------------------------------------
         self.sample_changer = self.getObjectByRole("samplechanger")
         if self.sample_changer is None :
-            logging.getLogger("HWR").warning('Sample Changer is not defined')
+            logging.getLogger("HWR").warning('Diffractometer: Sample Changer is not defined')
         else: #By default use sample changer if it's defined and transfer_mode is set to SAMPLE_CHANGER
             # if not defined, set use_sc to True
             if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
                 self.use_sc = True
 
-        # centring motors
-        self.centring_motors_list = ["phiz", "phiy","sampx","sampy"]
-        queue_model_objects.CentredPosition.\
-            set_diffractometer_motor_names(*self.centring_motors_list)
 	try:
            self.use_sample_centring = self.getProperty("sample_centring")
 	   if self.use_sample_centring:
-		self.centring_phi=sample_centring.CentringMotor(self.motor_hwobj_dict['phi'], direction=-1)
-	        self.centring_phiz=sample_centring.CentringMotor(self.motor_hwobj_dict['phiz'])
-        	self.centring_phiy=sample_centring.CentringMotor(self.motor_hwobj_dict['phiy'],direction=-1)
-        	self.centring_sampx=sample_centring.CentringMotor(self.motor_hwobj_dict['sampx'])
-        	self.centring_sampy=sample_centring.CentringMotor(self.motor_hwobj_dict['sampy'])
+		self.centring_phi=sample_centring.CentringMotor(\
+                     self.motor_hwobj_dict['phi'], direction=-1)
+	        self.centring_phiz=sample_centring.CentringMotor(\
+                     self.motor_hwobj_dict['phiz'])
+        	self.centring_phiy=sample_centring.CentringMotor(
+                     self.motor_hwobj_dict['phiy'],direction=-1)
+        	self.centring_sampx=sample_centring.CentringMotor(
+                     self.motor_hwobj_dict['sampx'])
+        	self.centring_sampy=sample_centring.CentringMotor(\
+                      self.motor_hwobj_dict['sampy'])
         except:
            pass # used the default value
 
-        for motor_name in self.centring_motors_list:
-            if self.motor_hwobj_dict[motor_name] is not None:
-                self.connect(self.motor_hwobj_dict[motor_name], 'stateChanged', self.motor_state_changed)
-                self.connect(self.motor_hwobj_dict[motor_name], "positionChanged", self.centring_motor_moved)
-            else:
-                logging.getLogger("HWR").warning('%s motor is not defined' % motor_name)
-
-        if self.motor_hwobj_dict["phi"] is not None:
-            self.connect(self.motor_hwobj_dict["phi"], 'stateChanged', self.motor_state_changed)
-            self.connect(self.motor_hwobj_dict["phi"], "positionChanged", self.emit_diffractometer_moved)
-        else:
-            logging.getLogger("HWR").error('Phi motor is not defined')
-
-	# other motors
-        if "zoom" in str(self.used_motors_list) and self.motor_hwobj_dict["zoom"] is not None:
-            self.connect(self.motor_hwobj_dict["zoom"], 'predefinedPositionChanged', self.zoom_motor_predefined_position_changed)
-            self.connect(self.motor_hwobj_dict["zoom"], 'stateChanged', self.zoom_motor_state_changed)
-        else:
-            logging.getLogger("HWR").error('zoom motor is not defined')
-
-        self.front_light_swtich = self.getObjectByRole('frontlightswtich')
-        self.back_light_swtich = self.getObjectByRole('backlightswtich')
-
+        # Other parameters ---------------------------------------------------
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
         except:
@@ -347,9 +347,13 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.phase_list = eval(self.getProperty("phase_list"))
         except:
-            self.phase_list = []
+            self.phase_list = [GenericDiffractometer.PHASE_TRANSFER, 
+                               GenericDiffractometer.PHASE_CENTRING,
+                               GenericDiffractometer.PHASE_COLLECTION,
+                               GenericDiffractometer.PHASE_BEAM]
 
         #Compatibility
+        #TODO remove this
         self.getCentringStatus = self.get_centring_status
 
         self.getPositions = self.get_positions
@@ -497,16 +501,6 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         return self.current_positions_dict.get("phi")
-
-    def move_motors(self, motors_dict, wait=False):
-        """
-        Moves diffractometer motors to the requested positions
-
-        :param motors_dict: dictionary with motor names or hwobj
-                            and target values.
-        :type motors_dict: dict
-        """
-        return
 
     def get_snapshot(self):
         if self.camera_hwobj:
@@ -885,7 +879,7 @@ class GenericDiffractometer(HardwareObject):
 
     def convert_from_obj_to_name(self, motor_pos):
         motors = {}
-        for motor_role in self.used_motors_list:
+        for motor_role in self.centring_motors_list:
             motor_obj = self.getObjectByRole(motor_role)
             try:
                motors[motor_role] = motor_pos[motor_obj]
