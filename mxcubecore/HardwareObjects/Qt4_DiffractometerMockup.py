@@ -59,9 +59,6 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         self.sampleYMotor = None
         self.camera = None
 
-        self.connect(self, 'equipmentReady', self.equipmentReady)
-        self.connect(self, 'equipmentNotReady', self.equipmentNotReady)
-
     def init(self):
         """
         Descript. :
@@ -75,10 +72,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         self.beam_position = [200, 200]
         
         self.cancel_centring_methods = {}
-        self.current_positions_dict = {'phiy'  : 0, 'phiz' : 0, 'sampx' : 0,
-                                       'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
-                                       'focus' : 0, 'kappa': 0, 'kappa_phi': 0,
-                                       'beam_x': 0, 'beam_y': 0} 
+        self.current_positions_dict = {'phiy'  : 0}
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
@@ -86,18 +80,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         self.image_width = 400
         self.image_height = 400
 
-        self.equipmentReady()
-
-        self.reversing_rotation = self.getProperty("reversingRotation")
-        try:
-            self.grid_direction = eval(self.getProperty("gridDirection"))
-        except:
-            self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
-
-        try:
-            self.phase_list = eval(self.getProperty("phaseList"))
-        except:
-            self.phase_list = ['demo']
+        self.equipment_ready()
 
     def getStatus(self):
         """
@@ -126,10 +109,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         last_centred_position[0] = x
         last_centred_position[1] = y
         random_num = random.random()
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num, 
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009, 
-                         'kappa_phi': 311.0}
+        centred_pos_dir = {'phi': random_num}
         return centred_pos_dir 		
 
     def is_ready(self):
@@ -143,18 +123,6 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         return True
-
-    def equipmentReady(self):
-        """
-        Descript. :
-        """
-        self.emit('minidiffReady', ())
-
-    def equipmentNotReady(self):
-        """
-        Descript. :
-        """
-        self.emit('minidiffNotReady', ())
 
     def phi_motor_moved(self, pos):
         """
@@ -186,10 +154,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         random_num = random.random() 
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                          'phi': 311.1, 'focus': -0.42, 'kappa': 0.0009,
-                          'kappa_phi': 311.0}
+        centred_pos_dir = {'phi': random_num * 10}
         return centred_pos_dir
 
     def get_calibration_data(self, offset):
@@ -243,9 +208,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         random_num = random.random()
-        return {"phi": random_num * 10, "focus": random_num * 20, 
-                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-		"kappa": 0.0009, "kappa_phi": 311.0, "zoom": 8.53}
+        return {"phi": random_num * 10}
 
     def refresh_video(self):
         """
