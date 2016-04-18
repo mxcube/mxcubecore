@@ -19,6 +19,9 @@ class BIOMAXMiniDiff(GenericDiffractometer):
     def init(self):
 
         GenericDiffractometer.init(self)
+      
+        self.front_light = self.getObjectByRole('frontlight')
+        self.back_light = self.getObjectByRole('backlight')
 
         # to make it comaptible
         self.camera = self.camera_hwobj
