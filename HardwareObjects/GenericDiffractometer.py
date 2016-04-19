@@ -987,7 +987,6 @@ class GenericDiffractometer(HardwareObject):
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
-<<<<<<< HEAD
         return
 
     def set_phase(self, phase, timeout=None):
