@@ -342,7 +342,8 @@ class AbstractMultiCollect(object):
           return self.take_crystal_snapshots(4)
         else:
           return
-      return self.take_crystal_snapshots(number_of_snapshots)
+      if number_of_snapshots:
+          return self.take_crystal_snapshots(number_of_snapshots)
 
 
     @abc.abstractmethod
