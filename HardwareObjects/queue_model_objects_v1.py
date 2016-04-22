@@ -1129,11 +1129,12 @@ class PathTemplate(object):
         Return    : Archive directory. :rtype: str
         """
         folders = self.directory.split('/')
-        if PathTemplate.synchotron_name == "MAXLAB":
-            archive_directory = self.directory
-            archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
-            archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
-            archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
+        if PathTemplate.synchotron_name == "MAXIV":
+            archive_directory = os.path.join(os.getcwd(),"test")
+            print archive_directory
+            #archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
+            #archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
+            #archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
         elif PathTemplate.synchotron_name == "EMBL": 
             archive_directory = os.path.join(PathTemplate.archive_base_directory,
                                              PathTemplate.archive_folder)
