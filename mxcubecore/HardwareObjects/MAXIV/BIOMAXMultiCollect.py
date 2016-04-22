@@ -260,13 +260,30 @@ class PixelDetector:
           self.getCommandObject("reset_detector").abort()    
           self.execute_command("reset_detector")
 
+class Pilatus3_2M(PixelDetector):
+    def __init__(self,*args,**kwargs):
+      PixelDetector.__init__(self,*args,**kwargs)
+
+    @task
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+        self.new_acquisition = True
+        if  osc_range < 0.0001:
+            self.shutterless = False
+        take_dark = 0
+        if self.shutterless:
+            self.shutterless_range = osc_range*number_of_images
+            self.shutterless_exptime = (exptime + 0.00095)*number_of_images
+        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
+        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)",wait=True)
+
 
 class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
-    def __init__(self, name, detector, tunable_bl):
+
+    def __init__(self, name):
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._detector = detector
-        self._tunable_bl = tunable_bl
+        self._detector = Pilatus3_2M()
+        self._tunable_bl = FixedEnergy(1.0, 12.6)
         self._centring_status = None
 
     def execute_command(self, command_name, *args, **kwargs): 
@@ -332,6 +349,57 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         #todo
         raise NotImplementedError
 
+    # to implement
+    @task
+    def loop(self, owner, data_collect_parameters_list):
+        failed_msg = "Data collection failed!"
+        failed = True
+        collections_analyse_params = []
+        self.emit("collectReady", (False, ))
+        self.emit("collectStarted", (owner, 1))
+
+        for data_collect_parameters in data_collect_parameters_list:
+            logging.debug("collect parameters = %r", data_collect_parameters)
+            failed = False
+            data_collect_parameters["status"]='Data collection successful'
+            osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
+            self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
+
+            for image in range(data_collect_parameters["oscillation_sequence"][0]["number_of_images"]):
+                time.sleep(data_collect_parameters["oscillation_sequence"][0]["exposure_time"])
+                self.emit("collectImageTaken", image)
+
+            data_collect_parameters["status"]='Running'
+            data_collect_parameters["status"]='Data collection successful'
+            self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], "12345", osc_id, data_collect_parameters))
+
+        self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
+        logging.getLogger('HWR').info("data collection successful in loop")
+        self.emit("collectReady", (True, ))
+
+
+    def do_collect(self, owner, data_collect_parameters):
+        if self.__safety_shutter_close_task is not None:
+            self.__safety_shutter_close_task.kill()
+
+        logging.getLogger("user_level_log").info("Closing fast shutter")
+        self.close_fast_shutter()
+
+        # reset collection id on each data collect
+        self.collection_id = None
+
+        # Preparing directory path for images and processing files
+        # creating image file template and jpegs files templates
+        file_parameters = data_collect_parameters["fileinfo"]
+
+        file_parameters["suffix"] = self.bl_config.detector_fileext
+        image_file_template = "%(prefix)s_%(run_number)s_%%04d.%(suffix)s" % file_parameters
+        file_parameters["template"] = image_file_template
+        print "Temp solution need to work with the directory"
+        print file_parameters
+        return
+
+
     #TODO: remove this hook!!!
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -359,11 +427,13 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def close_fast_shutter(self):
+        return #todo
         self.execute_command("close_fast_shutter")
 
 
     @task
     def open_fast_shutter(self):
+        return #todo
         self.execute_command("open_fast_shutter")
 
         
@@ -504,3 +574,113 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_archive_directory(self, directory):
         return self.archive_directory
+
+    @task
+    def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
+        pass
+
+    def get_cryo_temperature(self):
+        if self.bl_control.cryo_stream is not None: 
+            return self.bl_control.cryo_stream.getTemperature()
+
+    def get_detector_distance(self):
+        return
+
+    def get_machine_current(self):
+        if self.bl_control.machine_current is not None:
+            return self.bl_control.machine_current.getCurrent()
+        else:
+            return 0
+
+    def get_machine_message(self):
+        if  self.bl_control.machine_current is not None:
+            return self.bl_control.machine_current.getMessage()
+        else:
+            return ''
+
+    def get_machine_fill_mode(self):
+        if self.bl_control.machine_current is not None:
+            return self.bl_control.machine_current.getFillMode()
+        else:
+            ''
+
+    def get_measured_intensity(self):
+        return
+
+    def get_flux(self):
+        if self.bl_control.flux is not None:
+            return self.bl_control.flux.getCurrentFlux()
+
+    def get_resolution_at_corner(self):
+        return
+
+    def get_slit_gaps(self):
+        return None, None
+
+    def get_transmission(self):
+        if self.bl_control.transmission is not None:
+            return self.bl_control.transmission.getAttFactor()
+
+    def get_undulators_gaps(self):
+        return []
+
+    @task
+    def move_detector(self, detector_distance):
+        return
+
+    def prepare_input_files(self, files_directory, prefix, run_number, process_directory):
+        self.actual_frame_num = 0
+        i = 1
+        while True:
+          xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
+          xds_directory = os.path.join(process_directory, xds_input_file_dirname)
+
+          if not os.path.exists(xds_directory):
+            break
+
+          i+=1
+
+        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
+        mosflm_directory = os.path.join(process_directory, mosflm_input_file_dirname)
+
+        hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
+        hkl2000_directory = os.path.join(process_directory, hkl2000_dirname)
+
+        self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
+        self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
+        self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
+
+        return xds_directory, mosflm_directory, hkl2000_directory
+
+    @task
+    def prepare_intensity_monitors(self):
+        return
+
+    @task
+    def set_transmission(self, transmission_percent):
+        return
+
+    def set_wavelength(self, wavelength):
+        return
+
+    def set_energy(self, energy):
+        return
+
+    @task
+    def set_resolution(self, new_resolution):
+        return
+
+    def store_image_in_lims(self, frame, first_frame, last_frame):
+        return True
+
+    def set_helical(self, helical_on):
+        return
+
+    def set_helical_pos(self, helical_oscil_pos):
+        return
+
+    @task
+    def write_input_files(self, collection_id):
+        return
+
+
