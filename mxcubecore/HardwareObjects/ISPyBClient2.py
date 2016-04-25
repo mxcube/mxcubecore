@@ -810,10 +810,8 @@ class ISPyBClient2(HardwareObject):
                 try:
                     # Update the data collection group
                     self.store_data_collection_group(mx_collection)
-
                     data_collection = ISPyBValueFactory().\
                         from_data_collect_parameters(self.__collection, mx_collection)
-  
                     self.__collection.service.\
                         storeOrUpdateDataCollection(data_collection)
                 except WebFault:
@@ -1459,9 +1457,9 @@ class ISPyBClient2(HardwareObject):
 
         return group_id
 
-    def store_centred_position(self, cpos):
-        """
-        """
+    """
+    def store_centred_position(self, cpos, grid_index_y=None, grid_index_z=None):
+        print cpos
         pos_id = -1
         diffractometer_positions = cpos.as_dict()
         mxcube2ispyb = { "phi": "omega", "kappa_phi": "phi", "kappa":"kappa", "focus":"phiX",
@@ -1475,6 +1473,10 @@ class ISPyBClient2(HardwareObject):
         msg = 'Storing position in LIMS'
         logging.getLogger("user_level_log").info(msg)
 
+        mpos_dict['gridIndexY'] = grid_index_y
+        mpos_dict['gridIndexZ'] = grid_index_z
+
+        print mpos_dict
         try:
             pos_id = self.__collection.service.\
                      storeOrUpdateMotorPosition(mpos_dict)
@@ -1483,6 +1485,7 @@ class ISPyBClient2(HardwareObject):
             logging.getLogger("ispyb_client").exception(msg)
 
         return pos_id
+    """
 
     @trace
     def get_proposals_by_user(self, user_name):
@@ -1648,8 +1651,6 @@ class ISPyBClient2(HardwareObject):
             return 0, 0, 0
 
     def store_centred_position(self, cpos, grid_index_y=None, grid_index_z=None):
-        """
-        """
         pos_id = -1
         mpos_dict = {'omega' : cpos.phi,
                      'phi': cpos.kappa_phi,
@@ -2108,10 +2109,22 @@ class ISPyBValueFactory():
         try:
             data_collection.xtalSnapshotFullPath1 = \
                 mx_collect_dict['xtalSnapshotFullPath1']
+        except KeyError:
+            pass
+            
+        try:  
             data_collection.xtalSnapshotFullPath2 = \
                 mx_collect_dict['xtalSnapshotFullPath2']
+        except KeyError:
+            pass
+
+        try:
             data_collection.xtalSnapshotFullPath3 = \
                 mx_collect_dict['xtalSnapshotFullPath3']
+        except KeyError:
+            pass
+
+        try: 
             data_collection.xtalSnapshotFullPath4 = \
                 mx_collect_dict['xtalSnapshotFullPath4']
         except KeyError:

@@ -132,33 +132,64 @@ class GraphicsItem(QtGui.QGraphicsItem):
         return self.start_coord
 
     def set_end_position(self, position_x, position_y):
+        """Sets the end position of the item
+
+        :param position_x: x position in pix
+        :type position_x: int
+        :param position_y: y position in pix
+        :type position_y: int
+        """
         if (position_x is not None and
             position_y is not None):
             self.end_coord = [position_x, position_y]
         self.scene().update()
 
     def get_display_name(self):
+        """Returns items display name
+       
+        :returns: str
+        """
         return "Item %d" % self.index
 
     def get_full_name(self): 
+        """Returns full name of the item
+         
+        :returns: str
+        """
         return self.get_display_name() 
 
     def set_base_color(self, color):
+        """Sets base color for lines
+         
+        :param color: color
+        :type color: QColor
+        """
         self.base_color = color 
 
     def update_item(self):
+        """Updates current item. Calls parent scene update method
+        """
         self.scene().update()
 
     def mousePressEvent(self, event):
+        """Emits scene itemClickedSignal to indicate selected item
+        """
         self.update()
-        #self.toggle_selected()
         self.scene().itemClickedSignal.emit(self, self.isSelected())
 
     def toggle_selected(self):
+        """Toggles item selection
+        """
         self.setSelected(not self.isSelected()) 
         self.update()
 
     def set_beam_info(self, beam_info):
+        """Updates beam information
+
+        :param beam_info: dictionary with beam parameters
+                          (size_x, size_y, shape)
+        :type beam_info: dict
+        """
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
         self.beam_size_mm[0] = beam_info.get("size_x", 0)
         self.beam_size_mm[1] = beam_info.get("size_y", 0) 
@@ -166,29 +197,35 @@ class GraphicsItem(QtGui.QGraphicsItem):
         self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1] 
 
     def set_beam_position(self, beam_position):
+        """Sets beam position
+        """
         self.beam_position = beam_position
 
     def set_pixels_per_mm(self, pixels_per_mm):
+        """Sets pixels per mm and updates item
+        """
         self.pixels_per_mm = pixels_per_mm
         self.beam_size_pix[0] = self.beam_size_mm[0] * self.pixels_per_mm[0] 
         self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1] 
         self.update_item()
 
 class GraphicsItemBeam(GraphicsItem):
+    """Beam base class
     """
-    Descrip. : 
-    """
-    def __init__(self, parent, position_x = 0, position_y= 0):
-        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
+    def __init__(self, parent, position_x=0, position_y=0):
+        """Sets item flag ItemIsMovable
+        """
+        GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
-        #self.start_coord = [position_x, position_y]
         self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
         
     def paint(self, painter, option, widget):
+        """Main beam painter method
+           Draws ellipse or rectangle with a cross in the middle
+        """
         self.custom_pen.setColor(QtCore.Qt.blue)
         painter.setPen(self.custom_pen)
 
-        
         if self.beam_is_rectangle:
             painter.drawRect(self.beam_position[0] * self.scene().image_scale - \
                              self.beam_size_pix[0] / 2 * self.scene().image_scale, 
@@ -215,11 +252,13 @@ class GraphicsItemBeam(GraphicsItem):
                          self.beam_position[1] * self.scene().image_scale + 10) 
 
 class GraphicsItemInfo(GraphicsItem):
+    """Message box for displaying information on the screen
     """
-    Descrip. : 
-    """
+
     def __init__(self, parent, position_x=0, position_y=0):
-        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
+        """
+        """
+        GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
         self.start_coord = [position_x, position_y]
         self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
@@ -231,6 +270,9 @@ class GraphicsItemInfo(GraphicsItem):
         self.__draw_rect = None
 
     def paint(self, painter, option, widget):
+        """Main painter class. Draws message box and after display time
+           hides the message box.
+        """
         self.custom_pen.setColor(QtCore.Qt.transparent)
         painter.setPen(self.custom_pen)
         self.custom_brush.setColor(QtGui.QColor(255, 255, 255, 140))
@@ -261,6 +303,8 @@ class GraphicsItemInfo(GraphicsItem):
                self.hide()
 
     def display_info(self, msg, pos_x, pos_y, hide_msg=True):
+        """Shows message on pos_x, pos_y
+        """
         self.__msg = msg
         self.__pos_x = pos_x
         self.__pos_y = pos_y
@@ -312,8 +356,8 @@ class GraphicsItemPoint(GraphicsItem):
 
     def get_full_name(self):
         full_name = "Point %d" % self.index
-        if self.__centred_position.kappa and \
-           self.__centred_position.kappa_phi:
+        if hasattr(self.__centred_position, "kappa") and \
+           hasattr(self.__centred_position, "kappa_phi"):
             full_name += " (kappa: %0.2f phi: %0.2f)" % \
                 (self.__centred_position.kappa,
                  self.__centred_position.kappa_phi)
@@ -487,7 +531,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.beam_size_mm = [beam_info.get("size_x"), 
                              beam_info.get("size_y")]
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
-      
+     
         self.__spacing_mm = spacing_mm
         self.__spacing_pix = [0, 0]
         self.__cell_size_mm = [0, 0]
@@ -517,6 +561,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.__automatic = False
         self.__fill_alpha = 120
         self.__display_overlay = True
+        self.__osc_range = 0
        
         #self.__overlay_pixmap = None
 
@@ -602,6 +647,7 @@ class GraphicsItemGrid(GraphicsItem):
                 self.__num_rows)
 
             self.update_grid_draw_parameters()
+
             self.__center_coord.setX(min(self.__corner_coord[0].x(),
                  self.__corner_coord[1].x()) + self.__grid_size_pix[0] / 2.0)
             self.__center_coord.setY(min(self.__corner_coord[0].y(),
@@ -668,8 +714,8 @@ class GraphicsItemGrid(GraphicsItem):
                 "yOffset": self.__spacing_mm[1],  
                 "dx_mm": dx_mm,
                 "dy_mm": dy_mm,
-                "beam_x": self.beam_size_mm[0], 
-                "beam_y": self.beam_size_mm[1],
+                "beam_x_mm": self.beam_size_mm[0], 
+                "beam_y_mm": self.beam_size_mm[1],
                 "num_lines": self.__num_lines,
                 "num_images_per_line": self.__num_images_per_line,
                 "first_image_num": self.__first_image_num}
@@ -999,14 +1045,30 @@ class GraphicsItemGrid(GraphicsItem):
 
 
         #MD3
+        """
         omega_ref = 163.675
         new_point['sampx'] = new_point['sampx'] - hor_range  * \
                              math.sin(math.pi * (self.__osc_start - omega_ref) / 180.0)
         new_point['sampy'] = new_point['sampy'] + hor_range  * \
                              math.cos(math.pi * (self.__osc_start - omega_ref) / 180.0)
         new_point['phiy'] = new_point['phiy'] + ver_range
-
+        new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_rows / 2 + \
+                           (self.__num_rows - row) * self.__osc_range
+       
         #MD2
+        """
+        omega_ref = 0 
+       
+        new_point['sampx'] = new_point['sampx'] + ver_range * \
+                             math.sin(math.pi * (self.__osc_start - \
+                             omega_ref) / 180.0)
+        new_point['sampy'] = new_point['sampy'] - ver_range  * \
+                             math.cos(math.pi * (self.__osc_start - \
+                             omega_ref) / 180.0)
+        new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_cols / 2 + \
+                           (self.__num_cols - col) * self.__osc_range
+
+
         """
         new_point['sampx'] = new_point['sampx'] + ver_range * \
                              math.sin(math.pi * (self.__osc_start - \

@@ -66,6 +66,7 @@ class AbstractCollect(object):
         self.data_collect_task = None
         self.current_dc_parameters = None
         self.current_lims_sample = {}
+        self.run_autoprocessing = None
 
         self.autoprocessing_hwobj = None
         self.beam_info_hwobj = None
@@ -134,7 +135,7 @@ class AbstractCollect(object):
             current_diffractometer_position = self.diffractometer_hwobj.getPositions()
             for motor in self.current_dc_parameters['motors'].keys():
                 self.current_dc_parameters['motors'][motor] = \
-                     current_diffractometer_position[motor] 
+                     current_diffractometer_position.get(motor) 
 
         log.info("Collection: Moving to centred position") 
         self.move_to_centered_position()
@@ -643,4 +644,7 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
+        pass
+
+    def set_run_autoprocessing(self, status):
         pass

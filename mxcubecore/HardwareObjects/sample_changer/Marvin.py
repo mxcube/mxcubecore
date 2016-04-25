@@ -18,6 +18,7 @@ Hardware object for Marvin sample changer
 """
 
 import logging
+import datetime
 from sample_changer.GenericSampleChanger import *
 
 
@@ -42,6 +43,7 @@ class Marvin(SampleChanger):
         self._puck_in_center = None
         self._progress = None
         self._door_is_closed = True
+        self._status_timestamp = None
 
         self.chan_status = None
         self.chan_puck_switched = None
@@ -457,6 +459,14 @@ class Marvin(SampleChanger):
                     isSample : SmpleYes, SmplNo 
         """
         self._status_string = status_string[:180].replace(" ", "")
+        print self._status_string
+        if self._status_timestamp is not None:
+            timedelta = datetime.datetime.now() - self._status_timestamp
+            print "time: ", timedelta.seconds
+            if timedelta.seconds < (2):
+                print "Updated to fast...."       
+                return
+        self._status_timestamp = datetime.datetime.now() 
 
         status_list = self._status_string.split(';')
         for status in status_list:
@@ -476,8 +486,9 @@ class Marvin(SampleChanger):
                     #if not self._sample_is_mounted:
                     #    self._mounted_sample = None
                     #TODO test this
-                    self._updateLoadedSample()
-                    self.updateInfo()
+
+                    #self._updateLoadedSample()
+                    #self.updateInfo()
             elif prop_name == "CDor":
                 door_is_closed =  prop_value == "Cls"
                 if self._door_is_closed != door_is_closed:
