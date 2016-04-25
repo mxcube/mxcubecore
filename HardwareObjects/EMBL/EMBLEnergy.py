@@ -29,11 +29,7 @@ from HardwareRepository.TaskUtils import *
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLEnergy(Device):
@@ -53,6 +49,7 @@ class EMBLEnergy(Device):
         self.undulator_gaps = []
 
         self.cmd_set_energy = None
+        self.cmd_energy_ctrl_byte = None
         self.chan_energy = None
         self.chan_limit_low = None
         self.chan_limit_high = None
@@ -63,6 +60,7 @@ class EMBLEnergy(Device):
         self.ready_event = gevent.event.Event()
 
         self.cmd_set_energy = self.getCommandObject('cmdSetEnergy')
+        self.cmd_energy_ctrl_byte = self.getCommandObject('cmdEnergyCtrlByte')
 
         self.chan_energy = self.getChannelObject('chanEnergy')
         if self.chan_energy is not None: 
@@ -103,6 +101,8 @@ class EMBLEnergy(Device):
         self.get_energy_limits = self.getEnergyLimits
         if not self.chan_energy:
             self.energyPositionChanged(self.default_en * 1000)
+
+        self.get_wavelength_limits = self.getWavelengthLimits
 
     def can_move_energy(self):
         return self.tunable
@@ -219,17 +219,31 @@ class EMBLEnergy(Device):
         current_en = self.getCurrentEnergy()
         pos = math.fabs(current_en - energy)
         if pos < 0.001:
-            logging.getLogger('user_level_log').debug("Energy: already at %g, not moving", energy)
+            logging.getLogger('user_level_log').debug(\
+                "Energy: already at %g, not moving", energy)
             self.emit('energyStateChanged', ('ready', ))
         else:
-            logging.getLogger('user_level_log').debug("Energy: moving energy to %g", energy)
+            logging.getLogger('user_level_log').debug(\
+                "Energy: moving energy to %g", energy)
+            if pos > 0.1 and self.cmd_energy_ctrl_byte is not None:
+                self.cmd_energy_ctrl_byte(15) 
+            else:
+                self.cmd_energy_ctrl_byte(5)
+
             if self.cmd_set_energy:
                 self.cmd_set_energy(energy)
             else:
                 #Mockup mode
                 self.energyPositionChanged([energy * 1000])
 
+    def move_wavelength(self, value, wait=True):
+        """
+        """
+        self.move_energy(12.3984/value, wait)
+
     def energyPositionChanged(self, pos):
+        """
+        """
         #self.moveEnergyCmdFinished(True)
         if type(pos) in (list, tuple):
             pos = pos[0]
@@ -242,10 +256,14 @@ class EMBLEnergy(Device):
                 self.emit('valueChanged', (self.current_energy, ))
 
     def energyLimitsChanged(self, limit):
+        """
+        """
         limits = self.getEnergyLimits()
         self.emit('energyLimitsChanged', (limits,))
 
     def energyStateChanged(self, state):
+        """
+        """
         state = int(state[0])
         if state == 0:
             self.moveEnergyCmdFinished(0)
@@ -254,14 +272,19 @@ class EMBLEnergy(Device):
         self.emit('energyStateChanged', (state,))
 
     def get_value(self):
-        #generic method to be used by beamline setup
+        """
+        """
         return self.getCurrentEnergy()
 
     def update_values(self):
+        """
+        """
         self.emit('energyChanged', (self.current_energy, self.current_wav))
         self.emit('valueChanged', (self.current_energy, ))
 
     def undulator_gaps_changed(self, value):
+        """
+        """
         if type(value) in (list, tuple):
             self.undulator_gaps = [value[0]]
         else:

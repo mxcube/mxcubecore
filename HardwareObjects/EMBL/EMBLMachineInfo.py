@@ -111,11 +111,7 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLMachineInfo(Equipment):
@@ -145,8 +141,8 @@ class EMBLMachineInfo(Equipment):
         self.values_in_range_dict['current'] = None
         self.values_in_range_dict['intens'] = None
         self.values_in_range_dict['cryo'] = None
-        self.temp_hum_values = [0, 0]
-        self.temp_hum_in_range = [False, False]
+        self.temp_hum_values = [None, None]
+        self.temp_hum_in_range = [None, None]
 
         self.intens_range = None
         self.ampl_chan_index = None
@@ -194,7 +190,8 @@ class EMBLMachineInfo(Equipment):
         self.chan_state_text = self.getChannelObject('machStateText')
         if self.chan_state_text is not None:
             self.chan_state_text.connectSignal('update', self.state_text_changed)
-        
+
+        """        
         self.chan_intens_mean = self.getChannelObject('intensMean')
         if self.chan_intens_mean is not None:
             self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
@@ -206,6 +203,8 @@ class EMBLMachineInfo(Equipment):
             self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
         self.cmd_set_intens_range = self.getCommandObject('setIntensRange')
 
+        """
+
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
         if self.chan_cryojet_in is not None:
             self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
@@ -216,7 +215,9 @@ class EMBLMachineInfo(Equipment):
         self.shutter_is_opened = False
         self.shutter_hwobj = self.getObjectByRole('shutter')
         if self.shutter_hwobj is not None:
-            self.connect(self.shutter_hwobj, 'shutterStateChanged', self.shutter_state_changed)
+            self.connect(self.shutter_hwobj, 
+                         'shutterStateChanged',
+                         self.shutter_state_changed)
 
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))
@@ -328,9 +329,10 @@ class EMBLMachineInfo(Equipment):
         while True:	
             temp = self.get_external_value(self.hutch_temp_addr)
             hum = self.get_external_value(self.hutch_hum_addr)
-            if temp and hum:
-                if abs(float(temp) - self.temp_hum_values[0]) > 0.1 \
-                or abs(float(hum) != self.temp_hum_values[1] > 1):
+            if not None in (temp, hum):
+                if (None in self.temp_hum_values) or \
+                   (abs(float(temp) - self.temp_hum_values[0]) > 0.1 \
+                    or abs(float(hum) != self.temp_hum_values[1] > 1)):
                     self.temp_hum_values[0] = temp
                     self.temp_hum_values[1] = hum
                     self.temp_hum_in_range[0] = temp < self.limits_dict['temp']

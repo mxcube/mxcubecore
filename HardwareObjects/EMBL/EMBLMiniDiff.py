@@ -40,11 +40,7 @@ from HardwareRepository.TaskUtils import *
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLMiniDiff(GenericDiffractometer):
@@ -86,14 +82,12 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.cmd_start_set_phase = None
         self.cmd_start_auto_focus = None   
         self.cmd_get_omega_scan_limits = None
+        self.cmd_save_centring_positions = None
 
         # Internal values -----------------------------------------------------
         self.use_sc = False
         self.omega_reference_pos  = [0, 0]
        
-        self.connect(self, 'equipmentReady', self.equipmentReady)
-        self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
-
     def init(self):
         """
         Description:
@@ -127,6 +121,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
         self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
         self.cmd_get_omega_scan_limits = self.getCommandObject('getOmegaMotorDynamicScanLimits')
+        self.cmd_save_centring_positions = self.getCommandObject('saveCentringPositions')
 
         self.centring_hwobj = self.getObjectByRole('centring')
         if self.centring_hwobj is None:
@@ -150,13 +145,11 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.kappa_phi_motor_hwobj = self.getObjectByRole('kappa_phi')
 
             if self.kappa_motor_hwobj is not None:
-                self.connect(self.kappa_motor_hwobj, 'stateChanged', self.kappa_motor_state_changed)
                 self.connect(self.kappa_motor_hwobj, "positionChanged", self.kappa_motor_moved)
             else:
                 logging.getLogger("HWR").error('EMBLMiniDiff: kappa motor is not defined')
 
             if self.kappa_phi_motor_hwobj is not None:
-                self.connect(self.kappa_phi_motor_hwobj, 'stateChanged', self.kappa_phi_motor_state_changed)
                 self.connect(self.kappa_phi_motor_hwobj, 'positionChanged', self.kappa_phi_motor_moved)
             else:
                 logging.getLogger("HWR").error('EMBLMiniDiff: kappa phi motor is not defined')
@@ -164,19 +157,16 @@ class EMBLMiniDiff(GenericDiffractometer):
             logging.getLogger("HWR").debug('EMBLMinidiff: Kappa and Phi motors not initialized (Plate mode detected).')
     
         if self.phi_motor_hwobj is not None:
-            self.connect(self.phi_motor_hwobj, 'stateChanged', self.phi_motor_state_changed)
             self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Phi motor is not defined')
 
         if self.phiz_motor_hwobj is not None:
-            self.connect(self.phiz_motor_hwobj, 'stateChanged', self.phiz_motor_state_changed)
             self.connect(self.phiz_motor_hwobj, 'positionChanged', self.phiz_motor_moved)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Phiz motor is not defined')
 
         if self.phiy_motor_hwobj is not None:
-            self.connect(self.phiy_motor_hwobj, 'stateChanged', self.phiy_motor_state_changed)
             self.connect(self.phiy_motor_hwobj, 'positionChanged', self.phiy_motor_moved)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Phiy motor is not defined')
@@ -184,18 +174,15 @@ class EMBLMiniDiff(GenericDiffractometer):
         if self.zoom_motor_hwobj is not None:
             self.connect(self.zoom_motor_hwobj, 'positionChanged', self.zoom_position_changed)
             self.connect(self.zoom_motor_hwobj, 'predefinedPositionChanged', self.zoom_motor_predefined_position_changed)
-            self.connect(self.zoom_motor_hwobj, 'stateChanged', self.zoom_motor_state_changed)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Zoom motor is not defined')
 
         if self.sample_x_motor_hwobj is not None:
-            self.connect(self.sample_x_motor_hwobj, 'stateChanged', self.sampleX_motor_state_changed)
             self.connect(self.sample_x_motor_hwobj, 'positionChanged', self.sampleX_motor_moved)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Sampx motor is not defined')
 
         if self.sample_y_motor_hwobj is not None:
-            self.connect(self.sample_y_motor_hwobj, 'stateChanged', self.sampleY_motor_state_changed)
             self.connect(self.sample_y_motor_hwobj, 'positionChanged', self.sampleY_motor_moved)
         else:
             logging.getLogger("HWR").error('EMBLMiniDiff: Sampx motor is not defined')
@@ -217,26 +204,13 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Description:
         """
-        self.head_type = self.chan_head_type.getValue()
         return self.head_type == GenericDiffractometer.HEAD_TYPE_PLATE
 
     def use_sample_changer(self):
         """
         Description:
         """
-        return False
-
-    def equipmentReady(self):
-        """
-        Descript. :
-        """
-        self.emit('minidiffReady', ())
-
-    def equipmentNotReady(self):
-        """
-        Descript. :
-        """
-        self.emit('minidiffNotReady', ())
+        return self.use_sc
 
     def state_changed(self, state):
         self.current_state = state
@@ -259,13 +233,6 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.emit("phiMotorMoved", pos)
         #self.emit('stateChanged', (self.current_motor_states["phi"], ))
 
-    def phi_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.current_motor_states["phi"] = state
-        self.emit('stateChanged', (state, ))
-
     def phiz_motor_moved(self, pos):
         """
         Descript. :
@@ -274,18 +241,6 @@ class EMBLMiniDiff(GenericDiffractometer):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-
-    def phiz_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.emit('stateChanged', (state, ))
-
-    def phiy_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.emit('stateChanged', (state, ))
 
     def phiy_motor_moved(self, pos):
         """
@@ -304,15 +259,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-        self.emit('stateChanged', (self.current_motor_states["kappa"], ))
         self.emit("kappaMotorMoved", pos)
-
-    def kappa_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.current_motor_states["kappa"] = state
-        self.emit('stateChanged', (state, ))
 
     def kappa_phi_motor_moved(self, pos):
         """
@@ -322,15 +269,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-        self.emit('stateChanged', (self.current_motor_states["kappa_phi"], ))
         self.emit("kappaPhiMotorMoved", pos)
-
-    def kappa_phi_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.current_motor_states["kappa_phi"] = state
-        self.emit('stateChanged', (state, ))
 
     def zoom_position_changed(self, value):
         self.update_pixels_per_mm()
@@ -345,12 +284,6 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.emit('zoomMotorPredefinedPositionChanged',
                (position_name, offset, ))
 
-    def zoom_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.emit('stateChanged', (state, ))
-
     def sampleX_motor_moved(self, pos):
         """
         Descript. :
@@ -360,13 +293,6 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.invalidate_centring()
         self.emit_diffractometer_moved()
 
-    def sampleX_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.current_motor_states["sampx"] = state
-        self.emit('stateChanged', (state, ))
-
     def sampleY_motor_moved(self, pos):
         """
         Descript. :
@@ -375,13 +301,6 @@ class EMBLMiniDiff(GenericDiffractometer):
         if time.time() - self.centring_time > 1.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
-
-    def sampleY_motor_state_changed(self, state):
-        """
-        Descript. :
-        """
-        self.current_motor_states["sampy"] = state
-        self.emit('stateChanged', (state, ))
 
     def focus_motor_moved(self, pos):
         """
@@ -444,9 +363,11 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Descript. :
         """
-        self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-        self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue() 
-        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
+        if self.chan_calib_x:
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue() 
+            self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, 
+                                              self.pixels_per_mm_y),))
 
     def set_phase(self, phase, timeout=None):
         """
@@ -730,6 +651,17 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Descript. :
         """
+        gevent.spawn(self.close_kappa_task) 
+
+    def close_kappa_task(self):
+        """Close kappa task
+        """
+        self.move_kappa_and_phi_procedure(0, 0)
         self.kappa_motor_hwobj.homeMotor()
         self.wait_device_ready(30)
-        self.kappa_phi_motor_hwobj.homeMotor()
+        #self.kappa_phi_motor_hwobj.homeMotor()
+
+    def set_zoom(self, position): 
+        """
+        """
+        self.zoom_motor_hwobj.moveToPosition(position)

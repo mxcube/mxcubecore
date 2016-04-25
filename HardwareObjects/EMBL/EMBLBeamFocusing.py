@@ -54,6 +54,7 @@ Example Hardware Object XML file :
 </equipment>
 """
 
+import gevent
 import logging
 from _tine import query as tinequery
 from HardwareRepository.BaseHardwareObjects import Equipment
@@ -249,6 +250,10 @@ class EMBLBeamFocusing(Equipment):
         Arguments : new mode name (string)                                        
         Return    : -
 	"""
+        gevent.spawn(self.focus_mode_task,
+                     focus_mode)
+
+    def focus_mode_task(self, focus_mode):
         if focus_mode and self.cmd_set_phase:
             tinequery(self.cmd_set_phase['address'], 
                       self.cmd_set_phase['property'], 

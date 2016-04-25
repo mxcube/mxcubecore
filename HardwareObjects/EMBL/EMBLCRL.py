@@ -22,17 +22,14 @@ EMBLCRL
 """
 
 import math
+import gevent
 import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLCRL(HardwareObject):
@@ -148,6 +145,7 @@ class EMBLCRL(HardwareObject):
         selected_combination = None 
         #crl_value = [0, 0, 0, 0, 0, 0]
 
+        self.energy_value = self.energy_hwobj.getCurrentEnergy()
         for combination_index in range(1, 65):
             current_abs = abs(self.energy_value - math.sqrt((2 * 341.52 * \
                 combination_index) / (2000 * (1 / 42.6696 + 1 / self.focal_length))))
@@ -195,7 +193,7 @@ class EMBLCRL(HardwareObject):
         self.crl_value = value
         self.emit('crlValueChanged', self.crl_value)
 
-    def set_crl_value(self, value):
+    def set_crl_value(self, value, timeout=None):
         """
         Sets CRL lens combination. If integer passed then
         converts value to list
@@ -208,6 +206,19 @@ class EMBLCRL(HardwareObject):
            self.cmd_set_trans_value(1)
         logging.getLogger("user_level_log").info("Setting CRL image plane " +\
            "distance to %.2f"%(self.get_image_plane_distance(value)))
+        if timeout:
+            gevent.sleep(1)
+            print 1
+            with gevent.Timeout(10, Exception("Timeout waiting for CRL")):
+               print 2
+               print value, self.crl_value
+               while value != self.crl_value:
+                   print value, self.crl_value
+                   gevent.sleep(0.1)  
+               gevent.sleep(1)
+
+    def get_crl_value(self):
+        return self.crl_value
 
     def update_values(self):
         """
@@ -220,17 +231,13 @@ class EMBLCRL(HardwareObject):
         """
         Moves lense combination one value up
         """
-        print self.crl_value, self.convert_value(self.crl_value)
         new_value = self.convert_value(self.crl_value) + 1
-        print new_value
         self.set_crl_value(new_value)
 
     def move_down(self):
         """
         Moves lense combination one value down
         """
-        print self.crl_value, self.convert_value(self.crl_value)
         new_value = self.convert_value(self.crl_value) - 1
-        print new_value
         self.set_crl_value(new_value)
 

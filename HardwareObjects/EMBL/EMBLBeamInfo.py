@@ -43,11 +43,7 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLBeamInfo(Equipment):
@@ -92,8 +88,8 @@ class EMBLBeamInfo(Equipment):
         self.aperture_hwobj = self.getObjectByRole("aperture")
         if self.aperture_hwobj is not None:
             self.connect(self.aperture_hwobj, 
-                         "apertureChanged",
-                         self.aperture_pos_changed)
+                         "diameterIndexChanged",
+                         self.aperture_diameter_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined") 
 
@@ -107,6 +103,8 @@ class EMBLBeamInfo(Equipment):
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:
+            focus_mode_name, self.beam_size_focusing = \
+                  self.beam_focusing_hwobj.get_active_focus_mode()
             self.connect(self.beam_focusing_hwobj, 
                          "focusingModeChanged", \
                          self.focusing_mode_changed)
@@ -148,7 +146,7 @@ class EMBLBeamInfo(Equipment):
         Return    :
         """
         self.beam_position[0] = value
-        self.emit("beamPositionChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
 
     def beam_pos_ver_changed(self, value):
         """
@@ -157,7 +155,7 @@ class EMBLBeamInfo(Equipment):
         Return    :
         """
         self.beam_position[1] = value 
-        self.emit("beamPositionChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
 
     def get_beam_position(self):
         """
@@ -183,15 +181,15 @@ class EMBLBeamInfo(Equipment):
             self.chan_beam_position_ver.setValue(int(beam_y))
         else:
             #Act like mockup
-            self.emit("beamPositionChanged", (self.beam_position, ))
+            self.emit("beamPosChanged", (self.beam_position, ))
 
-    def aperture_pos_changed(self, name, size):
+    def aperture_diameter_changed(self, name, size):
         """
         Descript. :
         Arguments :
         Return    :
         """
-        self.beam_size_aperture = size
+        self.beam_size_aperture = [size, size]
         self.aperture_pos_name = name
         self.evaluate_beam_info() 
         self.emit_beam_info_change()
@@ -274,6 +272,7 @@ class EMBLBeamInfo(Equipment):
         size_y = min(self.beam_size_aperture[1],
   		     self.beam_size_slits[1], 
 		     self.beam_size_focusing[1]) 
+
         if size_x == 9999 or size_y == 999:
             #fix this
             return
@@ -313,7 +312,7 @@ class EMBLBeamInfo(Equipment):
 
     def update_values(self):
         self.emit("beamInfoChanged", (self.beam_info_dict, ))
-        self.emit("beamPositionChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
 
     def move_beam(self, direction, step):
         if direction == 'left':
