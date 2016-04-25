@@ -6,7 +6,7 @@ from csv import reader
 import numpy as np
 from scipy.interpolate import interp1d
  
-flux_table_filename = "/opt/embl-hh/etc/p13/app/mxCuBE2/HardwareObjects.xml/p13_flux_table.csv"
+flux_table_filename = "/opt/embl-hh/etc/p13/app/mxcube/HardwareObjects.xml/p13_flux_table.csv"
 
 def read_file(file_name):
     flux_values = {}
@@ -34,9 +34,9 @@ def read_file(file_name):
 def calculate_flux(aperture, energy, mode):
     values = read_file(flux_table_filename)
     if values:
-        apertures = ['Out', '100', '70', '50', '30', '15', '10', '5']
+        apertures = ['Out', 100, 70, 50, 30, 15, 10, 5]
         try:
-           aperture_index = apertures.index(str(aperture))
+           aperture_index = apertures.index(aperture)
         except ValueError:
            print "Aperture value %s is not in the list of apertures: %s.'" %(str(aperture), str(apertures))
            print "Out position will be used"

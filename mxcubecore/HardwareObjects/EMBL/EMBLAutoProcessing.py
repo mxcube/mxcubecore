@@ -39,11 +39,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLAutoProcessing(HardwareObject):
@@ -65,18 +61,16 @@ class EMBLAutoProcessing(HardwareObject):
         """
         self.autoproc_programs = self["programs"]
 
-    def execute_autoprocessing(self, process_event, params_dict, frame_number):
+    def execute_autoprocessing(self, process_event, params_dict, 
+                               frame_number, run_autoprocessing=True):
         """
         Descript. : 
         """
-        if self.autoproc_programs is not None:
-            self.current_autoproc_procedure = gevent.spawn(self.autoproc_procedure,
-                                                           process_event, 
-                                                           params_dict, 
-                                                           frame_number)
-            self.current_autoproc_procedure.link(self.autoproc_done)
+        self.autoproc_procedure(process_event, params_dict, 
+                                frame_number, run_autoprocessing)
 
-    def autoproc_procedure(self, process_event, params_dict, frame_number):
+    def autoproc_procedure(self, process_event, params_dict, 
+                           frame_number, run_autoprocessing=False):
         """
         Descript. : 
 
@@ -106,9 +100,8 @@ class EMBLAutoProcessing(HardwareObject):
                     will_execute = False
                     if process_event == "after": 
                         input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
-                        if will_execute:
-                            endOfLineToExecute = ' ' + input_filename + ' ' + \
-                                params_dict["fileinfo"]["directory"]
+                        will_execute = True
+                        endOfLineToExecute = " " + params_dict["xds_dir"]
                     if process_event == 'image':
                         if frame_number == 1 or frame_number == params_dict['oscillation_sequence'][0]['number_of_images']:
                             endOfLineToExecute = " %s %s/%s_%d_%05d.cbf" % (params_dict["fileinfo"]["directory"],
@@ -140,14 +133,14 @@ class EMBLAutoProcessing(HardwareObject):
         WAIT_XDS_RESOLUTION = 1
 
         file_name_timestamp = time.strftime("%Y%m%d_%H%M%S")
-        
+       
         autoproc_path = params.get("xds_dir")
         autoproc_xds_filename = os.path.join(autoproc_path, "XDS.INP")
         autoproc_input_filename = os.path.join(autoproc_path, 
-                                                "edna-autoproc-input-%s" % \
+                                                "edna-autoproc-input-%s.xml" % \
                                                 file_name_timestamp)
         autoproc_output_file_name = os.path.join(autoproc_path, 
-                                                 "edna-autoproc-results-%s" % \
+                                                 "edna-autoproc-results-%s.xml" % \
                                                  file_name_timestamp)
 
         autoproc_input = XSDataAutoprocInput() 

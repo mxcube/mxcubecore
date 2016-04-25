@@ -64,11 +64,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 TEST_DICT = {"summary": "Beamline summary",
@@ -103,6 +99,13 @@ class EMBLBeamlineTest(HardwareObject):
         self.comm_test = None
         self.current_test_procedure = None
         self.beamline_name = None
+        self.test_directory = None
+        self.test_source_directory = None
+        self.test_filename = None
+
+        self.scale_hor = None
+        self.scale_ver = None
+        self.scan_status = None
 
         self.available_tests_dict = {}
         self.startup_test_list = []
@@ -110,19 +113,39 @@ class EMBLBeamlineTest(HardwareObject):
         self.results_html_list = None
         self.arhive_results = None
 
+        self.chan_pitch_scan_status = None
+        self.cmd_start_pitch_scan = None
+        self.cmd_set_vmax_pitch = None
+
         self.bl_hwobj = None
+        self.crl_hwobj = None
         self.beam_focusing_hwobj = None
         self.graphics_manager_hwobj = None
-        self.test_directory = None
-        self.test_source_directory = None
-        self.test_filename = None
+        self.horizontal_motor_hwobj = None
+        self.vertical_motor_hwobj = None
+        self.graphics_manager_hwobj = None
+
 
     def init(self):
         """
         Descrip. :
         """
         self.ready_event = gevent.event.Event()
+
+        self.scale_hor = self.getProperty("scale_hor")
+        self.scale_ver = self.getProperty("scale_ver")
+
+        self.chan_pitch_scan_status = self.getChannelObject("chanPitchScanStatus")
+        self.connect(self.chan_pitch_scan_status, "update", self.pitch_scan_status_changed)
+
+        self.cmd_start_pitch_scan = self.getCommandObject("cmdStartPitchScan")
+        self.cmd_set_vmax_pitch = self.getCommandObject("cmdSetVMaxPitch")
+
+        self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
+        self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
+
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
+        self.crl_hwobj = self.getObjectByRole("crl")
         self.graphics_manager_hwobj = self.bl_hwobj.shape_history_hwobj
         self.beam_align_hwobj = self.getObjectByRole("beam_align")
 
@@ -489,7 +512,10 @@ class EMBLBeamlineTest(HardwareObject):
         self.ready_event.set()
         return result
 
-    def align_beam(self):
+    def align_beam_test(self):
+        gevent.spawn(self.align_beam_test_task)
+
+    def align_beam_test_task(self):
         """
         Align beam procedure:
         1. Store aperture position and take out the aperture
@@ -498,31 +524,154 @@ class EMBLBeamlineTest(HardwareObject):
         4. Put back aperture
         """
         aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj
-        slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj 
+        slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj
 
-        #1. Store aperture position and take out the aperture
+        log = logging.getLogger("HWR")
+        msg = "Starting beam align"
         progress_info = {"progress_total": 6,
-                         "progress_msg": "Setting aperture out"}
-
+                         "progress_msg": msg}
+        log.debug("BeamlineTest: %s" % msg)
         self.emit("testProgress", (1, progress_info))
-        aperture_hwobj.set_out() 
-        gevent.sleep(5)
-    
-        #2. Store slits position and open to max
-        if slits_hwobj:
-            progress_info["progress_msg"] = "Setting slits to the maximum"
+
+        # 1/6 Diffractometer in BeamLocation phase ---------------------------
+        msg = "1/6 : Setting diffractometer in BeamLocation phase"
+        progress_info["progress_msg"] = msg
+        log.debug("BeamlineTest: %s" % msg)
+        self.emit("testProgress", (2, progress_info))
+        
+        self.bl_hwobj.diffractometer_hwobj.set_phase(\
+             self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM, timeout = 30)
+
+        with gevent.Timeout(10, Exception("Timeout waiting for BeamLocation phase")):
+           while self.bl_hwobj.diffractometer_hwobj.current_phase != \
+                 self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM:
+                  gevent.sleep(0.1)
+
+        self.bl_hwobj.fast_shutter_hwobj.openShutter()
+        gevent.sleep(0.1)
+        aperture_hwobj.set_out()
+
+        active_mode, beam_size = self.get_focus_mode()
+
+        # 2.1/6 Set transmission to 100% (unfocused) or 10% (double focused)
+        # 2.2/6 Opening slits when unfocused mode
+        # 2.3/6 Setting zoom 4 if unfocused and zoom 8 for focused mode
+
+        if active_mode == "Unfocused":
+            msg = "2.1/6 : Setting transmission to 100%"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (2, progress_info))
-            hor_gap, ver_gap = slits_hwobj.get_gaps()
-            (hor_gap_max, ver_gap_max) = slits_hwobj.get_max_gaps() 
 
-        #3. In a loop take snapshot and move motors
+            self.bl_hwobj.transmission_hwobj.setTransmission(100)
+            if slits_hwobj:
+                msg = "2.2/6 : Opening slits to 1 x 1 mm"
+                progress_info["progress_msg"] = msg
+                log.debug("BeamlineTest: %s" % msg)
+                self.emit("testProgress", (2, progress_info))
 
+                hor_gap, ver_gap = slits_hwobj.get_gaps()
+                slits_hwobj.set_gap('Hor', 1)
+                slits_hwobj.set_gap('Ver', 1)
+            self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
+        else:
+            msg = "2/6 : Setting transmission to 10%"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (2, progress_info))           
 
-        #4. Put back aperture
-        progress_info["progress_msg"] = "Setting aperture in"
+            self.bl_hwobj.transmission_hwobj.setTransmission(10)
+            self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 8")
+       
+        self.align_beam_task() 
+   
+        # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
+        if active_mode == "Unfocused":
+            msg = "5/6 : Setting slits to 0.1 x 0.1 mm%"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (5, progress_info)) 
+
+            slits_hwobj.set_gap('Hor', 0.1)
+            slits_hwobj.set_gap('Ver', 0.1)
+
+        # 6/6 Update position of the beam mark position ----------------------
+        msg = "6/6 : Updating beam mark position"
+        progress_info["progress_msg"] = msg
+        log.debug("BeamlineTest: %s" % msg)
         self.emit("testProgress", (6, progress_info))
-        aperture_hwobj.set_in()
-        gevent.sleep(5)
+        self.graphics_manager_hwobj.move_beam_mark_auto()
+
+    def align_beam_task(self):
+        """
+        """
+
+        log = logging.getLogger("HWR")
+        msg = ""
+        progress_info = {"progress_total": 6,
+                         "progress_msg": msg}
+        
+        # 3.1/6 If energy < 10: set all lenses in ----------------------------
+        crl_used = False 
+        if self.bl_hwobj._get_energy() < 10:
+            msg = "3.1/6 : Energy under 10keV. Setting all CRL lenses in"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (3, progress_info)) 
+            crl_used = True
+            crl_value = self.crl_hwobj.get_crl_value()
+            self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout = 10)
+
+        # 3.2/6 Pitch scan ---------------------------------------------------
+        msg = "3/6 : Starting pitch scan"
+        progress_info["progress_msg"] = msg
+        log.debug("BeamlineTest: %s" % msg)
+        self.emit("testProgress", (3, progress_info))
+        self.cmd_start_pitch_scan(1)
+        gevent.sleep(2.0)
+
+        while self.scan_status != 0 :
+           gevent.sleep(0.1)
+        self.cmd_set_vmax_pitch(1)
+
+        # 3.3/6 If crl used then set previous position -----------------------
+        if crl_used:
+            msg = "3.3/6 : Setting CRL lenses to previous position"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (3, progress_info))
+            self.crl_hwobj.set_crl_value(crl_value, timeout = 10)
+
+        self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)
+        active_mode, beam_size = self.get_focus_mode()
+
+        # 4/6 Applying Perp and Roll2nd correction ---------------------------
+        if active_mode == "Unfocused":
+            msg = "4/6 : Applying Perp and Roll2nd correction"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (4, progress_info))
+
+        for i in range(3):
+            with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
+               beam_pos_displacement = [None, None]
+               while None in beam_pos_displacement:
+                   beam_pos_displacement = self.graphics_manager_hwobj.get_beam_displacement()
+                   gevent.sleep(0.1)
+
+               active_mode, beam_size = self.get_focus_mode()
+               if active_mode == "Unfocused":
+                   delta_hor = beam_pos_displacement[0] * self.scale_hor
+                   delta_ver = beam_pos_displacement[1] * self.scale_ver
+                   log.debug("BeamAlign: Applying %.3f mm horizontal and %.3f mm vertical correction" % \
+                             (delta_hor, delta_ver))
+                   self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
+                   self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+
+    def pitch_scan_status_changed(self, status):
+        """
+        """
+        self.scan_status = status
 
     def test_autocentring(self):
         """

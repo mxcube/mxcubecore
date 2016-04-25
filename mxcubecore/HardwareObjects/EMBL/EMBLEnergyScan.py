@@ -37,11 +37,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
@@ -153,12 +149,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         return True
 
-    """def sConnected(self):
-        self.emit('connected', ())
-
-    def sDisconnected(self):
-        self.emit('disconnected', ())"""
-
     def canScanEnergy(self):
         """
         Descript. :
@@ -170,8 +160,11 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
+        log = logging.getLogger("HWR") 
+
         if not self.can_scan:
-            logging.getLogger("HWR").error("EnergyScan: unable to start energy scan")
+            logerror("EnergyScan: unable to start energy scan. hwobj " + \
+                     "not initialized")
             self.scanCommandAborted() 
             return
  
@@ -179,42 +172,39 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                          "element": element,"edgeEnergy": edge}
         self.scanData = []
         if not os.path.isdir(directory):
-            logging.getLogger("HWR").debug("EnergyScan: creating directory %s" % directory)
+            log.debug("EnergyScan: creating directory %s" % directory)
             try:
                 os.makedirs(directory)
             except OSError, diag:
-                logging.getLogger("HWR").error("EnergyScan: error creating directory %s (%s)" % (directory, str(diag)))
+                log.error("EnergyScan: error creating directory %s (%s)" % \
+                          (directory, str(diag)))
                 self.emit('energyScanStatusChanged', ("Error creating directory",))
                 return False
-        try:
-            if self.chan_scan_status.getValue() in ['ready', 'unknown', 'error']:	
-                if self.transmission_hwobj is not None:
-                    self.scanInfo['transmissionFactor'] = self.transmission_hwobj.get_value()
-                else:
-                    self.scanInfo['transmissionFactor'] = None
-                self.scanInfo['exposureTime'] = exptime
-                self.scanInfo['startEnergy'] = 0
-                self.scanInfo['endEnergy'] = 0
-                size_hor = None
-                size_ver = None
-                if self.beam_info_hwobj is not None:
-                    size_hor, size_ver = self.beam_info_hwobj.get_beam_size()
-                    size_hor = size_hor * 1000
-                    size_ver = size_ver * 1000
-                self.scanInfo['beamSizeHorizontal'] = size_hor
-                self.scanInfo['beamSizeVertical'] = size_ver
-                self.chan_scan_start.setValue("%s;%s" % (element, edge))
-                self.scanCommandStarted()
+
+        if self.chan_scan_status.getValue() in ['ready', 'unknown', 'error']:	
+            if self.transmission_hwobj is not None:
+                self.scanInfo['transmissionFactor'] = self.transmission_hwobj.get_value()
             else:
-                logging.getLogger("HWR").error("Another energy scan in " + \
-                     "progress. Please wait when the scan is finished")
-                self.emit('energyScanStatusChanged', ("Another energy " + \
-                     "scan in progress. Please wait when the scan is finished"))
-                self.scanCommandFailed()
-                return False
-        except:
-            logging.getLogger("HWR").error('EnergyScan: error in executing energy scan command')
-            self.emit('energyScanStatusChanged', ("Error in executing energy scan command",))
+                self.scanInfo['transmissionFactor'] = None
+            self.scanInfo['exposureTime'] = exptime
+            self.scanInfo['startEnergy'] = 0
+            self.scanInfo['endEnergy'] = 0
+            self.scanInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+            size_hor = None
+            size_ver = None
+            if self.beam_info_hwobj is not None:
+                size_hor, size_ver = self.beam_info_hwobj.get_beam_size()
+                size_hor = size_hor * 1000
+                size_ver = size_ver * 1000
+            self.scanInfo['beamSizeHorizontal'] = size_hor
+            self.scanInfo['beamSizeVertical'] = size_ver
+            self.chan_scan_start.setValue("%s;%s" % (element, edge))
+            self.scanCommandStarted()
+        else:
+            log.error("Another energy scan in progress. " + \
+                      "Please wait when the scan is finished")
+            self.emit('energyScanStatusChanged', ("Another energy " + \
+                  "scan in progress. Please wait when the scan is finished"))
             self.scanCommandFailed()
             return False
         return True
@@ -231,12 +221,21 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        title = "%s %s: %s %s" % (self.scanInfo["sessionId"], 
-            self.scanInfo["blSampleId"], self.scanInfo["element"], self.scanInfo["edgeEnergy"])
-        dic = {'xlabel': 'energy', 'ylabel': 'counts', 'scaletype': 'normal', 'title': title}
-        self.scanInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if self.scanInfo["blSampleId"]:
+            title = "Sample: %s Element: %s Edge: %s" % \
+             (self.scanInfo["blSampleId"],
+              self.scanInfo["element"], 
+              self.scanInfo["edgeEnergy"])
+        else:
+            title = "Element: %s Edge: %s" % (self.scanInfo["element"],
+                                              self.scanInfo["edgeEnergy"]) 
+      
+        graph_info = {'xlabel' : 'energy',
+                      'ylabel' :  'counts',
+                      'scaletype' : 'normal',
+                      'title' : title}
         self.scanning = True
-        self.emit('energyScanStarted', ())
+        self.emit('energyScanStarted', graph_info)
 
     def scanCommandFailed(self, *args):
         """
@@ -336,8 +335,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
 
         #should be better, but OK for time being
-        self.thEdgeThreshold = 0.01
         """
+        self.thEdgeThreshold = 0.01
         if math.fabs(self.thEdge - ip) > self.thEdgeThreshold:
           pk = 0
           ip = 0
@@ -468,15 +467,5 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        blsampleid = self.scanInfo['blSampleId']
-        self.scanInfo.pop('blSampleId')
         if self.db_connection_hwobj:
             db_status = self.db_connection_hwobj.storeEnergyScan(self.scanInfo)
-            if blsampleid is not None:
-                try:
-                    energyscanid = int(db_status['energyScanId'])
-                except:
-                    pass
-                else:
-                    asoc = {'blSampleId':blsampleid, 'energyScanId': energyscanid}
-                    self.db_connection_hwobj.associateBLSampleAndEnergyScan(asoc)

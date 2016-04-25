@@ -317,7 +317,5 @@ class TINEMotor(Device):
         if self.cmd_set_online:
             self.cmd_set_online(0)
 
-    def moveRelative(self, relativePosition):
-        print "Now: ", self.getPosition()
-        print "delta: ", relativePosition
-        self.move(self.getPosition() + relativePosition)
+    def moveRelative(self, relativePosition, wait=False):
+        self.move(self.getPosition() + relativePosition, wait=wait)

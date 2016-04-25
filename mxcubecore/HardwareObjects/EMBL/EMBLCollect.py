@@ -18,7 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-EMBLMultiCollect
+EMBLCollect
 """
 import os
 import logging
@@ -31,23 +31,21 @@ from AbstractCollect import AbstractCollect
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLCollect(AbstractCollect, HardwareObject):
-    """
-    Descript: Main data collection class. Inherited from AbstractMulticollect
-              Collection is done by setting collection parameters and 
-              executing collect command  
+    """Main data collection class. Inherited from AbstractMulticollect
+       Collection is done by setting collection parameters and 
+       executing collect command  
     """
     def __init__(self, name):
         """
-        Descript. :
+
+        :param name: name of the object
+        :type name: string
         """
+
         AbstractCollect.__init__(self)
         HardwareObject.__init__(self, name)
         self._centring_status = None
@@ -108,9 +106,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.graphics_manager_hwobj = None
 
     def init(self):
+        """Main init method
         """
-        Descript. : 
-        """
+
         self.ready_event = gevent.event.Event()
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
         self.lims_client_hwobj = self.getObjectByRole("lims_client")
@@ -193,9 +191,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.emit("collectReady", (True, ))
 
     def data_collection_hook(self):
+        """Main collection hook
         """
-        Descript. : main collection command
-        """
+
         p = self.current_dc_parameters
      
         if self._actual_collect_status in ["ready", "unknown", "error"]:
@@ -235,9 +233,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
             
     def collect_status_update(self, status):
+        """Status event that controls execution
+
+        :param status: collection status
+        :type status: string
         """
-        Descript. : 
-        """
+
         self._previous_collect_status = self._actual_collect_status
         self._actual_collect_status = status
         if self._collecting:
@@ -259,19 +260,21 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     self.emit_collection_failed()
 
     def collect_error_update(self, error_msg):
+        """Collect error behaviour
+
+        :param error_msg: error message
+        :type error_msg: string
         """
-        Descrip. :
-        """
+
         if (self._collecting and
             len(error_msg) > 0):
             self._error_msg = error_msg 
-            #logging.info(error_msg) 
             logging.getLogger("user_level_log").error(error_msg)
 
     def emit_collection_failed(self):
-        """
-        Descrip. :
+        """Collection failed method
         """ 
+
         failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
@@ -285,9 +288,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.update_data_collection_in_lims()
 
     def emit_collection_finished(self):  
+        """Collection finished beahviour
         """
-        Descript. :
-        """
+
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
         self.emit("collectOscillationFinished", (self.owner, True, 
@@ -310,6 +313,13 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.trigger_auto_processing("after", self.current_dc_parameters, 0)
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
+        """Updates collection with information about workflow
+
+        :param workflow_id: workflow id
+        :type workflow_id: int
+        :param grid_snapshot_filename: grid snapshot file path
+        :type grid_snapshot_filename: string
+        """
         if self.lims_client_hwobj is not None:
             try:
                 self.current_dc_parameters["workflow_id"] = workflow_id
@@ -320,9 +330,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 logging.getLogger("HWR").exception("Could not store data collection into ISPyB")
 
     def collect_frame_update(self, frame):
+        """Image frame update 
         """
-        Descript. : 
-        """
+
         if self._collecting: 
             self.collect_frame = frame
             number_of_images = self.current_dc_parameters\
@@ -349,10 +359,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         Descript. : 
         """
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
-                                                             self.current_dc_parameters,
-                                                             frame_number)
+        self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
+             self.current_dc_parameters, frame_number, self.run_autoprocessing)
+
     def stopCollect(self, owner):
         """
         Descript. :
@@ -526,14 +535,13 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         flux = None
         if self.lims_client_hwobj:
             if self.lims_client_hwobj.beamline_name == "P13":
-                aperture_pos = self.beam_info_hwobj.get_aperture_pos_name()
+                if self.beam_info_hwobj.aperture_hwobj.is_out():
+                    aperture_size = "Out"
+                else:
+                    aperture_size = self.beam_info_hwobj.aperture_hwobj.get_diameter_size() * 1000
                 energy = self.energy_hwobj.getCurrentEnergy()
-                #mode = self.bl_control.beam_info.get_focus_mode()
                 mode = "large"
-
-                #flux = p13_calc_flux.calculate_flux(aperture_pos, energy, mode) / 4.0
-                #print p13_calc_flux.calculate_flux(aperture_pos, energy, mode)
-                flux =  2.64E+11 
+                flux = p13_calc_flux.calculate_flux(aperture_size, energy, mode) / 4.0
             else:
                 fullflux = 3.5e12
                 fullsize_hor = 1.200
@@ -595,3 +603,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         Descript. : 
         """
         return self.get_measured_intensity()
+
+    def set_run_autoprocessing(self, status):
+        self.run_autoprocessing = status

@@ -28,11 +28,7 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLSafetyShutter(Device):
@@ -180,7 +176,7 @@ class EMBLSafetyShutter(Device):
 
     def close_shutter_thread(self):
         logging.getLogger().info('Safety shutter: Closing beam shutter...')
-        self.emit('shutterStateChanged', (self.shutterState[0])) #closed
+        #self.emit('shutterStateChanged', (self.shutterState[0])) #closed
         gevent.sleep(2)
         try:
             self.cmd_close_shutter("c")
@@ -189,7 +185,7 @@ class EMBLSafetyShutter(Device):
 
     def open_shutter_thread(self):
         logging.getLogger().info('Safety shutter: Openning beam shutter...')
-        self.emit('shutterStateChanged', (self.shutterState[1])) #opened
+        #self.emit('shutterStateChanged', (self.shutterState[1])) #opened
         gevent.sleep(2) 
         try:
             self.cmd_open_shutter("o")

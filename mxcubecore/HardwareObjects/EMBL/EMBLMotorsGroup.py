@@ -82,11 +82,7 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
-__maintainer__ = "Ivars Karpics"
-__email__ = "ivars.karpics[at]embl-hamburg.de"
-__status__ = "Draft"
 
 
 class EMBLMotorsGroup(Device):
@@ -162,9 +158,10 @@ class EMBLMotorsGroup(Device):
                 if motor['velocity'] is not None:
                     tine.set(self.server_address + "/" + motor['motorAddr'], 
                          'Velocity', motor['velocity']) 
+                print self.server_address + "/" + motor['motorAddr'], motor['setCmd'], new_position
                 tine.set(self.server_address + "/" + motor['motorAddr'], 
                      motor['setCmd'], new_position)
-                time.sleep(0.5)
+                time.sleep(1)
 
     def set_motor_focus_mode(self, motor_name, focus_mode):
         """
@@ -181,7 +178,7 @@ class EMBLMotorsGroup(Device):
                              motor['motorAddr'], 'Velocity', motor['velocity'])
                     tine.set(self.server_address + "/" + motor['motorAddr'], 
                          motor['setCmd'], motor['focusingModes'][focus_mode])
-                    time.sleep(0.5)
+                    time.sleep(1)
                 break
 
     def set_motor_group_focus_mode(self, focus_mode):
@@ -199,7 +196,7 @@ class EMBLMotorsGroup(Device):
                 tine.set(self.server_address + "/" + 
                      motor['motorAddr'], motor['setCmd'],
                      motor['focusingModes'][str(focus_mode)])
-                time.sleep(0.5)
+                time.sleep(1)
 	       
     def stop_motor(self, motor_name):
         """
