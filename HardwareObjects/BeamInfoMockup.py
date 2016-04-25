@@ -35,14 +35,14 @@ class BeamInfoMockup(Equipment):
 
     def init(self):
         self.aperture_hwobj = self.getObjectByRole("aperture")
-        self.emit("beamPositionChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
 
     def get_beam_position(self):
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
         self.beam_position = [beam_x, beam_y]
-        self.emit("beamPositionChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
 
     def get_beam_info(self):
         return self.evaluate_beam_info()

@@ -457,6 +457,7 @@ class DataCollection(TaskNode):
         self.lims_group_id = None
         self.lims_start_pos_id = None
         self.lims_end_pos_id = None
+        self.run_autoprocessing = None
 
     def as_dict(self):
 
@@ -874,6 +875,7 @@ class XRFSpectrum(TaskNode):
         self.count_time = 1
         self.set_requires_centring(True)
         self.centred_position = cpos
+        self.adjust_transmission = True
 
         if not sample:
             self.sample = Sample()
@@ -976,7 +978,6 @@ class Advanced(TaskNode):
             name += " (%s)" % self.grid_object.get_display_name()
         else:
             name += " (Static grid)"
-        print name
         return name
 
     def get_first_processing_results(self):
@@ -1340,7 +1341,8 @@ class CentredPosition(object):
     def as_str(self):
         motor_str = ""
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
-            motor_str += "%s: %.3f " %(motor_name, abs(getattr(self, motor_name)))
+            if getattr(self, motor_name):
+                motor_str += "%s: %.3f " %(motor_name, abs(getattr(self, motor_name)))
         return motor_str
 
     def __repr__(self):
@@ -1466,8 +1468,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
              'energy': acq_params.energy,
              #'input_files': 1,
              'oscillation_sequence': [{'exposure_time': acq_params.exp_time,
-                                       #'kappaStart': 0.0,
-                                       #'phiStart': 0.0,
+                                       'kappaStart': acq_params.kappa,
+                                       'phiStart': acq_params.kappa_phi,
                                        'start_image_number': acq_params.first_image,
                                        'number_of_images': acq_params.num_images,
                                        'overlap': acq_params.overlap,

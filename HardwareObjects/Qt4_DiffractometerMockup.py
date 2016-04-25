@@ -72,7 +72,10 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         self.beam_position = [200, 200]
         
         self.cancel_centring_methods = {}
-        self.current_positions_dict = {'phiy'  : 0}
+        self.current_positions_dict = {'phiy'  : 0, 'phiz' : 0, 'sampx' : 0,
+                                       'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
+                                       'focus' : 0, 'kappa': 11, 'kappa_phi': 12,
+                                       'beam_x': 0, 'beam_y': 0}
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
@@ -112,7 +115,10 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         last_centred_position[0] = x
         last_centred_position[1] = y
         random_num = random.random()
-        centred_pos_dir = {'phi': random_num}
+        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
+                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
+                         'kappa_phi': 22.0}
         return centred_pos_dir 		
 
     def is_ready(self):
@@ -149,7 +155,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         """
         if self.current_centring_procedure is None and self.centring_status["valid"]:
             self.centring_status = {"valid":False}
-            self.emitProgressMessage("")
+            #self.emitProgressMessage("")
             self.emit('centringInvalid', ())
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
@@ -157,7 +163,10 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         random_num = random.random() 
-        centred_pos_dir = {'phi': random_num * 10}
+        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
+                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                          'phi': 311.1, 'focus': -0.42, 'kappa': 11,
+                          'kappa_phi': 23.0}
         return centred_pos_dir
 
     def get_calibration_data(self, offset):
@@ -211,7 +220,9 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         random_num = random.random()
-        return {"phi": random_num * 10}
+        return {"phi": random_num * 10, "focus": random_num * 20,
+                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
+                "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
 
     def refresh_video(self):
         """
@@ -258,3 +269,6 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         self.emit('zoomMotorPredefinedPositionChanged', None, None)
         omega_ref = [300, 0]
         self.emit('omegaReferenceChanged', omega_ref)
+
+    def move_kappa_and_phi(self, kappa, kappa_phi):
+        return

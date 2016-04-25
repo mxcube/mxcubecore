@@ -169,7 +169,7 @@ class Qt4_GraphicsManager(HardwareObject):
         GraphicsLib.GraphicsItemGrid.set_grid_direction(\
                self.diffractometer_hwobj.get_grid_direction())
 
-        self.connect(self.diffractometer_hwobj, "stateChanged", 
+        self.connect(self.diffractometer_hwobj, "minidiffStateChanged", 
                      self.diffractometer_state_changed)
         self.connect(self.diffractometer_hwobj, "centringStarted",
                      self.diffractometer_centring_started)
@@ -193,7 +193,7 @@ class Qt4_GraphicsManager(HardwareObject):
             self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             self.connect(self.beam_info_hwobj, 
-                         "beamPositionChanged", 
+                         "beamPosChanged", 
                          self.beam_position_changed)
             self.connect(self.beam_info_hwobj, 
                          "beamInfoChanged",
@@ -349,8 +349,8 @@ class Qt4_GraphicsManager(HardwareObject):
                     current_cpos = queue_model_objects.CentredPosition(\
                         self.diffractometer_hwobj.get_positions())
 
-                    current_cpos.set_motor_pos_delta(0.01)
-                    grid_cpos.set_motor_pos_delta(0.01)
+                    current_cpos.set_motor_pos_delta(0.1)
+                    grid_cpos.set_motor_pos_delta(0.1)
 
                     if hasattr(grid_cpos, "zoom"):
                         current_cpos.zoom = grid_cpos.zoom
@@ -363,7 +363,7 @@ class Qt4_GraphicsManager(HardwareObject):
                         corner_coord.append((self.diffractometer_hwobj.\
                              motor_positions_to_screen(motor_pos)))
                     shape.set_corner_coord(corner_coord)
-       
+      
                     if current_cpos == grid_cpos:
                         shape.set_projection_mode(False)
                     else:    
@@ -371,8 +371,10 @@ class Qt4_GraphicsManager(HardwareObject):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
+            self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
+            self.emit("diffractometerReady", False)
       
     def diffractometer_phase_changed(self, phase):
         """
@@ -380,7 +382,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """  
         self.graphics_scale_item.set_display_grid(\
              phase == self.diffractometer_hwobj.PHASE_BEAM)
-        self.emit("diffractometerReady", phase != self.diffractometer_hwobj.PHASE_BEAM)
+        self.emit("diffractometerPhaseChanged", phase)
 
     def diffractometer_centring_started(self, centring_method, flexible):
         """Method called when centring started as a reply from diffractometer
@@ -1253,7 +1255,6 @@ class Qt4_GraphicsManager(HardwareObject):
     def update_grid_motor_positions(self, grid_object):
         """Updates grid corner positions
         """
-       
         grid_center_x, grid_center_y = grid_object.get_center_coord()
         motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(\
             grid_center_x, grid_center_y, return_by_names=True)
@@ -1419,10 +1420,12 @@ class Qt4_GraphicsManager(HardwareObject):
         if None in beam_shape_dict['center']:
             return (None, None)
         else:
-            return ((self.beam_position[0] - beam_shape_dict['center'][0]) /\
-                    self.pixels_per_mm[0],
-                   (self.beam_position[1] - beam_shape_dict['center'][1]) / \
-                    self.pixels_per_mm[1])
+            #return ((self.beam_position[0] - beam_shape_dict['center'][0]) /\
+            #        self.pixels_per_mm[0],
+            #       (self.beam_position[1] - beam_shape_dict['center'][1]) / \
+            #        self.pixels_per_mm[1])
+            return ((682 - beam_shape_dict['center'][0]) / self.pixels_per_mm[0],
+                   (501 - beam_shape_dict['center'][1]) / self.pixels_per_mm[1])
 
     def display_grid(self, state):
         """

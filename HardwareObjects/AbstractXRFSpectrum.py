@@ -38,6 +38,7 @@ class AbstractXRFSpectrum(object):
         self.spectrum_data = None
         self.mca_calib = (10, 20, 0)
         self.spectrum_running = None
+        self.config_filename = None
 
         self.energy_hwobj = None
         self.transmission_hwobj = None

@@ -58,6 +58,7 @@ class AbstractMultiCollect(object):
         self.current_lims_sample = None
         self.__safety_shutter_close_task = None
         self.run_without_loop = None
+        self.run_autoprocessing = None
 
 
     def setControlObjects(self, **control_objects):
@@ -968,4 +969,6 @@ class AbstractMultiCollect(object):
               autoprocessing.startInducedRadDam(processAnalyseParams)
             except:
               logging.exception("Error starting induced rad.dam")
-               
+    
+    def set_run_autoprocessing(self, status):
+        pass

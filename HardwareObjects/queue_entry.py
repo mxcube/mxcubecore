@@ -787,11 +787,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
+            self.collect_hwobj.set_run_autoprocessing(dc.run_autoprocessing)
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     self.collect_hwobj.set_helical(True)
+                    #self.collect_hwobj.set_run_autoprocessing(dc.run_autoprocessing)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -1179,7 +1181,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
     def energy_scan_status_changed(self, msg):
         logging.getLogger("user_level_log").info(msg)
 
-    def energy_scan_started(self):
+    def energy_scan_started(self, *arg):
         logging.getLogger("user_level_log").info("Energy scan started.")
         self.get_view().setText(1, "In progress")
 
@@ -1302,7 +1304,8 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
                              "%s_%d" % (xrf_spectrum.path_template.get_prefix(),
                                         xrf_spectrum.path_template.run_number),
                              self.session_hwobj.session_id,
-                             sample_lims_id)
+                             sample_lims_id,
+                             xrf_spectrum.adjust_transmission)
             self.xrf_spectrum_hwobj.ready_event.wait()
             self.xrf_spectrum_hwobj.ready_event.clear()
         else:
@@ -1362,6 +1365,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         xrf_spectrum.result.mca_calib = mcaCalib
         xrf_spectrum.result.mca_config = mcaConfig
 
+        logging.getLogger("user_level_log").info("XRF spectrum finished.")
         self.get_view().setText(1, "Done")
 
     def xrf_spectrum_failed(self):
