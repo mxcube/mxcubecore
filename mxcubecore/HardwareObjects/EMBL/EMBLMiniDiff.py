@@ -499,11 +499,12 @@ class EMBLMiniDiff(GenericDiffractometer):
             c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
             c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
         xy = self.centring_hwobj.centringToScreen(c)
-        x = (xy['X'] + c['beam_x']) * self.pixels_per_mm_x + \
-              self.zoom_centre['x']
-        y = (xy['Y'] + c['beam_y']) * self.pixels_per_mm_y + \
-             self.zoom_centre['y']
-        return x, y
+        if xy:
+            x = (xy['X'] + c['beam_x']) * self.pixels_per_mm_x + \
+                 self.zoom_centre['x']
+            y = (xy['Y'] + c['beam_y']) * self.pixels_per_mm_y + \
+                 self.zoom_centre['y']
+            return x, y
  
     def move_to_centred_position(self, centred_position):
         """
@@ -665,3 +666,20 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         """
         self.zoom_motor_hwobj.moveToPosition(position)
+
+    def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
+        """
+        Descript. : method used to get a new motor position based on a position
+                    between two positions. As arguments both motor positions are
+                    given. frame_num and frame_total is used estimate new point position
+                    Helical line goes from point_one to point_two.
+                    In this direction also new position is estimated
+        """
+        new_point = {}
+        point_one = point_one.as_dict()
+        point_two = point_two.as_dict()
+        for motor in point_one.keys():
+            new_motor_pos = point_one[motor] + (point_two[motor] - point_one[motor]) * \
+                     frame_num / float(frame_total)
+            new_point[motor] = new_motor_pos
+        return new_point

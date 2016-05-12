@@ -45,6 +45,8 @@ class EMBLDoorInterlock(Device):
     def __init__(self, name):
         Device.__init__(self, name) 
 
+        self.detector_distance_hwobj = None
+
         self.door_interlock_state = None
         self.door_interlocked_cond = None
         self.door_interlocked_cond_value = None
@@ -63,14 +65,15 @@ class EMBLDoorInterlock(Device):
     def init(self):
         self.door_interlock_state = "unknown"
 
+        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
+
         self.can_unlock_cond_value = None
         self.can_unlock_cond = int(self.getProperty("canUnlockCond"))
         self.door_interlocked_cond_value = None
         self.door_interlocked_cond = int(self.getProperty("doorInterlockedCond"))
 
         self.before_unlock_commands_present = self.getProperty("before_unlock_commands_present")
-        if self.before_unlock_commands_present:
-            self.before_unlock_commands = self.getProperty("beforeUnlockCommands")
+        self.before_unlock_commands = eval(self.getProperty("beforeUnlockCommands"))
 
         self.use_door_interlock = self.getProperty('useDoorInterlock')
         if self.use_door_interlock is None:
@@ -131,6 +134,10 @@ class EMBLDoorInterlock(Device):
     #  Break Interlock (only if it is allowed by doorInterlockCanUnlock) 
     #  It doesn't matter what we are sending in the command as long as it is a one char
     def unlock_door_interlock(self):
+        if self.detector_distance_hwobj.getPosition() < 340:
+            self.detector_distance_hwobj.move(500)
+            
+        
         if not self.use_door_interlock:
             logging.getLogger().info('Door interlock is disabled')
             return
@@ -141,31 +148,27 @@ class EMBLDoorInterlock(Device):
             logging.getLogger().info('Door is Interlocked')
         
     def before_unlock_actions(self):
-	if self.before_unlock_commands_present:
-            for command in eval(self.before_unlock_commands):
-                addr = command["address"]
-                prop =  command["property"]
-                if len(command["argument"]) == 0:
-                    arg = [0]
-                else:
-                    try:
-                        arg = [eval(command["argument"])]
-                    except :
-                        arg = [command["argument"]]
-                if command["type"] == "set" :
-                    tine.set(addr, prop, arg)	
-                elif command["type"] == "query" :
-                    tine.query(addr, prop, arg[0])
+        for command in self.before_unlock_commands:
+            addr = command["address"]
+            prop =  command["property"]
+            if len(command["argument"]) == 0:
+                arg = [0]
+            else:
+                try:
+                   arg = [eval(command["argument"])]
+                except :
+                   arg = [command["argument"]]
+            if command["type"] == "set" :
+                tine.set(addr, prop, arg)	
+            elif command["type"] == "query" :
+                tine.query(addr, prop, arg[0])
 
     def unlock_doors_thread(self):
         if self.door_interlock_can_unlock():
-            try:
-                self.before_unlock_actions()
-                if self.cmd_break_interlock is None:
-                    self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock') 
-                self.cmd_break_interlock("b")
-            except:
-                logging.getLogger().error('Door interlock: unable to break door interlock.')
+            self.before_unlock_actions()
+            if self.cmd_break_interlock is None:
+                self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock') 
+            self.cmd_break_interlock("b")
         else:
             msg = "Door Interlock cannot be broken at the moment " + \
                   "please check its status and try again."

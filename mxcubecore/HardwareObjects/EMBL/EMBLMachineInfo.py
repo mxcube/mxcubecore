@@ -207,7 +207,7 @@ class EMBLMachineInfo(Equipment):
 
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
         if self.chan_cryojet_in is not None:
-            self.values_dict['cryo'] = self.chan_cryojet_in.getValue()
+            self.cryojet_in_changed(self.chan_cryojet_in.getValue())
             self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
         else:
             logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
@@ -232,8 +232,9 @@ class EMBLMachineInfo(Equipment):
         """
         Descript. :
         """ 
+        self.values_dict['cryo'] = value
         self.values_in_range_dict['cryo'] = value == 1
-        #self.update_values()
+        self.update_values()
 
     def mach_current_changed(self, value):
         """
@@ -246,7 +247,7 @@ class EMBLMachineInfo(Equipment):
             self.values_dict['current'] = value
             self.values_in_range_dict['current'] = self.values_dict['current'] > \
                  self.limits_dict['current']
-            #self.update_values()
+            self.update_values()
 
     def state_text_changed(self, text):
         """
@@ -255,7 +256,7 @@ class EMBLMachineInfo(Equipment):
         Return    : -
         """
         self.values_dict['stateText'] = str(text)
-        #self.update_values()
+        self.update_values()
 
     def intens_mean_changed(self, value):
         """
@@ -305,12 +306,7 @@ class EMBLMachineInfo(Equipment):
         Arguments : -
         Return    : -
         """
-        values_to_send = []
-        values_to_send.append(self.values_dict['current'])
-        values_to_send.append(self.values_dict['stateText'])
-        values_to_send.append(self.values_dict['intens']['value'])
-        values_to_send.append(self.values_dict['cryo'])       
-        self.emit('valuesChanged', values_to_send)
+        self.emit('valuesChanged', self.values_dict)
         self.emit('inRangeChanged', self.values_in_range_dict)
         self.emit('tempHumChanged', (self.temp_hum_values, self.temp_hum_in_range))
 

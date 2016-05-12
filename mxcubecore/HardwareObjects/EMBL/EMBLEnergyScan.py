@@ -58,7 +58,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.archive_prefix = None
         self.thEdge = None
         self.scanData = None
-        
+
+        self.energy_hwobj = None        
         self.db_connection_hwobj = None
         self.transmission_hwob = None
         self.beam_info_hwobj = None
@@ -73,6 +74,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         self.ready_event = gevent.event.Event()
         self.scanInfo = {}
+
+        self.energy_hwobj = self.getObjectByRole("energy")
 
         self.db_connection_hwobj = self.getObjectByRole("dbserver")
         if self.db_connection_hwobj is None:
@@ -182,6 +185,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 return False
 
         if self.chan_scan_status.getValue() in ['ready', 'unknown', 'error']:	
+            self.energy_hwobj.release_break_bragg()
+
             if self.transmission_hwobj is not None:
                 self.scanInfo['transmissionFactor'] = self.transmission_hwobj.get_value()
             else:

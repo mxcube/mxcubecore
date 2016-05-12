@@ -23,6 +23,7 @@ EMBLEnergy
 
 import math
 import logging
+from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.TaskUtils import *
 
@@ -61,6 +62,8 @@ class EMBLEnergy(Device):
 
         self.cmd_set_energy = self.getCommandObject('cmdSetEnergy')
         self.cmd_energy_ctrl_byte = self.getCommandObject('cmdEnergyCtrlByte')
+        self.cmd_set_break_bragg = self.getCommandObject('cmdSetBreakBragg')
+        self.cmd_release_break_bragg = self.getCommandObject('cmdReleaseBreakBragg')
 
         self.chan_energy = self.getChannelObject('chanEnergy')
         if self.chan_energy is not None: 
@@ -184,9 +187,11 @@ class EMBLEnergy(Device):
     def moveEnergyCmdStarted(self):
         self.moving = True
         self.emit('moveEnergyStarted', ())
+
     def moveEnergyCmdFailed(self):
         self.moving = False
         self.emit('moveEnergyFailed', ())
+
     def moveEnergyCmdAborted(self):
         self.moving = False
         self.emit('moveEnergyFailed', ())
@@ -225,10 +230,14 @@ class EMBLEnergy(Device):
         else:
             logging.getLogger('user_level_log').debug(\
                 "Energy: moving energy to %g", energy)
-            if pos > 0.1 and self.cmd_energy_ctrl_byte is not None:
-                self.cmd_energy_ctrl_byte(15) 
-            else:
-                self.cmd_energy_ctrl_byte(5)
+            if self.cmd_energy_ctrl_byte is not None:
+                if pos > 0.1:
+                    self.cmd_energy_ctrl_byte(15) 
+                else:
+                    self.cmd_energy_ctrl_byte(5)
+            
+            self.moving = True
+            self.release_break_bragg()
 
             if self.cmd_set_energy:
                 self.cmd_set_energy(energy)
@@ -248,7 +257,7 @@ class EMBLEnergy(Device):
         if type(pos) in (list, tuple):
             pos = pos[0]
         energy = pos / 1000
-        if abs(energy - self.current_energy) > 1e-2:
+        if abs(energy - self.current_energy) > 1e-3:
             self.current_energy = energy
             self.current_wav = 12.3984 / energy
             if self.current_wav is not None:
@@ -264,8 +273,11 @@ class EMBLEnergy(Device):
     def energyStateChanged(self, state):
         """
         """
+        print "energyStateChanged... ", state
         state = int(state[0])
         if state == 0:
+            if self.moving:
+                self.set_break_bragg()
             self.moveEnergyCmdFinished(0)
         elif state == 1:
             self.moveEnergyCmdStarted()
@@ -294,3 +306,13 @@ class EMBLEnergy(Device):
         if self.chan_undulator_gaps:
             self.undulator_gaps_changed(self.chan_undulator_gaps.getValue()) 
         return self.undulator_gaps
+
+    def set_break_bragg(self):
+        print self.cmd_set_break_bragg
+        if self.cmd_set_break_bragg is not None:
+            self.cmd_set_break_bragg(1)
+
+    def release_break_bragg(self):
+        if self.cmd_release_break_bragg is not None:
+            self.cmd_release_break_bragg(1)
+            sleep(1)

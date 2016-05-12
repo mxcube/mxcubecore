@@ -355,19 +355,21 @@ class Qt4_GraphicsManager(HardwareObject):
                     if hasattr(grid_cpos, "zoom"):
                         current_cpos.zoom = grid_cpos.zoom
 
-                    shape.set_center_coord((self.diffractometer_hwobj.\
-                        motor_positions_to_screen(grid_cpos.as_dict())))
+                    center_coord = self.diffractometer_hwobj.\
+                        motor_positions_to_screen(grid_cpos.as_dict())
+                    if center_coord:
+                        shape.set_center_coord(center_coord)
 
-                    corner_coord = []
-                    for motor_pos in shape.get_motor_pos_corner():
-                        corner_coord.append((self.diffractometer_hwobj.\
-                             motor_positions_to_screen(motor_pos)))
-                    shape.set_corner_coord(corner_coord)
+                        corner_coord = []
+                        for motor_pos in shape.get_motor_pos_corner():
+                            corner_coord.append((self.diffractometer_hwobj.\
+                                motor_positions_to_screen(motor_pos)))
+                        shape.set_corner_coord(corner_coord)
       
-                    if current_cpos == grid_cpos:
-                        shape.set_projection_mode(False)
-                    else:    
-                        shape.set_projection_mode(True)
+                        if current_cpos == grid_cpos:
+                            shape.set_projection_mode(False)
+                        else:    
+                            shape.set_projection_mode(True)
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
