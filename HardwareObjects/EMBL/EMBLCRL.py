@@ -208,12 +208,8 @@ class EMBLCRL(HardwareObject):
            "distance to %.2f"%(self.get_image_plane_distance(value)))
         if timeout:
             gevent.sleep(1)
-            print 1
             with gevent.Timeout(10, Exception("Timeout waiting for CRL")):
-               print 2
-               print value, self.crl_value
                while value != self.crl_value:
-                   print value, self.crl_value
                    gevent.sleep(0.1)  
                gevent.sleep(1)
 

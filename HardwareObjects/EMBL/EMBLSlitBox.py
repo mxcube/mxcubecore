@@ -329,7 +329,7 @@ class EMBLSlitBox(Equipment):
                         float((old_gap - new_gap) / 2 * (10 ** self.decimal_places))		
                     for motor_group in self.motors_groups:
                         if self.motors_dict[motor]['motorsGroup'] == motor_group.userName():
-                            motor_group.set_motor_position(motor, new_position)
+                            motor_group.set_motor_position(motor, new_position, timeout=10)
                             break
 
     def stop_gap_move(self, gap_name):

@@ -75,6 +75,7 @@ Example Hardware Object XML file :
 </device>"""
 
 import time
+import gevent
 import logging
 import _tine as tine
 from HardwareRepository.BaseHardwareObjects import Device 
@@ -147,7 +148,7 @@ class EMBLMotorsGroup(Device):
         """
         return self.motors_list    
 
-    def set_motor_position(self, motor_name, new_position):
+    def set_motor_position(self, motor_name, new_position, timeout=None):
         """
 	Descript. : sets motor value. Direct tine.set cmd is used 
     	Arguments : motor name, new value                                        
@@ -158,10 +159,13 @@ class EMBLMotorsGroup(Device):
                 if motor['velocity'] is not None:
                     tine.set(self.server_address + "/" + motor['motorAddr'], 
                          'Velocity', motor['velocity']) 
-                print self.server_address + "/" + motor['motorAddr'], motor['setCmd'], new_position
+                motor['status'] = motor['statusModes']['Move']
                 tine.set(self.server_address + "/" + motor['motorAddr'], 
                      motor['setCmd'], new_position)
+                time.sleep(0.2)
+                self.wait_motor_ready(motor_name, timeout=10)            
                 time.sleep(1)
+                break
 
     def set_motor_focus_mode(self, motor_name, focus_mode):
         """
@@ -193,9 +197,13 @@ class EMBLMotorsGroup(Device):
                 if motor['velocity'] is not None:
                     tine.set(self.server_address + "/" + 
                      motor['motorAddr'], 'Velocity', motor['velocity'])
+
+                motor['status'] = motor['statusModes']['Move']
                 tine.set(self.server_address + "/" + 
                      motor['motorAddr'], motor['setCmd'],
                      motor['focusingModes'][str(focus_mode)])
+                time.sleep(0.1)
+                self.wait_motor_ready(motor['motorName'], timeout=10)
                 time.sleep(1)
 	       
     def stop_motor(self, motor_name):
@@ -265,3 +273,14 @@ class EMBLMotorsGroup(Device):
                     if motor['statusModes'][status_mode] == new_status:
                         values_to_send[motor['motorName']] = status_mode
         self.emit('mGroupStatusChanged', str(values_to_send))
+
+    def wait_motor_ready(self, motor_name, timeout):
+        self.status_changed(self.chan_status.getValue())
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self.is_motor_ready(motor_name):
+                gevent.sleep(0.01)
+
+    def is_motor_ready(self, motor_name):
+        for motor in self.motors_list:
+            if motor['motorName'] == motor_name:
+                return motor['status'] == motor['statusModes']['Ready']  

@@ -193,8 +193,8 @@ class GraphicsItem(QtGui.QGraphicsItem):
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
         self.beam_size_mm[0] = beam_info.get("size_x", 0)
         self.beam_size_mm[1] = beam_info.get("size_y", 0) 
-        self.beam_size_pix[0] = self.beam_size_mm[0] * self.pixels_per_mm[0] 
-        self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1] 
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0]) 
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1]) 
 
     def set_beam_position(self, beam_position):
         """Sets beam position
@@ -205,8 +205,8 @@ class GraphicsItem(QtGui.QGraphicsItem):
         """Sets pixels per mm and updates item
         """
         self.pixels_per_mm = pixels_per_mm
-        self.beam_size_pix[0] = self.beam_size_mm[0] * self.pixels_per_mm[0] 
-        self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1] 
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0]) 
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1]) 
         self.update_item()
 
 class GraphicsItemBeam(GraphicsItem):
@@ -551,6 +551,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.__draw_projection = False
 
         self.__osc_start = None
+        self.__osc_range = 0.1
         self.__motor_pos_corner = []
         self.__centred_position = None
         self.__snapshot = None
@@ -600,8 +601,8 @@ class GraphicsItemGrid(GraphicsItem):
                               self.pixels_per_mm[1] * self.__spacing_mm[1]]
         self.__cell_size_pix = [self.pixels_per_mm[0] * self.__cell_size_mm[0],
                                 self.pixels_per_mm[1] * self.__cell_size_mm[1]]
-        self.beam_size_pix[0] = self.beam_size_mm[0] * self.pixels_per_mm[0]
-        self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1]
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0])
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1])
 
     def set_osc_range(self, osc_range):
         self.__osc_range = osc_range
@@ -1045,7 +1046,6 @@ class GraphicsItemGrid(GraphicsItem):
 
 
         #MD3
-        """
         omega_ref = 163.675
         new_point['sampx'] = new_point['sampx'] - hor_range  * \
                              math.sin(math.pi * (self.__osc_start - omega_ref) / 180.0)
@@ -1065,18 +1065,9 @@ class GraphicsItemGrid(GraphicsItem):
         new_point['sampy'] = new_point['sampy'] - ver_range  * \
                              math.cos(math.pi * (self.__osc_start - \
                              omega_ref) / 180.0)
+        new_point['phiy'] = new_point['phiy'] - hor_range
         new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_cols / 2 + \
                            (self.__num_cols - col) * self.__osc_range
-
-
-        """
-        new_point['sampx'] = new_point['sampx'] + ver_range * \
-                             math.sin(math.pi * (self.__osc_start - \
-                             self.grid_direction["omega_ref"]) / 180.0)
-        new_point['sampy'] = new_point['sampy'] - ver_range  * \
-                             math.cos(math.pi * (self.__osc_start - \
-                             self.grid_direction["omega_ref"]) / 180.0)
-        new_point['phiy'] = new_point['phiy'] - hor_range
         """
 
         if as_cpos:
@@ -1098,8 +1089,9 @@ class GraphicsItemScale(GraphicsItem):
         self.__display_grid = None
         
     def paint(self, painter, option, widget):
-        hor_scale_len_pix = self.pixels_per_mm[0] * self.__scale_len / 1000
-        ver_scale_len_pix = self.pixels_per_mm[1] * self.__scale_len / 1000 / 2
+        #TODO move to set_pixels_per_mm
+        hor_scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len / 1000)
+        ver_scale_len_pix = int(self.pixels_per_mm[1] * self.__scale_len / 1000 / 2)
 
         scene_width = self.scene().width()
         scene_height = self.scene().height()
@@ -1163,7 +1155,7 @@ class GraphicsItemScale(GraphicsItem):
     def set_start_position(self, position_x, position_y):
         if (position_x is not None and
             position_y is not None):
-            self.start_coord = [position_x, position_y]
+            self.start_coord = [int(position_x), int(position_y)]
 
     def set_display_grid(self, display_grid):
         self.__display_grid = display_grid
@@ -1191,11 +1183,11 @@ class GraphicsItemOmegaReference(GraphicsItem):
     def set_reference(self, omega_reference):
         if omega_reference[0] > 0:
             #Omega reference is a vertical axis
-            self.start_coord = [omega_reference[0], 0]
-            self.end_coord = [omega_reference[0], self.scene().height()]
+            self.start_coord = [int(omega_reference[0]), 0]
+            self.end_coord = [int(omega_reference[0]), self.scene().height()]
         else:
-            self.start_coord = [0, omega_reference[1]]
-            self.end_coord = [self.scene().width(), omega_reference[1]] 
+            self.start_coord = [0, int(omega_reference[1])]
+            self.end_coord = [self.scene().width(), int(omega_reference[1])] 
 
 class GraphicsSelectTool(GraphicsItem):
     """
