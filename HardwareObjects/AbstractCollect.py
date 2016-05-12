@@ -30,10 +30,10 @@ import errno
 import abc
 import collections
 import gevent
+import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.TaskUtils import *
 
 __credits__ = ["MXCuBE colaboration"]
-
 __version__ = "2.2."
 __status__ = "Draft"
 
@@ -114,8 +114,6 @@ class AbstractCollect(object):
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["collection_start_time"] = \
              time.strftime("%Y-%m-%d %H:%M:%S")
-        self.current_dc_parameters["synchrotronMode"] = \
-             self.get_machine_fill_mode()
      
         log.info("Collection: Storing data collection in LIMS") 
         self.store_data_collection_in_lims()
@@ -416,12 +414,17 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj:
+        print "in_interleave: ", self.current_dc_parameters['in_interleave']
+        if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             try:
+                print 1
+                self.current_dc_parameters["synchrotronMode"] = \
+                     self.get_machine_fill_mode()
                 (collection_id, detector_id) = self.lims_client_hwobj.\
                   store_data_collection(self.current_dc_parameters, 
                                         self.bl_config)
                 self.current_dc_parameters['collection_id'] = collection_id  
+                print collection_id
                 if detector_id:
                     self.current_dc_parameters['detector_id'] = detector_id 
             except:
@@ -431,7 +434,7 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj:
+        if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             self.current_dc_parameters["flux"] = self.get_flux()
             self.current_dc_parameters["wavelength"] = self.get_wavelength()
             self.current_dc_parameters["detectorDistance"] =  self.get_detector_distance()
@@ -456,22 +459,22 @@ class AbstractCollect(object):
             self.current_dc_parameters["slitGapHorizontal"] = hor_gap
             self.current_dc_parameters["slitGapVertical"] = vert_gap
             try:
-                self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
+               self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
             except:
-                logging.getLogger("HWR").exception("Could not update data collection in LIMS")
+               logging.getLogger("HWR").exception("Could not update data collection in LIMS")
 
     def store_sample_info_in_lims(self):
         """
         Descript. : 
         """
-        if self.lims_client_hwobj:
+        if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             self.lims_client_hwobj.update_bl_sample(self.current_lims_sample)
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
         Descript. :
         """
-        if self.lims_client_hwobj:
+        if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters['fileinfo']['template']
             filename = image_file_template % frame_number
@@ -575,7 +578,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
-        if number_of_snapshots > 0:
+        if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
             snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
             if not os.path.exists(snapshot_directory):
                 try:
@@ -648,3 +651,16 @@ class AbstractCollect(object):
 
     def set_run_autoprocessing(self, status):
         pass
+
+
+    def prepare_interleave(self, data_model, param_list):
+        self.current_dc_parameters = param_list[0]
+        self.current_dc_parameters["status"] = "Running"
+        self.current_dc_parameters["collection_start_time"] = \
+             time.strftime("%Y-%m-%d %H:%M:%S")
+        self.take_crystal_snapshots()
+
+        self.store_data_collection_in_lims()
+        self.current_dc_parameters["status"] = \
+             "Data collection successful"
+        self.update_data_collection_in_lims()

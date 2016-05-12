@@ -42,8 +42,9 @@ class CentringMath(Procedure):
         but not just x,y as in original MiniDiff.
         """
         tau_cntrd = self.centred_positions_to_vector(centring_dict)
-        dum = self.tau - tau_cntrd
-        return self.vector_to_camera_coordinates(numpy.dot(self.F.T,dum))
+        if self.tau is not None and tau_cntrd is not None: 
+            dum = self.tau - tau_cntrd
+            return self.vector_to_camera_coordinates(numpy.dot(self.F.T,dum))
 
     def listOfCentringsToScreen(self,list_of_centring_dicts):
         self.factorize()

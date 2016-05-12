@@ -101,3 +101,6 @@ class BeamInfoMockup(Equipment):
     def get_aperture_pos_name(self):
         if self.aperture_hwobj:
             return self.aperture_hwobj.get_current_pos_name()
+
+    def get_focus_mode(self):
+        return
