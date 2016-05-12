@@ -6,6 +6,9 @@ import time
 import logging
 import gevent
 import lucid2 as lucid
+import numpy as np
+from PIL import Image
+#import lucid
 import tempfile
 
 from GenericDiffractometer import GenericDiffractometer
@@ -70,6 +73,7 @@ class BIOMAXMD3(GenericDiffractometer):
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
+	    print "click ", x, y
             self.centring_hwobj.appendCentringDataPoint(
                  {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
                   "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
@@ -91,7 +95,8 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         
         surface_score_list = []
-        self.zoom_motor_hwobj.moveToPosition("Zoom 3")
+        self.zoom_motor_hwobj.moveToPosition("Zoom 1")
+        self.wait_device_ready(3)
         self.centring_hwobj.initCentringProcedure()
         for image in range(BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES):
             x, y, score = self.find_loop()
@@ -102,6 +107,7 @@ class BIOMAXMD3(GenericDiffractometer):
             surface_score_list.append(score)
             self.phi_motor_hwobj.moveRelative(\
                  360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES)
+	    gevent.sleep(2)
             self.wait_device_ready(5)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
@@ -110,13 +116,30 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Description:
         """
-        snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
+        
+        tmp = "mxcube_sample_snapshot_%s.jpg" % (self.phi_motor_hwobj.getPosition())
+        tmp2 = "mxcube_sample_snapshot_%s2.jpg" % (self.phi_motor_hwobj.getPosition())
+        snapshot_filename = os.path.join(tempfile.gettempdir(), tmp) #"mxcube_sample_snapshot.jpg")
+        snapshot_filename2 = os.path.join(tempfile.gettempdir(), tmp2)
         self.camera.takeSnapshot(snapshot_filename, bw=True)
-        info, x, y = lucid.find_loop(snapshot_filename,IterationClosing=6)
-        surface_score = 10
-        print snapshot_filename  
-        print info
-        return x, y, surface_score
+        test=Image.open(snapshot_filename)
+        img = np.array(test)
+        #try:
+        #img = self.camera.get_snapshot_img_array()
+        img_rot = np.rot90(img,1)
+        image = Image.fromarray(img_rot)
+        image.save(snapshot_filename2)    
+        info, y, x = lucid.find_loop(snapshot_filename2,IterationClosing=6)
+        x = self.camera.getWidth() - x
+            #info, x, y = lucid.find_loop(snapshot_filename,pixels_per_mm_horizontal=self.pixels_per_mm_x)
+        #except:
+        #    return -2,-2, 0
+        if info == "Coord":
+            surface_score = 10
+            print "x %s y %s and phi %s self.pixels_per_mm_x %s" % (x,y,self.phi_motor_hwobj.getPosition(),self.pixels_per_mm_x)
+            return x, y, surface_score
+        else:
+            return  -2,-2, 0
 
     def omega_reference_add_constraint(self):
         """
