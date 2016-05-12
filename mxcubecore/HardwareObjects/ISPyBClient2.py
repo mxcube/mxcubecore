@@ -757,7 +757,6 @@ class ISPyBClient2(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-
         blSetupId = None
         if self.__collection:
 
@@ -1842,7 +1841,7 @@ class ISPyBValueFactory():
 
             try:
                 group.actualSampleSlotInContainer = \
-                    mx_collect_dict['actualSampleSlotInContiner']
+                    mx_collect_dict['actualSampleSlotInContainer']
             except KeyError:
                 pass
 

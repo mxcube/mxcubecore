@@ -383,13 +383,27 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         task_model = self.get_data_model()
         gid = task_model.lims_group_id
 
+        sample_model = task_model.get_parent()
+
         if not gid:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
-            group_data = {'sessionId': self.session_hwobj.session_id,
-                          'experimentType': 'OSC'}
+            if task_model.interleave_num_images:
+                group_data = {'sessionId': self.session_hwobj.session_id,
+                              'experimentType': 'Collect - Multiwedge'}
+            else:
+                group_data = {'sessionId': self.session_hwobj.session_id,
+                              'experimentType': 'OSC'}
 
+            sample_model = task_model.get_parent()
+            if sample_model.lims_container_location > -1:
+                group_data['actualContainerSlotInSC'] = \
+                   sample_model.lims_container_location
+            if sample_model.lims_sample_location > -1:
+                group_data['actualSampleSlotInContainer'] = \
+                   sample_model.lims_sample_location 
+               
             try:
                 gid = self.lims_client_hwobj.\
                   _store_data_collection_group(group_data)
@@ -409,11 +423,14 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
             for child_data_model in children_data_model_list: 
                 if isinstance(child_data_model, queue_model_objects.DataCollection):
-                    num_images = child_data_model.acquisitions[0].acquisition_parameters.num_images
+                    num_images = child_data_model.acquisitions[0].\
+                        acquisition_parameters.num_images
                     if num_images > task_model.interleave_num_images:
                         if num_images > ref_num_images:
                             ref_num_images = num_images
                         interleave_item = {}
+                        child_data_model.set_experiment_type(\
+                            EXPERIMENT_TYPE.COLLECT_MULTIWEDGE)
                         interleave_item["data_model"] = child_data_model
                         for queue_entry in self._queue_entry_list:
                             if queue_entry.get_data_model() == child_data_model:
@@ -435,49 +452,73 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         for interleave_item in self.interleave_items:
             interleave_item["queue_entry"].set_enabled(False)
             interleave_item["tree_item"].set_checkable(False)
-
-            #Take snapshot and store in lims
-            #interleave_item["queue_entry"].take_snapshots()
-            #interleave_item["queue_entry"].store_in_lims()
-
-            # Disable snapshots and lims for subwedges
-            #interleave_item["queue_entry"].enable_take_snapshots = False
-            #interleave_item["queue_entry"].enable_store_in_lims = False
-
+            interleave_item["data_model"].lims_group_id = \
+                interleave_item["data_model"].get_parent().lims_group_id
+            cpos = interleave_item["data_model"].acquisitions[0].\
+                acquisition_parameters.centred_position
+            sample = interleave_item["data_model"].get_parent().get_parent()
+            empty_cpos = queue_model_objects.CentredPosition()
+            param_list = queue_model_objects.to_collect_dict(
+                 interleave_item["data_model"], self.session_hwobj,
+                 sample, cpos if cpos!=empty_cpos else None)
+            self.collect_hwobj.prepare_interleave(interleave_item["data_model"],
+                                                  param_list)
+ 
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(\
               self.interleave_items, ref_num_images, interleave_num_images)
         for item_index, item in enumerate(self.interleave_sw_list):
             if not self.interleave_stoped:
                 self.get_view().setText(1, "Interleaving subwedge %d (total: %d)" \
-                     % (item[0] + 1, item[1] + 1))
-                acq_par = self.interleave_items[item[0]]["data_model"].\
+                     % (item["collect_index"] + 1, item["sw_index"] + 1))
+                acq_par = self.interleave_items[item["collect_index"]]["data_model"].\
                    acquisitions[0].acquisition_parameters
-                acq_par.first_image = item[2]
-                acq_par.num_images = item[3]
-                acq_par.osc_start = item[4]
+                acq_first_image = acq_par.first_image
+
+                acq_par.first_image = item["sw_first_image"]
+                acq_par.num_images = item["sw_actual_size"]
+                acq_par.osc_start = item["sw_osc_start"]
+                acq_par.in_interleave = (acq_first_image, acq_first_image + item["collect_num_images"] - 1)
+                self.interleave_items[item["collect_index"]]["queue_entry"].in_queue = \
+                     item_index < (len(self.interleave_sw_list) - 1)
+
                 msg = "Executing interleaved collection (subwedge %d:%d, " % \
-                    (item[0] + 1, item[1] + 1)
+                    (item["collect_index"] + 1, item["sw_index"] + 1)
                 msg += "from %d to %d, " % (acq_par.first_image, 
                     acq_par.first_image + acq_par.num_images - 1) 
                 msg += "osc start: %.2f, osc total range: %.2f)" % \
-                    (item[4], item[5])
+                    (item["sw_osc_start"], item["sw_osc_range"])
                 logging.getLogger("user_level_log").info(msg)
+
                 try:
-                   self.interleave_items[item[0]]["queue_entry"].pre_execute()
-                   self.interleave_items[item[0]]["queue_entry"].execute()
+                   self.interleave_items[item["collect_index"]]["queue_entry"].pre_execute()
+                   self.interleave_items[item["collect_index"]]["queue_entry"].execute()
                 except:
                    pass
-                self.interleave_items[item[0]]["queue_entry"].post_execute()
-                self.interleave_items[item[0]]["tree_item"].setText(1, 
-                      "Subwedge %d:%d done" % (item[0] + 1, item[1] + 1))
+                self.interleave_items[item["collect_index"]]["queue_entry"].post_execute()
+                self.interleave_items[item["collect_index"]]["tree_item"].\
+                      setText(1, "Subwedge %d:%d done" % (\
+                              item["collect_index"] + 1, 
+                              item["sw_index"] + 1))
+
         if not self.interleave_stoped:
             logging.getLogger("user_level_log").info("Interleaved task finished")
+
+        """
+        for interleave_item in self.interleave_items:
+            sample = interleave_item["data_model"].get_parent().get_parent()
+            param_list = queue_model_objects.to_collect_dict(
+                 interleave_item["data_model"], self.session_hwobj,
+                 sample)
+            self.collect_hwobj.finalize_interleave(param_list)
+        """
+
         self.interleave_task = None
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
         self.lims_client_hwobj = self.beamline_setup.lims_client_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
+        self.collect_hwobj = self.beamline_setup.collect_hwobj
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
@@ -707,6 +748,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.enable_store_in_lims = True
         self.in_queue = False 
 
+        self.parallel_processing_hwobj = None
+
     def __getstate__(self):
         d = dict(self.__dict__)
         d["collect_task"] = None
@@ -734,6 +777,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
         self.session = self.beamline_setup.session_hwobj
+        self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
 
         qc = self.get_queue_controller()
 
@@ -788,6 +832,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
             self.collect_hwobj.set_run_autoprocessing(dc.run_autoprocessing)
+            self.processing_task = None
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
@@ -806,6 +851,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #msg = "Helical data collection, moving to start position"
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
+
+                    self.processing_task = gevent.spawn(\
+                          self.parallel_processing_hwobj.run_processing,
+                          dc)
+
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
                     self.collect_hwobj.setMeshScanParameters(\
                          acq_1.acquisition_parameters.num_lines,
@@ -893,6 +943,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_finished(self, owner, state, message, *args):
         # this is to work around the remote access problem
+
+        if self.processing_task:
+            self.get_view().setText(1, "Processing")
+            self.parallel_processing_hwobj.processing_done_event.wait()
+            self.parallel_processing_hwobj.processing_done_event.clear()
+
+
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
         logging.getLogger("user_level_log").info('Collection completed')
@@ -901,7 +958,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         BaseQueueEntry.stop(self)
 
         try:
-            self.get_view().setText(1, 'Stopping ...')
             self.collect_hwobj.stopCollect('mxCuBE')
 
             if self.centring_task:
@@ -1655,6 +1711,7 @@ def mount_sample(beamline_setup_hwobj,
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
 
+"""
 def store_data_collection_in_lims(beamline_setup_hwobj, data_collection_parameters, bl_config):
     if beamline_setup_hwobj.lims_hwobj:
         log = logging.getLogger("user_level_log")
@@ -1683,7 +1740,7 @@ def store_sample_info_in_lims(beamline_setup_hwobj, sample_info):
         log = logging.getLogger("user_level_log")
         log.info("Storing sample info in LIMS")
         beamline_setup_hwobj.lims_hwobj.update_bl_sample(sample_info)
-        
+"""     
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \

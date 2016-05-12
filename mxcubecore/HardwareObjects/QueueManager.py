@@ -17,6 +17,7 @@ import queue_entry
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from queue_entry import QueueEntryContainer
 
+"""
 logger = logging.getLogger('queue_exec')
 try:
     formatter = \
@@ -37,6 +38,7 @@ except:
 logger.setLevel(logging.INFO)
 logger = logging.getLogger('queue_exec').\
          info("Module load, probably application start")
+"""
 
 
 class QueueManager(HardwareObject, QueueEntryContainer):

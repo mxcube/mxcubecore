@@ -63,7 +63,7 @@ class ParallelProcessing(HardwareObject):
 
         self.processing_start_command = str(self.getProperty("processing_command"))        
 
-    def create_processing_input(self, data_collection, processing_params, grid_object):
+    def create_processing_input(self, data_collection, processing_params, grid_object=None):
         """
         Descript. : Creates dozor input file base on data collection parameters
         Args.     : data_collection (object)
@@ -105,8 +105,11 @@ class ParallelProcessing(HardwareObject):
         except:
            pass
 
-        grid_params = grid_object.get_properties()
-        reversing_rotation = grid_params["reversing_rotation"]
+        if grid_object:
+            grid_params = grid_object.get_properties()
+            reversing_rotation = grid_params["reversing_rotation"]
+        else:
+            reversing_rotation = False
 
         processing_params["template"] = template
         processing_params["first_image_num"] = first_image_num
@@ -135,6 +138,8 @@ class ParallelProcessing(HardwareObject):
             processing_params["steps_y"] = grid_params["steps_y"]
             processing_params["xOffset"] = grid_params["xOffset"]
             processing_params["yOffset"] = grid_params["yOffset"]
+        else:
+            processing_params["steps_y"] = 1 
 
         processing_input_file.setTemplate(XSDataString(template))
         processing_input_file.setFirst_image_number(XSDataInteger(first_image_num))
@@ -151,7 +156,7 @@ class ParallelProcessing(HardwareObject):
 
         return processing_input_file, processing_params
 
-    def run_processing(self, data_collection, grid_object):
+    def run_processing(self, data_collection, grid_object=None):
         """
         Descript. : Main parallel processing method.
                     At first EDNA input file is generated based on acq parameters.
@@ -169,8 +174,9 @@ class ParallelProcessing(HardwareObject):
         run_number = acquisition.path_template.run_number
         process_directory = acquisition.path_template.process_directory
         archive_directory = acquisition.path_template.get_archive_directory()
-        file_wait_timeout = (0.003 + acq_params.exp_time) * \
-                            acq_params.num_images / acq_params.num_lines + 30
+        file_wait_timeout = acq_params.exp_time * \
+                            acq_params.num_images *\
+                            acq_params.num_lines + 30
 
         # Estimates dozor directory. If run number found then creates
         # processing and archive directory         
@@ -215,7 +221,6 @@ class ParallelProcessing(HardwareObject):
         #processing_params["associated_data_collection"] = data_collection
         processing_params["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
-
         processing_input, processing_params = self.create_processing_input(\
              data_collection, processing_params, grid_object) 
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
@@ -223,12 +228,14 @@ class ParallelProcessing(HardwareObject):
 
         if not os.path.isfile(self.processing_start_command):
             self.processing_done_event.set()
-            msg = "ParallelProcessing: Start command %s is not executable" % self.processing_start_command
+            msg = "ParallelProcessing: Start command %s is not " +\
+                  "executable" % self.processing_start_command
             logging.getLogger("queue_exec").error(msg)
             self.emit("processingFailed")
             return       
         else:
-            msg = "ParallelProcessing: Starting processing using xml file %s" % processing_input_file
+            msg = "ParallelProcessing: Starting processing using " +\
+                  "xml file %s" % processing_input_file
             logging.getLogger("queue_exec").info(msg)
             line_to_execute = self.processing_start_command + ' ' + \
                               processing_input_file + ' ' + \
@@ -236,10 +243,9 @@ class ParallelProcessing(HardwareObject):
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
-
         self.do_processing_result_polling(processing_params, file_wait_timeout, grid_object)
         
-    def do_processing_result_polling(self, processing_params, wait_timeout, grid_object):
+    def do_processing_result_polling(self, processing_params, wait_timeout, grid_object=None):
         """Method polls processing results. Based on the polling of edna 
            result files. After each result file results are aligned to match 
            the diffractometer configuration.
@@ -270,10 +276,12 @@ class ParallelProcessing(HardwareObject):
         _start_time = time.time()
        
         while _result_place == [] and time.time() - _start_time < _time_out :
-           _result_place = glob.glob(os.path.join(processing_params["directory"],"EDApplication*/"))
+           _result_place = glob.glob(os.path.join(\
+                 processing_params["directory"],"EDApplication*/"))
            gevent.sleep(0.2)
         if _result_place == [] : 
-           msg = "ParallelProcessing: Failed to read dozor result directory %s" % processing_params["directory"]
+           msg = "ParallelProcessing: Failed to read dozor result " + \
+                 "rectory %s" % processing_params["directory"]
            logging.error(msg)
            processing_params["status"] = "Failed"
            processing_params["comments"] += "Failed: " + msg
@@ -283,25 +291,31 @@ class ParallelProcessing(HardwareObject):
 
         while do_polling and not failed:
             file_appeared = False
-            result_file_name = os.path.join(_result_place[0],"ResultControlDozor_Chunk_%06d.xml" % result_file_index)
+            result_file_name = os.path.join(_result_place[0], 
+                  "ResultControlDozor_Chunk_%06d.xml" % result_file_index)
             wait_file_start = time.time()
-            logging.debug('ParallelProcessing: Waiting for Dozor result file: %s' % result_file_name)
+            logging.debug("ParallelProcessing: Waiting for Dozor result " +\
+                          "file: %s" % result_file_name)
             while not file_appeared and time.time() - wait_file_start < wait_timeout:
                 if os.path.exists(result_file_name) and os.stat(result_file_name).st_size > 0:
                     file_appeared = True
                     _time_out = wait_timeout
-                    logging.debug('ParallelProcessing: Dozor file is there, size={0}'.format(os.stat(result_file_name).st_size))
+                    logging.debug("ParallelProcessing: Dozor file is there," +\
+                                  " size={0}".format(os.stat(result_file_name).st_size))
                 else:
                     os.system("ls %s > /dev/null" %_result_place[0])
                     gevent.sleep(0.2)
             if not file_appeared:
                 failed = True
-                msg = 'ParallelProcessing: Dozor result file ({0}) failed to appear after {1} seconds'.\
+                msg = "ParallelProcessing: Dozor result file ({0}) " +\
+                      "failed to appear after {1} seconds".\
                       format(result_file_name, wait_timeout)
                 logging.error(msg)
                 processing_params["status"] = "Failed"
                 processing_params["comments"] += "Failed: " + msg
                 self.emit("processingFailed")
+                self.processing_done_event.set()
+                return
                 
             # poll while the size increasing:
             _oldsize = -1 
@@ -316,26 +330,31 @@ class ParallelProcessing(HardwareObject):
             for dozor_image in dozor_output_file.getImageDozor():
                 image_index = dozor_image.getNumber().getValue() - 1
                 processing_result["image_num"][image_index] = image_index
-                processing_result["spots_num"][image_index] = dozor_image.getSpots_num_of().getValue()
-                processing_result["spots_int_aver"][image_index] = dozor_image.getSpots_int_aver().getValue()   
-                processing_result["spots_resolution"][image_index] = dozor_image.getSpots_resolution().getValue()
+                processing_result["spots_num"][image_index] = \
+                      dozor_image.getSpots_num_of().getValue()
+                processing_result["spots_int_aver"][image_index] = \
+                      dozor_image.getSpots_int_aver().getValue()   
+                processing_result["spots_resolution"][image_index] = \
+                      dozor_image.getSpots_resolution().getValue()
                 processing_result["score"][image_index] = dozor_image.getScore().getValue()
                 image_index += 1
-                do_polling = (dozor_image.getNumber().getValue() != processing_params["images_num"])
+                do_polling = (dozor_image.getNumber().getValue() != \
+                      processing_params["images_num"])
 
             aligned_result = self.align_processing_results(\
-                processing_result, processing_params, grid_object)
-            self.emit("processingSetResult", (aligned_result, processing_params, False))
+			    processing_result, processing_params, grid_object)
+            self.emit("paralleProcessingResults", (aligned_result, processing_params, False))
             result_file_index += 1
-        """
 
+        """
         gevent.sleep(10)
         #This is for test...
 
-        for key in processing_result.keys():
-            processing_result[key] = numpy.linspace(0, 
-                 processing_params["images_num"], 
-                 processing_params["images_num"]).astype('uint8')
+        #for key in processing_result.keys():
+        #    processing_result[key] = numpy.linspace(0, 
+        #         processing_params["images_num"], 
+        #         processing_params["images_num"]).astype('uint8')
+        processing_result['score'][20] = 10
         """
 
         self.processing_results = self.align_processing_results(\
@@ -367,9 +386,9 @@ class ParallelProcessing(HardwareObject):
 
             #If best positions detected then save them in ispyb 
             if len(best_positions) > 0:
-                logging.getLogger("HWR").info("ParallelProcessing: Saving %d best positions in ISPyB" % \
+                logging.getLogger("HWR").info("ParallelProcessing: Saving " + \
+                       " %d best positions in ISPyB" % \
                        len(best_positions))
-
                 motor_pos_id_list = []
                 image_id_list = []
                 for image in best_positions:
@@ -391,17 +410,23 @@ class ParallelProcessing(HardwareObject):
                 processing_params["best_position_id"] = motor_pos_id_list[0]
                 processing_params["best_image_id"] = image_id_list[0] 
 
-                logging.getLogger("HWR").info("ParallelProcessing: Updating best position in ISPyB")
+                logging.getLogger("HWR").info("ParallelProcessing: Updating " +\
+                       "best position in ISPyB")
                 self.lims_hwobj.store_workflow(processing_params)
             else:
-                logging.getLogger("HWR").info("ParallelProcessing: No best positions found during the scan")
+                logging.getLogger("HWR").info("ParallelProcessing: No best " +\
+                        "positions found during the scan")
 
             try:
                 html_filename = os.path.join(processing_params["result_file_path"], "index.html")
-                logging.getLogger("HWR").info("ParallelProcessing: Generating results html %s" % html_filename)
-                simpleHtml.generate_mesh_scan_report(self.processing_results, processing_params, html_filename)
+                logging.getLogger("HWR").info("ParallelProcessing: Generating" +\
+                        " results html %s" % html_filename)
+                simpleHtml.generate_mesh_scan_report(self.processing_results, 
+                                                     processing_params, 
+                                                     html_filename)
             except:
-                logging.getLogger("HWR").exception("ParallelProcessing: Could not create result html %s" % html_filename)
+                logging.getLogger("HWR").exception("ParallelProcessing: " +\
+                        "Could not create result html %s" % html_filename)
 
         # Heat map generation
         fig, ax = plt.subplots(nrows=1, ncols=1 )
@@ -441,26 +466,31 @@ class ParallelProcessing(HardwareObject):
              ["processing_archive_directory"], "parallel_processing_result.png")
 
         try:
-            logging.getLogger("HWR").info("ParallelProcessing: Saving heat map figure %s" % processing_plot_file)
+            logging.getLogger("HWR").info("ParallelProcessing: Saving "+\
+                                          "heat map figure %s" % \
+                                          processing_plot_file)
             if not os.path.exists(os.path.dirname(processing_plot_file)):
                 os.makedirs(os.path.dirname(processing_plot_file))
             fig.savefig(processing_plot_file, dpi = 150, bbox_inches = 'tight')
         except:
-            logging.getLogger("HWR").exception("ParallelProcessing: Could not save figure %s" % processing_plot_file)
+            logging.getLogger("HWR").exception("ParallelProcessing: Could " +\
+                    "not save figure %s" % processing_plot_file)
         try:
-            logging.getLogger("HWR").info("ParallelProcessing: Saving heat map figure for ISPyB %s" % processing_plot_archive_file)
+            logging.getLogger("HWR").info("ParallelProcessing: Saving heat " +\
+                    "map figure for ISPyB %s" % processing_plot_archive_file)
             if not os.path.exists(os.path.dirname(processing_plot_archive_file)):
                 os.makedirs(os.path.dirname(processing_plot_archive_file))
             fig.savefig(processing_plot_archive_file, dpi = 150, bbox_inches = 'tight')
         except:
-            logging.getLogger("HWR").exception("ParallelProcessing: Could not save figure for ISPyB %s" % processing_plot_archive_file) 
+            logging.getLogger("HWR").exception("ParallelProcessing: Could " +\
+                    "not save figure for ISPyB %s" % processing_plot_archive_file) 
         plt.close(fig)
         self.processing_done_event.set()
 
     def is_running(self):
         return not self.processing_done_event.is_set()
 
-    def align_processing_results(self, results_dict, processing_params, grid_object):
+    def align_processing_results(self, results_dict, processing_params, grid_object=None):
         """
         Descript. : Realigns all results. Each results (one dimensional numpy array)
                     is converted to 2d numpy array according to diffractometer
@@ -513,7 +543,7 @@ class ParallelProcessing(HardwareObject):
         aligned_results["best_positions"] = best_positions_list
         return aligned_results
 
-    def align_result_array(self, result_array, processing_params, grid_object):
+    def align_result_array(self, result_array, processing_params, grid_object=None):
         """
         Descript. : realigns result array based on the grid
                     Result array is numpy 2d array
@@ -531,7 +561,6 @@ class ParallelProcessing(HardwareObject):
                         reshape(num_colls, num_rows)        
 
         for cell_index in range(aligned_result_array.size):
-           
             col, row = grid_object.get_col_row_from_image_serial(\
                 cell_index + first_image_number)
             if (col < aligned_result_array.shape[0] and 

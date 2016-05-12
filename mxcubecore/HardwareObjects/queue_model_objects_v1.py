@@ -959,7 +959,7 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        #self.first_processing_results = {}
+        self.first_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
@@ -1261,7 +1261,7 @@ class AcquisitionParameters(object):
         self.mesh_snapshot = None
         self.comments = ""
         self.in_queue = False
-        self.in_interleave = False
+        self.in_interleave = None
 
     def set_from_dict(self, params_dict):
         #for key, value in params_dict.iteritems():
@@ -1729,8 +1729,14 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
                 sw_first_image = collection_first_image + sw_index * sw_size
                 sw_osc_start = collection_osc_start + collection_osc_range * sw_index * sw_size
                 sw_osc_range = collection_osc_range * sw_actual_size
-                subwedges.append((collection_index, sw_index, sw_first_image, 
-                                  sw_actual_size, sw_osc_start, sw_osc_range))
+                subwedges.append({"collect_index" : collection_index,
+                                  "collect_first_image" : collection_first_image,
+                                  "collect_num_images" : collection_num_images, 
+                                  "sw_index" : sw_index,
+                                  "sw_first_image" : sw_first_image, 
+                                  "sw_actual_size": sw_actual_size,
+                                  "sw_osc_start" : sw_osc_start,
+                                  "sw_osc_range" : sw_osc_range})
         sw_first_image += sw_actual_size 
     return subwedges
             
