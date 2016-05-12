@@ -6,6 +6,7 @@ import gevent
 from threading import Event, Thread
 import base64
 import array
+import numpy as np
 
 class MD2TimeoutError(Exception):
     pass
@@ -97,3 +98,8 @@ class MAXIVMD3Camera(Device):
         f.write(imgStr)
         f.close() 
         return True
+  
+    def get_snapshot_img_array(self):
+        img = self.image_attr.getValue()
+        imgArray = array.array('b', img)
+        return np.array(imgArray)
