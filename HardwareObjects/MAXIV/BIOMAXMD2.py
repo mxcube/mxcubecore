@@ -1,5 +1,5 @@
 """
-BIOMAXMinidiff (MD3)
+BIOMAXMinidiff (MD2)
 """
 import os
 import time
@@ -7,7 +7,7 @@ import logging
 
 from GenericDiffractometer import GenericDiffractometer
 
-class BIOMAXMiniDiff(GenericDiffractometer):
+class BIOMAXMD2(GenericDiffractometer):
 
     def __init__(self, *args):
         """
@@ -22,8 +22,8 @@ class BIOMAXMiniDiff(GenericDiffractometer):
       
         self.front_light = self.getObjectByRole('frontlight')
         self.back_light = self.getObjectByRole('backlight')
-        self.back_light_switch = self.getObjectByRole('frontlightswitch')
-        self.front_light_switch = self.getObjectByRole('backlightswitch')
+        self.back_light_switch = self.getObjectByRole('backlightswitch')
+        self.front_light_switch = self.getObjectByRole('frontlightswitch')
 
         # to make it comaptible
         self.camera = self.camera_hwobj
