@@ -86,7 +86,7 @@ class MAXIVMD3Camera(Device):
 	thread.daemon = True
 	thread.start()
 
-     def setCameraRoi(self, x1, y1, x2, y2):
+    def setCameraRoi(self, x1, y1, x2, y2):
  	"""
 	Configure the camera Region Of Interest.
 	X1 (int): abscissa of top left corner
@@ -158,7 +158,7 @@ class MAXIVMD3Camera(Device):
         f.close() 
         return True
   
-    def get_snapshot_img_array(self):
+    def get_snapshot_img_str(self):
         img = self.image_attr.getValue()
         imgArray = array.array('b', img)
-        return np.array(imgArray)
+        return imgArray.tostring()

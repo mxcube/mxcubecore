@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 #import lucid
 import tempfile
+import io
 
 from GenericDiffractometer import GenericDiffractometer
 
@@ -116,24 +117,14 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Description:
         """
-        
-        tmp = "mxcube_sample_snapshot_%s.jpg" % (self.phi_motor_hwobj.getPosition())
-        tmp2 = "mxcube_sample_snapshot_%s2.jpg" % (self.phi_motor_hwobj.getPosition())
-        snapshot_filename = os.path.join(tempfile.gettempdir(), tmp) #"mxcube_sample_snapshot.jpg")
-        snapshot_filename2 = os.path.join(tempfile.gettempdir(), tmp2)
-        self.camera.takeSnapshot(snapshot_filename, bw=True)
-        test=Image.open(snapshot_filename)
-        img = np.array(test)
-        #try:
-        #img = self.camera.get_snapshot_img_array()
-        img_rot = np.rot90(img,1)
-        image = Image.fromarray(img_rot)
-        image.save(snapshot_filename2)    
-        info, y, x = lucid.find_loop(snapshot_filename2,IterationClosing=6)
-        x = self.camera.getWidth() - x
-            #info, x, y = lucid.find_loop(snapshot_filename,pixels_per_mm_horizontal=self.pixels_per_mm_x)
-        #except:
-        #    return -2,-2, 0
+        imgStr=self.camera.get_snapshot_img_str()
+        image = Image.open(io.BytesIO(imgStr)).rotate(90)
+        try:
+            img = np.array(image)
+            info, y, x = lucid.find_loop(img,IterationClosing=6)
+            x = self.camera.getWidth() - x
+        except:
+            return -2,-2, 0
         if info == "Coord":
             surface_score = 10
             print "x %s y %s and phi %s self.pixels_per_mm_x %s" % (x,y,self.phi_motor_hwobj.getPosition(),self.pixels_per_mm_x)
