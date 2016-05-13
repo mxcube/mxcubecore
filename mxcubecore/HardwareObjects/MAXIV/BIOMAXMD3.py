@@ -31,8 +31,8 @@ class BIOMAXMD3(GenericDiffractometer):
       
         self.front_light = self.getObjectByRole('frontlight')
         self.back_light = self.getObjectByRole('backlight')
-        self.back_light_switch = self.getObjectByRole('frontlightswitch')
-        self.front_light_switch = self.getObjectByRole('backlightswitch')
+        self.back_light_switch = self.getObjectByRole('backlightswitch')
+        self.front_light_switch = self.getObjectByRole('frontlightswitch')
 
         self.centring_hwobj = self.getObjectByRole('centring')
         if self.centring_hwobj is None:
