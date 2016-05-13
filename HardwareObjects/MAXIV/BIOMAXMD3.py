@@ -107,7 +107,7 @@ class BIOMAXMD3(GenericDiffractometer):
             surface_score_list.append(score)
             self.phi_motor_hwobj.moveRelative(\
                  360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES)
-	    gevent.sleep(2)
+	    #gevent.sleep(2)
             self.wait_device_ready(5)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
