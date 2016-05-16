@@ -74,7 +74,6 @@ class BIOMAXMD3(GenericDiffractometer):
         for click in range(3):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
-	    print "click ", x, y
             self.centring_hwobj.appendCentringDataPoint(
                  {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
                   "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
@@ -90,7 +89,7 @@ class BIOMAXMD3(GenericDiffractometer):
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
-    def automatic_centring(self):
+    def automatic_centring_old(self):
         """Automatic centring procedure. Rotates n times and executes
            centring algorithm. Optimal scan position is detected.
         """
@@ -113,24 +112,92 @@ class BIOMAXMD3(GenericDiffractometer):
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
+    def automatic_centring(self):
+        """Automatic centring procedure. Rotates n times and executes
+           centring algorithm. Optimal scan position is detected.
+        """
+
+        #check if loop is there at the beginning
+        i = 0
+        while -1 in self.find_loop():
+            self.phi_motor_hwobj.moveRelative(90)
+            self.wait_device_ready(5)
+            i+=1
+            if i>4:
+                self.emit_progress_message("No loop detected, aborting")
+                return
+
+        for k in range(3):
+            self.emit_progress_message("Doing automatic centring")
+            surface_score_list = []
+            self.centring_hwobj.initCentringProcedure()
+            for a in range(3):
+                x, y, score = self.find_loop()
+                logging.info("in autocentre, x=%f, y=%f",x,y)
+                if x < 0 or y < 0:
+                    for i in range(1,9):
+                        #logging.info("loop not found - moving back %d" % i)
+                        self.phi_motor_hwobj.moveRelative(10)
+                        self.wait_device_ready(5)
+                        x, y,score = self.find_loop()
+                        surface_score_list.append(score)
+                        if -1 in (x, y):
+                            continue
+                        if y >=0:
+                            if x < self.camera.getWidth()/2:
+                                x = 0
+                                self.centring_hwobj.appendCentringDataPoint(
+                                    {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
+                                     "Y":(y - self.beam_position[1])/ self.pixels_per_mm_y})
+                                break
+                            else:
+                                x = self.camera.getWidth()
+                                self.centring_hwobj.appendCentringDataPoint(
+                                    {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,                                    
+                                     "Y":(y - self.beam_position[1])/ self.pixels_per_mm_y})
+                                break
+                    if -1 in (x,y):
+                        raise RuntimeError("Could not centre sample automatically.")
+                    self.phi_motor_hwobj.moveRelative(-i*10)
+                    self.wait_device_ready(5)
+                else:
+                    self.centring_hwobj.appendCentringDataPoint(
+                        {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
+                         "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
+                self.phi_motor_hwobj.moveRelative(90)
+                self.wait_device_ready(5)
+                #gevent.sleep(60)
+            
+            self.omega_reference_add_constraint()
+            centred_pos= self.centring_hwobj.centeredPosition(return_by_name=False)
+            if k < 2:
+                self.move_to_centred_position(centred_pos)
+                self.wait_device_ready(5)
+        return centred_pos
+       
+
     def find_loop(self):
         """
         Description:
         """
         imgStr=self.camera.get_snapshot_img_str()
-        image = Image.open(io.BytesIO(imgStr)).rotate(90)
+        image = Image.open(io.BytesIO(imgStr))
         try:
             img = np.array(image)
-            info, y, x = lucid.find_loop(img,IterationClosing=6)
+            img_rot = np.rot90(img,1)
+            image2 =Image.fromarray(img_rot)
+            image2.save("/tmp/mxcube_snapshot_auto.jpg")
+            #info, y, x = lucid.find_loop(img_rot,IterationClosing=6)
+            info, y, x = lucid.find_loop("/tmp/mxcube_snapshot_auto.jpg",IterationClosing=6)
             x = self.camera.getWidth() - x
         except:
-            return -2,-2, 0
+            return -1,-1, 0
         if info == "Coord":
             surface_score = 10
             print "x %s y %s and phi %s self.pixels_per_mm_x %s" % (x,y,self.phi_motor_hwobj.getPosition(),self.pixels_per_mm_x)
             return x, y, surface_score
         else:
-            return  -2,-2, 0
+            return  -1,-1, 0
 
     def omega_reference_add_constraint(self):
         """
@@ -172,8 +239,8 @@ class BIOMAXMD3(GenericDiffractometer):
         c = centred_positions_dict
 
         if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
-            kappa = self.current_motor_positions["kappa"] 
-            phi = self.current_motor_positions["kappa_phi"] 
+            kappa = self.motor_hwobj_dict["kappa"] 
+            phi = self.motor_hwobj_dict["kappa_phi"] 
 
 #        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
 #         and self.minikappa_correction_hwobj is not None:
