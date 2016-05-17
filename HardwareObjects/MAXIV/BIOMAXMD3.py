@@ -185,10 +185,10 @@ class BIOMAXMD3(GenericDiffractometer):
         try:
             img = np.array(image)
             img_rot = np.rot90(img,1)
-            image2 =Image.fromarray(img_rot)
-            image2.save("/tmp/mxcube_snapshot_auto.jpg")
-            #info, y, x = lucid.find_loop(img_rot,IterationClosing=6)
-            info, y, x = lucid.find_loop("/tmp/mxcube_snapshot_auto.jpg",IterationClosing=6)
+            #image2 =Image.fromarray(img_rot)
+            #image2.save("/tmp/mxcube_snapshot_auto.jpg")
+            info, y, x = lucid.find_loop(np.array(img_rot,order='C'),IterationClosing=6)
+            #info, y, x = lucid.find_loop("/tmp/mxcube_snapshot_auto.jpg",IterationClosing=6)
             x = self.camera.getWidth() - x
         except:
             return -1,-1, 0
