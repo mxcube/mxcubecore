@@ -99,3 +99,8 @@ class MAXIVMD2Camera(Device):
         f.write(imgStr)
         f.close() 
         return True
+
+    def get_snapshot_img_str(self):
+        img = self.image_attr.getValue()
+        imgArray = array.array('b', img)
+        return imgArray.tostring()
