@@ -304,7 +304,7 @@ class ParallelProcessing(HardwareObject):
                                   " size={0}".format(os.stat(result_file_name).st_size))
                 else:
                     os.system("ls %s > /dev/null" %_result_place[0])
-                    gevent.sleep(0.2)
+                    gevent.sleep(0.4)
             if not file_appeared:
                 failed = True
                 msg = "ParallelProcessing: Dozor result file ({0}) " +\
@@ -323,7 +323,7 @@ class ParallelProcessing(HardwareObject):
             while _oldsize < _newsize :
                 _oldsize = _newsize
                 _newsize = os.stat(result_file_name).st_size
-                gevent.sleep(0.1)
+                gevent.sleep(0.3)
                                 
             dozor_output_file = XSDataResultControlDozor.parseFile(result_file_name)
             #this method could be improved with xml parsing

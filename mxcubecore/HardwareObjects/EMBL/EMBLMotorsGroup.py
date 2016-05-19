@@ -203,7 +203,8 @@ class EMBLMotorsGroup(Device):
                      motor['motorAddr'], motor['setCmd'],
                      motor['focusingModes'][str(focus_mode)])
                 time.sleep(0.1)
-                self.wait_motor_ready(motor['motorName'], timeout=10)
+                if motor['motorName'] in ('In', 'Out', 'Top', 'But'):
+                    self.wait_motor_ready(motor['motorName'], timeout=10)
                 time.sleep(1)
 	       
     def stop_motor(self, motor_name):
