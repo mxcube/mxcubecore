@@ -8,6 +8,8 @@ import httplib
 import urllib
 import math
 from queue_model_objects_v1 import PathTemplate
+from detectors.LimaPilatus import Pilatus 
+from MAXIV.LimaDetectorMockup import LimaDetectorMockup
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -46,97 +48,6 @@ class TunableEnergy:
         return self.bl_control.energy.getCurrentWavelength()
 
 
-class CcdDetector:
-    def __init__(self, detector_class=None):
-        self._detector = detector_class() if detector_class else None
-    
-    def init(self, config, collect_obj): 
-        self.collect_obj = collect_obj
-        if self._detector:
-          self._detector.addChannel = self.addChannel
-          self._detector.addCommand = self.addCommand
-          self._detector.getChannelObject = self.getChannelObject
-          self._detector.getCommandObject = self.getCommandObject
-          self._detector.init(config, collect_obj)
-    
-    @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
-        if osc_range < 1E-4:
-            still = True
-        else:
-            still = False
-        
-        if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
-        else:
-            self.getChannelObject("take_dark").setValue(take_dark)
-            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-
-    @task
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-      if self._detector:
-          self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
-      else:
-          self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
-          self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
-          self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
-
-    @task
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
-        if osc_range < 1E-4:
-            # still image
-            pass
-        else:
-            self.collect_obj.do_prepare_oscillation(start, start+osc_range, exptime, npass)
-        return (start, start+osc_range)
-
-    @task
-    def start_acquisition(self, exptime, npass, first_frame):
-        if self._detector:
-            self._detector.start_acquisition(exptime, npass, first_frame)
-        else:
-            self.execute_command("start_acquisition")
-
-    @task
-    def no_oscillation(self, exptime):
-        self.collect_obj.open_fast_shutter()
-        time.sleep(exptime)
-        self.collect_obj.close_fast_shutter()
- 
-    @task
-    def do_oscillation(self, start, end, exptime, npass):
-      still = math.fabs(end-start) < 1E-4
-      if still:
-          self.no_oscillation(exptime)
-      else:
-          self.collect_obj.oscil(start, end, exptime, npass)
-   
-    @task
-    def write_image(self, last_frame):
-        if self._detector:
-            self._detector.write_image(last_frame)
-        else:
-            if last_frame:
-                self.execute_command("flush_detector")
-            else:
-                self.execute_command("write_image")
-    
-    def stop_acquisition(self):
-        # detector readout
-        if self._detector:
-            self._detector.stop_acquisition()
-        else:
-            self.execute_command("detector_readout")
-
-    @task
-    def reset_detector(self):     
-        if self._detector:
-            self._detector.stop()
-        else:
-            self.getCommandObject("reset_detector").abort()
-            self.execute_command("reset_detector")
- 
-
 class PixelDetector:
     def __init__(self, detector_class=None):
         self._detector = detector_class() if detector_class else None
@@ -171,8 +82,6 @@ class PixelDetector:
             self.shutterless_exptime = (exptime + self._detector.get_deadtime())*number_of_images
         if self._detector:
             self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
-        else:
-            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
         
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -213,8 +122,6 @@ class PixelDetector:
         else:
             if self._detector:
                 self._detector.start_acquisition()
-            else:
-                self.execute_command("start_acquisition")
 
     @task
     def no_oscillation(self, exptime):
@@ -256,33 +163,16 @@ class PixelDetector:
           self.oscillation_task.kill()
       if self._detector:
           self._detector.stop()
-      else:
-          self.getCommandObject("reset_detector").abort()    
-          self.execute_command("reset_detector")
-
-class Pilatus3_2M(PixelDetector):
-    def __init__(self,*args,**kwargs):
-      PixelDetector.__init__(self,*args,**kwargs)
-
-    @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        self.new_acquisition = True
-        if  osc_range < 0.0001:
-            self.shutterless = False
-        take_dark = 0
-        if self.shutterless:
-            self.shutterless_range = osc_range*number_of_images
-            self.shutterless_exptime = (exptime + 0.00095)*number_of_images
-        self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
-        #self.getCommandObject("build_collect_seq").executeCommand("write_dp_inputs(COLLECT_SEQ,MXBCM_PARS)",wait=True)
 
 
 class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def __init__(self, name):
+
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._detector = Pilatus3_2M()
+        #self._detector = PixelDetector(Pilatus)
+        self._detector = PixelDetector(LimaDetectorMockup)
         self._tunable_bl = FixedEnergy(1.0, 12.6)
         self._centring_status = None
 
@@ -294,19 +184,23 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def init(self):
         self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
                                sample_changer = self.getObjectByRole("sample_changer"),
-                               lims = self.getObjectByRole("dbserver"),
+                               #lims = self.getObjectByRole("dbserver"),
+                               lims = None, # disable lims for the moment
                                safety_shutter = self.getObjectByRole("safety_shutter"),
                                machine_current = self.getObjectByRole("machine_current"),
-                               cryo_stream = self.getObjectByRole("cryo_stream"),
+                               #cryo_stream = self.getObjectByRole("cryo_stream"),
+                               cryo_stream = None, # disable for the moment, only needed for ISPyB
                                energy = self.getObjectByRole("energy"),
                                resolution = self.getObjectByRole("resolution"),
                                detector_distance = self.getObjectByRole("detector_distance"),
                                transmission = self.getObjectByRole("transmission"),
                                undulators = self.getObjectByRole("undulators"),
-                               flux = self.getObjectByRole("flux"),
+                               #flux = self.getObjectByRole("flux"),
+                               flux = None, # disable for the moment, only needed for ISPyB
                                detector = self.getObjectByRole("detector"),
                                beam_info = self.getObjectByRole("beam_info"))
-
+       
+       
         try:
           undulators = self["undulator"]
         except IndexError:
@@ -325,20 +219,21 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                       undulators = undulators,
                                       focusing_optic = self.getProperty('focusing_optic'),
                                       monochromator_type = self.getProperty('monochromator'),
-                                      beam_divergence_vertical = self.bl_control.beam_info.getProperty('beam_divergence_vertical'),
-                                      beam_divergence_horizontal = self.bl_control.beam_info.getProperty('beam_divergence_horizontal'),     
+                                      beam_divergence_vertical = self.bl_control.beam_info.get_beam_divergence_ver(),
+                                      beam_divergence_horizontal = self.bl_control.beam_info.get_beam_divergence_hor(),
                                       polarisation = self.getProperty('polarisation'),
                                       input_files_server = self.getProperty("input_files_server"))
   
+        self.archive_directory= self.getProperty("archive_directory")
+
         self._detector.addCommand = self.addCommand
         self._detector.addChannel = self.addChannel
         self._detector.getCommandObject = self.getCommandObject
         self._detector.getChannelObject = self.getChannelObject
-        self._detector.execute_command = self.execute_command
+        #self._detector.execute_command = self.execute_command
         self._detector.init(self.bl_control.detector, self)
         self._tunable_bl.bl_control = self.bl_control
 
-        self.archive_directory="~/mxcube/archive"
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -346,17 +241,21 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
         #self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
-        #todo
-        raise NotImplementedError
+        #take only one image 
+        phi = self.bl_control.diffractometer.motor_hwobj_dict['phi'].getPosition()
+        img = self.bl_control.diffractometer.camera.get_snapshot_img_str()
+        self.bl_control.diffractometer.centring_status["images"] = [[phi,img]]
 
     # to implement
     @task
-    def loop(self, owner, data_collect_parameters_list):
+    def loop_todel(self, owner, data_collect_parameters_list):
         failed_msg = "Data collection failed!"
         failed = True
         collections_analyse_params = []
         self.emit("collectReady", (False, ))
         self.emit("collectStarted", (owner, 1))
+
+        print data_collect_parameters_list
 
         for data_collect_parameters in data_collect_parameters_list:
             logging.debug("collect parameters = %r", data_collect_parameters)
@@ -378,34 +277,14 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         self.emit("collectReady", (True, ))
 
 
-    def do_collect(self, owner, data_collect_parameters):
-        if self.__safety_shutter_close_task is not None:
-            self.__safety_shutter_close_task.kill()
-
-        logging.getLogger("user_level_log").info("Closing fast shutter")
-        self.close_fast_shutter()
-
-        # reset collection id on each data collect
-        self.collection_id = None
-
-        # Preparing directory path for images and processing files
-        # creating image file template and jpegs files templates
-        file_parameters = data_collect_parameters["fileinfo"]
-
-        file_parameters["suffix"] = self.bl_config.detector_fileext
-        image_file_template = "%(prefix)s_%(run_number)s_%%04d.%(suffix)s" % file_parameters
-        file_parameters["template"] = image_file_template
-        print "Temp solution need to work with the directory"
-        print file_parameters
-        return
-
-
     #TODO: remove this hook!!!
     @task
     def data_collection_hook(self, data_collect_parameters):
         return
  
     def do_prepare_oscillation(self, start, end, exptime, npass):
+	return
+        #todo check what to prepare for oscillation
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
         #macro
     
@@ -416,6 +295,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         time.sleep(exptime)
         self.close_fast_shutter()
       else:
+        # todo, figure out do_oscillation command
+        return
         return self.execute_command("do_oscillation", start, end, exptime, npass)
         #macro
     
@@ -582,6 +463,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_cryo_temperature(self):
         if self.bl_control.cryo_stream is not None: 
             return self.bl_control.cryo_stream.getTemperature()
+        else:
+            return "NA"
 
     def get_detector_distance(self):
         return
@@ -610,6 +493,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_flux(self):
         if self.bl_control.flux is not None:
             return self.bl_control.flux.getCurrentFlux()
+        else:
+            return None
 
     def get_resolution_at_corner(self):
         return
