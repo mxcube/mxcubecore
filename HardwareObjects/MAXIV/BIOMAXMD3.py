@@ -185,16 +185,12 @@ class BIOMAXMD3(GenericDiffractometer):
         try:
             img = np.array(image)
             img_rot = np.rot90(img,1)
-            #image2 =Image.fromarray(img_rot)
-            #image2.save("/tmp/mxcube_snapshot_auto.jpg")
             info, y, x = lucid.find_loop(np.array(img_rot,order='C'),IterationClosing=6)
-            #info, y, x = lucid.find_loop("/tmp/mxcube_snapshot_auto.jpg",IterationClosing=6)
             x = self.camera.getWidth() - x
         except:
             return -1,-1, 0
         if info == "Coord":
             surface_score = 10
-            print "x %s y %s and phi %s self.pixels_per_mm_x %s" % (x,y,self.phi_motor_hwobj.getPosition(),self.pixels_per_mm_x)
             return x, y, surface_score
         else:
             return  -1,-1, 0
