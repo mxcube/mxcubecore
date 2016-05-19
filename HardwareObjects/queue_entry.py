@@ -384,7 +384,16 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         gid = self.get_data_model().lims_group_id
 
-        if not gid:
+        do_new_dc_group = True
+        # Do not create a new data collection group if one already exists
+        # or if the current task group contains a GenericWorkflowQueueEntry
+        if gid:
+            do_new_dc_group = False
+        elif len(self._queue_entry_list) > 0:
+            if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
+                do_new_dc_group = False
+                
+        if do_new_dc_group:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
