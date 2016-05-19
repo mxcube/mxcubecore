@@ -21,7 +21,6 @@
 EMBLEnergy
 """
 
-import math
 import logging
 from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
@@ -222,7 +221,7 @@ class EMBLEnergy(Device):
         Descript. : in our case we set walelength
         """ 
         current_en = self.getCurrentEnergy()
-        pos = math.fabs(current_en - energy)
+        pos = abs(current_en - energy)
         if pos < 0.001:
             logging.getLogger('user_level_log').debug(\
                 "Energy: already at %g, not moving", energy)
@@ -238,6 +237,7 @@ class EMBLEnergy(Device):
             
             self.moving = True
             self.release_break_bragg()
+            sleep(2)
 
             if self.cmd_set_energy:
                 self.cmd_set_energy(energy)
@@ -273,7 +273,6 @@ class EMBLEnergy(Device):
     def energyStateChanged(self, state):
         """
         """
-        print "energyStateChanged... ", state
         state = int(state[0])
         if state == 0:
             if self.moving:
@@ -308,11 +307,12 @@ class EMBLEnergy(Device):
         return self.undulator_gaps
 
     def set_break_bragg(self):
-        print self.cmd_set_break_bragg
+        print "set_break"
         if self.cmd_set_break_bragg is not None:
             self.cmd_set_break_bragg(1)
 
     def release_break_bragg(self):
+        print "release break"
         if self.cmd_release_break_bragg is not None:
             self.cmd_release_break_bragg(1)
             sleep(1)

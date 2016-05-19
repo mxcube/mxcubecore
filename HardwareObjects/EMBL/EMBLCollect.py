@@ -435,11 +435,11 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         Descript. : 
         """
-        #Add abs?
-        self.energy_hwobj.release_break_bragg()
+        if abs(value - self.get_energy()) > 0.001:
+            self.energy_hwobj.release_break_bragg()
         self.cmd_collect_energy(value * 1000.0)
 
-    def get_energy(self, value):
+    def get_energy(self):
         return self.energy_hwobj.getCurrentEnergy()
 
     def set_resolution(self, value):
@@ -579,7 +579,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 else:
                     aperture_size = self.beam_info_hwobj.aperture_hwobj.get_diameter_size() * 1000
                 mode = "large"
-                flux = p13_calc_flux.calculate_flux(aperture_size, self.get_energy(), mode) / 4.0
+                #flux = p13_calc_flux.calculate_flux(aperture_size, self.get_energy(), mode) / 4.0
                 flux = 1
             else:
                 fullflux = 3.5e12

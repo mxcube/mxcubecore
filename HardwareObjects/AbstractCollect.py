@@ -414,17 +414,14 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        print "in_interleave: ", self.current_dc_parameters['in_interleave']
         if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             try:
-                print 1
                 self.current_dc_parameters["synchrotronMode"] = \
                      self.get_machine_fill_mode()
                 (collection_id, detector_id) = self.lims_client_hwobj.\
                   store_data_collection(self.current_dc_parameters, 
                                         self.bl_config)
                 self.current_dc_parameters['collection_id'] = collection_id  
-                print collection_id
                 if detector_id:
                     self.current_dc_parameters['detector_id'] = detector_id 
             except:
