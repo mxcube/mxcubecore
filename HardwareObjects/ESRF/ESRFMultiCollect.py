@@ -205,7 +205,7 @@ class PixelDetector:
     def start_acquisition(self, exptime, npass, first_frame):
         try:
             self.collect_obj.getObjectByRole("detector_cover").set_out()
-        except:
+        except Exception:
             pass
 
         if not first_frame and self.shutterless:
