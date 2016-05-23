@@ -1,7 +1,7 @@
 from ESRFMultiCollect import *
 #from detectors.TacoMar import Mar225
-#from detectors.LimaEiger import Eiger
-from detectors.LimaPilatus import Pilatus
+from detectors.LimaEiger import Eiger
+#from detectors.LimaPilatus import Pilatus
 import gevent
 import socket
 import shutil
@@ -13,21 +13,23 @@ from PyTango.gevent import DeviceProxy
 
 class ID30A3MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.9677, 12.812))
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Eiger), FixedEnergy(0.9677, 12.812))
 
         self._notify_greenlet = None
 
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+      if oscillation_parameters['range']/oscillation_parameters['exposure_time'] > 90:
+          raise RuntimeError("Cannot move omega axis too fast (limit set to 90 degrees per second).")
  
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
 
       self._detector.shutterless = data_collect_parameters["shutterless"]
-      
-      """
+
+      """      
       try:
           albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
           albula_socket.connect(('localhost', 31337))
@@ -76,10 +78,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
+        # DvS:
         cover_task = gevent.spawn(self.getObjectByRole("eh_controller").detcover.set_out, timeout=15)
         self.getObjectByRole("beamstop").moveToPosition("in", wait=True)
         self.getObjectByRole("light").wagoOut()
         motion.get()
+        # DvS:
         cover_task.get()
 
     @task
@@ -88,7 +92,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def oscil(self, start, end, exptime, npass):
-        save_diagnostic = False
+        save_diagnostic = True
         operate_shutter = True
         if self.helical: 
               self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic)
@@ -134,16 +138,14 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         else:
             gevent.sleep(3)
         
-    """
     def albula_notify(self, image_filename):
        try:
           albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
           albula_socket.connect(('localhost', 31337))
-      except:
+       except:
           pass
-      else:
+       else:
           albula_socket.sendall(pickle.dumps({ "type":"newimage", "path": image_filename }))
-    """
 
     @task
     def write_image(self, last_frame):
@@ -170,17 +172,21 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def write_input_files(self, datacollection_id):
         # copy *geo_corr.cbf* files to process directory
-        try:
-            process_dir = os.path.join(self.xds_directory, "..")
-            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
-            for dir in (process_dir, raw_process_dir):
-                for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
-                    dest = os.path.join(dir,filename)
-                    if os.path.exists(dest):
-                        continue
-                    shutil.copyfile(os.path.join("/data/pyarch/id30a3", filename), dest)
-        except:
-            logging.exception("Exception happened while copying geo_corr files")
+	
+	# DvS 23rd Feb. 2016: For the moment, we don't have these correction files for the Eiger,
+	# thus skipping the copying for now:
+	# 	
+        # try:
+        #     process_dir = os.path.join(self.xds_directory, "..")
+        #     raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
+        #     for dir in (process_dir, raw_process_dir):
+        #         for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
+        #             dest = os.path.join(dir,filename)
+        #             if os.path.exists(dest):
+        #                 continue
+        #             shutil.copyfile(os.path.join("/data/pyarch/id30a3", filename), dest)
+        # except:
+        #     logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)
 
