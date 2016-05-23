@@ -1,7 +1,7 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import os
 import sys
-import bliss
+from bliss.shell import setup
 
 class Bliss(HardwareObject):
   def __init__(self, *args):
@@ -10,4 +10,4 @@ class Bliss(HardwareObject):
   def init(self, *args):  
      setup_file = self.getProperty("setup_file")
 
-     bliss.setup(setup_file, self.__dict__)
+     setup(setup_file, self.__dict__)
