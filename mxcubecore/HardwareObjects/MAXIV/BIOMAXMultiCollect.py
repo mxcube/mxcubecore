@@ -90,10 +90,6 @@ class PixelDetector:
  
       if self._detector:
           self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
-      else:
-          self.getCommandObject("prepare_acquisition").executeCommand('setMxCollectPars("current_phi", %f)' % start)
-          self.getCommandObject("prepare_acquisition").executeCommand('setMxCurrentFilename("%s")' % filename)
-          self.getCommandObject("prepare_acquisition").executeCommand("ccdfile(COLLECT_SEQ, %d)" % frame_number, wait=True)
 
     @task
     def prepare_oscillation(self, start, osc_range, exptime, npass):
@@ -175,6 +171,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector = PixelDetector(LimaDetectorMockup)
         self._tunable_bl = FixedEnergy(1.0, 12.6)
         self._centring_status = None
+        self.helical = False
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -283,23 +280,36 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return
  
     def do_prepare_oscillation(self, start, end, exptime, npass):
-	return
-        #todo check what to prepare for oscillation
-        return self.execute_command("prepare_oscillation", start, end, exptime, npass)
-        #macro
-    
+        diffr = self.bl_control.diffractometer
+        #move to DataCollection phase
+        if diffr.get_current_phase() != "DataCollection":
+            logging.getLogger("user_level_log").info("Moving Diffractometer to Data Collection")
+            diffr.set_phase("DataCollection", wait=True, timeout=200)
+        #switch on the front light
+        diffr.front_light_switch.actuatorIn(wait=True)
+        #take the back light out
+        diffr.back_light_switch.actuatorOut(wait=True)
+
+    def set_data_collection(self):
+        diffr = self.bl_control.diffractometer
+        #move to DataCollection phase
+        if diffr.get_current_phase() != "DataCollection":
+            logging.getLogger("user_level_log").info("Moving Diffractometer to Data Collection")
+            diffr.set_phase("DataCollection", wait=True, timeout=200)
+        #switch on the front light
+        diffr.front_light_switch.actuatorIn(wait=True)
+        #take the back light out
+        diffr.back_light_switch.actuatorOut(wait=True)
+
+
     @task
     def oscil(self, start, end, exptime, npass):
-      if math.fabs(end-start) < 1E-4:
-        self.open_fast_shutter()
-        time.sleep(exptime)
-        self.close_fast_shutter()
-      else:
-        # todo, figure out do_oscillation command
-        return
-        return self.execute_command("do_oscillation", start, end, exptime, npass)
-        #macro
-    
+        diffr = self.bl_control.diffractometer
+        print "osil now...."
+        if self.helical:
+            diffr.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
+        else:
+            diffr.osc_scan(start, end, exptime, wait=True)
 
     @task
     def data_collection_cleanup(self):
@@ -309,35 +319,25 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def close_fast_shutter(self):
         return #todo
-        self.execute_command("close_fast_shutter")
 
 
     @task
     def open_fast_shutter(self):
         return #todo
-        self.execute_command("open_fast_shutter")
 
         
     @task
     def move_motors(self, motor_position_dict):
-        for motor in motor_position_dict.keys(): #iteritems():
-            position = motor_position_dict[motor]
-            if isinstance(motor, str) or isinstance(motor, unicode):
-                # find right motor object from motor role in diffractometer obj.
-                motor_role = motor
-                motor = self.bl_control.diffractometer.getDeviceByRole(motor_role)
-                del motor_position_dict[motor_role]
-                if motor is None:
-                  continue
-                motor_position_dict[motor]=position
-
-            logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
-            motor.move(position)
-
-        while any([motor.motorIsMoving() for motor in motor_position_dict.iterkeys()]):
-            logging.getLogger("HWR").info("Waiting for end of motors motion")
-            time.sleep(0.02)  
-
+        diffr = self.bl_control.diffractometer
+        # to do, set out the detector cover
+        """        
+        try:
+            motors_to_move_dict.pop('kappa')
+            motors_to_move_dict.pop('kappa_phi')
+        except:
+            pass
+        """
+        diffr.move_sync_motors(motor_position_dict, wait=True)
 
     @task
     def open_safety_shutter(self):
@@ -365,10 +365,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
         return self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
 
-
     def prepare_oscillation(self, start, osc_range, exptime, npass):
         return self._detector.prepare_oscillation(start, osc_range, exptime, npass)
-
     
     def do_oscillation(self, start, end, exptime, npass):
         return self._detector.do_oscillation(start, end, exptime, npass)
