@@ -18,7 +18,7 @@ class ID30A3PhotonFlux(Equipment):
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
-        self.tg_device = DeviceProxy("id30/keithley_massif3/i0")
+        self.tg_device = DeviceProxy(self.getProperty("tango_device"))
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
