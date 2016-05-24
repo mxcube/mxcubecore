@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube.
 #
@@ -23,7 +22,6 @@ EMBLCollect
 import os
 import logging
 import gevent
-import p13_calc_flux
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
@@ -68,6 +66,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.chan_collect_frame = None
         self.chan_collect_error = None
         self.chan_undulator_gap = None
+        self.chan_guillotine_state = None
 
         self.cmd_collect_description = None
         self.cmd_collect_detector = None
@@ -162,6 +161,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.chan_collect_error.connectSignal('update', self.collect_error_update)
 
         self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
+        self.chan_guillotine_state = self.getChannelObject('guillotineState')
+        if self.chan_guillotine_state is not None:
+            self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
  
         #Commands to set collection parameters
         self.cmd_collect_description = self.getCommandObject('collectDescription')
@@ -320,6 +322,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         self.update_data_collection_in_lims()
 
+    def guillotine_state_changed(self, state):
+        self.guillotine_state = state
+
     def emit_collection_finished(self):  
         """Collection finished beahviour
         """
@@ -344,7 +349,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
                 self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
                 last_frame > 19):
-                self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+                self.trigger_auto_processing("after", 
+                                             self.current_dc_parameters,
+                                             0)
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
         """Updates collection with information about workflow
@@ -394,7 +401,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         Descript. : 
         """
         self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
-             self.current_dc_parameters, frame_number, self.run_autoprocessing)
+             self.current_dc_parameters, frame_number, self.run_processing_after)
 
     def stopCollect(self, owner):
         """
@@ -578,27 +585,38 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     aperture_size = "Out"
                 else:
                     aperture_size = self.beam_info_hwobj.aperture_hwobj.get_diameter_size() * 1000
-                mode = "large"
-                #flux = p13_calc_flux.calculate_flux(aperture_size, self.get_energy(), mode) / 4.0
-                flux = 1
+
+                if aperture_size == 100:
+                    flux = 1.5e12
+                elif aperture_size == 70:
+                    flux = 1.14e12
+                elif aperture_size == 50:
+                    flux = 0.8e12  
+                elif aperture_size == 30:
+                    flux = 0.48e12
+                elif aperture_size == 15:
+                    flux = 0.2e12
             else:
-                fullflux = 3.5e12
-                fullsize_hor = 1.200
-                fullsize_ver =  0.700
+                flux = self.machine_info_hwobj.get_flux()
 
-                foc = self.beam_info_hwobj.get_focus_mode()
+                if flux is None:
+                    fullflux = 3.5e12
+                    fullsize_hor = 1.200
+                    fullsize_ver =  0.700
 
-                if foc == 'unfocused':
-                    flux = fullflux * self.get_beam_size()[0] * \
-                           self.get_beam_size()[1] / fullsize_hor / fullsize_ver
-                elif foc == 'horizontal':
-                    flux = fullflux * self.get_beam_size()[1] / fullsize_ver
-                elif foc == 'vertical':
-                    flux = fullflux * self.get_beam_size()[0] / fullsize_hor
-                elif foc == 'double':
-                    flux = fullflux
-                else:
-                    flux = None
+                    foc = self.beam_info_hwobj.get_focus_mode()
+
+                    if foc == 'unfocused':
+                        flux = fullflux * self.get_beam_size()[0] * \
+                               self.get_beam_size()[1] / fullsize_hor / fullsize_ver
+                    elif foc == 'horizontal':
+                        flux = fullflux * self.get_beam_size()[1] / fullsize_ver
+                    elif foc == 'vertical':
+                        flux = fullflux * self.get_beam_size()[0] / fullsize_hor
+                    elif foc == 'double':
+                        flux = fullflux
+                    else:
+                        flux = None
                # logging.getLogger("HWR").info("Flux in %s mode %e photon/sec" % \
                #     (self.beam_info_hwobj.get_focus_mode(), flux))
         return flux
@@ -645,3 +663,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
     def set_run_autoprocessing(self, status):
         self.run_autoprocessing = status
+
+    def close_guillotine(self, wait=True):
+        self.cmd_close_guillotine()
+        if wait:
+            with gevent.Timeout(10, Exception("Timeout waiting for close")):
+               while self.guillotine_state != "closed":
+                     gevent.sleep(0.1) 

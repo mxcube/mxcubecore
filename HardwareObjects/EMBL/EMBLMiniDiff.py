@@ -79,6 +79,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.chan_fast_shutter_is_open = None
         self.chan_state = None
         self.chan_sync_move_motors = None
+        self.chan_scintillator_position = None
         self.cmd_start_set_phase = None
         self.cmd_start_auto_focus = None   
         self.cmd_get_omega_scan_limits = None
@@ -118,6 +119,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         if self.chan_fast_shutter_is_open is not None: 
             self.chan_fast_shutter_is_open.connectSignal("update", self.fast_shutter_state_changed)
        
+        self.chan_scintillator_position = self.getChannelObject('ScintillatorPosition')
+
         self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
         self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
         self.cmd_get_omega_scan_limits = self.getCommandObject('getOmegaMotorDynamicScanLimits')
@@ -688,3 +691,9 @@ class EMBLMiniDiff(GenericDiffractometer):
  
     def get_osc_dynamic_limits(self):
         return self.motor_hwobj_dict['phi'].getDynamicLimits()
+
+    def get_scintillator_position(self):
+        return self.chan_scintillator_position.getValue()
+
+    def set_scintillator_position(self, position):
+        return self.chan_scintillator_position.setValue(position)
