@@ -49,9 +49,9 @@ def create_table(table_header=None, table_cells=None):
                 row_str = "<tr>" 
             for cell_str in table_row:
                 if cell_str.startswith("<td bgcolor"):
-                    row_str += cell_str
+                    row_str += str(cell_str)
                 else:
-                    row_str += "<td>%s</td>" % cell_str
+                    row_str += "<td>%s</td>" % str(cell_str)
             row_str += "</tr>" 
             string_list.append(row_str)            
     if table_header:

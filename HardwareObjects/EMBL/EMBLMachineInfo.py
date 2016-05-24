@@ -28,8 +28,6 @@ information). Value limits are included
 [Channels]
 - chanMachCurr
 - chanStateText
-- chanintensMean 
-- chanintensRange
 
 [Commands]
 - cmdSetIntensResolution
@@ -43,9 +41,6 @@ information). Value limits are included
 [Functions]
 - mach_current_changed()
 - machStateTextChanged()
-- intensRangeChanged()
-- intensMeanChanged()
-- shutterStateChanged()
 - updateValues()
 - setInitialIntens()
 - setExternalValues()
@@ -61,43 +56,6 @@ Example Hardware Object XML file :
     <discPath>/home</discPath>
     <limits>{'current':90, 'temp': 25, 'hum': 60, 'intens': 0.1, 
              'discSizeGB': 20}</limits>
-    <channel type="tine" name="machCurrent" tinename=
-             "/PETRA/ARCHIVER/keyword">curDC</channel>
-    <channel type="tine" name="machStateText" tinename=
-             "/PETRA/ARCHIVER/keyword">MachineStateText</channel>
-    <!--P14-->
-    <hutchTempAddress>G47cS9:K:KL:P14EH1RaTIW_ai</hutchTempAddress>
-    <hutchHumAddress>G47cS9:K:KL:P14EH1RaF_ai</hutchHumAddress>
-    <!--P13-->
-    <!-- <hutchTempAddress>G47cS9:K:KL:P13EH1RaTIW_ai</hutchTempAddress>
-    <hutchHumAddress>G47cS9:K:KL:P13EH1RaF_ai</hutchHumAddress> -->
-    <intensity>  
-        <shutterOpenValue>0</shutterOpenValue>
-        <valueOnClose>1e-9</valueOnClose>
-        <initialResolution>1</initialResolution>
-        <updateRelativeTolerance>0.1</updateRelativeTolerance>
-        <acqTimeOnCloseMs>1000</acqTimeOnCloseMs>
-        <acqTimeOnOpenMs>100</acqTimeOnOpenMs>
-        <ranges>
-            <range>
-                <CurMax>2.5e-9</CurMax>
-                <CurOffset>-7.53517e-12</CurOffset>
-                <CurIndex>2</CurIndex>
-            </range>
-        </ranges>
-    </intensity>
-    <safetyshutter>/ICSShutter</safetyshutter>
-    <amplChannelIndex>1</amplChannelIndex>
-    <channel type="tine" name="intensMean" tinename="/P14/QBPMs/QBPM2">
-             ChannelsMean.get</channel>
-    <channel type="tine" name="intensRange" tinename="/P14/QBPMs/QBPM2">
-             CurrentRange.set</channel>
-    <command type="tine" name="setIntensResolution" tinename="/P14/QBPMs/QBPM2">
-             ADCResolution.set</command>
-    <command type="tine" name="setIntensAcqTime" tinename="/P14/QBPMs/QBPM2">
-             AcquisitionTime.set</command>
-    <command type="tine" name="setIntensRange" tinename="/P14/QBPMs/QBPM2">
-             CurrentRange.set</command>
 </device>
 """
 import logging
@@ -132,35 +90,21 @@ class EMBLMachineInfo(HardwareObject):
         self.values_dict = {}
         self.values_dict['current'] = None
         self.values_dict['stateText'] = ""
-        self.values_dict['intens'] = {}
-        self.values_dict['intens']['value'] = None
         self.values_dict['flux'] = None
         self.values_dict['cryo'] = None
         #Dictionary for booleans indicating if values are in range
         self.values_in_range_dict = {}
         self.values_in_range_dict['current'] = None
-        self.values_in_range_dict['intens'] = None
         self.values_in_range_dict['cryo'] = None
         self.values_in_range_dict['flux'] = True
         self.temp_hum_values = [None, None]
         self.temp_hum_in_range = [None, None]
-
-        self.intens_range = None
-        self.ampl_chan_index = None
-        self.shutter_is_opened = None
-        self.shutter_hwobj = None
         self.temp_hum_polling = None
 
         self.chan_mach_curr = None
         self.chan_state_text = None
-        self.chan_intens_mean = None
-        self.chan_intens_range = None
         self.chan_cryojet_in = None
 
-        self.cmd_set_intens_resolution = None
-        self.cmd_set_intens_acq_time = None
-        self.cmd_set_intens_range = None
-	
     def init(self):
         """
         Descript.
@@ -169,21 +113,6 @@ class EMBLMachineInfo(HardwareObject):
         self.limits_dict =  eval(self.getProperty('limits'))
         self.hutch_temp_addr = self.getProperty('hutchTempAddress')
         self.hutch_hum_addr = self.getProperty('hutchHumAddress')
-        self.ampl_chan_index = int(self.getProperty('amplChannelIndex'))
-
-        self.values_dict['intens'] = self['intensity'].getProperties()
-        self.values_dict['intens']['value'] = None
-        self.values_dict['intens']['ranges'] = []
-        for intens_range in self['intensity']['ranges']:
-            temp_intens_range = {}
-            temp_intens_range['max'] = intens_range.CurMax
-            temp_intens_range['index'] = intens_range.CurIndex
-            temp_intens_range['offset'] = intens_range.CurOffset
-            self.values_dict['intens']['ranges'].append(temp_intens_range)
-            #Sort the ranges accordingly to the maximal values
-        self.values_dict['intens']['ranges'] = \
-             sorted(self.values_dict['intens']['ranges'], \
-             key=lambda item: item['max'])
 
         self.chan_mach_curr = self.getChannelObject('machCurrent')
         if self.chan_mach_curr is not None: 
@@ -192,20 +121,6 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_state_text is not None:
             self.chan_state_text.connectSignal('update', self.state_text_changed)
 
-        """        
-        self.chan_intens_mean = self.getChannelObject('intensMean')
-        if self.chan_intens_mean is not None:
-            self.chan_intens_mean.connectSignal('update', self.intens_mean_changed)
-        self.chan_intens_range = self.getChannelObject('intensRange')
-
-        self.cmd_set_intens_resolution = self.getCommandObject('setIntensResolution')
-        self.cmd_set_intens_acq_time = self.getCommandObject('setIntensAcqTime')
-        if self.cmd_set_intens_acq_time is not None:
-            self.cmd_set_intens_acq_time(self.values_dict['intens']['acqTimeOnOpenMs'])
-        self.cmd_set_intens_range = self.getCommandObject('setIntensRange')
-
-        """
-
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
         if self.chan_cryojet_in is not None:
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
@@ -213,18 +128,8 @@ class EMBLMachineInfo(HardwareObject):
         else:
             logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
 
-        self.shutter_is_opened = False
-        self.shutter_hwobj = self.getObjectByRole('shutter')
-        if self.shutter_hwobj is not None:
-            self.connect(self.shutter_hwobj, 
-                         'shutterStateChanged',
-                         self.shutter_state_changed)
-
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))
-
-        print 2
-        print self 
 
     def has_cryo(self):
         """
@@ -262,52 +167,12 @@ class EMBLMachineInfo(HardwareObject):
         self.values_dict['stateText'] = str(text)
         self.update_values()
 
-    def intens_mean_changed(self, value):
-        """
-        Descript. : Event if intensity value is changed
-        Arguments : new intensity value (float)
-        Return    : -
-        """
-        if self.shutter_hwobj is not None:
-            if self.shutter_hwobj.is_shuter_open():
-                intens_range_now = self.chan_intens_range.getValue()
-                for intens_range in self.values_dict['intens']['ranges']:
-                    if intens_range['index'] is intens_range_now:
-                        self.values_dict['intens']['value'] = \
-                             value[self.ampl_chan_index] - \
-                             intens_range['offset']
-                        break
-                self.values_in_range_dict['intens'] = \
-                     self.values_dict['intens']['value'] > \
-                     self.limits_dict['intens']
-            else:
-                self.values_dict['intens']['value'] = None
-                self.values_in_range_dict['intens'] = True	
-        self.update_values()
-
     def set_flux(self, value):
         self.values_dict['flux'] = value
         self.update_values()
 
     def get_flux(self):
         return self.values_dict['flux']
-
-    def shutter_state_changed(self, state):
-        """
-        Descript. : Function called by shutter HO if shutter state is changed
-        Arguments : new state (string)
-        Return    : -
-	"""
-        if state == 'opened':
-            self.shutter_is_opened = True
-            if self.cmd_set_intens_acq_time is not None:
-                self.cmd_set_intens_acq_time(self.values_dict['intens'] \
-                     ['acqTimeOnOpenMs']) 
-        else:
-            self.shutter_is_opened = False
-            if self.cmd_set_intens_acq_time is not None:
-                self.cmd_set_intens_acq_time(self.values_dict['intens'] \
-                     ['acqTimeOnCloseMs'])
 
     def update_values(self):
         """
@@ -326,7 +191,6 @@ class EMBLMachineInfo(HardwareObject):
         Descript:
         """
         val = dict(self.values_dict)
-        val['intens'] = val['intens']['value']
         return val
 
     def get_temp_hum_values(self, sleep_time):

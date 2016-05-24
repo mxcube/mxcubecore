@@ -109,14 +109,14 @@ class GenericDiffractometer(HardwareObject):
     """
 
     CENTRING_MOTORS_NAME = ["phi",
-                            "focus",
-                            "phiz",
-                            "phiy",
-                            "zoom",
-                            "sampx",
-                            "sampy",
-                            "kappa",
-                            "kappa_phi"]
+                   "phiz",
+                   "phiy",
+                   "sampx",
+                   "sampy",
+                   "kappa",
+                   "kappa_phi",
+                   "beam_x",
+                   "beam_y"]
     CHANNELS_NAME = ["CoaxCamScaleX",
                      "CoaxCamScaleY",
                      "State",
@@ -359,7 +359,7 @@ class GenericDiffractometer(HardwareObject):
         try:
             self.phase_list = eval(self.getProperty("phase_list"))
         except:
-            self.phase_list = [GenericDiffractometer.PHASE_TRANSFER, 
+            self.phase_list = [GenericDiffractometer.PHASE_TRANSFER,
                                GenericDiffractometer.PHASE_CENTRING,
                                GenericDiffractometer.PHASE_COLLECTION,
                                GenericDiffractometer.PHASE_BEAM]
@@ -608,7 +608,8 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").exception("Diffractometer: problem aborting the centring method")
             try:
                 #TODO... do we need this at all?
-                fun = self.cancel_centring_methods[self.current_centring_method]
+                #fun = self.cancel_centring_methods[self.current_centring_method]
+                pass
             except KeyError as diag:
                 self.emit_centring_failed()
             else:
@@ -721,7 +722,6 @@ class GenericDiffractometer(HardwareObject):
                 #if 3 click centring move -180
                 if not self.in_plate_mode():
                     self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
-            #logging.info("EMITTING CENTRING SUCCESSFUL")
             self.centring_time = time.time()
             self.emit_centring_successful()
             self.emit_progress_message("")
@@ -763,7 +763,7 @@ class GenericDiffractometer(HardwareObject):
         if self.use_sample_centring:
             self.update_zoom_calibration()
             if None in (self.pixels_per_mm_x, self.pixels_per_mm_y):
-                return 0,0
+                return 0, 0
             phi_angle = math.radians(self.centring_phi.direction * \
                     self.centring_phi.getPosition())
             sampx = self.centring_sampx.direction * \
@@ -818,7 +818,7 @@ class GenericDiffractometer(HardwareObject):
             position = motor_positions[motor]
             if type(motor) in (str, unicode):
                 motor_role = motor
-                motor = self.motor_hwobj_dict[motor_role]
+                motor = self.motor_hwobj_dict.get(motor_role)
                 del motor_positions[motor_role]
                 if motor is None:
                     continue
@@ -1015,6 +1015,7 @@ class GenericDiffractometer(HardwareObject):
         """
         self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
         self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     def zoom_motor_state_changed(self, state):
         """
@@ -1090,8 +1091,14 @@ class GenericDiffractometer(HardwareObject):
            logging.getLogger("HWR").info("Diffractometer: SmartMagnet " + \
                "is not available, only works for Minikappa and SmartMagnet head")
 
+    def move_kappa_and_phi(self, kappa, kappa_phi):
+        return
+
     def close_kappa(self):
         """
         Descript. :
         """
         return
+
+    def get_osc_dynamic_limits(self):
+        return (-10000, 10000)
