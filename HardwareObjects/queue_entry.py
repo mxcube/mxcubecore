@@ -563,11 +563,10 @@ class SampleQueueEntry(BaseQueueEntry):
                 mount_device = self.plate_manipulator_hwobj
             else:
                 mount_device = self.sample_changer_hwobj
+
             if mount_device is not None:
                 log.info("Loading sample " + self._data_model.loc_str)
-
                 sample_mounted = mount_device.is_mounted_sample(self._data_model.location)
-
                 if not sample_mounted:
                     self.sample_centring_result = gevent.event.AsyncResult()
                     try:
@@ -831,7 +830,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
-            self.collect_hwobj.set_run_autoprocessing(dc.run_autoprocessing)
+            self.collect_hwobj.run_processing_after = dc.run_processing_after
+            self.collect_hwobj.aborted_by_user = None
             self.processing_task = None
 
             try:
@@ -843,23 +843,22 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
 
-                    dc.lims_end_pos_id = self.lims_client_hwobj.\
-                                         store_centred_position(end_cpos)
-
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
                     #msg = "Helical data collection, moving to start position"
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
 
-                    self.processing_task = gevent.spawn(\
-                          self.parallel_processing_hwobj.run_processing,
-                          dc)
+                    if dc.run_processing_parallel:
+                        self.processing_task = gevent.spawn(\
+                             self.parallel_processing_hwobj.run_processing,
+                             dc)
 
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
                     self.collect_hwobj.setMeshScanParameters(\
                          acq_1.acquisition_parameters.num_lines,
-                         acq_1.acquisition_parameters.num_images / acq_1.acquisition_parameters.num_lines, 
+                         acq_1.acquisition_parameters.num_images / \
+                         acq_1.acquisition_parameters.num_lines, 
                          acq_1.acquisition_parameters.mesh_range)
                     self.collect_hwobj.set_helical(False)
                 else:
@@ -876,7 +875,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
-                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\
@@ -1534,12 +1532,14 @@ class AdvancedGroupQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-      
-        logging.getLogger("user_level_log").info("Starting parallel processing...")
-        self.processing_task = gevent.spawn(\
-             self.parallel_processing_hwobj.run_processing,
-             self.advanced_model.reference_image_collection,
-             self.advanced_model.get_associated_grid())
+     
+        self.advanced_model = self.get_data_model()
+        if self.advanced_model.run_processing_parallel: 
+            logging.getLogger("user_level_log").info("Starting parallel processing...")
+            self.processing_task = gevent.spawn(\
+                 self.parallel_processing_hwobj.run_processing,
+                 self.advanced_model.reference_image_collection,
+                 self.advanced_model.get_associated_grid())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -1710,38 +1710,6 @@ def mount_sample(beamline_setup_hwobj,
                 pass
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
-
-"""
-def store_data_collection_in_lims(beamline_setup_hwobj, data_collection_parameters, bl_config):
-    if beamline_setup_hwobj.lims_hwobj:
-        log = logging.getLogger("user_level_log")
-        log.info("Storing data collection in LIMS") 
-        data_collect_parameters["collection_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        data_collect_parameters["status"] = "failed"
-        if beamline_setup_hwobj.machine_current_hwobj:
-            data_collect_parameters["synchrotronMode"] = beamline_setup_hwobj.\
-                 machine_current_hwobj.get_fill_mode()
-            (collection_id, detector_id) = beamline_setup.lims_hwobj.\
-                 store_data_collection(data_collect_parameters, bl_config)
-            log.info("Done")
-            return collection_id, detector_id
-
-def update_data_collection_in_lims(beamline_setup_hwobj, data_collection_parameters, bl_config):
-    if beamline_setup_hwobj.lims_hwobj:
-        log = logging.getLogger("user_level_log")
-        log.info("Updating data collection in LIMS")
-        if beamline_setup_hwobj.machine_current_hwobj:
-             beamline_setup.lims_hwobj.store_data_collection(\
-                 data_collect_parameters, bl_config)
-             log.info("Done")
-
-def store_sample_info_in_lims(beamline_setup_hwobj, sample_info):
-    if beamline_setup_hwobj.lims_hwobj:
-        log = logging.getLogger("user_level_log")
-        log.info("Storing sample info in LIMS")
-        beamline_setup_hwobj.lims_hwobj.update_bl_sample(sample_info)
-"""     
-
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,

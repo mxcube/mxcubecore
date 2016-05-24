@@ -200,6 +200,7 @@ class Sample(TaskNode):
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
+        #self.location_plate = (None, None, None)
         self.lims_location = (None, None)
 
         # Crystal information
@@ -238,7 +239,7 @@ class Sample(TaskNode):
         if self.name is not '' and acronym is not '':
             return acronym + '-' + name
         else:
-            return ''
+            return self.get_name()
 
     def init_from_sc_sample(self, sc_sample):
         #self.loc_str = ":".join(map(str,sc_sample[-1]))
@@ -250,18 +251,6 @@ class Sample(TaskNode):
             self.set_name(sc_sample[3])
         else:
             self.set_name(self.loc_str)
-
-
-    def init_from_plate_sample(self, plate_sample):
-        """
-        Descript. : location : col, row, index
-        """
-        self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
-                                    str(plate_sample[2]),
-                                    str(plate_sample[3]))
-        self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
-        self.location_plate = plate_sample[5]
-        self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
@@ -455,9 +444,8 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
-        self.lims_start_pos_id = None
-        self.lims_end_pos_id = None
-        self.run_autoprocessing = None
+        self.run_processing_after = None
+        self.run_processing_parallel = None
 
     def as_dict(self):
 
@@ -465,7 +453,7 @@ class DataCollection(TaskNode):
         path_template = acq.path_template
         parameters = acq.acquisition_parameters
 
-        return {'prefix': acq.path_template.get_prefix(),
+        return {'prefix': path_template.get_prefix(),
                 'run_number': path_template.run_number,
                 'first_image': parameters.first_image,
                 'num_images': parameters.num_images,
@@ -498,7 +486,8 @@ class DataCollection(TaskNode):
         return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
 
     def get_name(self):
-        return '%s_%i' % (self._name, self._number)
+        return '%s_%i' % (self.acquisitions[0].path_template.get_prefix(),
+                          self.acquisitions[0].path_template.run_number)
 
     def is_collected(self):
         return self.is_executed()
@@ -960,6 +949,7 @@ class Advanced(TaskNode):
 
         self.html_report = None
         self.first_processing_results = {}
+        self.run_processing_parallel = True
 
     def get_associated_grid(self):
         return self.grid_object
@@ -1479,8 +1469,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                        'number_of_lines': acq_params.num_lines,
                                        'mesh_range': acq_params.mesh_range}],
              'group_id': data_collection.lims_group_id,
-             'lims_start_pos_id': data_collection.lims_start_pos_id,
-             'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'xds_dir': acquisition.path_template.xds_dir,

@@ -55,11 +55,11 @@ class ParallelProcessing(HardwareObject):
               pass
 
         if self.detector_hwobj is None:
-            logging.info("ParallelProcessing: No detector hwobj defined")
+            logging.info("ParallelProcessing: Detector hwobj not defined")
 
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
         if self.beamstop_hwobj is None:
-            logging.info("ParallelProcessing: No beamstop hwobj defined")
+            logging.info("ParallelProcessing: Beamstop hwobj not defined")
 
         self.processing_start_command = str(self.getProperty("processing_command"))        
 
@@ -182,9 +182,12 @@ class ParallelProcessing(HardwareObject):
         # processing and archive directory         
         i = 1
         while True:
-            processing_input_file_dirname = "dozor_%s_run%s_%d" % (prefix, run_number, i)
-            processing_directory = os.path.join(process_directory, processing_input_file_dirname)
-            processing_archive_directory = os.path.join(archive_directory, processing_input_file_dirname)
+            processing_input_file_dirname = "dozor_%s_run%s_%d" % \
+                                            (prefix, run_number, i)
+            processing_directory = os.path.join(\
+               process_directory, processing_input_file_dirname)
+            processing_archive_directory = os.path.join(\
+               archive_directory, processing_input_file_dirname)
             if not os.path.exists(processing_directory):
                 break
             i += 1
@@ -196,7 +199,8 @@ class ParallelProcessing(HardwareObject):
         try:
             grid_snapshot_filename = None
             if grid_object is not None:
-                grid_snapshot_filename = os.path.join(processing_archive_directory, "grid_snapshot.png")
+                grid_snapshot_filename = os.path.join(\
+                    processing_archive_directory, "grid_snapshot.png")
                 logging.getLogger("HWR").info("Saving grid snapshot: %s" % grid_snapshot_filename)
                 grid_snapshot = grid_object.get_snapshot()
                 grid_snapshot.save(grid_snapshot_filename, 'PNG')
@@ -209,13 +213,17 @@ class ParallelProcessing(HardwareObject):
         processing_params["processing_archive_directory"] = processing_archive_directory
         processing_params["grid_snapshot_filename"] = grid_snapshot_filename
         processing_params["images_num"] = acq_params.num_lines
-        processing_params["result_file_path"] = processing_params["processing_archive_directory"]
+        processing_params["result_file_path"] = \
+             processing_params["processing_archive_directory"]
         processing_params["plot_path"] = os.path.join(\
-             processing_params["directory"], "parallel_processing_result.png")
+             processing_params["directory"], 
+             "parallel_processing_result.png")
         processing_params["cartography_path"] = os.path.join(\
-             processing_params["processing_archive_directory"], "parallel_processing_result.png")  
+             processing_params["processing_archive_directory"], 
+             "parallel_processing_result.png")  
         processing_params["log_file_path"] = os.path.join(\
-             processing_params["processing_archive_directory"], "dozor_log.log")        
+             processing_params["processing_archive_directory"],
+             "dozor_log.log")        
         processing_params["group_id"] = data_collection.lims_group_id
         #processing_params["associated_grid"] = associated_grid
         #processing_params["associated_data_collection"] = data_collection
@@ -226,6 +234,7 @@ class ParallelProcessing(HardwareObject):
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
+        """
         if not os.path.isfile(self.processing_start_command):
             self.processing_done_event.set()
             msg = "ParallelProcessing: Start command %s is not " +\
@@ -243,6 +252,7 @@ class ParallelProcessing(HardwareObject):
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
+        """
         self.do_processing_result_polling(processing_params, file_wait_timeout, grid_object)
         
     def do_processing_result_polling(self, processing_params, wait_timeout, grid_object=None):
@@ -268,6 +278,7 @@ class ParallelProcessing(HardwareObject):
         processing_params["status"] = "Success"
         failed = False
 
+        """
         do_polling = True
         result_file_index = 0
         _result_place = []
@@ -350,17 +361,18 @@ class ParallelProcessing(HardwareObject):
         gevent.sleep(10)
         #This is for test...
 
-        #for key in processing_result.keys():
-        #    processing_result[key] = numpy.linspace(0, 
-        #         processing_params["images_num"], 
-        #         processing_params["images_num"]).astype('uint8')
-        processing_result['score'][20] = 10
-        """
+        for key in processing_result.keys():
+            processing_result[key] = numpy.linspace(0, 
+                 processing_params["images_num"], 
+                 processing_params["images_num"]).astype('uint8')
+        #processing_result['score'][20] = 10
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid_object)
 
-        self.emit("paralleProcessingResults", (self.processing_results, processing_params, True)) 
+        self.emit("paralleProcessingResults", (self.processing_results,
+                                               processing_params,
+                                               True)) 
 
         #Processing finished. Results are aligned and 10 best positions estimated
         processing_params["processing_programs"] = "EDNAdozor"
@@ -391,6 +403,8 @@ class ParallelProcessing(HardwareObject):
                        len(best_positions))
                 motor_pos_id_list = []
                 image_id_list = []
+
+                """
                 for image in best_positions:
                     # Motor position is stored
                     motor_pos_id = self.lims_hwobj.store_centred_position(\
@@ -406,6 +420,7 @@ class ParallelProcessing(HardwareObject):
                     
                     motor_pos_id_list.append(motor_pos_id)
                     image_id_list.append(image_id)
+                """
                
                 processing_params["best_position_id"] = motor_pos_id_list[0]
                 processing_params["best_image_id"] = image_id_list[0] 
