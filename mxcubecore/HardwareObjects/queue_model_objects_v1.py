@@ -1130,11 +1130,9 @@ class PathTemplate(object):
         """
         folders = self.directory.split('/')
         if PathTemplate.synchotron_name == "MAXIV":
-            archive_directory = os.path.join(os.getcwd(),"test")
-            print archive_directory
-            #archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
-            #archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
-            #archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
+            # to do, base_directory and folder info are defined in session.xml
+            archive_directory = os.path.join(PathTemplate.archive_base_directory,
+                                             PathTemplate.archive_folder)
         elif PathTemplate.synchotron_name == "EMBL": 
             archive_directory = os.path.join(PathTemplate.archive_base_directory,
                                              PathTemplate.archive_folder)
