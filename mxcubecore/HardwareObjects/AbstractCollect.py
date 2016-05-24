@@ -66,7 +66,8 @@ class AbstractCollect(object):
         self.data_collect_task = None
         self.current_dc_parameters = None
         self.current_lims_sample = {}
-        self.run_autoprocessing = None
+        self.run_processing_after = None
+        self.run_processing_parallel = None
 
         self.autoprocessing_hwobj = None
         self.beam_info_hwobj = None
@@ -645,10 +646,6 @@ class AbstractCollect(object):
         Descript. : 
         """
         pass
-
-    def set_run_autoprocessing(self, status):
-        pass
-
 
     def prepare_interleave(self, data_model, param_list):
         self.current_dc_parameters = param_list[0]
