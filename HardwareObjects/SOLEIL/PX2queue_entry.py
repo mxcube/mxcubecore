@@ -34,9 +34,6 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
 
-                    dc.lims_end_pos_id = self.lims_client_hwobj.\
-                                         store_centred_position(end_cpos)
-
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict()}
                     #self.collect_hwobj.getChannelObject('helical_pos').setValue(helical_oscil_pos)
                     self.collect_hwobj.set_helical(True, helical_oscil_pos)
@@ -65,7 +62,6 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
-                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample)
                 self.collect_task = self.collect_hwobj.\
                     collect(COLLECTION_ORIGIN_STR.MXCUBE, param_list)                
