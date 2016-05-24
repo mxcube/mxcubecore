@@ -1,3 +1,4 @@
+import gevent
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -31,6 +32,7 @@ class MDFastShutter(Device):
             self.chan_shutter_state.connectSignal("update", self.shutter_state_changed)
 
     def shutter_state_changed(self, value):
+        self.state_bit = value
         if self.current_phase == "BeamLocation":
             self.state = self.states_dict.get(value, "unknown")
         else:
@@ -48,7 +50,13 @@ class MDFastShutter(Device):
 
     def openShutter(self, wait=True):
         self.chan_shutter_state.setValue(True) 
+        with gevent.Timeout(10, Exception("Timeout waiting for fast shutter open")):
+               while not self.state_bit:
+                     gevent.sleep(0.1) 
 
     def closeShutter(self, wait=True):
         self.chan_shutter_state.setValue(False)
+        with gevent.Timeout(10, Exception("Timeout waiting for fast shutter close")):
+               while self.state_bit:
+                     gevent.sleep(0.1)
 

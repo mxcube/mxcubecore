@@ -105,8 +105,7 @@ import time
 from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
-from HardwareRepository import HardwareRepository
-from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __author__ = "Ivars Karpics"
@@ -114,13 +113,13 @@ __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.2."
 
 
-class EMBLMachineInfo(Equipment):
+class EMBLMachineInfo(HardwareObject):
     """
     Descript. : Displays actual information about the beeamline
     """
 
     def __init__(self, name):
-	Equipment.__init__(self, name)
+	HardwareObject.__init__(self, name)
         """
         Descript. : 
         """
@@ -135,12 +134,14 @@ class EMBLMachineInfo(Equipment):
         self.values_dict['stateText'] = ""
         self.values_dict['intens'] = {}
         self.values_dict['intens']['value'] = None
+        self.values_dict['flux'] = None
         self.values_dict['cryo'] = None
         #Dictionary for booleans indicating if values are in range
         self.values_in_range_dict = {}
         self.values_in_range_dict['current'] = None
         self.values_in_range_dict['intens'] = None
         self.values_in_range_dict['cryo'] = None
+        self.values_in_range_dict['flux'] = True
         self.temp_hum_values = [None, None]
         self.temp_hum_in_range = [None, None]
 
@@ -222,6 +223,9 @@ class EMBLMachineInfo(Equipment):
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))
 
+        print 2
+        print self 
+
     def has_cryo(self):
         """
         Descript. :
@@ -280,6 +284,13 @@ class EMBLMachineInfo(Equipment):
                 self.values_dict['intens']['value'] = None
                 self.values_in_range_dict['intens'] = True	
         self.update_values()
+
+    def set_flux(self, value):
+        self.values_dict['flux'] = value
+        self.update_values()
+
+    def get_flux(self):
+        return self.values_dict['flux']
 
     def shutter_state_changed(self, state):
         """

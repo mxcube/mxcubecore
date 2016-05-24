@@ -62,15 +62,17 @@ class EMBLAutoProcessing(HardwareObject):
         self.autoproc_programs = self["programs"]
 
     def execute_autoprocessing(self, process_event, params_dict, 
-                               frame_number, run_autoprocessing=True):
+                               frame_number, run_processing=True):
         """
         Descript. : 
         """
-        self.autoproc_procedure(process_event, params_dict, 
-                                frame_number, run_autoprocessing)
+        self.autoproc_procedure(process_event,
+                                params_dict, 
+                                frame_number,
+                                run_processing)
 
     def autoproc_procedure(self, process_event, params_dict, 
-                           frame_number, run_autoprocessing=False):
+                           frame_number, run_processing=True):
         """
         Descript. : 
 
@@ -99,20 +101,22 @@ class EMBLAutoProcessing(HardwareObject):
                 if os.path.isfile(executable):	
                     will_execute = False
                     if process_event == "after": 
-                        input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
-                        will_execute = True
+                        #input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
+                        will_execute = run_processing
                         endOfLineToExecute = " " + params_dict["xds_dir"]
-                    if process_event == 'image':
-                        if frame_number == 1 or frame_number == params_dict['oscillation_sequence'][0]['number_of_images']:
-                            endOfLineToExecute = " %s %s/%s_%d_%05d.cbf" % (params_dict["fileinfo"]["directory"],
-                               params_dict["fileinfo"]["directory"], 
-                               params_dict["fileinfo"]["prefix"],
-                               params_dict["fileinfo"]["run_number"], 
-                               frame_number)
+                    elif process_event == 'image':
+                        if frame_number == 1 or frame_number == \
+                            params_dict['oscillation_sequence'][0]['number_of_images']:
+                            endOfLineToExecute = " %s %s/%s_%d_%05d.cbf" % \
+                               (params_dict["fileinfo"]["directory"],
+                                params_dict["fileinfo"]["directory"], 
+                                params_dict["fileinfo"]["prefix"],
+                                params_dict["fileinfo"]["run_number"], 
+                                frame_number)
                             will_execute = True 	
+
                     if will_execute:	
                         lineToExecute = executable + endOfLineToExecute
-                        #logging.info("Process event %s, executing %s" % (process_event, str(lineToExecute)))
                         subprocess.Popen(str(lineToExecute), shell = True, 
                                     stdin = None, stdout = None, stderr = None, 
                                     close_fds = True)	
