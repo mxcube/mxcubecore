@@ -31,8 +31,11 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
+import os
 import time
 import gevent
+import tempfile
+from datetime import datetime
 
 from sample_changer import Crims
 from GenericSampleChanger import *
@@ -227,6 +230,12 @@ class PlateManipulator(SampleChanger):
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self._onStateChanged)
        
+        self.log_filename = self.getProperty("log_filename")
+        if self.log_filename is None:
+            self.log_filename = os.path.join(tempfile.gettempdir(), 
+                                             "mxcube",
+                                             "plate_manipulator.log")
+
         SampleChanger.init(self)
 
     def plate_location_changed(self, plate_location):
@@ -297,19 +306,20 @@ class PlateManipulator(SampleChanger):
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
-        row =  sample_location[0]
-        col =  sample_location[1]
-        drop = sample_location[2]
-
+        row =  sample_location[0] - 1 
+        col =  (sample_location[1] - 1)/ self.num_drops
+        drop = sample_location[1] - self.num_drops * col
         pos_y = float(drop) / (self.num_drops + 1)
+
         if self.cmd_move_to_location:
-            self.cmd_move_to_location(row, col - 1, self.reference_pos_x, pos_y)
+            self.cmd_move_to_location(row, col, self.reference_pos_x, pos_y)
             self._wait_ready(60)
         elif self.cmd_move_to_drop:
-            self.cmd_move_to_drop(row, col - 1, drop-1)
+            self.cmd_move_to_drop(row, col, drop-1)
             self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup
+            col += 1
             self.plate_location = [row, col, self.reference_pos_x, pos_y]
             cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col))
             drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col, drop))
@@ -322,6 +332,16 @@ class PlateManipulator(SampleChanger):
                 if new_sample is not None:
                     new_sample._setLoaded(True, True)
 
+        log_file = open(self.log_filename, "a")   
+        log_file.write("%s,%s,%s,%d,%d,%s\n" % ( 
+                       datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                       os.environ["USER"],
+                       "load",
+                       col,
+                       row,
+                       str(self.hasLoadedSample()))) 
+        log_file.close()
+        
             #new_sample._setLoaded(True, True)
         
     def _doUnload(self,sample_slot=None):
@@ -447,20 +467,7 @@ class PlateManipulator(SampleChanger):
             plate_location = self.chan_plate_location.getValue()
 
         if plate_location is not None:
-            row = int(plate_location[0])
-            col = int(plate_location[1])
-            y_pos = float(plate_location[3])
-            drop_index = abs(y_pos * self.num_drops) + 1
-            if drop_index > self.num_drops:
-                drop_index = self.num_drops
-
-            cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col + 1))
-
-            if cell is None:
-                return
-            old_sample = self.getLoadedSample()
-            drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col + 1, drop_index))
-            new_sample = drop.getSample()
+            new_sample = self.get_sample(plate_location)
 
             if old_sample != new_sample:
                 if old_sample is not None:
@@ -473,6 +480,20 @@ class PlateManipulator(SampleChanger):
                     loaded = True
                     has_been_loaded = True
                     new_sample._setLoaded(loaded, has_been_loaded)    
+
+    def get_sample(self, plate_location):
+        row = int(plate_location[0])
+        col = int(plate_location[1])
+        y_pos = float(plate_location[3])
+        drop_index = abs(y_pos * self.num_drops) + 1
+        if drop_index > self.num_drops:
+            drop_index = self.num_drops
+
+        cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col + 1))
+        if cell:
+            old_sample = self.getLoadedSample()
+            drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col + 1, drop_index))
+            return drop.getSample()
 
     def getSampleList(self):
         """
@@ -488,7 +509,12 @@ class PlateManipulator(SampleChanger):
         return sample_list
 
     def is_mounted_sample(self, sample_location):
-        return True
+        row =  sample_location[0] - 1
+        col =  (sample_location[1] - 1)/ self.num_drops
+        drop = sample_location[1] - self.num_drops * col
+        pos_y = float(drop) / (self.num_drops + 1)
+        sample = self.get_sample((row, col, drop, pos_y))
+        return sample.loaded
 
     def _ready(self):
         if self._updateState() == "Ready":
@@ -517,6 +543,8 @@ class PlateManipulator(SampleChanger):
         return plate_info_dict
 
     def get_plate_location(self):
+        if self.chan_plate_location is not None:
+            self.plate_location = self.chan_plate_location.getValue()
         return self.plate_location 
 
     def sync_with_crims(self, barcode):

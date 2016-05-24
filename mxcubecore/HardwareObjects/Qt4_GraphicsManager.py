@@ -68,6 +68,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.mouse_position = [0, 0]
         self.image_scale = None 
         self.image_scale_list = []
+        self.auto_grid = None
         self.auto_grid_size_mm = (0, 0)
 
         self.omega_axis_info_dict = {}
@@ -236,7 +237,7 @@ class Qt4_GraphicsManager(HardwareObject):
         except:
            self.auto_grid_size_mm = (0.2, 0.2)            
 
-        self.init_auto_grid()  
+        #self.init_auto_grid()  
 
     def save_graphics_config(self):
         logging.getLogger("HWR").debug("GraphicsManager: Saving graphics " + \
@@ -346,30 +347,31 @@ class Qt4_GraphicsManager(HardwareObject):
                     shape.set_start_position(new_x, new_y)
                 elif isinstance(shape, GraphicsLib.GraphicsItemGrid):
                     grid_cpos = shape.get_centred_position()
-                    current_cpos = queue_model_objects.CentredPosition(\
-                        self.diffractometer_hwobj.get_positions())
+                    if grid_cpos is not None:
+                        current_cpos = queue_model_objects.CentredPosition(\
+                            self.diffractometer_hwobj.get_positions())
 
-                    current_cpos.set_motor_pos_delta(0.1)
-                    grid_cpos.set_motor_pos_delta(0.1)
+                        current_cpos.set_motor_pos_delta(0.1)
+                        grid_cpos.set_motor_pos_delta(0.1)
 
-                    if hasattr(grid_cpos, "zoom"):
-                        current_cpos.zoom = grid_cpos.zoom
+                        if hasattr(grid_cpos, "zoom"):
+                            current_cpos.zoom = grid_cpos.zoom
 
-                    center_coord = self.diffractometer_hwobj.\
-                        motor_positions_to_screen(grid_cpos.as_dict())
-                    if center_coord:
-                        shape.set_center_coord(center_coord)
+                        center_coord = self.diffractometer_hwobj.\
+                            motor_positions_to_screen(grid_cpos.as_dict())
+                        if center_coord:
+                            shape.set_center_coord(center_coord)
 
-                        corner_coord = []
-                        for motor_pos in shape.get_motor_pos_corner():
-                            corner_coord.append((self.diffractometer_hwobj.\
-                                motor_positions_to_screen(motor_pos)))
-                        shape.set_corner_coord(corner_coord)
+                            corner_coord = []
+                            for motor_pos in shape.get_motor_pos_corner():
+                                corner_coord.append((self.diffractometer_hwobj.\
+                                    motor_positions_to_screen(motor_pos)))
+                            shape.set_corner_coord(corner_coord)
       
-                        if current_cpos == grid_cpos:
-                            shape.set_projection_mode(False)
-                        else:    
-                            shape.set_projection_mode(True)
+                            if current_cpos == grid_cpos:
+                                shape.set_projection_mode(False)
+                            else:    
+                                shape.set_projection_mode(True)
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
@@ -840,11 +842,12 @@ class Qt4_GraphicsManager(HardwareObject):
         self.line_count = 0
         self.grid_count = 0
 
+        
         for shape in self.get_shapes():
-            if shape == self.auto_grid:
-                shape.hide()
-            else:
-                self.delete_shape(shape)
+            #if shape == self.auto_grid:
+            #    shape.hide()
+            #else:
+            self.delete_shape(shape)
         self.graphics_view.graphics_scene.update()
 
     def de_select_all(self):
@@ -907,7 +910,7 @@ class Qt4_GraphicsManager(HardwareObject):
     def hide_all_items(self):
         for shape in self.get_shapes():
             if shape != self.auto_grid:
-               shape.hide()
+                shape.hide()
 
     def show_all_items(self):
         for shape in self.get_shapes():

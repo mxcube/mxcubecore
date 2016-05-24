@@ -40,16 +40,12 @@ class Marvin(SampleChanger):
         self._puck_switches = None
         self._mounted_puck = None
         self._mounted_sample = None
-        self._sample_is_mounted = None
-        self._puck_in_center = None
         self._progress = None
-        self._door_is_closed = True
         self._veto = None
-        self._mag_on = None
         self._sample_detected = None
-        self._first_time_stamp = None
 
         self.chan_status = None
+        self.chan_sample_is_loaded = None
         self.chan_puck_switched = None
         self.chan_mounted_sample_puck = None
 
@@ -77,6 +73,10 @@ class Marvin(SampleChanger):
         self.chan_status = self.getChannelObject("chanStatus")
         if self.chan_status is not None:
             self.chan_status.connectSignal("update", self.status_string_changed)
+
+        self.chan_sample_is_loaded = self.getChannelObject("chanSampleIsLoaded")
+        if self.chan_sample_is_loaded is not None:
+            self.chan_sample_is_loaded.connectSignal("update", self.sample_is_loaded_changed)
 
         self.chan_mounted_sample_puck = self.getChannelObject("chanMountedSamplePuck")
         if self.chan_mounted_sample_puck is not None:
@@ -116,6 +116,13 @@ class Marvin(SampleChanger):
         """
         self._puck_switches = int(puck_switches)
         self._updateSCContents()
+ 
+    def sample_is_loaded_changed(self, sample_detected):
+        print "Is loaded: ", sample_detected, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if self._sample_detected != sample_detected:
+            self._sample_detected = sample_detected
+            self._updateLoadedSample()
+            self.updateInfo()
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
         """
@@ -125,16 +132,12 @@ class Marvin(SampleChanger):
         self._mounted_puck = mounted_sample_puck[1] - 1
         if mounted_sample != self._mounted_sample:
             self._mounted_sample = mounted_sample
-            #if not self._sample_is_mounted:
-            #    self._mounted_sample = None
             self._updateLoadedSample()
-            #self.updateInfo()
 
     def veto_changed(self, status):
         """
         Veto changed callback. Used to wait for ready
         """
-        logging.getLogger("user_level_log").info("Veto changed " + str(status)) 
         self._veto = status
 
     def getSampleProperties(self):
@@ -416,7 +419,7 @@ class Marvin(SampleChanger):
         Updates loaded sample
         """
         if self._sample_detected and \
-           self._mounted_sample and self._mounted_puck:
+           self._mounted_sample > -1 and self._mounted_puck > -1:
             new_sample = self.getComponentByAddress(\
                   Pin.getSampleAddress(self._mounted_puck, 
                                        self._mounted_sample))
@@ -522,10 +525,8 @@ class Marvin(SampleChanger):
         - Prgs: progress 0 - 100
         """
         self._status_string = status_string[:180].replace(" ", "")
-        print "status changed............."
-        print self._status_string
-
         status_list = self._status_string.split(';')
+
         for status in status_list:
             property_status_list = status.split(':')
             if len(property_status_list) < 2:
@@ -536,54 +537,23 @@ class Marvin(SampleChanger):
                 if self._state_string != prop_value:
                     self._state_string = prop_value
                     self._updateState()
-            #elif prop_name == "Mag":
-            #    sample_detected = prop_value == "On"
-            #    if self._sample_detected != sample_detected:
-            #        self._sample_detected = sample_detected
-            #        self._updateLoadedSample()
-            #        self.updateInfo()
-            elif prop_name == "SDet":
-                sample_detected = prop_value == "Yes"
-                if self._sample_detected != sample_detected:
-                    print 1, self._first_time_stamp, datetime.datetime.now()
-
-                    force_update = False
-                    if self._first_time_stamp is None:
-                        self._first_time_stamp = datetime.datetime.now()
-                    else:
-                        time_delta = datetime.datetime.now() - \
-                                     self._first_time_stamp
-                        if time_delta.seconds * 1e6 + time_delta.microseconds <= 0.5e6:
-                            print "Too fast!"
-                            force_update = True
-                        self._first_time_stamp = datetime.datetime.now()
-                    if force_update:
-                        sample_detected = not self._sample_detected
-                    self._sample_detected = sample_detected
-                    self._updateLoadedSample()
-                    self.updateInfo()
-
-                #self._second_time_stamp = datetime.datetime.now()
-            elif prop_name == "CDor":
-                door_is_closed =  prop_value == "Cls"
-                if self._door_is_closed != door_is_closed:
-                    self._door_is_closed = door_is_closed
-                    if self._door_is_closed:
-                        msg = "Sample changer: Robot cage door is closed."
-                        logging.getLogger("user_level_log").info(msg)                  
-                    else:
-                        msg = "Sample changer: Robot cage door is opened. " + \
-                              "Close the door to enable sample changer."
-                        logging.getLogger("user_level_log").warning(msg)
-                    
-            elif prop_name == "CPuck":
-                puck_in_center = prop_value == "1"
-                if self._puck_in_center != puck_in_center:
-                    self._puck_in_center = puck_in_center
-                    #if not self._puck_in_center:
-                    #    self._mounted_puck = None
             elif prop_name == "Prgs":
-                if int(prop_value) != self._progress:
-                    self._progress = int(prop_value)
-                    self.emit("progressStep", self._progress)
+                try:
+                   if int(prop_value) != self._progress:
+                       self._progress = int(prop_value)
+                       self.emit("progressStep", self._progress)
+                except:
+                   pass
 
+    def wait_sample_detect(self, sample_detected):
+        with gevent.Timeout(2, False):
+           while True:
+              if sample_detected != self._sample_detected:
+                  print "Sample detected: %s rejected! " % self._sample_detected
+                  self._sample_detected_wait_task = None
+                  return
+              gevent.sleep(0.01)
+        print "Sample detected: %s accepted" % self._sample_detected
+        self._sample_detected_wait_task = None
+        self._updateLoadedSample()
+        self.updateInfo()

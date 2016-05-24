@@ -21,6 +21,9 @@ class MicrodiffLight(Device):
         self.position_attr = self.getChannelObject("chanLightValue")
         if self.position_attr:
             self.position_attr.connectSignal("update", self.motorPositionChanged)
+
+        self.chan_light_is_on = self.getChannelObject("chanLightIsOn")
+
         self.setIsReady(True)
 
     def connectNotify(self, signal):
@@ -55,7 +58,6 @@ class MicrodiffLight(Device):
         self.position_attr.setValue(absolutePosition)
 
     def moveRelative(self, relativePosition):
-        print self.getPosition() + relativePosition
         self.move(self.getPosition() + relativePosition)
 
     def getMotorMnemonic(self):
@@ -64,3 +66,11 @@ class MicrodiffLight(Device):
     def stop(self):
         pass #self._motor_abort()
     
+    def light_is_out(self):
+        return self.chan_light_is_on.getValue()
+
+    def move_in(self):
+        self.chan_light_is_on.setValue(False)
+
+    def move_out(self):
+        self.chan_light_is_on.setValue(True)

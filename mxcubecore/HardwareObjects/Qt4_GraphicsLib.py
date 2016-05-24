@@ -356,11 +356,12 @@ class GraphicsItemPoint(GraphicsItem):
 
     def get_full_name(self):
         full_name = "Point %d" % self.index
-        if hasattr(self.__centred_position, "kappa") and \
-           hasattr(self.__centred_position, "kappa_phi"):
-            full_name += " (kappa: %0.2f phi: %0.2f)" % \
-                (self.__centred_position.kappa,
-                 self.__centred_position.kappa_phi)
+        try:
+           full_name += " (kappa: %0.2f phi: %0.2f)" % \
+               (self.__centred_position.kappa,
+                self.__centred_position.kappa_phi)
+        except:
+           pass
         self.setToolTip(full_name) 
         return full_name
 
@@ -448,9 +449,13 @@ class GraphicsItemLine(GraphicsItem):
     def get_full_name(self):
         start_cpos = self.__cp_start.get_centred_position()
         end_cpos = self.__cp_end.get_centred_position()
-        full_name = "Line (points: %d, %d / kappa: %.2f phi: %.2f)" % \
-            (self.__cp_start.index, self.__cp_end.index,
-             start_cpos.kappa, end_cpos.kappa_phi)
+        full_name = "Line (points: %d, %d)" % (self.__cp_start.index,
+                                               self.__cp_end.index)
+        try:
+           full_name += "kappa: %.2f phi: %.2f" % (start_cpos.kappa,
+                                                   start_cpos.kappa_phi)
+        except:
+           pass
         self.setToolTip(full_name)
         return full_name
 
@@ -1046,6 +1051,8 @@ class GraphicsItemGrid(GraphicsItem):
 
 
         #MD3
+
+        """
         omega_ref = 163.675
         new_point['sampx'] = new_point['sampx'] - hor_range  * \
                              math.sin(math.pi * (self.__osc_start - omega_ref) / 180.0)
@@ -1054,9 +1061,9 @@ class GraphicsItemGrid(GraphicsItem):
         new_point['phiy'] = new_point['phiy'] + ver_range
         new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_rows / 2 + \
                            (self.__num_rows - row) * self.__osc_range
+        """
        
         #MD2
-        """
         omega_ref = 0 
        
         new_point['sampx'] = new_point['sampx'] + ver_range * \
@@ -1068,7 +1075,6 @@ class GraphicsItemGrid(GraphicsItem):
         new_point['phiy'] = new_point['phiy'] - hor_range
         new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_cols / 2 + \
                            (self.__num_cols - col) * self.__osc_range
-        """
 
         if as_cpos:
             return queue_model_objects.CentredPosition(new_point)
@@ -1081,7 +1087,7 @@ class GraphicsItemScale(GraphicsItem):
                corner. Horizontal scale is scaled to 50 or 100 microns and
                vertical scale is two times shorter.
     """
-    HOR_LINE_LEN = [500, 200, 100, 50]
+    HOR_LINE_LEN = [300, 200, 100, 50]
 
     def __init__(self, parent, position_x = 0, position_y= 0):
         GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
