@@ -1,6 +1,6 @@
 """
-Containes the classes:
-* QueueuEntryContainer
+Contains following classes:
+* QueueEntryContainer
 * BaseQueueEntry
 * DummyQueueEntry
 * TaskGroupQueueEntry
@@ -716,6 +716,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def __setstate__(self, d):
         self.__dict__.update(d)
 
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["collect_task"] = None
+        d["centring_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
+
     def execute(self):
         BaseQueueEntry.execute(self)
         data_collection = self.get_data_model()
@@ -796,9 +807,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
 
-                    dc.lims_end_pos_id = self.lims_client_hwobj.\
-                                         store_centred_position(end_cpos)
-
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
                     #msg = "Helical data collection, moving to start position"
@@ -824,7 +832,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
-                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\

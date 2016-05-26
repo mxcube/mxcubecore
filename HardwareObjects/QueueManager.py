@@ -12,6 +12,7 @@ import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import gevent
+import gevent.event
 import queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
