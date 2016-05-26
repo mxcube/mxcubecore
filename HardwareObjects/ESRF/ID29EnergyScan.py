@@ -59,6 +59,8 @@ class ID29EnergyScan(ESRFEnergyScan):
 
         self.ctrl.do_energy_scan(startE, endE, datafile=fname)
 
+        self.energy_scan_parameters["exposureTime"] = self.ctrl.MONOSCAN_INITSTATE["exposure_time"]
+        
         
     def canScanEnergy(self):
         return True
