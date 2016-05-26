@@ -792,7 +792,7 @@ class AbstractMultiCollect(object):
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                           if data_collect_parameters.get("shutterless"):
-                              with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+                              with gevent.Timeout(30, RuntimeError("Timeout waiting for detector trigger, no image taken")):
                                  while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
