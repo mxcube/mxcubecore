@@ -264,6 +264,12 @@ class XRFSpectrum(Equipment):
                 except:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
             
+            #copy raw data file to the archive directory
+            try :
+                shutil.copyfile(self.spectrumInfo["filename"], self.spectrumInfo["scanFileFullPath"])
+            except:
+                logging.getLogger().error("XRFSpectrum: cannot copy %s", self.spectrumInfo["filename"])
+
             logging.getLogger().debug("finished %r", self.spectrumInfo)
             self.storeXrfSpectrum()
             self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
