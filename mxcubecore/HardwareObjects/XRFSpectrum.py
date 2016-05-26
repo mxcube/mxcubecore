@@ -2,6 +2,7 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
+import shutil
 import time
 import types
 import gevent.event
@@ -133,11 +134,9 @@ class XRFSpectrum(Equipment):
         a = directory.split(os.path.sep)
         suffix_path=os.path.join(*a[4:])
         if 'inhouse' in a :
-            a_dir = os.path.join(self.datapath, a[2], suffix_path)
+            a_dir = os.path.join(self.archive_path, a[2], suffix_path)
         else:
-            a_dir = os.path.join(self.datapath,a[4],a[3],*a[5:])
-        if a_dir[-1]!=os.path.sep:
-            a_dir+=os.path.sep
+            a_dir = os.path.join(self.archive_path,a[4],a[3],*a[5:])
         if not os.path.exists(a_dir):
             try:
                 logging.getLogger('user_level_log').debug("XRFSpectrum: creating %s", a_dir)
@@ -146,30 +145,28 @@ class XRFSpectrum(Equipment):
                 logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (a_dir,str(diag)))
                 self.spectrumStatusChanged("Error creating directory")
                 return False 
-                
-        filename_pattern = os.path.join(directory, "%s_%s_%%02d" % (prefix,time.strftime("%d_%b_%Y")) )
-        aname_pattern = os.path.join("%s/%s_%s_%%02d" % (a_dir,prefix,time.strftime("%d_%b_%Y")))
+        
+        _pattern = "%s_%s_%%02d" % (prefix,time.strftime("%d_%b_%Y"))
+        filename_pattern = os.path.join(directory, _pattern)
 
         filename_pattern = os.path.extsep.join((filename_pattern, "dat"))
-        html_pattern = os.path.extsep.join((aname_pattern, "html"))
-        aname_pattern = os.path.extsep.join((aname_pattern, "png"))
         filename = filename_pattern % 1
-        aname = aname_pattern % 1
-        htmlname = html_pattern % 1
+        fileprefix = _pattern % 1
 
         i = 2
         while os.path.isfile(filename):
             filename = filename_pattern % i
-            aname = aname_pattern % i
-            htmlname = html_pattern % i
+            fileprefix = _pattern % i
             i=i+1
 
-        self.spectrumInfo["filename"] = filename
-        self.spectrumInfo["jpegScanFileFullPath"] = aname
+        archive_path = os.path.join(a_dir, fileprefix)
+        self.spectrumInfo["filename"] = fileprefix
+        self.spectrumInfo["scanFileFullPath"] = os.path.extsep.join((archive_path, "dat"))
+        self.spectrumInfo["jpegScanFileFullPath"] = os.path.extsep.join((archive_path, "png"))
+        self.spectrumInfo["annotatedPymcaXfeSpectrum"] = os.path.extsep.join((archive_path, "html"))
         self.spectrumInfo["exposureTime"] = ct
-        self.spectrumInfo["annotatedPymcaXfeSpectrum"] = htmlname
-        logging.getLogger('user_level_log').debug("XRFSpectrum: archive file is %s", aname)
 
+        logging.getLogger('user_level_log').debug("XRFSpectrum: archive file is %s", self.spectrumInfo["jpegScanFileFullPath"])
         gevent.spawn(self.reallyStartXrfSpectrum, ct, filename)
         
         return True
@@ -319,7 +316,7 @@ class XRFSpectrum(Equipment):
             cfgname = "10"
         else:
             cfgname = "7"
-        return os.path.join(self.cfgpath,"%skeV.cfg" % cfgname)
+        return os.path.join(self.cfg_path,"%skeV.cfg" % cfgname)
 
     def _doSpectrum(self,ct, filename, wait=True):
         en = self.energy_hwobj.getCurrentEnergy()
