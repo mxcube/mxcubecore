@@ -24,14 +24,14 @@ from pprint import pformat
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
 
 # The WSDL root is configured in the hardware object XML file.
-#_WS_USERNAME, _WS_PASSWORD can be configured in the HardwareObject XML file.
+#_WS_USERNAME, _WS_PASSWORD have to be configured in the HardwareObject XML file.
 _WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
 _WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
 _WS_AUTOPROC_URL = _WSDL_ROOT + 'ToolsForAutoprocessingWebService?wsdl'
-_WS_USERNAME = 'ispybws1'
-_WS_PASSWORD = '!5pybws1'
+_WS_USERNAME = None
+_WS_PASSWORD = None
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
                         "the server is running and that your " + \
