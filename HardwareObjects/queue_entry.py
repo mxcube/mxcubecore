@@ -1,6 +1,6 @@
 """
-Containes the classes:
-* QueueuEntryContainer
+Contains following classes:
+* QueueEntryContainer
 * BaseQueueEntry
 * DummyQueueEntry
 * TaskGroupQueueEntry
@@ -757,6 +757,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
  
     def __setstate__(self, d):
         self.__dict__.update(d)
+
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["collect_task"] = None
+        d["centring_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
