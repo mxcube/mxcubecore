@@ -74,6 +74,11 @@ class AbstractMultiCollect(object):
       pass
 
    
+    @abc.abstractmethod
+    @task
+    def data_collection_end_hook(self, data_collect_parameters):
+      pass
+
     @task
     def set_detector_mode(self, detector_mode):
         """
@@ -646,6 +651,9 @@ class AbstractMultiCollect(object):
 
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
+
+        # data collection done
+        self.data_collection_end_hook(data_collect_parameters)
 
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
