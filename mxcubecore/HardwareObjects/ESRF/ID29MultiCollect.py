@@ -77,7 +77,7 @@ class ID29MultiCollect(ESRFMultiCollect):
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
-        diffr.moveToPhase("Centring", wait=True, timeout=200)
+        #diffr.moveToPhase("Centring", wait=True, timeout=200)
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
         diffr._wait_ready(20)
 
