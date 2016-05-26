@@ -541,9 +541,6 @@ class ISPyBClient2Mockup(HardwareObject):
     def _store_data_collection_group(self, group_data):
         pass
 
-    def store_centred_position(self, end_cpos, gridx=None, gridy=None):
-        pass
-
     def store_autoproc_program(self, autoproc_program_dict):
         pass
 

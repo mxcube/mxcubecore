@@ -455,8 +455,6 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
-        self.lims_start_pos_id = None
-        self.lims_end_pos_id = None
 
     def as_dict(self):
 
@@ -1477,8 +1475,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                        'number_of_lines': acq_params.num_lines,
                                        'mesh_range': acq_params.mesh_range}],
              'group_id': data_collection.lims_group_id,
-             'lims_start_pos_id': data_collection.lims_start_pos_id,
-             'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'xds_dir': acquisition.path_template.xds_dir,
