@@ -205,7 +205,7 @@ class PixelDetector:
     def start_acquisition(self, exptime, npass, first_frame):
         try:
             self.collect_obj.getObjectByRole("detector_cover").set_out()
-        except:
+        except Exception:
             pass
 
         if not first_frame and self.shutterless:
@@ -468,9 +468,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         while True:
           xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
-          xds_directory = os.path.join(process_directory, xds_input_file_dirname)
+          autoprocessing_input_file_dirname = "autoprocessing_%s_run%s_%d" % (prefix, run_number, i)
+          autoprocessing_directory = os.path.join(process_directory, autoprocessing_input_file_dirname)
 
-          if not os.path.exists(xds_directory):
+          if not os.path.exists(autoprocessing_directory):
             break
 
           i+=1
@@ -483,15 +484,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
         self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
 
-        for dir in (self.raw_data_input_file_dir, xds_directory):
+        for dir in (self.raw_data_input_file_dir, self.mosflm_raw_data_input_file_dir, self.raw_hkl2000_dir, autoprocessing_directory):
           self.create_directories(dir)
-          logging.info("Creating XDS processing input file directory: %s", dir)
+          logging.info("Creating processing input file directory: %s", dir)
           os.chmod(dir, 0777)
-
-        for dir in (self.mosflm_raw_data_input_file_dir, self.raw_hkl2000_dir):
-            self.create_directories(dir)
-            logging.info("Creating processing input file directory: %s", dir)
-            os.chmod(dir, 0777)
  
         try: 
           try: 
@@ -502,7 +498,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except:
             logging.exception("Could not create processing file directory")
 
-        return xds_directory, "", ""
+        return autoprocessing_directory, "", ""
 
 
     @task
