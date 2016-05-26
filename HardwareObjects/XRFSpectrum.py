@@ -63,6 +63,11 @@ class XRFSpectrum(Equipment):
             self.beam_info_hwobj = None
 
         try:
+            self.flux_hwobj = self.getObjectByRole("flux")
+        except: 
+            self.flux_hwobj = None
+
+        try:
             self.ctrl_hwobj = self.getObjectByRole("controller")
         except:
             self.ctrl_hwobj = None
@@ -241,6 +246,9 @@ class XRFSpectrum(Equipment):
                 mcaConfig={}
                 self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
                 self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
+                if self.flux_hwobj:
+                    self.spectrumInfo["flux"] = self.flux_hwobj.getCurrentFlux()
+
                 beam_info = self.beam_info_hwobj.get_beam_info()
                 self.spectrumInfo["beamSizeHorizontal"] = beam_info['size_x'] * 1000.
                 self.spectrumInfo["beamSizeVertical"] = beam_info['size_y'] * 1000.
