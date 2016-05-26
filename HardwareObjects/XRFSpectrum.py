@@ -242,8 +242,8 @@ class XRFSpectrum(Equipment):
                 self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
                 self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
                 beam_info = self.beam_info_hwobj.get_beam_info()
-                self.spectrumInfo["beamSizeHorizontal"] = beam_info['size_x']
-                self.spectrumInfo["beamSizeVertical"] = beam_info['size_y']
+                self.spectrumInfo["beamSizeHorizontal"] = beam_info['size_x'] * 1000.
+                self.spectrumInfo["beamSizeVertical"] = beam_info['size_y'] * 1000.
                 mcaConfig['att'] = self.spectrumInfo["beamTransmission"]
                 mcaConfig['energy'] = self.spectrumInfo["energy"]
                 mcaConfig['bsX'] = self.spectrumInfo["beamSizeHorizontal"]
