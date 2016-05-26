@@ -72,11 +72,22 @@ class ID30BMultiCollect(ESRFMultiCollect):
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
+        #this has to be done before each chage of phase
+        self.bl_control.diffractometer.getCommandObject("save_centring_positions")()
+        # not going to centring phase if in plate mode (too long)
+        if not self.bl_control.diffractometer.in_plate_mode():        
+            self.bl_control.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
+
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.bl_control.diffractometer
+        #send again the command as MD2 software only handles one
+        #centered position!!
+        #has to be where the motors are and before changing the phase
+        diffr.getCommandObject("save_centring_positions")()
+        
         #move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
