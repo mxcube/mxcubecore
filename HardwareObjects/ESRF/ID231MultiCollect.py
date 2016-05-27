@@ -1,11 +1,12 @@
 from ESRFMultiCollect import *
+from detectors.LimaPilatus import Pilatus
 import shutil
 import logging
 import os
 
 class ID231MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
-        ESRFMultiCollect.__init__(self, name, PixelDetector(), TunableEnergy())
+        ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), TunableEnergy())
        
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -18,11 +19,10 @@ class ID231MultiCollect(ESRFMultiCollect):
       # are we doing shutterless ?
       shutterless = data_collect_parameters.get("shutterless")
       self._detector.shutterless = True if shutterless else False
-      self.getChannelObject("shutterless").setValue(1 if shutterless else 0)
 
       self.getChannelObject("parameters").setValue(data_collect_parameters)
       self.execute_command("build_collect_seq")
-      self.execute_command("local_set_experiment_type")
+      #self.execute_command("local_set_experiment_type")
       self.execute_command("prepare_beamline")
       self.getCommandObject("prepare_beamline").executeCommand("musstPX_loadprog")
 
@@ -40,6 +40,27 @@ class ID231MultiCollect(ESRFMultiCollect):
         self.bl_control.resolution.move(new_resolution, wait=False)
         while self.bl_control.resolution.motorIsMoving():
             time.sleep(0.5)
+
+    def get_beam_size(self):
+        # should be moved to ESRFMultiCollect
+        # (at the moment, ESRFMultiCollect is still using spec)
+        return self.bl_control.beam_info.get_beam_size()
+
+    def get_beam_shape(self):
+        # should be moved to ESRFMultiCollect
+        # (at the moment, ESRFMultiCollect is still using spec)
+        return self.bl_control.beam_info.get_beam_shape()
+
+    def get_resolution_at_corner(self):
+        # should be moved to ESRFMultiCollect
+        # (at the moment, ESRFMultiCollect is still using spec)
+        return self.bl_control.resolution.get_value_at_corner()
+
+    def get_beam_centre(self):
+        # should be moved to ESRFMultiCollect
+        # (at the moment, ESRFMultiCollect is still using spec)
+        return self.bl_control.resolution.get_beam_centre()
+
 
     def trigger_auto_processing(self, process_event, *args, **kwargs):       
         if process_event in ('before', 'after'):
