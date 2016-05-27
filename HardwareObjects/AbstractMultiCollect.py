@@ -72,7 +72,6 @@ class AbstractMultiCollect(object):
       pass
 
    
-    @abc.abstractmethod
     @task
     def data_collection_end_hook(self, data_collect_parameters):
       pass
