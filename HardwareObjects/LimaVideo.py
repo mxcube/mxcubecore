@@ -27,6 +27,7 @@ class LimaVideo(BaseHardwareObjects.Device):
 
 	self.camType = self.getProperty("type").lower()
 	self.camAddress = self.getProperty("address")
+
         try:
  	  self.camMirror = eval(self.getProperty("mirror_hor_ver"))
         except:
@@ -142,6 +143,28 @@ class LimaVideo(BaseHardwareObjects.Device):
     def connectNotify(self, signal):
 	if signal=="imageReceived":
             self.__imagePolling = gevent.spawn(self._do_imagePolling, self.getProperty("interval")/1000.0)
+
+
+    def takeSnapshot(self, *args, **kw):
+        filename = args[0]
+        qimage = None
+        image = self.video.getLastImage()
+
+        if image.frameNumber() > -1:
+            raw_buffer = image.buffer()
+
+            self.scaling.autoscale_min_max(raw_buffer,
+                                      image.width(), image.height(),
+                                      self.scalingType)
+            validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
+                                                                  image.width(), image.height(),
+                                                                  self.scalingType,
+                                                                  self.scaling)
+            if validFlag:
+               if self.camMirror is not None:
+                   qimage = qimage.mirror(self.camMirror[0], self.camMirror[1])
+               qimage.save(filename, "PNG")
+ 
 
     def newImage(self):
 	if self.video.getLive():
