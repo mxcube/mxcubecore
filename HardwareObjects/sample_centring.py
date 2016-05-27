@@ -289,6 +289,7 @@ def end(centred_pos=None):
   try:
     move_motors(centred_pos)
   except:
+    logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
     move_motors(SAVED_INITIAL_POSITIONS)
     raise
 
