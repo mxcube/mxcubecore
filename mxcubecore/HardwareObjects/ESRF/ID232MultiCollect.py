@@ -155,7 +155,7 @@ class _ID232MultiCollect(ESRFMultiCollect):
         return self.bl_control.resolution.get_beam_centre()
 
     def get_detector_distance(self):
-        return self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition())
+        return self.bl_control.resolution.dtox.getPosition()
 
     def trigger_auto_processing(self, process_event, *args, **kwargs):
         if process_event in ('before', 'after'):
