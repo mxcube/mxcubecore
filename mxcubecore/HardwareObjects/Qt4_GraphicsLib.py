@@ -579,17 +579,20 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_display_name(self):
         if self.__automatic:
-            return "Automatic grid"
+            return "Automatic mesh"
         else:
-            return "Grid %d" % (self.index + 1)
+            return "Mesh %d" % (self.index + 1)
 
     def get_full_name(self):
-        return "Grid %d (hor. spacing: %.1f, ver. spacing: %.1f, beam size: %d, %d)" % \
+        return "Mesh %d (hor. spacing: %.1f, ver. spacing: %.1f, beam size: %d, %d)" % \
                (self.index + 1, self.__spacing_mm[0], self.__spacing_mm[1],
                 self.beam_size_mm[0], self.beam_size_mm[1])
   
     def get_col_row_num(self):
         return self.__num_cols, self.__num_rows
+
+    def get_line_image_per_line_num(self):
+        return self.__num_lines, self.__num_images_per_line
 
     def get_grid_range_mm(self):
         return (float(self.__cell_size_mm[0] * (self.__num_cols - 1)), \
@@ -638,7 +641,7 @@ class GraphicsItemGrid(GraphicsItem):
 
         if num_rows * num_cols > pow(2, 16):
             msg_text = "Unable to draw grid containing more than %d cells!" % pow(2, 16)
-            logging.getLogger("user_level_log").info(msg_text)
+            logging.getLogger("GUI").info(msg_text)
         else:
             self.__num_cols = num_cols
             self.__num_rows = num_rows
@@ -895,22 +898,31 @@ class GraphicsItemGrid(GraphicsItem):
         """
 
         #Draws x in the middle of the grid
-        painter.drawLine(self.__center_coord.x() - 5, self.__center_coord.y() - 5,
-                         self.__center_coord.x() + 5, self.__center_coord.y() + 5)
-        painter.drawLine(self.__center_coord.x() + 5, self.__center_coord.y() - 5,
-                         self.__center_coord.x() - 5, self.__center_coord.y() + 5)
+        painter.drawLine(self.__center_coord.x() - 5,
+                         self.__center_coord.y() - 5,
+                         self.__center_coord.x() + 5,
+                         self.__center_coord.y() + 5)
+        painter.drawLine(self.__center_coord.x() + 5,
+                         self.__center_coord.y() - 5,
+                         self.__center_coord.x() - 5,
+                         self.__center_coord.y() + 5)
 
         if self.__automatic: 
-            grid_info = "Auto grid"
+            grid_info = "Auto mesh"
         else:
-            grid_info = "Grid %d" % (self.index + 1)
+            grid_info = "Mesh %d" % (self.index + 1)
 
-        painter.drawText(self.__center_coord.x() + self.__grid_size_pix[0] / 2.0 + 3,
-                         self.__center_coord.y() - self.__grid_size_pix[1] / 2.0 - 3,
+        painter.drawText(self.__center_coord.x() + \
+                         self.__grid_size_pix[0] / 2.0 + 3,
+                         self.__center_coord.y() - \
+                         self.__grid_size_pix[1] / 2.0 - 3,
                          grid_info)
-        painter.drawText(self.__center_coord.x() + self.__grid_size_pix[0] / 2.0 + 3,
-                         self.__center_coord.y() - self.__grid_size_pix[1] / 2.0 + 12,
-                         "%d x %d" % (self.__num_lines, self.__num_images_per_line))
+        painter.drawText(self.__center_coord.x() + \
+                         self.__grid_size_pix[0] / 2.0 + 3,
+                         self.__center_coord.y() - \
+                         self.__grid_size_pix[1] / 2.0 + 12,
+                         "%d x %d" % (self.__num_lines, 
+                                      self.__num_images_per_line))
  
     def move_by_pix(self, move_direction):
         """Moves grid by one pixel
@@ -1045,36 +1057,31 @@ class GraphicsItemGrid(GraphicsItem):
         (hor_range, ver_range) = self.get_grid_size_mm()
         hor_range = - hor_range * (self.__num_cols / 2.0 - col) / self.__num_cols
         ver_range = - ver_range * (self.__num_rows / 2.0 - row) / self.__num_rows
-        #image, line, image_serial = self.get_image_from_col_row(col, row)
 
-        #Add correct omega
-
-
-        #MD3
-
-        """
-        omega_ref = 163.675
-        new_point['sampx'] = new_point['sampx'] - hor_range  * \
-                             math.sin(math.pi * (self.__osc_start - omega_ref) / 180.0)
-        new_point['sampy'] = new_point['sampy'] + hor_range  * \
-                             math.cos(math.pi * (self.__osc_start - omega_ref) / 180.0)
-        new_point['phiy'] = new_point['phiy'] + ver_range
-        new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_rows / 2 + \
-                           (self.__num_rows - row) * self.__osc_range
-        """
-       
-        #MD2
-        omega_ref = 0 
-       
-        new_point['sampx'] = new_point['sampx'] + ver_range * \
-                             math.sin(math.pi * (self.__osc_start - \
-                             omega_ref) / 180.0)
-        new_point['sampy'] = new_point['sampy'] - ver_range  * \
-                             math.cos(math.pi * (self.__osc_start - \
-                             omega_ref) / 180.0)
-        new_point['phiy'] = new_point['phiy'] - hor_range
-        new_point['phi'] = new_point['phiy'] - self.__osc_range * self.__num_cols / 2 + \
-                           (self.__num_cols - col) * self.__osc_range
+        if self.grid_direction['fast'][0] == 1:
+            #MD2 when fast direction is horizontal direction 
+            new_point['sampx'] = new_point['sampx'] + ver_range * \
+                                 math.sin(math.pi * (self.__osc_start - \
+                                 self.grid_direction['omega_ref']) / 180.0)
+            new_point['sampy'] = new_point['sampy'] - ver_range  * \
+                                 math.cos(math.pi * (self.__osc_start - \
+                                 self.grid_direction['omega_ref']) / 180.0)
+            new_point['phiy'] = new_point['phiy'] - hor_range
+            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+                               self.__num_cols / 2 + (self.__num_cols - col) * \
+                               self.__osc_range
+        else:
+            #MD3
+            new_point['sampx'] = new_point['sampx'] - hor_range  * \
+                                 math.sin(math.pi * (self.__osc_start - \
+                                 self.grid_direction['omega_ref']) / 180.0)
+            new_point['sampy'] = new_point['sampy'] + hor_range  * \
+                                 math.cos(math.pi * (self.__osc_start - \
+                                 self.grid_direction['omega_ref']) / 180.0)
+            new_point['phiy'] = new_point['phiy'] + ver_range
+            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+                               self.__num_rows / 2 + (self.__num_rows - row) * \
+                               self.__osc_range  
 
         if as_cpos:
             return queue_model_objects.CentredPosition(new_point)
@@ -1089,15 +1096,17 @@ class GraphicsItemScale(GraphicsItem):
     """
     HOR_LINE_LEN = [300, 200, 100, 50]
 
-    def __init__(self, parent, position_x = 0, position_y= 0):
-        GraphicsItem.__init__(self, parent, position_x = 0, position_y= 0)
+    def __init__(self, parent, position_x=0, position_y=0):
+        GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
         self.__display_grid = None
         
     def paint(self, painter, option, widget):
         #TODO move to set_pixels_per_mm
-        hor_scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len / 1000)
-        ver_scale_len_pix = int(self.pixels_per_mm[1] * self.__scale_len / 1000 / 2)
+        hor_scale_len_pix = int(self.pixels_per_mm[0] * \
+                                self.__scale_len / 1000)
+        ver_scale_len_pix = int(self.pixels_per_mm[1] * \
+                                self.__scale_len / 1000 / 2)
 
         scene_width = self.scene().width()
         scene_height = self.scene().height()
@@ -1211,7 +1220,6 @@ class GraphicsSelectTool(GraphicsItem):
                          abs(self.start_coord[0] - self.end_coord[0]),
                          abs(self.start_coord[1] - self.end_coord[1]))
 
-
 class GraphicsItemCentringLines(GraphicsItem):
     """
     Descrip. : 
@@ -1245,9 +1253,12 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
         if self.beam_size_pix:
             self.custom_pen.setStyle(QtCore.Qt.DashLine)
             painter.setPen(self.custom_pen)
-            painter.drawEllipse(self.end_coord[0] - self.beam_size_pix[0] / 2,
-                                self.end_coord[1] - self.beam_size_pix[1] / 2,
-                                self.beam_size_pix[0], self.beam_size_pix[1])
+            painter.drawEllipse(self.end_coord[0] - \
+                                self.beam_size_pix[0] / 2,
+                                self.end_coord[1] - \
+                                self.beam_size_pix[1] / 2,
+                                self.beam_size_pix[0],\
+                                self.beam_size_pix[1])
 
 
 class GraphicsItemBeamDefine(GraphicsItem):
@@ -1287,10 +1298,12 @@ class GraphicsItemBeamDefine(GraphicsItem):
                     min(self.start_coord[0], self.end_coord[0])
         pix_height = max(self.start_coord[1], self.end_coord[1]) - \
                      min(self.start_coord[1], self.end_coord[1])
-        self.center_coord[0] = min(self.start_coord[0], self.end_coord[0]) + \
-             pix_width / 2
-        self.center_coord[1] = min(self.start_coord[1], self.end_coord[1]) + \
-             pix_height / 2
+        self.center_coord[0] = min(self.start_coord[0], 
+                                   self.end_coord[0]) + \
+                               pix_width / 2
+        self.center_coord[1] = min(self.start_coord[1], 
+                                   self.end_coord[1]) + \
+                               pix_height / 2
         self.width_microns = pix_width / self.pixels_per_mm[0] * 1000
         self.height_microns = pix_height / self.pixels_per_mm[1] * 1000
 
@@ -1454,13 +1467,17 @@ class GraphicsItemMeasureArea(GraphicsItem):
                                   [self.measure_polygon.value(0).x(),
                                   self.measure_polygon.value(0).y()]]
         for point_index in range(1, self.measure_polygon.count()):
-            if self.measure_polygon.value(point_index).x() < self.min_max_coord[0][0]:
+            if self.measure_polygon.value(point_index).x() < \
+               self.min_max_coord[0][0]:
                 self.min_max_coord[0][0] = self.measure_polygon.value(point_index).x()
-            elif self.measure_polygon.value(point_index).x() > self.min_max_coord[1][0]: 
+            elif self.measure_polygon.value(point_index).x() > \
+                 self.min_max_coord[1][0]: 
                 self.min_max_coord[1][0] = self.measure_polygon.value(point_index).x() 
-            if self.measure_polygon.value(point_index).y() < self.min_max_coord[0][1]:
+            if self.measure_polygon.value(point_index).y() < \
+               self.min_max_coord[0][1]:
                 self.min_max_coord[0][1] = self.measure_polygon.value(point_index).y()
-            elif self.measure_polygon.value(point_index).y() > self.min_max_coord[1][1]: 
+            elif self.measure_polygon.value(point_index).y() > \
+                 self.min_max_coord[1][1]: 
                 self.min_max_coord[1][1] = self.measure_polygon.value(point_index).y()
         if self.measure_polygon.count() > 2:
             self.measured_area = 0
