@@ -8,6 +8,7 @@ import suds; logging.getLogger("suds").setLevel(logging.INFO)
 import os
 import itertools
 import time
+import json
 
 from suds.transport.http import HttpAuthenticated
 from suds.client import Client
@@ -1570,19 +1571,21 @@ class ISPyBClient2(HardwareObject):
           raise
         except:
           logging.exception("Could not store workflow")
-          return 0
+          return None, None, None
+
+    def store_workflow_step(self, *args, **kwargs):
+        try:
+          return self._store_workflow_step(*args, **kwargs)
+        except gevent.GreenletExit:
+          raise
+        except:
+          logging.exception("Could not store workflow step")
+          return None
 
     def _store_workflow(self, info_dict):
         """
-        Stores the data collection mx_collection, and the beamline setup
-        if provided.
-
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
-        
-        :param beamline_setup: The beamline setup.
-        :type beamline_setup: dict
-
         :returns: None
         """
         if self.__disabled:
@@ -1612,12 +1615,48 @@ class ISPyBClient2(HardwareObject):
             grid_info_id = self.__collection.service.\
                            storeOrUpdateGridInfo(grid_info_vo)
             return workflow_id, workflow_mesh_id, grid_info_id
-
         else:
             logging.getLogger("ispyb_client").\
                 exception("Error in store_workflow: could not connect" + \
                           " to server")
-            return 0, 0, 0
+        return workflow_id, workflow_mesh_id, grid_info_id
+
+    def _store_workflow_step(self, workflow_info_dict): 
+        """
+        :param mx_collection: The data collection parameters.
+        :type mx_collection: dict
+        :returns: None
+        """
+        if self.__disabled:
+            return None
+
+        workflow_step_id = None
+        if self.__collection:
+            workflow_step_dict = {}
+            workflow_step_dict['workflowId'] = workflow_info_dict.get("workflow_id")
+            workflow_step_dict['workflowStepType'] = workflow_info_dict.get("workflow_type", "MeshScan")
+            workflow_step_dict['status'] = workflow_info_dict.get("status", "")
+            workflow_step_dict['folderPath'] = workflow_info_dict.get("result_file_path", "")
+            workflow_step_dict['imageResultFilePath'] = os.path.join(\
+                workflow_step_dict['folderPath'], "parallel_processing_result.png")
+            workflow_step_dict['htmlResultFilePath'] = os.path.join(\
+                workflow_step_dict['folderPath'], "index.html")
+            workflow_step_dict['resultFilePath'] = os.path.join(\
+                workflow_step_dict['folderPath'], "index.html")
+            workflow_step_dict['comments'] = workflow_info_dict.get("comments", "")
+            workflow_step_dict['crystalSizeX'] = workflow_info_dict.get("crystal_size_x")
+            workflow_step_dict['crystalSizeY'] = workflow_info_dict.get("crystal_size_y")
+            workflow_step_dict['crystalSizeZ'] = workflow_info_dict.get("crystal_size_z")
+            workflow_step_dict['maxDozorScore'] = workflow_info_dict.get("max_dozor_score")
+
+            workflow_step_id = self.__collection.service.\
+                          storeWorkflowStep(json.dumps(workflow_step_dict))
+        else:
+            logging.getLogger("ispyb_client").\
+                exception("Error in store_workflow step: could not connect" + \
+                          " to server")
+        return workflow_step_id
+        
 
     def store_image_quality_indicators(self, image_dict):
         """
@@ -2182,6 +2221,76 @@ class ISPyBValueFactory():
             raise ISPyBArgumentError(err_msg)
 
         return workflow_mesh_vo
+
+    def grid_info_from_workflow_info(self, workflow_info_dict):
+        """
+        Ceates grid3VO from worflow_info_dict.
+        :rtype: grid3VO
+        """
+        ws_client = None
+        grid_info_vo = None
+
+        try:
+            ws_client = Client(_WS_COLLECTION_URL,
+                               cache = None)
+            grid_info_vo = \
+                ws_client.factory.create('gridInfoWS3VO')
+        except:
+            raise
+
+        try:
+            if workflow_info_dict.get("grid_info_id"):
+                grid_info_vo.gridInfoId = workflow_info_dict.get("grid_info_id")
+            grid_info_vo.dx_mm = workflow_info_dict.get("dx_mm")
+            grid_info_vo.dy_mm = workflow_info_dict.get("dy_mm")
+            grid_info_vo.meshAngle = workflow_info_dict.get("mesh_angle")
+            grid_info_vo.steps_x = workflow_info_dict.get("steps_x")
+            grid_info_vo.steps_y = workflow_info_dict.get("steps_y")
+            grid_info_vo.xOffset = workflow_info_dict.get("xOffset")
+            grid_info_vo.yOffset = workflow_info_dict.get("yOffset")
+        except KeyError,diag:
+            err_msg = \
+                "ISPyBClient: error storing a grid info (%s)" % str(diag)
+            raise ISPyBArgumentError(err_msg)
+
+        return grid_info_vo
+
+    def workflow_step_from_workflow_info(self, workflow_info_dict):
+        """
+        Ceates workflow3VO from worflow_info_dict.
+        :rtype: workflow3VO
+        """
+        ws_client = None
+        workflow_vo = None
+
+        try:
+            ws_client = Client(_WS_COLLECTION_URL,
+                               cache = None)
+            workflow_step_vo = \
+                ws_client.factory.create('workflowStep3VO')
+        except:
+            raise
+
+        try:
+            workflow_step_vo.workflowId = workflow_info_dict.get("workflow_id")
+            workflow_step_vo["type"] = workflow_info_dict.get("workflow_type", "MeshScan")
+            workflow_step_vo.status = workflow_info_dict.get("status", "")
+            workflow_step_vo.folderPath = workflow_info_dict.get("result_file_path", "")
+            workflow_step_vo.htmlResultFilePath = os.path.join(\
+                workflow_step_vo.folderPath, "index.html")
+            workflow_step_vo.resultFilePath = os.path.join(\
+                workflow_step_vo.folderPath, "index.html")
+            workflow_step_vo.comments = workflow_info_dict.get("comments", "")
+            workflow_step_vo.crystalSizeX = workflow_info_dict.get("crystal_size_x")
+            workflow_step_vo.crystalSizeY = workflow_info_dict.get("crystal_size_y")
+            workflow_step_vo.crystalSizeZ = workflow_info_dict.get("crystal_size_z") 
+            workflow_step_vo.maxDozorScore = workflow_info_dict.get("max_dozor_score")
+        except KeyError,diag:
+            err_msg = \
+                "ISPyBClient: error storing a workflow (%s)" % str(diag)
+            raise ISPyBArgumentError(err_msg)
+
+        return workflow_step_vo
 
     def grid_info_from_workflow_info(self, workflow_info_dict):
         """

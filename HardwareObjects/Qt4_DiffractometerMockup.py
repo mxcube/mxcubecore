@@ -92,7 +92,7 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
         return "ready"
 
     def in_plate_mode(self):
-        return True
+        return False
 
     def use_sample_changer(self):
         return True
@@ -272,3 +272,6 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
 
     def move_kappa_and_phi(self, kappa, kappa_phi):
         return
+
+    def get_osc_dynamic_limits(self):
+        return (0, 20)
