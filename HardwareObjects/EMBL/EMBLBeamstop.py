@@ -52,9 +52,9 @@ class EMBLBeamstop(Device):
         """
         Descrip. :
         """
-        self.default_beamstop_size = self.getProperty("defaultBeamstopSize")
-        self.default_beamstop_distance = self.getProperty("defaultBeamstopDistance")
-        self.default_beamstop_direction = self.getProperty("defaultBeamstopDirection")
+        self.default_size = self.getProperty("defaultBeamstopSize")
+        self.default_distance = self.getProperty("defaultBeamstopDistance")
+        self.default_direction = self.getProperty("defaultBeamstopDirection")
  
         self.chan_distance = self.getChannelObject('BeamstopDistance')
         if self.chan_distance is not None:
