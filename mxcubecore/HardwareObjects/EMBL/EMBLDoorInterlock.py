@@ -136,7 +136,7 @@ class EMBLDoorInterlock(Device):
     def unlock_door_interlock(self):
         if self.detector_distance_hwobj.getPosition() < 340:
             self.detector_distance_hwobj.move(500)
-            
+            gevent.sleep(1) 
         
         if not self.use_door_interlock:
             logging.getLogger().info('Door interlock is disabled')

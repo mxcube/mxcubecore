@@ -101,7 +101,11 @@ class EMBLAutoProcessing(HardwareObject):
                 if os.path.isfile(executable):	
                     will_execute = False
                     if process_event == "after": 
-                        #input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
+                        input_filename, will_execute = self.\
+                            create_autoproc_input(process_event, params_dict)
+                        if will_execute:
+                            endOfLineToExecute = ' ' + input_filename + ' ' + str(run_processing)
+                    elif process_event == "after_queued":
                         will_execute = run_processing
                         endOfLineToExecute = " " + params_dict["xds_dir"]
                     elif process_event == 'image':

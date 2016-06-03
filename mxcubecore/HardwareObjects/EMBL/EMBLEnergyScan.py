@@ -51,7 +51,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         HardwareObject.__init__(self, name)
         self._tunable_bl = True
 
-        self.can_scan = None
         self.ready_event = None
         self.scanning = False
         self.energy_motor = None
@@ -89,16 +88,15 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.beam_info_hwobj is None:
             logging.getLogger("HWR").warning('EMBLEnergyScan: Beam info hwobj not defined')
 
-        try:  
-            self.chan_scan_start = self.getChannelObject('energyScanStart')
-            self.chan_scan_start.connectSignal('update', self.scan_start_update)
-            self.chan_scan_status = self.getChannelObject('energyScanStatus')
-            self.chan_scan_status.connectSignal('update', self.scan_status_update)
-            self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
+        self.chan_scan_start = self.getChannelObject('energyScanStart')
+        self.chan_scan_start.connectSignal('update', self.scan_start_update)
+        
+        self.chan_scan_status = self.getChannelObject('energyScanStatus')
+        self.chan_scan_status.connectSignal('update', self.scan_status_update)
+        self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
 
-            self.can_scan = True
-        except:
-            logging.getLogger("HWR").warning('EMBLEnergyScan: unable to connect to scan channel(s)')
+        self.num_points = self.getProperty("numPoints")
+
          
     def scan_start_update(self, values):
         """
@@ -142,7 +140,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                             self.scanData.append([(x < 1000 and x*1000.0 or x), y])
                     else:
                         self.scanData.append([(x < 1000 and x*1000.0 or x), y])
-                    self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))	
+                    self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
+                    self.emit("progressStep", (len(self.scanData)))
             except:
                 pass
 
@@ -165,12 +164,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         log = logging.getLogger("HWR") 
 
-        if not self.can_scan:
-            logerror("EnergyScan: unable to start energy scan. hwobj " + \
-                     "not initialized")
-            self.scanCommandAborted() 
-            return
- 
         self.scanInfo = {"sessionId": session_id, "blSampleId": blsample_id,
                          "element": element,"edgeEnergy": edge}
         self.scanData = []
@@ -241,6 +234,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                       'title' : title}
         self.scanning = True
         self.emit('energyScanStarted', graph_info)
+        self.emit("progressInit", ("Energy scan", self.num_points))
 
     def scanCommandFailed(self, *args):
         """
@@ -250,6 +244,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scanning = False
         self.store_energy_scan()
         self.emit('energyScanFailed', ())
+        self.emit("progressStop", ())
+        self.energy_hwobj.set_break_bragg()
         self.ready_event.set()
 
     def scanCommandAborted(self, *args):
@@ -258,6 +254,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         self.scanning = False
         self.emit('energyScanFailed', ())
+        self.emit("progressStop", ())
+        self.energy_hwobj.set_break_bragg()
         self.ready_event.set()
 
     def scanCommandFinished(self, *args):
@@ -271,6 +269,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scanInfo["startEnergy"] = self.scanData[-1][0]
             self.scanInfo["endEnergy"] = self.scanData[-1][1]
             self.emit('energyScanFinished', (self.scanInfo,))
+            self.emit("progressStop", ())
+            self.energy_hwobj.set_break_bragg()
 
     def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
         """

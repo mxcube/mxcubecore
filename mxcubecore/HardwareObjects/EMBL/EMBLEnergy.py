@@ -47,6 +47,7 @@ class EMBLEnergy(Device):
         self.default_en = 0
         self.en_lims = [None, None]
         self.undulator_gaps = []
+        self.ctrl_bytes = None 
 
         self.cmd_set_energy = None
         self.cmd_energy_ctrl_byte = None
@@ -57,6 +58,7 @@ class EMBLEnergy(Device):
         self.chan_undulator_gaps = None
 
     def init(self):
+        self.moving = False
         self.ready_event = gevent.event.Event()
 
         self.cmd_set_energy = self.getCommandObject('cmdSetEnergy')
@@ -99,6 +101,7 @@ class EMBLEnergy(Device):
             self.en_lims = eval(self.getProperty("staticLimits"))
         except:
             self.en_lims = [None, None]
+        self.ctrl_bytes = eval(self.getProperty("ctrlBytes"))
 
         self.get_energy_limits = self.getEnergyLimits
         if not self.chan_energy:
@@ -184,7 +187,6 @@ class EMBLEnergy(Device):
             gevent.spawn(change_egy)
 
     def moveEnergyCmdStarted(self):
-        self.moving = True
         self.emit('moveEnergyStarted', ())
 
     def moveEnergyCmdFailed(self):
@@ -231,9 +233,10 @@ class EMBLEnergy(Device):
                 "Energy: moving energy to %g", energy)
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
-                    self.cmd_energy_ctrl_byte(15) 
+                    #p13 63, p14 15
+                    self.cmd_energy_ctrl_byte(self.ctrl_bytes[1]) 
                 else:
-                    self.cmd_energy_ctrl_byte(5)
+                    self.cmd_energy_ctrl_byte(self.ctrl_bytes[0])
             
             self.moving = True
             self.release_break_bragg()
@@ -307,12 +310,12 @@ class EMBLEnergy(Device):
         return self.undulator_gaps
 
     def set_break_bragg(self):
-        print "set_break"
         if self.cmd_set_break_bragg is not None:
+            print "set_break"
             self.cmd_set_break_bragg(1)
 
     def release_break_bragg(self):
-        print "release break"
         if self.cmd_release_break_bragg is not None:
+            print "release break"
             self.cmd_release_break_bragg(1)
             sleep(1)

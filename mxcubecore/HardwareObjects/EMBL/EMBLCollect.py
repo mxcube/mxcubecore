@@ -263,7 +263,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                  self.current_dc_parameters['experiment_type'], 'OSC'))
             self.cmd_collect_start()
         else:
-            self.emit_collection_failed()
+            self.emit_collection_failed("Detector server not in unknown state")
 
             
     def collect_status_update(self, status):
@@ -308,18 +308,21 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def emit_collection_failed(self, failed_msg=None):
         """Collection failed method
         """ 
-
+        print 1
         if not failed_msg:
             failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
-        self.emit("collectOscillationFailed", (self.owner, False, 
-             failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
+        print 2
+        #self.emit("collectOscillationFailed", (self.owner, False, 
+        #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
+        print 3
         self.emit("collectEnded", self.owner, failed_msg)
         self.emit("collectReady", (True, ))
+        self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
-
+        print 4
         self.update_data_collection_in_lims()
 
     def guillotine_state_changed(self, state):
@@ -403,13 +406,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
              self.current_dc_parameters, frame_number, self.run_processing_after)
 
-    def stopCollect(self, owner):
+    def stopCollect(self, owner="MXCuBE"):
         """
         Descript. :
         """
         self.aborted_by_user = True 
         self.cmd_collect_abort()
-        self.ready_event.set() 
+        self.emit_collection_failed("Aborted by user")
+        #self.ready_event.set() 
 
     def set_helical_pos(self, arg):
         """
@@ -596,6 +600,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     flux = 0.48e12
                 elif aperture_size == 15:
                     flux = 0.2e12
+                flux = 0.333333e12
             else:
                 flux = self.machine_info_hwobj.get_flux()
 
@@ -617,9 +622,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                         flux = fullflux
                     else:
                         flux = None
-               # logging.getLogger("HWR").info("Flux in %s mode %e photon/sec" % \
-               #     (self.beam_info_hwobj.get_focus_mode(), flux))
-        return flux
+        return float("%.3e" % flux)
 
     def get_machine_current(self):
         """

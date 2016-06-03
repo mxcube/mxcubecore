@@ -52,14 +52,17 @@ Example Hardware Object XML file :
 
 import os
 import tine
+import numpy
 import gevent
 import logging
 import tempfile
 from csv import reader
 from datetime import datetime
+from random import random
 
 from scipy.interpolate import interp1d
-import numpy
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -78,7 +81,8 @@ TEST_DICT = {"summary": "Beamline summary",
              "alignbeam": "Align beam position",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure",
-             "measure_intensity": "Intensity measurement"}
+             "measure_intensity": "Intensity measurement",
+             "graph": "Graph"}
 
 TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
 TEST_COLORS_FONT = {False : '#FE0000', True : '#007800'}
@@ -119,6 +123,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.results_list = None
         self.results_html_list = None
         self.arhive_results = None
+        self.graph_values = [[], []]
 
         self.chan_pitch_scan_status = None
         self.cmd_start_pitch_scan = None
@@ -132,18 +137,24 @@ class EMBLBeamlineTest(HardwareObject):
         self.vertical_motor_hwobj = None
         self.graphics_manager_hwobj = None
 
-        self.diode_calibration_amp_per_watt = interp1d([4.,6.,8.,10.,12.,12.5,15.,16.,20.,30.], 
-                                         [0.2267,0.2116,0.1405,0.086,0.0484,0.0469,0.0289,0.0240,0.01248,0.00388])
+        self.diode_calibration_amp_per_watt = interp1d(\
+              [4., 6., 8., 10., 12., 12.5, 15., 16., 20., 30.], 
+              [0.2267, 0.2116, 0.1405, 0.086, 0.0484, 0.0469,
+               0.0289, 0.0240, 0.01248, 0.00388])
 
-        self.air_absorption_coeff_per_meter = interp1d([4.,6.6,9.2,11.8,14.4,17.,19.6,22.2,24.8,27.4,30],
-				[ 9.19440446,  2.0317802 ,  0.73628084,  0.34554261,  0.19176669,
-        			  0.12030697,  0.08331135,   0.06203213,  0.04926173,  0.04114024,
-           			  0.0357374 ])
-        self.carbon_window_transmission = interp1d([4.,6.6,9.2,11.8,14.4,17.,19.6,22.2,24.8,27.4,30],
-                                [ 0.74141,0.93863,0.97775,0.98946,0.99396,0.99599,0.99701,0.99759,0.99793,0.99815,0.99828])
- 
-        self.dose_rate_per_10to14_ph_per_mmsq = interp1d([4.,6.6,9.2,11.8,14.4,17.,19.6,22.2,24.8,27.4,30],
-                        [ 459000.,  162000.,   79000.,   45700.,   29300.,   20200., 14600.,   11100.,    8610.,    6870.,    5520.])
+        self.air_absorption_coeff_per_meter = interp1d(\
+               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
+               [9.19440446, 2.0317802, 0.73628084, 0.34554261,
+                0.19176669, 0.12030697, 0.08331135, 0.06203213,
+                0.04926173,  0.04114024, 0.0357374 ])
+        self.carbon_window_transmission = interp1d(\
+               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
+               [0.74141, 0.93863, 0.97775, 0.98946, 0.99396,
+                0.99599, 0.99701, 0.99759, 0.99793, 0.99815, 0.99828])
+        self.dose_rate_per_10to14_ph_per_mmsq = interp1d(\
+               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30.0],
+               [459000., 162000., 79000., 45700., 29300., 20200.,
+                14600., 11100., 8610., 6870., 5520.])
 
     def init(self):
         """
@@ -168,14 +179,20 @@ class EMBLBeamlineTest(HardwareObject):
         self.graphics_manager_hwobj = self.bl_hwobj.shape_history_hwobj
         self.beam_align_hwobj = self.getObjectByRole("beam_align")
 
-        self.beam_focusing_hwobj = self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
-        if self.beam_focusing_hwobj:
-            self.connect(self.beam_focusing_hwobj, "focusingModeChanged", self.focusing_mode_changed)
+        try:
+           self.beam_focusing_hwobj = self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
+           self.connect(self.beam_focusing_hwobj,
+                        "focusingModeChanged",
+                        self.focusing_mode_changed)
+        except:
+           logging.getLogger("HWR").warning("BeamlineTest: Beam focusing hwobj is not defined")
 
         if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
-            self.connect(self.bl_hwobj.ppu_control_hwobj, "ppuStatusChanged", self.ppu_status_changed)
+            self.connect(self.bl_hwobj.ppu_control_hwobj,
+                         "ppuStatusChanged",
+                          self.ppu_status_changed)
         else:
-            logging.getLogger("HWR").debug("BeamlineTest: PPU control hwobj is not defined")
+            logging.getLogger("HWR").warning("BeamlineTest: PPU control hwobj is not defined")
 
         self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name 
         self.csv_file_name = self.getProperty("device_list")
@@ -214,13 +231,16 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.intensity_ranges = []
         self.intensity_measurements = []
-        for intens_range in self['intensity']['ranges']:
-            temp_intens_range = {}
-            temp_intens_range['max'] = intens_range.CurMax
-            temp_intens_range['index'] = intens_range.CurIndex
-            temp_intens_range['offset'] = intens_range.CurOffset
-            self.intensity_ranges.append(temp_intens_range)
-        self.intensity_ranges = sorted(self.intensity_ranges, key=lambda item: item['max'])
+        try:
+           for intens_range in self['intensity']['ranges']:
+               temp_intens_range = {}
+               temp_intens_range['max'] = intens_range.CurMax
+               temp_intens_range['index'] = intens_range.CurIndex
+               temp_intens_range['offset'] = intens_range.CurOffset
+               self.intensity_ranges.append(temp_intens_range)
+           self.intensity_ranges = sorted(self.intensity_ranges, key=lambda item: item['max'])
+        except:
+           logging.getLogger("HWR").error("BeamlineTest: no intensity ranges defined")
 
         self.chan_intens_mean = self.getChannelObject('intensMean')
         self.chan_intens_range = self.getChannelObject('intensRange')
@@ -228,8 +248,6 @@ class EMBLBeamlineTest(HardwareObject):
         self.cmd_set_intens_resolution = self.getCommandObject('setIntensResolution')
         self.cmd_set_intens_acq_time = self.getCommandObject('setIntensAcqTime')
         self.cmd_set_intens_range = self.getCommandObject('setIntensRange')
-
-        print self.bl_hwobj.collect_hwobj.machine_info_hwobj
 
     def start_test_queue(self, test_list, create_report=True):
         """
@@ -517,6 +535,32 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_bit"] = True
         self.ready_event.set()
         return result
+
+    def test_graph(self):
+        result = {}
+        self.graph_values[0].insert(0, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self.graph_values[1].insert(0, random() * 1e12)
+        x_arr = range(0, len(self.graph_values[0]))
+
+        result["result_details"] = []
+        result["result_details"].append("Intensity graph:")
+
+        fig = Figure(figsize = (15, 11))
+        ax = fig.add_subplot(111)
+        ax.grid(True)
+        ax.plot(x_arr, self.graph_values[1])
+        #ax.xticks(x_arr, self.graph_values[0], rotation='vertical')
+        ax.xaxis.set_ticks(self.graph_values[0])
+        canvas = FigureCanvasAgg(fig)
+        graph_path = "/tmp/mxcube/test_graph.png" 
+        canvas.print_figure(graph_path) 
+        result["result_details"].append("<img src=%s style=width:700px;>" % graph_path)
+ 
+        result["result_short"] = "Done!"
+        result["result_bit"] = True
+        self.ready_event.set()
+        return result
+ 
 
     def test_alignbeam(self):
         """
@@ -831,6 +875,8 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_bit"] = True
         result["result_details"] = []
 
+        current_phase = self.bl_hwobj.diffractometer_hwobj.current_phase 
+
         # 1. close guillotine and fast shutter --------------------------------
         self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
         self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
@@ -865,12 +911,14 @@ class EMBLBeamlineTest(HardwareObject):
             intens_range_now = self.chan_intens_range.getValue()
             for intens_range in self.intensity_ranges:
                 if intens_range['index'] is intens_range_now:
-                     
                     self.intensity_value = intens_value[self.ampl_chan_index] - intens_range['offset']
                     break
         
         #7. close the fast shutter -------------------------------------------
         self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+
+        # 7/7 set back original phase ----------------------------------------
+        self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
         
         #8. Calculate --------------------------------------------------------  
         energy = self.bl_hwobj._get_energy()
@@ -898,12 +946,11 @@ class EMBLBeamlineTest(HardwareObject):
         flux = 0.624151 * 1e16 * self.intensity_value / \
                self.diode_calibration_amp_per_watt(energy) / \
                energy / air_trsm / carb_trsm
-        dose_rate = 1e-3*1e-14*self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
+        dose_rate = 1e-3 * 1e-14 * self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
                flux / beam_size[0] / beam_size[1]  
 
         self.bl_hwobj.collect_hwobj.machine_info_hwobj.set_flux(flux)
 
-        
         msg = "Flux = %1.1e photon/s" % flux
         result["result_details"].append(msg + "<br>")
         logging.getLogger("user_level_log").info(msg)
@@ -927,7 +974,6 @@ class EMBLBeamlineTest(HardwareObject):
              ["Time", "Energy (keV)", "Detector distance (mm)", "Beam size (mm)",
               "Transmission (%%)", "Flux (photons/s)", "Dose rate (KGy/s)",
               "Time to reach 20 MGy (sec, frames)"], self.intensity_measurements))
-        
 
         self.ready_event.set()
         return result
