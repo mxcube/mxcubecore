@@ -22,10 +22,10 @@ sys.path.insert(0, getStdHardwareObjectsPath())
 #
 # create the HardwareRepository logger
 #
-_logger = logging.getLogger('HWR')
-_logger.setLevel(logging.DEBUG)
+_hwr_logger = logging.getLogger('HWR')
+_hwr_logger.setLevel(logging.DEBUG)
 _oldLevel = logging.DEBUG
-_formatter = logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
+_hwr_formatter = logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
 
 if len(logging.root.handlers) == 0:
     #
