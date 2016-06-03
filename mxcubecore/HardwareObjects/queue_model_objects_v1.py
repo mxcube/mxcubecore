@@ -21,6 +21,7 @@ class TaskNode(object):
         self._name = str()
         self._number = 0
         self._executed = False
+        self._running = False
         self._parent = None
         self._names = {}
         self._enabled = True
@@ -142,6 +143,13 @@ class TaskNode(object):
     def set_executed(self, executed):
         self._executed = executed
 
+    def is_running(self):
+        # IK maybe replace is_executed and is_running with state?
+        return self._running
+
+    def set_running(self, running):
+        self._running = running
+
     def requires_centring(self):
         return self._requires_centring
 
@@ -237,9 +245,14 @@ class Sample(TaskNode):
         acronym = self.crystals[0].protein_acronym
 
         if self.name is not '' and acronym is not '':
-            return acronym + '-' + name
+            display_name = acronym + '-' + name
         else:
-            return self.get_name()
+            display_name = self.get_name()
+
+        if self.lims_code:
+            display_name += " (%s)" % self.lims_code            
+
+        return display_name
 
     def init_from_sc_sample(self, sc_sample):
         #self.loc_str = ":".join(map(str,sc_sample[-1]))
@@ -446,6 +459,8 @@ class DataCollection(TaskNode):
         self.lims_group_id = None
         self.run_processing_after = None
         self.run_processing_parallel = None
+        self.grid = None
+        
 
     def as_dict(self):
 
@@ -479,11 +494,14 @@ class DataCollection(TaskNode):
 
     def set_experiment_type(self, exp_type):
         self.experiment_type = exp_type
-        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
-            self.set_requires_centring(False)
 
     def is_helical(self):
-        return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
+        return self.experiment_type == \
+            queue_model_enumerables.EXPERIMENT_TYPE.HELICAL
+
+    def is_mesh(self):
+        return self.experiment_type == \
+            queue_model_enumerables.EXPERIMENT_TYPE.MESH
 
     def get_name(self):
         return '%s_%i' % (self.acquisitions[0].path_template.get_prefix(),
@@ -569,21 +587,23 @@ class DataCollection(TaskNode):
         Args.     :
         Return    : display_name (string)
         """
-        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.HELICAL:
+        if self.is_helical():
             start_index, end_index = self.get_helical_point_index()
             if not None in (start_index, end_index):
-                display_name = "%s (Line - %d:%d)" %(self.get_name(), start_index, end_index)
+                display_name = "%s (Line %d:%d)" %(self.get_name(), start_index, end_index)
             else:
                 display_name = self.get_name()
-        elif self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
-            display_name = "%s (%s)" %(self.get_name(), self.grid_id)
+        elif self.is_mesh():
+            lines, images_per_line = self.grid.get_line_image_per_line_num()
+            display_name = "%s (Mesh %d - %d x %d)" % (self.get_name(), 
+                  self.grid.index + 1, lines, images_per_line)
         else:
             index = self.get_point_index()
             if index:
                 index = str(index)
             else:
                 index = "not defined"
-            display_name = "%s (Point - %s)" %(self.get_name(), index)
+            display_name = "%s (Point %s)" %(self.get_name(), index)
         return display_name
 
 
@@ -818,7 +838,10 @@ class EnergyScan(TaskNode):
             index = str(index)
         else:
             index = "not defined"
-        display_name = "%s (Point - %s)" %(self.get_name(), index)
+        display_name = "%s (%s %s, Point - %s)" %(self.get_name(),
+                                                  self.element_symbol,
+                                                  self.edge,
+                                                  index)
         return display_name
 
     def copy(self):
@@ -840,7 +863,7 @@ class EnergyScanResult(object):
         self.second_remote = None
         self.data_file_path = PathTemplate()
  
-        self.data = None
+        self.data = []
 
         self.pk = None
         self.fppPeak = None
@@ -929,14 +952,11 @@ class XRFSpectrumResult(object):
         self.mca_calib = None
         self.mca_config = None
 
-class Advanced(TaskNode):
-    def __init__(self, ref_data_collection=None, grid_object=None,
-                 crystal=None):
+class XrayCentering(TaskNode):
+    def __init__(self, ref_data_collection=None, crystal=None):
         TaskNode.__init__(self)
 
         self.set_requires_centring(False)
-        self.method_type = "MeshScan"
-
         if not ref_data_collection:
             ref_data_collection = DataCollection()
 
@@ -945,14 +965,15 @@ class Advanced(TaskNode):
 
         self.reference_image_collection = ref_data_collection
         self.crystal = crystal
-        self.grid_object = grid_object
 
         self.html_report = None
-        self.first_processing_results = {}
-        self.run_processing_parallel = True
 
-    def get_associated_grid(self):
-        return self.grid_object
+    def get_display_name(self):
+        path_template = self.get_path_template()
+        grid_info = "Mesh %d" % (self.reference_image_collection.grid.index + 1)
+        return '%s_%i (XrayCentring, %s)' % (path_template.get_prefix(),
+                                             path_template.run_number,
+                                             grid_info)
 
     def get_path_template(self):
         return self.reference_image_collection.acquisitions[0].path_template
@@ -961,22 +982,6 @@ class Advanced(TaskNode):
         path_template = self.reference_image_collection.acquisitions[0].path_template
         file_locations = path_template.get_files_to_be_written()
         return file_locations
-
-    def get_display_name(self):
-        name = self.method_type
-        if self.grid_object:
-            name += " (%s)" % self.grid_object.get_display_name()
-        else:
-            name += " (Static grid)"
-        return name
-
-    def get_first_processing_results(self):
-        return self.first_processing_results
-
-class XrayCentering(Advanced):
-    def __init__(self, *args, **kwargs):
-        Advanced.__init__(self, *args, **kwargs)
-        self.method_type = "XrayCentering"
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):

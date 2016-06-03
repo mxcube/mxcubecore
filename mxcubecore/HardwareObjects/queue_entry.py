@@ -110,7 +110,7 @@ class QueueEntryContainer(object):
         if index is not None:
             result = self._queue_entry_list.pop(index)
 
-        log = logging.getLogger('queue_exec')
+        log = logging.getLogger('queue')
         log.info('dequeue called with: ' + str(queue_entry))
         #log.info('Queue is :' + str(self.get_queue_controller()))
 
@@ -149,7 +149,7 @@ class QueueEntryContainer(object):
                  self._queue_entry_list[index_b]
             self._queue_entry_list[index_b] = temp
 
-        log = logging.getLogger('queue_exec')
+        log = logging.getLogger('queue')
         log.info('swap called with: ' + str(queue_entry_a) + ', ' + \
                  str(queue_entry_b))
         log.info('Queue is :' + str(self.get_queue_controller()))
@@ -283,30 +283,32 @@ class BaseQueueEntry(QueueEntryContainer):
         The default executer calls excute on all child entries after
         this method but before post_execute.
         """
-        logging.getLogger('queue_exec').\
+        logging.getLogger('queue').\
             info('Calling execute on: ' + str(self))
 
     def pre_execute(self):
         """
         Procedure to be done before execute.
         """
-        logging.getLogger('queue_exec').\
+        logging.getLogger('queue').\
             info('Calling pre_execute on: ' + str(self))
         self.beamline_setup = self.get_queue_controller().\
                               getObjectByRole("beamline_setup")
+        self.get_data_model().set_running(True)
 
     def post_execute(self):
         """
         Procedure to be done after execute, and execute of all
         children of this entry.
         """
-        logging.getLogger('queue_exec').\
+        logging.getLogger('queue').\
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
 
         view.setHighlighted(True)
         view.setOn(False)
         self.get_data_model().set_executed(True)
+        self.get_data_model().set_running(False)
         self._set_background_color()
 
     def _set_background_color(self):
@@ -332,7 +334,7 @@ class BaseQueueEntry(QueueEntryContainer):
         external resources, cancel all pending processes and so on.
         """
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue_exec').\
+        logging.getLogger('queue').\
             info('Calling stop on: ' + str(self))
 
     def handle_exception(self, ex):
@@ -447,7 +449,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def execute_iterleaved(self, ref_num_images, interleave_num_images):
         self.get_view().setText(1, "Interleaving...") 
-        logging.getLogger("user_level_log").info("Preparing interleaved data collection")
+        logging.getLogger("queue").info("Preparing interleaved data collection")
 
         for interleave_item in self.interleave_items:
             interleave_item["queue_entry"].set_enabled(False)
@@ -487,7 +489,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     acq_par.first_image + acq_par.num_images - 1) 
                 msg += "osc start: %.2f, osc total range: %.2f)" % \
                     (item["sw_osc_start"], item["sw_osc_range"])
-                logging.getLogger("user_level_log").info(msg)
+                logging.getLogger("queue").info(msg)
 
                 try:
                    self.interleave_items[item["collect_index"]]["queue_entry"].pre_execute()
@@ -501,7 +503,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                               item["sw_index"] + 1))
 
         if not self.interleave_stoped:
-            logging.getLogger("user_level_log").info("Interleaved task finished")
+            logging.getLogger("queue").info("Interleaved task finished")
 
         """
         for interleave_item in self.interleave_items:
@@ -554,7 +556,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger('queue_exec')
+        log = logging.getLogger('queue')
         sc_used = not self._data_model.free_pin_mode
  
         # Only execute samples with collections and when sample changer is used
@@ -593,7 +595,7 @@ class SampleQueueEntry(BaseQueueEntry):
         if not success:
             msg = "Loop centring failed or was cancelled, " +\
                   "please continue manually."
-            logging.getLogger("user_level_log").warning(msg)
+            logging.getLogger("queue").warning(msg)
         self.sample_centring_result.set(centring_info)
 
     def pre_execute(self):
@@ -675,7 +677,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
 
         self.get_view().setText(1, 'Waiting for input')
-        log = logging.getLogger("user_level_log")
+        log = logging.getLogger("GUI")
 
         kappa = self._data_model.get_kappa()
         phi = self._data_model.get_kappa_phi()
@@ -834,7 +836,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def collect_dc(self, dc, list_item):
-        log = logging.getLogger("user_level_log")
+        log = logging.getLogger("GUI")
 
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
@@ -875,6 +877,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     self.collect_hwobj.set_helical(False)
 
+                if dc.run_processing_parallel:
+                      self.processing_task = gevent.spawn(\
+                           self.parallel_processing_hwobj.run_processing,
+                           dc)    
+
                 empty_cpos = queue_model_objects.CentredPosition()
 
                 if cpos != empty_cpos:
@@ -910,7 +917,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
-                print (traceback.print_exc())
+                #print (traceback.print_exc())
                 raise QueueExecutionException(ex.message, self)
         else:
             log.error("Could not call the data collection routine," +\
@@ -921,7 +928,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info('Collection started')
+        logging.getLogger("GUI").info('Collection started')
         self.get_view().setText(1, "Collecting")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
@@ -943,7 +950,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error(message.replace('\n', ' '))
+        logging.getLogger("queue").error(message.replace('\n', ' '))
         raise QueueExecutionException(message.replace('\n', ' '), self)
 
     def collect_osc_started(self, owner, blsampleid, barcode, location,
@@ -958,10 +965,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             self.parallel_processing_hwobj.processing_done_event.wait()
             self.parallel_processing_hwobj.processing_done_event.clear()
 
-
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info('Collection completed')
 
     def stop(self):
         BaseQueueEntry.stop(self)
@@ -975,10 +980,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise
 
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+        logging.getLogger('queue').info('Calling stop on: ' + str(self))
+        logging.getLogger('GUI').error('Collection: Stoppend')
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
-
+        print "raise abort!!"
         raise QueueAbortedException('Queue stopped', self)
 
 
@@ -1049,7 +1055,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger("user_level_log")
+        log = logging.getLogger("queue")
 
         self.get_view().setText(1, "Characterising")
         log.info("Characterising, please wait ...")
@@ -1151,13 +1157,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
 
-class MeshScanQueueEntry(DataCollectionQueueEntry):
-    """
-    Defines the behaviour of a characterisation
-    """
-    def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
-        DataCollectionQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
-
 class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
@@ -1244,10 +1243,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def energy_scan_status_changed(self, msg):
-        logging.getLogger("user_level_log").info(msg)
+        logging.getLogger("GUI").info(msg)
 
     def energy_scan_started(self, *arg):
-        logging.getLogger("user_level_log").info("Energy scan started.")
+        logging.getLogger("GUI").info("Energy scan started.")
         self.get_view().setText(1, "In progress")
 
     def energy_scan_finished(self, scan_info):
@@ -1300,7 +1299,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         except:
             pass
 
-        logging.getLogger("user_level_log").\
+        logging.getLogger("GUI").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
                  (sample.crystals[0].energy_scan_result.peak,
                   sample.crystals[0].energy_scan_result.inflection))
@@ -1311,7 +1310,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error("Energy scan failed.")
+        logging.getLogger("GUI").error("Energy scan failed.")
         raise QueueExecutionException("Energy scan failed", self)
 
     def stop(self):
@@ -1327,7 +1326,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             raise
 
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+        logging.getLogger('queue').info('Calling stop on: ' + str(self))
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
@@ -1374,7 +1373,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             self.xrf_spectrum_hwobj.ready_event.wait()
             self.xrf_spectrum_hwobj.ready_event.clear()
         else:
-            logging.getLogger("user_level_log").info("XRFSpectrum not defined in beamline setup")
+            logging.getLogger("GUI").info("XRFSpectrum not defined in beamline setup")
             self.xrf_spectrum_failed()
 
     def pre_execute(self):
@@ -1412,10 +1411,10 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def xrf_spectrum_status_changed(self, msg):
-        logging.getLogger("user_level_log").info(msg)
+        logging.getLogger("GUI").info(msg)
 
     def xrf_spectrum_started(self):
-        logging.getLogger("user_level_log").info("XRF spectrum started.")
+        logging.getLogger("GUI").info("XRF spectrum started.")
         self.get_view().setText(1, "In progress")
 
     def xrf_spectrum_finished(self, mcaData, mcaCalib, mcaConfig):
@@ -1430,14 +1429,14 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         xrf_spectrum.result.mca_calib = mcaCalib
         xrf_spectrum.result.mca_config = mcaConfig
 
-        logging.getLogger("user_level_log").info("XRF spectrum finished.")
+        logging.getLogger("GUI").info("XRF spectrum finished.")
         self.get_view().setText(1, "Done")
 
     def xrf_spectrum_failed(self):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error("XRF spectrum failed.")
+        logging.getLogger("GUI").error("XRF spectrum failed.")
         raise QueueExecutionException("XRF spectrum failed", self)
 
 class GenericWorkflowQueueEntry(BaseQueueEntry):
@@ -1458,7 +1457,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_hwobj.abort()
             if self.workflow_hwobj.command_failure():
                 msg = "Workflow abort command failed! Please check workflow Tango server."
-                logging.getLogger("user_level_log").error(msg)
+                logging.getLogger("GUI").error(msg)
             else:
                 # Then sleep three seconds for allowing the server to abort a running workflow:
                 time.sleep(3)
@@ -1469,7 +1468,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
                         time.sleep(0.5)
 
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
-        logging.getLogger("user_level_log").info(msg)
+        logging.getLogger("GUI").info(msg)
         workflow_params = self.get_data_model().params_list
         # Add the current node id to workflow parameters
         #group_node_id = self._parent_container._data_model._node_id
@@ -1478,7 +1477,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.workflow_hwobj.start(workflow_params)
         if self.workflow_hwobj.command_failure():
             msg = "Workflow start command failed! Please check workflow Tango server."
-            logging.getLogger("user_level_log").error(msg)
+            logging.getLogger("GUI").error(msg)
             self.workflow_running = False
         else:
             self.workflow_running = True
@@ -1497,7 +1496,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_started = True
         elif state == 'OPEN':
             msg = "Workflow waiting for input, verify parameters and press continue."
-            logging.getLogger("user_level_log").warning(msg)
+            logging.getLogger("GUI").warning(msg)
             self.get_queue_controller().show_workflow_tab() 
 
     def pre_execute(self):
@@ -1523,80 +1522,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, 'Stopped')
         raise QueueAbortedException('Queue stopped', self)
 
-class AdvancedGroupQueueEntry(BaseQueueEntry):
-    """
-    Used to group (couple) a CollectionQueueEntry and a
-    AdvancedQueueEntry, creating a virtual entry for characterisation.
-    """
-    def __init__(self, view=None, data_model=None,
-                 view_set_queue_entry=True):
-        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
-
-        self.first_dc_qe = None
-        self.second_dc_qe = None
-        self.advanced_control_qe = None
-        self.advanced_model = None
-        self.processing_task = None
-        self.in_queue = False
-
-        self.parallel_processing_hwobj = None
-
-    def execute(self):
-        BaseQueueEntry.execute(self)
-     
-        self.advanced_model = self.get_data_model()
-        if self.advanced_model.run_processing_parallel: 
-            logging.getLogger("user_level_log").info("Starting parallel processing...")
-            self.processing_task = gevent.spawn(\
-                 self.parallel_processing_hwobj.run_processing,
-                 self.advanced_model.reference_image_collection,
-                 self.advanced_model.get_associated_grid())
-
-    def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-
-        self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
-        self.advanced_model = self.get_data_model()
-        first_collection = self.advanced_model.reference_image_collection
-
-        # Trick to make sure that the reference collection has a sample.
-        # and lims group id
-        first_collection._parent = self.advanced_model.get_parent()
-        first_collection.lims_group_id = self.advanced_model.get_parent().lims_group_id
-
-        # Enqueue the reference collection as firsd data collection
-        first_dc_qe = DataCollectionQueueEntry(self.get_view(),
-             first_collection, view_set_queue_entry=False)
-        first_dc_qe.set_enabled(True)
-        first_dc_qe.in_queue = self.in_queue
-
-        self.enqueue(first_dc_qe)
-        self.first_dc_qe = first_dc_qe
-
-        # Add advanced control queue_entry which waits processing results
-        advanced_control_qe = AdvancedControlQueueEntry(self.get_view(),
-              self.advanced_model, view_set_queue_entry=False)
-        advanced_control_qe.set_enabled(True)
-        self.enqueue(advanced_control_qe)
-        self.advanced_control_qe = advanced_control_qe
-
-        #If Xray centring selected then add second data collection
-        if self.advanced_model.method_type == "XrayCentring":
-            acq = queue_model_objects.Acquisition()
-            
-            #second_dc_qe = DataCollectionQueueEntry(self.get_view(),
-            #  reference_image_collection, view_set_queue_entry=False)
-            #second_dc_qe.set_enabled(True)
-            #self.enqueue(second_dc_qe)
-            #self.second_dc_qe = second_dc_qe
-            pass
-
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
-        self.get_view().set_checkable(False)      
-        self.advanced_model.set_executed(True)
-
-class AdvancedControlQueueEntry(BaseQueueEntry):
+class XrayCenteringQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of an Advanced scan
     """
@@ -1604,48 +1530,45 @@ class AdvancedControlQueueEntry(BaseQueueEntry):
                  view_set_queue_entry=True):
 
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
-        self.parallel_processing_hwobj = None
-        self.advanced_model = None
+        self.mesh_qe = None
+        self.helical_qe = None
+        self.in_queue = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger("user_level_log")
-
-        #self.advanced_group_qe = self.get_container()
-        self.advanced_model = self.get_data_model()
-
-        #TODO this could be different
-        # no need to read from hwobj
-        # get processing results
-        log.info("Processing...")
-        self.get_view().setText(1, "Processing...")
-        self.parallel_processing_hwobj.processing_done_event.wait()
-        self.parallel_processing_hwobj.processing_done_event.clear()
-
-        log.info("Processing done")
-        self.get_view().setText(1, "Processing done")
-         
-        self.advanced_model.first_processing_results = \
-             self.parallel_processing_hwobj.get_last_processing_results()
-        """
-        best_positions = self.advanced_model.first_processing_results.\
-             get("best_positions", [])
-
-        if len(best_positions) == 0:
-            self.status = QUEUE_ENTRY_STATUS.FAILED
-            raise QueueSkippEntryException('No diffraction spots found', self)
-        else:
-            log.info("Diffraction spot found")
-            self.get_view().setHighlighted(True)
-        """
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        self.get_view().setOn(True)
-        self.get_view().setHighlighted(False)
-        self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+        mesh = self.get_data_model()
+        reference_image_collection = mesh.reference_image_collection
+
+        # Trick to make sure that the reference collection has a sample.
+        reference_image_collection._parent = mesh.get_parent()
+
+        gid = self.get_data_model().get_parent().lims_group_id
+        reference_image_collection.lims_group_id = gid
+
+        # Enqueue the reference collection and the characterisation routine.
+        mesh_qe = DataCollectionQueueEntry(self.get_view(),
+                                         reference_image_collection,
+                                         view_set_queue_entry=False)
+        mesh_qe.set_enabled(True)
+        mesh_qe.in_queue = self.in_queue
+        self.enqueue(mesh_qe)
+        self.mesh_qe = mesh_qe
+
+        #if char.run_characterisation:
+        #    char_qe = CharacterisationQueueEntry(self.get_view(), char,
+        #                                         view_set_queue_entry=False)
+        #    char_qe.set_enabled(True)
+        #    self.enqueue(char_qe)
+        #    self.char_qe = char_qe
 
     def post_execute(self):
+        if self.helical_qe:
+            self.status = self.helical_qe.status
+        else:
+            self.status = self.mesh_qe
         BaseQueueEntry.post_execute(self)
 
 def mount_sample(beamline_setup_hwobj,
@@ -1653,7 +1576,7 @@ def mount_sample(beamline_setup_hwobj,
                  centring_done_cb, async_result):
     view.setText(1, "Loading sample")
     beamline_setup_hwobj.shape_history_hwobj.clear_all()
-    log = logging.getLogger("user_level_log")
+    log = logging.getLogger("queue")
 
     loc = data_model.location
     holder_length = data_model.holder_length
@@ -1732,4 +1655,4 @@ MODEL_QUEUE_ENTRY_MAPPINGS = \
      queue_model_objects.Basket: BasketQueueEntry,
      queue_model_objects.TaskGroup: TaskGroupQueueEntry,
      queue_model_objects.Workflow: GenericWorkflowQueueEntry,
-     queue_model_objects.Advanced: AdvancedGroupQueueEntry}
+     queue_model_objects.XrayCentering: XrayCenteringQueueEntry}

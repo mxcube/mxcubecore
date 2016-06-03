@@ -248,11 +248,11 @@ class QueueModel(HardwareObject):
         qe = cls(view_item, task_model)
         #view_item.setText(0, task_model.get_name())
 
-        if isinstance(task_model, queue_model_objects.Sample) or \
-          isinstance(task_model, queue_model_objects.TaskGroup):
-            view_item.setText(0, task_model.get_name())
-        else:
-            view_item.setText(0, task_model.get_display_name())
+        #if isinstance(task_model, queue_model_objects.Sample) or \
+        #  isinstance(task_model, queue_model_objects.TaskGroup):
+        #    view_item.setText(0, task_model.get_name())
+        #else:
+        view_item.setText(0, task_model.get_display_name())
 
         view_item.setOn(task_model.is_enabled())
 

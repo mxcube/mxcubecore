@@ -135,8 +135,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
     def __execute_task(self):
         self._running = True
-        #TODO could more nicer signal name to disable minidiff during any queue entry execution
-        self.emit('centringAllowed', (False, ))
+        #self.emit('centringAllowed', (False, ))
         try:
           for qe in self._queue_entry_list:
             try:
@@ -159,18 +158,19 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         finally:
           self._running = False
           self.emit('queue_execution_finished', (None,))
-          self.emit('centringAllowed', (True, ))
+          #self.emit('centringAllowed', (True, ))
 
     def __execute_entry(self, entry): 
         if not entry.is_enabled() or self._is_stopped:
             return
         
-        self.emit('centringAllowed', (False, ))
-        self.emit('queue_execute_started', (entry, ))
+        status = "Successful"
+        #self.emit('centringAllowed', (False, ))
+        self.emit('queue_entry_execute_started', (entry, ))
         self._current_queue_entries.append(entry)
 
-        logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
-        logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
+        logging.getLogger('queue').info('Calling execute on: ' + str(entry))
+        logging.getLogger('queue').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
             logging.getLogger('user_level_log').info('Queue paused, waiting ...')
@@ -178,6 +178,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
         self.wait_for_pause_event()
 
+        failed = False
         try:
             # Procedure to be done before main implmentation
             # of task.
@@ -186,9 +187,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
             for child in entry._queue_entry_list:
                 self.__execute_entry(child)
-
+            self.emit('queue_entry_execute_finished', (entry, "Successful"))
         except queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
+            self.emit('queue_entry_execute_finished', (entry, "Skipped"))
+            pass
+        except (queue_entry.QueueExecutionException, Exception) as ex:
+            self.emit('queue_entry_execute_finished', (entry, "Failed"))
             pass
         except (queue_entry.QueueAbortedException, Exception) as ex:
             # Queue entry was aborted in a controlled, way.
@@ -196,6 +201,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # Definetly not good state, but call post_execute
             # in anyways, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
+            self.emit('queue_entry_execute_finished', (entry, "Aborted"))
             entry.post_execute()
             entry.handle_exception(ex)
             raise ex
@@ -214,6 +220,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
                 try:
+                    self.emit('queue_entry_execute_finished', (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
                 except queue_entry.QueueAbortedException:
@@ -226,7 +233,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
-        self.emit('centringAllowed', (True, )) 
+        #self.emit('centringAllowed', (True, )) 
         self._is_stopped = True
 
     def set_pause(self, state):
@@ -241,7 +248,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :rtype: NoneType
         """
         self.emit('queue_paused', (state,))
-        self.emit('centringAllowed', (True, ))
+        #self.emit('centringAllowed', (True, ))
         if state:
             self._paused_event.clear()
         else:
