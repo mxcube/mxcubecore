@@ -4,6 +4,7 @@ import logging
 import time
 import gevent
 import types
+import time
 
 class MotorMockup(Device):      
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
@@ -17,6 +18,8 @@ class MotorMockup(Device):
         # this is ugly : I added it to make the centring procedure happy
         self.specName = self.name()
         self.motorPosition = 0
+        self._move_task = None
+        self.velocity = 100
 
     def getState(self):
         return self.motorState
@@ -33,10 +36,30 @@ class MotorMockup(Device):
     def getDialPosition(self):
         return self.getPosition()
 
+    def _move(self, target_pos):
+        start_pos = self.motorPosition
+        delta = abs(target_pos - start_pos)
+        if target_pos > self.motorPosition:
+          d = 1
+        else:
+          d = -1
+        t0 = time.time()
+        self.motorState = MotorMockup.MOVING
+        self.emit('stateChanged', (self.motorState, ))           
+        while (time.time() - t0) < (delta / float(self.velocity)):
+          self.motorPosition = start_pos + d*self.velocity*(time.time() - t0)
+          self.emit('positionChanged', (self.motorPosition, ))
+          time.sleep(0.02)
+        self.motorPosition = target_pos
+        self.emit('positionChanged', (target_pos, ))
+
+    def _set_ready(self, task):
+        self.motorState = MotorMockup.READY
+        self.emit('stateChanged', (self.motorState, ))           
+
     def move(self, position):
-        self.motorPosition = position
-        self.emit('positionChanged', (self.motorPosition, ))
-        self.emit('stateChanged', (self.motorState, ))
+        self._move_task = gevent.spawn(self._move, position)
+        self._move_task.link(self._set_ready) 
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -45,10 +68,13 @@ class MotorMockup(Device):
         return self.syncMove(self.getPosition() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
-        pass
+        if self._move_task is not None:
+          with gevent.Timeout(timeout):
+            self._move_task.join()
 
     def syncMove(self, position, timeout=None):
-        return
+        self.move(position)
+        self.waitEndOfMove(timeout)
 
     def motorIsMoving(self):
         return self.motorState == 'MOVING'
@@ -57,4 +83,5 @@ class MotorMockup(Device):
         return self.name()
 
     def stop(self):
-        return
+        if self._move_task is not None:
+            self._move_task.kill()
