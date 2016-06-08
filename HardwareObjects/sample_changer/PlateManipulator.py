@@ -311,6 +311,8 @@ class PlateManipulator(SampleChanger):
         drop = sample_location[1] - self.num_drops * col
         pos_y = float(drop) / (self.num_drops + 1)
 
+        gevent.sleep(5)
+
         if self.cmd_move_to_location:
             self.cmd_move_to_location(row, col, self.reference_pos_x, pos_y)
             self._wait_ready(60)

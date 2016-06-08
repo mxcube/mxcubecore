@@ -641,7 +641,7 @@ class GraphicsItemGrid(GraphicsItem):
 
         if num_rows * num_cols > pow(2, 16):
             msg_text = "Unable to draw grid containing more than %d cells!" % pow(2, 16)
-            logging.getLogger("GUI").info(msg_text)
+            logging.getLogger("user_level_log").info(msg_text)
         else:
             self.__num_cols = num_cols
             self.__num_rows = num_rows

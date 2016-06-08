@@ -953,7 +953,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :type file_name: str 
         """
 
-        logging.getLogger("GUI").debug("Saving scene snapshot: %s" % filename)
+        logging.getLogger("user_level_log").debug("Saving scene snapshot: %s" % filename)
         snapshot = self.get_scene_snapshot()
         snapshot.save(filename)
 
@@ -961,7 +961,7 @@ class Qt4_GraphicsManager(HardwareObject):
         return self.camera_hwobj.get_snapshot(bw, return_as_array)
 
     def save_raw_snapshot(self, filename, bw=False, image_type='PNG'):
-        logging.getLogger("GUI").debug("Saving raw snapshot: %s" % filename)
+        logging.getLogger("user_level_log").debug("Saving raw snapshot: %s" % filename)
         self.camera_hwobj.save_snapshot(filename, image_type)
 
     def start_measure_distance(self, wait_click=False):
@@ -974,7 +974,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         if wait_click:
-            logging.getLogger("GUI").info("Click to start " + \
+            logging.getLogger("user_level_log").info("Click to start " + \
                     "distance  measuring (Double click stops)")  
             self.wait_measure_distance_click = True
             self.emit("infoMsg", "Distance measurement")
@@ -993,7 +993,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         if wait_click:
-            logging.getLogger("GUI").info("Click to start " + \
+            logging.getLogger("user_level_log").info("Click to start " + \
                  "angle measuring (Double click stops)")
             self.wait_measure_angle_click = True
             self.emit("infoMsg", "Angle measurement")
@@ -1012,7 +1012,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         if wait_click:
-            logging.getLogger("GUI").info("Click to start area " + \
+            logging.getLogger("user_level_log").info("Click to start area " + \
                     "measuring (Double click stops)")
             self.wait_measure_area_click = True
             self.emit("infoMsg", "Area measurement")
@@ -1045,7 +1045,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         QtGui.QApplication.setOverrideCursor(\
               QtGui.QCursor(QtCore.Qt.BusyCursor))
-        logging.getLogger("GUI").info("Select an area to " + \
+        logging.getLogger("user_level_log").info("Select an area to " + \
                  "define beam size")
         self.wait_beam_define_click = True
         self.emit("infoMsg", "Define beam size")
@@ -1197,7 +1197,7 @@ class Qt4_GraphicsManager(HardwareObject):
             self.emit("infoMsg", "Visual align")
         else:
             msg = "Select two centred position (CTRL click) to continue"
-            logging.getLogger("GUI").error(msg)  
+            logging.getLogger("user_level_log").error(msg)  
 
     def create_line(self, start_point=None, end_point=None):
         """Creates helical line if two centring points selected
@@ -1213,7 +1213,7 @@ class Qt4_GraphicsManager(HardwareObject):
         else:
             msg = "Please select two points (with same kappa and phi) " + \
                   "to create a helical line"
-            logging.getLogger("GUI").error(msg)
+            logging.getLogger("user_level_log").error(msg)
 
     def create_grid(self, spacing=(0, 0)):
         """Creates grid
@@ -1400,7 +1400,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
         except:
-            logging.getLogger("GUI").debug("Qt4_GraphicsManager: " +\
+            logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
                 "Unable to detect object shape")
 
         try:
@@ -1412,7 +1412,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 beam_y = None
             object_shape_dict["center"] = (beam_x, beam_y)
         except:
-            logging.getLogger("GUI").debug("Qt4_GraphicsManager: " +\
+            logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
                 "Unable to detect image center of mass")
         return object_shape_dict
 
