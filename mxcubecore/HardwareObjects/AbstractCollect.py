@@ -100,7 +100,7 @@ class AbstractCollect(object):
         """
         Actual collect sequence
         """
-        log = logging.getLogger("GUI")
+        log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
         self.emit("collectReady", (False, ))
         self.emit("collectOscillationStarted", (owner, None, \
@@ -536,7 +536,7 @@ class AbstractCollect(object):
                 self.current_dc_parameters["actualContainerBarcode"] = \
                     self.sample_changer_hwobj.getLoadedSample().getContainer().getID()
 
-                logging.getLogger("GUI").info("Getting loaded sample coords")
+                logging.getLogger("user_level_log").info("Getting loaded sample coords")
                 basket, vial = self.sample_changer_hwobj.getLoadedSample().getCoords()
 
                 self.current_dc_parameters["actualSampleSlotInContainer"] = vial
@@ -584,7 +584,7 @@ class AbstractCollect(object):
                 except:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
 
-            logging.getLogger("GUI").info(\
+            logging.getLogger("user_level_log").info(\
                  "Collection: Taking %d sample snapshot(s)" % number_of_snapshots)
             for snapshot_index in range(number_of_snapshots):
                 snapshot_filename = os.path.join(\

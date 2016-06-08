@@ -169,8 +169,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self.emit('queue_entry_execute_started', (entry, ))
         self._current_queue_entries.append(entry)
 
-        logging.getLogger('queue').info('Calling execute on: ' + str(entry))
-        logging.getLogger('queue').info('Using model: ' + str(entry.get_data_model()))
+        logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
+        logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
             logging.getLogger('user_level_log').info('Queue paused, waiting ...')

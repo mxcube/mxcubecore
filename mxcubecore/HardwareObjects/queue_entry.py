@@ -110,7 +110,7 @@ class QueueEntryContainer(object):
         if index is not None:
             result = self._queue_entry_list.pop(index)
 
-        log = logging.getLogger('queue')
+        log = logging.getLogger('queue_exec')
         log.info('dequeue called with: ' + str(queue_entry))
         #log.info('Queue is :' + str(self.get_queue_controller()))
 
@@ -149,7 +149,7 @@ class QueueEntryContainer(object):
                  self._queue_entry_list[index_b]
             self._queue_entry_list[index_b] = temp
 
-        log = logging.getLogger('queue')
+        log = logging.getLogger('queue_exec')
         log.info('swap called with: ' + str(queue_entry_a) + ', ' + \
                  str(queue_entry_b))
         log.info('Queue is :' + str(self.get_queue_controller()))
@@ -283,14 +283,14 @@ class BaseQueueEntry(QueueEntryContainer):
         The default executer calls excute on all child entries after
         this method but before post_execute.
         """
-        logging.getLogger('queue').\
+        logging.getLogger('queue_exec').\
             info('Calling execute on: ' + str(self))
 
     def pre_execute(self):
         """
         Procedure to be done before execute.
         """
-        logging.getLogger('queue').\
+        logging.getLogger('queue_exec').\
             info('Calling pre_execute on: ' + str(self))
         self.beamline_setup = self.get_queue_controller().\
                               getObjectByRole("beamline_setup")
@@ -301,7 +301,7 @@ class BaseQueueEntry(QueueEntryContainer):
         Procedure to be done after execute, and execute of all
         children of this entry.
         """
-        logging.getLogger('queue').\
+        logging.getLogger('queue_exec').\
             info('Calling post_execute on: ' + str(self))
         view = self.get_view()
 
@@ -334,7 +334,7 @@ class BaseQueueEntry(QueueEntryContainer):
         external resources, cancel all pending processes and so on.
         """
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue').\
+        logging.getLogger('queue_exec').\
             info('Calling stop on: ' + str(self))
 
     def handle_exception(self, ex):
@@ -449,7 +449,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
     def execute_iterleaved(self, ref_num_images, interleave_num_images):
         self.get_view().setText(1, "Interleaving...") 
-        logging.getLogger("queue").info("Preparing interleaved data collection")
+        logging.getLogger("queue_exec").info("Preparing interleaved data collection")
 
         for interleave_item in self.interleave_items:
             interleave_item["queue_entry"].set_enabled(False)
@@ -489,7 +489,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     acq_par.first_image + acq_par.num_images - 1) 
                 msg += "osc start: %.2f, osc total range: %.2f)" % \
                     (item["sw_osc_start"], item["sw_osc_range"])
-                logging.getLogger("queue").info(msg)
+                logging.getLogger("queue_exec").info(msg)
 
                 try:
                    self.interleave_items[item["collect_index"]]["queue_entry"].pre_execute()
@@ -503,7 +503,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                               item["sw_index"] + 1))
 
         if not self.interleave_stoped:
-            logging.getLogger("queue").info("Interleaved task finished")
+            logging.getLogger("queue_exec").info("Interleaved task finished")
 
         """
         for interleave_item in self.interleave_items:
@@ -556,7 +556,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger('queue')
+        log = logging.getLogger('queue_exec')
         sc_used = not self._data_model.free_pin_mode
  
         # Only execute samples with collections and when sample changer is used
@@ -595,7 +595,7 @@ class SampleQueueEntry(BaseQueueEntry):
         if not success:
             msg = "Loop centring failed or was cancelled, " +\
                   "please continue manually."
-            logging.getLogger("queue").warning(msg)
+            logging.getLogger("queue_exec").warning(msg)
         self.sample_centring_result.set(centring_info)
 
     def pre_execute(self):
@@ -677,7 +677,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
 
         self.get_view().setText(1, 'Waiting for input')
-        log = logging.getLogger("GUI")
+        log = logging.getLogger("user_level_log")
 
         kappa = self._data_model.get_kappa()
         phi = self._data_model.get_kappa_phi()
@@ -836,7 +836,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def collect_dc(self, dc, list_item):
-        log = logging.getLogger("GUI")
+        log = logging.getLogger("user_level_log")
 
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
@@ -928,7 +928,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("GUI").info('Collection started')
+        logging.getLogger("user_level_log").info('Collection started')
         self.get_view().setText(1, "Collecting")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
@@ -950,7 +950,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("queue").error(message.replace('\n', ' '))
+        logging.getLogger("queue_exec").error(message.replace('\n', ' '))
         raise QueueExecutionException(message.replace('\n', ' '), self)
 
     def collect_osc_started(self, owner, blsampleid, barcode, location,
@@ -980,11 +980,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise
 
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue').info('Calling stop on: ' + str(self))
-        logging.getLogger('GUI').error('Collection: Stoppend')
+        logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
+        logging.getLogger('user_level_log').error('Collection: Stoppend')
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
-        print "raise abort!!"
         raise QueueAbortedException('Queue stopped', self)
 
 
@@ -1055,7 +1054,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger("queue")
+        log = logging.getLogger("queue_exec")
 
         self.get_view().setText(1, "Characterising")
         log.info("Characterising, please wait ...")
@@ -1151,7 +1150,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.data_analysis_hwobj = self.beamline_setup.data_analysis_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         #should be an other way how to get queue_model_hwobj:
-        self.queue_model_hwobj = self.get_view().listView().parent().queue_model_hwobj
+        self.queue_model_hwobj = self.get_view().listView().\
+             parent().queue_model_hwobj
+        
         self.session_hwobj = self.beamline_setup.session_hwobj
 
     def post_execute(self):
@@ -1243,10 +1244,10 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def energy_scan_status_changed(self, msg):
-        logging.getLogger("GUI").info(msg)
+        logging.getLogger("user_level_log").info(msg)
 
     def energy_scan_started(self, *arg):
-        logging.getLogger("GUI").info("Energy scan started.")
+        logging.getLogger("user_level_log").info("Energy scan started.")
         self.get_view().setText(1, "In progress")
 
     def energy_scan_finished(self, scan_info):
@@ -1299,7 +1300,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         except:
             pass
 
-        logging.getLogger("GUI").\
+        logging.getLogger("user_level_log").\
             info("Energy scan, result: peak: %.4f, inflection: %.4f" %
                  (sample.crystals[0].energy_scan_result.peak,
                   sample.crystals[0].energy_scan_result.inflection))
@@ -1310,7 +1311,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("GUI").error("Energy scan failed.")
+        logging.getLogger("user_level_log").error("Energy scan failed.")
         raise QueueExecutionException("Energy scan failed", self)
 
     def stop(self):
@@ -1326,7 +1327,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             raise
 
         self.get_view().setText(1, 'Stopped')
-        logging.getLogger('queue').info('Calling stop on: ' + str(self))
+        logging.getLogger('queue_exec').info('Calling stop on: ' + str(self))
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
@@ -1373,7 +1374,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             self.xrf_spectrum_hwobj.ready_event.wait()
             self.xrf_spectrum_hwobj.ready_event.clear()
         else:
-            logging.getLogger("GUI").info("XRFSpectrum not defined in beamline setup")
+            logging.getLogger("user_level_log").info("XRFSpectrum not defined in beamline setup")
             self.xrf_spectrum_failed()
 
     def pre_execute(self):
@@ -1411,10 +1412,10 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         self.get_view().set_checkable(False)
 
     def xrf_spectrum_status_changed(self, msg):
-        logging.getLogger("GUI").info(msg)
+        logging.getLogger("user_level_log").info(msg)
 
     def xrf_spectrum_started(self):
-        logging.getLogger("GUI").info("XRF spectrum started.")
+        logging.getLogger("user_level_log").info("XRF spectrum started.")
         self.get_view().setText(1, "In progress")
 
     def xrf_spectrum_finished(self, mcaData, mcaCalib, mcaConfig):
@@ -1429,14 +1430,14 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         xrf_spectrum.result.mca_calib = mcaCalib
         xrf_spectrum.result.mca_config = mcaConfig
 
-        logging.getLogger("GUI").info("XRF spectrum finished.")
+        logging.getLogger("user_level_log").info("XRF spectrum finished.")
         self.get_view().setText(1, "Done")
 
     def xrf_spectrum_failed(self):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("GUI").error("XRF spectrum failed.")
+        logging.getLogger("user_level_log").error("XRF spectrum failed.")
         raise QueueExecutionException("XRF spectrum failed", self)
 
 class GenericWorkflowQueueEntry(BaseQueueEntry):
@@ -1457,7 +1458,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_hwobj.abort()
             if self.workflow_hwobj.command_failure():
                 msg = "Workflow abort command failed! Please check workflow Tango server."
-                logging.getLogger("GUI").error(msg)
+                logging.getLogger("user_level_log").error(msg)
             else:
                 # Then sleep three seconds for allowing the server to abort a running workflow:
                 time.sleep(3)
@@ -1468,7 +1469,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
                         time.sleep(0.5)
 
         msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
-        logging.getLogger("GUI").info(msg)
+        logging.getLogger("user_level_log").info(msg)
         workflow_params = self.get_data_model().params_list
         # Add the current node id to workflow parameters
         #group_node_id = self._parent_container._data_model._node_id
@@ -1477,7 +1478,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
         self.workflow_hwobj.start(workflow_params)
         if self.workflow_hwobj.command_failure():
             msg = "Workflow start command failed! Please check workflow Tango server."
-            logging.getLogger("GUI").error(msg)
+            logging.getLogger("user_level_log").error(msg)
             self.workflow_running = False
         else:
             self.workflow_running = True
@@ -1496,7 +1497,7 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
             self.workflow_started = True
         elif state == 'OPEN':
             msg = "Workflow waiting for input, verify parameters and press continue."
-            logging.getLogger("GUI").warning(msg)
+            logging.getLogger("user_level_log").warning(msg)
             self.get_queue_controller().show_workflow_tab() 
 
     def pre_execute(self):
@@ -1576,7 +1577,7 @@ def mount_sample(beamline_setup_hwobj,
                  centring_done_cb, async_result):
     view.setText(1, "Loading sample")
     beamline_setup_hwobj.shape_history_hwobj.clear_all()
-    log = logging.getLogger("queue")
+    log = logging.getLogger("queue_exec")
 
     loc = data_model.location
     holder_length = data_model.holder_length

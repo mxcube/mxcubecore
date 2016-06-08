@@ -40,6 +40,7 @@ class Marvin(SampleChanger):
         self._puck_switches = None
         self._mounted_puck = None
         self._mounted_sample = None
+        self._action_started = None
         self._progress = None
         self._veto = None
         self._sample_detected = None
@@ -118,7 +119,6 @@ class Marvin(SampleChanger):
         self._updateSCContents()
  
     def sample_is_loaded_changed(self, sample_detected):
-        print "Is loaded: ", sample_detected, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if self._sample_detected != sample_detected:
             self._sample_detected = sample_detected
             self._updateLoadedSample()
@@ -317,6 +317,7 @@ class Marvin(SampleChanger):
         Executes called cmd, waits until sample changer is ready and updates
         loaded sample info
         """
+        self._action_started = True
         self._state_string = "Bsy"
         arg_arr = []
         for arg in args:
@@ -326,6 +327,7 @@ class Marvin(SampleChanger):
         self.waitReady(120.0)
         gevent.sleep(1)
         self._updateLoadedSample()
+        self._action_started = False
 
     def _updateState(self):
         """
@@ -539,21 +541,8 @@ class Marvin(SampleChanger):
                     self._updateState()
             elif prop_name == "Prgs":
                 try:
-                   if int(prop_value) != self._progress:
+                   if int(prop_value) != self._progress and self._action_started:
                        self._progress = int(prop_value)
                        self.emit("progressStep", self._progress)
                 except:
                    pass
-
-    def wait_sample_detect(self, sample_detected):
-        with gevent.Timeout(2, False):
-           while True:
-              if sample_detected != self._sample_detected:
-                  print "Sample detected: %s rejected! " % self._sample_detected
-                  self._sample_detected_wait_task = None
-                  return
-              gevent.sleep(0.01)
-        print "Sample detected: %s accepted" % self._sample_detected
-        self._sample_detected_wait_task = None
-        self._updateLoadedSample()
-        self.updateInfo()
