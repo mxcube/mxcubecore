@@ -272,6 +272,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._tunable_bl = tunable_bl
         self._centring_status = None
         self._metadataManagerClient = None
+        self._metadataManagerName = None
+        self._metaExperimentName  = None
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -324,6 +326,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector.init(self.bl_control.detector, self)
         self._tunable_bl.bl_control = self.bl_control
 
+        self._metadataManagerName = self.getProperty("metadata_manager_name")
+        self._metaExperimentName  = self.getProperty("meta_experiment_name")
+
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
@@ -334,40 +339,39 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_hook(self, data_collect_parameters):
         # Metadata
-        try:
-            fileinfo =  data_collect_parameters["fileinfo"]
-            directory = fileinfo["directory"]
-            prefix = fileinfo["prefix"]
-            run_number = int(fileinfo["run_number"])
-            # Connect to ICAT metadata database
-            listDirectory = directory.split(os.sep)
-            beamline = "unknown"
-            proposal = "unknown"
-            if listDirectory[1] == "data":
-                if listDirectory[2] == "visitor":
-                    beamline = listDirectory[4]
-                    proposal = listDirectory[3]
+        if self._metadataManagerName is not None and self._metaExperimentName is not None:
+            try:
+                fileinfo =  data_collect_parameters["fileinfo"]
+                directory = fileinfo["directory"]
+                prefix = fileinfo["prefix"]
+                run_number = int(fileinfo["run_number"])
+                # Connect to ICAT metadata database
+                listDirectory = directory.split(os.sep)
+                beamline = "unknown"
+                proposal = "unknown"
+                if listDirectory[1] == "data":
+                    if listDirectory[2] == "visitor":
+                        beamline = listDirectory[4]
+                        proposal = listDirectory[3]
+                    else:
+                        beamline = listDirectory[2]
+                        proposal = listDirectory[4]
+                self._metadataManagerClient = MetadataManagerClient(self._metadataManagerName, self._metaExperimentName)
+                # Strip the prefix from any expTypePrefix
+                sampleName = prefix
+                for expTypePrefix in ["line-", "mesh-", "ref-", "burn-", "ref-kappa-"]:
+                    if sampleName.startswith(expTypePrefix):
+                        sampleName = sampleName.replace(expTypePrefix, "")
+                        break
+                if self.collection_id is None:
+                    datasetName = "{0}_{1}".format(prefix, run_number)
                 else:
-                    beamline = listDirectory[2]
-                    proposal = listDirectory[4]
-            metadataManagerName = 'id30a1/metadata/ingest'
-            metaExperimentName  = 'id30a1/metadata/experiment'
-            self._metadataManagerClient = MetadataManagerClient(metadataManagerName, metaExperimentName)
-            # Strip the prefix from any expTypePrefix
-            sampleName = prefix
-            for expTypePrefix in ["line-", "mesh-", "ref-", "burn-", "ref-kappa-"]:
-                if sampleName.startswith(expTypePrefix):
-                    sampleName = sampleName.replace(expTypePrefix, "")
-                    break
-            if self.collection_id is None:
-                datasetName = "{0}_{1}".format(prefix, run_number)
-            else:
-                datasetName = "{0}_{1}_{2}".format(self.collection_id, prefix, run_number)
-            self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
-            self._metadataManagerClient.printStatus()        
-        except:
-            logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
-            self._metadataManagerClient = None
+                    datasetName = "{0}_{1}_{2}".format(self.collection_id, prefix, run_number)
+                self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
+                self._metadataManagerClient.printStatus()        
+            except:
+                logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
+                self._metadataManagerClient = None
  
     @task
     def data_collection_end_hook(self, data_collect_parameters):
