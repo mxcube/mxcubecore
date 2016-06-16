@@ -8,14 +8,11 @@ import os
 import PyTango
 import decimal
 
-from MedataManagerClient import MetadataManagerClient
-
 class ID30A1MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), FixedEnergy(0.966, 12.8353))
 
         self.helical = False
-        self._metadataManagerClient = None
 
     @task
     def data_collection_hook(self, data_collect_parameters):
@@ -28,51 +25,10 @@ class ID30A1MultiCollect(ESRFMultiCollect):
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
-      # Metadata
 
-      try:
-        fileinfo =  data_collect_parameters["fileinfo"]
-        directory = fileinfo["directory"]
-        prefix = fileinfo["prefix"]
-        run_number = int(fileinfo["run_number"])
-        # Connect to ICAT metadata database
-        listDirectory = directory.split(os.sep)
-        try:
-          if listDirectory[1] == "data":
-            if listDirectory[2] == "visitor":
-              beamline = listDirectory[4]
-              proposal = listDirectory[3]
-            else:
-              beamline = listDirectory[2]
-              proposal = listDirectory[4]
-        except:
-          beamline = "unknown"
-          proposal = "unknown"
-        metadataManagerName = 'id30a1/metadata/ingest'
-        metaExperimentName  = 'id30a1/metadata/experiment'
-        self._metadataManagerClient = MetadataManagerClient(metadataManagerName, metaExperimentName)
-        # Strip the prefix from any expTypePrefix
-        sampleName = prefix
-        for expTypePrefix in ["line-", "mesh-", "ref-", "burn-", "ref-kappa-"]:
-            if sampleName.startswith(expTypePrefix):
-                sampleName = sampleName.replace(expTypePrefix, "")
-                break
-        if self.collection_id is None:
-          datasetName = "{0}_{1}".format(prefix, run_number)
-        else:
-          datasetName = "{0}_{1}_{2}".format(self.collection_id, prefix, run_number)
-        self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
-        self._metadataManagerClient.printStatus()        
-      except:
-        logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
-        self._metadataManagerClient = None
+      # Metadata management
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
  
-    @task
-    def data_collection_end_hook(self, data_collect_parameters):
-        if self._metadataManagerClient is not None:
-            self._metadataManagerClient.printStatus()
-            self._metadataManagerClient.end()
-
     @task
     def get_beam_size(self):
         return self.bl_control.beam_info.get_beam_size()
