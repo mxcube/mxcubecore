@@ -94,7 +94,6 @@ class CcdDetector:
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-
         if self._detector:
             self._detector.start_acquisition(exptime, npass, first_frame)
         else:
@@ -581,7 +580,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         input_file_dir = self.mosflm_raw_data_input_file_dir 
         file_prefix = "../.." 
-	mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
+	    mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
         conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
         mosflm_file = open(mosflm_input_file, "w")
         mosflm_file.write(conn.getresponse().read()) 

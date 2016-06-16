@@ -21,23 +21,23 @@ class MetadataManagerClient(object):
     """
     def __init__(self, metadataManagerName, metaExperimentName):
         """
-    	Return a MetadataManagerClient object whose metadataManagerName is *metadataManagerName*
-    	and metaExperimentName is *metaExperimentName*
-    	"""
+        Return a MetadataManagerClient object whose metadataManagerName is *metadataManagerName*
+        and metaExperimentName is *metaExperimentName*
+        """
         self.dataRoot = None
         self.proposal = None
         self.sample = None
         self.datasetName = None
-        
-    	if metadataManagerName:
+
+        if metadataManagerName:
             self.metadataManagerName = metadataManagerName
         if metaExperimentName:
-    		self.metaExperimentName = metaExperimentName
+            self.metaExperimentName = metaExperimentName
 
         print('MetadataManager: %s' % metadataManagerName)
         print('MetaExperiment: %s' % metaExperimentName)
 
-       	""" Tango Devices instances """	 
+        """ Tango Devices instances """
         try:
             MetadataManagerClient.metadataManager = PyTango.client.Device(self.metadataManagerName)
             MetadataManagerClient.metaExperiment = PyTango.client.Device(self.metaExperimentName)
@@ -46,10 +46,10 @@ class MetadataManagerClient(object):
             raise
 
     def printStatus(self):
-        print('DataRoot: %s'%MetadataManagerClient.metaExperiment.dataRoot)
-        print('Proposal: %s'%MetadataManagerClient.metaExperiment.proposal)
-        print('Sample: %s'%MetadataManagerClient.metaExperiment.sample)
-        print('Dataset: %s'%MetadataManagerClient.metadataManager.scanName)
+        print('DataRoot: %s' % MetadataManagerClient.metaExperiment.dataRoot)
+        print('Proposal: %s' % MetadataManagerClient.metaExperiment.proposal)
+        print('Sample: %s' % MetadataManagerClient.metaExperiment.sample)
+        print('Dataset: %s' % MetadataManagerClient.metadataManager.scanName)
 
 
 
@@ -94,7 +94,7 @@ class MetadataManagerClient(object):
                 self.__setProposal(proposal)
 
                 """ setting dataRoot """
-                self.__setDataRoot(dataRoot)               
+                self.__setDataRoot(dataRoot)
 
                 """ setting sample """
                 self.__setSample(sampleName)
@@ -106,7 +106,7 @@ class MetadataManagerClient(object):
                 if (str(MetadataManagerClient.metaExperiment.state()) == 'ON'):
                     if (str(MetadataManagerClient.metadataManager.state()) == 'ON'):
                         MetadataManagerClient.metadataManager.StartScan()
-                        
+
             except:
                 print "Unexpected error:", sys.exc_info()[0]
                 raise
@@ -116,14 +116,14 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metadataManager.endScan()
         except:
             print "Unexpected error:", sys.exc_info()[0]
-            raise        
+            raise
 
 if __name__ == '__main__':
     metadataManagerName = 'id30a1/metadata/ingest'
-    metaExperimentName  = 'id30a1/metadata/experiment'
+    metaExperimentName = 'id30a1/metadata/experiment'
     client = MetadataManagerClient(metadataManagerName, metaExperimentName)
-    
+
     client.start('/tmp/metadata', 'mx415', 'sample2', 'dataset3')
     client.printStatus()
     client.end()
-   
+
