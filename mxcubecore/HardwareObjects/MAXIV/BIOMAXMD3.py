@@ -71,7 +71,15 @@ class BIOMAXMD3(GenericDiffractometer):
 
         :returns: list with two floats
         """
+        return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
         return (1/self.channel_dict["CoaxCamScaleX"].getValue(), 1/self.channel_dict["CoaxCamScaleY"].getValue())
+
+    def update_zoom_calibration(self):
+        """
+        """
+        self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
+        self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+
 
     def manual_centring(self):
         """
@@ -302,7 +310,9 @@ class BIOMAXMD3(GenericDiffractometer):
             argin += "%s=%0.3f;" % (name, position)
         if not argin:
             return
-        self.wait_device_ready(100)
+        self.wait_device_ready(2000)
+        #while not self.is_ready():
+        #    time.sleep(0.25)
         self.command_dict["startSimultaneousMoveMotors"](argin)
 
         if wait:

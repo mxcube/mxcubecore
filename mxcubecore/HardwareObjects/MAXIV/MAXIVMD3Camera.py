@@ -35,19 +35,30 @@ class MAXIVMD3Camera(Device):
         self.image_attr = self.addChannel({"type":"exporter", "name":"image"  }, 'ImageJPG')
 
 	# new attrs for the MD3 with extra camera options
-        self.width = 1360
-	self.height = 1024
-	self.zoom = self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
+        self.width = 680
+	self.height = 512
+	self.chan_zoom = self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
 	self.roi_x = self.addChannel({"type":"exporter", "name":"RoiX"  }, 'RoiX')
 	self.roi_y = self.addChannel({"type":"exporter", "name":"RoiY"  }, 'RoiY')
 	self.roi_width = self.addChannel({"type":"exporter", "name":"RoiWidth"  }, 'RoiWidth')
         self.roi_height = self.addChannel({"type":"exporter", "name":"RoiHeight"  }, 'RoiHeight')
         self.set_camera_roi = self.addCommand({"type":"exporter", "name":"setCameraROI"  }, 'setCameraROI')
+  
+        self.width=self.roi_width.getValue()
+        self.height = self.roi_height.getValue()
 
         if self.getProperty("interval"):
             self.pollInterval = self.getProperty("interval")
         self.stopper = False#self.pollingTimer(self.pollInterval, self.poll)
-        thread = Thread(target=self.poll)
+        #if self.getProperty("image_zoom"):
+        try:
+            self.zoom = float(self.getProperty("image_zoom"))
+            self.chan_zoom.setValue(self.zoom)
+            self.width=self.roi_width.getValue()*self.zoom
+            self.height = self.roi_height.getValue()*self.zoom
+	except:
+            logging.getLogger("HWR").info( "cannot set image zoom level")
+	thread = Thread(target=self.poll)
         thread.daemon = True
         thread.start()
 
@@ -140,8 +151,10 @@ class MAXIVMD3Camera(Device):
     def gainExists(self):
         return False
     def getWidth(self):
+        #return self.roi_width.getValue()
         return self.width
     def getHeight(self):
+        #return self.roi_height.getValue()
 	return self.height
     def setLive(self, state):
         self.liveState = state
