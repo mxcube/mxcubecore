@@ -8,8 +8,7 @@ import httplib
 import urllib
 import math
 from queue_model_objects_v1 import PathTemplate
-from detectors.LimaPilatus import Pilatus 
-from MAXIV.LimaDetectorMockup import LimaDetectorMockup
+from MAXIV.BIOMAXPilatus import BIOMAXPilatus
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -167,9 +166,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        #self._detector = PixelDetector(Pilatus)
-        self._detector = PixelDetector(LimaDetectorMockup)
-        self._tunable_bl = FixedEnergy(1.0, 12.6)
+        self._detector = PixelDetector(BIOMAXPilatus)
+        self._tunable_bl = FixedEnergy(1.125, 11.0)
         self._centring_status = None
         self.helical = False
 
@@ -465,7 +463,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             return "NA"
 
     def get_detector_distance(self):
-        return
+        return 120
 
     def get_machine_current(self):
         if self.bl_control.machine_current is not None:
@@ -566,4 +564,15 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def write_input_files(self, collection_id):
         return
 
+    def get_beam_centre(self):
+        #x=723
+        #y=808
+        x = 731.89
+        y = 822.40
+        return (x*0.172, y*0.172)
+        return self.bl_control.resolution.get_beam_centre()
 
+    def get_detector_distance(self):
+        #return 750
+        return 150.0 # unit, mm
+    
