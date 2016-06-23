@@ -78,11 +78,7 @@ class __HardwareRepositoryClient:
         serverAddress needs to be the HWR server address (host:port) or
         a list of paths where to find XML files locally (when server is not in use)
         """
-        if not type(serverAddress) in (list, tuple): 
-            self.serverAddress = [serverAddress]
-        else:
-            self.serverAddress = serverAddress
-        
+        self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
         self.__connected = False
