@@ -43,7 +43,6 @@ import time
 import logging
 import gevent
 import numpy as np
-import cv2
 from PyQt4 import QtGui
 from Lima import Core
 
@@ -56,7 +55,7 @@ try:
 except ImportError, e:
     logging.getLogger().warning("%s: %s", __name__, e)
 try:
-    from mxutils import get_decoder
+    import cv2
 except ImportError:
     logging.getLogger().warning("%s: %s", __name__, e)
 
