@@ -111,9 +111,8 @@ class EMBLBeamlineTest(HardwareObject):
         self.arhive_results = None
 
         self.bl_hwobj = None
-        self.beam_focus_hwobj = None
+        self.beam_focusing_hwobj = None
         self.graphics_manager_hwobj = None
-        self.beam_align_hwobj = None
         self.test_directory = None
         self.test_source_directory = None
         self.test_filename = None
@@ -127,9 +126,9 @@ class EMBLBeamlineTest(HardwareObject):
         self.graphics_manager_hwobj = self.bl_hwobj.shape_history_hwobj
         self.beam_align_hwobj = self.getObjectByRole("beam_align")
 
-        self.beam_focus_hwobj = self.bl_hwobj.beam_info_hwobj.beam_definer_hwobj
-        if self.beam_focus_hwobj:
-            self.connect(self.beam_focus_hwobj, "focusingModeChanged", self.focusing_mode_changed)
+        self.beam_focusing_hwobj = self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
+        if self.beam_focusing_hwobj:
+            self.connect(self.beam_focusing_hwobj, "focusingModeChanged", self.focusing_mode_changed)
 
         if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
             self.connect(self.bl_hwobj.ppu_control_hwobj, "ppuStatusChanged", self.ppu_status_changed)
@@ -283,22 +282,22 @@ class EMBLBeamlineTest(HardwareObject):
         """
         Descrip. :
         """
-        if self.beam_focus_hwobj:
-            return self.beam_focus_hwobj.get_focus_mode_names()
+        if self.beam_focusing_hwobj:
+            return self.beam_focusing_hwobj.get_focus_mode_names()
 
     def get_focus_motors(self):
         """
         Descript. :
         """
-        if self.beam_focus_hwobj is not None:
-            return self.beam_focus_hwobj.get_focus_motors()
+        if self.beam_focusing_hwobj is not None:
+            return self.beam_focusing_hwobj.get_focus_motors()
 
     def get_focus_mode(self):
         """
         Descript. :
         """
-        if self.beam_focus_hwobj is not None:
-            return self.beam_focus_hwobj.get_active_focus_mode()
+        if self.beam_focusing_hwobj is not None:
+            return self.beam_focusing_hwobj.get_active_focus_mode()
         else:
             return None, None
 
@@ -306,15 +305,15 @@ class EMBLBeamlineTest(HardwareObject):
         """
         Descript. :
         """
-        if self.beam_focus_hwobj is not None:
-            self.beam_focus_hwobj.set_focus_mode(mode)
+        if self.beam_focusing_hwobj is not None:
+            self.beam_focusing_hwobj.set_focus_mode(mode)
 
     def set_motor_focus_mode(self, motor, mode):
         """
         Descript. :
         """
-        if self.beam_focus_hwobj is not None:
-            self.beam_focus_hwobj.set_motor_focus_mode(motor, mode)
+        if self.beam_focusing_hwobj is not None:
+            self.beam_focusing_hwobj.set_motor_focus_mode(motor, mode)
  
     def valid_ip(self, address):
         """

@@ -20,7 +20,7 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
     def init(self): 
         # this is ugly : I added it to make the centring procedure happy
         self.motorState = MicrodiffMotorMockup.READY
-	self.motorPosition = 10.124
+        self.motorPosition = 10.124
 
     def connectNotify(self, signal):
         if signal == 'positionChanged':
@@ -31,10 +31,10 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
                 self.motorLimitsChanged()  
  
     def updateState(self):
-	pass
+        pass
 
     def updateMotorState(self, motor_states):
-	pass
+        pass
 
     def motorStateChanged(self, state):
         self.emit('stateChanged', (self.motorState, ))
@@ -49,13 +49,13 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
         return (-1E4,1E4)
  
     def getPosition(self):
-	return self.motorPosition
+        return self.motorPosition
 
     def getDialPosition(self):
         return self.getPosition()
 
     def move(self, absolutePosition):
- 	self.motorPosition = absolutePosition
+        self.motorPosition = absolutePosition
         self.emit('positionChanged', (self.motorPosition, ))
         self.emit('stateChanged', (self.motorState, ))
 
@@ -85,4 +85,3 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
     def getPredefinedPositionsList(self):
         #For zoom
         return {"Zoom 1": 1, "Zoom 2": 2, "Zoom 3": 3, "Zoom 4": 4, "Zoom 5": 5}
-	

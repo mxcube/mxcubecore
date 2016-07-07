@@ -16,7 +16,10 @@ import time
 import json
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+if sys.version_info > (3, 0):
+   from xmlrpc.server import SimpleXMLRPCServer
+else:
+   from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 
 __author__ = "Marcus Oskarsson, Matias Guijarro"

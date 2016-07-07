@@ -75,6 +75,10 @@ class AbstractMultiCollect(object):
 
    
     @task
+    def data_collection_end_hook(self, data_collect_parameters):
+      pass
+
+    @task
     def set_detector_mode(self, detector_mode):
         """
         Descript. :
@@ -331,7 +335,7 @@ class AbstractMultiCollect(object):
         for directory in args:
             try:
                 os.makedirs(directory)
-            except os.error, e:
+            except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
      
@@ -647,6 +651,9 @@ class AbstractMultiCollect(object):
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
+        # data collection done
+        self.data_collection_end_hook(data_collect_parameters)
+
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
@@ -783,8 +790,8 @@ class AbstractMultiCollect(object):
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                           if data_collect_parameters.get("shutterless"):
-                              with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
-   			          while self.last_image_saved() == 0:
+                              with gevent.Timeout(30, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+                                 while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
                               last_image_saved = self.last_image_saved()
@@ -953,8 +960,8 @@ class AbstractMultiCollect(object):
         processAnalyseParams['residues'] = residues
         processAnalyseParams["spacegroup"]=spacegroup
         processAnalyseParams["cell"]=cell
-      except Exception,msg:
-        logging.getLogger().exception("DataCollect:processing: %r" % msg)
+      except Exception as msg:
+        logging.getLogger().exception("DataCollect:processing: %r" % str(msg))
       else:
         #logging.info("AUTO PROCESSING: %s, %s, %s, %s, %s, %s, %r, %r", process_event, EDNA_files_dir, anomalous, residues, do_inducedraddam, spacegroup, cell)
             

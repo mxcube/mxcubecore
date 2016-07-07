@@ -541,8 +541,6 @@ class GenericDiffractometer(HardwareObject):
         return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
-        """
-        """
         if self.camera_hwobj:
             return self.camera_hwobj.get_snapshot()
 
@@ -589,7 +587,7 @@ class GenericDiffractometer(HardwareObject):
 
         try:
             centring_method = self.centring_methods[method]
-        except KeyError, diag:
+        except KeyError as diag:
             logging.getLogger("HWR").error("Diffractometer: unknown centring method (%s)" % str(diag))
             self.emit_centring_failed()
         else:
@@ -611,7 +609,7 @@ class GenericDiffractometer(HardwareObject):
             try:
                 #TODO... do we need this at all?
                 fun = self.cancel_centring_methods[self.current_centring_method]
-            except KeyError, diag:
+            except KeyError as diag:
                 self.emit_centring_failed()
             else:
                 try:
@@ -807,12 +805,14 @@ class GenericDiffractometer(HardwareObject):
         self.move_to_motors_positions_procedure = gevent.spawn(\
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
+  
+    def move_motors(self, motor_positions, timeout=15):
+        """
+        Moves diffractometer motors to the requested positions
 
-    def move_motors(self, motor_positions):
-        """Method to move motors to defned positions
-        
-        :param motor_positions: Dictionary can contain motor names
-        :type motor_positions: dict
+        :param motors_dict: dictionary with motor names or hwobj 
+                            and target values.
+        :type motors_dict: dict
         """
         for motor in motor_positions.keys():
             position = motor_positions[motor]
@@ -824,7 +824,7 @@ class GenericDiffractometer(HardwareObject):
                     continue
                 motor_positions[motor] = position
             motor.move(position)
-        self.wait_device_ready(15)
+        self.wait_device_ready(timeout)
 
     def move_motors_done(self, move_motors_procedure):
         """
@@ -978,6 +978,7 @@ class GenericDiffractometer(HardwareObject):
 
     def move_omega_relative(self, relative_angle):
         """
+        Descript. :
         """
         return
 
@@ -1088,3 +1089,9 @@ class GenericDiffractometer(HardwareObject):
         else:
            logging.getLogger("HWR").info("Diffractometer: SmartMagnet " + \
                "is not available, only works for Minikappa and SmartMagnet head")
+
+    def close_kappa(self):
+        """
+        Descript. :
+        """
+        return

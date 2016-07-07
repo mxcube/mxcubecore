@@ -94,6 +94,7 @@ class EMBLBeamFocusing(Equipment):
         for focus_mode in self['focusModes']:
             self.focus_modes.append({'modeName': focus_mode.modeName, 
                                      'lensCombination': eval(focus_mode.lensCombination),
+                                     'lensModes': eval(focus_mode.lensModes),
                                      'size': eval(focus_mode.size), 
                                      'message': eval(focus_mode.message),
                                      'diverg': eval(focus_mode.divergence)})
@@ -151,7 +152,7 @@ class EMBLBeamFocusing(Equipment):
 
         prev_mode = self.active_focus_mode
         self.active_focus_mode, self.size = self.get_active_focus_mode()
-        
+
         if prev_mode != self.active_focus_mode:
             logging.getLogger("HWR").info('Focusing: %s mode detected' % self.active_focus_mode)
             self.emit('focusingModeChanged', self.active_focus_mode, self.size)
@@ -179,9 +180,22 @@ class EMBLBeamFocusing(Equipment):
             if focus_mode['modeName'] == focus_mode_name:
                 return focus_mode['message']
 
-    def get_lens_combination(self, focus_mode_name=None):
+    def get_available_lens_modes(self, focus_mode_name=None):
+        """
+        Descript. :
+        """
         if focus_mode_name == None:
             focus_mode_name = self.active_focus_mode
+        for focus_mode in self.focus_modes:
+            if focus_mode['modeName'] == focus_mode_name:
+                return focus_mode['lensModes']   
+
+    def get_lens_combination(self, focus_mode_name=None):
+        """
+        Descript. :
+        """
+        if focus_mode_name == None:
+            focus_mode_name, beam_size = self.get_active_focus_mode()
 
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == focus_mode_name:

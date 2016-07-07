@@ -220,7 +220,7 @@ class Sample(TaskNode):
         return s
 
     def _print(self):
-        print "sample: %s" % self.loc_str
+        print ("sample: %s" % self.loc_str)
 
     def has_lims_data(self):
         if self.lims_id > -1:
@@ -455,8 +455,6 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
-        self.lims_start_pos_id = None
-        self.lims_end_pos_id = None
 
     def as_dict(self):
 
@@ -939,12 +937,12 @@ class XRFSpectrumResult(object):
         self.mca_config = None
 
 class Advanced(TaskNode):
-    def __init__(self, method_type=None, ref_data_collection=None, grid_object=None,
+    def __init__(self, ref_data_collection=None, grid_object=None,
                  crystal=None):
         TaskNode.__init__(self)
 
-        self.method_type = method_type
         self.set_requires_centring(False)
+        self.method_type = "MeshScan"
 
         if not ref_data_collection:
             ref_data_collection = DataCollection()
@@ -957,8 +955,7 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        self.first_processing_results = {}
-        self.second_processing_results = {}
+        #self.first_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
@@ -977,10 +974,16 @@ class Advanced(TaskNode):
             name += " (%s)" % self.grid_object.get_display_name()
         else:
             name += " (Static grid)"
+        print name
         return name
 
     def get_first_processing_results(self):
         return self.first_processing_results
+
+class XrayCentering(Advanced):
+    def __init__(self, *args, **kwargs):
+        Advanced.__init__(self, *args, **kwargs)
+        self.method_type = "XrayCentering"
 
 class SampleCentring(TaskNode):
     def __init__(self, name = None, kappa = None, kappa_phi = None):
@@ -1087,9 +1090,12 @@ class PathTemplate(object):
                 "num_files" : self.num_files}
 
     def set_from_dict(self, params_dict):
-        for key, value in params_dict.iteritems():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        #for key, value in params_dict.iteritems():
+        #    if hasattr(self, key):
+        #        setattr(self, key, value)
+        for dict_item in params_dict.items():
+            if hasattr(self, dict_item[0]):
+                setattr(self, key, dict_item[1])
 
     def get_prefix(self):
         prefix = self.base_prefix
@@ -1129,15 +1135,16 @@ class PathTemplate(object):
         Return    : Archive directory. :rtype: str
         """
         folders = self.directory.split('/')
-        if PathTemplate.synchotron_name == "MAXIV":
-            # to do, base_directory and folder info are defined in session.xml
-            archive_directory = os.path.join(PathTemplate.archive_base_directory,
-                                             PathTemplate.archive_folder)
-        elif PathTemplate.synchotron_name == "EMBL": 
+        if PathTemplate.synchotron_name == "MAXLAB":
+            archive_directory = self.directory
+            archive_directory = archive_directory.replace("/data/data1/visitor", "/data/ispyb")
+            archive_directory = archive_directory.replace("/data/data1/inhouse", "/data/ispyb")
+            archive_directory = archive_directory.replace("/data/data1", "/data/ispyb")
+        elif PathTemplate.synchotron_name == "EMBL-HH": 
             archive_directory = os.path.join(PathTemplate.archive_base_directory,
                                              PathTemplate.archive_folder)
             archive_directory = os.path.join(archive_directory,
-                                             *folders[3:])
+                                             *folders[4:])
         else:
             directory = self.directory[len(PathTemplate.base_directory):]
             folders = directory.split('/')
@@ -1205,18 +1212,6 @@ class PathTemplate(object):
         return file_locations
 
 
-    def __eq__(self, path_template):
-        result = False
-        lh_dir = os.path.normpath(self.directory)
-        rh_dir = os.path.normpath(path_template.directory)
-
-        if self.get_prefix() == path_template.get_prefix() and \
-                lh_dir == rh_dir:
-            result = True
-
-        return result
-
-
     def is_part_of(self, path_template):
         result = False
         
@@ -1230,6 +1225,9 @@ class PathTemplate(object):
             result = False
 
         return result
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 class AcquisitionParameters(object):
     def __init__(self):
@@ -1263,12 +1261,21 @@ class AcquisitionParameters(object):
         self.in_interleave = False
 
     def set_from_dict(self, params_dict):
-        for key, value in params_dict.iteritems():
-            if hasattr(self, key):
-                if key == "centred_position": 
-                    self.centred_position.set_from_dict(value)     
+        #for key, value in params_dict.iteritems():
+        #    if hasattr(self, key):
+        #        if key == "centred_position": 
+        #            self.centred_position.set_from_dict(value)     
+        #        else:
+        #            setattr(self, key, value)
+        for item in params_dict.items():
+            if hasattr(self, item[0]):
+                if item[0] == "centred_position": 
+                    self.centred_position.set_from_dict(item[1])     
                 else:
-                    setattr(self, key, value)
+                     setattr(self, item[0], item[1])
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 class Crystal(object):
     def __init__(self):
@@ -1307,20 +1314,26 @@ class CentredPosition(object):
         self.motor_pos_delta = CentredPosition.MOTOR_POS_DELTA
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
-           setattr(self, motor_name, None)
+            setattr(self, motor_name, None)
 
         if motor_dict is not None:
-          for motor_name, position in motor_dict.iteritems():
-            setattr(self, motor_name, position)
+            #for motor_name, position in motor_dict.iteritems():
+            #    setattr(self, motor_name, position)
+            for motor_item in motor_dict.items():
+                setattr(self, motor_item[0], motor_item[1])
 
     def as_dict(self):
         return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
     def set_from_dict(self, params_dict):
-        for key, value in params_dict.iteritems():
-            if hasattr(self, key):
-                setattr(self, key, value)   
+        #for key, value in params_dict.iteritems():
+        #    if hasattr(self, key):
+        #        setattr(self, key, value)   
+
+        for dict_item in params_dict.iteritems():
+            if hasattr(self, dict_item[0]):
+                setattr(self, dict_item[0], dict_item[1])
 
     def as_str(self):
         motor_str = ""
@@ -1462,8 +1475,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                        'number_of_lines': acq_params.num_lines,
                                        'mesh_range': acq_params.mesh_range}],
              'group_id': data_collection.lims_group_id,
-             'lims_start_pos_id': data_collection.lims_start_pos_id,
-             'lims_end_pos_id': data_collection.lims_end_pos_id,
              #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'xds_dir': acquisition.path_template.xds_dir,

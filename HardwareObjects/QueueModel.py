@@ -41,6 +41,13 @@ class QueueModel(HardwareObject):
     def __setstate__(self, d):
         self.__dict__.update(d)
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
@@ -150,7 +157,6 @@ class QueueModel(HardwareObject):
         :returns: The id of the child.
         :rtype: int
         """
-        #print "Adding child at parent with id %s" % str(_id)
         parent = self.get_node(_id)
         self.add_child(parent, child)
         return child._node_id

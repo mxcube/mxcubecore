@@ -31,9 +31,11 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-from GenericSampleChanger import *
 import time
 import gevent
+
+from sample_changer import Crims
+from GenericSampleChanger import *
 
 class Xtal(Sample):
     __NAME_PROPERTY__ = "Name"
@@ -185,6 +187,7 @@ class PlateManipulator(SampleChanger):
         self.reference_pos_x = None
         self.timeout = 3 #default timeout
         self.plate_location = None
+        self.crims_url = None
 
         self.cmd_move_to_drop = None
         self.cmd_move_to_location = None
@@ -206,6 +209,8 @@ class PlateManipulator(SampleChanger):
             self.reference_pos_x = self.getProperty("referencePosX")
             if not self.reference_pos_x:
                 self.reference_pos_x = 0.5
+
+        self.crims_url = self.getProperty("crimsWsRoot")
 
         self.cmd_move_to_drop = self.getCommandObject("MoveToDrop")
         if not self.cmd_move_to_drop: 
@@ -296,15 +301,16 @@ class PlateManipulator(SampleChanger):
         col =  sample_location[1]
         drop = sample_location[2]
 
+        pos_y = float(drop) / (self.num_drops + 1)
         if self.cmd_move_to_location:
-            pos_y = float(drop) / (self.num_drops + 1)
             self.cmd_move_to_location(row, col - 1, self.reference_pos_x, pos_y)
             self._wait_ready(60)
         elif self.cmd_move_to_drop:
-	    self.cmd_move_to_drop(row, col - 1, drop-1)
+            self.cmd_move_to_drop(row, col - 1, drop-1)
             self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup
+            self.plate_location = [row, col, self.reference_pos_x, pos_y]
             cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col))
             drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col, drop))
             new_sample = drop.getSample()
@@ -383,6 +389,33 @@ class PlateManipulator(SampleChanger):
             raise Exception ("Invalid selection")
         self._resetLoadedSample()
         self._waitDeviceReady()
+
+    def _loadData(self, barcode):
+        processing_plan = Crims.get_processing_plan(barcode, self.crims_url)
+
+        if processing_plan is None:
+            msg = "No information about plate with barcode %s found in CRIMS" % barcode
+            logging.getLogger("user_level_log").error(msg)
+        else:
+            msg = "Information about plate with barcode %s found in CRIMS" % barcode
+            logging.getLogger("user_level_log").info(msg)
+            self._setInfo(True, processing_plan.plate.barcode, True)
+
+            for x in processing_plan.plate.xtal_list:
+                cell = self.getComponentByAddress(Cell._getCellAddress(x.row, x.column))
+                cell._setInfo(True,"",True)
+                drop = self.getComponentByAddress(Drop._getDropAddress(cell, x.shelf))
+                drop._setInfo(True,"",True)
+                xtal = Xtal(drop,drop.getNumberOfComponents())
+                xtal._setInfo(True, x.pin_id,True)
+                xtal._setImageURL(x.image_url)
+                xtal._setImageX(x.offset_x)
+                xtal._setImageY(x.offset_y)
+                xtal._setLogin(x.login)
+                xtal._setName(x.sample)
+                xtal._setInfoURL(x.summary_url)
+                drop._addComponent(xtal)
+            return processing_plan
 
     def _doUpdateInfo(self):
         """
@@ -485,3 +518,6 @@ class PlateManipulator(SampleChanger):
 
     def get_plate_location(self):
         return self.plate_location 
+
+    def sync_with_crims(self, barcode):
+        return self._loadData(barcode)

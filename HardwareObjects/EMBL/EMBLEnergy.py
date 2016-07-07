@@ -38,6 +38,8 @@ __status__ = "Draft"
 
 class EMBLEnergy(Device):
 
+    (READY, MOVING) = (0, 1)
+
     def __init__(self, name):
         Device.__init__(self, name)
 
@@ -244,7 +246,7 @@ class EMBLEnergy(Device):
         self.emit('energyLimitsChanged', (limits,))
 
     def energyStateChanged(self, state):
-        state = state[0]
+        state = int(state[0])
         if state == 0:
             self.moveEnergyCmdFinished(0)
         elif state == 1:

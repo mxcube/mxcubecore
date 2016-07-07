@@ -91,6 +91,9 @@ class Qt4_DiffractometerMockup(GenericDiffractometer):
     def in_plate_mode(self):
         return True
 
+    def use_sample_changer(self):
+        return True
+
     def is_reversing_rotation(self):
         return True
 
