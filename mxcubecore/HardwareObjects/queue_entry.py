@@ -1,6 +1,6 @@
 """
-Containes the classes:
-* QueueuEntryContainer
+Contains following classes:
+* QueueEntryContainer
 * BaseQueueEntry
 * DummyQueueEntry
 * TaskGroupQueueEntry
@@ -705,6 +705,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.lims_client_hwobj = None
         self.enable_take_snapshots = True
         self.enable_store_in_lims = True
+        self.in_queue = False 
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -714,6 +715,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
  
     def __setstate__(self, d):
         self.__dict__.update(d)
+
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["collect_task"] = None
+        d["centring_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -783,6 +795,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
+            acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
             sample = self.get_data_model().get_parent().get_parent()
 
@@ -793,9 +806,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
-
-                    dc.lims_end_pos_id = self.lims_client_hwobj.\
-                                         store_centred_position(end_cpos)
 
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
@@ -822,7 +832,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
-                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\
@@ -847,7 +856,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
-                print traceback.print_exc()
+                print (traceback.print_exc())
                 raise QueueExecutionException(ex.message, self)
         else:
             log.error("Could not call the data collection routine," +\
@@ -923,6 +932,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
         self.dc_qe = None
         self.char_qe = None
+        self.in_queue = False
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -943,6 +953,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
                                          reference_image_collection,
                                          view_set_queue_entry=False)
         dc_qe.set_enabled(True)
+        dc_qe.in_queue = self.in_queue
         self.enqueue(dc_qe)
         self.dc_qe = dc_qe
 
@@ -1463,8 +1474,8 @@ class AdvancedGroupQueueEntry(BaseQueueEntry):
         self.second_dc_qe = None
         self.advanced_control_qe = None
         self.advanced_model = None
-        #self.in_queue = False
         self.processing_task = None
+        self.in_queue = False
 
         self.parallel_processing_hwobj = None
 
@@ -1493,6 +1504,8 @@ class AdvancedGroupQueueEntry(BaseQueueEntry):
         first_dc_qe = DataCollectionQueueEntry(self.get_view(),
              first_collection, view_set_queue_entry=False)
         first_dc_qe.set_enabled(True)
+        first_dc_qe.in_queue = self.in_queue
+
         self.enqueue(first_dc_qe)
         self.first_dc_qe = first_dc_qe
 

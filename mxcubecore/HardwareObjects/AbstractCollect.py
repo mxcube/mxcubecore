@@ -65,6 +65,7 @@ class AbstractCollect(object):
         
         self.data_collect_task = None
         self.current_dc_parameters = None
+        self.current_lims_sample = {}
 
         self.autoprocessing_hwobj = None
         self.beam_info_hwobj = None
@@ -97,11 +98,11 @@ class AbstractCollect(object):
         """
         Actual collect sequence
         """
-
-        logging.getLogger("user_level_log").info("Collect started")
+        log = logging.getLogger("user_level_log")
+        log.info("Collection: Preparing to collect")
         self.emit("collectReady", (False, ))
-        self.emit('collectOscillationStarted', (owner, None, \
-             None, None, self.current_dc_parameters, None))
+        self.emit("collectOscillationStarted", (owner, None, \
+                  None, None, self.current_dc_parameters, None))
 
         # ----------------------------------------------------------------
         self.open_detector_cover()
@@ -109,17 +110,23 @@ class AbstractCollect(object):
         self.open_fast_shutter()
 
         # ----------------------------------------------------------------
-        self.current_dc_parameters["status"] = 'Running'
+        self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["collection_start_time"] = \
              time.strftime("%Y-%m-%d %H:%M:%S")
         self.current_dc_parameters["synchrotronMode"] = \
              self.get_machine_fill_mode()
-       
-
+     
+        log.info("Collection: Storing data collection in LIMS") 
         self.store_data_collection_in_lims()
+       
+        log.info("Collection: Creating directories for raw images and processing files") 
         self.create_file_directories()
+
+        log.info("Collection: Getting sample info from parameters") 
         self.get_sample_info()
-        self.store_sample_info_in_lims()
+        
+        #log.info("Collect: Storing sample info in LIMS")        
+        #self.store_sample_info_in_lims()
 
         if all(item == None for item in self.current_dc_parameters['motors'].values()):
             # No centring point defined
@@ -128,64 +135,40 @@ class AbstractCollect(object):
             for motor in self.current_dc_parameters['motors'].keys():
                 self.current_dc_parameters['motors'][motor] = \
                      current_diffractometer_position[motor] 
- 
-        self.move_to_centered_position()
 
+        log.info("Collection: Moving to centred position") 
+        self.move_to_centered_position()
         self.take_crystal_snapshots()
         self.move_to_centered_position()
 
         if "transmission" in self.current_dc_parameters:
-            logging.getLogger("user_level_log").info(\
-               "Setting transmission to %.3f", 
-               self.current_dc_parameters["transmission"])
+            log.info("Collection: Setting transmission to %.3f", 
+                     self.current_dc_parameters["transmission"])
             self.set_transmission(self.current_dc_parameters["transmission"])
+
         if "wavelength" in self.current_dc_parameters:
-            logging.getLogger("user_level_log").info(\
-              "Setting wavelength to %.3f", \
-              self.current_dc_parameters["wavelength"])
+            log.info("Collection: Setting wavelength to %.3f", \
+                     self.current_dc_parameters["wavelength"])
             self.set_wavelength(self.current_dc_parameters["wavelength"])
+
         elif "energy" in self.current_dc_parameters:
-            logging.getLogger("user_level_log").info(\
-              "Setting energy to %.3f",  
-              self.current_dc_parameters["energy"])
+            log.info("Collection: Setting energy to %.3f",  
+                     self.current_dc_parameters["energy"])
             self.set_energy(self.current_dc_parameters["energy"])
 
         if "resolution" in self.current_dc_parameters:
             resolution = self.current_dc_parameters["resolution"]["upper"]
-            logging.getLogger("user_level_log").info("Setting resolution to %.3f", resolution)
+            log.info("Collection: Setting resolution to %.3f", resolution)
             self.set_resolution(resolution)
+
         elif 'detdistance' in self.current_dc_parameters:
-            logging.getLogger("user_level_log").info("Moving detector to %f", 
-               self.current_dc_parameters["detdistance"])
+            log.info("Collection: Moving detector to %f", 
+                     self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
-  
-        if self.lims_client_hwobj:
-            self.current_dc_parameters["flux"] = self.get_flux()
-            self.current_dc_parameters["wavelength"] = self.get_wavelength()
-            self.current_dc_parameters["detectorDistance"] =  self.get_detector_distance()
-            self.current_dc_parameters["resolution"] = self.get_resolution()
-            self.current_dc_parameters["transmission"] = self.get_transmission()
-            beam_centre_x, beam_centre_y = self.get_beam_centre()
-            self.current_dc_parameters["xBeam"] = beam_centre_x
-            self.current_dc_parameters["yBeam"] = beam_centre_y
-            und = self.get_undulators_gaps()
-            i = 1
-            for jj in self.bl_config.undulators:
-                key = jj.type
-                if und.has_key(key):
-                    self.current_dc_parameters["undulatorGap%d" % (i)] = und[key]
-                    i += 1
-            self.current_dc_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
-            beam_size_x, beam_size_y = self.get_beam_size()
-            self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
-            self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
-            self.current_dc_parameters["beamShape"] = self.get_beam_shape()
-            hor_gap, vert_gap = self.get_slit_gaps()
-            self.current_dc_parameters["slitGapHorizontal"] = hor_gap
-            self.current_dc_parameters["slitGapVertical"] = vert_gap
 
+        log.info("Collection: Updating data collection in LIMS")
+        self.update_data_collection_in_lims()
         self.data_collection_hook()
-
         # ----------------------------------------------------------------
 
         self.close_fast_shutter()
@@ -312,6 +295,9 @@ class AbstractCollect(object):
             return self.transmission_hwobj.getAttFactor()  
 
     def get_beam_centre(self):
+        """
+        Descript. : 
+        """
         if self.detector_hwobj is not None:
             return self.detector_hwobj.get_beam_centre()
         else:
@@ -398,9 +384,6 @@ class AbstractCollect(object):
         Method create directories for raw files and processing files.
         Directorie names for xds, mosflm and hkl are created
         """
-
-        logging.getLogger("user_level_log").info(\
-            "Creating directories for raw images and processing files")
         self.create_directories(\
             self.current_dc_parameters['fileinfo']['directory'],  
             self.current_dc_parameters['fileinfo']['process_directory'])
@@ -433,7 +416,6 @@ class AbstractCollect(object):
         Descript. : 
         """
         if self.lims_client_hwobj:
-            logging.getLogger("user_level_log").info("Storing data collection in LIMS")
             try:
                 (collection_id, detector_id) = self.lims_client_hwobj.\
                   store_data_collection(self.current_dc_parameters, 
@@ -449,7 +431,29 @@ class AbstractCollect(object):
         Descript. : 
         """
         if self.lims_client_hwobj:
-            logging.getLogger("user_level_log").info("Updating data collection in LIMS")
+            self.current_dc_parameters["flux"] = self.get_flux()
+            self.current_dc_parameters["wavelength"] = self.get_wavelength()
+            self.current_dc_parameters["detectorDistance"] =  self.get_detector_distance()
+            self.current_dc_parameters["resolution"] = self.get_resolution()
+            self.current_dc_parameters["transmission"] = self.get_transmission()
+            beam_centre_x, beam_centre_y = self.get_beam_centre()
+            self.current_dc_parameters["xBeam"] = beam_centre_x
+            self.current_dc_parameters["yBeam"] = beam_centre_y
+            und = self.get_undulators_gaps()
+            i = 1
+            for jj in self.bl_config.undulators:
+                key = jj.type
+                if und.has_key(key):
+                    self.current_dc_parameters["undulatorGap%d" % (i)] = und[key]
+                    i += 1
+            self.current_dc_parameters["resolutionAtCorner"] = self.get_resolution_at_corner()
+            beam_size_x, beam_size_y = self.get_beam_size()
+            self.current_dc_parameters["beamSizeAtSampleX"] = beam_size_x
+            self.current_dc_parameters["beamSizeAtSampleY"] = beam_size_y
+            self.current_dc_parameters["beamShape"] = self.get_beam_shape()
+            hor_gap, vert_gap = self.get_slit_gaps()
+            self.current_dc_parameters["slitGapHorizontal"] = hor_gap
+            self.current_dc_parameters["slitGapVertical"] = vert_gap
             try:
                 self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
             except:
@@ -460,7 +464,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         if self.lims_client_hwobj:
-            logging.getLogger("user_level_log").info("Storing sample info in LIMS")
+            self.lims_client_hwobj.update_bl_sample(self.current_lims_sample)
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
@@ -497,8 +501,6 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        logging.getLogger("user_level_log").info("Getting sample info from parameters")
-
         sample_info = self.current_dc_parameters.get("sample_reference")
         try:
             sample_id = int(sample_info["blSampleId"])
@@ -549,7 +551,6 @@ class AbstractCollect(object):
         """
         Descript. : 
         """
-        logging.getLogger("user_level_log").info("Moving to centred position") 
         positions_str = ""
         for motor, position in self.current_dc_parameters['motors'].iteritems():
             if position:
@@ -577,15 +578,12 @@ class AbstractCollect(object):
             snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
             if not os.path.exists(snapshot_directory):
                 try:
-                    logging.getLogger("user_level_log").info(\
-                         "Creating snapshots directory: %r", 
-                         snapshot_directory)
                     self.create_directories(snapshot_directory)
                 except:
-                    logging.getLogger("HWR").exception("Error creating snapshot directory")
+                    logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
 
             logging.getLogger("user_level_log").info(\
-                 "Taking %d sample snapshot(s)" % number_of_snapshots)
+                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots)
             for snapshot_index in range(number_of_snapshots):
                 snapshot_filename = os.path.join(\
                        snapshot_directory,
@@ -642,4 +640,7 @@ class AbstractCollect(object):
         pass
 
     def setCentringStatus(self, status):
+        """
+        Descript. : 
+        """
         pass

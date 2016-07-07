@@ -55,6 +55,3 @@ docs/_build/
 
 # PyBuilder
 target/
-
-#svn repository
-*.svn

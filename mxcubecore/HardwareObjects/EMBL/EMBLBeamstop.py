@@ -78,7 +78,7 @@ class EMBLBeamstop(Device):
         self.beamstop_distance = value
         self.emit('beamstopDistanceChanged', (value))
 
-    def set_positions(self, position):
+    def set_position(self, position):
         if self.chan_beamstop_distance is not None:
             self.chan_beamstop_distance.setValue(position)
             self.beamstop_distance_changed(position)           

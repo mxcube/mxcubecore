@@ -481,7 +481,7 @@ class SampleChanger(Container,Equipment):
             exception=ex
         #if self.getState()==self.task:            
         #    self._setState(SampleChangerState.Ready)
-	self.updateInfo()
+        self.updateInfo()
         task=self.task
         self.task=None
         self.task_proc=None
@@ -494,8 +494,8 @@ class SampleChanger(Container,Equipment):
         try:                
             e = task.get()
             logging.debug ("Task ended. Return value: " + str(e))
-        except Exception, errmsg:
-            logging.error("Error while executing sample changer task: %s", errmsg)            
+        except Exception as errmsg:
+            logging.error("Error while executing sample changer task: %s", str(errmsg))            
     
     def _setState(self,state=None,status=None):
         if (state is not None) and (self.state!=state):

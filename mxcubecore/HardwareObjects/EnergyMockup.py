@@ -1,10 +1,13 @@
+import time
+
 from HardwareRepository.BaseHardwareObjects import Equipment
+
 
 class EnergyMockup(Equipment):
    def init(self):
        self.energy_motor = None
        self.tunable = True
-       self.moving = None
+       self.moving = False
        self.default_en = 12
        self.en_lims = []
        self.energy_value = 12
@@ -13,9 +16,13 @@ class EnergyMockup(Equipment):
        self.canMoveEnergy = self.can_move_energy
        self.move_energy = self.start_move_energy 
        self.getEnergyLimits  = self.get_energy_limits
+       self._abort = False
 
    def update_values(self):
        self.emit("energyChanged", self.energy_value, self.wavelength_value)
+
+   def abort(self):
+      self._abort = True
 
    def can_move_energy(self):
        return self.tunable
@@ -42,6 +49,30 @@ class EnergyMockup(Equipment):
            lims=(12.3984/self.en_lims[1], 12.3984/self.en_lims[0])
        return lims
 
-   def start_move_energy(self, value, wait=True):
-       self.energy_value = value
-       self.update_values()
+   def start_move_energy(self, value, wait=True):      
+      if wait:
+         self._abort = False
+         self.moving = True
+          
+         if value > self.energy_value:
+            r = range(self.energy_value, int(value) + 1)
+         elif value < self.energy_value:
+            r = range(self.energy_value, int(value) - 1, -1)
+         else:
+            r = [value]
+            
+         for x in r:
+            if self._abort:
+               self.moving = False
+               raise StopIteration("Energy change cancelled !")
+
+            self.energy_value = x
+            self.update_values()
+            time.sleep(0.2)
+      else:
+         self.energy_value = value
+         self.update_values()
+
+      self.moving = False
+               
+             

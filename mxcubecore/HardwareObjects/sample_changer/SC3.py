@@ -133,7 +133,7 @@ class SC3(SampleChanger):
             xml.sax.parseString(sxml, handler)
             sample_list = handler.dataMatrixList
             basket_list = handler.basketDataMatrixList
-        except Exception,ex:
+        except Exception:
             basket_list= [('',4)] * 5
             sample_list=[]
             for b in range(5):
@@ -223,7 +223,7 @@ class SC3(SampleChanger):
         self._executeServerTask(self._reset)
 
     def clearBasketInfo(self, basket):
-	self._reset_basket_info(basket)
+        self._reset_basket_info(basket)
 
 
         
@@ -240,7 +240,7 @@ class SC3(SampleChanger):
                 gevent.sleep(0.1)            
             try:
                 ret = self._check_task_result(task_id)                
-            except Exception,err:
+            except Exception:
                 raise 
         return ret
 
@@ -301,9 +301,9 @@ class SC3(SampleChanger):
         
 if __name__ == "__main__":    
     def onStateChanged(state,former):
-        print "State Change:  " + str(former) + " => " + str(state)
+        print ("State Change:  " + str(former) + " => " + str(state))
     def onInfoChanged():
-        print "Info Changed"
+        print ("Info Changed")
         
     sc = SC3()
     sc.channel_type="tango"
@@ -346,6 +346,6 @@ if __name__ == "__main__":
             sc.scan('3', wait=True)
             sc.scan('4', recursive=True, wait=True)
         except:
-            print sys.exc_info()[1]      
+            print (sys.exc_info()[1])
             
     

@@ -12,6 +12,7 @@ import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import gevent
+import gevent.event
 import queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -20,7 +21,7 @@ from queue_entry import QueueEntryContainer
 logger = logging.getLogger('queue_exec')
 try:
     formatter = \
-              logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+              logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
     root_logger = logging.getLogger()
     for handler in root_logger.handlers:
       if isinstance(handler, TimedRotatingFileHandler):
@@ -81,7 +82,34 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         if not self.is_disabled():
             self._is_stopped = False
+            self._set_in_queue_flag()
             self._root_task = gevent.spawn(self.__execute_task)
+
+    def _set_in_queue_flag(self):
+        """
+        Methods iterates over all queue entries and sets in_queue flag for
+        DataCollectionQueue entries
+        """
+        self.entry_list = []
+        def get_data_collection_list(entry):
+            for child in entry._queue_entry_list:
+                if ((isinstance(child, queue_entry.DataCollectionQueueEntry) or
+                     isinstance(child, queue_entry.CharacterisationGroupQueueEntry)) and
+                     not child.get_data_model().is_executed() and child.is_enabled()):
+                    self.entry_list.append(child)
+                get_data_collection_list(child)
+
+        for qe in self._queue_entry_list:
+            get_data_collection_list(qe)
+
+        if len(self.entry_list) > 1:
+            for entry in self.entry_list[:-1]:
+                entry.in_queue = True
+
+        #msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
+        #for entry in self.entry_list:
+        #    msg += str(entry) + " (in_queue=%s) " % entry.in_queue
+        #logging.getLogger('queue_exec').info(msg)
 
     def is_executing(self, node_id=None):
         """

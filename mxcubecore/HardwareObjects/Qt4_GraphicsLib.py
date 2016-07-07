@@ -1004,7 +1004,7 @@ class GraphicsItemGrid(GraphicsItem):
                              math.sin(math.pi * (self.__osc_start - omega_ref) / 180.0)
         new_point['sampy'] = new_point['sampy'] + hor_range  * \
                              math.cos(math.pi * (self.__osc_start - omega_ref) / 180.0)
-        new_point['phiy'] = new_point['phiy'] - ver_range
+        new_point['phiy'] = new_point['phiy'] + ver_range
 
         #MD2
         """
@@ -1094,7 +1094,7 @@ class GraphicsItemScale(GraphicsItem):
     def set_pixels_per_mm(self, pixels_per_mm):
         self.pixels_per_mm = pixels_per_mm
         for line_len in GraphicsItemScale.HOR_LINE_LEN:
-            if self.pixels_per_mm[0] * line_len / 1000 <= 250:
+            if self.pixels_per_mm[0] * line_len / 1000 <= 200:
                 self.__scale_len = line_len
                 break
 

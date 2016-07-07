@@ -30,15 +30,15 @@ class ShutterMockup(Device):
         return ShutterMockup.shutterState[self.shutterStateValue] 
 
     def shutterIsOpen(self):
-	return True        
+        return True        
 
     def isShutterOk(self):
-	return True
+        return True
 
     def openShutter(self):
-	self.shutterStateValue = 4
-	self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))
+        self.shutterStateValue = 4
+        self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))
 
     def closeShutter(self):
-	self.shutterStateValue = 3
+        self.shutterStateValue = 3
         self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))

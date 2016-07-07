@@ -337,6 +337,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         #should be better, but OK for time being
         self.thEdgeThreshold = 0.01
+        """
         if math.fabs(self.thEdge - ip) > self.thEdgeThreshold:
           pk = 0
           ip = 0
@@ -349,6 +350,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                   "(%f) is more that 20eV %s the theoretical value (%f). " + \
                   "Please check your scan and choose the energies manually" % \
                    (savpk, (self.thEdge - ip) > 0.02 and "below" or "above", self.thEdge))
+        """
 
         try:
             fi = open(scan_file_efs_filename)

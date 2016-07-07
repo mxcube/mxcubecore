@@ -12,7 +12,7 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 try:
    import PyChooch
 except:
-   print "PyChooch not found"
+   print ("PyChooch not found")
 
 scan_test_data = [(10841.0, 20.0), (10842.0, 20.0), (10843.0, 20.0), 
 (10844.0, 20.0), (10845.0, 20.0), (10846.0, 20.0), (10847.0, 20.0), 

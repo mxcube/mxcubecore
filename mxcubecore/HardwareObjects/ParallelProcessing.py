@@ -43,10 +43,19 @@ class ParallelProcessing(HardwareObject):
         self.processing_done_event = gevent.event.Event()
 
         self.collect_hwobj = self.getObjectByRole("collect")
-        self.detector_hwobj = self.collect_hwobj.detector_hwobj
+
+        try:
+           self.detector_hwobj = self.collect_hwobj.detector_hwobj
+           self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
+        except:
+           try:
+              self.detector_hwobj = self.collect_hwobj.bl_config.detector_hwobj
+              self.lims_hwobj = self.collect_hwobj.cl_config.lims_client_hwobj
+           except:
+              pass
+
         if self.detector_hwobj is None:
             logging.info("ParallelProcessing: No detector hwobj defined")
-        self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
 
         self.beamstop_hwobj = self.getObjectByRole("beamstop")
         if self.beamstop_hwobj is None:
@@ -209,7 +218,6 @@ class ParallelProcessing(HardwareObject):
 
         processing_input, processing_params = self.create_processing_input(\
              data_collection, processing_params, grid_object) 
-        """
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
@@ -228,7 +236,6 @@ class ParallelProcessing(HardwareObject):
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
-        """
 
         self.do_processing_result_polling(processing_params, file_wait_timeout, grid_object)
         
@@ -255,7 +262,6 @@ class ParallelProcessing(HardwareObject):
         processing_params["status"] = "Success"
         failed = False
 
-        """
         do_polling = True
         result_file_index = 0
         _result_place = []
@@ -317,7 +323,8 @@ class ParallelProcessing(HardwareObject):
                 image_index += 1
                 do_polling = (dozor_image.getNumber().getValue() != processing_params["images_num"])
 
-            aligned_result = self.align_processing_results(dozor_result, processing_params)
+            aligned_result = self.align_processing_results(\
+                processing_result, processing_params, grid_object)
             self.emit("processingSetResult", (aligned_result, processing_params, False))
             result_file_index += 1
         """
@@ -329,6 +336,7 @@ class ParallelProcessing(HardwareObject):
             processing_result[key] = numpy.linspace(0, 
                  processing_params["images_num"], 
                  processing_params["images_num"]).astype('uint8')
+        """
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid_object)

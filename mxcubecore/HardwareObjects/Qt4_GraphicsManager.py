@@ -164,35 +164,32 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
 
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        if self.diffractometer_hwobj:
-            pixels_per_mm = self.diffractometer_hwobj.\
-                 get_pixels_per_mm()
-            self.diffractometer_pixels_per_mm_changed(pixels_per_mm)             
-            GraphicsLib.GraphicsItemGrid.set_grid_direction(self.diffractometer_hwobj.\
-                 get_grid_direction())
-            self.connect(self.diffractometer_hwobj, "stateChanged", 
-                         self.diffractometer_state_changed)
-            self.connect(self.diffractometer_hwobj, "centringStarted",
-                         self.diffractometer_centring_started)
-            self.connect(self.diffractometer_hwobj, "centringAccepted", 
-                         self.create_centring_point)
-            self.connect(self.diffractometer_hwobj, "centringSuccessful", 
-                         self.diffractometer_centring_successful)
-            self.connect(self.diffractometer_hwobj, "centringFailed", 
-                         self.diffractometer_centring_failed)
-            self.connect(self.diffractometer_hwobj, "pixelsPerMmChanged", 
-                         self.diffractometer_pixels_per_mm_changed) 
-            self.connect(self.diffractometer_hwobj, "omegaReferenceChanged", 
-                         self.diffractometer_omega_reference_changed)
-            self.connect(self.diffractometer_hwobj, "phiMotorMoved",
-                         self.diffractometer_phi_motor_moved)
-            self.connect(self.diffractometer_hwobj, "minidiffPhaseChanged",
-                         self.diffractometer_phase_changed)
-        else:
-            logging.getLogger("HWR").error("GraphicsManager: Diffractometer hwobj not defined")
+        pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
+        self.diffractometer_pixels_per_mm_changed(pixels_per_mm)             
+        GraphicsLib.GraphicsItemGrid.set_grid_direction(\
+               self.diffractometer_hwobj.get_grid_direction())
+
+        self.connect(self.diffractometer_hwobj, "stateChanged", 
+                     self.diffractometer_state_changed)
+        self.connect(self.diffractometer_hwobj, "centringStarted",
+                     self.diffractometer_centring_started)
+        self.connect(self.diffractometer_hwobj, "centringAccepted", 
+                     self.create_centring_point)
+        self.connect(self.diffractometer_hwobj, "centringSuccessful", 
+                     self.diffractometer_centring_successful)
+        self.connect(self.diffractometer_hwobj, "centringFailed", 
+                     self.diffractometer_centring_failed)
+        self.connect(self.diffractometer_hwobj, "pixelsPerMmChanged", 
+                     self.diffractometer_pixels_per_mm_changed) 
+        self.connect(self.diffractometer_hwobj, "omegaReferenceChanged", 
+                     self.diffractometer_omega_reference_changed)
+        self.connect(self.diffractometer_hwobj, "phiMotorMoved",
+                     self.diffractometer_phi_motor_moved)
+        self.connect(self.diffractometer_hwobj, "minidiffPhaseChanged",
+                     self.diffractometer_phase_changed)
 
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj:
+        if self.beam_info_hwobj is not None:
             self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             self.connect(self.beam_info_hwobj, 
@@ -208,7 +205,7 @@ class Qt4_GraphicsManager(HardwareObject):
             logging.getLogger("HWR").error("GraphicsManager: BeamInfo hwobj not defined")
 
         self.camera_hwobj = self.getObjectByRole("camera")
-        if self.camera_hwobj:
+        if self.camera_hwobj is not None:
             self.graphics_scene_size = self.camera_hwobj.get_image_dimensions()
             self.set_graphics_scene_size(self.graphics_scene_size, False)
             self.camera_hwobj.start_camera()
@@ -376,6 +373,14 @@ class Qt4_GraphicsManager(HardwareObject):
             self.graphics_view.graphics_scene.update()
         else:
             self.hide_all_items()
+      
+    def diffractometer_phase_changed(self, phase):
+        """
+        Descript.
+        """  
+        self.graphics_scale_item.set_display_grid(\
+             phase == self.diffractometer_hwobj.PHASE_BEAM)
+        self.emit("diffractometerReady", phase != self.diffractometer_hwobj.PHASE_BEAM)
 
     def diffractometer_centring_started(self, centring_method, flexible):
         """Method called when centring started as a reply from diffractometer
@@ -430,11 +435,10 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: - centringSuccessful 
                 - infoMsg
         """
-        msg = "Click Save to store the centred point!"
-        self.emit("infoMsg", msg)
-        self.display_info_msg([msg, "Or start a new centring."])
         self.set_centring_state(False)
         self.emit("centringSuccessful", method, centring_status)
+        self.emit("infoMsg", "Click Save to store the centred point "+\
+                  "or start a new centring")
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -665,7 +669,8 @@ class Qt4_GraphicsManager(HardwareObject):
             self.stop_measure_distance()
             self.stop_measure_angle()
             self.stop_measure_area()  
-            self.stop_beam_define()
+            if self.in_beam_define_state:
+                self.stop_beam_define()
  
     def item_clicked(self, item, state):
         """Item clicked event
@@ -682,9 +687,8 @@ class Qt4_GraphicsManager(HardwareObject):
                           GraphicsLib.GraphicsItemGrid]: 
             self.emit("shapeSelected", item, state)
             if isinstance(item, GraphicsLib.GraphicsItemPoint):
-                if state:
-                    self.emit("pointSelected", item)
-                    self.emit("infoMsg", item.get_full_name() + " selected")
+                self.emit("pointSelected", item)
+                self.emit("infoMsg", item.get_full_name() + " selected")
 
     def item_double_clicked(self, item):
         """Item double clicked method.
@@ -1022,8 +1026,8 @@ class Qt4_GraphicsManager(HardwareObject):
         self.start_graphics_item(\
              self.graphics_move_beam_mark_item,
              start_pos = self.graphics_beam_item.start_coord)
-        self.graphics_move_beam_mark_item.set_beam_mark(\
-             self.beam_info_dict, self.pixels_per_mm) 
+        #self.graphics_move_beam_mark_item.set_beam_mark(\
+        #     self.beam_info_dict, self.pixels_per_mm) 
 
     def start_define_beam(self):
         """Method to define beam size. 
@@ -1395,18 +1399,41 @@ class Qt4_GraphicsManager(HardwareObject):
 
         try:
             image_array = np.transpose(image_array)
-            object_shape_dict["center"] = ndimage.measurements.\
+            beam_x, beam_y = ndimage.measurements.\
                 center_of_mass(image_array)
+            if np.isnan(beam_x) or np.isnan(beam_y):
+                beam_x = None
+                beam_y = None
+            object_shape_dict["center"] = (beam_x, beam_y)
         except:
             logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
                 "Unable to detect image center of mass")
-
         return object_shape_dict
 
+    def get_beam_displacement(self):
+        """Calculates beam displacement:
+           - detects beam shape. If no shape detected returns (None, None)
+           - if beam detected then calculates the displacement in mm 
+        """
+        beam_shape_dict = self.detect_object_shape()
+        if None in beam_shape_dict['center']:
+            return (None, None)
+        else:
+            return ((self.beam_position[0] - beam_shape_dict['center'][0]) /\
+                    self.pixels_per_mm[0],
+                   (self.beam_position[1] - beam_shape_dict['center'][1]) / \
+                    self.pixels_per_mm[1])
+
     def display_grid(self, state):
+        """
+        Descript.
+        """
         self.graphics_scale_item.set_display_grid(state) 
 
     def create_automatic_line(self):
+        """
+        Descript.
+        """
         pass 
 
     def set_display_overlay(self, state):
@@ -1421,12 +1448,11 @@ class Qt4_GraphicsManager(HardwareObject):
                 shape.set_display_overlay(state > 0)
 
     def display_info_msg(self, msg, pos_x=None, pos_y=None):
+        """
+        Descript.
+        """
         if pos_x is None:
             pos_x = self.beam_position[0]
         if pos_y is None:
             pos_y = self.beam_position[1]
         self.graphics_info_item.display_info(msg, pos_x, pos_y) 
-
-    def diffractometer_phase_changed(self, phase):
-        self.graphics_scale_item.set_display_grid(\
-             self.diffractometer_hwobj.PHASE_BEAM == phase)

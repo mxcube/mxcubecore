@@ -73,10 +73,13 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):
+        diffr = self.getObjectByRole("diffractometer")
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
+        diffr.moveToPhase("Centring", wait=True, timeout=200)
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+        diffr._wait_ready(20)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -84,11 +87,9 @@ class ID29MultiCollect(ESRFMultiCollect):
         #move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
-            diffr.moveToPhase("DataCollection", wait=True, timeout=200)
+        diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
         diffr.getObjectByRole("flight").move(2)
-        #take the back light out
-        diffr.getObjectByRole("lightInOut").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass):
