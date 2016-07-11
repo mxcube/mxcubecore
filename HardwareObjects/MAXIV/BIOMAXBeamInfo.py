@@ -71,12 +71,34 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
 	   self.evaluate_beam_info()
 	   self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
+        print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
+
+        if self.chan_beam_pos_x is not None and self.chan_beam_pos_y is not None:
+            #self.get_beam_position()
+            self.connect(self.chan_beam_pos_x, "beamPosChanged",self.get_beam_position)
+            self.connect(self.chan_beam_pos_y, "beamPosChanged",self.get_beam_position)
+            #self.emit("beamInfoChanged", (self.beam_info_dict, )
+
+       
+        if self.chan_beam_size_x is not None and self.chan_beam_size_y is not None:
+            #self.get_beam_size()
+            self.connect(self.chan_beam_size_x, "beamInfoChanged",self.get_beam_size)
+            self.connect(self.chan_beam_size_y, "beamInfoChanged",self.get_beam_size)
+
+
+#        self.get_beam_size()
+#        self.beam_size_aperture=self.aperture_hwobj.getApertureSize()
+        self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
+	self.emit("beamInfoChanged", (self.beam_info_dict, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
+
     def get_beam_position(self):
         """
         Descript. :
         Arguments :
         Return    :
         """
+        logging.info ("camera is %s", str(self.camera))
         try:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
@@ -95,6 +117,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         try:
             if self.chan_beam_shape_ellipse.getValue():
                 self.beam_info_dict["shape"] = "ellipse"
+                self.self.beam_info_dict["shape"] = "ellipse"
             else:
                 self.beam_info_dict["shape"] = "circular"
         except:    
