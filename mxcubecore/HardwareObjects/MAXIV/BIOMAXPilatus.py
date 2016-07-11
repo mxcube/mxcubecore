@@ -1,4 +1,5 @@
 from detectors.LimaPilatus import Pilatus
+from HardwareRepository.TaskUtils import *
 
 class BIOMAXPilatus(Pilatus):
   def init(self, config, collect_obj):
