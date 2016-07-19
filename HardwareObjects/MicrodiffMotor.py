@@ -9,13 +9,14 @@ class MD2TimeoutError(Exception):
     pass
 
 """
-Exaplle xml file:
+Example xml file:
 <device class="MicrodiffMotor">
   <username>phiy</username>
   <exporter_address>wid30bmd2s:9001</exporter_address>
   <motor_name>AlignmentY</motor_name>
   <GUIstep>1.0</GUIstep>
   <unit>-1e-3</unit>
+  <resolution>1e-2</resolution>
 </device>
 """
 
@@ -128,15 +129,15 @@ class MicrodiffMotor(AbstractMotor, Device):
           return low_lim, hi_lim
         except:
           return (-1E4, 1E4)
- 
-    def motorPositionChanged(self, absolutePosition, private={}):
-        if None in (absolutePosition, self.old_position):
-          return
-        if abs(absolutePosition - self.old_position)<=1E-3:
-          return 
+
+    def motorPositionChanged(self, absolute_position, private={}):
+        if None in (absolute_position, self.old_position):
+            return
+        if abs(absolute_position - self.old_position) <= self.motor_resolution:
+            return
         self.old_position = self.position
-        self.position = absolutePosition 
-        self.emit('positionChanged', (absolutePosition, ))
+        self.position = absolute_position
+        self.emit('positionChanged', (absolute_position, ))
 
     def getPosition(self):
         #if self.getState() != MicrodiffMotor.NOTINITIALIZED:
