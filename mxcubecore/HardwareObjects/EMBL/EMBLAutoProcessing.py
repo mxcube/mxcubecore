@@ -99,14 +99,8 @@ class EMBLAutoProcessing(HardwareObject):
             if process_event == program.getProperty("event"):
                 executable = program.getProperty("executable")
                 if os.path.isfile(executable):	
-                    will_execute = False
-                    if process_event == "after": 
-                        input_filename, will_execute = self.\
-                            create_autoproc_input(process_event, params_dict)
-                        if will_execute:
-                            endOfLineToExecute = ' ' + input_filename + ' ' + str(run_processing)
-                    elif process_event == "after_queued":
-                        will_execute = run_processing
+                    will_execute = True
+                    if process_event == "after":
                         endOfLineToExecute = " " + params_dict["xds_dir"]
                     elif process_event == 'image':
                         if frame_number == 1 or frame_number == \
@@ -117,8 +111,6 @@ class EMBLAutoProcessing(HardwareObject):
                                 params_dict["fileinfo"]["prefix"],
                                 params_dict["fileinfo"]["run_number"], 
                                 frame_number)
-                            will_execute = True 	
-
                     if will_execute:	
                         lineToExecute = executable + endOfLineToExecute
                         subprocess.Popen(str(lineToExecute), shell = True, 

@@ -87,16 +87,44 @@ class EMBLMachineInfo(HardwareObject):
         self.hutch_temp_addr = None
         self.hutch_hum_addr = None
 	#Intensity current ranges
-        self.values_dict = {}
-        self.values_dict['current'] = None
-        self.values_dict['stateText'] = ""
-        self.values_dict['flux'] = None
-        self.values_dict['cryo'] = None
-        #Dictionary for booleans indicating if values are in range
-        self.values_in_range_dict = {}
-        self.values_in_range_dict['current'] = None
-        self.values_in_range_dict['cryo'] = None
-        self.values_in_range_dict['flux'] = True
+        self.values_list = []
+        temp_dict = {}
+        temp_dict['value'] = None
+        temp_dict['in_range'] = None
+        temp_dict['title'] = "Machine current"
+        temp_dict['bold'] = True
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = None
+        temp_dict['in_range'] = True
+        temp_dict['title'] = "Machine state"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = 0
+        temp_dict['in_range'] = None
+        temp_dict['title'] = "Hutch temperature"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = 0
+        temp_dict['in_range'] = None
+        temp_dict['title'] = "Hutch humidity"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = 0
+        temp_dict['in_range'] = None
+        temp_dict['title'] = "Flux"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = "???"
+        temp_dict['in_range'] = None
+        temp_dict['title'] = "Cryoject in place"
+        self.values_list.append(temp_dict)
+
         self.temp_hum_values = [None, None]
         self.temp_hum_in_range = [None, None]
         self.temp_hum_polling = None
@@ -131,19 +159,18 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))
 
-    def has_cryo(self):
-        """
-        Descript. :
-        """
-        return self.chan_cryojet_in is not None
-
     def cryojet_in_changed(self, value):
         """
         Descript. :
         """ 
-        self.values_dict['cryo'] = value
-        self.values_in_range_dict['cryo'] = value == 1
-        self.update_values()
+        if value == 1:
+            self.values_list[5]['value'] = " In place"
+            self.values_list[5]['in_range'] = True
+        elif value == 0:
+            self.values_list[5]['value'] = "NOT IN PLACE"
+            self.values_list[5]['in_range'] = False
+        else:
+            self.values_list[5]['value'] = "Unknown"
 
     def mach_current_changed(self, value):
         """
@@ -151,11 +178,11 @@ class EMBLMachineInfo(HardwareObject):
         Arguments : new machine current (float)
         Return    : -
         """
-        if self.values_dict['current'] is None \
-        or abs(self.values_dict['current'] - value) > 0.10:
-            self.values_dict['current'] = value
-            self.values_in_range_dict['current'] = self.values_dict['current'] > \
-                 self.limits_dict['current']
+        if self.values_list[0]['value'] is None \
+        or abs(self.values_list[0]['value'] - value) > 0.10:
+            self.values_list[0]['value'] = value
+            self.values_list[0]['in_range'] = \
+                 self.values_list[0] > self.limits_dict['current']
             self.update_values()
 
     def state_text_changed(self, text):
@@ -164,15 +191,16 @@ class EMBLMachineInfo(HardwareObject):
         Arguments : new machine state text (string)  
         Return    : -
         """
-        self.values_dict['stateText'] = str(text)
+        self.values_list[1]['value'] = str(text)
         self.update_values()
 
     def set_flux(self, value):
-        self.values_dict['flux'] = value
+        self.values_list[4]['value'] = value
+        self.values_list[4]['in_range'] = value > 0
         self.update_values()
 
     def get_flux(self):
-        return self.values_dict['flux']
+        return self.values_list[4]['value']
 
     def update_values(self):
         """
@@ -182,15 +210,13 @@ class EMBLMachineInfo(HardwareObject):
         Arguments : -
         Return    : -
         """
-        self.emit('valuesChanged', self.values_dict)
-        self.emit('inRangeChanged', self.values_in_range_dict)
-        self.emit('tempHumChanged', (self.temp_hum_values, self.temp_hum_in_range))
+        self.emit('valuesChanged', self.values_list)
 
     def get_values(self):
         """
         Descript:
         """
-        val = dict(self.values_dict)
+        val = dict(self.values_list)
         return val
 
     def get_temp_hum_values(self, sleep_time):
@@ -201,32 +227,29 @@ class EMBLMachineInfo(HardwareObject):
             temp = self.get_external_value(self.hutch_temp_addr)
             hum = self.get_external_value(self.hutch_hum_addr)
             if not None in (temp, hum):
-                if (None in self.temp_hum_values) or \
-                   (abs(float(temp) - self.temp_hum_values[0]) > 0.1 \
-                    or abs(float(hum) != self.temp_hum_values[1] > 1)):
-                    self.temp_hum_values[0] = temp
-                    self.temp_hum_values[1] = hum
-                    self.temp_hum_in_range[0] = temp < self.limits_dict['temp']
-                    self.temp_hum_in_range[1] = hum < self.limits_dict['hum']
-                    self.emit('tempHumChanged', (self.temp_hum_values, 
-                                                 self.temp_hum_in_range))
-            
+                if (abs(float(temp) - self.values_list[2]['value']) > 0.1 \
+                    or abs(float(hum) != self.values_list[3]['value'] > 1)):
+                    self.values_list[2]['value'] = temp
+                    self.values_list[3]['value'] = hum
+                    self.values_list[2]['in_range'] = temp < self.limits_dict['temp'] 
+                    self.values_list[3]['in_range'] = hum < self.limits_dict['hum']
+                    self.update_values()
             time.sleep(sleep_time)	
 
     def get_current(self):
-        return self.values_dict['current']
+        return self.values_list[0]['value']
  
     def get_current_value(self):
         """
         Descript. :
         """     
-        return self.values_dict['current']
+        return self.values_list[0]['value']
 
     def	get_message(self):
         """
         Descript :
         """  
-        return self.values_dict['stateText']
+        return self.values_list[1]['value']
 
     def get_external_value(self, addr):
         """

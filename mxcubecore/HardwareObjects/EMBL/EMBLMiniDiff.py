@@ -494,8 +494,12 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         c = centred_positions_dict
 
-        kappa = self.current_motor_positions["kappa"] 
-        phi = self.current_motor_positions["kappa_phi"] 
+        #kappa = self.current_motor_positions["kappa"] 
+        #phi = self.current_motor_positions["kappa_phi"] 
+
+        kappa = self.kappa_motor_hwobj.getPosition()
+        phi = self.kappa_phi_motor_hwobj.getPosition()
+        #IK TODO remove this director call
 
         if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
          and self.minikappa_correction_hwobj is not None:
