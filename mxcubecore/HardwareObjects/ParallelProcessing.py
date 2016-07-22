@@ -160,6 +160,7 @@ class ParallelProcessing(HardwareObject):
         Args.     : data_collection object
         Return    : None
         """
+        self.stopped = False
         acquisition = data_collection.acquisitions[0] 
         acq_params = acquisition.acquisition_parameters
         self.processing_results = {}
@@ -229,7 +230,6 @@ class ParallelProcessing(HardwareObject):
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
-        """
         if not os.path.isfile(self.processing_start_command):
             self.processing_done_event.set()
             msg = "ParallelProcessing: Start command %s is not " +\
@@ -248,35 +248,35 @@ class ParallelProcessing(HardwareObject):
         subprocess.Popen(str(line_to_execute), shell = True,
                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
-        """
         self.do_processing_result_polling(processing_params, 
                                           file_wait_timeout,
                                           data_collection.grid)
         
     def do_processing_result_polling(self, processing_params, wait_timeout, grid):
-        """Method polls processing results. Based on the polling of edna 
-           result files. After each result file results are aligned to match 
-           the diffractometer configuration.
-           If processing succed (files appear before timeout) then a heat map 
-           is created and results are stored in ispyb.
-           If processing was executed for helical line then heat map as a 
-           line plot is generated and best positions are estimated.
-           If processing was executed for a grid then 2d plot is generated,
-           best positions are estimated and stored in ispyb. Also mesh
-           parameters and processing results as a workflow are stored in ispyb.
+        """Method polls processing results, aligns them and emits a dictionary
+           with results  
+
+           Processing steps:
+           1. Creating an zeros array for all results
+           2. xml result polling. 
+              If xml with last frame arrives then polling stops
+              Results from xml are extracted and stored in result dict
+           3. Heat map generation
+              - For helical line a line plot is generated
+              - For grid a 2d plot is generated.
+           4. Results are stored in ispyb
         Args.     : wait_timeout (file waiting timeout is sec.)
         Return.   : list of 10 best positions. If processing fails returns None 
         """
         processing_result = {"image_num" : numpy.zeros(processing_params["images_num"]),
-                        "spots_num" : numpy.zeros(processing_params["images_num"]),
-                        "spots_int_aver" : numpy.zeros(processing_params["images_num"]),
-                        "spots_resolution" : numpy.zeros(processing_params["images_num"]),
-                        "score" : numpy.zeros(processing_params["images_num"])}
+                             "spots_num" : numpy.zeros(processing_params["images_num"]),
+                             "spots_int_aver" : numpy.zeros(processing_params["images_num"]),
+                             "spots_resolution" : numpy.zeros(processing_params["images_num"]),
+                             "score" : numpy.zeros(processing_params["images_num"])}
 
         processing_params["status"] = "Success"
         failed = False
 
-        """
         do_polling = True
         result_file_index = 0
         _result_place = []
@@ -313,18 +313,20 @@ class ParallelProcessing(HardwareObject):
                                   " size={0}".format(os.stat(result_file_name).st_size))
                 else:
                     os.system("ls %s > /dev/null" %_result_place[0])
-                    gevent.sleep(0.4)
-            if not file_appeared:
+                    gevent.sleep(0.1)
+            if not file_appeared or self.stopped:
                 failed = True
+                do_polling = False
                 msg = "ParallelProcessing: Dozor result file ({0}) " +\
                       "failed to appear after {1} seconds".\
                       format(result_file_name, wait_timeout)
                 logging.error(msg)
-                processing_params["status"] = "Failed"
+                #processing_params["status"] = "Failed"
                 processing_params["comments"] += "Failed: " + msg
-                self.emit("processingFailed")
-                self.processing_done_event.set()
-                return
+                #self.emit("processingFailed")
+                #self.processing_done_event.set()
+                #return
+                break
                 
             # poll while the size increasing:
             _oldsize = -1 
@@ -332,8 +334,8 @@ class ParallelProcessing(HardwareObject):
             while _oldsize < _newsize :
                 _oldsize = _newsize
                 _newsize = os.stat(result_file_name).st_size
-                gevent.sleep(0.3)
-                                
+                gevent.sleep(0.01)
+                           
             dozor_output_file = XSDataResultControlDozor.parseFile(result_file_name)
             #this method could be improved with xml parsing
             for dozor_image in dozor_output_file.getImageDozor():
@@ -351,19 +353,31 @@ class ParallelProcessing(HardwareObject):
                       processing_params["images_num"])
 
             aligned_result = self.align_processing_results(\
-			    processing_result, processing_params, grid)
+	    		    processing_result, processing_params, grid)
             self.emit("paralleProcessingResults", (aligned_result, processing_params, False))
             result_file_index += 1
 
         """
-        gevent.sleep(10)
-        #This is for test...
-
+        #Mockup...
+        gevent.sleep(5)
         for key in processing_result.keys():
             processing_result[key] = numpy.linspace(0, 
                  processing_params["images_num"], 
                  processing_params["images_num"]).astype('uint8')
-        #processing_result['score'][20] = 10
+
+        for image_num in range(processing_params["images_num"]): 
+            if self.stopped: 
+                break
+            if image_num % 30 == 0:
+                processing_result["score"][image_num] = 0
+                gevent.sleep(2)
+                self.processing_results = self.align_processing_results(\
+                     processing_result, processing_params, grid)
+                self.emit("paralleProcessingResults",
+                          (self.processing_results,
+                           processing_params,
+                           False))
+        """
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid)
@@ -467,6 +481,9 @@ class ParallelProcessing(HardwareObject):
 
     def is_running(self):
         return not self.processing_done_event.is_set()
+
+    def stop_processing(self):
+        self.stopped = True
 
     def align_processing_results(self, results_dict, processing_params, grid):
         """
