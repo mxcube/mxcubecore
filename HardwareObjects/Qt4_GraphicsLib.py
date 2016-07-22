@@ -176,6 +176,9 @@ class GraphicsItem(QtGui.QGraphicsItem):
         """
         self.update()
         self.scene().itemClickedSignal.emit(self, self.isSelected())
+        #self.scene().mouseClickedSignal.emit(self.start_coord[0],
+        #                                     self.start_coord[1],
+        #                                     True)
 
     def toggle_selected(self):
         """Toggles item selection
@@ -575,6 +578,8 @@ class GraphicsItemGrid(GraphicsItem):
 
     @staticmethod
     def set_grid_direction(grid_direction):
+        """Sets grids direction.
+        """
         GraphicsItemGrid.grid_direction = grid_direction
 
     def get_display_name(self):
@@ -616,6 +621,8 @@ class GraphicsItemGrid(GraphicsItem):
         self.__osc_range = osc_range
 
     def set_draw_start_position(self, pos_x, pos_y):
+        """First click defines start position of the grid
+        """
         if self.__draw_mode:
             self.__corner_coord[0].setX(pos_x)
             self.__corner_coord[0].setY(pos_y)
@@ -624,8 +631,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.scene().update()
 
     def set_draw_end_position(self, pos_x, pos_y):
-        """
-        Descript. : Actual drawing moment, when grid size is defined
+        """Actual drawing moment, when grid size is defined
         """
         if self.__draw_mode:
             self.__corner_coord[1].setX(pos_x)
@@ -641,7 +647,7 @@ class GraphicsItemGrid(GraphicsItem):
 
         if num_rows * num_cols > pow(2, 16):
             msg_text = "Unable to draw grid containing more than %d cells!" % pow(2, 16)
-            logging.getLogger("user_level_log").info(msg_text)
+            logging.getLogger("GUI").info(msg_text)
         else:
             self.__num_cols = num_cols
             self.__num_rows = num_rows
@@ -1067,7 +1073,7 @@ class GraphicsItemGrid(GraphicsItem):
                                  math.cos(math.pi * (self.__osc_start - \
                                  self.grid_direction['omega_ref']) / 180.0)
             new_point['phiy'] = new_point['phiy'] - hor_range
-            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+            new_point['phi'] = new_point['phi'] - self.__osc_range * \
                                self.__num_cols / 2 + (self.__num_cols - col) * \
                                self.__osc_range
         else:
@@ -1079,7 +1085,7 @@ class GraphicsItemGrid(GraphicsItem):
                                  math.cos(math.pi * (self.__osc_start - \
                                  self.grid_direction['omega_ref']) / 180.0)
             new_point['phiy'] = new_point['phiy'] + ver_range
-            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+            new_point['phi'] = new_point['phi'] - self.__osc_range * \
                                self.__num_rows / 2 + (self.__num_rows - row) * \
                                self.__osc_range  
 

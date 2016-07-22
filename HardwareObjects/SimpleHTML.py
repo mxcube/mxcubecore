@@ -37,7 +37,10 @@ def create_table(table_header=None, table_cells=None):
         string_list.append("<tr>") 
         header_str = ""
         for table_header in table_header:
-            header_str += "<th>%s</th>" % table_header
+            if table_header.startswith("bgcolor"):
+                header_str += "<th %s</th>" % table_header
+            else:
+                header_str += "<th>%s</th>" % table_header
         string_list.append(header_str)
 
     if table_cells:
@@ -50,6 +53,8 @@ def create_table(table_header=None, table_cells=None):
             for cell_str in table_row:
                 if cell_str.startswith("<td bgcolor"):
                     row_str += str(cell_str)
+                elif cell_str.startswith("bgcolor"):
+                    row_str += "<td %s" % str(cell_str)
                 else:
                     row_str += "<td>%s</td>" % str(cell_str)
             row_str += "</tr>" 

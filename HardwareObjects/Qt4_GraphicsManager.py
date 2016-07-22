@@ -1213,7 +1213,7 @@ class Qt4_GraphicsManager(HardwareObject):
         else:
             msg = "Please select two points (with same kappa and phi) " + \
                   "to create a helical line"
-            logging.getLogger("user_level_log").error(msg)
+            logging.getLogger("GUI").error(msg)
 
     def create_grid(self, spacing=(0, 0)):
         """Creates grid

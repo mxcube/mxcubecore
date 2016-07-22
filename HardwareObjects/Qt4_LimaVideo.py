@@ -49,15 +49,20 @@ from Lima import Core
 try:
     from Lima import Prosilica
 except ImportError, e:
-    logging.getLogger().warning("%s: %s", __name__, e)
+    #logging.getLogger().warning("%s: %s", __name__, e)
+    pass
+
 try:
     from Lima import Basler
 except ImportError, e:
-    logging.getLogger().warning("%s: %s", __name__, e)
+    #logging.getLogger().warning("%s: %s", __name__, e)
+    pass
+
 try:
     import cv2
 except ImportError:
-    logging.getLogger().warning("%s: %s", __name__, e)
+    #logging.getLogger().warning("%s: %s", __name__, e)
+    pass 
 
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -149,7 +154,8 @@ class Qt4_LimaVideo(Device):
             logging.getLogger().info("%s: Setting camera gain to %s",
                                      self.name(), self.cam_gain)
         except:
-            logging.getLogger().warning("%s: Cannot set camera gain", __name__)
+            #logging.getLogger().warning("%s: Cannot set camera gain", __name__)
+            pass
 
         try:
             self.cam_exposure = float(self.getProperty("exposure"))
@@ -157,7 +163,8 @@ class Qt4_LimaVideo(Device):
             logging.getLogger().info("%s: Setting exposure to %s s",
                                      self.name(), self.cam_exposure)
         except:
-            logging.getLogger().warning("%s: Cannot set exposure", __name__)
+            #logging.getLogger().warning("%s: Cannot set exposure", __name__)
+            pass
 
         self.setIsReady(True)
 
@@ -315,12 +322,11 @@ class Qt4_LimaVideo(Device):
     def get_gain(self):
         if self.cam_type == "basler":
             value = self.video.getGain()
-        return value
+            return value
 
     def set_gain(self, gain_value):
         if self.cam_type == "basler":
             self.video.setGain(gain_value)
-        return
 
     def get_gamma(self):
         return
@@ -331,7 +337,7 @@ class Qt4_LimaVideo(Device):
     def get_exposure_time(self):
         if self.cam_type == "basler":
             value = self.video.getExposure()
-        return value
+            return value
 
     def set_exposure_time(self, exposure_time_value):
         return
