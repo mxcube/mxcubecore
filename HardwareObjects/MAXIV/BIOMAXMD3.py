@@ -325,3 +325,14 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         return self.channel_dict["State"].getValue() == DiffractometerState.tostring(\
                     DiffractometerState.Ready)
+
+    def moveToBeam(self, x, y):
+        try:
+            self.beam_position = self.beam_info_hwobj.get_beam_position()
+            beam_xc = self.beam_position[0]
+            beam_yc = self.beam_position[1]
+            self.centring_phiz.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
+            self.centring_phiy.moveRelative(-1*(x-beam_xc)/float(self.pixelsPerMmY))
+        except:
+	    logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
+
