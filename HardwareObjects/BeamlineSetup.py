@@ -369,7 +369,7 @@ class BeamlineSetup(HardwareObject):
     def _get_energy(self):
         try:
             energy = self.energy_hwobj.getCurrentEnergy()
-            energy = round(float(energy), 4)
+            #energy = round(float(energy), 4)
         except AttributeError:
             energy = 0
         except TypeError:
@@ -380,7 +380,7 @@ class BeamlineSetup(HardwareObject):
     def _get_transmission(self):
         try:
             transmission = self.transmission_hwobj.getAttFactor()
-            transmission = round(float(transmission), 2)
+            #transmission = round(float(transmission), 2)
         except AttributeError:
             transmission = 0
         except TypeError:
@@ -391,7 +391,7 @@ class BeamlineSetup(HardwareObject):
     def _get_resolution(self):
         try:
             resolution = self.resolution_hwobj.getPosition()
-            resolution = round(float(resolution), 3)
+            #resolution = round(float(resolution), 3)
         except AttributeError:
             resolution = 0
         except TypeError:
