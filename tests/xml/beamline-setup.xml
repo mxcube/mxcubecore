@@ -3,17 +3,17 @@
 <object class="BeamlineSetup" role="BeamlineSetup">
   <!-- Objects directly associatd with hardware -->
   <object href="/transmission-mockup" role="transmission"/>
-  <object href="/diffractometer-mockup" role="diffractometer"/>
-  <object href="/diff-omega" role="omega_axis"/>
-  <object href="/diff-kappa" role="kappa_axis"/>
-  <object href="/diff-kappaphi" role="kappa_phi_axis"/>
+  <object href="/mini-diff-mockup" role="diffractometer"/>
+  <object href="/diff-omega-mockup" role="omega_axis"/>
+  <object href="/diff-kappa-mockup" role="kappa_axis"/>
+  <object href="/diff-kappaphi-mockup" role="kappa_phi_axis"/>
   <object href="/sc-mockup" role="sample_changer"/>    
   <object href="/plate-manipulator" role="plate_manipulator"/>
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
 
   <!-- Software (abstract) concepts -->
-  <object href="/shape-history" role="shape_history"/>
+  <object href="/Qt4_graphics-manager" role="shape_history"/>
   <object href="/session" role="session"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
@@ -22,7 +22,7 @@
   <!-- Procedures and routines -->
   <object href="/energyscan-mockup" role="energyscan"/>
   <object href="/collect-mockup" role="collect"/>
-  <object href="/xrfscan-mockup" role="xrfscan"/>
+  <object href="/xrf-spectrum-mockup" role="xrf_spectrum"/>
   <object href="/detector-mockup" role="detector"/>
 
   <!-- Is it possible to change the beam wavelentgh.
