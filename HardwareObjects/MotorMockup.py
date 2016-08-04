@@ -23,6 +23,9 @@ class MotorMockup(Device):
 
         if self.getProperty("start_position") is not None:
             self.motorPosition = int(self.getProperty("start_position"))
+ 
+    def isReady(self):
+        return True
 
     def getState(self):
         return self.motorState
@@ -88,3 +91,7 @@ class MotorMockup(Device):
     def stop(self):
         if self._move_task is not None:
             self._move_task.kill()
+
+    def update_values(self):
+        self.emit('stateChanged', (self.motorState, ))
+        self.emit('positionChanged', (self.motorPosition, ))
