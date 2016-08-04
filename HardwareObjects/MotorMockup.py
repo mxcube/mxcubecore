@@ -21,6 +21,9 @@ class MotorMockup(Device):
         self._move_task = None
         self.velocity = 100
 
+        if self.getProperty("start_position") is not None:
+            self.motorPosition = int(self.getProperty("start_position"))
+
     def getState(self):
         return self.motorState
     

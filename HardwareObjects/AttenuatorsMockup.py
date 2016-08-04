@@ -3,9 +3,12 @@ from HardwareRepository.BaseHardwareObjects import Device
 class AttenuatorsMockup(Device):
     def __init__(self, *args):
         Device.__init__(self, *args)
-        self.value = 0
+        self.value = 100
         self.emit('attFactorChanged', self.value)
 
+    def isReady(self):
+        return True
+ 
     def getAttState(self):
         return 0
 
@@ -21,3 +24,6 @@ class AttenuatorsMockup(Device):
 
     def setTransmission(self, value):  
         self.set_value(value)
+
+    def update_values(self):
+        self.emit('attFactorChanged', self.value)
