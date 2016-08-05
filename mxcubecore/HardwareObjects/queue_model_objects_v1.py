@@ -1087,7 +1087,7 @@ class PathTemplate(object):
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
-                setattr(self, key, dict_item[1])
+                setattr(self, dict_item[0], dict_item[1])
 
     def get_prefix(self):
         prefix = self.base_prefix
