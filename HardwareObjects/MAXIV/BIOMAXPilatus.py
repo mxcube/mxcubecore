@@ -1,5 +1,8 @@
 from detectors.LimaPilatus import Pilatus
 from HardwareRepository.TaskUtils import *
+import subprocess
+import os
+import time
 
 class BIOMAXPilatus(Pilatus):
   def init(self, config, collect_obj):
