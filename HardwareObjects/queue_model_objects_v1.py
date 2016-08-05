@@ -391,7 +391,6 @@ class Basket(TaskNode):
         return self.name
 
     def get_location(self):
-        #return int(self.location[0])
         return self.location 
 
     def get_is_present(self):
@@ -405,9 +404,6 @@ class Basket(TaskNode):
 
     def get_sample_list(self):
         return self.sample_list
- 
-    #def set_is_present(self, present):
-    #    self.is_present = present
 
 
 class DataCollection(TaskNode):
@@ -955,7 +951,6 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        #self.first_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
@@ -1090,9 +1085,6 @@ class PathTemplate(object):
                 "num_files" : self.num_files}
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
                 setattr(self, key, dict_item[1])
@@ -1261,12 +1253,6 @@ class AcquisitionParameters(object):
         self.in_interleave = False
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        if key == "centred_position": 
-        #            self.centred_position.set_from_dict(value)     
-        #        else:
-        #            setattr(self, key, value)
         for item in params_dict.items():
             if hasattr(self, item[0]):
                 if item[0] == "centred_position": 
@@ -1317,8 +1303,6 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            #for motor_name, position in motor_dict.iteritems():
-            #    setattr(self, motor_name, position)
             for motor_item in motor_dict.items():
                 setattr(self, motor_item[0], motor_item[1])
 
@@ -1327,10 +1311,6 @@ class CentredPosition(object):
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)   
-
         for dict_item in params_dict.iteritems():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
