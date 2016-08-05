@@ -254,7 +254,7 @@ class Sample(TaskNode):
 
     def init_from_plate_sample(self, plate_sample):
         """
-        Descript. : location : col, row, index
+        location : col, row, index
         """
         self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
                                     str(plate_sample[2]),
@@ -861,7 +861,7 @@ class EnergyScanResult(object):
 
 class XRFSpectrum(TaskNode):
     """
-    Descript. : Class represents XRF spectrum task
+    Class represents XRF spectrum task
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
@@ -1122,9 +1122,11 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Descript. : Returns the archive directory, for longer term storage.
-                    synchotron_name is set via static function calles from session hwobj
-        Return    : Archive directory. :rtype: str
+        Returns the archive directory, for longer term storage. synchotron_name
+        is set via static function calles from session hwobj
+
+        :rtype: str
+        :returns: Archive directory
         """
         folders = self.directory.split('/')
         if PathTemplate.synchotron_name == "MAXLAB":
