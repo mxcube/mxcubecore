@@ -353,6 +353,7 @@ class Sample(TaskNode):
 
         return processing_params
 
+
 class Basket(TaskNode):
     """
     Class represents a basket in the tree. It has not task assigned.
@@ -1180,7 +1181,6 @@ class PathTemplate(object):
     
         return result
 
-
     def get_files_to_be_written(self):
         file_locations = []
         file_name_template = self.get_image_file_name()
@@ -1192,7 +1192,6 @@ class PathTemplate(object):
                                                file_name_template % i))
 
         return file_locations
-
 
     def is_part_of(self, path_template):
         result = False
