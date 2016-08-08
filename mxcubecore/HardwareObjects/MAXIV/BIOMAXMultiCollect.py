@@ -566,8 +566,11 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def do_collect(self, owner, data_collect_parameters):
-        if self.__safety_shutter_close_task is not None:
-            self.__safety_shutter_close_task.kill()
+	try:
+            if self.__safety_shutter_close_task is not None:
+                self.__safety_shutter_close_task.kill()
+	except:
+	    pass
 
         logging.getLogger("user_level_log").info("Closing fast shutter")
         self.close_fast_shutter()

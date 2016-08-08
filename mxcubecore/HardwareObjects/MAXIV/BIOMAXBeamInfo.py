@@ -1,7 +1,9 @@
 import logging
 from HardwareRepository import HardwareRepository
 import BeamInfo
-
+import gevent
+import time
+import copy
 class BIOMAXBeamInfo(BeamInfo.BeamInfo):
     def __init__(self, *args):
         BeamInfo.BeamInfo.__init__(self, *args)
@@ -9,6 +11,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
     def init(self): 
         self.chan_beam_size_microns = None 
         self.chan_beam_shape_ellipse = None 
+        self.keep_polling = True
         BeamInfo.BeamInfo.init(self)
         
         self.camera = self.getDeviceByRole('camera')
@@ -19,7 +22,53 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = self.addChannel({"type":"exporter", "name":"BeamShapeEllipse"  }, 'BeamShapeEllipse')
         self.chan_ImageZoom=self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
 
+        print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
+        
+        self.polling = gevent.spawn(self._polling)
 
+        self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
+
+    def _polling(self):
+        old_beam_pos = [-1, -1]
+        old_size = [-1, -1]
+        old_shape = 'star'
+        while self.keep_polling:
+            try:
+                beam_pos = self.get_beam_position()
+                beam_dict = self.evaluate_beam_info()
+                size_x, size_y, shape = beam_dict['size_x'], beam_dict['size_y'], beam_dict['shape']
+                size = [size_x, size_y]
+            except:
+                time.sleep(1)
+                continue
+            if beam_pos != old_beam_pos:
+                self.beam_position_changed()
+                old_beam_pos = copy.copy(beam_pos)
+            
+            if size != old_size:
+                old_size = copy.copy(size)
+                self.beam_info_changed()
+            if shape != old_shape:
+                old_shape = copy.copy(shape)
+                self.beam_info_changed()
+
+            time.sleep(1)
+
+    def stop_polling(self):
+        self.keep_polling = False
+
+    def connectNotify(self, *args):
+        self.evaluate_beam_info()
+        self.emit_beam_info_change()
+        self.beam_position_changed()
+
+    def beam_position_changed(self):
+        self.get_beam_position()
+        self.emit("beamPosChanged", (self.beam_position, ))
+
+    def beam_info_changed(self):
+	self.evaluate_beam_info()
+	self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
         print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
 
@@ -49,11 +98,11 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         Return    :
         """
         logging.info ("camera is %s", str(self.camera))
-        try:
+	if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
             self.beam_position[1] = self.chan_beam_pos_y.getValue() * zoom
-        except:
+        else:
             self.beam_position[0] = self.camera.getWidth() / 2
             self.beam_position[1] = self.camera.getHeight() / 2
         return self.beam_position
@@ -66,13 +115,18 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.evaluate_beam_info(self,*args)
         try:
             if self.chan_beam_shape_ellipse.getValue():
-                self.self.beam_info_dict["shape"] = "ellipse"
+                self.beam_info_dict["shape"] = "ellipse"
             else:
-                self.beam_info_dict["shape"] = "circular"
+                self.beam_info_dict["shape"] = "rectangle"
         except:    
-                self.beam_info_dict["shape"] = "circular"#"ellipse"
+                self.beam_info_dict["shape"] = "ellipse"
         curpos=self.aperture_hwobj.getCurrentPositionName()
         size_x = size_y = eval(str(curpos)) / 1000.0
-        self.beam_info_dict["size_x"] = size_x
+	#if self.chan_beam_size_x.getValue() /1000.0 < size_x and self.chan_beam_size_y.getValue() / 1000.0 < size_y:
+        #    self.beam_info_dict["size_x"] = self.chan_beam_size_x.getValue() / 1000.0
+        #    self.beam_info_dict["size_y"] = self.chan_beam_size_y.getValue() / 1000.0
+       # else:
+	self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
+	self.beam_info_dict['pos'] = self.beam_position
         return self.beam_info_dict
