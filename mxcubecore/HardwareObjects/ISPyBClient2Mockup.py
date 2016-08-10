@@ -54,8 +54,8 @@ class ISPyBClient2Mockup(HardwareObject):
                              'type': 'MX'},
                 'Session': [{'scheduled': 0,
                              'startDate': '2013-06-11 00:00:00',
-                             'endDate': '2013-06-12 07:59:59',
-                             'beamlineName': 'ID:TEST',
+                             'endDate': '2023-06-12 07:59:59',
+                             'beamlineName': self.beamline_name,
                              'timeStamp': datetime.datetime(2013, 6, 11, 9, 40, 36),
                              'comments': 'Session created by the BCM',
                              'sessionId': 34591,
@@ -65,6 +65,7 @@ class ISPyBClient2Mockup(HardwareObject):
 
     def get_login_type(self):
         self.loginType = self.getProperty("loginType") or "proposal"
+        return self.loginType 
 
     def login (self,loginID, psd, ldap_connection=None):
 
