@@ -40,7 +40,7 @@ class EnergyMockup(Equipment):
        return None
 
    def get_energy_limits(self):
-       return None
+       return [4, 20]
 
    def getWavelengthLimits(self):
        lims = None
