@@ -1,3 +1,4 @@
 <object class="ISPyBClient2Mockup">
    <object href="/session" role="session"/>
-</object>
+   <loginType>user</loginType>
+</object> 

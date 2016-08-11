@@ -1,22 +1,10 @@
-<object class="MultiCollectMockup">
+<object class="CollectMockup">
   <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/mxlocal" role="beamline_configuration"/>
-  <object href="/sc-mockup" role="sample_changer"/>
+  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/lims-client-mockup" role="dbserver"/>
+
   <object href="/energy-mockup" role="energy"/>
   <object href="/attenuators-mockup" role="transmission"/>
   <object href="/detector-mockup" role="detector"/>
   <object href="/resolution-mockup" role="resolution"/>
-  <object href="/lims-client-mockup" role="dbserver"/> 
-
-  <auto_processing>
-      <program>
-      <executable>not_existing_executable_1</executable>
-      <event>after</event>
-    </program>
-    <program>
-      <executable>not_existing_executable_2</executable>
-      <event>image</event>
-    </program>
-    </auto_processing>
-
 </object>

@@ -1,3 +1,4 @@
 <object class="ParallelProcessing">
   <object href="/mxcollect" role="collect"/>
+  <processing_command>/pathToProcessingScript</processing_command>
 </object>

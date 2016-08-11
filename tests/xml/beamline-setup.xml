@@ -21,9 +21,18 @@
  
   <!-- Procedures and routines -->
   <object href="/energyscan-mockup" role="energyscan"/>
-  <object href="/collect-mockup" role="collect"/>
+  <object href="/mxcollect" role="collect"/>
+  <object href="/parallel-processing" role="parallel_processing"/>
   <object href="/xrf-spectrum-mockup" role="xrf_spectrum"/>
   <object href="/detector-mockup" role="detector"/>
+
+  <!-- advanced methods are defined as a list with method names.
+       Each name is then converted to class name.
+       For example Mesh scan -> MeshScan, Xray centring -> XrayCentring
+       and used as a queue_entry. If queue entry is missing
+       then queue skip exception will be raised.
+  -->
+  <advancedMethods>["MeshScan"]</advancedMethods>
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->
@@ -87,4 +96,16 @@
     <number_of_images>1</number_of_images>
     <detector_mode>1</detector_mode>
   </default_characterisation_values>
+
+  <default_advanced_values>
+    <exposure_time>0.040</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>0.5</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>100</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_advanced_values>
  </object>
