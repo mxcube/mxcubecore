@@ -149,7 +149,7 @@ class ISPyBClient2Mockup(HardwareObject):
 
 
 
-    def store_data_collection(self, mx_collection, beamline_setup = None):
+    def store_data_collection(self, mx_collection, beamline_setup=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -163,6 +163,11 @@ class ISPyBClient2Mockup(HardwareObject):
         :returns: None
 
         """
+        logging.getLogger("HWR").debug("Data collection parameters stored " + \
+                                       "in ISPyB: %s" % str(mx_collection))
+        logging.getLogger("HWR").debug("Beamline setup stored in ISPyB: %s" % \
+                                       str(beamline_setup))
+
         return None, None
 
 

@@ -17,9 +17,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import time
-from datetime import datetime, timedelta
+from gevent import spawn
+from random import uniform
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -41,10 +42,13 @@ class MachineInfoMockup(HardwareObject):
 	#Intensity current ranges
         self.values_list = []
         temp_dict = {}
-        temp_dict['value'] = 100.1
+        temp_dict['value'] = 90.1
+        temp_dict['value_str'] = "90.1 mA"
         temp_dict['in_range'] = True
         temp_dict['title'] = "Machine current"
         temp_dict['bold'] = True
+        temp_dict['font'] = 14
+        temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -55,19 +59,22 @@ class MachineInfoMockup(HardwareObject):
 
         temp_dict = {}
         temp_dict['value'] = 24.4
+        temp_dict['value_str'] = "24.4 C"
         temp_dict['in_range'] = True
         temp_dict['title'] = "Hutch temperature"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = 64.4
+        temp_dict['value_str'] = "64.4 %"
         temp_dict['in_range'] = True
         temp_dict['title'] = "Hutch humidity"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = 4e11
-        temp_dict['in_range'] = None
+        temp_dict['value_str'] = "4e+11 ph/s"
+        temp_dict['in_range'] = False
         temp_dict['title'] = "Flux"
         self.values_list.append(temp_dict)
 
@@ -76,7 +83,8 @@ class MachineInfoMockup(HardwareObject):
         Descript.
         """
         self.update_values()
-
+        spawn(self.change_mach_current)
+       
     def update_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
@@ -101,3 +109,11 @@ class MachineInfoMockup(HardwareObject):
         Descript :
         """  
         return self.values_list[1]['value']
+
+    def change_mach_current(self):
+        while True:
+            self.values_list[0]['value'] = uniform(80.1, 90.1)
+            self.values_list[0]['value_str'] = "%.1f mA" % \
+                 self.values_list[0]['value']
+            self.update_values()
+            time.sleep(5)

@@ -31,7 +31,9 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         return [100, 1000] 
 
     def has_shutterless(self):
-        """
-        Descript. : 
+        """Returns always True
         """
         return True
+
+    def get_beam_centre(self):
+        return 0, 0
