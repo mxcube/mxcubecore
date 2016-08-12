@@ -104,3 +104,6 @@ class BeamInfoMockup(Equipment):
 
     def get_focus_mode(self):
         return
+
+    def get_shape(self):
+        return self.beam_info_dict["shape"]
