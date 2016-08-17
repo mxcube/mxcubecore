@@ -142,17 +142,17 @@ class AbstractCollect(object):
         self.move_to_centered_position()
 
         if "transmission" in self.current_dc_parameters:
-            log.info("Collection: Setting transmission to %.3f", 
+            log.info("Collection: Setting transmission to %.2f",
                      self.current_dc_parameters["transmission"])
             self.set_transmission(self.current_dc_parameters["transmission"])
 
         if "wavelength" in self.current_dc_parameters:
-            log.info("Collection: Setting wavelength to %.3f", \
+            log.info("Collection: Setting wavelength to %.4f", \
                      self.current_dc_parameters["wavelength"])
             self.set_wavelength(self.current_dc_parameters["wavelength"])
 
         elif "energy" in self.current_dc_parameters:
-            log.info("Collection: Setting energy to %.3f",  
+            log.info("Collection: Setting energy to %.4f",
                      self.current_dc_parameters["energy"])
             self.set_energy(self.current_dc_parameters["energy"])
 
@@ -162,7 +162,7 @@ class AbstractCollect(object):
             self.set_resolution(resolution)
 
         elif 'detdistance' in self.current_dc_parameters:
-            log.info("Collection: Moving detector to %f", 
+            log.info("Collection: Moving detector to %.2f",
                      self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
 
