@@ -130,7 +130,6 @@ class EMBLBeamlineTest(HardwareObject):
         self.startup_test_list = []
         self.results_list = None
         self.results_html_list = None
-        self.arhive_results = None
         self.graph_values = [[], []]
 
         self.chan_pitch_scan_status = None
@@ -234,8 +233,6 @@ class EMBLBeamlineTest(HardwareObject):
 
         if self.getProperty("run_tests_at_startup") == True:
             self.start_test_queue(self.startup_test_list)
-
-        self.arhive_results = self.getProperty("arhive_results")
 
         self.intensity_ranges = []
         self.intensity_measurements = []
@@ -384,7 +381,7 @@ class EMBLBeamlineTest(HardwareObject):
         if self.beam_focusing_hwobj is not None:
             return self.beam_focusing_hwobj.get_active_focus_mode()
         else:
-            return None, None
+            return "Unfocused", None
 
     def set_focus_mode(self, mode):
         """
@@ -805,6 +802,10 @@ class EMBLBeamlineTest(HardwareObject):
         log.debug("BeamlineTest: %s" % msg)
         self.emit("testProgress", (1, progress_info))
 
+        # 1. close guillotine and fast shutter --------------------------------
+        # TODO
+        #self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
+
         # 1/6 Diffractometer in BeamLocation phase ---------------------------
         if self.bl_hwobj.diffractometer_hwobj.in_plate_mode():
             msg = "1/6 : Setting diffractometer in Transfer phase"
@@ -846,7 +847,6 @@ class EMBLBeamlineTest(HardwareObject):
             log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (2, progress_info))
 
-            self.bl_hwobj.transmission_hwobj.setTransmission(100)
             if slits_hwobj:
                 msg = "2.2/6 : Opening slits to 1 x 1 mm"
                 progress_info["progress_msg"] = msg
@@ -857,19 +857,26 @@ class EMBLBeamlineTest(HardwareObject):
                 slits_hwobj.set_gap('Hor', 1)
                 slits_hwobj.set_gap('Ver', 1)
             self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
-        else:
-            msg = "2/6 : Setting transmission to 10%"
-            progress_info["progress_msg"] = msg
-            log.debug("BeamlineTest: %s" % msg)
-            self.emit("testProgress", (2, progress_info))           
 
-            self.bl_hwobj.transmission_hwobj.setTransmission(10)
-            self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 8")
+            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                self.bl_hwobj.transmission_hwobj.setTransmission(25)
+                self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OFF")
+            else:
+                self.bl_hwobj.transmission_hwobj.setTransmission(100)
+        else:
+            if self.bl_hwobj.session_hwobj.beamline_name == "P14":
+                msg = "2.3/6 : Setting transmission to 10%"
+                progress_info["progress_msg"] = msg
+                log.debug("BeamlineTest: %s" % msg)
+                self.emit("testProgress", (2, progress_info))           
+
+                self.bl_hwobj.transmission_hwobj.setTransmission(10)
+                self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 8")
        
         self.align_beam_task() 
    
         # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
-        if active_mode == "Unfocused":
+        if active_mode == "Unfocused" and slits_hwobj:
             msg = "5/6 : Setting slits to 0.1 x 0.1 mm%"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
@@ -879,11 +886,12 @@ class EMBLBeamlineTest(HardwareObject):
             slits_hwobj.set_gap('Ver', 0.1)
 
         # 6/6 Update position of the beam mark position ----------------------
-        msg = "6/6 : Updating beam mark position"
-        progress_info["progress_msg"] = msg
-        log.debug("BeamlineTest: %s" % msg)
-        self.emit("testProgress", (6, progress_info))
-        self.graphics_manager_hwobj.move_beam_mark_auto()
+        if self.bl_hwobj.session_hwobj.beamline_name == "P14":
+            msg = "6/6 : Updating beam mark position"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (6, progress_info))
+            self.graphics_manager_hwobj.move_beam_mark_auto()
 
     def align_beam_task(self):
         """
@@ -896,7 +904,7 @@ class EMBLBeamlineTest(HardwareObject):
         
         # 3.1/6 If energy < 10: set all lenses in ----------------------------
         crl_used = False 
-        if self.bl_hwobj._get_energy() < 10:
+        if self.bl_hwobj._get_energy() < 10 and self.crl_hwobj:
             msg = "3.1/6 : Energy under 10keV. Setting all CRL lenses in"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
@@ -906,16 +914,17 @@ class EMBLBeamlineTest(HardwareObject):
             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout = 10)
 
         # 3.2/6 Pitch scan ---------------------------------------------------
-        msg = "3/6 : Starting pitch scan"
-        progress_info["progress_msg"] = msg
-        log.debug("BeamlineTest: %s" % msg)
-        self.emit("testProgress", (3, progress_info))
-        self.cmd_start_pitch_scan(1)
-        gevent.sleep(2.0)
+        if self.cmd_start_pitch_scan:
+            msg = "3/6 : Starting pitch scan"
+            progress_info["progress_msg"] = msg
+            log.debug("BeamlineTest: %s" % msg)
+            self.emit("testProgress", (3, progress_info))
+            self.cmd_start_pitch_scan(1)
+            gevent.sleep(2.0)
 
-        while self.scan_status != 0 :
-           gevent.sleep(0.1)
-        self.cmd_set_vmax_pitch(1)
+            while self.scan_status != 0 :
+               gevent.sleep(0.1)
+            self.cmd_set_vmax_pitch(1)
 
         # 3.3/6 If crl used then set previous position -----------------------
         if crl_used:
@@ -936,20 +945,52 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("testProgress", (4, progress_info))
 
         for i in range(3):
+            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                if i == 1:
+                    log.debug("BeamAlign: Setting in the capillary")
+                    self.bl_hwobj.diffractometer_hwobj.set_capillary_position("BEAM")
+                elif i == 2:
+                    log.debug("BeamAlign: Setting 70 micron aperture")
+                    self.bl_hwobj.beam_info_hwobj.aperture_hwobj.set_diameter(70)
+                    self.bl_hwobj.beam_info_hwobj.aperture_hwobj.set_in()     
+                    self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)     
+
             with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
                beam_pos_displacement = [None, None]
                while None in beam_pos_displacement:
-                   beam_pos_displacement = self.graphics_manager_hwobj.get_beam_displacement()
+                   beam_pos_displacement = self.graphics_manager_hwobj.\
+                       get_beam_displacement(reference="beam")
                    gevent.sleep(0.1)
+               if None or 0 in beam_pos_displacement:
+                   log.debug("BeamAlign: No beam detected")
+                   continue
 
-               active_mode, beam_size = self.get_focus_mode()
-               if active_mode == "Unfocused":
-                   delta_hor = beam_pos_displacement[0] * self.scale_hor
-                   delta_ver = beam_pos_displacement[1] * self.scale_ver
-                   log.debug("BeamAlign: Applying %.3f mm horizontal and %.3f mm vertical correction" % \
-                             (delta_hor, delta_ver))
-                   self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
-                   self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+            active_mode, beam_size = self.get_focus_mode()
+            if active_mode == "Unfocused":
+                delta_hor = beam_pos_displacement[0] * self.scale_hor
+                delta_ver = beam_pos_displacement[1] * self.scale_ver
+                log.debug("BeamAlign: Applying %.4f mm horizontal " % delta_hor + \
+                          "and %.4f mm vertical correction" % delta_ver)
+
+                if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                    print "enable motors"
+                    self.vertical_motor_hwobj.enable_motor()
+                    self.horizontal_motor_hwobj.enable_motor()
+                 
+                    if abs(delta_ver) > 0.001:
+                        print "move ver"
+                        self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
+                    if abs(delta_hor) > 0.001:
+                        print "move hor"
+                        self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+                    gevent.sleep(1)
+                else:
+                    self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
+                    self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+
+        if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+            self.vertical_motor_hwobj.disable_motor()
+            self.horizontal_motor_hwobj.disable_motor()
 
     def pitch_scan_status_changed(self, status):
         """
@@ -968,6 +1009,7 @@ class EMBLBeamlineTest(HardwareObject):
         beam_image_filename = os.path.join(self.test_source_directory,
                                            "auto_centring_before.png")
         self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
+        gevent.sleep(0.1)
         result["result_details"].append("<img src=%s style=width:300px;><br>" % beam_image_filename)
 
         self.bl_hwobj.diffractometer_hwobj.start_centring_method(\
@@ -1084,8 +1126,10 @@ class EMBLBeamlineTest(HardwareObject):
         scintillator_position = self.bl_hwobj.\
             diffractometer_hwobj.get_scintillator_position() 
         if scintillator_position == "SCINTILLATOR":
+            #TODO add state change when scintillator position changed
             self.bl_hwobj.diffractometer_hwobj.\
                  set_scintillator_position("PHOTODIODE")
+            gevent.sleep(1)
             self.bl_hwobj.diffractometer_hwobj.\
                  wait_device_ready(30)
 
@@ -1141,6 +1185,12 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.bl_hwobj.collect_hwobj.machine_info_hwobj.set_flux(flux)
 
+        msg = "Intensity = %1.1e A" % self.intensity_value
+        result["result_details"].append(msg + "<br>")
+        logging.getLogger("user_level_log").info(msg)
+        result["result_short"] = msg
+        meas_item.append("%1.1e" % self.intensity_value)
+
         msg = "Flux = %1.1e photon/s" % flux
         result["result_details"].append(msg + "<br>")
         logging.getLogger("user_level_log").info(msg)
@@ -1163,7 +1213,8 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_details"].extend(SimpleHTML.create_table(\
              ["Time", "Energy (keV)", "Detector distance (mm)", "Beam size (mm)",
               "Transmission (%%)", "Flux (photons/s)", "Dose rate (KGy/s)",
-              "Time to reach 20 MGy (sec, frames)"], self.intensity_measurements))
+              "Time to reach 20 MGy (sec, frames)", "Intensity (A)"],
+             self.intensity_measurements))
 
         self.ready_event.set()
         return result
@@ -1241,22 +1292,6 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").error(\
                "BeamlineTest: Unable to generate html report file %s" % html_filename)
 
-        if self.arhive_results:
-            try: 
-                output_file = open(html_filename, "r")
-                archive_file = open(archive_filename, "w")
-
-                for line in output_file.readlines():
-                    archive_file.write(line)
-                output_file.close()
-                archive_file.close()
-
-                logging.getLogger("HWR").info("Archive file :%s generated" % \
-                       archive_filename)
-            except:
-                logging.getLogger("HWR").error("Unable to " +\
-                       "generate html report file %s" % archive_filename)
-        
         pdfkit.from_url(html_filename, pdf_filename)
         logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
         self.emit('testFinished', html_filename)

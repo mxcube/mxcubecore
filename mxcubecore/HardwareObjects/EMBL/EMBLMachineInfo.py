@@ -86,12 +86,16 @@ class EMBLMachineInfo(HardwareObject):
         self.limits_dict =  None
         self.hutch_temp_addr = None
         self.hutch_hum_addr = None
+        self.overflow_alarm = None
+        self.low_level_alarm = None
+
 	#Intensity current ranges
         self.values_list = []
         temp_dict = {}
         temp_dict['value'] = None
-        temp_dict['in_range'] = None
+        temp_dict['in_range'] = False
         temp_dict['title'] = "Machine current"
+        temp_dict['unit'] = "mA"
         temp_dict['bold'] = True
         self.values_list.append(temp_dict)
 
@@ -105,24 +109,33 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value'] = 0
         temp_dict['in_range'] = None
         temp_dict['title'] = "Hutch temperature"
+        temp_dict['unit'] = "C"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = 0
         temp_dict['in_range'] = None
         temp_dict['title'] = "Hutch humidity"
+        temp_dict['unit'] = "%"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = 0
         temp_dict['in_range'] = None
         temp_dict['title'] = "Flux"
+        temp_dict['unit'] = "ph/s"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = "???"
         temp_dict['in_range'] = None
         temp_dict['title'] = "Cryoject in place"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = "Dewar level in range"
+        temp_dict['in_range'] = True
+        temp_dict['title'] = "Sample changer"
         self.values_list.append(temp_dict)
 
         self.temp_hum_values = [None, None]
@@ -132,6 +145,8 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_mach_curr = None
         self.chan_state_text = None
         self.chan_cryojet_in = None
+        self.chan_sc_dewar_low_level_alarm = None
+        self.chan_sc_dewar_overflow_alarm = None
 
     def init(self):
         """
@@ -156,6 +171,14 @@ class EMBLMachineInfo(HardwareObject):
         else:
             logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
 
+        self.chan_sc_dewar_low_level_alarm = self.getChannelObject('scLowLevelAlarm')
+        if self.chan_sc_dewar_low_level_alarm is not None:
+            self.chan_sc_dewar_low_level_alarm.connectSignal('update', self.low_level_alarm_changed)
+
+        self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
+        if self.chan_sc_dewar_overflow_alarm is not None:
+            self.chan_sc_dewar_overflow_alarm.connectSignal('update', self.overflow_alarm_changed)
+
         self.temp_hum_polling = spawn(self.get_temp_hum_values, 
              self.getProperty("updateIntervalS"))
 
@@ -163,14 +186,18 @@ class EMBLMachineInfo(HardwareObject):
         """
         Descript. :
         """ 
+        self.values_list[5]['in_range'] = False
+        self.values_list[5]['bold'] = True 
+
         if value == 1:
             self.values_list[5]['value'] = " In place"
             self.values_list[5]['in_range'] = True
+            self.values_list[5]['bold'] = False
         elif value == 0:
             self.values_list[5]['value'] = "NOT IN PLACE"
-            self.values_list[5]['in_range'] = False
         else:
             self.values_list[5]['value'] = "Unknown"
+        self.update_values()
 
     def mach_current_changed(self, value):
         """
@@ -181,8 +208,8 @@ class EMBLMachineInfo(HardwareObject):
         if self.values_list[0]['value'] is None \
         or abs(self.values_list[0]['value'] - value) > 0.10:
             self.values_list[0]['value'] = value
-            self.values_list[0]['in_range'] = \
-                 self.values_list[0] > self.limits_dict['current']
+           
+            self.values_list[0]['in_range'] = value > 60.0
             self.update_values()
 
     def state_text_changed(self, text):
@@ -192,7 +219,35 @@ class EMBLMachineInfo(HardwareObject):
         Return    : -
         """
         self.values_list[1]['value'] = str(text)
+        self.values_list[1]['in_range'] = text != "Fehler"
         self.update_values()
+
+    def low_level_alarm_changed(self, value):
+        self.low_level_alarm = value
+        self.update_sc_alarm()
+ 
+    def overflow_alarm_changed(self, value):
+        self.overflow_alarm = value
+        self.update_sc_alarm()
+  
+    def update_sc_alarm(self):
+        if self.low_level_alarm == 1:
+            self.values_list[6]['value'] = "Low level alarm!"
+            self.values_list[6]['in_range'] = False
+            self.values_list[6]['bold'] = True
+            logging.getLogger("GUI").error("Liquid nitrogen " + \
+                    " level in sample changer dewar is to low!")
+
+        elif self.overflow_alarm:
+            self.values_list[6]['value'] = "Overflow alarm!"
+            self.values_list[6]['in_range'] = False
+            self.values_list[6]['bold'] = True
+            logging.getLogger("GUI").error("Liquid nitrogen " + \
+                    "overflow in sample changer dewar!")
+        else:
+            self.values_list[6]['value'] = "Dewar level in range"
+            self.values_list[6]['in_range'] = True
+        self.update_values()        
 
     def set_flux(self, value):
         self.values_list[4]['value'] = value
@@ -231,8 +286,8 @@ class EMBLMachineInfo(HardwareObject):
                     or abs(float(hum) != self.values_list[3]['value'] > 1)):
                     self.values_list[2]['value'] = temp
                     self.values_list[3]['value'] = hum
-                    self.values_list[2]['in_range'] = temp < self.limits_dict['temp'] 
-                    self.values_list[3]['in_range'] = hum < self.limits_dict['hum']
+                    self.values_list[2]['in_range'] = temp < 25
+                    self.values_list[3]['in_range'] = hum < 60
                     self.update_values()
             time.sleep(sleep_time)	
 
