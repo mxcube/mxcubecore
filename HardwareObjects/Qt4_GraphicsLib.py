@@ -329,8 +329,8 @@ class GraphicsItemPoint(GraphicsItem):
     """Centred point class.
     """
 
-    def __init__(self, centred_position = None, full_centring = True,
-                 position_x = 0, position_y = 0):
+    def __init__(self, centred_position=None, full_centring=True,
+                 position_x=0, position_y=0):
         """
         :param: parent
         :param centred position: motor positions 
@@ -720,7 +720,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_properties(self):
         (dx_mm, dy_mm) = self.get_grid_range_mm()
-        return {"name": "Grid %d" % (self.index + 1),
+        return {"name": "Mesh %d" % (self.index + 1),
                 "direction":  self.grid_direction,
                 "reversing_rotation": self.__reversing_rotation,
                 "steps_x": self.__num_cols,
@@ -1504,9 +1504,11 @@ class GraphicsItemMeasureArea(GraphicsItem):
 class GraphicsView(QtGui.QGraphicsView):
     mouseMovedSignal = QtCore.pyqtSignal(int, int)
     keyPressedSignal = QtCore.pyqtSignal(str)
+    wheelSignal = QtCore.pyqtSignal(int)
 
     def __init__ (self, parent=None):
         super(GraphicsView, self).__init__(parent)
+
         self.graphics_scene = GraphicsScene(self)
         self.setScene(self.graphics_scene)  
         self.graphics_scene.clearSelection()
@@ -1514,6 +1516,20 @@ class GraphicsView(QtGui.QGraphicsView):
         self.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+        """
+        self.setToolTip("Keyboard shortcuts:\n" + \
+                        "  Ctrl+1 : 3 click centring\n" + \
+                        "  Ctrl+2 : Save centring point\n" + \
+                        "  Ctrl+L : Create line\n" + \
+                        "  Ctrl+G : Start grid drawing\n\n" + \
+                        "  Ctrl+A : Select all centring points\n" + \
+                        "  Ctrl+D : Deselect all items\n" + \
+                        "  Ctrl+X : Delete all items\n\n" + \
+                        "  + : Zoom in\n" + \
+                        "  - : Zoom out\n\n" + \
+                        "Mouse wheel : Rotate omega")
+        """
 
     def mouseMoveEvent(self, event):
         self.mouseMovedSignal.emit(event.x(), event.y())
@@ -1524,6 +1540,14 @@ class GraphicsView(QtGui.QGraphicsView):
             self.keyPressedSignal.emit("Delete")
         elif event.key() == QtCore.Qt.Key_Escape:
             self.keyPressedSignal.emit("Escape")
+        elif event.key() == QtCore.Qt.Key_Up:
+            self.keyPressedSignal.emit("Up")
+        elif event.key() == QtCore.Qt.Key_Down:
+            self.keyPressedSignal.emit("Down")
+        elif event.key() == QtCore.Qt.Key_Plus: 
+            self.keyPressedSignal.emit("Plus")
+        elif event.key() == QtCore.Qt.Key_Minus:   
+            self.keyPressedSignal.emit("Minus")
 
     def toggle_scrollbars_enable(self, state):
         if state:
@@ -1533,6 +1557,33 @@ class GraphicsView(QtGui.QGraphicsView):
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
             self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
+    def wheelEvent(self, event):
+        self.wheelSignal.emit(event.delta())
+
+        """
+        //Get the original screen centerpoint
+        QPointF screenCenter = GetCenter(); //CurrentCenterPoint; //(visRect.center());
+	ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnde rMouse);
+	//Scale the view ie. do the zoom
+	double scaleFactor = 1.15; //How fast we zoom
+	if(event->delta() > 0) {
+	//Zoom in
+	ui->graphicsView->scale(scaleFactor, scaleFactor);
+	} else {
+	//Zooming out
+	ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
+	}
+	ui->graphicsView->setTransformationAnchor(QGraphicsView::NoAnchor );
+	//Get the position after scaling, in scene coords
+	QPointF pointAfterScale(ui->graphicsView->mapToScene(event->pos()));
+
+	//Get the offset of how the screen moved
+	QPointF offset = pointBeforeScale - pointAfterScale;
+
+	//Adjust to the new center for correct zooming
+	QPointF newCenter = screenCenter + offset;
+	SetCenter(newCenter);
+        """
 
 class GraphicsScene(QtGui.QGraphicsScene):
     """
