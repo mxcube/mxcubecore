@@ -1,13 +1,11 @@
 """
 A client for ISPyB Webservices. 
 """
-import os
 import logging
 import gevent
 from datetime import datetime
-from requests import put, get, post
+from requests import get, post
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
@@ -46,11 +44,15 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_root = None
         self.__rest_username = None
         self.__rest_token = None
-        self.__rest_token_timestamp = None 
+        self.__rest_token_timestamp = None
+
+        self.session_hwobj = None
+        self.beamline_name = None
+         
+        self.loginType = None
 
     def init(self):
-        """
-        Descript. :
+        """Descript. :
         """
         self.session_hwobj = self.getObjectByRole('session')
         if self.session_hwobj:
@@ -60,105 +62,123 @@ class ISPyBRestClient(HardwareObject):
 
         logging.getLogger("requests").setLevel(logging.WARNING)
 
-        self.__rest_root = self.getProperty('restRoot')
-        self.__rest_username = self.getProperty('restUserName')
-        self.__rest_password = self.getProperty('restPass')
+        self.__rest_root = self.getProperty('ws_root')
+        self.__rest_username = self.getProperty('ws_username')
+        self.__rest_password = self.getProperty('ws_password')
 
+        self.loginType = self.getProperty("loginType") or "proposal"
         self.__update_rest_token()
 
-    def __update_rest_token(self):
+    def get_login_type(self):
+        """Descr.
         """
-        Descript. : updates REST token if necessary
-                    By default token expires in 3h so we are checking
-                    the timestamp of the tocken and if it is older
-                    than 3h we update the rest tocken
+        return self.loginType
+
+    def __update_rest_token(self):
+        """Updates REST token if necessary
+           By default token expires in 3h so we are checking
+           the timestamp of the tocken and if it is older
+           than 3h we update the rest tocken
         """
         request_token = False
         if not self.__rest_token_timestamp:
-            request_token = True 
+            request_token = True
         else:
-           timedelta = datetime.now() - self.__rest_token_timestamp
-           if timedelta.seconds > (3 * 60 * 60):  
-               request_token = True
+            timedelta = datetime.now() - self.__rest_token_timestamp
+            if timedelta.seconds > (3 * 60 * 60):
+                request_token = True
 
-        if request_token: 
+        if request_token:
             try:
-               logging.getLogger("ispyb_client").info("Requesting new RESTful token...")
-               data_dict = {'login' : str(self.__rest_username),
-                            'password' : str(self.__rest_password)}
-               response = post(self.__rest_root + 'authenticate', data = data_dict)
-               self.__rest_token = response.json().get('token') 
-               self.__rest_token_timestamp = datetime.now()
-               logging.getLogger("ispyb_client").info("RESTful token acquired")
+                logging.getLogger("ispyb_client").info("Requesting new RESTful token...")
+                data_dict = {'login' : str(self.__rest_username),
+                             'password' : str(self.__rest_password)}
+                params_dict = {'site' : 'EMBL'}
+                response = post(self.__rest_root + 'authenticate',
+                                data=data_dict,
+                                params=params_dict)
+                self.__rest_token = response.json().get('token')
+                self.__rest_token_timestamp = datetime.now()
+                logging.getLogger("ispyb_client").info("RESTful token acquired")
             except:
-               logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
+                logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
 
     #@in_greenlet
     def get_proposals_by_user(self, user_name):
-        """
-        Descript. : gets all proposals for selected user
-                    at first all proposals for user are obtained
-                    then for each proposal all sessions are obtained
-                    TODO: also user and laboratory should be obtained
+        """Returns a list of proposals associated to the user
+           TODO: also user and laboratory should be obtained
         """
         self.__update_rest_token()
         result = []
         if self.__rest_token:
             try:
-               response = get(self.__rest_root + self.__rest_token + \
-                   '/proposal/%s/list' % user_name)
-               proposal_list = eval(str(response.text))
-               for proposal in proposal_list:
-                   temp_proposal_dict = {}
-                   # Backward compatability with webservices
-                   # Could be removed if webservices disapear 
-                   temp_proposal_dict['Proposal'] = {}
-                   temp_proposal_dict['Proposal']['type'] = str(proposal['Proposal_proposalType'])
-                   if temp_proposal_dict['Proposal']['type'] in ('MX', 'MB'):
-                       temp_proposal_dict['Proposal']['proposalId'] = proposal['Proposal_proposalId'] 
-                       temp_proposal_dict['Proposal']['code'] = str(proposal['Proposal_proposalCode'])
-                       temp_proposal_dict['Proposal']['number'] = proposal['Proposal_proposalNumber']
-                       temp_proposal_dict['Proposal']['title'] = proposal['Proposal_title']
-                       temp_proposal_dict['Proposal']['personId'] = proposal['Proposal_personId']
+                response = get(self.__rest_root + self.__rest_token + \
+                   '/proposal/user/%s/list' % user_name)
+                try:
+                    proposal_list = eval(str(response.text))
+                except:
+                    proposal_list = []
+                for proposal in proposal_list:
+                    temp_proposal_dict = {}
+                    # Backward compatability with webservices
+                    # Could be removed if webservices disapear
+                    temp_proposal_dict['Proposal'] = {}
+                    temp_proposal_dict['Proposal']['type'] = \
+                       str(proposal['Proposal_proposalType'])
+                    if temp_proposal_dict['Proposal']['type'] in ('MX', 'MB'):
+                        temp_proposal_dict['Proposal']['proposalId'] = \
+                             proposal['Proposal_proposalId']
+                        temp_proposal_dict['Proposal']['code'] = \
+                             str(proposal['Proposal_proposalCode'])
+                        temp_proposal_dict['Proposal']['number'] = \
+                             proposal['Proposal_proposalNumber']
+                        temp_proposal_dict['Proposal']['title'] = \
+                             proposal['Proposal_title']
+                        temp_proposal_dict['Proposal']['personId'] = \
+                             proposal['Proposal_personId']
 
-                       # gets all sessions for 
-                       #proposal_txt = temp_proposal_dict['Proposal']['code'] + \
-                       #               str(temp_proposal_dict['Proposal']['number'])
-                       #sessions = self.get_proposal_sessions(temp_proposal_dict['Proposal']['proposalId'])
-                       res_sessions = self.get_proposal_sessions(\
-                           temp_proposal_dict['Proposal']['proposalId'])
-                       #This could be fixed and removed from here
-                       proposal_sessions = []
-                       for session in res_sessions:
-                           date_object = datetime.strptime(session['startDate'], '%b %d, %Y %I:%M:%S %p')
-                           session['startDate'] = datetime.strftime(
-                                 date_object, "%Y-%m-%d %H:%M:%S")
-                           date_object = datetime.strptime(session['endDate'], '%b %d, %Y %I:%M:%S %p')
-                           session['endDate'] = datetime.strftime(
-                                 date_object, "%Y-%m-%d %H:%M:%S") 
-                           proposal_sessions.append(session)
+                        # gets all sessions for 
+                        #proposal_txt = temp_proposal_dict['Proposal']['code'] + \
+                        #               str(temp_proposal_dict['Proposal']['number'])
+                        #sessions = self.get_proposal_sessions(temp_proposal_dict['Proposal']['proposalId'])
+                        res_sessions = self.get_proposal_sessions(\
+                            temp_proposal_dict['Proposal']['proposalId'])
+                        #This could be fixed and removed from here
+                        proposal_sessions = []
+                        for session in res_sessions:
+                            date_object = datetime.strptime(\
+                                  session['startDate'], '%b %d, %Y %I:%M:%S %p')
+                            session['startDate'] = datetime.strftime(
+                                  date_object, "%Y-%m-%d %H:%M:%S")
+                            date_object = datetime.strptime(\
+                                  session['endDate'], '%b %d, %Y %I:%M:%S %p')
+                            session['endDate'] = datetime.strftime(
+                                  date_object, "%Y-%m-%d %H:%M:%S") 
+                            proposal_sessions.append(session)
 
-                       temp_proposal_dict['Sessions'] = proposal_sessions
-                       result.append(temp_proposal_dict)
+                        temp_proposal_dict['Sessions'] = proposal_sessions
+                        result.append(temp_proposal_dict)
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)  
+                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)  
         else:
              logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)        
         return result
 
     def get_proposal_sessions(self, proposal_id):
+        """Descr.
+        """
         self.__update_rest_token()
         session_list = []
         if self.__rest_token:
             try:
-               response = get(self.__rest_root + self.__rest_token + \
-                    '/proposal/%s/session/list' % proposal_id)
-               session_list = response.json()
-               #for session in all_sessions:
-               #    if session['proposalVO']['proposalId'] == proposal_id:
-               #session_list.append(all_sessions) 
+                response = get(self.__rest_root + self.__rest_token + \
+                     '/proposal/%s/session/list' % proposal_id)
+                session_list = response.json()
+                #for session in all_sessions:
+                #    if session['proposalVO']['proposalId'] == proposal_id:
+                #session_list.append(all_sessions) 
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
              logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
 
@@ -174,10 +194,10 @@ class ISPyBRestClient(HardwareObject):
         """
         self.__update_rest_token()
         session_list = []
-        result = {} 
+        result = {}
 
         if self.__rest_token:
-             response = get(self.__rest_root + self.__rest_token + \
+            response = get(self.__rest_root + self.__rest_token + \
                  "/proposal/session/%d/localcontact" % session_id)
         else:
             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
@@ -196,7 +216,7 @@ class ISPyBRestClient(HardwareObject):
         return translated
 
 
-    def store_data_collection(self, mx_collection, beamline_setup = None):
+    def store_data_collection(self, mx_collection, beamline_setup=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -210,7 +230,6 @@ class ISPyBRestClient(HardwareObject):
         :returns: None
 
         """
-        print "store_data_collection..." , mx_collection
         return None, None
 
 
@@ -228,7 +247,6 @@ class ISPyBRestClient(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print "store_beamline_setup...", beamline_setup 
         pass
 
 
@@ -242,7 +260,6 @@ class ISPyBRestClient(HardwareObject):
 
         :returns: None
         """  
-        print "update_data_collection... ", mx_collection
         pass
 
 
@@ -255,7 +272,6 @@ class ISPyBRestClient(HardwareObject):
 
         :returns: None
         """
-        print "store_image ", image_dict
         pass
 
     
@@ -265,7 +281,7 @@ class ISPyBRestClient(HardwareObject):
         <location> with-in the list sample_ref_list.
 
         The sample_ref object is defined in the head of the file.
-        
+ 
         :param sample_ref_list: The list of sample_refs to search.
         :type sample_ref: list
         
