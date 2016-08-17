@@ -146,8 +146,8 @@ class Qt4_LimaVideo(Device):
             elif self.cam_encoding == "y8":
                 self.video.setMode(Core.Y8)
                 self.decoder = self.y8_2_rgb
-            logging.getLogger().info("%s: Setting camera mode to %s", __name__,
-                                     self.video.getMode())
+            logging.getLogger().debug("%s: Setting camera mode to %s", __name__,
+                                      self.video.getMode())
         try:
             self.cam_gain = float(self.getProperty("gain"))
             self.set_gain(self.cam_gain)
