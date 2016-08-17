@@ -128,6 +128,9 @@ class EMBLAperture(Device):
         """
         self.chan_diameter_index.setValue(diameter_index)
 
+    def set_diameter(self, diameter):
+        self.chan_diameter_index.setValue(self.diameter_list.index(diameter)) 
+
     def set_position(self, position):
         self.chan_position.setValue(EMBLAperture.POSITION[position])
 
