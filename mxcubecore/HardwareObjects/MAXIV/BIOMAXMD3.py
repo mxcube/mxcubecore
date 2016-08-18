@@ -50,13 +50,13 @@ class BIOMAXMD3(GenericDiffractometer):
         self.camera = self.camera_hwobj
 
 
-        self.phi_motor_hwobj = self.getObjectByRole('phi')
-        self.phiz_motor_hwobj = self.getObjectByRole('phiz')
-        self.phiy_motor_hwobj = self.getObjectByRole('phiy')
-        self.zoom_motor_hwobj = self.getObjectByRole('zoom')
-        self.focus_motor_hwobj = self.getObjectByRole('focus')
-        self.sample_x_motor_hwobj = self.getObjectByRole('sampx')
-        self.sample_y_motor_hwobj = self.getObjectByRole('sampy')
+        self.phi_motor_hwobj = self.motor_hwobj_dict['phi']
+        self.phiz_motor_hwobj = self.motor_hwobj_dict['phiz']
+        self.phiy_motor_hwobj = self.motor_hwobj_dict['phiy']
+        self.zoom_motor_hwobj = self.motor_hwobj_dict['zoom']
+        self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
+        self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
+        self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
 
 
     def start3ClickCentring(self):
