@@ -614,14 +614,11 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
             if detector_id:
                 data_collect_parameters['detector_id'] = detector_id
-        print "0000000000000000000000000000000"
-	print file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory']
         # Creating the directory for images and processing information
         logging.getLogger("user_level_log").info("Creating directory for images and processing")
-        #self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
+        self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
         self.xds_directory, self.mosflm_directory, self.hkl2000_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
         data_collect_parameters['xds_dir'] = self.xds_directory
-	print 11111111111111111111
         logging.getLogger("user_level_log").info("Getting sample info from parameters")
         sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
         data_collect_parameters['blSampleId'] = sample_id

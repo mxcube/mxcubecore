@@ -15,11 +15,11 @@ class BIOMAXPilatus(Pilatus):
       dirname = os.path.dirname(filename)
       if dirname.startswith(os.path.sep):
         dirname = dirname[len(os.path.sep):]
-      print "Setting DIRS in DEtector", prefix, suffix, dirname
-      saving_directory = os.path.join('/', dirname)
-      print "saving dir   ", saving_directory
-      subprocess.Popen("ssh %s@%s mkdir --parents %s" % ("mxcube",
-                                                         "b-biomax-pilatus-pc-01",#self.config.getProperty("control"),
+     
+      saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
+
+      subprocess.Popen("ssh %s@%s mkdir --parents %s" % (self.config.getProperty("control_user"), #"mxcube",
+                                                         self.config.getProperty("control"),
                                                          saving_directory),
                                                          shell=True, stdin=None,
                                                          stdout=None, stderr=None,
@@ -27,7 +27,7 @@ class BIOMAXPilatus(Pilatus):
 
       self.wait_ready()
 
-      os.system('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/visitor/"')
+      os.system('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/data/"')
       #subprocess.Popen('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/visitor/"').wait()
       #self.wait_ready()  
       try:
