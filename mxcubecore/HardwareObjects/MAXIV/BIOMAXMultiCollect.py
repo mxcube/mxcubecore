@@ -687,6 +687,12 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         # Creating the directory for images and processing information
         logging.getLogger("user_level_log").info("Creating directory for images and processing")
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
+        """
+        to remove later, will not be needed with the correct uid and gid
+        """
+        os.chmod(file_parameters['directory'], 0777)
+        os.chmod(file_parameters['process_directory'], 0777)
+        
         self.xds_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
         data_collect_parameters['xds_dir'] = self.xds_directory
         logging.getLogger("user_level_log").info("Getting sample info from parameters")
