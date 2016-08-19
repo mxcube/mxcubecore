@@ -109,7 +109,16 @@ class DiffractometerMockup(GenericDiffractometer):
                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
                          'phi': 311.1, 'focus': -0.42, 'kappa': 11,
                          'kappa_phi': 22.0}
-        return centred_pos_dir 		
+        return centred_pos_dir
+
+    def automatic_centring(self):
+        """Automatic centring procedure"""
+        random_num = random.random()
+        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
+                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
+                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
+                         'kappa_phi': 22.0}
+        return centred_pos_dir
 
     def is_ready(self):
         """
@@ -253,3 +262,6 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def get_osc_dynamic_limits(self):
         return (0, 20)
+
+    def move_omega_relative(self, relative_angle):
+        self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
