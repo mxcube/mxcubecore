@@ -13,8 +13,9 @@ class BIOMAXPilatus(Pilatus):
       prefix, suffix = os.path.splitext(os.path.basename(filename))
       prefix = "_".join(prefix.split("_")[:-1])+"_"
       dirname = os.path.dirname(filename)
-      if dirname.startswith(os.path.sep):
-        dirname = dirname[len(os.path.sep):]
+      #if dirname.startswith(os.path.sep):
+      #  dirname = dirname[len(os.path.sep):]
+      dirname = dirname.replace("/data/","")
      
       saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
 
@@ -27,7 +28,7 @@ class BIOMAXPilatus(Pilatus):
 
       self.wait_ready()
 
-      os.system('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/data/"')
+      os.system('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/visitor/"')
       #subprocess.Popen('ssh mxcube@b-biomax-pilatus-pc-01 "chmod -R 777 /ramdisk/visitor/"').wait()
       #self.wait_ready()  
       try:
