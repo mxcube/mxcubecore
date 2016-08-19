@@ -179,8 +179,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def init(self):
         self.setControlObjects(diffractometer = self.getObjectByRole("diffractometer"),
                                sample_changer = self.getObjectByRole("sample_changer"),
-                               #lims = self.getObjectByRole("dbserver"),
-                               lims = None, # disable lims for the moment
+                               lims = self.getObjectByRole("dbserver"),
+                               #lims = None, # disable lims for the moment
                                safety_shutter = self.getObjectByRole("safety_shutter"),
                                machine_current = self.getObjectByRole("machine_current"),
                                #cryo_stream = self.getObjectByRole("cryo_stream"),
@@ -449,8 +449,10 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
       self._centring_status = centring_status
 
 
-    def get_archive_directory(self, directory):
-        return self.archive_directory
+    def get_archive_directory(self, directory): 
+        tmp_directory = directory
+        tmp_directory.replace("visitor", "pyarch")
+        return tmp_directory
 
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
@@ -493,7 +495,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             return None
 
     def get_resolution_at_corner(self):
-        return
+        return 0.0
 
     def get_slit_gaps(self):
         return None, None
@@ -510,8 +512,18 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return
 
     def prepare_input_files(self, files_directory, prefix, run_number, process_directory):
-        self.actual_frame_num = 0
         i = 1
+        logging.info("Creating XDS (MAXIV-BioMAX) processing input file directories")
+
+        self.xds_template  = "/mxn/home/jienan/bin/dp_file_templates/xdstemplate_biomax.inp"
+
+        try:
+           self.xds_template_buf    = open(self.xds_template).read()
+           self.write_files = True
+        except:
+           print "Cannot find template for xds input files "
+           self.write_files = False
+
         while True:
           xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
           xds_directory = os.path.join(process_directory, xds_input_file_dirname)
@@ -521,17 +533,22 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
           i+=1
 
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
-        mosflm_directory = os.path.join(process_directory, mosflm_input_file_dirname)
-
-        hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
-        hkl2000_directory = os.path.join(process_directory, hkl2000_dirname)
-
         self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
-        self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
-        self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
 
-        return xds_directory, mosflm_directory, hkl2000_directory
+        for dir in (self.raw_data_input_file_dir, xds_directory):
+          self.create_directories(dir)
+          logging.info("Creating XDS processing input file directory: %s", dir)
+          os.chmod(dir, 0777)
+        # create links for diff images in the process directory
+        try:
+          try:
+              os.symlink(files_directory, os.path.join(process_directory, "img"))
+          except os.error, e:
+              if e.errno != errno.EEXIST:
+                  raise
+        except:
+            logging.exception("Could not create processing file directory")
+        return xds_directory
 
     @task
     def prepare_intensity_monitors(self):
@@ -561,7 +578,60 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return
 
     @task
-    def write_input_files(self, collection_id):
+    def write_input_files(self, data_collect_parameters):
+        xds_input_file = os.path.join(self.raw_data_input_file_dir, "XDS.INP")
+        xds_file = open(xds_input_file, "w")
+
+        oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+        start_image_number = oscillation_parameters["start_image_number"]
+        end_image_number = oscillation_parameters["start_image_number"] + oscillation_parameters["number_of_images"] - 1
+        end_image_number_bkg = min (start_image_number + 10, end_image_number)
+        end_image_number_beg = min (start_image_number + 5, end_image_number)
+        start_image_number_end = max(start_image_number, end_image_number - 5)
+            
+        file_parameters = data_collect_parameters["fileinfo"]
+        xds_file_template = "%(prefix)s_%(run_number)s_?????.%(suffix)s" % file_parameters
+        try:
+            valdict = {
+                "user_comment":                 data_collect_parameters["comment"],
+                "BIOMAX-collection_start_time": data_collect_parameters["collection_start_time"],
+                "startImageNumber":             start_image_number,
+                "endImageNumber":               end_image_number,
+                "startImageNumber_bkg":         start_image_number,
+                "endImageNumber_bkg":           end_image_number_bkg,
+                "startImageNumber_beg":         start_image_number,
+                "endImageNumber_beg":           end_image_number_beg,
+                "startImageNumber_end":         start_image_number_end,
+                "endImageNumber_end":           end_image_number,
+                "axisRange":                    oscillation_parameters["range"],
+                "axisStart":                    oscillation_parameters["start"],
+                "exposure_time":                oscillation_parameters["exposure_time"],
+                "xdswait_exposure_time":        oscillation_parameters["exposure_time"]+float(self.bl_control.detector.getProperty("deadtime")),
+                "wavelength":                   data_collect_parameters["wavelength"],
+                "imageDirectory":               file_parameters["directory"],
+                "fileTemplate":                 xds_file_template,
+                "detectorDistance":             data_collect_parameters["detectorDistance"],
+                "xbeam_px":                     float(data_collect_parameters["xBeam"]/self.bl_control.detector.getProperty("px")),
+                "ybeam_px":                     float(data_collect_parameters["yBeam"]/self.bl_control.detector.getProperty("py")),
+                "detectorPixelSizeHorizontal":  self.bl_control.detector.getProperty("px"),
+                "detectorPixelSizeVertical":    self.bl_control.detector.getProperty("py"), 
+                "resolution_upper":             data_collect_parameters["resolutionAtCorner"]
+           }
+        except:
+           logging.getLogger("user_level_log").warning("Could not write xds input file correctly")
+           return
+        
+        try:
+           xds_buf = self.xds_template_buf % valdict
+        except:
+           logging.getLogger("user_level_log").warning("Could not write xds input file correctly")
+           return
+
+        xds_file.write(xds_buf)
+        xds_file.close()
+
+        os.chmod(xds_input_file, 0666)
+        os.system("cp %s %s" % (xds_input_file, self.xds_directory))
         return
 
 
@@ -617,7 +687,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         # Creating the directory for images and processing information
         logging.getLogger("user_level_log").info("Creating directory for images and processing")
         self.create_directories(file_parameters['directory'],  file_parameters['process_directory'])
-        self.xds_directory, self.mosflm_directory, self.hkl2000_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
+        self.xds_directory = self.prepare_input_files(file_parameters["directory"], file_parameters["prefix"], file_parameters["run_number"], file_parameters['process_directory'])
         data_collect_parameters['xds_dir'] = self.xds_directory
         logging.getLogger("user_level_log").info("Getting sample info from parameters")
         sample_id, sample_location, sample_code = self.get_sample_info_from_parameters(data_collect_parameters)
@@ -857,7 +927,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
             if self.bl_control.lims and self.bl_config.input_files_server:
                 logging.getLogger("user_level_log").info("Asking for input files writing")
-                self.write_input_files(self.collection_id, wait=False) 
+                self.write_input_files(data_collect_parameters, wait=False) 
 
             # at this point input files should have been written           
             # TODO aggree what parameters will be sent to this function
