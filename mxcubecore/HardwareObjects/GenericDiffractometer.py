@@ -350,9 +350,14 @@ class GenericDiffractometer(HardwareObject):
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
         try:
+            # grid_direction describes how a grid is collected
+            # 'fast' is collection direction and 'slow' describes
+            # move to the next collection line 
             self.grid_direction = eval(self.getProperty("grid_direction"))
         except:
-            self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
+            self.grid_direction = {"fast": (0, 1),
+                                   "slow": (1, 0),
+                                   "omega_ref" : 0}
             logging.getLogger("HWR").warning("Diffractometer: Grid " + \
                 "direction is not defined. Using default.")
 
