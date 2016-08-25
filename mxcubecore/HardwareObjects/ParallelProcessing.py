@@ -99,6 +99,19 @@ class ParallelProcessing(HardwareObject):
         beamstop_distance = self.beamstop_hwobj.get_distance()
         beamstop_direction = self.beamstop_hwobj.get_direction()
 
+        try:
+           assert beamstop_size > 0, \
+               "Beamstop size (%.2f) is <= 0" % beamstop_size
+           assert beamstop_distance > 0, \
+               "Beamstop distance (%.2f) is <= 0" % beamstop_distance
+           assert beamstop_direction in ["X", "Y"], \
+               "Beamstop direction (%s) not X or Y" % str(beamstop_direction)
+        except AssertionError as e:
+           logging.getLogger("HWR").exception("ParallelProcessing: One or " + \
+              "several input parameters are out of range: ")
+           logging.getLogger("HWR").exception(e) 
+           return None, None
+
         if data_collection.grid:
             grid_params = data_collection.grid.get_properties()
             reversing_rotation = grid_params["reversing_rotation"]
@@ -115,6 +128,7 @@ class ParallelProcessing(HardwareObject):
         processing_params["pixel_max"] = pixel_max
         processing_params["beamstop_size"] = beamstop_size
         processing_params["beamstop_distance"] = beamstop_distance
+
         processing_params["beamstop_direction"] = beamstop_direction
         processing_params["status"] = "Started"
         processing_params["title"] = "%s_%d_xxxxx.cbf (%d - %d)" % \
@@ -227,13 +241,20 @@ class ParallelProcessing(HardwareObject):
 
         processing_input, processing_params = self.create_processing_input(\
              data_collection, processing_params) 
+        if None in (processing_input, processing_params):
+            self.emit("processingFailed")
+            self.processing_done_event.set()  
+            return
+
         processing_input_file = os.path.join(processing_directory, "dozor_input.xml")
         processing_input.exportToFile(processing_input_file)
 
+        # To run in mockup mode comment the code from here
         if not os.path.isfile(self.processing_start_command):
             self.processing_done_event.set()
-            msg = "ParallelProcessing: Start command %s is not " +\
-                  "executable" % self.processing_start_command
+            msg = "ParallelProcessing: Start command %s" % \
+                  self.processing_start_command + \
+                  "is not executable"
             logging.getLogger("queue_exec").error(msg)
             self.emit("processingFailed")
             return       
@@ -245,9 +266,11 @@ class ParallelProcessing(HardwareObject):
                               processing_input_file + ' ' + \
                               processing_directory
 
+        
         subprocess.Popen(str(line_to_execute), shell = True,
-                         stdin = None, stdout = None, stderr = None,
+                          stdin = None, stdout = None, stderr = None,
                          close_fds = True)
+        # till here
         self.do_processing_result_polling(processing_params, 
                                           file_wait_timeout,
                                           data_collection.grid)
@@ -274,6 +297,7 @@ class ParallelProcessing(HardwareObject):
                              "spots_resolution" : numpy.zeros(processing_params["images_num"]),
                              "score" : numpy.zeros(processing_params["images_num"])}
 
+        # To run in mockup mode comment the code from here
         processing_params["status"] = "Success"
         failed = False
 
@@ -357,8 +381,10 @@ class ParallelProcessing(HardwareObject):
             self.emit("paralleProcessingResults", (aligned_result, processing_params, False))
             result_file_index += 1
 
+        # till here 
+
+        # To run in mockup mode un-comment from here
         """
-        #Mockup...
         gevent.sleep(5)
         for key in processing_result.keys():
             processing_result[key] = numpy.linspace(0, 
@@ -368,9 +394,9 @@ class ParallelProcessing(HardwareObject):
         for image_num in range(processing_params["images_num"]): 
             if self.stopped: 
                 break
-            if image_num % 30 == 0:
+            if image_num % 10 == 0:
                 processing_result["score"][image_num] = 0
-                gevent.sleep(2)
+                gevent.sleep(0.5)
                 self.processing_results = self.align_processing_results(\
                      processing_result, processing_params, grid)
                 self.emit("paralleProcessingResults",
@@ -378,6 +404,7 @@ class ParallelProcessing(HardwareObject):
                            processing_params,
                            False))
         """
+        # till here
 
         self.processing_results = self.align_processing_results(\
              processing_result, processing_params, grid)

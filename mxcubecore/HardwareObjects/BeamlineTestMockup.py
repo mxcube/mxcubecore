@@ -272,14 +272,18 @@ class BeamlineTestMockup(HardwareObject):
             logging.getLogger("HWR").error(\
                "BeamlineTest: Unable to generate html report file %s" % html_filename)
 
-        pdfkit.from_url(html_filename, pdf_filename)
-        logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        try:
+            pdfkit.from_url(html_filename, pdf_filename)
+            logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        except:
+            logging.getLogger("GUI").info("Unable to generate PDF report %s" % pdf_filename)
+
         self.emit('testFinished', html_filename)
            
     def get_result_html(self):
         """
         Descript. :
         """
-        html_filename = os.path.join(self.test_directory, self.test_filename)
+        html_filename = os.path.join(self.test_directory, self.test_filename + ".html")
         if os.path.exists(html_filename):
             return html_filename
