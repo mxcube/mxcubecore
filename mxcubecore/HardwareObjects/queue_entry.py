@@ -29,16 +29,8 @@ import os
 import autoprocessing
 
 from collections import namedtuple
-from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
-from queue_model_enumerables_v1 import CENTRING_METHOD
-from queue_model_enumerables_v1 import EXPERIMENT_TYPE
-from HardwareRepository.BaseHardwareObjects import Null as Mock
-try:
-    from BlissFramework.Utils import widget_colors
-except ImportError:
-    widget_colors = Mock()
+from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
-import HardwareRepository
 
 status_list = ['SUCCESS','WARNING', 'FAILED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
@@ -391,16 +383,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         task_model = self.get_data_model()
         gid = task_model.lims_group_id
 
-        do_new_dc_group = True
-        # Do not create a new data collection group if one already exists
-        # or if the current task group contains a GenericWorkflowQueueEntry
-        if gid:
-            do_new_dc_group = False
-        elif len(self._queue_entry_list) > 0:
-            if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
-                do_new_dc_group = False
-                
-        if do_new_dc_group:
+        if not gid:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
@@ -732,17 +715,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
  
     def __setstate__(self, d):
         self.__dict__.update(d)
-
-
-    def __getstate__(self):
-        d = dict(self.__dict__)
-        d["collect_task"] = None
-        d["centring_task"] = None
-        return d
- 
-    def __setstate__(self, d):
-        self.__dict__.update(d)
-
 
 
     def __getstate__(self):

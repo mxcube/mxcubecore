@@ -103,7 +103,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
         self.close_fast_shutter()
 
     @task
-    def oscil(self, start, end, exptime, npass, wait=True):
+    def oscil(self, start, end, exptime, npass):
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
