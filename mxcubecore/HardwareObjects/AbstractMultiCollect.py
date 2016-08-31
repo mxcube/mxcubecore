@@ -585,6 +585,9 @@ class AbstractMultiCollect(object):
         if self.bl_control.lims:
             try:
                 logging.getLogger("user_level_log").info("Updating data collection in LIMS")
+                if 'kappa' in data_collect_parameters['actualCenteringPosition']:
+                    data_collect_parameters['oscillation_sequence'][0]['kappaStart'] = current_diffractometer_position['kappa']
+                    data_collect_parameters['oscillation_sequence'][0]['phiStart'] = current_diffractometer_position['kappa_phi']
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")
