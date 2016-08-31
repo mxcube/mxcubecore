@@ -73,6 +73,10 @@ class AbstractMultiCollect(object):
 
    
     @task
+    def data_collection_end_hook(self, data_collect_parameters):
+      pass
+
+    @task
     def set_detector_mode(self, detector_mode):
         """
         Descript. :
@@ -342,7 +346,8 @@ class AbstractMultiCollect(object):
           return self.take_crystal_snapshots(4)
         else:
           return
-      return self.take_crystal_snapshots(number_of_snapshots)
+      if number_of_snapshots:
+          return self.take_crystal_snapshots(number_of_snapshots)
 
 
     @abc.abstractmethod
@@ -647,6 +652,9 @@ class AbstractMultiCollect(object):
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
+        # data collection done
+        self.data_collection_end_hook(data_collect_parameters)
+
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
@@ -781,7 +789,7 @@ class AbstractMultiCollect(object):
                                                      data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                       if data_collect_parameters.get("shutterless"):
-                          with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+                          with gevent.Timeout(30, RuntimeError("Timeout waiting for detector trigger, no image taken")):
    			      while self.last_image_saved() == 0:
                                   time.sleep(exptime)
                           

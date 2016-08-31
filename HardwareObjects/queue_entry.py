@@ -1,6 +1,6 @@
 """
-Containes the classes:
-* QueueuEntryContainer
+Contains following classes:
+* QueueEntryContainer
 * BaseQueueEntry
 * DummyQueueEntry
 * TaskGroupQueueEntry
@@ -35,9 +35,13 @@ from collections import namedtuple
 from queue_model_enumerables_v1 import COLLECTION_ORIGIN_STR
 from queue_model_enumerables_v1 import CENTRING_METHOD
 from queue_model_enumerables_v1 import EXPERIMENT_TYPE
-from BlissFramework.Utils import widget_colors
+from HardwareRepository.BaseHardwareObjects import Null as Mock
+try:
+    from BlissFramework.Utils import widget_colors
+except ImportError:
+    widget_colors = Mock()
 from HardwareRepository.HardwareRepository import dispatcher
-
+import HardwareRepository
 
 status_list = ['SUCCESS','WARNING', 'FAILED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
@@ -380,7 +384,16 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.execute(self)
         gid = self.get_data_model().lims_group_id
 
-        if not gid:
+        do_new_dc_group = True
+        # Do not create a new data collection group if one already exists
+        # or if the current task group contains a GenericWorkflowQueueEntry
+        if gid:
+            do_new_dc_group = False
+        elif len(self._queue_entry_list) > 0:
+            if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
+                do_new_dc_group = False
+                
+        if do_new_dc_group:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
@@ -416,6 +429,14 @@ class SampleQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = None
         self.plate_manipulator_hwobj = None
         self.sample_centring_result = None
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["sample_centring_result"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -523,6 +544,14 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.shape_history = None
         self.move_kappa_phi_task = None
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["move_kappa_phi_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def execute(self):
         BaseQueueEntry.execute(self)
 
@@ -595,6 +624,17 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.shape_history = None
         self.session = None
         self.lims_client_hwobj = None
+
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["collect_task"] = None
+        d["centring_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -673,9 +713,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
 
-                    dc.lims_end_pos_id = self.lims_client_hwobj.\
-                                         store_centred_position(end_cpos)
-
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
 
@@ -701,7 +738,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
-                dc.lims_start_pos_id = self.lims_client_hwobj.store_centred_position(cpos)
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\
@@ -847,6 +883,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.edna_result = None
 
+        
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger("user_level_log")
@@ -958,6 +995,15 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.energy_scan_task = None
         self._failed = False
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["energy_scan_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
 
     def execute(self):
         BaseQueueEntry.execute(self)
@@ -1133,6 +1179,14 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.xrf_spectrum_task = None
         self._failed = False
+  
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["xrf_spectrum_task"] = None
+        return d
+ 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
 
     def execute(self):
         BaseQueueEntry.execute(self)

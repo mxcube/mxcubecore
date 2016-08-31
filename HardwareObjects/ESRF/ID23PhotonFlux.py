@@ -3,25 +3,26 @@ from HardwareRepository.TaskUtils import *
 import numpy
 import time
 import logging
-from PyTango.gevent import DeviceProxy
+import math
+from calc_flux import *
+from HardwareRepository.TacoDevice_MTSafe import TacoDevice
 
-class ID30A1PhotonFlux(Equipment):
+
+class ID23PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
-        self.energy_motor = self.getDeviceByRole("energy")
+        self.counter = TacoDevice(self.getProperty("taco_device"))
         self.shutter = self.getDeviceByRole("shutter")
-        try:
-            self.aperture = self.getObjectByRole("aperture")
-        except:
-            self.aperture = None
-        self.factor = self.getProperty("current_photons_factor")
+        self.energy_motor = self.getObjectByRole("energy")
+        self.aperture = self.getObjectByRole("aperture")
+        fname  = self.getProperty("calibrated_diodes_file")
 
+        self.flux_calc = CalculateFlux()
+        self.flux_calc.init(fname)
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
-        
-        self.tg_device = DeviceProxy("id30/keithley_massif1/i0")
+
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -35,16 +36,27 @@ class ID30A1PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        self.tg_device.MeasureSingle()
-        counts = abs(self.tg_device.ReadData)*1E6 
-        if self.aperture is None:
-            aperture_coef = 1
+        try:
+            counts = self.counter.DevCntReadAll()[1]
+            if counts == -9999 :
+                counts = 0
+        except:
+            counts = 0
+            logging.getLogger("HWR").exception("%s: could not get counts", self.name())
+        try:
+          egy = self.energy_motor.getCurrentEnergy()*1000.0
+          calib = self.flux_calc.calc_flux_coef(egy)
+        except:
+          logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
-            try:
-                aperture_coef = self.aperture.getApertureCoef()
-            except:
+            if self.aperture is None:
                 aperture_coef = 1
-        counts *= aperture_coef
+            else:
+                try:
+                    aperture_coef = self.aperture.getApertureCoef()
+                except:
+                    aperture_coef = 1.
+            counts = math.fabs(counts * calib[0] * aperture_coef)
         return counts
 
     def connectNotify(self, signal):
@@ -55,16 +67,13 @@ class ID30A1PhotonFlux(Equipment):
         self.countsUpdated(self._get_counts())
 
     def updateFlux(self, _):
-        self.countsUpdated(self._get_counts(), ignore_shutter_state=True)
+        self.countsUpdated(self._get_counts(), ignore_shutter_state=False)
 
     def countsUpdated(self, counts, ignore_shutter_state=False):
-        if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
-          self.emitValueChanged(0)
-          return
-        flux = counts * self.factor
-        self.emitValueChanged("%1.3g" % flux)
+        self.emitValueChanged("%1.3g" % counts)
 
     def getCurrentFlux(self):
+        self.updateFlux("dummy")
         return self.current_flux
 
     def emitValueChanged(self, flux=None):

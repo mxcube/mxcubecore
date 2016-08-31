@@ -24,13 +24,13 @@ from pprint import pformat
 # Test web-services:          http://160.103.210.4:8080/ispyb-ejb3/ispybWS/
 
 # The WSDL root is configured in the hardware object XML file.
-#_WS_USERNAME, _WS_PASSWORD can be configured in the HardwareObject XML file.
+#_WS_USERNAME, _WS_PASSWORD have to be configured in the HardwareObject XML file.
 _WSDL_ROOT = ''
 _WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
 _WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
 _WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
-_WS_USERNAME = 'ispybws1'
-_WS_PASSWORD = '!5pybws1'
+_WS_USERNAME = None
+_WS_PASSWORD = None
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
                         "the server is running and that your " + \
@@ -1365,31 +1365,6 @@ class ISPyBClient2(HardwareObject):
 
         return group_id
 
-    def store_centred_position(self, cpos):
-        """
-        """
-        pos_id = -1
-        diffractometer_positions = cpos.as_dict()
-        mxcube2ispyb = { "phi": "omega", "kappa_phi": "phi", "kappa":"kappa", "focus":"phiX",
-                         "phiy": "phiY", "phiz": "phiZ", "sampx": "sampX", "sampy": "sampY", "chi":"chi" }
-        mpos_dict = { "omega": -9999, "phi": -9999, "kappa": -9999, "phiX": -9999,
-                      "phiY": -9999, "phiZ": -9999, "sampX": -9999, "sampY": -9999, "chi": 0 }
-        for motor_name, pos in diffractometer_positions.iteritems():
-            if mxcube2ispyb.get(motor_name):
-                mpos_dict[mxcube2ispyb[motor_name]]=pos
-
-        msg = 'Storing position in LIMS'
-        logging.getLogger("user_level_log").info(msg)
-
-        try:
-            pos_id = self.__collection.service.\
-                     storeOrUpdateMotorPosition(mpos_dict)
-        except ex:
-            msg = 'Could not store centred position in lims: %s' % ex.message
-            logging.getLogger("ispyb_client").exception(msg)
-
-        return pos_id
-
     # Bindings to methods called from older bricks.
     getProposal = get_proposal
     getSessionLocalContact = get_session_local_contact
@@ -1597,14 +1572,6 @@ class ISPyBValueFactory():
 
                     if mesh_used:
                         mx_collect_dict['experiment_type'] = 'Mesh'
-                        comment = mx_collect_dict.get("comment", "")
-                        if not comment:
-                            try:
-                                mx_collect_dict['comment'] = \
-                                    'Mesh: phiz:' +  str(mx_collect_dict['motors'].values()[0]) + \
-                                    ', phiy' + str(mx_collect_dict['motors'].values()[1])
-                            except:
-                                mx_collect_dict['comment'] = 'Mesh: Unknown motor positions'
 
                 group.experimentType = mx_collect_dict['experiment_type']
             except KeyError,diag:
@@ -1849,12 +1816,6 @@ class ISPyBValueFactory():
             data_collection.startTime = start_time
         except:
             pass
-
-        if mx_collect_dict.has_key('lims_start_pos_id'):
-            data_collection.startPositionId = mx_collect_dict['lims_start_pos_id']
-
-        if mx_collect_dict.has_key('lims_end_pos_id'):
-            data_collection.endPositionId = mx_collect_dict['lims_end_pos_id']
 
         data_collection.endTime = datetime.now()
 

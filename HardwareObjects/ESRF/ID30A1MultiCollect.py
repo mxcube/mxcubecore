@@ -22,11 +22,13 @@ class ID30A1MultiCollect(ESRFMultiCollect):
       if oscillation_parameters["overlap"] != 0:
         shutterless = False
       self._detector.shutterless = True if shutterless else False
- 
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
       self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
 
+      # Metadata management
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
+ 
     @task
     def get_beam_size(self):
         return self.bl_control.beam_info.get_beam_size()

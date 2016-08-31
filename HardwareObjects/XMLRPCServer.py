@@ -339,7 +339,7 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def save_snapshot(self, imgpath):
-        self.diffractometer_hwobj.save_snapshot(imgpath)
+        self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
         return True
 
     def save_current_pos(self):

@@ -9,6 +9,8 @@ import urllib
 import math
 from queue_model_objects_v1 import PathTemplate
 
+from ESRFMetadataManagerClient import MetadataManagerClient
+
 class FixedEnergy:
     def __init__(self, wavelength, energy):
       self.wavelength = wavelength
@@ -92,7 +94,6 @@ class CcdDetector:
 
     @task
     def start_acquisition(self, exptime, npass, first_frame):
-
         if self._detector:
             self._detector.start_acquisition(exptime, npass, first_frame)
         else:
@@ -206,7 +207,7 @@ class PixelDetector:
     def start_acquisition(self, exptime, npass, first_frame):
         try:
             self.collect_obj.getObjectByRole("detector_cover").set_out()
-        except:
+        except Exception:
             pass
 
         if not first_frame and self.shutterless:
@@ -269,6 +270,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector = detector
         self._tunable_bl = tunable_bl
         self._centring_status = None
+        self._metadataManagerClient = None
+        self._metadataManagerName = None
+        self._metaExperimentName  = None
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -321,6 +325,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._detector.init(self.bl_control.detector, self)
         self._tunable_bl.bl_control = self.bl_control
 
+        self._metadataManagerName = self.getProperty("metadata_manager_name")
+        self._metaExperimentName  = self.getProperty("meta_experiment_name")
+
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
@@ -328,11 +335,49 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def take_crystal_snapshots(self, number_of_snapshots):
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
-    #TODO: remove this hook!!!
     @task
     def data_collection_hook(self, data_collect_parameters):
-        return
+        # Metadata
+        if self._metadataManagerName is not None and self._metaExperimentName is not None:
+            try:
+                fileinfo =  data_collect_parameters["fileinfo"]
+                directory = fileinfo["directory"]
+                prefix = fileinfo["prefix"]
+                run_number = int(fileinfo["run_number"])
+                # Connect to ICAT metadata database
+                listDirectory = directory.split(os.sep)
+                beamline = "unknown"
+                proposal = "unknown"
+                if listDirectory[1] == "data":
+                    if listDirectory[2] == "visitor":
+                        beamline = listDirectory[4]
+                        proposal = listDirectory[3]
+                    else:
+                        beamline = listDirectory[2]
+                        proposal = listDirectory[4]
+                self._metadataManagerClient = MetadataManagerClient(self._metadataManagerName, self._metaExperimentName)
+                # Strip the prefix from any expTypePrefix
+                sampleName = prefix
+                for expTypePrefix in ["line-", "mesh-", "ref-", "burn-", "ref-kappa-"]:
+                    if sampleName.startswith(expTypePrefix):
+                        sampleName = sampleName.replace(expTypePrefix, "")
+                        break
+                if self.collection_id is None:
+                    datasetName = "{0}_{1}".format(prefix, run_number)
+                else:
+                    datasetName = "{0}_{1}_{2}".format(self.collection_id, prefix, run_number)
+                self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
+                self._metadataManagerClient.printStatus()        
+            except:
+                logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
+                self._metadataManagerClient = None
  
+    @task
+    def data_collection_end_hook(self, data_collect_parameters):
+        if self._metadataManagerClient is not None:
+            self._metadataManagerClient.printStatus()
+            self._metadataManagerClient.end()
+
     def do_prepare_oscillation(self, start, end, exptime, npass):
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
     
@@ -468,33 +513,25 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         while True:
           xds_input_file_dirname = "xds_%s_run%s_%d" % (prefix, run_number, i)
-          xds_directory = os.path.join(process_directory, xds_input_file_dirname)
+          autoprocessing_input_file_dirname = "autoprocessing_%s_run%s_%d" % (prefix, run_number, i)
+          autoprocessing_directory = os.path.join(process_directory, autoprocessing_input_file_dirname)
 
-          if not os.path.exists(xds_directory):
+          if not os.path.exists(autoprocessing_directory):
             break
 
           i+=1
 
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (prefix, run_number, i)
-        mosflm_directory = os.path.join(process_directory, mosflm_input_file_dirname)
 
         hkl2000_dirname = "hkl2000_%s_run%s_%d" % (prefix, run_number, i)
-        hkl2000_directory = os.path.join(process_directory, hkl2000_dirname)
 
         self.raw_data_input_file_dir = os.path.join(files_directory, "process", xds_input_file_dirname)
         self.mosflm_raw_data_input_file_dir = os.path.join(files_directory, "process", mosflm_input_file_dirname)
         self.raw_hkl2000_dir = os.path.join(files_directory, "process", hkl2000_dirname)
 
-        for dir in (self.raw_data_input_file_dir, xds_directory):
+        for dir in (self.raw_data_input_file_dir, self.mosflm_raw_data_input_file_dir, self.raw_hkl2000_dir, autoprocessing_directory):
           self.create_directories(dir)
-          logging.info("Creating XDS processing input file directory: %s", dir)
-          os.chmod(dir, 0777)
-        for dir in (self.mosflm_raw_data_input_file_dir, mosflm_directory):
-          self.create_directories(dir)
-          logging.info("Creating MOSFLM processing input file directory: %s", dir)
-          os.chmod(dir, 0777)
-        for dir in (self.raw_hkl2000_dir, hkl2000_directory):
-          self.create_directories(dir)
+          logging.info("Creating processing input file directory: %s", dir)
           os.chmod(dir, 0777)
  
         try: 
@@ -506,7 +543,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         except:
             logging.exception("Could not create processing file directory")
 
-        return xds_directory, mosflm_directory, hkl2000_directory
+        return autoprocessing_directory, "", ""
 
 
     @task
@@ -515,42 +552,43 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         conn = httplib.HTTPConnection(self.bl_config.input_files_server)
 
         # hkl input files 
-        for input_file_dir, file_prefix in ((self.raw_hkl2000_dir, "../.."), (self.hkl2000_directory, "../links")): 
-            hkl_file_path = os.path.join(input_file_dir, "def.site")
-            conn.request("GET", "/def.site/%d?basedir=%s" % (collection_id, file_prefix))
-            hkl_file = open(hkl_file_path, "w")
-            r = conn.getresponse()
+        input_file_dir = self.raw_hkl2000_dir
+        file_prefix = "../.."
+        hkl_file_path = os.path.join(input_file_dir, "def.site")
+        conn.request("GET", "/def.site/%d?basedir=%s" % (collection_id, file_prefix))
+        hkl_file = open(hkl_file_path, "w")
+        r = conn.getresponse()
 
-            if r.status != 200:
-                logging.error("Could not create hkl input file")
-            else:
-                hkl_file.write(r.read())
-            hkl_file.close()
-            os.chmod(hkl_file_path, 0666)
+        if r.status != 200:
+            logging.error("Could not create hkl input file")
+        else:
+            hkl_file.write(r.read())
+        hkl_file.close()
+        os.chmod(hkl_file_path, 0666)
 
         for input_file_dir, file_prefix in ((self.raw_data_input_file_dir, "../.."), (self.xds_directory, "../links")): 
-	  xds_input_file = os.path.join(input_file_dir, "XDS.INP")
-          conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
-          xds_file = open(xds_input_file, "w")
-          r = conn.getresponse()
-          if r.status != 200:
-            logging.error("Could not create xds input file")
-          else:
-            xds_file.write(r.read())
-          xds_file.close()
-          os.chmod(xds_input_file, 0666)
+	    xds_input_file = os.path.join(input_file_dir, "XDS.INP")
+            conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
+            xds_file = open(xds_input_file, "w")
+            r = conn.getresponse()
+            if r.status != 200:
+                logging.error("Could not create xds input file")
+            else:
+                xds_file.write(r.read())
+            xds_file.close()
+            os.chmod(xds_input_file, 0666)
 
-        for input_file_dir, file_prefix in ((self.mosflm_raw_data_input_file_dir, "../.."), (self.mosflm_directory, "../links")): 
-	  mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
-          conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
-          mosflm_file = open(mosflm_input_file, "w")
-          mosflm_file.write(conn.getresponse().read()) 
-          mosflm_file.close()
-          os.chmod(mosflm_input_file, 0666)
+        input_file_dir = self.mosflm_raw_data_input_file_dir 
+        file_prefix = "../.." 
+	    mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
+        conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
+        mosflm_file = open(mosflm_input_file, "w")
+        mosflm_file.write(conn.getresponse().read()) 
+        mosflm_file.close()
+        os.chmod(mosflm_input_file, 0666)
         
         # also write input file for STAC
-        for stac_om_input_file_name, stac_om_dir in (("mosflm.descr", self.mosflm_directory), 
-                                                     ("xds.descr", self.xds_directory),
+        for stac_om_input_file_name, stac_om_dir in (("xds.descr", self.xds_directory),
                                                      ("mosflm.descr", self.mosflm_raw_data_input_file_dir),
                                                      ("xds.descr", self.raw_data_input_file_dir)):
           stac_om_input_file = os.path.join(stac_om_dir, stac_om_input_file_name)
@@ -654,10 +692,16 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.bl_control.machine_current.getFillMode()
         else:
             ''
-
     def get_cryo_temperature(self):
-      return self.bl_control.cryo_stream.getTemperature()
-
+      while True:
+          logging.info("Reading cryostream temperature")
+          try:
+              T = self.bl_control.cryo_stream.getTemperature()
+          except Exception:
+              time.sleep(0.1)
+              continue
+          else:
+              return T
 
     def getCurrentEnergy(self):
       return self._tunable_bl.getCurrentEnergy()
