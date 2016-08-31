@@ -98,7 +98,12 @@ class ID30BMultiCollect(ESRFMultiCollect):
         diffr.getObjectByRole("lightInOut").actuatorOut()
 
     @task
-    def oscil(self, start, end, exptime, npass):
+    def data_collection_cleanup(self):
+        self.getObjectByRole("diffractometer")._wait_ready(10)
+        self.close_fast_shutter()
+
+    @task
+    def oscil(self, start, end, exptime, npass, wait=True):
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
@@ -106,11 +111,9 @@ class ID30BMultiCollect(ESRFMultiCollect):
             diffr.oscilScan(start, end, exptime, wait=True)
 
     def open_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.open()
         self.getObjectByRole("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.close()
         self.getObjectByRole("fastshut").actuatorOut()
 
     def set_helical(self, helical_on):
