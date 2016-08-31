@@ -513,8 +513,10 @@ class AbstractMultiCollect(object):
 
         self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to centring_info variable
-        logging.getLogger("user_level_log").info("Taking sample snapshosts")
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        take_snapshots = data_collect_parameters.get("take_snapshots", False)
+        if take_snapshots:
+            logging.getLogger("user_level_log").info("Taking sample snapshosts")
+            self._take_crystal_snapshots(take_snapshots)
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
