@@ -878,9 +878,7 @@ class EnergyScan(TaskNode):
         return new_node
 
     def set_snapshot(self, snapshot):
-        print "Energy scan set snapshot... ", snapshot
         self.centred_position.snapshot_image = snapshot
-        print self.centred_position.snapshot_image
 
 class EnergyScanResult(object):
     def __init__(self):
