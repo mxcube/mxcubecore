@@ -259,7 +259,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 f.write("%f,%f\r\n" % (x, y))
                 pyarch_f.write("%f,%f\r\n"% (x, y))
 
-
             f.close()
             pyarch_f.close()
             self.energy_scan_parameters["scanFileFullPath"]=str(archiveRawScanFile)
@@ -295,6 +294,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
           fi.close()
           fo.close()
 
+        self.energy_scan_parameters["filename"] = scanArchiveFilePrefix.split("/")[-1]
         self.energy_scan_parameters["peakEnergy"]=pk
         self.energy_scan_parameters["inflectionEnergy"]=ip
         self.energy_scan_parameters["remoteEnergy"]=rm

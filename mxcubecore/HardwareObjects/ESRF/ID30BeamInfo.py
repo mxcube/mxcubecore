@@ -15,6 +15,8 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         self.camera = self.getDeviceByRole("camera")
         self.beam_position = (self.camera.getWidth() / 2, self.camera.getHeight() / 2)
 
+        self.flux = self.getObjectByRole("flux")
+
     def get_beam_position(self):
         return self.beam_position
 
@@ -25,4 +27,7 @@ class ID30BeamInfo(BeamInfo.BeamInfo):
         BeamInfo.BeamInfo.evaluate_beam_info(self,*args)
         self.beam_info_dict["shape"] = "ellipse"
         return self.beam_info_dict
+
+    def get_flux(self):
+        return self.flux.getCurrentFlux()
      
