@@ -69,5 +69,6 @@
         </susceptibility>
     </sample>
     <dataSet>
+       <imageFile></imageFile>
     </dataSet>
 </XSDataInputMXCuBE>
