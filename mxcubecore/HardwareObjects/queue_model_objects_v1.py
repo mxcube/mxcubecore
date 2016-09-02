@@ -631,7 +631,7 @@ class ProcessingParameters():
 
 class Characterisation(TaskNode):
     def __init__(self, ref_data_collection=None,
-                characterisation_parameters=None, name=''):
+                 characterisation_parameters=None, name=''):
         TaskNode.__init__(self)
 
         if not characterisation_parameters:
@@ -778,6 +778,11 @@ class CharacterisationParameters(object):
                 "rad_suscept": self.rad_suscept,
                 "beta": self.beta,
                 "gamma": self.gamma}
+
+    def set_from_dict(self, params_dict):
+        for dict_item in params_dict.items():
+            if hasattr(self, dict_item[0]):
+                setattr(self, dict_item[0], dict_item[1])
 
     def __repr__(self):
         s = '<%s object at %s>' % (
