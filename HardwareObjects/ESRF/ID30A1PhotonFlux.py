@@ -11,9 +11,12 @@ class ID30A1PhotonFlux(Equipment):
 
     def init(self):
         controller = self.getObjectByRole("controller")
-        self.musst = controller.musst
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
+        try:
+            self.aperture = self.getObjectByRole("aperture")
+        except:
+            self.aperture = None
         self.factor = self.getProperty("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
@@ -32,12 +35,16 @@ class ID30A1PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        """counts = abs((2/2.1)*10*int(self.musst.putget("#?VAL CH5")) / float(0x7FFFFFFF))
-        if counts < 0:
-            counts = 0
-        """
         self.tg_device.MeasureSingle()
-        counts = abs(self.tg_device.ReadData)*1E6
+        counts = abs(self.tg_device.ReadData)*1E6 
+        if self.aperture is None:
+            aperture_coef = 1
+        else:
+            try:
+                aperture_coef = self.aperture.getApertureCoef()
+            except:
+                aperture_coef = 1
+        counts *= aperture_coef
         return counts
 
     def connectNotify(self, signal):
@@ -51,9 +58,9 @@ class ID30A1PhotonFlux(Equipment):
         self.countsUpdated(self._get_counts(), ignore_shutter_state=True)
 
     def countsUpdated(self, counts, ignore_shutter_state=False):
-        #if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
-        #  self.emitValueChanged(0)
-        #  return
+        if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
+          self.emitValueChanged(0)
+          return
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 
