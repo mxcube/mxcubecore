@@ -178,6 +178,9 @@ class TaskNode(object):
 
         return s
 
+    def set_snapshot(self, snapshot):
+        pass
+
 
 class RootNode(TaskNode):
     def __init__(self):
@@ -205,6 +208,7 @@ class Sample(TaskNode):
         self.lims_container_location = -1
         self.free_pin_mode = False
         self.loc_str = str()
+        self.diffraction_plan = {}
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
@@ -331,6 +335,14 @@ class Sample(TaskNode):
 
                 self.loc_str = str(str(self.lims_location[0]) +\
                                    ':' + str(self.lims_location[1]))
+
+        if hasattr(lims_sample, 'diffractionPlan'):
+            self.diffraction_plan["exp_time"] = \
+                 lims_sample.diffractionPlan.exposureTime
+            self.diffraction_plan["osc_range"] = \
+                 lims_sample.diffractionPlan.oscillationRange
+            self.diffraction_plan["resolution"] = \
+                 lims_sample.diffractionPlan.requiredResolution
 
         name = ''
 
@@ -460,7 +472,8 @@ class DataCollection(TaskNode):
         self.run_processing_after = None
         self.run_processing_parallel = None
         self.grid = None
-        
+
+        self.parallel_processing_result = None        
 
     def as_dict(self):
 
@@ -549,9 +562,9 @@ class DataCollection(TaskNode):
                              centred_position.snapshot_image
 
             if snapshot_image:
-                snapshot_image_copy = snapshot_image.copy()
+                #snapshot_image_copy = snapshot_image.copy()
                 acq_parameters = new_node.acquisitions[0].acquisition_parameters
-                acq_parameters.centred_position.snapshot_image = snapshot_image_copy
+                acq_parameters.centred_position.snapshot_image = None
 
         return new_node
 
@@ -606,6 +619,12 @@ class DataCollection(TaskNode):
             display_name = "%s (Point %s)" %(self.get_name(), index)
         return display_name
 
+    def get_parallel_processing_result(self):
+        return self.parallel_processing_result
+
+    def set_snapshot(self, snapshot):
+        self.acquisitions[0].acquisition_parameters.\
+             centred_position.snapshot_image = snapshot
 
 class ProcessingParameters():
     def __init__(self):
@@ -699,6 +718,10 @@ class Characterisation(TaskNode):
             index = "not defined"
         display_name = "%s (Point - %s)" %(self.get_name(), index)
         return display_name
+
+    def set_snapshot(self, snapshot):
+        self.reference_image_collection.acquisitions[0].\
+            acquisition_parameters.centred_position.snaphot_image = snapshot
 
 class CharacterisationParameters(object):
     def __init__(self):
@@ -859,6 +882,9 @@ class EnergyScan(TaskNode):
                 new_node.centred_position.snapshot_image = snapshot_image_copy
         return new_node
 
+    def set_snapshot(self, snapshot):
+        self.centred_position.snapshot_image = snapshot
+
 class EnergyScanResult(object):
     def __init__(self):
         object.__init__(self)
@@ -949,6 +975,9 @@ class XRFSpectrum(TaskNode):
                 snapshot_image_copy = snapshot_image.copy()
                 new_node.centred_position.snapshot_image = snapshot_image_copy
         return new_node
+
+    def set_snaphot(self, snapshot):
+        self.centred_position.snapshot_image = snapshot
 
 class XRFSpectrumResult(object):
     def __init__(self):
