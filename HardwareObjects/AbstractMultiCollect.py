@@ -518,8 +518,10 @@ class AbstractMultiCollect(object):
 
         self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to centring_info variable
-        logging.getLogger("user_level_log").info("Taking sample snapshosts")
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        take_snapshots = data_collect_parameters.get("take_snapshots", False)
+        if take_snapshots:
+            logging.getLogger("user_level_log").info("Taking sample snapshosts")
+            self._take_crystal_snapshots(take_snapshots)
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
@@ -579,6 +581,9 @@ class AbstractMultiCollect(object):
         if self.bl_control.lims:
             try:
                 logging.getLogger("user_level_log").info("Updating data collection in LIMS")
+                if 'kappa' in data_collect_parameters['actualCenteringPosition']:
+                    data_collect_parameters['oscillation_sequence'][0]['kappaStart'] = current_diffractometer_position['kappa']
+                    data_collect_parameters['oscillation_sequence'][0]['phiStart'] = current_diffractometer_position['kappa_phi']
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")

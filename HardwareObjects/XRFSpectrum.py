@@ -170,6 +170,9 @@ class XRFSpectrum(Equipment):
         self.spectrumInfo["jpegScanFileFullPath"] = os.path.extsep.join((archive_path, "png"))
         self.spectrumInfo["annotatedPymcaXfeSpectrum"] = os.path.extsep.join((archive_path, "html"))
         self.spectrumInfo["exposureTime"] = ct
+        self.spectrumInfo["annotatedPymcaXfeSpectrum"] = htmlname
+        #self.spectrumInfo["fittedDataFileFullPath"] = htmlname + "_peaks.csv"
+        logging.getLogger('user_level_log').debug("XRFSpectrum: archive file is %s", aname)
 
         logging.getLogger('user_level_log').debug("XRFSpectrum: archive file is %s", self.spectrumInfo["jpegScanFileFullPath"])
         gevent.spawn(self.reallyStartXrfSpectrum, ct, filename)
@@ -349,8 +352,9 @@ class XRFSpectrum(Equipment):
 
         #put the beamstop in
         try:
-            self.ctrl_hwobj.diffractometer.set_phase("DataCollection", wait=True)
-        except Exception:
+            #go to datacollection phase
+            self.ctrl_hwobj.diffractometer.set_phase("DataCollection", wait=True, timeout=200)
+        except AttributeError:
             pass
 
         #open the safety and the fast shutter
