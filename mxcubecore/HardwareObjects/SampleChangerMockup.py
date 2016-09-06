@@ -1,6 +1,7 @@
 import gevent
 from datetime import datetime
 import time
+import logging
 
 from sample_changer.GenericSampleChanger import *
 
@@ -28,7 +29,10 @@ class SampleChangerMockup(SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
+        logging.getLogger("user_level_log").info("Loading sample " + \
+            "%s. Please wait..." % str(sample))
         try:
+            
             self._setState(SampleChangerState.Loading)
             if isinstance(sample, tuple):
                 basket, sample = sample
@@ -37,11 +41,15 @@ class SampleChangerMockup(SampleChanger):
 
             time.sleep(7)
 
+            mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
+            mounted_sample._setLoaded(True, False)
             self._setState(SampleChangerState.Ready)
             self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+            logging.getLogger("user_level_log").info("Sample loaded")
         except:
             basket, sample = (None, None)
             self._setState(SampleChangerState.Error)
+            logging.getLogger("user_level_log").error("Failed to load sample")
         finally:
             self._selected_basket = int(basket)
             self._selected_sample = int(sample)
@@ -49,19 +57,16 @@ class SampleChangerMockup(SampleChanger):
         return self.getLoadedSample()
 
     def unload(self, sample_slot, wait):
+        logging.getLogger("user_level_log").info("Unloading sample")
+        sample = self.getLoadedSample()
+        sample._setLoaded(False, True)
         self._selected_basket = None
         self._selected_sample = None
         self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
  
-    def getBasketList(self):
-        basket_list = []
-        for basket in self.components:
-            if isinstance(basket, Basket):
-                basket_list.append(basket)
-        return basket_list
-
     def getLoadedSample(self):
-        return "%s:%s" % (self._selected_basket, self._selected_sample)
+        return self.getComponentByAddress(Pin.getSampleAddress(\
+             self._selected_basket, self._selected_sample))
 
     def is_mounted_sample(self, sample):
         if isinstance(sample, tuple):
