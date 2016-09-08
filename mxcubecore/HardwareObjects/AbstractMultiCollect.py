@@ -656,9 +656,6 @@ class AbstractMultiCollect(object):
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])
 
-        # data collection done
-        self.data_collection_end_hook(data_collect_parameters)
-
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
@@ -812,6 +809,9 @@ class AbstractMultiCollect(object):
                               frame += 1
                               if j == 0:
                                 break
+
+        # data collection done
+        self.data_collection_end_hook(data_collect_parameters)
 
                 
     @task
