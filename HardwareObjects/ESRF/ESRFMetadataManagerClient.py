@@ -3,15 +3,10 @@
 """A simple client for MetadataManager and MetaExperiment
 """
 
-import os
 import sys
-import logging
 import PyTango.client
 
 class MetadataManagerClient(object):
-
-    metadataManager = None
-    metaExperiment = None
 
     """
     A client for the MetadataManager and MetaExperiment tango Devices
@@ -19,6 +14,7 @@ class MetadataManagerClient(object):
     Attributes:
         name: name of the tango device. Example: 'id21/metadata/ingest'
     """
+
     def __init__(self, metadataManagerName, metaExperimentName):
         """
         Return a MetadataManagerClient object whose metadataManagerName is *metadataManagerName*
@@ -28,7 +24,7 @@ class MetadataManagerClient(object):
         self.proposal = None
         self.sample = None
         self.datasetName = None
-
+        
         if metadataManagerName:
             self.metadataManagerName = metadataManagerName
         if metaExperimentName:
@@ -37,7 +33,7 @@ class MetadataManagerClient(object):
         print('MetadataManager: %s' % metadataManagerName)
         print('MetaExperiment: %s' % metaExperimentName)
 
-        """ Tango Devices instances """
+        # Tango Devices instances     
         try:
             MetadataManagerClient.metadataManager = PyTango.client.Device(self.metadataManagerName)
             MetadataManagerClient.metaExperiment = PyTango.client.Device(self.metaExperimentName)
@@ -61,11 +57,18 @@ class MetadataManagerClient(object):
             print "Unexpected error:", sys.exc_info()[0]
             raise
 
-    ''' Set proposal should be done before stting the data root '''
     def __setProposal(self, proposal):
+        """ Set proposal should be done before stting the data root """
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            raise
+
+    def appendFile(self, filePath):
+        try:
+            MetadataManagerClient.metadataManager.lastDataFile = filePath          
         except:
             print "Unexpected error:", sys.exc_info()[0]
             raise
@@ -90,23 +93,23 @@ class MetadataManagerClient(object):
         """ Starts a new dataset """
         if MetadataManagerClient.metaExperiment:
             try:
-                """ setting proposal """
+                # setting proposal
                 self.__setProposal(proposal)
 
-                """ setting dataRoot """
-                self.__setDataRoot(dataRoot)
+                # setting dataRoot
+                self.__setDataRoot(dataRoot)               
 
-                """ setting sample """
+                # setting sample
                 self.__setSample(sampleName)
 
-                """ setting dataset """
+                # setting dataset
                 self.__setDataset(datasetName)
 
-                """ setting datasetName """
+                # setting datasetName
                 if (str(MetadataManagerClient.metaExperiment.state()) == 'ON'):
                     if (str(MetadataManagerClient.metadataManager.state()) == 'ON'):
                         MetadataManagerClient.metadataManager.StartScan()
-
+                        
             except:
                 print "Unexpected error:", sys.exc_info()[0]
                 raise
@@ -116,14 +119,16 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metadataManager.endScan()
         except:
             print "Unexpected error:", sys.exc_info()[0]
-            raise
+            raise        
 
 if __name__ == '__main__':
     metadataManagerName = 'id30a1/metadata/ingest'
     metaExperimentName = 'id30a1/metadata/experiment'
     client = MetadataManagerClient(metadataManagerName, metaExperimentName)
-
-    client.start('/tmp/metadata', 'mx415', 'sample2', 'dataset3')
+    
+    client.start('/data/visitor/mx415/id30a2/20160909/RAW_DATA', 'mx415', 'sample2', 'dataset_20160909_1')
+    client.appendFile('/data/visitor/mx415/id30a2/20160909/RAW_DATA/t1/test1.txt')
+    client.appendFile('/data/visitor/mx415/id30a2/201600909/RAW_DATA/t1/test2.txt')
     client.printStatus()
     client.end()
-
+   
