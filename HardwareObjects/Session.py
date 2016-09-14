@@ -21,6 +21,7 @@ class Session(HardwareObject):
         self.endstation_name = None
         self.session_start_date = None
         self.user_group = ''
+        self.email_extension = ''
 
         self.default_precision = '04'
         self.suffix = None
@@ -33,6 +34,7 @@ class Session(HardwareObject):
     # by the framework after the object has been initialized.
     def init(self):
         self.endstation_name = self.getProperty('endstation_name').lower()
+        self.email_extension = self.getProperty('email_extension')
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].\
                               getProperty('base_directory')
@@ -47,6 +49,7 @@ class Session(HardwareObject):
             getProperty('processed_data_folder_name')
 
         inhouse_proposals = self["inhouse_users"]["proposal"]
+
 
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
