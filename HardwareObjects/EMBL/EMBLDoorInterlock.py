@@ -165,7 +165,10 @@ class EMBLDoorInterlock(Device):
 
     def unlock_doors_thread(self):
         if self.door_interlock_can_unlock():
-            self.before_unlock_actions()
+            try:
+                self.before_unlock_actions()
+            except:
+                pass
             if self.cmd_break_interlock is None:
                 self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock') 
             self.cmd_break_interlock("b")

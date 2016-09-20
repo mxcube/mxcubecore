@@ -21,8 +21,8 @@
 [Name] EMBLMachineInfo
 
 [Description]
-Hardware Object is used to get relevant machine information 
-(current, intensity, hutch temperature and humidity, and data storage disc 
+Hardware Object is used to get relevant machine information
+(current, intensity, hutch temperature and humidity, and data storage disc
 information). Value limits are included
 
 [Channels]
@@ -35,7 +35,7 @@ information). Value limits are included
 - cmdSetIntensRange
 
 [Emited signals]
-- valuesChanged 
+- valuesChanged
 - inRangeChanged
 
 [Functions]
@@ -54,7 +54,7 @@ Example Hardware Object XML file :
 <device class="MachineInfo">
     <updateIntervalS>120</updateIntervalS>
     <discPath>/home</discPath>
-    <limits>{'current':90, 'temp': 25, 'hum': 60, 'intens': 0.1, 
+    <limits>{'current':90, 'temp': 25, 'hum': 60, 'intens': 0.1,
              'discSizeGB': 20}</limits>
 </device>
 """
@@ -77,17 +77,20 @@ class EMBLMachineInfo(HardwareObject):
     """
 
     def __init__(self, name):
-	HardwareObject.__init__(self, name)
-        """
-        Descript. : 
-        """
+        """__init__"""
+        HardwareObject.__init__(self, name)
         #Parameters
-        self.update_interval = None  
-        self.limits_dict =  None
+        self.update_interval = None
+        self.limits_dict = None
         self.hutch_temp_addr = None
         self.hutch_hum_addr = None
+        self.hutch_temp = 0
+        self.hutch_hum = 0
         self.overflow_alarm = None
         self.low_level_alarm = None
+        self.state_text = ""
+        self.ring_energy = None
+        self.bunch_count = None
 
 	#Intensity current ranges
         self.values_list = []
@@ -95,8 +98,9 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value'] = None
         temp_dict['in_range'] = False
         temp_dict['title'] = "Machine current"
-        temp_dict['unit'] = "mA"
         temp_dict['bold'] = True
+        temp_dict['font'] = 14
+        #temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -106,24 +110,15 @@ class EMBLMachineInfo(HardwareObject):
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = 0
+        temp_dict['value'] = ""
         temp_dict['in_range'] = None
-        temp_dict['title'] = "Hutch temperature"
-        temp_dict['unit'] = "C"
-        self.values_list.append(temp_dict)
-
-        temp_dict = {}
-        temp_dict['value'] = 0
-        temp_dict['in_range'] = None
-        temp_dict['title'] = "Hutch humidity"
-        temp_dict['unit'] = "%"
+        temp_dict['title'] = "Hutch temperature and humidity"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = 0
         temp_dict['in_range'] = None
         temp_dict['title'] = "Flux"
-        temp_dict['unit'] = "ph/s"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -143,26 +138,32 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = None
 
         self.chan_mach_curr = None
+        self.chan_mach_energy = None
+        self.chan_bunch_count = None
         self.chan_state_text = None
         self.chan_cryojet_in = None
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
     def init(self):
-        """
-        Descript.
-        """
-        self.update_interval = int(self.getProperty('updateIntervalS')) 
-        self.limits_dict =  eval(self.getProperty('limits'))
+        """init"""
+        self.update_interval = int(self.getProperty('updateIntervalS'))
+        self.limits_dict = eval(self.getProperty('limits'))
         self.hutch_temp_addr = self.getProperty('hutchTempAddress')
         self.hutch_hum_addr = self.getProperty('hutchHumAddress')
 
         self.chan_mach_curr = self.getChannelObject('machCurrent')
-        if self.chan_mach_curr is not None: 
+        if self.chan_mach_curr is not None:
             self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
         self.chan_state_text = self.getChannelObject('machStateText')
         if self.chan_state_text is not None:
             self.chan_state_text.connectSignal('update', self.state_text_changed)
+        self.chan_mach_energy = self.getChannelObject('machEnergy')
+        if self.chan_mach_energy is not None:
+            self.chan_mach_energy.connectSignal('update', self.mach_energy_changed)
+        self.chan_bunch_count = self.getChannelObject('machBunchCount')
+        if self.chan_bunch_count is not None:
+            self.chan_bunch_count.connectSignal('update', self.bunch_count_changed)
 
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
         if self.chan_cryojet_in is not None:
@@ -173,182 +174,199 @@ class EMBLMachineInfo(HardwareObject):
 
         self.chan_sc_dewar_low_level_alarm = self.getChannelObject('scLowLevelAlarm')
         if self.chan_sc_dewar_low_level_alarm is not None:
-            self.chan_sc_dewar_low_level_alarm.connectSignal('update', self.low_level_alarm_changed)
+            self.chan_sc_dewar_low_level_alarm.connectSignal('update',
+               self.low_level_alarm_changed)
 
         self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
         if self.chan_sc_dewar_overflow_alarm is not None:
-            self.chan_sc_dewar_overflow_alarm.connectSignal('update', self.overflow_alarm_changed)
+            self.chan_sc_dewar_overflow_alarm.connectSignal('update',
+               self.overflow_alarm_changed)
 
-        self.temp_hum_polling = spawn(self.get_temp_hum_values, 
+        self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
     def cryojet_in_changed(self, value):
-        """
-        Descript. :
-        """ 
-        self.values_list[5]['in_range'] = False
-        self.values_list[5]['bold'] = True 
+        """Cryojet in/out value changed"""
+
+        self.values_list[4]['in_range'] = False
+        self.values_list[4]['bold'] = True
 
         if value == 1:
-            self.values_list[5]['value'] = " In place"
-            self.values_list[5]['in_range'] = True
-            self.values_list[5]['bold'] = False
+            self.values_list[4]['value'] = " In place"
+            self.values_list[4]['in_range'] = True
+            self.values_list[4]['bold'] = False
         elif value == 0:
-            self.values_list[5]['value'] = "NOT IN PLACE"
+            self.values_list[4]['value'] = "NOT IN PLACE"
         else:
-            self.values_list[5]['value'] = "Unknown"
+            self.values_list[4]['value'] = "Unknown"
         self.update_values()
 
     def mach_current_changed(self, value):
-        """
-        Descript. : Function called if the machine current is changed
-        Arguments : new machine current (float)
-        Return    : -
+        """Method called if the machine current is changed
+
+        :param value: new machine current
+        :type value: float
         """
         if self.values_list[0]['value'] is None \
-        or abs(self.values_list[0]['value'] - value) > 0.10:
+        or abs(self.values_list[0]['value'] - value) > 0.00001:
             self.values_list[0]['value'] = value
-           
+            self.values_list[0]['value_str'] = "%.1f mA" % value
             self.values_list[0]['in_range'] = value > 60.0
             self.update_values()
 
     def state_text_changed(self, text):
+        """Function called if machine state text is changed
+
+        :param text: new machine state text
+        :type text: string
         """
-        Descript. : Function called if machine state text is changed
-        Arguments : new machine state text (string)  
-        Return    : -
-        """
-        self.values_list[1]['value'] = str(text)
+        self.state_text = str(text)
         self.values_list[1]['in_range'] = text != "Fehler"
+        self.update_machine_state()
+
+    def mach_energy_changed(self, value):
+        """Machine energy changed"""
+        self.ring_energy = value
+        self.update_machine_state()
+
+    def bunch_count_changed(self, value):
+        """Bunch count changed"""
+        self.bunch_count = value
+        self.update_machine_state()
+
+    def update_machine_state(self):
+        """Machine state assembly"""
+        state_text = self.state_text
+        if self.ring_energy:
+            state_text += "\n%.2f GeV " % self.ring_energy
+        if self.bunch_count:
+            state_text += "%d Bunches" % self.bunch_count
+        self.values_list[1]['value'] = state_text
         self.update_values()
 
     def low_level_alarm_changed(self, value):
+        """Low level alarm"""
         self.low_level_alarm = value
         self.update_sc_alarm()
- 
+
     def overflow_alarm_changed(self, value):
+        """Overflow alarm"""
         self.overflow_alarm = value
         self.update_sc_alarm()
-  
+
     def update_sc_alarm(self):
+        """Sample changer alarm"""
         if self.low_level_alarm == 1:
-            self.values_list[6]['value'] = "Low level alarm!"
-            self.values_list[6]['in_range'] = False
-            self.values_list[6]['bold'] = True
+            self.values_list[5]['value'] = "Low level alarm!"
+            self.values_list[5]['in_range'] = False
+            self.values_list[5]['bold'] = True
             logging.getLogger("GUI").error("Liquid nitrogen " + \
                     " level in sample changer dewar is to low!")
 
         elif self.overflow_alarm:
-            self.values_list[6]['value'] = "Overflow alarm!"
-            self.values_list[6]['in_range'] = False
-            self.values_list[6]['bold'] = True
+            self.values_list[5]['value'] = "Overflow alarm!"
+            self.values_list[5]['in_range'] = False
+            self.values_list[5]['bold'] = True
             logging.getLogger("GUI").error("Liquid nitrogen " + \
                     "overflow in sample changer dewar!")
         else:
-            self.values_list[6]['value'] = "Dewar level in range"
-            self.values_list[6]['in_range'] = True
-        self.update_values()        
+            self.values_list[5]['value'] = "Dewar level in range"
+            self.values_list[5]['in_range'] = True
+        self.update_values()
 
     def set_flux(self, value):
-        self.values_list[4]['value'] = value
-        self.values_list[4]['in_range'] = value > 0
+        """Sets flux value"""
+        self.values_list[3]['value'] = value
+        self.values_list[3]['in_range'] = value > 0
         self.update_values()
 
     def get_flux(self):
-        return self.values_list[4]['value']
+        """Returns flux value"""
+        return self.values_list[3]['value']
 
     def update_values(self):
-        """
-        Descript. : Updates storage disc information, detects if intensity
-		    and storage space is in limits, forms a value list 
-		    and value in range list, both emited by qt as lists
-        Arguments : -
-        Return    : -
-        """
+        """Emits list of values"""
         self.emit('valuesChanged', self.values_list)
 
     def get_values(self):
-        """
-        Descript:
-        """
+        """Returns list of values"""
         val = dict(self.values_list)
         return val
 
     def get_temp_hum_values(self, sleep_time):
-        """
-        Descript. : 
-        """
-        while True:	
-            temp = self.get_external_value(self.hutch_temp_addr)
-            hum = self.get_external_value(self.hutch_hum_addr)
+        """Updates temperatur and humidity values"""
+        while True:
+            temp = get_external_value(self.hutch_temp_addr)
+            hum = get_external_value(self.hutch_hum_addr)
             if not None in (temp, hum):
-                if (abs(float(temp) - self.values_list[2]['value']) > 0.1 \
-                    or abs(float(hum) != self.values_list[3]['value'] > 1)):
-                    self.values_list[2]['value'] = temp
-                    self.values_list[3]['value'] = hum
-                    self.values_list[2]['in_range'] = temp < 25
-                    self.values_list[3]['in_range'] = hum < 60
+                if (abs(float(temp) - self.hutch_temp) > 0.1 \
+                    or abs(float(hum) != self.hutch_hum > 1)):
+                    self.hutch_temp = temp
+                    self.hutch_hum = hum
+                    self.values_list[2]['value'] = "%.1f C, %.1f %%" % (temp, hum)
+                    self.values_list[2]['in_range'] = temp < 25 and hum < 60
                     self.update_values()
-            time.sleep(sleep_time)	
+            time.sleep(sleep_time)
 
     def get_current(self):
+        "Returns current"""
         return self.values_list[0]['value']
- 
+
     def get_current_value(self):
-        """
-        Descript. :
-        """     
+        """Returns current"""
         return self.values_list[0]['value']
 
     def	get_message(self):
-        """
-        Descript :
-        """  
-        return self.values_list[1]['value']
+        """Returns synchrotron state text"""
+        return self.state_text
 
-    def get_external_value(self, addr):
-        """
-        Description : Extracts value from the given epics address. This is  
-		      very specific implementation how to get a value from 
-		      epics web tool. At first web address string is formed 
-		      and then web page by urllib2 extracted. Page contains 
-		      column with records. 
-		      Then the last value is choosen as the last active value.
-        Arguments   : epics address (string)
-        Return      : value (float)
-        """
-        url_prefix = "http://cssweb.desy.de:8084/ArchiveViewer/archive" + \
-                     "reader.jsp?DIRECTORY=%2Fdata7%2FChannelArchiver%" + \
-                     "2FchannelReference2.kryo&PATTERN=&"
-        end = datetime.now()
-        start = end - timedelta(hours = 24)
-        url_date = "=on&STARTMONTH=%d&STARTDAY=%d&STARTYEAR=%d&STARTHOUR=%d&STARTMINUTE=%d&STARTSECOND=0" % \
-                  (start.month, start.day,start.year, start.hour, start.minute)
-        url_date = url_date + ("&ENDMONTH=%d&ENDDAY=%d&ENDYEAR=%d&ENDHOUR=%d&ENDMINUTE=%d&ENDSECOND=0" % \
-                  (end.month, end.day, end.year, end.hour, (end.minute - 10)))
-        url_date = url_date + "&COMMAND=GET&Y0=0&Y1=0&FORMAT=SPREADSHEET&INTERPOL=0&NUMOFPOINTS=10"
-        url_file = None
-        last_value = None
+def get_external_value(addr):
+    """Extracts value from the given epics address. This is very specific
+       implementation how to get a value from epics web tool. At first
+       web address string is formed and then web page by urllib2
+       extracted. Page contains column with records.
+       Then the last value is choosen as the last active value.
 
-        try:
-            addr = addr.split(':')        
-            url_device = "NAMES=" + addr[0] + "%3A" + addr[1] + "%3A" + \
-                         addr[2] + "%3A" + addr[3]
-            url_device = url_device + "&FRAME2=1" + addr[0] + "%3A" + \
-                         addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
-            url_device = url_device + "&NAMES2=&" + addr[0] + "%3A" + \
-                         addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
-            final_url = url_prefix + url_device + url_date
-            url_file = urlopen(final_url)
-            for line in url_file:
-                line_el = line.split()
-                if line_el:
-                    if line_el[-1].isdigit:
-                        last_value = line_el[-1]
-            last_value = float(last_value)
-        except:
-            logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
-        finally:
-            if url_file:
-                url_file.close()	
-        return last_value   
+    :param addr: epics address
+    :type addr: str
+    :returns : float
+    """
+    url_prefix = "http://cssweb.desy.de:8084/ArchiveViewer/archive" + \
+                 "reader.jsp?DIRECTORY=%2Fdata7%2FChannelArchiver%" + \
+                 "2FchannelReference2.kryo&PATTERN=&"
+    end = datetime.now()
+    start = end - timedelta(hours=24)
+    url_date = "=on&STARTMONTH=%d&STARTDAY=%d&STARTYEAR=%d" % \
+               (start.month, start.day, start.year) + \
+               "&STARTHOUR=%d&STARTMINUTE=%d&STARTSECOND=0" % \
+               (start.hour, start.minute)
+    url_date = url_date + ("&ENDMONTH=%d&ENDDAY=%d&ENDYEAR=%d" % \
+               (end.month, end.day, end.year) + \
+               "&ENDHOUR=%d&ENDMINUTE=%d&ENDSECOND=0" % \
+               (end.hour, (end.minute - 10)))
+    url_date = url_date + "&COMMAND=GET&Y0=0&Y1=0&FORMAT=SPREADSHEET&" + \
+               "INTERPOL=0&NUMOFPOINTS=10"
+    url_file = None
+    last_value = None
+    try:
+        addr = addr.split(':')
+        url_device = "NAMES=" + addr[0] + "%3A" + addr[1] + "%3A" + \
+                     addr[2] + "%3A" + addr[3]
+        url_device = url_device + "&FRAME2=1" + addr[0] + "%3A" + \
+                     addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
+        url_device = url_device + "&NAMES2=&" + addr[0] + "%3A" + \
+                     addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
+        final_url = url_prefix + url_device + url_date
+        url_file = urlopen(final_url)
+        for line in url_file:
+            line_el = line.split()
+            if line_el:
+                if line_el[-1].isdigit:
+                    last_value = line_el[-1]
+        last_value = float(last_value)
+    except:
+        logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
+    finally:
+        if url_file:
+            url_file.close()
+    return last_value
