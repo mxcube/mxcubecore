@@ -113,6 +113,115 @@ def start_plate(centring_motors_dict,
                                   n_points, phi_range)
   return CURRENT_CENTRING
 
+
+def start_plate_1_click(centring_motors_dict,
+          pixelsPerMm_Hor, pixelsPerMm_Ver, 
+          beam_xc, beam_yc, plate_vertical,
+          phi_min,phi_max,n_points = 10 ):
+  global CURRENT_CENTRING
+
+  #plateTranslation = centring_motors_dict["plateTranslation"]
+  #centring_motors_dict.pop("plateTranslation")
+  
+  #phi, phiy,phiz, sampx, sampy = prepare(centring_motors_dict)
+  
+  phi = centring_motors_dict["phi"]
+  phiy = centring_motors_dict["phiy"]
+  sampx = centring_motors_dict["sampx"]
+  sampy = centring_motors_dict["sampy"] 
+  phiz = centring_motors_dict["phiz"]
+
+  #phi.move(phi_min)
+  plate_vertical()
+
+  CURRENT_CENTRING = gevent.spawn(centre_plate1Click, 
+                                  phi,
+                                  phiy,
+                                  phiz,
+                                  sampx,
+                                  sampy,
+                                  pixelsPerMm_Hor, pixelsPerMm_Ver, 
+                                  beam_xc, beam_yc,
+                                  plate_vertical,
+                                  phi_min,
+                                  phi_max,
+                                  n_points)
+
+  return CURRENT_CENTRING
+
+
+
+def centre_plate1Click(phi,
+                       phiy,
+                       phiz,
+                       sampx,
+                       sampy,
+                       pixelsPerMm_Hor,
+                       pixelsPerMm_Ver, 
+                       beam_xc,
+                       beam_yc,
+                       plate_vertical,
+                       phi_min,
+                       phi_max,
+                       n_points):
+
+  global USER_CLICKED_EVENT
+  
+  
+  try:
+    i = 0
+    previous_click_x = 99999
+    previous_click_y = 99999
+    dx = 99999
+    dy = 99999
+    
+    #while i < n_points and (dx > 3 or dy > 3) :
+    while True:   # it is now a while true loop that can be interrupted at any time by the save button, to allow user to have a 1 click centring as precise as he wants (see HutchMenuBrick)
+      USER_CLICKED_EVENT = gevent.event.AsyncResult()
+      try:
+        x, y = USER_CLICKED_EVENT.get()
+      except:
+        raise RuntimeError("Aborted while waiting for point selection")
+      
+      
+      # Move to beam 
+      phiz.moveRelative((y-beam_yc)/float(pixelsPerMm_Ver))
+      phiy.moveRelative(-(x-beam_xc)/float(pixelsPerMm_Hor))
+            
+      # Distance to previous click to end centring if it converges
+      dx = abs(previous_click_x - x)
+      dy = abs(previous_click_y - y)
+      previous_click_x = x
+      previous_click_y = y
+
+      # Alterning between phi min and phi max to gradually converge to the centring point
+      if i%2 == 0:
+        phi_min = phi.getPosition() # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
+        phi.move(phi_max)
+      else:
+        phi_max = phi.getPosition() # in case the phi range sent us to a position where sample is invisible, if user moves phi, this modifications is saved for future moves
+        phi.move(phi_min) 
+      
+      READY_FOR_NEXT_POINT.set()
+      i += 1
+  except:
+    logging.exception("Exception while centring")
+    move_motors(SAVED_INITIAL_POSITIONS)
+    raise
+
+  plate_vertical()
+
+  centred_pos = SAVED_INITIAL_POSITIONS.copy()
+ 
+  centred_pos.update({ sampx.motor: float(sampx.getPosition()),
+                       sampy.motor: float(sampy.getPosition()),
+                    })  
+
+  return centred_pos
+
+
+
+
 def centre_plate(phi, phiy, phiz,
            sampx, sampy, plateTranslation,
            pixelsPerMm_Hor, pixelsPerMm_Ver, 
@@ -290,6 +399,7 @@ def end(centred_pos=None):
   try:
     move_motors(centred_pos)
   except:
+    logging.exception("Exception in centring 'end`, centred pos is %s", centred_pos)
     move_motors(SAVED_INITIAL_POSITIONS)
     raise
 
@@ -402,4 +512,5 @@ def auto_center(camera,
       end(centred_pos)
                  
     return centred_pos
-    
+
+

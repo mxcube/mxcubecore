@@ -96,6 +96,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             new_strategy_option = diff_plan.getStrategyOption().getValue() + ' ' + strategy_option
         diff_plan.setStrategyOption(XSDataString(new_strategy_option))
 
+
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
 
