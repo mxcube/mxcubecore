@@ -14,6 +14,7 @@ import gevent
 import socket
 import time
 import json
+import atexit
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 if sys.version_info > (3, 0):
@@ -42,6 +43,8 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
+
+        atexit.register(self.close)
       
     def init(self):
         """
@@ -50,17 +53,19 @@ class XMLRPCServer(HardwareObject):
 
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if hasattr(self, "all_interfaces") and self.all_interfaces:
+        if hasattr(self, "all_interfaces") and self.all_interfaces == True:
             host = ''
         else:
             host = socket.gethostname()
 
+        host = "riga.embl-hamburg.de"
+       
         self.host = host    
 
-        try:
-            self.open()
-        except:
-            logging.getLogger("HWR").debug("Can't start XML-RPC server")
+        #try:
+        self.open()
+        #except:
+        #    logging.getLogger("HWR").debug("Can't start XML-RPC server")
         
 
     def close(self):
@@ -78,8 +83,7 @@ class XMLRPCServer(HardwareObject):
         if hasattr(self, "_server" ):
           return
         self.xmlrpc_prefixes = set()
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
-
+        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)   
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
@@ -102,6 +106,10 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
         self._server.register_function(self.anneal) 
+        self._server.register_function(self.dozor_batch_processed)
+        self._server.register_function(self.dozor_status_changed)
+        self.image_num = 0
+        self._server.register_function(self.get_image_num, "get_image_num")
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -118,9 +126,13 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
-        self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-                	
+        self.collect_hwobj = self.beamline_setup_hwobj.collect_hwobj
+        #self.connect(self.collect_hwobj,
+        #             'collectImageTaken',
+        #             self.image_taken) 
 
+        self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
+               
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
@@ -378,6 +390,20 @@ class XMLRPCServer(HardwareObject):
         for i in range(0, len(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'])):
             aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'][0][i].getProperty('name'))
         return aperture_list
+
+    def dozor_batch_processed(self, dozor_batch_dict):
+        self.beamline_setup_hwobj.parallel_processing_hwobj.batch_processed(dozor_batch_dict)
+
+    def dozor_status_changed(self, status):
+        self.beamline_setup_hwobj.parallel_processing_hwobj.\
+            set_processing_status(status)
+
+    def image_taken(self, image_num):
+        self.image_num = image_num
+
+    def get_image_num(self):
+        return self.image_num
+  
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
