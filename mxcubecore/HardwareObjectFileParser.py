@@ -23,7 +23,7 @@ def parse(filename, name):
         currentXML = f.read()
     except:
         currentXML = None
-        
+       
     xml.sax.parse(filename, curHandler)
     
     return curHandler.getHardwareObject()
@@ -32,14 +32,12 @@ def parse(filename, name):
 def parseString(XMLHardwareObject, name):
     global currentXML
     currentXML = XMLHardwareObject
-    
     curHandler = HardwareObjectHandler(name)
     # LNLS
     #python2.7
     #xml.sax.parseString(XMLHardwareObject, curHandler)
     # python3.4
     xml.sax.parseString(str.encode(XMLHardwareObject), curHandler)
-   
     return curHandler.getHardwareObject()
 
 
@@ -49,11 +47,10 @@ def loadModule(hardwareObjectName):
 
 def instanciateClass(moduleName, className, objectName):
     module = loadModule(moduleName)
-
     if module is None:
         return
     else:                
-        try:
+        try: 
             classObj = getattr(module, className)
         except AttributeError:
             logging.getLogger("HWR").error('No class %s in module %s', className, moduleName)
@@ -75,7 +72,6 @@ def instanciateClass(moduleName, className, objectName):
                     if not templateStructure == currentStructure:
                         logging.getLogger("HWR").error('%s: XML file does not match the %s class template' % (objectName, className))
                         return
-                
             try:
                 newInstance = classObj(objectName)
             except:
@@ -98,10 +94,13 @@ class HardwareObjectHandler(ContentHandler):
         self.buffer = ''
         self.path = ''
         self.previousPath = ''
+        self.hwr_import_reference = None
   
 
     def getHardwareObject(self):
-        if len(self.objects) == 1:
+        if self.hwr_import_reference is not None:
+            return self.hwr_import_reference
+        elif len(self.objects) == 1:
             return self.objects[0]
         
     def startElement(self, name, attrs):
@@ -156,10 +155,11 @@ class HardwareObjectHandler(ContentHandler):
                             attrs[str(k)]=True
                         else:
                             attrs[str(k)]=v
+        if name == "hwr_import":
+            self.hwr_import_reference = attrs["href"]
 
         if 'role' in attrs:
             self.elementRole = attrs['role']
-        
         if name == 'device':
             # maybe we have to add the DeviceContainer mix-in class to each node of the Hardware Object hierarchy
             i = len(self.objects) - 1
@@ -272,7 +272,6 @@ class HardwareObjectHandler(ContentHandler):
                             self.objects[-1].addChannel(self.channel, self.buffer, addNow=False)
                 elif name == self.property:
                     del self.objects[-1] #remove empty object
-
                     self.objects[-1].setProperty(name, self.buffer)
                 else:
                     if len(self.objects) == 1:
@@ -280,7 +279,8 @@ class HardwareObjectHandler(ContentHandler):
 
                     if len(self.objects) > 1:
                         self.objects[-2].addObject(name, self.objects[-1], role = self.elementRole)
-                    del self.objects[-1]
+                    if len(self.objects) > 0:
+                        del self.objects[-1]
             except:
                 logging.getLogger("HWR").exception("%s: error while creating Hardware Object from XML file", self.name)
         
