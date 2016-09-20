@@ -254,7 +254,7 @@ class Sample(TaskNode):
 
     def init_from_plate_sample(self, plate_sample):
         """
-        Descript. : location : col, row, index
+        location : col, row, index
         """
         self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
                                     str(plate_sample[2]),
@@ -353,6 +353,7 @@ class Sample(TaskNode):
 
         return processing_params
 
+
 class Basket(TaskNode):
     """
     Class represents a basket in the tree. It has not task assigned.
@@ -391,7 +392,6 @@ class Basket(TaskNode):
         return self.name
 
     def get_location(self):
-        #return int(self.location[0])
         return self.location 
 
     def get_is_present(self):
@@ -405,9 +405,6 @@ class Basket(TaskNode):
 
     def get_sample_list(self):
         return self.sample_list
- 
-    #def set_is_present(self, present):
-    #    self.is_present = present
 
 
 class DataCollection(TaskNode):
@@ -619,7 +616,7 @@ class ProcessingParameters():
 
 class Characterisation(TaskNode):
     def __init__(self, ref_data_collection=None,
-                characterisation_parameters=None, name=''):
+                 characterisation_parameters=None, name=''):
         TaskNode.__init__(self)
 
         if not characterisation_parameters:
@@ -767,6 +764,11 @@ class CharacterisationParameters(object):
                 "beta": self.beta,
                 "gamma": self.gamma}
 
+    def set_from_dict(self, params_dict):
+        for dict_item in params_dict.items():
+            if hasattr(self, dict_item[0]):
+                setattr(self, dict_item[0], dict_item[1])
+
     def __repr__(self):
         s = '<%s object at %s>' % (
             self.__class__.__name__,
@@ -865,7 +867,7 @@ class EnergyScanResult(object):
 
 class XRFSpectrum(TaskNode):
     """
-    Descript. : Class represents XRF spectrum task
+    Class represents XRF spectrum task
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
@@ -955,7 +957,6 @@ class Advanced(TaskNode):
         self.grid_object = grid_object
 
         self.html_report = None
-        #self.first_processing_results = {}
 
     def get_associated_grid(self):
         return self.grid_object
@@ -1090,12 +1091,9 @@ class PathTemplate(object):
                 "num_files" : self.num_files}
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
-                setattr(self, key, dict_item[1])
+                setattr(self, dict_item[0], dict_item[1])
 
     def get_prefix(self):
         prefix = self.base_prefix
@@ -1130,9 +1128,11 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Descript. : Returns the archive directory, for longer term storage.
-                    synchotron_name is set via static function calles from session hwobj
-        Return    : Archive directory. :rtype: str
+        Returns the archive directory, for longer term storage. synchotron_name
+        is set via static function calles from session hwobj
+
+        :rtype: str
+        :returns: Archive directory
         """
         folders = self.directory.split('/')
         if PathTemplate.synchotron_name == "MAXLAB":
@@ -1162,18 +1162,6 @@ class PathTemplate(object):
 
         return archive_directory
 
-    def get_files_to_be_written(self):
-        file_locations = []
-        file_name_template = self.get_image_file_name()
-
-        for i in range(self.start_num,
-                       self.start_num + self.num_files):
-
-            file_locations.append(os.path.join(self.directory,
-                                               file_name_template % i))
-
-        return file_locations
-
     def __eq__(self, path_template):
         result = False
         lh_dir = os.path.normpath(self.directory)
@@ -1198,7 +1186,6 @@ class PathTemplate(object):
     
         return result
 
-
     def get_files_to_be_written(self):
         file_locations = []
         file_name_template = self.get_image_file_name()
@@ -1210,7 +1197,6 @@ class PathTemplate(object):
                                                file_name_template % i))
 
         return file_locations
-
 
     def is_part_of(self, path_template):
         result = False
@@ -1261,12 +1247,6 @@ class AcquisitionParameters(object):
         self.in_interleave = False
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        if key == "centred_position": 
-        #            self.centred_position.set_from_dict(value)     
-        #        else:
-        #            setattr(self, key, value)
         for item in params_dict.items():
             if hasattr(self, item[0]):
                 if item[0] == "centred_position": 
@@ -1317,8 +1297,6 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            #for motor_name, position in motor_dict.iteritems():
-            #    setattr(self, motor_name, position)
             for motor_item in motor_dict.items():
                 setattr(self, motor_item[0], motor_item[1])
 
@@ -1327,10 +1305,6 @@ class CentredPosition(object):
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)   
-
         for dict_item in params_dict.iteritems():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])

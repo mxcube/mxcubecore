@@ -680,8 +680,16 @@ class DiffractometerMockup(Equipment):
         """
         Descript. :
         """
-        return 
-  
+        return
+
+    def move_to_beam(self, x, y, omega=None):
+        """
+        Descript. : function to create a centring point based on all motors
+                    positions.
+        """
+        print "moving to beam position: %d %d" % (self.beam_position[0], self.beam_position[1])
+        return
+
     def move_to_coord(self, x, y, omega=None):
         """
         Descript. :

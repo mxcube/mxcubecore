@@ -1,40 +1,8 @@
+import gevent
+from datetime import datetime
+import time
+
 from sample_changer.GenericSampleChanger import *
-
-"""
-class Pin(Sample):
-    STD_HOLDERLENGTH = 22.0
-
-    def __init__(self,basket,basket_no,sample_no):
-        super(Pin, self).__init__(basket, Pin.getSampleAddress(basket_no,sample_no), False)
-        self._setHolderLength(Pin.STD_HOLDERLENGTH)
-
-    def getBasketNo(self):
-        return self.getContainer().getIndex()+1
-
-    def getVialNo(self):
-        return self.getIndex()+1
-
-    @staticmethod
-    def getSampleAddress(basket_number, sample_number):
-        return str(basket_number) + ":" + "%02d" % (sample_number)
-
-class Basket(Container):
-    __TYPE__ = "Puck"
-    NO_OF_SAMPLES_PER_PUCK = 10
-
-    def __init__(self,container,number):
-        super(Basket, self).__init__(self.__TYPE__,container,Basket.getBasketAddress(number),True)
-        for i in range(Basket.NO_OF_SAMPLES_PER_PUCK):
-            slot = Pin(self,number,i+1)
-            self._addComponent(slot)
-
-    @staticmethod
-    def getBasketAddress(basket_number):
-        return str(basket_number)
-
-    def clearInfo(self):
-        self.getContainer()._triggerInfoChangedEvent()
-"""
 
 class SampleChangerMockup(SampleChanger):
 
@@ -53,24 +21,53 @@ class SampleChangerMockup(SampleChanger):
             self._addComponent(basket)
 
         self._initSCContents()
+        self.signal_wait_task = None
         SampleChanger.init(self)
 
-    def load_sample(self, holder_length, sample_location, wait):
-        return
+    def load_sample(self, holder_length, sample_location=None, wait=False):
+        self.load(sample_location, wait)
 
-    def load(self, sample, wait):
-        self._setState(SampleChangerState.Ready)  
-        return sample
+    def load(self, sample, wait=False):
+        try:
+            self._setState(SampleChangerState.Loading)
+            if isinstance(sample, tuple):
+                basket, sample = sample
+            else:
+                basket, sample = sample.split(":")
+
+            time.sleep(7)
+
+            self._setState(SampleChangerState.Ready)
+            self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+        except:
+            basket, sample = (None, None)
+            self._setState(SampleChangerState.Error)
+        finally:
+            self._selected_basket = int(basket)
+            self._selected_sample = int(sample)
+
+        return self.getLoadedSample()
 
     def unload(self, sample_slot, wait):
-        return
-
+        self._selected_basket = None
+        self._selected_sample = None
+        self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+ 
     def getBasketList(self):
         basket_list = []
         for basket in self.components:
             if isinstance(basket, Basket):
                 basket_list.append(basket)
         return basket_list
+
+    def getLoadedSample(self):
+        return "%s:%s" % (self._selected_basket, self._selected_sample)
+
+    def is_mounted_sample(self, sample):
+        if isinstance(sample, tuple):
+            sample = "%s:%s" % sample
+        
+        return sample == self.getLoadedSample()
 
     def _doAbort(self):
         return
@@ -81,22 +78,16 @@ class SampleChangerMockup(SampleChanger):
     def _doUpdateInfo(self):
         return
 
-    def _doChangeMode(self,mode):
-        return
-
     def _doSelect(self,component):
         return
 
     def _doScan(self,component,recursive):
         return
 
-    def _doLoad(self,sample=None):
+    def _doLoad(self, sample=None):
         return
 
     def _doUnload(self,sample_slot=None):
-        return
-
-    def _doAbort(self):
         return
 
     def _doReset(self):
