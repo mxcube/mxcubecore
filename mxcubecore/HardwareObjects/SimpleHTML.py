@@ -18,11 +18,20 @@ COLOR_DICT = {'LightRed': '#FFCCCC',
 
 def create_text(text, heading=None, color=None, bold=None):
     if heading:
-       text = "<h%d>%s</h%d>\n" % (heading, text, heading)
-    return text
+        html_str = "<h%d>%s</h%d>\n" % (heading, text, heading)
+    else:
+        html_str = text
+    return html_str
 
-def create_image(image_path):
-    return '<img src="%s" title="%s" />\n' % (image_path, image_path)
+def create_image(image_path, width=None, height=None):
+    html_str = '<img src="%s" title="%s"' % (image_path, image_path)
+    if width:
+        html_str += ' width=%d' % width
+    if height:
+        html_str += ' height=%d' % height
+
+    html_str += '/>\n'
+    return html_str
 
 def create_html_start(title=""):
     return HTML_START % title
@@ -41,23 +50,25 @@ def create_table(table_header=None, table_cells=None):
                 header_str += "<th %s</th>" % table_header
             else:
                 header_str += "<th>%s</th>" % table_header
+        header_str += "\n"
         string_list.append(header_str)
 
     if table_cells:
         for table_row in table_cells:
-            if table_row[0].startswith("bgcolor"):
-                row_str = "<tr %s>" % table_row[0]
+            if str(table_row[0]).startswith("bgcolor"):
+                row_str = "<tr %s>" % str(table_row[0])
                 table_row.pop(0)
             else:
                 row_str = "<tr>" 
-            for cell_str in table_row:
+            for cell in table_row:
+                cell_str = str(cell)
                 if cell_str.startswith("<td bgcolor"):
-                    row_str += str(cell_str)
+                    row_str += cell_str
                 elif cell_str.startswith("bgcolor"):
-                    row_str += "<td %s" % str(cell_str)
+                    row_str += "<td %s" % cell_str
                 else:
-                    row_str += "<td>%s</td>" % str(cell_str)
-            row_str += "</tr>" 
+                    row_str += "<td>%s</td>" % cell_str
+            row_str += "</tr>\n"             
             string_list.append(row_str)            
     if table_header:
         string_list.append("</tr>")
@@ -82,31 +93,61 @@ def create_toc(ref_list, title):
           
 
 def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename):
-    try:
+    if True:
        html_file = open(html_filename, "w")
        html_file.write(HTML_START % "Mesh scan results")  
        html_file.write('<div align="CENTER">\n')
        html_file.write(create_text("Mesh scan results", heading = 1))
-       html_file.write(create_image("parallel_processing_result.png"))
-       html_file.write("<table border='1'>\n")
-       html_file.write("<tr><th>Index</th><th>Score</th><th>Number of spots</th>" + \
-                       "<th>Int aver.</th><th>Resolution</th><th>Prefix</th>" +\
-                       "<th>Column</th><th>Row</th>\n")
-       for best_position in mesh_scan_results.get("best_positions", []):
-           best_position_str = "<tr><td>%d</td>" % best_position["index"]           
-           best_position_str += "<td>%.3f</td>" % best_position["score"]
-           best_position_str += "<td>%.3f</td>" % best_position["spots_num"]
-           best_position_str += "<td>%.3f</td>" % best_position["spots_int_aver"]
-           best_position_str += "<td>%.3f</td>" % best_position["spots_resolution"]
-           best_position_str += "<td>%s</td>" % best_position["filename"]
-           best_position_str += "<td>%d</td>" % best_position["col"]
-           best_position_str += "<td>%d</td></tr>\n" % best_position["row"]
-           html_file.write(best_position_str)
-       html_file.write("</table>\n") 
-    except:
-       pass      
+       html_file.write(create_image("parallel_processing_result.png", height=600))
+       html_file.write("</br>")
 
-    finally:
-       html_file.write("</div>\n")
-       html_file.write(HTML_END)
-       html_file.close()
+       positions = mesh_scan_results.get("best_positions", [])
+       if len(positions) > 0:
+           html_file.write(create_text("Best position", heading=1))
+           html_file.write("</br>") 
+
+           html_file.write('<font size="2">')
+           table_cells = [["%d" % positions[0]["index"],
+                           "%.3f" % positions[0]["score"],
+                           "%.3f" % positions[0]["spots_num"],
+                           "%.3f" % positions[0]["spots_int_aver"],
+                           "%.3f" % positions[0]["spots_resolution"],
+                           positions[0]["filename"],
+                           positions[0]["col"],
+                           positions[0]["row"]]]
+           table_rec = create_table(\
+                ["Index", "Score", "Number of spots", "Int aver.",
+                 "Resolution", "Image file", "Column", "Row"],
+                table_cells)
+           for row in table_rec:
+               html_file.write(row)
+           html_file.write("</br>")
+
+           if len(positions) > 1:
+               html_file.write(create_text("All positions", heading=1))
+               html_file.write("</br>")
+               table_cells = []
+               for position in positions[1:]:
+                   table_cells.append((position["index"],
+                                       "%.3f" % position["score"],
+                                       "%.3f" % position["spots_num"],
+                                       "%.3f" % position["spots_int_aver"],
+                                       "%.3f" % position["spots_resolution"],
+                                       position["filename"],
+                                       position["col"],
+                                       position["row"]))
+               table_rec = create_table(\
+                   ["Index", "Score", "Number of spots", "Int aver.",
+                    "Resolution", "Image file", "Column", "Row"],
+                   table_cells)
+               for row in table_rec:
+                   html_file.write(row)
+               html_file.write("</br>")
+           html_file.write("</font>")
+    #except:
+    #   pass      
+
+    #finally:
+    html_file.write("</div>\n")
+    html_file.write(HTML_END)
+    html_file.close()
