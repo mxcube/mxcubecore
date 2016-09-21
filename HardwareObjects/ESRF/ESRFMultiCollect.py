@@ -273,8 +273,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._metadataManagerClient = None
         self._metadataManagerName = None
         self._metaExperimentName  = None
-        self._beamline = None
-        self._proposal = None
+        self._sessionObject = None
+        
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -329,6 +329,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         self._metadataManagerName = self.getProperty("metadata_manager_name")
         self._metaExperimentName  = self.getProperty("meta_experiment_name")
+        self._sessionObject = self.getObjectByRole("session")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -347,16 +348,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 prefix = fileinfo["prefix"]
                 run_number = int(fileinfo["run_number"])
                 # Connect to ICAT metadata database
-                listDirectory = directory.split(os.sep)
-                beamline = "unknown"
-                proposal = "unknown"
-                if listDirectory[1] == "data":
-                    if listDirectory[2] == "visitor":
-                        self._beamline = listDirectory[4]
-                        self._proposal = listDirectory[3]
-                    else:
-                        self._beamline = listDirectory[2]
-                        self._proposal = listDirectory[4]
+                
+                proposal = self._sessionObject.get_proposal()
+                
                 self._metadataManagerClient = MetadataManagerClient(self._metadataManagerName, self._metaExperimentName)
                 # Strip the prefix from any workflow expTypePrefix
                 # TODO: use the ISPyB sample name instead
@@ -367,7 +361,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                         break
                 # The data set name must be unique so we use the ISPyB data collection id
                 datasetName = "{0}_{1}_{2}".format(prefix, run_number, self.collection_id)
-                self._metadataManagerClient.start(directory, self._proposal, sampleName, datasetName)
+                self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
                 self._metadataManagerClient.printStatus()        
             except:
                 logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
@@ -391,10 +385,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                     image_path = os.path.join(directory, template % image_no)
                     self._metadataManagerClient.appendFile(image_path)
             # Upload the two paths to the meta data HDF5 files
+            beamline = self._sessionObject.endstation_name
+            proposal = self._sessionObject.get_proposal()
             pathToHdf5File1 = os.path.join(directory, 
                                            "{proposal}-{beamline}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                beamline=self._beamline,
-                                                proposal=self._proposal,
+                                                beamline=beamline,
+                                                proposal=proposal,
                                                 prefix=prefix,
                                                 run_number=run_number,
                                                 dataCollectionId=self.collection_id)
@@ -402,7 +398,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             self._metadataManagerClient.appendFile(pathToHdf5File1)
             pathToHdf5File2 = os.path.join(directory, 
                                            "{proposal}-{prefix}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                proposal=self._proposal,
+                                                proposal=proposal,
                                                 prefix=prefix,
                                                 run_number=run_number,
                                                 dataCollectionId=self.collection_id)
