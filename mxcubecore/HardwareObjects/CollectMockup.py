@@ -118,10 +118,14 @@ class CollectMockup(AbstractCollect, HardwareObject):
         """Main collection hook
         """
         self.emit("collectStarted", (self.owner, 1)) 
+        self.emit("progressInit", ("Data collection", 100))
         self.store_image_in_lims_by_frame_num(1)
+        number_of_images = self.current_dc_parameters\
+            ['oscillation_sequence'][0]['number_of_images']
         for image in range(self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]):
-                time.sleep(self.current_dc_parameters["oscillation_sequence"][0]["exposure_time"])
-                self.emit("collectImageTaken", image)
+            time.sleep(self.current_dc_parameters["oscillation_sequence"][0]["exposure_time"])
+            self.emit("collectImageTaken", image)
+            self.emit("progressStep", (int(float(image) / number_of_images * 100)))
         self.emit_collection_finished()
 
     def emit_collection_finished(self):  
