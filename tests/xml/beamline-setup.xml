@@ -2,7 +2,7 @@
 
 <object class="BeamlineSetup" role="BeamlineSetup">
   <!-- Objects directly associatd with hardware -->
-  <object href="/transmission-mockup" role="transmission"/>
+  <object href="/attenuators-mockup" role="transmission"/>
   <object href="/mini-diff-mockup" role="diffractometer"/>
   <object href="/diff-omega-mockup" role="omega_axis"/>
   <object href="/diff-kappa-mockup" role="kappa_axis"/>
