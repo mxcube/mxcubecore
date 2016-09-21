@@ -572,10 +572,10 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return True
 
     def set_helical(self, helical_on):
-        return
+        self.helical = helical_on
 
     def set_helical_pos(self, helical_oscil_pos):
-        return
+        self.helical_pos = helical_oscil_pos
 
     @task
     def write_input_files(self, data_collect_parameters):
@@ -653,7 +653,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         file_parameters = data_collect_parameters["fileinfo"]
 
         file_parameters["suffix"] = self.bl_config.detector_fileext
-        image_file_template = "%(prefix)s_%(run_number)s_%%04d.%(suffix)s" % file_parameters
+        image_file_template = "%(prefix)s_%(run_number)s_%%05d.%(suffix)s" % file_parameters
         file_parameters["template"] = image_file_template
 
         archive_directory = self.get_archive_directory(file_parameters["directory"])
