@@ -514,6 +514,11 @@ class GraphicsItemLine(GraphicsItem):
     def get_graphical_points(self):
         return (self.__cp_start, self.__cp_end)
 
+    def set_graphical_points(self, cp_start, cp_end):
+        self.__cp_start = cp_start
+        self.__cp_end = cp_end
+        self.update_item()
+
     def get_centred_positions(self):
         return (self.__cp_start.get_centred_position(), \
                 self.__cp_end.get_centred_position())
