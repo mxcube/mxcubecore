@@ -1561,3 +1561,10 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def hide_info_msg(self):
         self.graphics_info_item.hide()
+
+    def swap_line_points(self, line):
+        (point_start, point_end) = line.get_graphical_points()
+        line.set_graphical_points(point_end, point_start)
+        self.emit("shapeChanged", line, "Line")
+        line.update_item()
+
