@@ -9,8 +9,7 @@ class RobodiffFShut(Equipment):
 
     def init(self):
         self.robodiff = self.getObjectByRole("robot")
-        self.connect(self.robodiff.controller.fshut, "status", self.valueChanged)
-        self.robodiff.controller.fshut.musst.putget("#ABORT")
+        self.connect(self.robodiff.controller.fshut, "state", self.valueChanged)
         self.wagoState = "unknown"
 
     def connectNotify(self, signal):
