@@ -31,7 +31,9 @@ class RobodiffFShut(Equipment):
 
     def wagoIn(self):
         self.robodiff.controller.fshut.open()
+        self.getWagoState(read=True)
            
     def wagoOut(self):  
         self.robodiff.controller.fshut.close()
+        self.getWagoState(read=True)
            
