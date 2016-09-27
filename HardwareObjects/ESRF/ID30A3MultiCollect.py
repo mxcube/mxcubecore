@@ -20,8 +20,11 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def data_collection_hook(self, data_collect_parameters):
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
-      if oscillation_parameters['range']/oscillation_parameters['exposure_time'] > 90:
+      exp_time = oscillation_parameters['exposure_time']
+      if oscillation_parameters['range']/exp_time > 90:
           raise RuntimeError("Cannot move omega axis too fast (limit set to 90 degrees per second).")
+
+      self.first_image_timeout = 30+exp_time*min(100, oscillation_parameters["number_of_images"])
  
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
