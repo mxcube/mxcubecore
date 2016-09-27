@@ -58,6 +58,8 @@ class AbstractMultiCollect(object):
         self.current_lims_sample = None
         self.__safety_shutter_close_task = None
         self.run_without_loop = None
+        #wait for the 1st image from detector for 30 seconds by default
+        self.first_image_timeout = 30
 
 
     def setControlObjects(self, **control_objects):
@@ -632,6 +634,7 @@ class AbstractMultiCollect(object):
             return
 
 	# data collection
+        self.first_image_timeout = 30+oscillation_parameters["exposure_time"]
         self.data_collection_hook(data_collect_parameters)
 
         if 'transmission' in data_collect_parameters:
@@ -792,7 +795,7 @@ class AbstractMultiCollect(object):
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                           if data_collect_parameters.get("shutterless"):
-                              with gevent.Timeout(30, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+                              with gevent.Timeout(self.first_image_timeout, RuntimeError("Timeout waiting for detector trigger, no image taken")):
                                  while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
