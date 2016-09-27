@@ -108,6 +108,10 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def close_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.close()
 
+    def stop_oscillation(self):
+        self.getObjectByRole("diffractometer").controller.omega.stop()
+        self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
+
     def set_helical(self, helical_on):
         self.helical = helical_on
 

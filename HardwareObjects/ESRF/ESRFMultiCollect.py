@@ -475,6 +475,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_cleanup(self):
+        self.stop_oscillation()
         self.close_fast_shutter()
 
 
@@ -547,7 +548,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     
     def do_oscillation(self, start, end, exptime, npass):
         return self._detector.do_oscillation(start, end, exptime, npass)
-    
+   
+    def stop_oscillation(self):
+        pass 
   
     def start_acquisition(self, exptime, npass, first_frame):
         return self._detector.start_acquisition(exptime, npass, first_frame)
