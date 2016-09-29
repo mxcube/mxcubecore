@@ -48,6 +48,7 @@ class BIOMAXMD3(GenericDiffractometer):
         
         # to make it comaptible
         self.camera = self.camera_hwobj
+        self.acceptCentring = self.accept_centring
 
 
         self.phi_motor_hwobj = self.motor_hwobj_dict['phi']
@@ -286,6 +287,37 @@ class BIOMAXMD3(GenericDiffractometer):
         if wait:
             self.wait_device_ready(300) #timeout of 5 min
             print "finished at ---------->", time.time()
+
+    def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end-start) / exptime
+            # todo, JN, get scan_speed limit
+            """
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+            """
+        scan_params = "%0.3f\t%0.3f\t%0.4f\t"% (start, (end-start), exptime)
+        scan_params += "%0.3f\t" % helical_pos['1']['phiy']
+        scan_params += "%0.3f\t" % helical_pos['1']['phiz']
+        scan_params += "%0.3f\t" % helical_pos['1']['sampx']
+        scan_params += "%0.3f\t" % helical_pos['1']['sampy']
+        scan_params += "%0.3f\t" % helical_pos['2']['phiy']
+        scan_params += "%0.3f\t" % helical_pos['2']['phiz']
+        scan_params += "%0.3f\t" % helical_pos['2']['sampx']
+        scan_params += "%0.3f\t" % helical_pos['2']['sampy']
+         
+
+        scan = self.command_dict["startScan4DEx"]
+        self.wait_device_ready(200)
+        scan(scan_params)
+        print "scan started at ----------->", time.time()
+        if wait:
+            self.wait_device_ready(300) #timeout of 5 min
+            print "finished at ---------->", time.time()
+
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self.is_ready():
