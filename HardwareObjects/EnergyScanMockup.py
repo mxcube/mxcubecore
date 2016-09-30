@@ -7,7 +7,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import Equipment
+from AbstractEnergyScan import AbstractEnergyScan
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 try:
    import PyChooch
@@ -35,8 +36,14 @@ scan_test_data = [(10841.0, 20.0), (10842.0, 20.0), (10843.0, 20.0),
 (10910.0, 15059.0)]
 
 
-class EnergyScanMockup(Equipment):
+class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
+
+    def __init__(self, name):
+        AbstractEnergyScan.__init__(self)
+        HardwareObject.__init__(self, name)
+ 
     def init(self):
+
         self.ready_event = gevent.event.Event()
         self.scan_info = {}
         self.result_value_emitter = None
@@ -62,7 +69,7 @@ class EnergyScanMockup(Equipment):
         self.scanCommandFinished()
 
     def startEnergyScan(self, element, edge, directory, prefix,
-                        session_id = None, blsample_id= None, exptime= 3):
+                        session_id=None, blsample_id=None, exptime=3):
 
         self._element = element
         self._edge = edge
@@ -80,67 +87,24 @@ class EnergyScanMockup(Equipment):
         #self.emit('energyScanFinished', (self.scan_info,))
         #self.ready_event.set()
 
-    def doChooch(self, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
+    def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
         """
         Descript. :
         """
         symbol = "_".join((elt, edge))
-        scanArchiveFilePrefix = "_".join((scanArchiveFilePrefix, symbol))
-        i = 1
-        while os.path.isfile(os.path.extsep.join((scanArchiveFilePrefix + str(i), "raw"))):
-            i = i + 1
-        
-        scanArchiveFilePrefix = scanArchiveFilePrefix + str(i)
-        archiveRawScanFile = os.path.extsep.join((scanArchiveFilePrefix, "raw"))
-        rawScanFile = os.path.extsep.join((scanFilePrefix, "raw"))
-        scanFile = os.path.extsep.join((scanFilePrefix, "efs"))
-        if not os.path.exists(os.path.dirname(scanArchiveFilePrefix)):
-            os.makedirs(os.path.dirname(scanArchiveFilePrefix))
-        try:
-            f = open(rawScanFile, "w")
-            pyarch_f = open(archiveRawScanFile, "w")
-        except:
-            logging.getLogger("HWR").exception("could not create raw scan files")
-            self.store_energy_scan()
-            self.emit("energyScanFailed", ())
-            return
-        else:
-            scanData = []
-            for i in range(len(self.scan_data)):
-                x = float(self.scan_data[i][0])
-                x = x < 1000 and x * 1000.0 or x
-                y = float(self.scan_data[i][1])
-                scanData.append((x, y))
-                f.write("%f,%f\r\n" % (x, y))
-                pyarch_f.write("%f,%f\r\n" % (x, y))
-            f.close()
-            pyarch_f.close()
-            self.scan_info["scanFileFullPath"] = str(archiveRawScanFile)
 
-        
-        pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = PyChooch.calc(scanData, elt, edge, scanFile)
-
-        rm = (pk + 30) / 1000.0
-        pk = pk / 1000.0
-        savpk = pk
-        ip = ip / 1000.0
-        comm = ""
-        logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" %\
-               (self.thEdgeThreshold, pk, ip, rm))
-        
-        archiveEfsFile = os.path.extsep.join((scanArchiveFilePrefix, "efs"))
-        try:
-            fi = open(scanFile)
-            fo = open(archiveEfsFile, "w")
-        except:
-            self.store_energy_scan()
-            self.emit("energyScanFailed", ())
-            return
-        else:
-            fo.write(fi.read())
-            fi.close()
-            fo.close()
-
+        pk = 7.519
+        ip = 7.516
+        rm = 7.54
+        fpPeak = -12.6
+        fppPeak = 20.7
+        fpInfl = -21.1
+        fppInfl = 11.9
+        comm = "Results from mockuResults from mockupp" 
+        self.scan_info['edgeEnergy'] = 0.1
+        self.thEdge = self.scan_info['edgeEnergy']
+        logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
+ 
         self.scan_info["peakEnergy"] = pk
         self.scan_info["inflectionEnergy"] = ip
         self.scan_info["remoteEnergy"] = rm
@@ -155,15 +119,15 @@ class EnergyScanMockup(Equipment):
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        logging.getLogger("HWR").info("<chooch> Saving png" )
+        #logging.getLogger("HWR").info("EMBLEnergyScan: Saving png" )
         # prepare to save png files
-        title = "%10s  %6s  %6s\n%6.2f  %6.2f  %6.2f\n%6.2f  %6.2f  %6.2f" % \
+        title = "%s  %s  %s\n%.4f  %.2f  %.2f\n%.4f  %.2f  %.2f" % \
               ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl)
         fig = Figure(figsize = (15, 11))
         ax = fig.add_subplot(211)
-        ax.set_title("%s\n%s" % (scanFile, title))
+        ax.set_title("%s\n%s" % (scan_file_efs_filename, title))
         ax.grid(True)
-        ax.plot(*(zip(*scanData)), **{"color": 'black'})
+        ax.plot(*(zip(*scan_data)), **{"color": 'black'})
         ax.set_xlabel("Energy")
         ax.set_ylabel("MCA counts")
         ax2 = fig.add_subplot(212)
@@ -175,25 +139,25 @@ class EnergyScanMockup(Equipment):
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color = 'red'))
         canvas = FigureCanvasAgg(fig)
 
-        escan_png = os.path.extsep.join((scanFilePrefix, "png"))
-        escan_archivepng = os.path.extsep.join((scanArchiveFilePrefix, "png"))
-        self.scan_info["jpegChoochFileFullPath"] = str(escan_archivepng)
+        self.scan_info["jpegChoochFileFullPath"] = str(archive_file_png_filename)
         try:
-            logging.getLogger("HWR").info("Rendering energy scan and Chooch graphs to PNG file : %s", escan_png)
-            canvas.print_figure(escan_png, dpi = 80)
+            logging.getLogger("HWR").info("Rendering energy scan and Chooch " + \
+                 "graphs to PNG file : %s", scan_file_png_filename)
+            canvas.print_figure(scan_file_png_filename, dpi = 80)
         except:
             logging.getLogger("HWR").exception("could not print figure")
         try:
-            logging.getLogger("HWR").info("Saving energy scan to archive directory for ISPyB : %s", escan_archivepng)
-            canvas.print_figure(escan_archivepng, dpi = 80)
+            logging.getLogger("HWR").info("Saving energy scan to archive " +\
+                 "directory for ISPyB : %s", archive_file_png_filename)
+            canvas.print_figure(archive_file_png_filename, dpi = 80)
         except:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()
 
         logging.getLogger("HWR").info("<chooch> returning" )
-        self.emit('choochFinished', pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,
-                 rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title)
+        self.emit('choochFinished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,
+                 rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, \
                  chooch_graph_y1, chooch_graph_y2, title
 
@@ -237,11 +201,14 @@ class EnergyScanMockup(Equipment):
         """
         title = "%s %s: %s %s" % (self.scan_info["sessionId"],
             self.scan_info["blSampleId"], self.scan_info["element"], self.scan_info["edgeEnergy"])
-        dic = {'xlabel': 'energy', 'ylabel': 'counts', 'scaletype': 'normal', 'title': title}
+        dic = {'xlabel': 'energy',
+               'ylabel': 'counts',
+               'scaletype': 'normal',
+               'title': title}
         self.emit('scanStart', dic)
+        self.emit('energyScanStarted', dic)
         self.scan_info['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
-        self.emit('energyScanStarted')
 
     def scanCommandFinished(self, *args):
         """
