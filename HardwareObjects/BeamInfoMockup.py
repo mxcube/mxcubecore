@@ -19,7 +19,6 @@ beamInfoChanged
 """
 
 import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 class BeamInfoMockup(Equipment):
@@ -28,14 +27,34 @@ class BeamInfoMockup(Equipment):
         Equipment.__init__(self, *args)
 
         self.beam_size_slits = [9999, 9999]
-        self.beam_size_aperture = [0.01, 0.01]
+        self.beam_size_aperture = [9999, 9999]
         self.beam_size_definer = [9999, 9999]
         self.beam_position = [300, 300]
         self.beam_info_dict = {}
 
     def init(self):
         self.aperture_hwobj = self.getObjectByRole("aperture")
+        if self.aperture_hwobj is not None:
+            self.connect(self.aperture_hwobj,
+                         "diameterIndexChanged",
+                         self.aperture_diameter_changed)
+        self.slits_hwobj = self.getObjectByRole("slits")
+        if self.slits_hwobj is not None:
+            self.connect(self.slits_hwobj,
+                         "gapSizeChanged",
+                         self.slits_gap_changed)
         self.emit("beamPosChanged", (self.beam_position, ))
+
+    def aperture_diameter_changed(self, name, size):
+        self.beam_size_aperture = [size, size]
+        self.aperture_pos_name = name
+        self.evaluate_beam_info()
+        self.emit_beam_info_change()
+
+    def slits_gap_changed(self, size):
+        self.beam_size_slits = size
+        self.evaluate_beam_info()
+        self.emit_beam_info_change()
 
     def get_beam_position(self):
         return self.beam_position
@@ -63,6 +82,11 @@ class BeamInfoMockup(Equipment):
     def get_slits_gap(self):
         self.evaluate_beam_info()
         return self.beam_size_slits	
+
+    def set_slits_gap(self, width_microns, height_microns):
+        if self.slits_hwobj:
+            self.slits_hwobj.set_gap("Hor", width_microns / 1000.0)
+            self.slits_hwobj.set_gap("Ver", height_microns / 1000.0)
 
     def evaluate_beam_info(self):
         """
