@@ -1,4 +1,4 @@
-<equipment class="EnergyScanMockup">
+<object class="EnergyScanMockup">
   <elements>
     <element>
       <symbol>Mn</symbol>
@@ -139,4 +139,4 @@
       <directory>rm</directory>
     </defaultenergy>
   </mad>
-</equipment>
+</object>
