@@ -179,7 +179,7 @@ class AbstractXRFSpectrum(object):
                 energy = (self.mca_calib[2] + \
                           self.mca_calib[1] * n + \
                           self.mca_calib[0] * n * n) / 1000
-                if energy < 13:
+                if energy < 20:
                     if energy > xmax:
                         xmax = value
                     if energy < xmin:

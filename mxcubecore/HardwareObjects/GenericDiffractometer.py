@@ -342,17 +342,22 @@ class GenericDiffractometer(HardwareObject):
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {'x': self.image_width / 2,'y' : self.image_height / 2}
                 self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning("Diffractometer: Zoom center is ' +\
-                       'not defined. Continuing with the middle: %s" % self.zoom_centre)
+                logging.getLogger("HWR").warning("Diffractometer: Zoom center is " +\
+                       "not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
                 logging.getLogger("HWR").warning("Diffractometer: " + \
                    "Neither zoom centre nor camera size iz defined")
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
         try:
+            # grid_direction describes how a grid is collected
+            # 'fast' is collection direction and 'slow' describes
+            # move to the next collection line 
             self.grid_direction = eval(self.getProperty("grid_direction"))
         except:
-            self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
+            self.grid_direction = {"fast": (0, 1),
+                                   "slow": (1, 0),
+                                   "omega_ref" : 0}
             logging.getLogger("HWR").warning("Diffractometer: Grid " + \
                 "direction is not defined. Using default.")
 
@@ -820,7 +825,7 @@ class GenericDiffractometer(HardwareObject):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
                 del motor_positions[motor_role]
-                if motor is None:
+                if None in (motor, position):
                     continue
                 motor_positions[motor] = position
             motor.move(position)
@@ -1056,7 +1061,7 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.current_phase = current_phase
-        logging.getLogger("HWR").info("current_phase_changed to %s" % current_phase)
+        #logging.getLogger("HWR").info("Current_phase_changed to %s" % current_phase)
         self.emit('minidiffPhaseChanged', (current_phase, ))
 
     def sample_is_loaded_changed(self, sample_is_loaded):
@@ -1064,7 +1069,7 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.sample_is_loaded = sample_is_loaded
-        logging.getLogger("HWR").info("sample is loaded changed %s" % sample_is_loaded)
+        #logging.getLogger("HWR").info("sample is loaded changed %s" % sample_is_loaded)
         self.emit('minidiffSampleIsLoadedChanged', (sample_is_loaded, ))
 
     def head_type_changed(self, head_type):
@@ -1072,7 +1077,7 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.head_type = head_type
-        logging.getLogger("HWR").info("new head type is %s" % head_type)
+        #logging.getLogger("HWR").info("new head type is %s" % head_type)
         self.emit('minidiffHeadTypeChanged', (head_type, ))
 
         if "SampleIsLoaded" not in str(self.used_channels_list):
@@ -1102,3 +1107,9 @@ class GenericDiffractometer(HardwareObject):
 
     def get_osc_dynamic_limits(self):
         return (-10000, 10000)
+
+    def zoom_in(self):
+        return
+
+    def zoom_out(self):
+        return

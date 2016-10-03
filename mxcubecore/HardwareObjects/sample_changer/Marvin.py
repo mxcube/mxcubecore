@@ -16,10 +16,11 @@ Hardware object for Marvin sample changer
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 """
-
-import logging
+import os
 import time
-import datetime
+import logging
+import tempfile
+from datetime import datetime
 from sample_changer.GenericSampleChanger import *
 
 
@@ -96,7 +97,19 @@ class Marvin(SampleChanger):
         self._updateState()
         self._updateSCContents()
         self._updateLoadedSample()
+
+        self.log_filename = self.getProperty("log_filename")
+        if self.log_filename is None:
+            self.log_filename = os.path.join(tempfile.gettempdir(),
+                                             "mxcube",
+                                             "marvin.log")
+        logging.getLogger("HWR").debug("Marvin log filename: %s" % self.log_filename)
         SampleChanger.init(self)
+
+        self._setState(SampleChangerState.Ready)
+
+    def get_log_filename(self):
+        return self.log_filename
 
     def run_test(self):
         """
@@ -105,9 +118,9 @@ class Marvin(SampleChanger):
         samples_mounted = 0
         for cycle in range(5):
             for sample_index in range(1, 11):
-                logging.getLogger("user_level_log").info("Mounting sample 1:%d" % sample_index)
+                logging.getLogger("GUI").info("Mounting sample 1:%d" % sample_index)
                 self.load("1:%02d" % sample_index, wait=True)
-                logging.getLogger("user_level_log").info("Total mounts done: %d" % (samples_mounted + 1))
+                logging.getLogger("GUI").info("Total mounts done: %d" % (samples_mounted + 1))
                 samples_mounted += 1
                 gevent.sleep(1)                           
 
@@ -202,7 +215,7 @@ class Marvin(SampleChanger):
         old + mount of  new sample) if a sample is already mounted on 
         the diffractometer.
         """
-        log = logging.getLogger("user_level_log")
+        log = logging.getLogger("GUI")
         selected = self.getSelectedSample()
 
         if sample is not None:
@@ -225,44 +238,52 @@ class Marvin(SampleChanger):
                       " is already loaded"
                 raise Exception(msg)
             else:
-                msg = "Sample changer: Unloading sample %d:%d" %(\
-                    self._mounted_puck, self._mounted_sample)
-                self.emit("progressInit", (msg, 100))
+                self._doUnload()
 
-                if self.detector_distance_hwobj.getPosition() < 499.0:
-                    log.info("Moving detector to save position")
-                    self.detector_distance_hwobj.move(500, wait=True)
+        msg = "Sample changer: Loading sample %d:%d" %(\
+               int(basket), int(sample))
+        self.emit("progressInit", (msg, 100))
 
-                logging.getLogger("user_level_log").debug(msg + ". Please wait...")
-                self._executeServerTask(self.cmd_unmount_sample,
-                                        self._mounted_sample,
-                                        self._mounted_puck)
-                log.debug("Sample changer: Sample unloading done")
+        if self.detector_distance_hwobj.getPosition() < 499.0:
+            log.info("Moving detector to save position")
+            self.detector_distance_hwobj.move(500, wait=True)
 
-                msg = "Sample changer: Loading sample %d:%d" %(\
-                    int(basket), int(sample))
-                log.debug(msg + ". Please wait...")
-                self.emit("progressInit", (msg, 100))
-                self._executeServerTask(self.cmd_mount_sample,
-                                        int(sample),
-                                        int(basket))
-                log.debug("Sample changer: Sample loading done")
-        else:
-            msg = "Sample changer: Loading sample %d:%d" %(\
-                    int(basket), int(sample))
-            self.emit("progressInit", (msg, 100))
+        start_time = datetime.now()
+        logging.getLogger("GUI").info(msg + " Please wait...")
+        self._executeServerTask(self.cmd_mount_sample,
+                                int(sample),
+                                int(basket))
+        log.info("Sample changer: Sample loading done")
+        self.emit("progressStop", ())
+ 
+        end_time = datetime.now()
+        time_delta = "%d" % (end_time - start_time).total_seconds()
+        try:
+           if os.getenv("SUDO_USER"):
+               user_name = os.getenv("SUDO_USER")
+           else:
+               user_name = os.getenv("USER")
 
-            if self.detector_distance_hwobj.getPosition() < 499.0:
-                log.info("Moving detector to save position")
-                self.detector_distance_hwobj.move(500, wait=True)
+           log_file = open(self.log_filename, "a")
+           log_msg = "%s,%s,%s,%s,%s,%d,%d" % (
+                     start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                     end_time.strftime("%Y-%m-%d %H:%M:%S"),
+                     time_delta,
+                     user_name,
+                     "load",
+                     self._mounted_puck,
+                     self._mounted_sample)
+           if not self.hasLoadedSample():
+               log_msg += ",Error\n"
+           else:
+               log_msg += ",Success\n"
+           log_file.write(log_msg)
+           log_file.close()
+        except:
+           pass
 
-            logging.getLogger("user_level_log").info(msg + " Please wait...")
-            self._executeServerTask(self.cmd_mount_sample,
-                                    int(sample),
-                                    int(basket))
-            log.info("Sample changer: Sample loading done")
 
-    def _doUnload(self, sample_slot = None):
+    def _doUnload(self, sample_slot=None):
         """
         Unloads a sample from the diffractometer.
         """
@@ -271,14 +292,41 @@ class Marvin(SampleChanger):
         self.emit("progressInit", (msg, 100))
 
         if self.detector_distance_hwobj.getPosition() < 499.0:
-            logging.getLogger("user_level_log").info("Moving detector to save position")
+            logging.getLogger("GUI").info("Moving detector to save position")
             self.detector_distance_hwobj.move(500, wait=True)
 
-        logging.getLogger("user_level_log").info(msg + ". Please wait...")
+        start_time = datetime.now()
+        logging.getLogger("GUI").info(msg + ". Please wait...")
         self._executeServerTask(self.cmd_unmount_sample,
                                 int(self._mounted_sample),
                                 int(self._mounted_puck))
-        logging.getLogger("user_level_log").info("Sample changer: Sample unloading done") 
+        logging.getLogger("GUI").info("Sample changer: Sample unloading done") 
+        self.emit("progressStop", ())
+        end_time = datetime.now()
+        time_delta = "%d" % (end_time - start_time).total_seconds()
+
+        try:
+           if os.getenv("SUDO_USER"):
+               user_name = os.getenv("SUDO_USER")
+           else:
+               user_name = os.getenv("USER")
+           log_file = open(self.log_filename, "a")
+           log_msg = "%s,%s,%s,%s,%s,%d,%d" % (
+                      start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                      end_time.strftime("%Y-%m-%d %H:%M:%S"),
+                      time_delta,
+                      user_name,
+                      "unload",
+                      self._mounted_puck,
+                      self._mounted_sample)
+           if self.hasLoadedSample():
+               log_msg += ",Error\n"
+           else:
+               log_msg += ",Success\n"
+           log_file.write(log_msg)
+           log_file.close()
+        except:
+           pass
 
     def clearBasketInfo(self, basket):
         """
@@ -323,9 +371,12 @@ class Marvin(SampleChanger):
         for arg in args:
             arg_arr.append(arg)
         task_id = method(arg_arr)
-        gevent.sleep(1)
+        gevent.sleep(10)
         self.waitReady(120.0)
-        gevent.sleep(1)
+        gevent.sleep(3)
+
+        self._updateState()
+       
         self._updateLoadedSample()
         self._action_started = False
 
@@ -343,9 +394,9 @@ class Marvin(SampleChanger):
         """
         Converts state string to defined state
         """
-        state_converter = { "ALARM": SampleChangerState.Alarm,
-                            "Idl": SampleChangerState.Ready,
-                            "Bsy": SampleChangerState.Moving }
+        state_converter = {"ALARM": SampleChangerState.Alarm,
+                           "Idl": SampleChangerState.Ready,
+                           "Bsy": SampleChangerState.Moving }
         return state_converter.get(self._state_string, SampleChangerState.Unknown)
                         
     def _isDeviceBusy(self, state=None):
@@ -526,17 +577,24 @@ class Marvin(SampleChanger):
         - CPuck: center puck index
         - Prgs: progress 0 - 100
         """
-        self._status_string = status_string[:180].replace(" ", "")
+        if not self._action_started:
+            return
+
+        tmp_string = status_string.replace(" ", "")
+        tmp_string1 = tmp_string.replace("On\r", "On")
+        self._status_string = tmp_string1.replace("\rSys", ";Sys")
         status_list = self._status_string.split(';')
 
         for status in status_list:
             property_status_list = status.split(':')
             if len(property_status_list) < 2:
                 continue
+         
             prop_name = property_status_list[0]
             prop_value = property_status_list[1]
             if prop_name == "Rob":
-                if self._state_string != prop_value:
+                if self._state_string != prop_value and \
+                   prop_value in ("Idl", "Bsy"):
                     self._state_string = prop_value
                     self._updateState()
             elif prop_name == "Prgs":

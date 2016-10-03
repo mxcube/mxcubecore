@@ -120,6 +120,9 @@ class TINEMotor(Device):
            self.step_limits = eval(self.getProperty("stepLimits"))
         except:
            pass
+
+    def isReady(self):
+        return True
       
     def isConnected(self):
         """
@@ -265,7 +268,7 @@ class TINEMotor(Device):
             if (self.verboseUpdate == True):
                 logging.getLogger().debug('Updating motor postion %s to %s from %s ' \
                   %(self.objName, position, self.previousPosition))
-                self.previousPosition = position
+            self.previousPosition = position
 
     def getMotorMnemonic(self):
         """
@@ -302,7 +305,8 @@ class TINEMotor(Device):
         self.emit('positionChanged', (self.current_position, ))
 
     def _isDeviceReady(self):
-        return self.motorState == READY
+        return self.motorState == self.getState()
+        #return self.motorState == READY
 
     def _waitDeviceReady(self,timeout=None):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
@@ -312,10 +316,12 @@ class TINEMotor(Device):
     def enable_motor(self):
         if self.cmd_set_online:
             self.cmd_set_online(1)
+            gevent.sleep(2)
 
     def disable_motor(self):
         if self.cmd_set_online:
             self.cmd_set_online(0)
+            gevent.sleep(2)
 
-    def moveRelative(self, relativePosition, wait=False):
+    def moveRelative(self, relativePosition, wait=False, enable=False):
         self.move(self.getPosition() + relativePosition, wait=wait)
