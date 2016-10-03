@@ -311,11 +311,11 @@ class EMBLEnergy(Device):
 
     def set_break_bragg(self):
         if self.cmd_set_break_bragg is not None:
-            print "set_break"
+            logging.getLogger('user_level_log').warning("Setting bragg brake")
             self.cmd_set_break_bragg(1)
 
     def release_break_bragg(self):
         if self.cmd_release_break_bragg is not None:
-            print "release break"
+            logging.getLogger('user_level_log').warning("Releasing bragg brake")
             self.cmd_release_break_bragg(1)
             sleep(1)

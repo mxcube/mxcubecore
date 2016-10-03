@@ -28,6 +28,9 @@ import queue_model_objects_v1 as queue_model_objects
 import os
 import autoprocessing
 
+import edna_test_data
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+
 from collections import namedtuple
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
@@ -70,6 +73,9 @@ class QueueEntryContainer(object):
         self._queue_entry_list = []
         self._queue_controller = None
         self._parent_container = None
+
+    def get_queue_entry_list(self):
+        return self._queue_entry_list
 
     def enqueue(self, queue_entry, queue_controller=None):
         # A queue entry container has a QueueController object
@@ -489,7 +495,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     acq_par.first_image + acq_par.num_images - 1) 
                 msg += "osc start: %.2f, osc total range: %.2f)" % \
                     (item["sw_osc_start"], item["sw_osc_range"])
-                logging.getLogger("queue_exec").info(msg)
+                logging.getLogger("user_level_log").info(msg)
 
                 try:
                    self.interleave_items[item["collect_index"]]["queue_entry"].pre_execute()
@@ -808,6 +814,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         qc.connect(self.collect_hwobj, 'collectNumberOfFrames',
                    self.collect_number_of_frames)
 
+        if self.parallel_processing_hwobj is not None:
+            qc.connect(self.parallel_processing_hwobj, 'paralleProcessingResults',
+                       self.processing_set_result)
+            qc.connect(self.parallel_processing_hwobj, 'processingFailed',
+                       self.processing_failed)
+
         data_model = self.get_data_model()
 
         if data_model.get_parent():
@@ -832,6 +844,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                      self.image_taken)
         qc.disconnect(self.collect_hwobj, 'collectNumberOfFrames',
                      self.collect_number_of_frames)
+
+        if self.parallel_processing_hwobj is not None:
+            qc.disconnect(self.parallel_processing_hwobj, 'paralleProcessingResults',
+                       self.processing_set_result)
+            qc.disconnect(self.parallel_processing_hwobj, 'processingFailed',
+                       self.processing_failed)
 
         self.get_view().set_checkable(False)
 
@@ -862,11 +880,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
 
-                    if dc.run_processing_parallel:
-                        self.processing_task = gevent.spawn(\
-                             self.parallel_processing_hwobj.run_processing,
-                             dc)
-
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
                     self.collect_hwobj.setMeshScanParameters(\
                          acq_1.acquisition_parameters.num_lines,
@@ -874,10 +887,12 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                          acq_1.acquisition_parameters.num_lines, 
                          acq_1.acquisition_parameters.mesh_range)
                     self.collect_hwobj.set_helical(False)
+                    dc.run_processing_parallel = True
                 else:
                     self.collect_hwobj.set_helical(False)
 
-                if dc.run_processing_parallel:
+                if dc.run_processing_parallel and \
+                   self.parallel_processing_hwobj is not None:
                       self.processing_task = gevent.spawn(\
                            self.parallel_processing_hwobj.run_processing,
                            dc)    
@@ -973,7 +988,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         try:
             self.collect_hwobj.stopCollect('mxCuBE')
-
+            if self.processing_task:
+                self.parallel_processing_hwobj.stop_processing()
             if self.centring_task:
                 self.centring_task.kill(block=False)
         except gevent.GreenletExit:
@@ -985,6 +1001,20 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         # this is to work around the remote access problem
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
+
+    def processing_set_result(self, result_dict, info_dict, last_result):
+        data_model = self.get_data_model()
+        data_model.parallel_processing_result = result_dict
+        if last_result:
+            dispatcher.send("collect_finished")
+            self.processing_task = None
+            self.get_view().setText(1, "Processing done")
+            logging.getLogger("user_level_log").info('Processing done')
+
+    def processing_failed(self):
+        self.processing_task = None
+        self.get_view().setText(1, "Processing failed")
+        logging.getLogger("user_level_log").error('Processing failed')
 
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
@@ -1033,7 +1063,7 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         if self.char_qe: 
             self.status = self.char_qe.status
         else:
-            self.status = self.dc_qe
+            self.status = self.dc_qe.status
         BaseQueueEntry.post_execute(self)
 
 

@@ -174,6 +174,8 @@ class EMBLCRL(HardwareObject):
         """
         Descript. :
         """
+        #TODO do not set at startup
+        return
          
         if focusing_mode != None and self.at_startup:
             self.current_focusing_mode = focusing_mode

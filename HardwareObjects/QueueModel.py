@@ -1,8 +1,35 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+#
+#  Please user PEP 0008 -- "Style Guide for Python Code" to format code
+#  https://www.python.org/dev/peps/pep-0008/
+
 """
 Handels interaction with the data model(s). Adding, removing and
 retreiving nodes are all done via this object. It is possbile to
 handle several models by using register_model and select_model.
 """
+
+import atexit
+import logging
+import jsonpickle
+
 import queue_entry
 import queue_model_objects_v1 as queue_model_objects
 
@@ -13,6 +40,10 @@ class QueueModel(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
+        self._autosave_enabled = None
+        self._load_on_start_enabled = None
+        self._load_on_start_filename = None
+
         self._ispyb_model = queue_model_objects.RootNode()
         self._ispyb_model._node_id = 0
         self._free_pin_model = queue_model_objects.RootNode()
@@ -20,19 +51,13 @@ class QueueModel(HardwareObject):
         self._plate_model = queue_model_objects.RootNode()
         self._plate_model._node_id = 0
 
-        self._sc_one_model = queue_model_objects.RootNode()
-        self._sc_one_model._node_id = 0
-        self._sc_two_model = queue_model_objects.RootNode()
-        self._sc_two_model._node_id = 0
-
         self._models = {'ispyb': self._ispyb_model,
                         'free-pin': self._free_pin_model,
-                        'plate': self._plate_model,
-                        'sc_one' : self._sc_one_model,
-                        'sc_two' : self._sc_two_model}
+                        'plate': self._plate_model}
 
-        #self._selected_model = self._ispyb_model
-        self._selected_model = self._sc_one_model
+        self._selected_model = self._ispyb_model
+
+        atexit.register(self.save_on_exit)
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -58,6 +83,11 @@ class QueueModel(HardwareObject):
         You should normaly not need to call this method.
         """
         self.queue_hwobj = self.getObjectByRole("queue")
+       
+        self._load_on_start_enabled = \
+            self.getProperty("load_on_start_enabled")
+        self._load_on_start_filename = \
+            self.getProperty("load_on_start_filename")
 
     def select_model(self, name):
         """
@@ -344,13 +374,101 @@ class QueueModel(HardwareObject):
         :rtype: TaskModel
         """
         new_node = node.copy()
-
+ 
         if new_node.get_path_template():
             pt = new_node.get_path_template()
             new_run_number = self.get_next_run_number(pt)
             pt.run_number = new_run_number
             new_node.set_number(new_run_number)
 
+        #We do not copy grid object, but keep a link to the original grid
+        new_node.grid = node.grid
         new_node.set_executed(False)
 
         return new_node
+
+    def save_queue(self, filename):
+        """Saves queue in the file. Current selected model is saved as a list
+           of dictionaries. Information about samples and baskets is not saved
+        """
+ 
+        items_to_save = []
+
+        selected_model = "" 
+        for key in self._models:
+            if self._selected_model == self._models[key]:
+                selected_model = key
+
+        queue_entry_list = self.queue_hwobj.get_queue_entry_list()
+        for item in queue_entry_list:
+            #On the top level is Sample or Basket
+            if isinstance(item, queue_entry.SampleQueueEntry):
+                for task_item in item.get_queue_entry_list():
+                    task_item_dict = {"sample_location" : item.get_data_model().location,
+                                      "task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
+                    items_to_save.append(task_item_dict)
+
+        save_file = None
+        try:
+            save_file = open(filename, 'w')
+            save_file.write(repr((selected_model, items_to_save)))
+        except:
+            logging.getLogger().exception("Unable to save queue " + \
+                                          "in file %s", filename)
+            if save_file:
+                save_file.close()
+
+    def load_queue(self, filename, snapshot=None):
+        """Loads queue from file. The problem is snapshots that are 
+           not stored in the file, so we have to add new ones in 
+           the loading process
+
+           :returns: model name 'free-pin', 'ispyb' or 'plate'
+        """        
+
+        logging.getLogger("HWR").info("Loading queue from file %s" % filename)
+        load_file = None
+        try:
+            # Read file and clear the model
+            load_file = open(filename, 'r')
+            decoded_file = eval(load_file.read())
+            self.select_model(decoded_file[0])
+
+            # Prepare list of samples
+            sample_dict = {}
+            for item in self.queue_hwobj.get_queue_entry_list():
+                if isinstance(item, queue_entry.SampleQueueEntry):
+                    sample_data_model = item.get_data_model()
+                    sample_dict[sample_data_model.location] = sample_data_model
+                elif isinstance(item, queue_entry.BasketQueueEntry): 
+                    for sample_item in item.get_queue_entry_list():
+                        sample_data_model = sample_item.get_data_model()
+                        sample_dict[sample_data_model.location] = sample_data_model 
+
+            if len(decoded_file[1]) > 0:
+                for task_group_item in decoded_file[1]:
+                    task_group_entry = jsonpickle.decode(\
+                        task_group_item["task_group_entry"])
+                    self.add_child(sample_dict[task_group_item["sample_location"]],
+                                   task_group_entry)
+                    for child in task_group_entry.get_children():
+                        child.set_snapshot(snapshot)
+                logging.getLogger("HWR").info("Queue loading done")
+            else:
+                logging.getLogger("HWR").info("No queue content available in file")
+            return decoded_file[0]
+        except:
+            logging.getLogger("HWR").exception("Unable to load queue " + \
+                "from file %s", filename)
+            if load_file:
+                load_file.close()
+
+    def save_on_exit(self):
+        if self._load_on_start_filename is not None:
+            logging.getLogger().debug("Saving queue in file %s" % \
+                self._load_on_start_filename)
+            self.save_queue(self._load_on_start_filename)
+
+    def load_on_start(self):
+        if self._load_on_start_filename is not None:
+            self.load_queue(self._load_on_start_filename)

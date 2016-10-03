@@ -176,6 +176,9 @@ class GraphicsItem(QtGui.QGraphicsItem):
         """
         self.update()
         self.scene().itemClickedSignal.emit(self, self.isSelected())
+        #self.scene().mouseClickedSignal.emit(self.start_coord[0],
+        #                                     self.start_coord[1],
+        #                                     True)
 
     def toggle_selected(self):
         """Toggles item selection
@@ -326,8 +329,8 @@ class GraphicsItemPoint(GraphicsItem):
     """Centred point class.
     """
 
-    def __init__(self, centred_position = None, full_centring = True,
-                 position_x = 0, position_y = 0):
+    def __init__(self, centred_position=None, full_centring=True,
+                 position_x=0, position_y=0):
         """
         :param: parent
         :param centred position: motor positions 
@@ -511,6 +514,11 @@ class GraphicsItemLine(GraphicsItem):
     def get_graphical_points(self):
         return (self.__cp_start, self.__cp_end)
 
+    def set_graphical_points(self, cp_start, cp_end):
+        self.__cp_start = cp_start
+        self.__cp_end = cp_end
+        self.update_item()
+
     def get_centred_positions(self):
         return (self.__cp_start.get_centred_position(), \
                 self.__cp_end.get_centred_position())
@@ -575,6 +583,8 @@ class GraphicsItemGrid(GraphicsItem):
 
     @staticmethod
     def set_grid_direction(grid_direction):
+        """Sets grids direction.
+        """
         GraphicsItemGrid.grid_direction = grid_direction
 
     def get_display_name(self):
@@ -616,6 +626,8 @@ class GraphicsItemGrid(GraphicsItem):
         self.__osc_range = osc_range
 
     def set_draw_start_position(self, pos_x, pos_y):
+        """First click defines start position of the grid
+        """
         if self.__draw_mode:
             self.__corner_coord[0].setX(pos_x)
             self.__corner_coord[0].setY(pos_y)
@@ -624,8 +636,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.scene().update()
 
     def set_draw_end_position(self, pos_x, pos_y):
-        """
-        Descript. : Actual drawing moment, when grid size is defined
+        """Actual drawing moment, when grid size is defined
         """
         if self.__draw_mode:
             self.__corner_coord[1].setX(pos_x)
@@ -641,7 +652,7 @@ class GraphicsItemGrid(GraphicsItem):
 
         if num_rows * num_cols > pow(2, 16):
             msg_text = "Unable to draw grid containing more than %d cells!" % pow(2, 16)
-            logging.getLogger("user_level_log").info(msg_text)
+            logging.getLogger("GUI").info(msg_text)
         else:
             self.__num_cols = num_cols
             self.__num_rows = num_rows
@@ -714,7 +725,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_properties(self):
         (dx_mm, dy_mm) = self.get_grid_range_mm()
-        return {"name": "Grid %d" % (self.index + 1),
+        return {"name": "Mesh %d" % (self.index + 1),
                 "direction":  self.grid_direction,
                 "reversing_rotation": self.__reversing_rotation,
                 "steps_x": self.__num_cols,
@@ -1067,7 +1078,7 @@ class GraphicsItemGrid(GraphicsItem):
                                  math.cos(math.pi * (self.__osc_start - \
                                  self.grid_direction['omega_ref']) / 180.0)
             new_point['phiy'] = new_point['phiy'] - hor_range
-            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+            new_point['phi'] = new_point['phi'] - self.__osc_range * \
                                self.__num_cols / 2 + (self.__num_cols - col) * \
                                self.__osc_range
         else:
@@ -1079,7 +1090,7 @@ class GraphicsItemGrid(GraphicsItem):
                                  math.cos(math.pi * (self.__osc_start - \
                                  self.grid_direction['omega_ref']) / 180.0)
             new_point['phiy'] = new_point['phiy'] + ver_range
-            new_point['phi'] = new_point['phiy'] - self.__osc_range * \
+            new_point['phi'] = new_point['phi'] - self.__osc_range * \
                                self.__num_rows / 2 + (self.__num_rows - row) * \
                                self.__osc_range  
 
@@ -1498,9 +1509,11 @@ class GraphicsItemMeasureArea(GraphicsItem):
 class GraphicsView(QtGui.QGraphicsView):
     mouseMovedSignal = QtCore.pyqtSignal(int, int)
     keyPressedSignal = QtCore.pyqtSignal(str)
+    wheelSignal = QtCore.pyqtSignal(int)
 
     def __init__ (self, parent=None):
         super(GraphicsView, self).__init__(parent)
+
         self.graphics_scene = GraphicsScene(self)
         self.setScene(self.graphics_scene)  
         self.graphics_scene.clearSelection()
@@ -1508,6 +1521,20 @@ class GraphicsView(QtGui.QGraphicsView):
         self.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+        """
+        self.setToolTip("Keyboard shortcuts:\n" + \
+                        "  Ctrl+1 : 3 click centring\n" + \
+                        "  Ctrl+2 : Save centring point\n" + \
+                        "  Ctrl+L : Create line\n" + \
+                        "  Ctrl+G : Start grid drawing\n\n" + \
+                        "  Ctrl+A : Select all centring points\n" + \
+                        "  Ctrl+D : Deselect all items\n" + \
+                        "  Ctrl+X : Delete all items\n\n" + \
+                        "  + : Zoom in\n" + \
+                        "  - : Zoom out\n\n" + \
+                        "Mouse wheel : Rotate omega")
+        """
 
     def mouseMoveEvent(self, event):
         self.mouseMovedSignal.emit(event.x(), event.y())
@@ -1518,6 +1545,14 @@ class GraphicsView(QtGui.QGraphicsView):
             self.keyPressedSignal.emit("Delete")
         elif event.key() == QtCore.Qt.Key_Escape:
             self.keyPressedSignal.emit("Escape")
+        elif event.key() == QtCore.Qt.Key_Up:
+            self.keyPressedSignal.emit("Up")
+        elif event.key() == QtCore.Qt.Key_Down:
+            self.keyPressedSignal.emit("Down")
+        elif event.key() == QtCore.Qt.Key_Plus: 
+            self.keyPressedSignal.emit("Plus")
+        elif event.key() == QtCore.Qt.Key_Minus:   
+            self.keyPressedSignal.emit("Minus")
 
     def toggle_scrollbars_enable(self, state):
         if state:
@@ -1527,6 +1562,33 @@ class GraphicsView(QtGui.QGraphicsView):
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
             self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
+    def wheelEvent(self, event):
+        self.wheelSignal.emit(event.delta())
+
+        """
+        //Get the original screen centerpoint
+        QPointF screenCenter = GetCenter(); //CurrentCenterPoint; //(visRect.center());
+	ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnde rMouse);
+	//Scale the view ie. do the zoom
+	double scaleFactor = 1.15; //How fast we zoom
+	if(event->delta() > 0) {
+	//Zoom in
+	ui->graphicsView->scale(scaleFactor, scaleFactor);
+	} else {
+	//Zooming out
+	ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
+	}
+	ui->graphicsView->setTransformationAnchor(QGraphicsView::NoAnchor );
+	//Get the position after scaling, in scene coords
+	QPointF pointAfterScale(ui->graphicsView->mapToScene(event->pos()));
+
+	//Get the offset of how the screen moved
+	QPointF offset = pointBeforeScale - pointAfterScale;
+
+	//Adjust to the new center for correct zooming
+	QPointF newCenter = screenCenter + offset;
+	SetCenter(newCenter);
+        """
 
 class GraphicsScene(QtGui.QGraphicsScene):
     """

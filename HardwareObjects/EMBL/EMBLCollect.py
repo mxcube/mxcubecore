@@ -261,6 +261,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
             self.cmd_collect_scan_type(self.exp_type_dict.get(\
                  self.current_dc_parameters['experiment_type'], 'OSC'))
+            #self.cmd_collect_scan_type("still")
             self.cmd_collect_start()
         else:
             self.emit_collection_failed("Detector server not in unknown state")
@@ -308,29 +309,44 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def emit_collection_failed(self, failed_msg=None):
         """Collection failed method
         """ 
-        print 1
         if not failed_msg:
             failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
-        print 2
         #self.emit("collectOscillationFailed", (self.owner, False, 
         #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
-        print 3
         self.emit("collectEnded", self.owner, failed_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
-        print 4
         self.update_data_collection_in_lims()
 
     def guillotine_state_changed(self, state):
-        self.guillotine_state = state
+        if state[1] == 0:
+            self.guillotine_state = "closed"
+        elif state[1] == 1:
+            self.guillotine_state = "opened"
+        elif state[1] == 2:
+            self.guillotine_state = "closing"
+        elif state[1] == 3:
+            self.guillotine_state = "opening"
 
     def emit_collection_finished(self):  
         """Collection finished beahviour
         """
+        if self.current_dc_parameters['experiment_type'] != "Collect - Multiwedge":
+            self.update_data_collection_in_lims()
+
+            last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+            if last_frame > 1:
+                self.store_image_in_lims_by_frame_num(last_frame)
+            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
+                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
+                last_frame > 19):
+                self.trigger_auto_processing("after",
+                                             self.current_dc_parameters,
+                                             0)
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
@@ -342,19 +358,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.emit("progressStop", ()) 
         self._collecting = None
         self.ready_event.set()
-
-        if self.current_dc_parameters['experiment_type'] != "Collect - Multiwedge":
-            self.update_data_collection_in_lims()
-
-            last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-            if last_frame > 1:
-                self.store_image_in_lims_by_frame_num(last_frame)
-            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
-                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
-                last_frame > 19):
-                self.trigger_auto_processing("after", 
-                                             self.current_dc_parameters,
-                                             0)
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
         """Updates collection with information about workflow
@@ -604,7 +607,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             else:
                 flux = self.machine_info_hwobj.get_flux()
 
-                if flux is None:
+                if flux is None or flux < 0:
                     fullflux = 3.5e12
                     fullsize_hor = 1.200
                     fullsize_ver =  0.700

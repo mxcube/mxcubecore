@@ -66,3 +66,16 @@ class MicrodiffZoom(MD2Motor):
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
+
+    def zoom_in(self):
+        position_name = self.getCurrentPositionName()
+        position_index = self.predefinedPositionsNamesList.index(position_name)
+        if position_index < len(self.predefinedPositionsNamesList) - 1:
+            self.moveToPosition(self.predefinedPositionsNamesList[position_index + 1])
+ 
+    def zoom_out(self):
+        position_name = self.getCurrentPositionName()
+        position_index = self.predefinedPositionsNamesList.index(position_name)
+        if position_index > 0:
+            self.moveToPosition(self.predefinedPositionsNamesList[position_index - 1])
+

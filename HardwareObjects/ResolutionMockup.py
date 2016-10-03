@@ -98,7 +98,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
 
     def move(self, pos, wait=True):
         logging.getLogger().info("move Resolution to %s", pos)
-
+        self.newResolution(pos)
+ 
     def motorIsMoving(self):
         return False
 
