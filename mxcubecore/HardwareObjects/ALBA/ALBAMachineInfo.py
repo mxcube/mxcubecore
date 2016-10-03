@@ -72,13 +72,16 @@ __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
 
-class XalocMachineInfo(Equipment):
+class ALBAMachineInfo(Equipment):
     """
     Descript. : Displays actual information about the machine status.
     """
 
     def __init__(self, name):
-	Equipment.__init__(self, name)
+        Equipment.__init__(self, name)
+        self.logger = logging.getLogger("HWR MachineInfo")
+        self.logger.info("__init__()")
+
         """
         Descript. : 
         """
@@ -110,7 +113,7 @@ class XalocMachineInfo(Equipment):
 	    if self.chan_topup_remaining is not None:
 	        self.chan_topup_remaining.connectSignal('update', self.topup_remaining_changed)
         except KeyError:
-            logging.getLogger().warning('%s: cannot read machine info', self.name())
+            self.logger.warning('%s: cannot read machine info', self.name())
 
             
     def mach_current_changed(self, value):
@@ -123,6 +126,7 @@ class XalocMachineInfo(Equipment):
         or abs(self.values_dict['mach_current'] - value) > 0.10:
             self.values_dict['mach_current'] = value
             self.update_values()
+            self.logger.debug('New machine current value=%smA' % value)
 
     def mach_status_changed(self, status):
         """
@@ -132,6 +136,8 @@ class XalocMachineInfo(Equipment):
         """
         self.values_dict['mach_status'] = str(status)
         self.update_values()
+        self.logger.debug('New machine status=%s' % status)
+
 
     def topup_remaining_changed(self, value):
         """
@@ -141,7 +147,8 @@ class XalocMachineInfo(Equipment):
         """
         self.values_dict['topup_remaining'] = value
         self.update_values()
-
+        self.logger.debug('New top-up remaining time=%ss' % value)
+  
 
     def update_values(self):
         """
@@ -158,7 +165,8 @@ class XalocMachineInfo(Equipment):
         values_to_send.append(self.values_dict['topup_remaining'])
 
         self.emit('valuesChanged', values_to_send)
-
+        self.logger.debug("SIGNAL valuesChanged emitted")
+        
     def get_mach_current(self):
         return self.chan_mach_current.getValue()
         #return self.values_dict['mach_current']
