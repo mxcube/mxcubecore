@@ -1,10 +1,66 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+[Name]
+ALBAMiniDiff
+
+[Description]
+Specific HwObj for M2D2 diffractometer @ ALBA
+
+[Channels]
+- N/A
+
+[Commands]
+- N/A
+
+[Emited signals]
+- pixelsPerMmChanged
+- phiMotorMoved
+- stateChanged
+- zoomMotorPredefinedPositionChanged
+ 
+
+[Functions]
+- None
+
+[Included Hardware Objects]
+- None
+"""
+
 import logging, time, math, numpy
 from GenericDiffractometer import GenericDiffractometer
 from gevent.event import AsyncResult
 import gevent
 import PyTango
 
-class XalocMiniDiff(GenericDiffractometer):
+
+__author__ = "Jordi Andreu"
+__credits__ = ["MXCuBE colaboration"]
+
+__version__ = "2.2."
+__maintainer__ = "Jordi Andreu"
+__email__ = "jandreu[at]cells.es"
+__status__ = "Draft"
+
+
+class ALBAMiniDiff(GenericDiffractometer):
 
     def __init__(self, *args):
         GenericDiffractometer.__init__(self, *args)
@@ -14,9 +70,9 @@ class XalocMiniDiff(GenericDiffractometer):
         self.calibration = self.getObjectByRole("calibration")
         self.centring_hwobj = self.getObjectByRole('centring')
         if self.centring_hwobj is None:
-            logging.getLogger("HWR").debug('EMBLMinidiff: Centring math is not defined')
+            logging.getLogger("HWR").debug('ALBAMinidiff: Centring math is not defined')
 
-	self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+        self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
 
         self.phi_motor_hwobj = self.getObjectByRole('phi')
         self.phiz_motor_hwobj = self.getObjectByRole('phiz')
@@ -30,38 +86,38 @@ class XalocMiniDiff(GenericDiffractometer):
             self.connect(self.phi_motor_hwobj, 'stateChanged', self.phi_motor_state_changed)
             self.connect(self.phi_motor_hwobj, "positionChanged", self.phi_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Phi motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Phi motor is not defined')
 
         if self.phiz_motor_hwobj is not None:
             self.connect(self.phiz_motor_hwobj, 'stateChanged', self.phiz_motor_state_changed)
             self.connect(self.phiz_motor_hwobj, 'positionChanged', self.phiz_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Phiz motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Phiz motor is not defined')
 
         if self.phiy_motor_hwobj is not None:
             self.connect(self.phiy_motor_hwobj, 'stateChanged', self.phiy_motor_state_changed)
             self.connect(self.phiy_motor_hwobj, 'positionChanged', self.phiy_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Phiy motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Phiy motor is not defined')
 
         if self.zoom_motor_hwobj is not None:
             self.connect(self.zoom_motor_hwobj, 'positionChanged', self.zoom_position_changed)
             self.connect(self.zoom_motor_hwobj, 'predefinedPositionChanged', self.zoom_motor_predefined_position_changed)
             self.connect(self.zoom_motor_hwobj, 'stateChanged', self.zoom_motor_state_changed)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Zoom motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Zoom motor is not defined')
 
         if self.sample_x_motor_hwobj is not None:
             self.connect(self.sample_x_motor_hwobj, 'stateChanged', self.sampleX_motor_state_changed)
             self.connect(self.sample_x_motor_hwobj, 'positionChanged', self.sampleX_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Sampx motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Sampx motor is not defined')
 
         if self.sample_y_motor_hwobj is not None:
             self.connect(self.sample_y_motor_hwobj, 'stateChanged', self.sampleY_motor_state_changed)
             self.connect(self.sample_y_motor_hwobj, 'positionChanged', self.sampleY_motor_moved)
         else:
-            logging.getLogger("HWR").error('EMBLMiniDiff: Sampx motor is not defined')
+            logging.getLogger("HWR").error('ALBAMiniDiff: Sampx motor is not defined')
 
         if self.focus_motor_hwobj is not None:
             self.connect(self.focus_motor_hwobj, 'positionChanged', self.focus_motor_moved)
@@ -75,7 +131,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def get_pixels_per_mm(self):
         px_x, px_y = self.getCalibrationData()
-	return (px_x,px_y)
+        return (px_x,px_y)
             
 
     def update_pixels_per_mm(self, *args):
