@@ -1,13 +1,12 @@
 """
 A client for ISPyB Webservices. 
 """
-import os
 import logging
-import gevent
-from datetime import datetime
-from requests import put, get, post
 
-from HardwareRepository import HardwareRepository
+
+from datetime import datetime
+from requests import post, get
+from urlparse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
@@ -15,27 +14,10 @@ _CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
                         "configuration is correct"
 _NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."
 
-def in_greenlet(fun):
-    def _in_greenlet(*args, **kwargs):
-        log_msg = "lims client " + fun.__name__ + " called with: "
-
-        for arg in args[1:]:
-            try:
-                log_msg += pformat(arg, indent = 4, width = 80) + ', '
-            except:
-                pass
-
-        logging.getLogger("ispyb_client").debug(log_msg)
-        task = gevent.spawn(fun, *args)
-        if kwargs.get("wait", False):
-          task.get()
-
-    return _in_greenlet
-
 
 class ISPyBRestClient(HardwareObject):
     """
-    Web-service client for ISPyB.
+    RESTful Web-service client for EXI.
     """
 
     def __init__(self, name):
@@ -49,10 +31,8 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_token_timestamp = None 
 
     def init(self):
-        """
-        Descript. :
-        """
         self.session_hwobj = self.getObjectByRole('session')
+
         if self.session_hwobj:
             self.beamline_name = self.session_hwobj.beamline_name
         else:
@@ -60,18 +40,18 @@ class ISPyBRestClient(HardwareObject):
 
         logging.getLogger("requests").setLevel(logging.WARNING)
 
-        self.__rest_root = self.getProperty('restRoot')
-        self.__rest_username = self.getProperty('restUserName')
-        self.__rest_password = self.getProperty('restPass')
+        self.__rest_root = self.getProperty('restRoot').strip()
+        self.__rest_username = self.getProperty('restUserName').strip()
+        self.__rest_password = self.getProperty('restPass').strip()
+        self.__site = self.getProperty('site').strip()
 
         self.__update_rest_token()
 
     def __update_rest_token(self):
         """
-        Descript. : updates REST token if necessary
-                    By default token expires in 3h so we are checking
-                    the timestamp of the tocken and if it is older
-                    than 3h we update the rest tocken
+        Updates REST token if necessary by default token expires in 3h so we
+        are checking the timestamp of the tocken and if it is older than 3h we
+        update the rest token
         """
         request_token = False
         if not self.__rest_token_timestamp:
@@ -82,18 +62,30 @@ class ISPyBRestClient(HardwareObject):
                request_token = True
 
         if request_token: 
-            try:
-               logging.getLogger("ispyb_client").info("Requesting new RESTful token...")
-               data_dict = {'login' : str(self.__rest_username),
-                            'password' : str(self.__rest_password)}
-               response = post(self.__rest_root + 'authenticate', data = data_dict)
-               self.__rest_token = response.json().get('token') 
-               self.__rest_token_timestamp = datetime.now()
-               logging.getLogger("ispyb_client").info("RESTful token acquired")
-            except:
-               logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
+            self.authenticate(self.__rest_username, self.__rest_password)
 
-    #@in_greenlet
+    def authenticate(self, user, password):
+        auth_url = urljoin(self.__rest_root, "authenticate?site=" + self.__site)
+
+        try:
+            data = {'login': str(user), "password": str(password)}
+            response = post(auth_url, data = data)
+
+            self.__rest_token = response.json().get("token") 
+            self.__rest_token_timestamp = datetime.now()
+            self.__rest_username = user
+            self.__rest_password = password
+        except Exception as ex:
+            msg = "POST to %s failed reason %s" % (auth_url, str(ex)) 
+            logging.getLogger("ispyb_client").exception(msg)
+        else:
+            msg = "Authenticated to LIMS token is: %s" % self.__rest_root
+            logging.getLogger("ispyb_client").exception(msg)
+
+
+    def sample_link(self):
+        return urljoin(self.__rest_root, "samples?token=%s" % self.__rest_token)
+
     def get_proposals_by_user(self, user_name):
         """
         Descript. : gets all proposals for selected user
