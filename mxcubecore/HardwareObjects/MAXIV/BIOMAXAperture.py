@@ -3,13 +3,22 @@ from HardwareRepository import HardwareRepository
 from MicrodiffAperture import MicrodiffAperture
 
 class BIOMAXAperture(MicrodiffAperture):
+
+    POSITIONS = ("BEAM", "OFF", "PARK")
+
     def __init__(self, *args):
         MicrodiffAperture.__init__(self, *args)
+        self.aperture_position = None
 
-    def init(self): 
+
+    def init(self):
         MicrodiffAperture.init(self)
         self.aperture_position = self.addChannel({"type":"exporter", "name":"AperturePosition" }, "AperturePosition")
-        print self.aperture_position
+        if self.aperture_position is not None:
+            self.connect(self.aperture_position,'update', self.position_changed)
+
+        self.get_diameter_list = self.getPredefinedPositionsList
+        self.set_position = self.moveToPosition
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
@@ -23,3 +32,8 @@ class BIOMAXAperture(MicrodiffAperture):
             if self.aperture_position.getValue() != 'BEAM':
                 self.aperture_position.setValue("BEAM")
 
+    def get_position_list(self):
+        return BIOMAXAperture.POSITIONS
+
+    def position_changed(self, position):
+        self.emit('positionChanged', position) #self.aperture_position.getValue())
