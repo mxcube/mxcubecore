@@ -368,3 +368,18 @@ class BIOMAXMD3(GenericDiffractometer):
         except:
 	    logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
+
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+        """
+        Descript. :
+        """
+        self.centring_hwobj.initCentringProcedure()
+        self.centring_hwobj.appendCentringDataPoint({
+                   "X" : (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                   "Y" : (y - self.beam_position[1]) / self.pixels_per_mm_y})
+        self.omega_reference_add_constraint()
+        pos = self.centring_hwobj.centeredPosition()
+        if return_by_names:
+            pos = self.convert_from_obj_to_name(pos)
+        return pos
+
