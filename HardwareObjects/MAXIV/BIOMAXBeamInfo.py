@@ -11,23 +11,31 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
     def init(self): 
         self.chan_beam_size_microns = None 
         self.chan_beam_shape_ellipse = None 
-        self.keep_polling = True
+        #self.keep_polling = True
         BeamInfo.BeamInfo.init(self)
         
         self.camera = self.getDeviceByRole('camera')
-        self.chan_beam_pos_x = self.addChannel({"type":"exporter", "name":"BeamPositionHorizontal"  }, 'BeamPositionHorizontal')
-        self.chan_beam_pos_y = self.addChannel({"type":"exporter", "name":"BeamPositionVertical"  }, 'BeamPositionVertical')
-        self.chan_beam_size_x = self.addChannel({"type":"exporter", "name":"BeamSizeHorizontal"  }, 'BeamSizeHorizontal')
-        self.chan_beam_size_y = self.addChannel({"type":"exporter", "name":"BeamSizeVertical"  }, 'BeamSizeVertical') 
-        self.chan_beam_shape_ellipse = self.addChannel({"type":"exporter", "name":"BeamShapeEllipse"  }, 'BeamShapeEllipse')
-        self.chan_ImageZoom=self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
+        self.chan_beam_pos_x = self.getChannelObject("BeamPositionHorizontal")
+        self.chan_beam_pos_y = self.getChannelObject("BeamPositionVertical")
+        self.chan_beam_size_x = self.getChannelObject("BeamSizeHorizontal")
+        self.chan_beam_size_y = self.getChannelObject("BeamSizeVertical")
+        self.chan_beam_shape_ellipse = self.getChannelObject("BeamShapeEllipse")
+        self.chan_ImageZoom=self.getChannelObject("ImageZoom")
 
+        self.connect(self.chan_beam_pos_x, "update", self.beam_position_changed)
+        self.connect(self.chan_beam_pos_y, "update", self.beam_position_changed)
+        self.connect(self.chan_ImageZoom, "update", self.beam_position_changed)
+        self.connect(self.chan_beam_size_x,"update", self.beam_info_changed)
+        self.connect(self.chan_beam_size_y,"update", self.beam_info_changed)
+        self.connect(self.chan_beam_shape_ellipse,"update", self.beam_info_changed)
+   
         print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
         
-        self.polling = gevent.spawn(self._polling)
+        #self.polling = gevent.spawn(self._polling)
 
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
 
+    """
     def _polling(self):
         old_beam_pos = [-1, -1]
         old_size = [-1, -1]
@@ -53,24 +61,28 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
                 self.beam_info_changed()
 
             time.sleep(1)
-
+    """
     def stop_polling(self):
         self.keep_polling = False
 
     def connectNotify(self, *args):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
-        self.beam_position_changed()
+        #self.beam_position_changed()
 
-    def beam_position_changed(self):
+    def beam_position_changed(self,value):
+        print "lalala position", value
         self.get_beam_position()
         self.emit("beamPosChanged", (self.beam_position, ))
+        print "beam position changed", self.beam_position
 
-    def beam_info_changed(self):
+    def beam_info_changed(self,value):
+        print "lalalla info", value
 	self.evaluate_beam_info()
 	self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
         print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
+        """
 
         if self.chan_beam_pos_x is not None and self.chan_beam_pos_y is not None:
             #self.get_beam_position()
@@ -90,6 +102,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
 	self.emit("beamInfoChanged", (self.beam_info_dict, ))
         self.emit("beamPosChanged", (self.beam_position, ))
+        """
 
     def get_beam_position(self):
         """
@@ -97,7 +110,6 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         Arguments :
         Return    :
         """
-        logging.info ("camera is %s", str(self.camera))
 	if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
