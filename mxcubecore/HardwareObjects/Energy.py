@@ -114,7 +114,7 @@ class Energy(Equipment):
 
         try:
             value=float(value)
-        except (TypeError,ValueError),diag:
+        except (TypeError,ValueError) as diag:
             logging.getLogger('user_level_log').error("Energy: invalid energy (%s)" % value)
             return False
 
@@ -184,7 +184,7 @@ class Energy(Equipment):
                         self.ctrl.quick_realign()
                     else:
                         self.executeCommand("moveEnergy", energy, wait=True)
-                except RuntimeError, AttributeError:
+                except RuntimeError as AttributeError:
                     self.energy_motor.move(energy)
             else:
                 self.energy_motor.move(energy)
@@ -196,7 +196,7 @@ class Energy(Equipment):
             self.emit('valueChanged', (pos, ))
 
     def energyStateChanged(self, state):
-        print state
+        print(state)
 
     def get_value(self):
         #generic method used by the beamline setup

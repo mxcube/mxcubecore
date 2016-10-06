@@ -1,5 +1,5 @@
 import logging
-from . import saferef
+import saferef
 from gevent import _threading 
 import gevent
 import gevent.monkey
@@ -26,7 +26,7 @@ def get_poller(poller_id):
 
 def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True, start_delay=0, start_value=NotInitializedValue):
      #logging.info(">>>> %s", POLLERS)
-     for _, poller in POLLERS.iteritems():
+     for _, poller in POLLERS.items():
          poller_polled_call = poller.polled_call_ref()
          #logging.info(">>>>> poller.poll_cmd=%s, poll_cmd=%s, poller.args=%s, args=%s", poller_polled_call, polled_call, poller.args, polled_call_args)
          if poller_polled_call == polled_call and poller.args == polled_call_args:
@@ -132,7 +132,7 @@ class _Poller:
 
             try:
                 res = polled_call(*self.args)
-            except Exception, e:
+            except Exception as e:
                 if self.stop_event.is_set():
                   break
                 error_cb = self.error_callback_ref()
@@ -153,7 +153,7 @@ class _Poller:
                 if self.compare:
                   if isinstance(res, numpy.ndarray):
                       comparison = res == self.old_res
-                      if type(comparison) == types.BooleanType:
+                      if type(comparison) == bool:
                           new_value = not comparison
                       else:
                           new_value = not all(comparison)

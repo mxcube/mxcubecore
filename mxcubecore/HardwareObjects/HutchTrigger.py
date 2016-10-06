@@ -44,7 +44,7 @@ class TacoHutchTrigger(TacoDevice.TacoDevice):
         
         PSSinfo = self.getProperty("pss")
         try:
-            card, channel = map(int, PSSinfo.split("/"))
+            card, channel = list(map(int, PSSinfo.split("/")))
         except:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
@@ -124,7 +124,7 @@ class TangoHutchTrigger(BaseHardwareObjects.Device):
     def _init(self):
         try:
             self.device = PyTango.DeviceProxy(self.getProperty("tangoname"))
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
 	    self.device = None
@@ -162,7 +162,7 @@ class TangoHutchTrigger(BaseHardwareObjects.Device):
 
         PSSinfo = self.getProperty("pss")
         try:
-            self.card, self.channel = map(int, PSSinfo.split("/"))
+            self.card, self.channel = list(map(int, PSSinfo.split("/")))
         except:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
