@@ -33,16 +33,13 @@ from dispatcher import *
 _instance = None
 _hwrserver = None
 
-
 def addHardwareObjectsDirs(hoDirs):
-    if type(hoDirs) == types.ListType:
-        newHoDirs = filter(os.path.isdir, map(os.path.abspath, hoDirs))
+    if type(hoDirs) == list:
+        newHoDirs = list(filter(os.path.isdir, list(map(os.path.abspath, hoDirs))))
 
         for newHoDir in newHoDirs:
             if not newHoDir in sys.path:
-                #print 'inserted in sys.path = %s' % newHoDir
                 sys.path.insert(0, newHoDir)
-                    
 
 default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
 addHardwareObjectsDirs(default_local_ho_dir)
@@ -51,12 +48,11 @@ addHardwareObjectsDirs(default_local_ho_dir)
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
 
-    xml_dirs_list = filter(os.path.exists, hwrserver.split(os.path.pathsep))
+    xml_dirs_list = list(filter(os.path.exists, hwrserver.split(os.path.pathsep)))
     if xml_dirs_list:
         _hwrserver = xml_dirs_list
     else:
         _hwrserver = hwrserver
-    
 
 def HardwareRepository(hwrserver = None):
     """Return the Singleton instance of the Hardware Repository."""
@@ -86,6 +82,7 @@ class __HardwareRepositoryClient:
         self.requiredHardwareObjects = {}
         self.xml_source={}
         self.__connected = False
+        self.server = None
         
     def connect(self):
         if self.__connected:
@@ -94,9 +91,8 @@ class __HardwareRepositoryClient:
             self.invalidHardwareObjects = set()
             self.hardwareObjects = weakref.WeakValueDictionary()
 
-            if type(self.serverAddress)==types.StringType:
+            if type(self.serverAddress)==bytes:
                 mngr = SpecConnectionsManager.SpecConnectionsManager() 
-
                 self.server = mngr.getConnection(self.serverAddress)
       
                 with gevent.Timeout(3): 
@@ -151,7 +147,6 @@ class __HardwareRepositoryClient:
             except:
                 logging.getLogger('HWR').exception('Could not load Hardware Object "%s"', hoName)
             else:
-                #print 'loading %s took %s ms' % (hoName, 1000*(time.time()-t0))
                 try:
                   xmldata = replyDict['xmldata']
                   mtime = int(replyDict['mtime'])
@@ -172,13 +167,13 @@ class __HardwareRepositoryClient:
                    pass
                  break 
 
-        if True:  
-                #print xmldata
+        if True:
                 if len(xmldata) > 0:
                     try:
                         #t0 = time.time()
                         ho = self.parseXML(xmldata, hoName)
-                        #print 'parsing %s took %s ms' % (hoName, (time.time()-t0)*1000)
+                        if type(ho) == str:
+                            return self.loadHardwareObject(ho)  
                     except:
                         logging.getLogger("HWR").exception("Cannot parse XML file for Hardware Object %s", hoName)
                     else:
@@ -260,7 +255,7 @@ class __HardwareRepositoryClient:
         Return :
           the Hardware Object, or None if it fails
         """
-	try:
+        try:
             ho = HardwareObjectFileParser.parseString(XMLString, hoName)
         except:
             logging.getLogger('HWR').exception('Cannot parse Hardware Repository file %s', hoName)
@@ -320,7 +315,7 @@ class __HardwareRepositoryClient:
                 logging.getLogger('HWR').error('Error while doing Hardware Repository files list')
                 return
             else:
-                for name, filename in completeFilesList.iteritems():
+                for name, filename in completeFilesList.items():
                     if name.startswith(startdir):
                         yield (name, filename)
                         
@@ -376,14 +371,19 @@ class __HardwareRepositoryClient:
             if objectName:
                 if objectName in self.invalidHardwareObjects:
                     return None
-            
-                try:
+
+                if objectName in self.hardwareObjects:
                     ho = self.hardwareObjects[objectName]
-                except KeyError:
+                else:
                     ho = self.loadHardwareObject(objectName)
-                
+
+                #try:
+                #    print (111, self.hardwareObjects, objectName)
+                #    ho = self.hardwareObjects[objectName]
+                #except KeyError:
+                #    ho = self.loadHardwareObject(objectName)
                 return ho
-        except TypeError, err:
+        except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
         
 

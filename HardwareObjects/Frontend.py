@@ -90,7 +90,7 @@ class Frontend(BaseHardwareObjects.Device):
                   self.addChannel({ 'type': 'tango', 'name': key,
                                     'tangoname': tangoname}, key)
 
-        for key in self.undulatorGaps.keys():
+        for key in list(self.undulatorGaps.keys()):
             gap = self.getChannelObject(key).getValue()
             if gap is None or math.isnan(gap):
               gap = -1
@@ -100,14 +100,14 @@ class Frontend(BaseHardwareObjects.Device):
 
     def getUndulatorGap(self, name):
         undulator_gaps = self.getUndulatorGaps()
-        for key in undulator_gaps.keys():
+        for key in list(undulator_gaps.keys()):
             if name.lower() in key.lower():
                 return undulator_gaps[key]
 
     def moveUndulatorGaps(self, gaps):
         curr_gaps = self.getUndulatorGaps()
-        for key in curr_gaps.keys():
-            for nkey in gaps.keys():
+        for key in list(curr_gaps.keys()):
+            for nkey in list(gaps.keys()):
                 if nkey.lower() in key.lower():
                     self.getChannelObject(key).setValue(gaps[nkey])
                 

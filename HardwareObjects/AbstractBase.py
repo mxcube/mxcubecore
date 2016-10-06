@@ -4,7 +4,7 @@
 
 import abc
 
-class AbstractShutter(object):
+class AbstractShutter(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for Shutter objects. The shutter has eight states 
     which are defined as::
@@ -19,8 +19,6 @@ class AbstractShutter(object):
      -1 -- 'error'
 
     """
-
-    __metaclass__ = abc.ABCMeta
 
     
     @abc.abstractmethod
@@ -83,12 +81,10 @@ class AbstractShutter(object):
         return
 
 
-class AbstractAttenuators(object):
+class AbstractAttenuators(object, metaclass=abc.ABCMeta):
     """
     Abstract Attenuators class.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     
     @abc.abstractmethod
@@ -142,7 +138,7 @@ class AbstractAttenuators(object):
         return
 
 
-class AbstractFrontend(object):
+class AbstractFrontend(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for Frontend (shutter) Objects. 
     The shutter has eight states which are defined as::
@@ -157,8 +153,6 @@ class AbstractFrontend(object):
      -1 -- 'error'
 
     """
-
-    __metaclass__  = abc.ABCMeta
 
 
     @abc.abstractmethod
@@ -228,12 +222,10 @@ class AbstractFrontend(object):
         return
 
 
-class AbstractHutchTrigger(object):
+class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for hutch triggers.
     """
-
-    __metaclass__ = abc.ABCMeta
 
 
     @abc.abstractmethod
@@ -324,13 +316,11 @@ class AbstractHutchTrigger(object):
         return
 
 
-class AbstractInOut(object):
+class AbstractInOut(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for InOut objects. Can be any ojects that have the two
     states 'in' and 'out'.
     """
-
-    __metaclass__ = abc.ABCMeta
 
 
     @abc.abstractmethod
@@ -363,11 +353,9 @@ class AbstractInOut(object):
  Abstract base classes for instruments
 """
 
-class AbstractAdscTemperature(object):
+class AbstractAdscTemperature(object, metaclass=abc.ABCMeta):
     """
     """
-
-    __metaclass__ = abc.ABCMeta
 
 
     @abc.abstractmethod
@@ -388,11 +376,9 @@ class AbstractAdscTemperature(object):
         return
 
 
-class AbstractCamera(object):
+class AbstractCamera(object, metaclass=abc.ABCMeta):
     """
     """
-
-    __metaclass__ = abc.ABCMeta
 
     
     @abc.abstractmethod
@@ -540,11 +526,9 @@ class AbstractCamera(object):
         return
 
 
-class AbstractCryo(object):
+class AbstractCryo(object, metaclass=abc.ABCMeta):
     """
     """
-
-    __metaclass__ = abc.ABCMeta
 
 
     @abc.abstractmethod
@@ -562,11 +546,9 @@ class AbstractCryo(object):
         return
     
 
-class AbstractCyberStar(object):
+class AbstractCyberStar(object, metaclass=abc.ABCMeta):
     """
     """
-    
-    __metaclass__ = abc.ABCMeta
 
     
     @abc.abstractmethod
@@ -592,11 +574,9 @@ class AbstractCyberStar(object):
         return
 
 
-class AbstractLakeshore(object):
+class AbstractLakeshore(object, metaclass=abc.ABCMeta):
     """
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def set_unit(self, unit):
@@ -677,11 +657,9 @@ class AbstractLakeshore(object):
         return
 
 
-class AbstractXCamera(object):
+class AbstractXCamera(object, metaclass=abc.ABCMeta):
     """
     """
-    
-    __metaclass__ = abc.ABCMeta
 
 
     @abc.abstractmethod

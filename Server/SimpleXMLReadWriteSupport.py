@@ -1,5 +1,5 @@
 import sys
-import cStringIO
+import io
 from xml.sax.saxutils import XMLGenerator
 from xml.sax import make_parser
 from xml.sax import SAXParseException
@@ -25,7 +25,7 @@ def testPath(pathParts, queryPathParts, attrs):
     if nPathParts == len(queryPathParts):
         match = True
             
-        for i in xrange(nPathParts):
+        for i in range(nPathParts):
             queryPathPart = queryPathParts[i]
             pathPart = pathParts[i]
 
@@ -63,13 +63,13 @@ def testPath(pathParts, queryPathParts, attrs):
                                     queryAttribute.strip()
                                     queryAttributeValue.strip()
 
-                                    if attrs.has_key(queryAttribute) and attrs[queryAttribute] == queryAttributeValue:
+                                    if queryAttribute in attrs and attrs[queryAttribute] == queryAttributeValue:
                                         continue
                                     else:
                                         match = False
                                         break
                                 else:
-                                    if not attrs.has_key(attributePart):
+                                    if attributePart not in attrs:
                                         match = False
                                         break
                             else:
@@ -136,7 +136,7 @@ class XMLReadingHandler(ContentHandler):
         if self.elementName is None:
             if testPath(self.path, self.queryPathParts, attrs):            
                 if self.queryAttribute is not None:
-                    if attrs.has_key(self.queryAttribute):
+                    if self.queryAttribute in attrs:
                         self.value.append( { '__value__': str(attrs[self.queryAttribute]) })
                 else:
                     self.childDepth = 0
@@ -145,7 +145,7 @@ class XMLReadingHandler(ContentHandler):
                     # append new node to value
                     self.value.append( { '__value__': '', '__path__': self.path, '__children__': {} } )
 
-                    for key, value in attrs.items():
+                    for key, value in list(attrs.items()):
                         # add attributes
                         self.value[-1][str(key)] = str(value)
         else:
@@ -259,7 +259,7 @@ def remove(inputFile, path, outputFile = None):
 
 class XMLModifier(XMLGenerator):
     def __init__(self):
-        self.__buffer = cStringIO.StringIO()
+        self.__buffer = io.StringIO()
         
         XMLGenerator.__init__(self, self.__buffer)
 
@@ -307,7 +307,7 @@ class XMLUpdateHandler(XMLModifier):
                 self.modifiedContent = self.updatedValue
             else:
                 new_attrs = {}
-                for key, value in attrs.items():
+                for key, value in list(attrs.items()):
                     new_attrs[key] = value
                 new_attrs[self.queryAttribute] = self.updatedValue
                 
@@ -380,7 +380,7 @@ class XMLBatchUpdateHandler(XMLModifier):
                     self.modifiedContent = self.updatedValues[i]
                 else:
                     new_attrs = {}
-                    for key, value in attrs.items():
+                    for key, value in list(attrs.items()):
                         new_attrs[key] = value
                     new_attrs[self.queryAttribute[i]] = self.updatedValues[i]
                 
@@ -452,9 +452,9 @@ class XMLRemoveHandler(XMLModifier):
                 self.skipElementPath = self.path
                 return
             else:
-                if attrs.has_key(self.queryAttribute):
+                if self.queryAttribute in attrs:
                     new_attrs = {}
-                    for key, value in attrs.items():
+                    for key, value in list(attrs.items()):
                         new_attrs[key] = value
                     del new_attrs[self.queryAttribute]
 

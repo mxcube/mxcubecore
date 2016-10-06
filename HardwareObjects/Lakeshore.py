@@ -93,7 +93,7 @@ class Lakeshore(TacoDevice.TacoDevice):
                     if timeout is not None and ((time.time()-t0) > timeout):
                         break
                     else:
-                        print 'waiting to read something', recv, len(recv)
+                        print('waiting to read something', recv, len(recv))
                         time.sleep(0.05)
                 else:
                     ret += recv
@@ -104,7 +104,7 @@ class Lakeshore(TacoDevice.TacoDevice):
         time.sleep(0.05)
 
         if not ret.endswith("\r\n"):
-            print cmd, ret
+            print(cmd, ret)
             logging.getLogger("HWR").error("%s: received incomplete answer from Lakeshore", self.name())
             self.setStatus("read error")
             return ""
@@ -128,7 +128,7 @@ class Lakeshore(TacoDevice.TacoDevice):
         reading = self.putget(cmd)
 
         try:
-            channel_values = map(float, reading.split(","))
+            channel_values = list(map(float, reading.split(",")))
         except ValueError:
             channel_values = [] 
         else:

@@ -1,9 +1,14 @@
+import sys
 import logging
 import types
+import dispatcher
 from dispatcher import *
 from CommandContainer import CommandContainer
-import HardwareRepository
 
+if sys.version_info > (3, 0):
+    from HardwareRepository import * 
+else: 
+    import HardwareRepository
       
 class PropertySet(dict):
     def __init__(self):
@@ -19,7 +24,7 @@ class PropertySet(dict):
         
 
     def getPropertiesPath(self):
-        return self.__propertiesPath.iteritems()
+        return iter(self.__propertiesPath.items())
         
     
     def __setitem__(self, name, value):
@@ -32,7 +37,7 @@ class PropertySet(dict):
 
 
     def getChanges(self):
-        for propertyName, value in self.__propertiesChanged.iteritems():
+        for propertyName, value in self.__propertiesChanged.items():
             yield (self.__propertiesPath[propertyName], value)
             
         self.__propertiesChanged = {} #reset changes at commit
@@ -48,12 +53,7 @@ class HardwareObjectNode:
         self._path = ''
         self.__name = nodeName
         self.__references = []
- 
 
-    def __setstate__(self, dict):
-        self.__dict__.update(dict)
-    
-    
     def name(self):
         return self.__name
     
@@ -63,7 +63,7 @@ class HardwareObjectNode:
      
    
     def getRoles(self):
-        return self._objectsByRole.keys()
+        return list(self._objectsByRole.keys())
 
 
     def setPath(self, path):
@@ -87,23 +87,31 @@ class HardwareObjectNode:
     
     def __getattr__(self, attr):
         if attr.startswith("__"):
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
         try:
-            return self._propertySet[attr]
+            # python2.7
+            #return self._propertySet[attr]
+            # python3.4
+            return self.__dict__['_propertySet'][attr]
         except KeyError:
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
 
     def __setattr__(self, attr, value):
-        if not attr in self.__dict__ and attr in self._propertySet:
-	    self.setProperty(attr, value)
-        else:
+        try:
+            if not attr in self.__dict__ and attr in self._propertySet:
+                self.setProperty(attr, value)
+            else:
+                self.__dict__[attr] = value
+        except AttributeError:
             self.__dict__[attr] = value
-
         
     def __getitem__(self, key):
-        if type(key) == types.StringType:
+        #python2.7
+        #if type(key) == types.StringType:
+        #python3.4
+        if type(key) == str:
             objectName = key
             
             try:
@@ -116,7 +124,10 @@ class HardwareObjectNode:
                     return obj[0]
                 else:
                     return obj
-        elif type(key) == types.IntType:
+        #python2.7
+        #elif type(key) == types.IntType:
+        #python3.4
+        elif type(key) == int:
             i = key
 
             if i < len(self.__objectsNames):
@@ -155,17 +166,17 @@ class HardwareObjectNode:
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = self.__references.pop()
 
-            object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
-
-            if object is not None:
-                self._objectsByRole[role] = object
-                object.__role = role
+            hw_object = HardwareRepository.HardwareRepository().getHardwareObject(reference)
+            
+            if hw_object is not None:
+                self._objectsByRole[role] = hw_object
+                hw_object.__role = role
 
                 if objectsNamesIndex >= 0:
                     self.__objectsNames[objectsNamesIndex] = name
-                    self.__objects[objectsIndex] = [ object ]
+                    self.__objects[objectsIndex] = [hw_object]
                 else:
-                    self.__objects[objectsIndex][objectsIndex2] = object
+                    self.__objects[objectsIndex][objectsIndex2] = hw_object
             else:
                 if objectsNamesIndex >= 0:
                     del self.__objectsNames[objectsNamesIndex]
@@ -175,25 +186,25 @@ class HardwareObjectNode:
                     if len(self.objects[objectsIndex]) == 0:
                         del self.objects[objectsIndex]
                 
-        for object in self:
-            object.resolveReferences()
+        for hw_object in self:
+            hw_object.resolveReferences()
             
         
-    def addObject(self, name, object, role = None):
-        if object is None:
+    def addObject(self, name, hw_object, role = None):
+        if hw_object is None:
             return
         elif role is not None:
             role = str(role).lower()
-            self._objectsByRole[role] = object
-            object.__role = role
+            self._objectsByRole[role] = hw_object
+            hw_object.__role = role
         
         try:
             i = self.__objectsNames.index(name)
         except ValueError:
             self.__objectsNames.append(name)
-            self.__objects.append([ object ])
+            self.__objects.append([hw_object])
         else:
-            self.__objects[i].append(object)
+            self.__objects[i].append(hw_object)
             
 
     def hasObject(self, objectName):
@@ -268,7 +279,7 @@ class HardwareObjectNode:
         
 
     def getProperty(self, name):
-	try:
+        try:
             return self._propertySet[str(name)]
         except:
             return None
@@ -277,6 +288,19 @@ class HardwareObjectNode:
     def getProperties(self):
         return self._propertySet
             
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the 
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values 
+        """
+        return
 
 class HardwareObject(HardwareObjectNode, CommandContainer):
     def __init__(self, rootName):
@@ -293,36 +317,47 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         #'public' post-initialization method
         pass
 
+
+    def __getstate__(self):
+        return self.name()
+
+    def __setstate__(self, name):
+        o = HardwareRepository.HardwareRepository().getHardwareObject(name)
+        self.__dict__.update(o.__dict__)
+       
     
-    def __nonzero__(self):
+    def __bool__(self):
         return True
         
 
     def __getattr__(self, attr):
         if attr.startswith("__"):
-           raise AttributeError, attr
+            raise AttributeError(attr)
+
         try:
             return CommandContainer.__getattr__(self, attr)
         except AttributeError:
             try:
                 return HardwareObjectNode.__getattr__(self, attr)
             except AttributeError:
-                raise AttributeError, attr
-    
+                raise AttributeError(attr)
 
     def emit(self, signal, *args):
-        signal =  str(signal)
+         
+        signal = str(signal)
     
         if len(args)==1:
-          if type(args[0])==types.TupleType:
+          if type(args[0])==tuple:
             args=args[0]
-    
         dispatcher.send(signal, self, *args)  
 
     
     def connect(self, sender, signal, slot=None):
         if slot is None:
-            if type(sender) == types.StringType:
+            # TODO 2to3 
+
+            #if type(sender) == bytes:
+            if type(sender) == str:
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -331,7 +366,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 signal = sender
                 sender = self
             else:
-                raise ValueError, "invalid slot (None)"
+                raise ValueError("invalid slot (None)")
 
         signal = str(signal)
             
@@ -343,7 +378,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def disconnect(self, sender, signal, slot=None):
         if slot is None:
-            if type(sender) == types.StringType:
+            # TODO 2to3
+            #if type(sender) == bytes:
+            if type(sender) == str:
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -352,7 +389,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
                 signal = sender
                 sender = self
             else:
-                raise ValueError, "invalid slot (None)"
+                raise ValueError("invalid slot (None)")
 
         signal = str(signal)
             
@@ -363,7 +400,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         
  
     def connectNotify(self, signal):
-	pass
+        pass
 
 
     def disconnectNotify(self, signal):
@@ -560,7 +597,7 @@ class Null:
         return self
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         return 0
     
     

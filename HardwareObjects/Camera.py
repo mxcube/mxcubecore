@@ -83,7 +83,7 @@ class Camera(BaseHardwareObjects.Device):
                     BaseHardwareObjects.Device.__init__(self, name)
 
                 def oprint(self, msg):
-                    print "Camera.py--tango device-- %s"%msg
+                    print("Camera.py--tango device-- %s"%msg)
 
                 def _init(self):
                     self.forceUpdate = False
@@ -94,7 +94,7 @@ class Camera(BaseHardwareObjects.Device):
                         #try a first call to get an exception if the device
                         #is not exported
                         self.device.ping()
-                    except PyTango.DevFailed, traceback:
+                    except PyTango.DevFailed as traceback:
                         last_error = traceback[-1]
                         logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error.desc)
 
@@ -122,7 +122,7 @@ class Camera(BaseHardwareObjects.Device):
                         exposure   = self.addChannel({ 'type': 'tango', 'name': 'exposure'},   "Exposure")
 
                         if "Brightness" in _attribute_list:
-                            print "add brightness"
+                            print("add brightness")
                             brightness = self.addChannel({ 'type': 'tango', 'name': 'brightness'}, "Brightness")
                             self.__brightnessExists = True
 
@@ -598,7 +598,7 @@ class Camera(BaseHardwareObjects.Device):
                         self.setIsReady(True)
 
                 def oprint(self, msg):
-                    print "Camera.py--taco device--%s"%msg
+                    print("Camera.py--taco device--%s"%msg)
 
                 def imageType(self):
                     """Returns a 'jpeg' or 'bayer' type object depending on the image type"""
