@@ -207,7 +207,8 @@ class MultiplePositions(Equipment):
 
     
     def stateChanged(self, state):
-        self.emit("stateChanged", (state,))
+        self.emit("stateChanged", (self.getState(),))
+        self.checkPosition()
 
  
     def moveToPosition(self, name, wait=False):
@@ -277,6 +278,7 @@ class MultiplePositions(Equipment):
             self.positions[name][role] = pos
             position.setProperty(role, pos)
 
+        self.checkPosition()
         self.commitChanges()
         
 
