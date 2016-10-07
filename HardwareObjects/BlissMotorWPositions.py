@@ -56,9 +56,11 @@ class BlissMotorWPositions(BlissMotor):
 	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y]))) 
         
     def updateState(self, state=None):
+       prev_state = self.motorState
+
        BlissMotor.updateState(self, state)
        
-       if self.motorState==BlissMotor.READY: 
+       if self.motorState != prev_state and self.motorState==BlissMotor.READY: 
          pos = self.getPosition()
 
          for positionName in self.predefinedPositions:
