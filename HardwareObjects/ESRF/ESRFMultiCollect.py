@@ -367,6 +367,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
                 self._metadataManagerClient = None
  
+    def upload_images_to_icat(self, template, prefix, run_number, directory, 
+                              number_of_images, start_image_number, overlap):
+        logging.getLogger("user_level_log").info("Uploading to images to ICAT")
+        for index in range(number_of_images):
+            image_no = index + start_image_number
+            image_path = os.path.join(directory, template % image_no)
+            self._metadataManagerClient.appendFile(image_path)
+ 
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         if self._metadataManagerClient is not None:
@@ -379,11 +387,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             for oscillation_parameters in data_collect_parameters["oscillation_sequence"]:
                 number_of_images = oscillation_parameters["number_of_images"]
                 start_image_number = oscillation_parameters["start_image_number"]
-                logging.info("Uploading to images to ICAT")
-                for index in range(number_of_images):
-                    image_no = index + start_image_number
-                    image_path = os.path.join(directory, template % image_no)
-                    self._metadataManagerClient.appendFile(image_path)
+                overlap = oscillation_parameters["overlap"]
+                self.upload_images_to_icat(template, prefix, run_number, directory, 
+                                           number_of_images, start_image_number, overlap)
             # Upload the two paths to the meta data HDF5 files
             beamline = self._sessionObject.endstation_name
             proposal = self._sessionObject.get_proposal()
