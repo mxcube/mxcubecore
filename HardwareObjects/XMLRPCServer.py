@@ -99,6 +99,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
         self._server.register_function(self.anneal) 
+        self._server.register_function(self.open_dialog) 
+        self._server.register_function(self.workflow_end) 
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -116,7 +118,7 @@ class XMLRPCServer(HardwareObject):
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
-                	
+        self.workflow_hwobj = self.getObjectByRole("workflow")
 
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
@@ -376,6 +378,23 @@ class XMLRPCServer(HardwareObject):
             aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'][0][i].getProperty('name'))
         return aperture_list
 
+    def open_dialog(self, dict_dialog):
+        """
+        Opens the workflow dialog in mxCuBE.
+        This call blocks util the dialog is ended by the user.
+        """
+        return_map = {}
+        if self.workflow_hwobj is not None:
+            return_map = self.workflow_hwobj.open_dialog(dict_dialog)
+        return return_map
+
+    def workflow_end(self):
+        """
+        Notify the workflow HO that the workflow has finished.
+        """
+        if self.workflow_hwobj is not None:
+            self.workflow_hwobj.workflow_end()
+    
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
         log.info('Registering functions in module %s with XML-RPC server' %
