@@ -106,6 +106,8 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
         self._server.register_function(self.anneal) 
+        self._server.register_function(self.open_dialog) 
+        self._server.register_function(self.workflow_end) 
         self._server.register_function(self.dozor_batch_processed)
         self._server.register_function(self.dozor_status_changed)
         self.image_num = 0
@@ -132,6 +134,7 @@ class XMLRPCServer(HardwareObject):
         #             self.image_taken) 
 
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
+        self.workflow_hwobj = self.getObjectByRole("workflow")
                
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
@@ -390,7 +393,24 @@ class XMLRPCServer(HardwareObject):
         for i in range(0, len(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'])):
             aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'][0][i].getProperty('name'))
         return aperture_list
+    
+    def open_dialog(self, dict_dialog):
+        """
+        Opens the workflow dialog in mxCuBE.
+        This call blocks util the dialog is ended by the user.
+        """
+        return_map = {}
+        if self.workflow_hwobj is not None:
+            return_map = self.workflow_hwobj.open_dialog(dict_dialog)
+        return return_map
 
+    def workflow_end(self):
+        """
+        Notify the workflow HO that the workflow has finished.
+        """
+        if self.workflow_hwobj is not None:
+            self.workflow_hwobj.workflow_end()
+    
     def dozor_batch_processed(self, dozor_batch_dict):
         self.beamline_setup_hwobj.parallel_processing_hwobj.batch_processed(dozor_batch_dict)
 
