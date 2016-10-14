@@ -7,6 +7,7 @@ import socket
 import shutil
 import logging
 import os
+import math
 import gevent
 #import cPickle as pickle
 from PyTango.gevent import DeviceProxy
@@ -17,11 +18,41 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
         self._notify_greenlet = None
 
+    def upload_images_to_icat(self, template, prefix, run_number, directory, 
+                              number_of_images, start_image_number, overlap):
+        logging.getLogger("user_level_log").info("Uploading to images to ICAT")
+        if math.fabs(overlap) > 1:
+            for image_number in range(1, number_of_images + 1):
+                h5_master_file_name = "{prefix}_{run_number}_{image_number}_master.h5".format(
+                    prefix=prefix, run_number=run_number, image_number=image_number)
+                h5_master_file_path = os.path.join(directory, h5_master_file_name)
+                self._metadataManagerClient.appendFile(h5_master_file_path)
+                h5_data_file_name = "{prefix}_{run_number}_{image_number}_data_000001.h5".format(
+                    prefix=prefix, run_number=run_number, image_number=image_number)
+                h5_data_file_path = os.path.join(directory, h5_data_file_name)
+                self._metadataManagerClient.appendFile(h5_data_file_path)
+        else:
+            h5_master_file_name = "{prefix}_{run_number}_{start_image_number}_master.h5".format(
+                prefix=prefix, run_number=run_number, start_image_number=start_image_number)
+            h5_master_file_path = os.path.join(directory, h5_master_file_name)
+            self._metadataManagerClient.appendFile(h5_master_file_path)
+            for index in range(int((number_of_images-1)/100)+1):
+                h5_data_file_name = "{prefix}_{run_number}_{start_image_number}_data_{data_index:06d}.h5".format(
+                    prefix=prefix, run_number=run_number, start_image_number=start_image_number, data_index=(index+1))
+                h5_data_file_path = os.path.join(directory, h5_data_file_name)
+                self._metadataManagerClient.appendFile(h5_data_file_name)
+
     @task
     def data_collection_hook(self, data_collect_parameters):
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
+      self._reset_detector_task = None
+
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
-      if oscillation_parameters['range']/oscillation_parameters['exposure_time'] > 90:
+      exp_time = oscillation_parameters['exposure_time']
+      if oscillation_parameters['range']/exp_time > 90:
           raise RuntimeError("Cannot move omega axis too fast (limit set to 90 degrees per second).")
+
+      self.first_image_timeout = 30+exp_time*min(100, oscillation_parameters["number_of_images"])
  
       file_info = data_collect_parameters["fileinfo"]
       diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
@@ -38,6 +69,8 @@ class ID30A3MultiCollect(ESRFMultiCollect):
       else:
           albula_socket.sendall(pickle.dumps({"type":"newcollection"}))
       """
+       
+
 
     @task
     def get_beam_size(self):
@@ -105,6 +138,21 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     def close_fast_shutter(self):
         self.getObjectByRole("diffractometer").controller.fshut.close()
 
+    def stop_oscillation(self):
+        self.getObjectByRole("diffractometer").controller.omega.stop()
+        self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
+
+    def reset_detector(self):
+        self.stop_oscillation()
+        self._reset_detector_task = ESRFMultiCollect.reset_detector(self, wait=False)
+
+    @task
+    def data_collection_cleanup(self):
+        self.stop_oscillation()
+        self.close_fast_shutter()
+        if self._reset_detector_task is not None:
+            self._reset_detector_task.get()
+ 
     def set_helical(self, helical_on):
         self.helical = helical_on
 

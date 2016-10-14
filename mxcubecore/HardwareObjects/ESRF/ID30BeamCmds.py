@@ -2,6 +2,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.CommandContainer import CommandObject
 import gevent
+import logging
 
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd):
@@ -19,6 +20,7 @@ class ControllerCommand(CommandObject):
 
     @task
     def __call__(self, *args, **kwargs):
+        logging.getLogger("user_level_log").info("Starting %s" % self.name())
         self.emit('commandBeginWaitReply', (str(self.name()), ))
         self._cmd_execution = gevent.spawn(self._cmd, *args, **kwargs)
         self._cmd_execution.link(self._cmd_done)
@@ -28,8 +30,10 @@ class ControllerCommand(CommandObject):
             try:
                 res = cmd_execution.get()
             except:
+                logging.getLogger("user_level_log").exception(str(self.name())+" failed!")
                 self.emit('commandFailed', (str(self.name()), ))
             else: 
+                logging.getLogger("user_level_log").info(str(self.name())+" finished successfully.")
                 if isinstance(res, gevent.GreenletExit):
                     self.emit('commandFailed', (str(self.name()), ))
                 else:
