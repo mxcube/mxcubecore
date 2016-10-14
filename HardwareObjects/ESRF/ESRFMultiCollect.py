@@ -273,6 +273,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._metadataManagerClient = None
         self._metadataManagerName = None
         self._metaExperimentName  = None
+        self._sessionObject = None
+        
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -328,6 +330,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         self._metadataManagerName = self.getProperty("metadata_manager_name")
         self._metaExperimentName  = self.getProperty("meta_experiment_name")
+        self._sessionObject = self.getObjectByRole("session")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -346,38 +349,100 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 prefix = fileinfo["prefix"]
                 run_number = int(fileinfo["run_number"])
                 # Connect to ICAT metadata database
-                listDirectory = directory.split(os.sep)
-                beamline = "unknown"
-                proposal = "unknown"
-                if listDirectory[1] == "data":
-                    if listDirectory[2] == "visitor":
-                        beamline = listDirectory[4]
-                        proposal = listDirectory[3]
-                    else:
-                        beamline = listDirectory[2]
-                        proposal = listDirectory[4]
+                
+                proposal = self._sessionObject.get_proposal()
+                
                 self._metadataManagerClient = MetadataManagerClient(self._metadataManagerName, self._metaExperimentName)
-                # Strip the prefix from any expTypePrefix
+                # Strip the prefix from any workflow expTypePrefix
+                # TODO: use the ISPyB sample name instead
                 sampleName = prefix
                 for expTypePrefix in ["line-", "mesh-", "ref-", "burn-", "ref-kappa-"]:
                     if sampleName.startswith(expTypePrefix):
                         sampleName = sampleName.replace(expTypePrefix, "")
                         break
-                if self.collection_id is None:
-                    datasetName = "{0}_{1}".format(prefix, run_number)
-                else:
-                    datasetName = "{0}_{1}_{2}".format(self.collection_id, prefix, run_number)
+                # The data set name must be unique so we use the ISPyB data collection id
+                datasetName = "{0}_{1}_{2}".format(prefix, run_number, self.collection_id)
                 self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
                 self._metadataManagerClient.printStatus()        
             except:
                 logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
                 self._metadataManagerClient = None
  
+    def upload_images_to_icat(self, template, prefix, run_number, directory, 
+                              number_of_images, start_image_number, overlap):
+        logging.getLogger("user_level_log").info("Uploading to images to ICAT")
+        for index in range(number_of_images):
+            image_no = index + start_image_number
+            image_path = os.path.join(directory, template % image_no)
+            self._metadataManagerClient.appendFile(image_path)
+ 
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         if self._metadataManagerClient is not None:
+            # Upload all images
+            fileinfo = data_collect_parameters["fileinfo"]
+            prefix = fileinfo["prefix"]
+            template = fileinfo["template"]
+            directory = fileinfo["directory"]
+            run_number = int(fileinfo["run_number"])
+            for oscillation_parameters in data_collect_parameters["oscillation_sequence"]:
+                number_of_images = oscillation_parameters["number_of_images"]
+                start_image_number = oscillation_parameters["start_image_number"]
+                overlap = oscillation_parameters["overlap"]
+                self.upload_images_to_icat(template, prefix, run_number, directory, 
+                                           number_of_images, start_image_number, overlap)
+            # Upload the two paths to the meta data HDF5 files
+            beamline = self._sessionObject.endstation_name
+            proposal = self._sessionObject.get_proposal()
+            pathToHdf5File1 = os.path.join(directory, 
+                                           "{proposal}-{beamline}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
+                                                beamline=beamline,
+                                                proposal=proposal,
+                                                prefix=prefix,
+                                                run_number=run_number,
+                                                dataCollectionId=self.collection_id)
+                                           )
+            self._metadataManagerClient.appendFile(pathToHdf5File1)
+            pathToHdf5File2 = os.path.join(directory, 
+                                           "{proposal}-{prefix}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
+                                                proposal=proposal,
+                                                prefix=prefix,
+                                                run_number=run_number,
+                                                dataCollectionId=self.collection_id)
+                                           )
+            self._metadataManagerClient.appendFile(pathToHdf5File2)
+            # Upload meta data as attributes
+            # TODO: add more meta data parameters like distance etc.
+            listAttributes = [
+                              "beamShape", 
+                              "beamSizeAtSampleX", 
+                              "beamSizeAtSampleY", 
+                              ["scanType", "experiment_type"], 
+                              ["dataCollectionId", "collection_id"],  
+                              "flux", 
+                              ["fluxEnd", "flux_end"], 
+                              "resolution", 
+                              "transmission", 
+                              "xBeam", 
+                              "yBeam", 
+                              "wavelength",
+                              ]
+            for attribute in listAttributes:
+                self.setMetadataAttribute(self._metadataManagerClient, data_collect_parameters, attribute)
             self._metadataManagerClient.printStatus()
             self._metadataManagerClient.end()
+
+    def setMetadataAttribute(self, client, data_collect_parameters, attribute):
+        if type(attribute) == list:
+            attributeName = attribute[0]
+            keyName = attribute[1]
+        else:
+            attributeName = attribute
+            keyName = attribute
+        if keyName in data_collect_parameters:
+            value = str(data_collect_parameters[keyName])
+            logging.getLogger("HWR").info("Setting metadata client attribute '{0}' to '{1}'".format(attributeName, value))
+            setattr(client.metadataManager, attributeName, value)
 
     def do_prepare_oscillation(self, start, end, exptime, npass):
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
@@ -416,6 +481,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_cleanup(self):
+        self.stop_oscillation()
         self.close_fast_shutter()
 
 
@@ -488,7 +554,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     
     def do_oscillation(self, start, end, exptime, npass):
         return self._detector.do_oscillation(start, end, exptime, npass)
-    
+   
+    def stop_oscillation(self):
+        pass 
   
     def start_acquisition(self, exptime, npass, first_frame):
         return self._detector.start_acquisition(exptime, npass, first_frame)
@@ -581,7 +649,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         input_file_dir = self.mosflm_raw_data_input_file_dir 
         file_prefix = "../.." 
-	    mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
+	mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
         conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
         mosflm_file = open(mosflm_input_file, "w")
         mosflm_file.write(conn.getresponse().read()) 
