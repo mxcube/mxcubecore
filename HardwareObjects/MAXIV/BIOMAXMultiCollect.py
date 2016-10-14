@@ -166,7 +166,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._detector = PixelDetector(BIOMAXPilatus)
+        self._detector = None
         self._tunable_bl = FixedEnergy(1.125, 11.0)
         self._centring_status = None
         self.helical = False
@@ -355,9 +355,25 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
           time.sleep(0.1)
 
 
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
-        energy = self._tunable_bl.getCurrentEnergy()
-        return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy)
+    def prepare_acquisition(self, start, osc_range, exptime, ntrigger=1, npass, number_of_images, images_per_file=100, roi="16M"):
+        #return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy)
+        config = self._detector.config
+        config['OmegaStart'] = start
+        config['OmegaIncrement'] = osc_range
+        beam_x, beam_y = self.get_beam_centre() # returns length, not pixel
+        config['BeamCenterX'] = beam_x
+        config['BeamCenterY'] = beam_y
+        config['Wavelength'] = self.get_wavelength()
+        config['DetectorDistance'] = self.get_detector_distance()/1000.0
+
+        config['FrameTime'] = exptime + self._detector.get_deadtime()
+
+        config['NbImages'] = number_of_images
+        config['NbTriggers'] = ntrigger # to check for different tasks
+        config['NbImagesPerFile'] = images_per_file
+        config['RoiMode'] = roi
+        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy() 
+        return self._detector.prepare_acquisition(config)
 
 
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -406,11 +422,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def getCurrentEnergy(self):
       return self._tunable_bl.getCurrentEnergy()
-
-
-    def get_beam_centre(self):
-      return self.bl_control.beam_info.get_beam_position()
-      #return (self.execute_command("get_beam_centre_x"), self.execute_command("get_beam_centre_y"))
 
 
     def isConnected(self):
@@ -463,9 +474,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.bl_control.cryo_stream.getTemperature()
         else:
             return "NA"
-
-    def get_detector_distance(self):
-        return 120
 
     def get_machine_current(self):
         if self.bl_control.machine_current is not None:
@@ -951,13 +959,12 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             else: 
                 for start, wedge_size in wedges_to_collect:
                     logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
-                    self.prepare_acquisition(1 if data_collect_parameters.get("dark", 0) else 0,
-                                             start,
+                    self.prepare_acquisition(start,
                                              osc_range,
                                              exptime,
+                                             ntrigger = 1,
                                              npass,
-                                             wedge_size,
-                                             data_collect_parameters["comment"])
+                                             wedge_size)
                     data_collect_parameters["dark"] = 0
 
                     i = 0
@@ -1042,10 +1049,10 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def get_beam_centre(self):
         #x=723
         #y=808
-        x = 731.89
-        y = 822.40
-        return (x*0.172, y*0.172)
-        return self.bl_control.resolution.get_beam_centre()
+        #x = 731.89
+        #y = 822.40
+        #return (x*0.172, y*0.172)
+        return self.bl_control.resolution.get_beam_centre() # length, not pixel
 
     def get_detector_distance(self):
         #return 750
