@@ -345,6 +345,7 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").warning("Diffractometer: Zoom center is " +\
                        "not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
+                self.zoom_centre = {'x': 0, 'y' : 0}
                 logging.getLogger("HWR").warning("Diffractometer: " + \
                    "Neither zoom centre nor camera size iz defined")
 
