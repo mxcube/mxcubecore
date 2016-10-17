@@ -380,7 +380,7 @@ class Basket(TaskNode):
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = sc_basket[0]
+            self.location = self._basket_object.getCoords()
             if name == "Row":
                 self.name = "%s %s" % (name, chr(65 + self.location))
             else:
