@@ -4,7 +4,6 @@ from gevent.event import AsyncResult
 import logging
 import time
 import os
-import json
 import httplib
 import urllib
 import math
