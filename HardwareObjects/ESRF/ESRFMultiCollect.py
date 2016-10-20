@@ -379,70 +379,130 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         if self._metadataManagerClient is not None:
-            # Upload all images
-            fileinfo = data_collect_parameters["fileinfo"]
-            prefix = fileinfo["prefix"]
-            template = fileinfo["template"]
-            directory = fileinfo["directory"]
-            run_number = int(fileinfo["run_number"])
-            for oscillation_parameters in data_collect_parameters["oscillation_sequence"]:
-                number_of_images = oscillation_parameters["number_of_images"]
-                start_image_number = oscillation_parameters["start_image_number"]
+            try:
+                # Upload all images
+                fileinfo = data_collect_parameters["fileinfo"]
+                prefix = fileinfo["prefix"]
+                template = fileinfo["template"]
+                directory = fileinfo["directory"]
+                run_number = int(fileinfo["run_number"])
+                for oscillation_parameters in data_collect_parameters["oscillation_sequence"]:
+                    number_of_images = oscillation_parameters["number_of_images"]
+                    start_image_number = oscillation_parameters["start_image_number"]
                 overlap = oscillation_parameters["overlap"]
                 self.upload_images_to_icat(template, prefix, run_number, directory, 
                                            number_of_images, start_image_number, overlap)
-            # Upload the two paths to the meta data HDF5 files
-            beamline = self._sessionObject.endstation_name
-            proposal = self._sessionObject.get_proposal()
-            pathToHdf5File1 = os.path.join(directory, 
-                                           "{proposal}-{beamline}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                beamline=beamline,
-                                                proposal=proposal,
-                                                prefix=prefix,
-                                                run_number=run_number,
-                                                dataCollectionId=self.collection_id)
-                                           )
-            self._metadataManagerClient.appendFile(pathToHdf5File1)
-            pathToHdf5File2 = os.path.join(directory, 
-                                           "{proposal}-{prefix}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                proposal=proposal,
-                                                prefix=prefix,
-                                                run_number=run_number,
-                                                dataCollectionId=self.collection_id)
-                                           )
-            self._metadataManagerClient.appendFile(pathToHdf5File2)
-            # Upload meta data as attributes
-            # TODO: add more meta data parameters like distance etc.
-            listAttributes = [
-                              "beamShape", 
-                              "beamSizeAtSampleX", 
-                              "beamSizeAtSampleY", 
-                              ["scanType", "experiment_type"], 
-                              ["dataCollectionId", "collection_id"],  
-                              "flux", 
-                              ["fluxEnd", "flux_end"], 
-                              "resolution", 
-                              "transmission", 
-                              "xBeam", 
-                              "yBeam", 
-                              "wavelength",
-                              ]
-            for attribute in listAttributes:
-                self.setMetadataAttribute(self._metadataManagerClient, data_collect_parameters, attribute)
-            self._metadataManagerClient.printStatus()
-            self._metadataManagerClient.end()
+                # Upload the two paths to the meta data HDF5 files
+                beamline = self._sessionObject.endstation_name
+                proposal = self._sessionObject.get_proposal()
+                pathToHdf5File1 = os.path.join(directory,
+                                               "{proposal}-{beamline}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
+                                                    beamline=beamline,
+                                                    proposal=proposal,
+                                                    prefix=prefix,
+                                                    run_number=run_number,
+                                                    dataCollectionId=self.collection_id)
+                                               )
+                self._metadataManagerClient.appendFile(pathToHdf5File1)
+                pathToHdf5File2 = os.path.join(directory,
+                                               "{proposal}-{prefix}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
+                                                    proposal=proposal,
+                                                    prefix=prefix,
+                                                    run_number=run_number,
+                                                    dataCollectionId=self.collection_id)
+                                               )
+                self._metadataManagerClient.appendFile(pathToHdf5File2)
+                # Upload meta data as attributes
+                dictMetadata = self.getMetadata(data_collect_parameters)
+                for attributeName, value in dictMetadata.iteritems():
+                    logging.getLogger("HWR").info("Setting metadata client attribute '{0}' to '{1}'".format(attributeName, value))
+                    setattr(self._metadataManagerClient.metadataManager, attributeName, str(value))
+                self._metadataManagerClient.printStatus()
+                self._metadataManagerClient.end()
+            except:
+                logging.getLogger("user_level_log").warning("Cannot upload metadata")
+                self._metadataManagerClient = None
+                #raise
 
-    def setMetadataAttribute(self, client, data_collect_parameters, attribute):
-        if type(attribute) == list:
-            attributeName = attribute[0]
-            keyName = attribute[1]
-        else:
-            attributeName = attribute
-            keyName = attribute
-        if keyName in data_collect_parameters:
-            value = str(data_collect_parameters[keyName])
-            logging.getLogger("HWR").info("Setting metadata client attribute '{0}' to '{1}'".format(attributeName, value))
-            setattr(client.metadataManager, attributeName, value)
+
+    def getMetadata(self, data_collect_parameters):
+        """
+        Common metadata parameters for ESRF MX beamlines.
+        """
+        listAttributes = [
+                          ["MX_beamShape", "beamShape"],
+                          ["MX_beamSizeAtSampleX", "beamSizeAtSampleX"],
+                          ["MX_beamSizeAtSampleY", "beamSizeAtSampleY"],
+                          ["MX_dataCollectionId", "collection_id"],
+                          ["MX_directory", "fileinfo.directory"],
+                          ["MX_exposureTime", "oscillation_sequence.exposure_time"],
+                          ["MX_flux", "flux"],
+                          ["MX_fluxEnd", "flux_end"],
+                          ["MX_numberOfImages", "oscillation_sequence.number_of_images"],
+                          ["MX_oscillationRange", "oscillation_sequence.range"],
+                          ["MX_oscillationStart", "oscillation_sequence.start"],
+                          ["MX_oscillationOverlap", "oscillation_sequence.overlap"],
+                          ["MX_resolution", "resolution"],
+                          ["MX_startImageNumber", "oscillation_sequence.start_image_number"],
+                          ["MX_scanType", "experiment_type"],
+                          ["MX_template", "fileinfo.template"],
+                          ["MX_transmission", "transmission"],
+                          ["MX_xBeam", "xBeam"],
+                          ["MX_yBeam", "yBeam"],
+                          ["InstrumentMonochromator_wavelength", "wavelength"],
+                          ]
+        dictMetadata = {}
+        for attribute in listAttributes:
+            if type(attribute) == list:
+                attributeName = attribute[0]
+                keyName = attribute[1]
+            else:
+                attributeName = attribute
+                keyName = attribute
+            value = None
+            if "." in keyName:
+                parent, child = keyName.split(".")
+                parentObject = data_collect_parameters[parent]
+                if type(parentObject) == type([]):
+                    parentObject = parentObject[0]
+                if child in parentObject:
+                    value = str(parentObject[child])
+            elif keyName in data_collect_parameters:
+                value = str(data_collect_parameters[keyName])
+            if value is not None:
+                dictMetadata[attributeName] = value
+        # Template - replace python formatting with hashes
+        dictMetadata["MX_template"] = dictMetadata["MX_template"].replace("%04d", "####")
+        # Motor positions
+        motorNames = ""
+        motorPositions = ""
+        for motor, position in data_collect_parameters["motors"].iteritems():
+            if type(motor) == str:
+                motorName = motor
+            else:
+                nameAttribute = getattr(motor, "name")
+                if type(nameAttribute) == str:
+                    motorName = nameAttribute
+                else:
+                    motorName = nameAttribute()
+            if motorNames == "":
+                motorNames = motorName
+                motorPositions = str(round(position, 3))
+            else:
+                motorNames += " " + motorName
+                motorPositions += " " + str(round(position, 3))
+        dictMetadata["MX_motors_name"] = motorNames
+        dictMetadata["MX_motors_value"] = motorPositions
+        # Detector distance
+        distance = self.get_detector_distance()
+        if distance is not None:
+            dictMetadata["MX_detectorDistance"] = distance
+        # Aperture
+        if self.bl_control.beam_info is not None and self.bl_control.beam_info.aperture_hwobj is not None:
+            aperture = self.bl_control.beam_info.aperture_hwobj.getPosition()
+            dictMetadata["MX_aperture"] = aperture
+        return dictMetadata
+
 
     def do_prepare_oscillation(self, start, end, exptime, npass):
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
