@@ -129,12 +129,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         
         return pars
 
-    def open_safety_shutter(self):
+    def open_safety_shutter(self,timeout=None):
         self.safety_shutter.openShutter()
-        while self.safety_shutter.getShutterState() == 'closed':
-            time.sleep(0.1)
+        with gevent.Timeout(timeout, RuntimeError("Timeout waiting for safety shutter to open")):
+            while self.safety_shutter.getShutterState() == 'closed':
+                time.sleep(0.1)
 
-    def close_safety_shutter(self):
+    def close_safety_shutter(self, timeout=None):
         self.safety_shutter.closeShutter()
         while self.safety_shutter.getShutterState() == 'opened':
             time.sleep(0.1)
