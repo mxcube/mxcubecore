@@ -241,11 +241,9 @@ class Sample(TaskNode):
             return ''
 
     def init_from_sc_sample(self, sc_sample):
-        #self.loc_str = ":".join(map(str,sc_sample[-1]))
-        #self.location = sc_sample[-1]
-        #self.set_name(self.loc_str)
-        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
-        self.location = (sc_sample[1], sc_sample[2])
+        self.loc_str = ":".join(map(str,sc_sample[-1]))
+        self.location = sc_sample[-1]
+        self.set_name(self.loc_str)
         if sc_sample[3] != "":
             self.set_name(sc_sample[3])
         else:
@@ -373,7 +371,7 @@ class Basket(TaskNode):
     def init_from_sc_basket(self, sc_basket, name="Puck"):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
 
-        if self._basket_object is None:
+        if name == 'Row' or self._basket_object is None:
             self.location = sc_basket[0]
             if name == "Row":
                 self.name = "%s %s" % (name, chr(65 + self.location))
@@ -381,12 +379,12 @@ class Basket(TaskNode):
                 self.name = "%s %d" % (name, self.location)
         else:
             self.location = self._basket_object.getCoords()
-            if name == "Row":
-                self.name = "%s %s" % (name, chr(65 + self.location))
+            if len(self.location) == 2:
+                self.name = "Cell %d, puck %d" % self.location
+            elif len(self.location) == 1:
+                self.name = "%s %s" % (name, self.location[0])
             else:
-                self.name = "%s %d" % (name, self.location)
-            #if len(self.location) == 2:
-            #    self.name = "Cell %d, puck %d" % self.location
+                self.name = "%s %s" % (name, self.location)
 
     def get_name(self):
         return self.name
