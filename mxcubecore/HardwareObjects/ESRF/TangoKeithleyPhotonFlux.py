@@ -5,7 +5,7 @@ import time
 import logging
 from PyTango.gevent import DeviceProxy
 
-class ID30A1PhotonFlux(Equipment):
+class TangoKeithleyPhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 
@@ -21,7 +21,7 @@ class ID30A1PhotonFlux(Equipment):
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
         
-        self.tg_device = DeviceProxy("id30/keithley_massif1/i0")
+        self.tg_device = DeviceProxy(self.getProperty("tango_device"))
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task

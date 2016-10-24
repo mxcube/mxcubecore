@@ -78,14 +78,12 @@ class XRFSpectrum(Equipment):
         except:
             self.mca_hwobj = None
 
-        try:
-            self.archive_path = self.getProperty('archive_path')
-        except:
+        self.archive_path = self.getProperty('archive_path')
+        if self.archive_path is None:
             self.archive_path = '/data/pyarch/'
 
-        try:
-            self.cfg_path = self.getProperty('cfg_path')
-        except:
+        self.cfg_path = self.getProperty('cfg_path')
+        if self.cfg_path is None:
             self.cfg_path = '/users/blissadm/local/userconf'
 
         if self.isConnected():

@@ -5,15 +5,20 @@ import time
 import logging
 import math
 from calc_flux import *
-from HardwareRepository.TacoDevice_MTSafe import TacoDevice
+from PyTango.gevent import DeviceProxy
 
 
 class ID23PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
+        self.threshold = []
 
     def init(self):
-        self.counter = TacoDevice(self.getProperty("taco_device"))
+        self.counter = DeviceProxy(self.getProperty("url"))
+        try:
+            self.threshold = map(float,self.getProperty("threshold").split())
+        except AttributeError:
+            self.threshold = [0, 9999]
         self.shutter = self.getDeviceByRole("shutter")
         self.energy_motor = self.getObjectByRole("energy")
         self.aperture = self.getObjectByRole("aperture")
@@ -37,10 +42,11 @@ class ID23PhotonFlux(Equipment):
 
     def _get_counts(self):
         try:
-            counts = self.counter.DevCntReadAll()[1]
-            if counts == -9999 :
+            self.counter.MeasureSingle()
+            counts = abs(self.counter.ReadData)
+            if counts < self.threshold[0] or counts > self.threshold[1]:
                 counts = 0
-        except:
+        except AttributeError, TypeError:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
@@ -56,7 +62,7 @@ class ID23PhotonFlux(Equipment):
                     aperture_coef = self.aperture.getApertureCoef()
                 except:
                     aperture_coef = 1.
-            counts = math.fabs(counts * calib[0] * aperture_coef)
+            counts = math.fabs(counts * calib[0] * aperture_coef)*10e6
         return counts
 
     def connectNotify(self, signal):
