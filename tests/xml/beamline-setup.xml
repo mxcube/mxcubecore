@@ -42,17 +42,6 @@
   for acquisitions.-->
   <disable_num_passes>True</disable_num_passes>
 
-  <!-- Should be moved to a detector object in the future -->
-  <detector>
-    <manufacturer>DECTRIS</manufacturer>
-    <type>pilatus</type>
-    <model>6M_F</model>
-    <px>0.172</px>
-    <py>0.172</py>
-    <cansum>yes</cansum>
-    <has_shutterless>True</has_shutterless>
-  </detector>
-
   <!-- Default values for an acquisition -->
   <default_acquisition_values>
     <exposure_time>0.037</exposure_time>
@@ -79,9 +68,9 @@
   </default_helical_values>
 
   <acquisition_limit_values>
-    <osc_range>0.0001,10000</osc_range>
-    <exposure_time>0.003,6000</exposure_time>
-    <number_of_images>1,9999</number_of_images>
+    <osc_range>-1000,10000</osc_range>
+    <exposure_time>0.004,6000</exposure_time>
+    <number_of_images>1,99999</number_of_images>
   </acquisition_limit_values>
 
   <!-- Default values for a characterization -->
