@@ -458,7 +458,7 @@ class SampleChanger(Container,Equipment):
     def _run(self,task,method,*args):
         """
         method(self,*arguments)
-        exeption=None
+        exception=None
         try:
             while !_isTaskFinished(state):
               time.sleep(0.1)
