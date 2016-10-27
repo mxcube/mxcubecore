@@ -145,8 +145,13 @@ class FlexHCD(SampleChanger):
         return self.load(sample)
 
     def chained_load(self, old_sample, sample):
-        self._execute_cmd('chainedUnldLd', [old_sample.getCellNo(), old_sample.getBasketNo(), old_sample.getVialNo()], [sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()]) 
+        unload_load_task = gevent.spawn(self._execute_cmd, 'chainedUnldLd', [old_sample.getCellNo(), old_sample.getBasketNo(), old_sample.getVialNo()], [sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()])
+        while not unload_load_task.ready():
+          if self._execute_cmd("ready_for_centring"):
+            break
+          gevent.sleep(1)
         self._setLoadedSample(sample)
+        self.prepareCentring()
         return True
 
     @task
@@ -155,7 +160,7 @@ class FlexHCD(SampleChanger):
         self.enable_power()
         load_task = gevent.spawn(SampleChanger.load, self, sample)
         while not load_task.ready():
-          if self._execute_cmd("get_sample_status", "LoadSampleStatus").getValue() == 'in_puck':
+          if self._execute_cmd("ready_for_centring"):
             break
           gevent.sleep(1)
         self.prepareCentring()
@@ -173,11 +178,7 @@ class FlexHCD(SampleChanger):
     def unload(self, sample):
         self.prepareLoad(wait=True)
         self.enable_power()
-        unload_task = gevent.spawn(SampleChanger.unload, self, sample)
-        while not unload_task.ready():
-          if self._execute_cmd("get_sample_status", "UnloadSampleStatus").getValue() == 'in_puck':
-            break
-          gevent.sleep(1)
+        SampleChanger.unload(self, sample)
 
     def get_gripper(self):
         gripper_type = "SPINE" if self._execute_cmd("onewire.read")[1] == 3 else "UNIPUCK"
