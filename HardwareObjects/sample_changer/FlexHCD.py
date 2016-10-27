@@ -111,7 +111,7 @@ class FlexHCD(SampleChanger):
     def _execute_cmd(self, cmd, *args, **kwargs):
         timeout = kwargs.pop('timeout', None)
         if args:
-            cmd_str = 'flex.%s(%s)' % (cmd, ",".join(map(str, args)))
+            cmd_str = 'flex.%s(%s)' % (cmd, ",".join(map(repr, args)))
         else:
             cmd_str = 'flex.%s()' % cmd
         cmd_id = self.robot.execute(cmd_str)
