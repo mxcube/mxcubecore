@@ -199,7 +199,7 @@ class BIOMAXEiger(Equipment):
         self.wati_buffer_ready()
         return self.getCommandObject("Arm")()
     
-    def finish_acquisition(self):
+    def stop_acquisition(self):
         """
         when use external trigger, Disarm is required, otherwise the last h5 will 
         not be released and not available in WebDAV.
@@ -214,8 +214,8 @@ class BIOMAXEiger(Equipment):
         time.sleep(1)
 
 
-    def stop_acquisition(self):
-        """To check the best stop sequence of commands"""
+    def cancel_acquisition(self):
+        """Cancel acquisition"""
         try:
             self.getCommandObject("Cancel")()
         except:
