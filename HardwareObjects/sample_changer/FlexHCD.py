@@ -247,10 +247,16 @@ class FlexHCD(SampleChanger):
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return          
         self._setState(state)
-       
+      
+    def isSequencerReady(self):
+        cmdobj = self.getCommandObject
+        return all([cmd.isSpecReady() for cmd in (cmdobj("moveToLoadingPosition"),)])
+ 
     def _readState(self):
         # should read state from robot
-        state = str(self.robot.state())
+        state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
+        if state == 'STANDBY' and not self.isSequencerReady():
+          state = 'RUNNING'
         state_converter = { "ALARM": SampleChangerState.Alarm,
                             "FAULT": SampleChangerState.Fault,
                             "RUNNING": SampleChangerState.Moving,
