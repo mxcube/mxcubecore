@@ -2,7 +2,8 @@
 A client for ISPyB Webservices. 
 """
 import logging
-
+import json
+import cgi
 
 from datetime import datetime
 from requests import post, get
@@ -65,6 +66,15 @@ class ISPyBRestClient(HardwareObject):
             self.authenticate(self.__rest_username, self.__rest_password)
 
     def authenticate(self, user, password):
+        """
+        Authenticate with RESTfull services, updates the authentication token,
+        username and password used internally by this object.
+
+        :param str user: Username
+        :param str password: Password
+        :returns: None
+        
+        """
         auth_url = urljoin(self.__rest_root, "authenticate?site=" + self.__site)
 
         try:
@@ -84,7 +94,95 @@ class ISPyBRestClient(HardwareObject):
 
 
     def sample_link(self):
+        """
+        Get the LIMS link to sample information
+
+        :returns: Link to sample information
+        """
+        self.__update_rest_token()
         return urljoin(self.__rest_root, "samples?token=%s" % self.__rest_token)
+
+
+    def get_dc_list(self):
+        """
+        Get the list of data collections for the current session belonging to
+        the current proposal. (Given by the session object)
+
+        :returns: A list of LIMS DataCollection Objects
+        """
+        self.__update_rest_token()
+
+        url = "{rest_root}{token}"
+        url += "/proposal/{pcode}{pnumber}/mx/datacollection/session/{sid}/list"
+        url = url.format(rest_root = self.__rest_root,
+                         token = str(self.__rest_token),
+                         pcode = self.session_hwobj.proposal_code,
+                         pnumber = self.session_hwobj.proposal_number,
+                         sid = self.session_hwobj.session_id)
+
+        try:
+            response = json.loads(get(url).text)
+        except Exception as ex:
+            response = []
+            logging.getLogger("ispyb_client").exception(str(ex))
+
+        return response
+
+    def get_dc(self, dc_id):
+        """
+        Get data collection with id <dc_id>
+
+        :param int dc_id: The collection id
+        :returns: Data collection dict
+        """
+        dc_list = self.get_dc_list()
+        dc_dict = {}
+
+        for lims_dc in dc_list:
+            if 'DataCollection_dataCollectionId' in lims_dc:
+                if lims_dc['DataCollection_dataCollectionId'] == dc_id:
+                    for key, value in lims_dc.iteritems():
+                        if key.startswith('DataCollection_'):
+                            k = str(key.replace('DataCollection_', ''))
+                            dc_dict[k] = value
+                        elif key == 'firstImageId':
+                            dc_dict['firstImageId'] = value
+                        elif key == 'lastImageId':
+                            dc_dict['lastImageId'] = value
+                            
+                    
+        return dc_dict
+
+    def get_dc_thumbnail(self, image_id):
+        """
+        Get the image data for image with id <image_id>
+
+        :param int image_id: The image id
+        :returns: tuple on the form (file name, base64 encoded data)
+        """
+        
+        self.__update_rest_token()
+        fname, data = ('' ,'')
+        
+        url = "{rest_root}{token}"
+        url += "/proposal/{pcode}{pnumber}/mx/image/{image_id}/thumbnail"
+        url = url.format(rest_root = self.__rest_root,
+                         token = str(self.__rest_token),
+                         pcode = self.session_hwobj.proposal_code,
+                         pnumber = self.session_hwobj.proposal_number,
+                         image_id = image_id)
+
+        try:
+            response = get(url)
+            data = response.content
+            value, params = cgi.parse_header(response.headers)
+            fname = params['filename']
+            
+        except Exception as ex:
+            response = []
+            logging.getLogger("ispyb_client").exception(str(ex))
+
+        return fname, data
 
     def get_proposals_by_user(self, user_name):
         """
@@ -97,41 +195,44 @@ class ISPyBRestClient(HardwareObject):
         result = []
         if self.__rest_token:
             try:
-               response = get(self.__rest_root + self.__rest_token + \
-                   '/proposal/%s/list' % user_name)
-               proposal_list = eval(str(response.text))
-               for proposal in proposal_list:
-                   temp_proposal_dict = {}
-                   # Backward compatability with webservices
-                   # Could be removed if webservices disapear 
-                   temp_proposal_dict['Proposal'] = {}
-                   temp_proposal_dict['Proposal']['type'] = str(proposal['Proposal_proposalType'])
-                   if temp_proposal_dict['Proposal']['type'] in ('MX', 'MB'):
-                       temp_proposal_dict['Proposal']['proposalId'] = proposal['Proposal_proposalId'] 
-                       temp_proposal_dict['Proposal']['code'] = str(proposal['Proposal_proposalCode'])
-                       temp_proposal_dict['Proposal']['number'] = proposal['Proposal_proposalNumber']
-                       temp_proposal_dict['Proposal']['title'] = proposal['Proposal_title']
-                       temp_proposal_dict['Proposal']['personId'] = proposal['Proposal_personId']
+                url = "{rest_root}{token}/proposal/{username}/list"
+                url = url.format(rest_root = self.__rest_root,
+                                 token = self.__rest_token,
+                                 username = user_name)
+                
+                response = get(url)
+                proposal_list = json.loads(str(response.text))
+                
+                for proposal in proposal_list:
+                    temp_proposal_dict = {}
+                    # Backward compatability with webservices
+                    # Could be removed if webservices disapear 
+                    temp_proposal_dict['Proposal'] = {}
+                    temp_proposal_dict['Proposal']['type'] = str(proposal['Proposal_proposalType'])
 
-                       # gets all sessions for 
-                       #proposal_txt = temp_proposal_dict['Proposal']['code'] + \
-                       #               str(temp_proposal_dict['Proposal']['number'])
-                       #sessions = self.get_proposal_sessions(temp_proposal_dict['Proposal']['proposalId'])
-                       res_sessions = self.get_proposal_sessions(\
-                           temp_proposal_dict['Proposal']['proposalId'])
-                       #This could be fixed and removed from here
-                       proposal_sessions = []
-                       for session in res_sessions:
-                           date_object = datetime.strptime(session['startDate'], '%b %d, %Y %I:%M:%S %p')
-                           session['startDate'] = datetime.strftime(
-                                 date_object, "%Y-%m-%d %H:%M:%S")
-                           date_object = datetime.strptime(session['endDate'], '%b %d, %Y %I:%M:%S %p')
-                           session['endDate'] = datetime.strftime(
-                                 date_object, "%Y-%m-%d %H:%M:%S") 
-                           proposal_sessions.append(session)
+                    if temp_proposal_dict['Proposal']['type'] in ('MX', 'MB'):
+                        temp_proposal_dict['Proposal']['proposalId'] = proposal['Proposal_proposalId'] 
+                        temp_proposal_dict['Proposal']['code'] = str(proposal['Proposal_proposalCode'])
+                        temp_proposal_dict['Proposal']['number'] = proposal['Proposal_proposalNumber']
+                        temp_proposal_dict['Proposal']['title'] = proposal['Proposal_title']
+                        temp_proposal_dict['Proposal']['personId'] = proposal['Proposal_personId']
 
-                       temp_proposal_dict['Sessions'] = proposal_sessions
-                       result.append(temp_proposal_dict)
+                        res_sessions = self.get_proposal_sessions(\
+                            temp_proposal_dict['Proposal']['proposalId'])
+
+                        proposal_sessions = []
+                        for session in res_sessions:
+                            date_object = datetime.strptime(session['startDate'], '%b %d, %Y %I:%M:%S %p')
+                            session['startDate'] = datetime.strftime(
+                                date_object, "%Y-%m-%d %H:%M:%S")
+                            date_object = datetime.strptime(session['endDate'], '%b %d, %Y %I:%M:%S %p')
+                            session['endDate'] = datetime.strftime(
+                                date_object, "%Y-%m-%d %H:%M:%S") 
+                            proposal_sessions.append(session)
+
+                            temp_proposal_dict['Sessions'] = proposal_sessions
+
+                        result.append(temp_proposal_dict)
             except:
                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)  
         else:
