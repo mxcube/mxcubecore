@@ -550,7 +550,7 @@ class SampleQueueEntry(BaseQueueEntry):
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = "Error loading sample, please check" +\
-                              " sample changer: " + e.message
+                              " sample changer: " + str(e)
                         log.error(msg)
                         if isinstance(e, QueueSkippEntryException):
                             raise
