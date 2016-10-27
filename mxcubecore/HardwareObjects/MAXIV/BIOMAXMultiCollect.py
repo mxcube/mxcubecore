@@ -47,126 +47,12 @@ class TunableEnergy:
         return self.bl_control.energy.getCurrentWavelength()
 
 
-class PixelDetector:
-    def __init__(self, detector_class=None):
-        self._detector = detector_class() if detector_class else None
-        self.shutterless = True
-        self.new_acquisition = True
-        self.oscillation_task = None
-        self.shutterless_exptime = None
-        self.shutterless_range = None
-
-    def init(self, config, collect_obj):
-        self.collect_obj = collect_obj
-        if self._detector:
-          self._detector.addChannel = self.addChannel
-          self._detector.addCommand = self.addCommand
-          self._detector.getChannelObject = self.getChannelObject
-          self._detector.getCommandObject = self.getCommandObject
-          self._detector.init(config, collect_obj)
-
-    def last_image_saved(self):
-        return self._detector.last_image_saved()
-
-    @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
-        self.new_acquisition = True
-        if osc_range < 1E-4:
-            still = True
-        else:
-            still = False
-        take_dark = 0
-        if self.shutterless:
-            self.shutterless_range = osc_range*number_of_images
-            self.shutterless_exptime = (exptime + self._detector.get_deadtime())*number_of_images
-        if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
-        
-    @task
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-      if self.shutterless and not self.new_acquisition:
-          return
- 
-      if self._detector:
-          self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
-
-    @task
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
-        if self.shutterless:
-            end = start+self.shutterless_range
-            if self.new_acquisition:
-                self.collect_obj.do_prepare_oscillation(start, end, self.shutterless_exptime, npass)
-            return (start, end)
-        else:
-            if osc_range < 1E-4:
-                # still image
-                pass
-            else:
-                self.collect_obj.do_prepare_oscillation(start, start+osc_range, exptime, npass)
-            return (start, start+osc_range)
-
-    @task
-    def start_acquisition(self, exptime, npass, first_frame):
-        try:
-            self.collect_obj.getObjectByRole("detector_cover").set_out()
-        except:
-            pass
-
-        if not first_frame and self.shutterless:
-            pass 
-        else:
-            if self._detector:
-                self._detector.start_acquisition()
-
-    @task
-    def no_oscillation(self, exptime):
-        self.collect_obj.open_fast_shutter()
-        time.sleep(exptime)
-        self.collect_obj.close_fast_shutter()
-
-    @task
-    def do_oscillation(self, start, end, exptime, npass):
-      still = math.fabs(end-start) < 1E-4
-      if self.shutterless:
-          if self.new_acquisition:
-              # only do this once per collect
-              # make oscillation an asynchronous task => do not wait here
-              if still:
-                  self.oscillation_task = self.no_oscillation(self.shutterless_exptime, wait=False)
-              else:
-                  self.oscillation_task = self.collect_obj.oscil(start, end, self.shutterless_exptime, 1, wait=False)
-          if self.oscillation_task.ready():
-              self.oscillation_task.get()
-      else:
-          if still:
-              self.no_oscillation(exptime)
-          else:
-              self.collect_obj.oscil(start, end, exptime, npass)
-   
-    @task
-    def write_image(self, last_frame):
-      if last_frame:
-        if self.shutterless:
-            self.oscillation_task.get()
-
-    def stop_acquisition(self):
-        self.new_acquisition = False
-      
-    @task
-    def reset_detector(self):
-      if self.shutterless:
-          self.oscillation_task.kill()
-      if self._detector:
-          self._detector.stop()
-
-
 class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def __init__(self, name):
 
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._detector = None
         self._tunable_bl = FixedEnergy(1.125, 11.0)
         self._centring_status = None
         self.helical = False
@@ -223,13 +109,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                       input_files_server = self.getProperty("input_files_server"))
   
         self.archive_directory= self.getProperty("archive_directory")
-
-        self._detector.addCommand = self.addCommand
-        self._detector.addChannel = self.addChannel
-        self._detector.getCommandObject = self.getCommandObject
-        self._detector.getChannelObject = self.getChannelObject
-        #self._detector.execute_command = self.execute_command
-        self._detector.init(self.bl_control.detector, self)
+       
+        self.detector = self.bl_control.detector
         self._tunable_bl.bl_control = self.bl_control
 
 
@@ -360,7 +241,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def prepare_acquisition(self, start, osc_range, exptime, name_pattern, ntrigger=1, npass, number_of_images, images_per_file=100, roi="16M"):
-        #return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy)
         self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()) 
 
                        
@@ -384,7 +264,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         config['Wavelength'] = self.get_wavelength()
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
 
-        config['FrameTime'] = exptime + self._detector.get_readout_time()
+        config['FrameTime'] = exptime + self.detector.get_readout_time()
 
         config['NbImages'] = number_of_images
         config['NbTriggers'] = ntrigger # to check for different tasks
@@ -392,17 +272,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         config['NamePattern'] = name_pattern
         return self.detector.prepare_acquisition(config)
 
-
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
-        return self._detector.set_detector_filenames(frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path)
-
-    def prepare_oscillation(self, start, osc_range, exptime, npass):
-        return self._detector.prepare_oscillation(start, osc_range, exptime, npass)
-    
-    def do_oscillation(self, start, end, exptime, npass):
-        self.oscil(start, end, self.shutterless_exptime, 1, wait=False)
-        #return self._detector.do_oscillation(start, end, exptime, npass)
-    
   
     def start_acquisition(self, exptime, npass, first_frame):
         try:
@@ -413,14 +282,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         
         #return self._detector.start_acquisition(exptime, npass, first_frame)
     
-      
-    def write_image(self, last_frame):
-        return self._detector.write_image(last_frame)
-
-
-    def last_image_saved(self):
-        return self._detector.last_image_saved()
-
     def stop_acquisition(self):
         #return self._detector.stop_acquisition()
         self.detector.stop_acquisition()
