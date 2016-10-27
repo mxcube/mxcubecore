@@ -8,7 +8,7 @@ import httplib
 import urllib
 import math
 from queue_model_objects_v1 import PathTemplate
-from MAXIV.BIOMAXPilatus import BIOMAXPilatus
+#from MAXIV.BIOMAXPilatus import BIOMAXPilatus
 
 class FixedEnergy:
     def __init__(self, wavelength, energy):
@@ -170,6 +170,9 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         self._tunable_bl = FixedEnergy(1.125, 11.0)
         self._centring_status = None
         self.helical = False
+        self.shutterless_exptime = None
+        self.shutterless_range = None
+        self.oscillation_task = None
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -204,13 +207,13 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         self.setBeamlineConfiguration(synchrotron_name = "MAXIV",
                                       directory_prefix = self.getProperty("directory_prefix"),
                                       default_exposure_time = self.bl_control.detector.getProperty("default_exposure_time"),
-                                      minimum_exposure_time = self.bl_control.detector.getProperty("minimum_exposure_time"),
+                                      minimum_exposure_time = self.bl_control.detector.get_minimum_exposure_time(),
                                       detector_fileext = self.bl_control.detector.getProperty("file_suffix"),
                                       detector_type = self.bl_control.detector.getProperty("type"),
                                       detector_manufacturer = self.bl_control.detector.getProperty("manufacturer"),
                                       detector_model = self.bl_control.detector.getProperty("model"),
-                                      detector_px = self.bl_control.detector.getProperty("px"),
-                                      detector_py = self.bl_control.detector.getProperty("py"),
+                                      detector_px = self.bl_control.detector.get_pixel_size_x(),
+                                      detector_py = self.bl_control.detector.get_pixel_size_y(),
                                       undulators = undulators,
                                       focusing_optic = self.getProperty('focusing_optic'),
                                       monochromator_type = self.getProperty('monochromator'),
@@ -277,7 +280,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     def data_collection_hook(self, data_collect_parameters):
         return
  
-    def do_prepare_oscillation(self, start, end, exptime, npass):
+    def do_prepare_oscillation(self):
+        # the exptime is the total exptime
         diffr = self.bl_control.diffractometer
         #move to DataCollection phase
         if diffr.get_current_phase() != "DataCollection":
@@ -355,25 +359,38 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
           time.sleep(0.1)
 
 
-    def prepare_acquisition(self, start, osc_range, exptime, ntrigger=1, npass, number_of_images, images_per_file=100, roi="16M"):
+    def prepare_acquisition(self, start, osc_range, exptime, name_pattern, ntrigger=1, npass, number_of_images, images_per_file=100, roi="16M"):
         #return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy)
-        config = self._detector.config
+        self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()) 
+
+                       
+        self.shutterless_range = osc_range*number_of_images
+        # needs to be done after set_photon_energy, as the readout_time will change accordingly
+        self.shutterless_exptime = exptime + (exptime + self.detector.get_redout_time())*(number_of_images-1)
+
+        if roi == "4M":
+            config['RoiMode'] = "4M"
+        else:
+            config['RoiMode'] = "disabled" #disabled means 16M
+
+
+        
+        config = self.detector.config
         config['OmegaStart'] = start
         config['OmegaIncrement'] = osc_range
         beam_x, beam_y = self.get_beam_centre() # returns length, not pixel
-        config['BeamCenterX'] = beam_x
-        config['BeamCenterY'] = beam_y
+        config['BeamCenterX'] = beam_x  # unit, should be pixel for master file
+        config['BeamCenterY'] = beam_y  
         config['Wavelength'] = self.get_wavelength()
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
 
-        config['FrameTime'] = exptime + self._detector.get_deadtime()
+        config['FrameTime'] = exptime + self._detector.get_readout_time()
 
         config['NbImages'] = number_of_images
         config['NbTriggers'] = ntrigger # to check for different tasks
         config['NbImagesPerFile'] = images_per_file
-        config['RoiMode'] = roi
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy() 
-        return self._detector.prepare_acquisition(config)
+        config['NamePattern'] = name_pattern
+        return self.detector.prepare_acquisition(config)
 
 
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -383,11 +400,18 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return self._detector.prepare_oscillation(start, osc_range, exptime, npass)
     
     def do_oscillation(self, start, end, exptime, npass):
-        return self._detector.do_oscillation(start, end, exptime, npass)
+        self.oscil(start, end, self.shutterless_exptime, 1, wait=False)
+        #return self._detector.do_oscillation(start, end, exptime, npass)
     
   
     def start_acquisition(self, exptime, npass, first_frame):
-        return self._detector.start_acquisition(exptime, npass, first_frame)
+        try:
+            self.collect_obj.getObjectByRole("detector_cover").set_out()
+        except:
+            logging.getLogger("HWR").exception("Could not open the detector cover")
+            pass
+        
+        #return self._detector.start_acquisition(exptime, npass, first_frame)
     
       
     def write_image(self, last_frame):
@@ -398,11 +422,14 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         return self._detector.last_image_saved()
 
     def stop_acquisition(self):
-        return self._detector.stop_acquisition()
+        #return self._detector.stop_acquisition()
+        self.detector.stop_acquisition()
         
       
     def reset_detector(self):
-        return self._detector.reset_detector()
+        #return self.detector.reset_detector()
+        self.oscillation_task.kill()
+        self.detector.cancel_acquisition() # soft abort data collection
         
 
     def get_wavelength(self):
@@ -661,7 +688,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         file_parameters = data_collect_parameters["fileinfo"]
 
         file_parameters["suffix"] = self.bl_config.detector_fileext
-        image_file_template = "%(prefix)s_%(run_number)s_%%05d.%(suffix)s" % file_parameters
+        image_file_template = "%(prefix)s_%(run_number)s_master.%(suffix)s" % file_parameters
         file_parameters["template"] = image_file_template
 
         archive_directory = self.get_archive_directory(file_parameters["directory"])
@@ -887,9 +914,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
           logging.getLogger("user_level_log").info("Moving detector to %f", data_collect_parameters["detdistance"])
           self.move_detector(oscillation_parameters["detdistance"])
 
-        # 0: software binned, 1: unbinned, 2:hw binned
-        self.set_detector_mode(data_collect_parameters["detector_mode"])
-
         with cleanup(self.data_collection_cleanup):
             if not self.safety_shutter_opened():
                 logging.getLogger("user_level_log").info("Opening safety shutter")
@@ -957,11 +981,17 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             if self.run_without_loop:
                 self.execute_collect_without_loop(data_collect_parameters)
             else: 
+                # will break for wedge_size >1, if do arm in prepare_acquisition
+                # with filewriter, one can't change the namepattern for different triggers. the following is not possible.
+
                 for start, wedge_size in wedges_to_collect:
                     logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
+                    name_pattern = image_file_template 
+
                     self.prepare_acquisition(start,
                                              osc_range,
                                              exptime,
+                                             name_pattern,
                                              ntrigger = 1,
                                              npass,
                                              wedge_size)
@@ -972,7 +1002,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                     while j > 0: 
                       frame_start = start+i*osc_range
                       i+=1
-
+                      """ 
                       filename = image_file_template % frame
                       try:
                         jpeg_full_path = jpeg_file_template % frame
@@ -984,14 +1014,20 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                       file_path  = os.path.join(file_location, filename)
 
                       self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
-                      osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
+                      """ 
+                      #osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
+                      osc_start = frame_start
+                      osc_end = osc_start + self.shutterless_range
+                      self.do_prepare_oscillation()
+
                       self.move_motors(motors_to_move_before_collect) 
 
                       with error_cleanup(self.reset_detector):
                           self.start_acquisition(exptime, npass, j == wedge_size)
-                          self.do_oscillation(osc_start, osc_end, exptime, npass)
+                          #self.do_oscillation(osc_start, osc_end, exptime, npass)
+                          self.oscillation_task = self.oscil(osc_start, osc_end, self.shutterless_exptime, 1, wait=False)
                           self.stop_acquisition()
-                          self.write_image(j == 1)
+                          #self.write_image(j == 1) todo, is this needed
                                      
                           # Store image in lims
                           if self.bl_control.lims:
@@ -1024,7 +1060,9 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                                          data_collect_parameters["do_inducedraddam"],
                                                          data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
-
+                          
+                          """todo, check if collectImageTaken signal is needed and also find a way to check if the detector is triggered
+  
                           if data_collect_parameters.get("shutterless"):
                               with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
    			          while self.last_image_saved() == 0:
@@ -1043,18 +1081,19 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                               frame += 1
                               if j == 0:
                                 break
-
+                          """
                 
 
     def get_beam_centre(self):
-        #x=723
-        #y=808
-        #x = 731.89
-        #y = 822.40
-        #return (x*0.172, y*0.172)
+        #values from resolution obj is length, not pixel
         return self.bl_control.resolution.get_beam_centre() # length, not pixel
+        
+    def get_beam_centre_pixel(self):
+        x, y = self.bl_control.resolution.get_beam_centre()  # unit m
+        return float (x / self.detector.get_x_pixel_size()), float (y / self.detector.get_y_pixel_size()) 
 
     def get_detector_distance(self):
         #return 750
+        #todo, return self.bl_control.detector_distance.getPosition()
         return 150.0 # unit, mm
     
