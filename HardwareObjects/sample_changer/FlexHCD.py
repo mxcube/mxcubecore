@@ -146,24 +146,22 @@ class FlexHCD(SampleChanger):
 
     def chained_load(self, old_sample, sample):
         unload_load_task = gevent.spawn(self._execute_cmd, 'chainedUnldLd', [old_sample.getCellNo(), old_sample.getBasketNo(), old_sample.getVialNo()], [sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()])
+
         while not unload_load_task.ready():
-          if self._execute_cmd("ready_for_centring"):
-            break
+          if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
+              break
           gevent.sleep(1)
         self._setLoadedSample(sample)
-        self.prepareCentring()
         return True
 
     @task
     def load(self, sample):
         self.prepareLoad(wait=True)
         self.enable_power()
-        load_task = gevent.spawn(SampleChanger.load, self, sample)
-        while not load_task.ready():
-          if self._execute_cmd("ready_for_centring"):
-            break
-          gevent.sleep(1)
-        self.prepareCentring()
+        res = SampleChanger.load(self, sample)
+        if res:
+            self.prepareCentring()
+        return res
         
     @task
     def unload_sample(self, holderLength, sample_id=None, sample_location=None, successCallback=None, failureCallback=None):
@@ -206,7 +204,11 @@ class FlexHCD(SampleChanger):
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())
 
-        self._execute_cmd('loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        load_task = gevent.spawn(self._execute_cmd,'loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        while not load_task.ready():
+          if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
+              break
+          gevent.sleep(1)
 
         self._setLoadedSample(sample)
 
