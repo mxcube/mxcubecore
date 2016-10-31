@@ -27,7 +27,8 @@ class BIOMAXEiger(Equipment):
 
     def init(self):
         
-        tango_device = self.getProperty("tango_device")
+        tango_device = self.getProperty("detector_device")
+        filewriter_device = self.getProperty("filewriter_device")
         self.device = PyTango.DeviceProxy(tango_device)
 
         self.file_suffix =  self.getProperty("file_suffix") 
@@ -45,10 +46,9 @@ class BIOMAXEiger(Equipment):
                     'EnergyThresholdMin','Time','NbTriggers','NbTriggersMax','XPixelSize','YPixelSize',
                     'NbTriggersMin','CountTimeInte','DownloadDirectory','FilesInBuffer','Error',
                     'BeamCenterX','BeamCenterY','DetectorDistance','OmegaIncrement','OmegaStart',
-                    'PixelMask','PixelMaskApplied','Compression','RoiMode','FileWriterMode',
-                    'NbImagesPerFile','ImagesNbStart','NamePattern','CompressionEnabled',
-                    'FileWriterState','BufferFree', 'State','XPixelsDetector','YPixelsDetector')
-
+                    'Compression','RoiMode', 'State','XPixelsDetector','YPixelsDetector')
+	fw_list = ('FilenamePattern','ImagesPerFile','BufferFree',# 'CompressionEnabled'
+		  'FileWriterState', 'ImageNbStart', 'Mode')
         # config needed to be set up for data collection
         # if values are None, use the one from the system
         col_config = { 'OmegaStart': 0,
@@ -60,8 +60,9 @@ class BIOMAXEiger(Equipment):
                        'FrameTime': None,
                        'NbImages': None,
                        'NbTriggers': None,
-                       'NbImagesPerFile': None,
-                       'RoiMode': None#,
+                       'ImagesPerFile': None,
+                       'RoiMode': None,#,
+                       'FilenamePattern':None
                        #'PhotonEnergy': None
                      }
 
@@ -76,15 +77,23 @@ class BIOMAXEiger(Equipment):
                              "tangoname": tango_device },
                              channel_name)
 
+        for channel_name in fw_list:
+            self.addChannel({"type":"tango", 
+                             "name": channel_name,
+                             "tangoname": filewriter_device },
+                             channel_name)
         for cmd_name in cmd_list:
             self.addCommand({"type":"tango",
-                             "name": channel_name, 
+                             "name": cmd_name, 
                              "tangoname": tango_device },
-                             channel_name)
-
+                             cmd_name)
+	print self.getChannelNamesList()
+	print self.getCommandNamesList()
         # init the detector settings in case of detector restart
         # use bslz4 for compression ()        
-        self.getChannelObject("Compression").setValue("bslz4")
+	import time
+	time.sleep(1) #this is for avoiding timeout in the next line
+        self.getChannelObject('Compression').setValue("bslz4")
         #self.getChannelObject("CompressionEnabled").setValue(True)
         
     def wait_ready(self):
@@ -196,7 +205,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("user_level_log").info("Preparing acquisition")
         logging.getLogger("user_level_log").info("Detector ready, continuing")
 
-        self.wati_buffer_ready()
+        self.wait_buffer_ready()
         return self.getCommandObject("Arm")()
     
     def stop_acquisition(self):

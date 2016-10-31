@@ -268,8 +268,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
         config['NbImages'] = number_of_images
         config['NbTriggers'] = ntrigger # to check for different tasks
-        config['NbImagesPerFile'] = images_per_file
-        config['NamePattern'] = name_pattern
+        config['ImagesPerFile'] = images_per_file
+        config['FilenamePattern'] = name_pattern
         return self.detector.prepare_acquisition(config)
 
   
