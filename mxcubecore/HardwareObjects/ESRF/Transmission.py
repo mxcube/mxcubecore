@@ -1,5 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from PyTransmission import matt_control
+from bliss.controllers import matt
+from bliss.controllers import transmission
 
 class Transmission(HardwareObject):
     def __init__(self, name):
@@ -16,10 +17,11 @@ class Transmission(HardwareObject):
     def init(self):
         self.energy = self.getObjectByRole('energy')
 
-        self.__matt = matt_control.MattControl(self.getProperty("wago_ip"), len(self['filter']), 0, self.getProperty('type'),
+        self.__matt = matt.MattControl(self.getProperty("wago_ip"), len(self['filter']), self.getProperty('type'),
                                    self.getProperty('alternate'), self.getProperty('status_module'),
-                                   self.getProperty('control_module'),self.getProperty('datafile'))
+                                   self.getProperty('control_module'))
         self.__matt.connect()
+        self.__transmission = transmission.transmission("", { "energy": self.energy, "matt": self.__matt, "datafile": self.getProperty("datafile") })
 
     def isReady(self):
         return True
@@ -36,8 +38,7 @@ class Transmission(HardwareObject):
         return self.__matt.pos_read()
 
     def set_value(self, trans):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
-        self.__matt.transmission_set(trans)
+        self.__transmission.set(trans)
         self._update()
 
     def _update(self):
@@ -53,8 +54,7 @@ class Transmission(HardwareObject):
         self._update()
 
     def get_value(self):
-        self.__matt.set_energy(self.energy.getCurrentEnergy())
-        return self.__matt.transmission_get()
+        return self.__transmission.get()
 
     def is_in(self, attenuator_index):
         curr_bits = self.getAttState()

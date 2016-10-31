@@ -148,10 +148,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
                 if isinstance(ex, queue_entry.QueueAbortedException):
                     logging.getLogger('user_level_log').\
-                        warning('Queue execution was aborted, ' + str(ex.message))
+                        warning('Queue execution was aborted, ' + str(ex))
                 else:
                     logging.getLogger('user_level_log').\
-                        error('Queue execution failed with: ' + str(ex.message))
+                        error('Queue execution failed with: ' + str(ex))
 
                 raise ex
         finally:
