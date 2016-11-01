@@ -60,6 +60,18 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         self.shutterless_range = None
         self.oscillation_task = None
 
+    def do_oscillation():
+	pass
+    def last_image_saved():
+	pass
+    def prepare_oscillation():
+	pass
+    def set_detector_filenames():
+	pass
+    def write_image():
+	pass
+
+
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
       cmd_obj = self.getCommandObject(command_name)
@@ -240,7 +252,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
           time.sleep(0.1)
 
 
-    def prepare_acquisition(self, start, osc_range, exptime, name_pattern, ntrigger=1, npass, number_of_images, images_per_file=100, roi="16M"):
+    def prepare_acquisition(self, start, osc_range, exptime, name_pattern, npass, number_of_images, images_per_file=100, roi="16M", ntrigger=1):
         self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()) 
 
                        
@@ -853,9 +865,9 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                              osc_range,
                                              exptime,
                                              name_pattern,
-                                             ntrigger = 1,
                                              npass,
-                                             wedge_size)
+                                             wedge_size,
+                                             ntrigger = 1)
                     data_collect_parameters["dark"] = 0
 
                     i = 0
