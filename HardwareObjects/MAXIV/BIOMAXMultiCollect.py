@@ -253,24 +253,24 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def prepare_acquisition(self, start, osc_range, exptime, name_pattern, npass, number_of_images, images_per_file=100, roi="16M", ntrigger=1):
-        self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()) 
+        self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()*1000) 
 
                        
         self.shutterless_range = osc_range*number_of_images
         # needs to be done after set_photon_energy, as the readout_time will change accordingly
-        self.shutterless_exptime = exptime + (exptime + self.detector.get_redout_time())*(number_of_images-1)
+        self.shutterless_exptime = exptime + (exptime + self.detector.get_readout_time())*(number_of_images-1)
+
+        config = self.detector.col_config
 
         if roi == "4M":
             config['RoiMode'] = "4M"
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-
         
-        config = self.detector.config
         config['OmegaStart'] = start
         config['OmegaIncrement'] = osc_range
-        beam_x, beam_y = self.get_beam_centre() # returns length, not pixel
+        beam_x, beam_y = self.get_beam_centre_pixel() # returns pixel
         config['BeamCenterX'] = beam_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_y  
         config['Wavelength'] = self.get_wavelength()
@@ -292,7 +292,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
             logging.getLogger("HWR").exception("Could not open the detector cover")
             pass
         
-        #return self._detector.start_acquisition(exptime, npass, first_frame)
+        return self.detector.start_acquisition()
     
     def stop_acquisition(self):
         #return self._detector.stop_acquisition()
@@ -810,7 +810,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                     data_collect_parameters["detectorDistance"] =  self.get_detector_distance()
                     data_collect_parameters["resolution"] = self.get_resolution()
                     data_collect_parameters["transmission"] = self.get_transmission()
-                    beam_centre_x, beam_centre_y = self.get_beam_centre()
+                    beam_centre_x, beam_centre_y = self.get_beam_centre() # return length
                     data_collect_parameters["xBeam"] = beam_centre_x
                     data_collect_parameters["yBeam"] = beam_centre_y
 
@@ -959,9 +959,12 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_beam_centre(self):
         #values from resolution obj is length, not pixel
+        print self.bl_control.resolution
+        return 0,0
         return self.bl_control.resolution.get_beam_centre() # length, not pixel
         
     def get_beam_centre_pixel(self):
+        return 0,0
         x, y = self.bl_control.resolution.get_beam_centre()  # unit m
         return float (x / self.detector.get_x_pixel_size()), float (y / self.detector.get_y_pixel_size()) 
 
