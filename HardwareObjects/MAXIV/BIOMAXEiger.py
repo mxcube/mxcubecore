@@ -46,12 +46,12 @@ class BIOMAXEiger(Equipment):
                     'EnergyThresholdMin','Time','NbTriggers','NbTriggersMax','XPixelSize','YPixelSize',
                     'NbTriggersMin','CountTimeInte','DownloadDirectory','FilesInBuffer','Error',
                     'BeamCenterX','BeamCenterY','DetectorDistance','OmegaIncrement','OmegaStart',
-                    'Compression','RoiMode', 'State','XPixelsDetector','YPixelsDetector')
+                    'Compression','RoiMode', 'State',"Status",'XPixelsDetector','YPixelsDetector')
 	fw_list = ('FilenamePattern','ImagesPerFile','BufferFree',# 'CompressionEnabled'
 		  'FileWriterState', 'ImageNbStart', 'Mode')
         # config needed to be set up for data collection
         # if values are None, use the one from the system
-        col_config = { 'OmegaStart': 0,
+        self.col_config = { 'OmegaStart': 0,
                        'OmegaIncrement': 0.1,
                        'BeamCenterX': None, # length not pixel
                        'BeamCenterY': None,
@@ -95,14 +95,22 @@ class BIOMAXEiger(Equipment):
 	time.sleep(1) #this is for avoiding timeout in the next line
         self.getChannelObject('Compression').setValue("bslz4")
         #self.getChannelObject("CompressionEnabled").setValue(True)
+        self.getChannelObject('TriggerMode').setValue("exts")
         
     def wait_ready(self):
-        ## add external trigger, use wait command instead
-        acq_status_chan = self.getChannelObject("State")
+        ## ready, means ready for trigger.
+        acq_status_chan = self.getChannelObject("Status")
         with gevent.Timeout(30, RuntimeError("Detector not ready")):
-            while acq_status_chan.getValue() != "On":
+            while acq_status_chan.getValue() != "ready":
                 time.sleep(1)
- 
+
+    def wait_idle(self):
+        ## idle means ready for changing config.
+        acq_status_chan = self.getChannelObject("Status")
+        with gevent.Timeout(30, RuntimeError("Detector not ready")):
+            while acq_status_chan.getValue() != "idle":
+                time.sleep(1)
+
     def wait_buffer_ready(self):
         with gevent.Timeout(30, RuntimeError("Detector free buffer size is lower than limit")):
             while self.get_buffer_free() < self.buffer_limit:
@@ -110,7 +118,7 @@ class BIOMAXEiger(Equipment):
 
 
     def get_readout_time(self):
-        return self.getChannelObject("ReadoutTime").getValue()
+        return 0.00001 #self.getChannelObject("ReadoutTime").getValue()
   
     def get_buffer_free(self):
         return self.getChannelObject("BufferFree").getValue()
@@ -189,8 +197,8 @@ class BIOMAXEiger(Equipment):
         """
         
         """This writes into the tango device"""
-        self.wait_ready()
-        for param in self.config.items():
+        self.wait_idle()
+        for param in self.col_config.items():
             if hasattr(self.device, param[0]) and param[1] is not None:
                 setattr(self.device, param[0], param[1])
         # check the bufferfree in DCU
@@ -206,6 +214,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("user_level_log").info("Detector ready, continuing")
 
         self.wait_buffer_ready()
+        self.wait_idle()
         return self.getCommandObject("Arm")()
     
     def stop_acquisition(self):
