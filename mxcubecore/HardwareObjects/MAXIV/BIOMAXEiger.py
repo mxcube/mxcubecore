@@ -29,7 +29,12 @@ class BIOMAXEiger(Equipment):
         
         tango_device = self.getProperty("detector_device")
         filewriter_device = self.getProperty("filewriter_device")
+
         self.device = PyTango.DeviceProxy(tango_device)
+	self.device.set_timeout_millis(6000)
+
+        self.fw_device = PyTango.DeviceProxy(filewriter_device)
+	self.fw_device.set_timeout_millis(6000)
 
         self.file_suffix =  self.getProperty("file_suffix") 
         self.default_exposure_time = self.getProperty("default_exposure_time")
