@@ -86,8 +86,6 @@ class BeamInfo(Equipment):
            pass
         self.default_beam_divergence = [default_beam_divergence_horizontal, default_beam_divergence_vertical]
 
-        self.beam_size_aperture = [0.01, 0.01]
-
     def connectNotify(self, *args):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
