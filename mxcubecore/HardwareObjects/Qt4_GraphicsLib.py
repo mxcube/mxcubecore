@@ -220,6 +220,7 @@ class GraphicsItemBeam(GraphicsItem):
         """
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
+        self.display_beam_size = False
         self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
         
     def paint(self, painter, option, widget):
@@ -253,6 +254,18 @@ class GraphicsItemBeam(GraphicsItem):
                          self.beam_position[1] * self.scene().image_scale - 10,
                          self.beam_position[0] * self.scene().image_scale, 
                          self.beam_position[1] * self.scene().image_scale + 10) 
+        if self.display_beam_size:
+            self.custom_pen.setColor(QtCore.Qt.darkGray)
+            painter.setPen(self.custom_pen)
+           
+            painter.drawText(self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
+                             self.beam_position[1] + self.beam_size_pix[1] / 2 + 10,
+                             "%d x %d %sm" % (self.beam_size_mm[0] * 1000,
+                                              self.beam_size_mm[1] * 1000,
+                                              u"\u00B5"))
+
+    def enable_beam_size(self, state):
+        self.display_beam_size = state
 
 class GraphicsItemInfo(GraphicsItem):
     """Message box for displaying information on the screen
@@ -659,12 +672,12 @@ class GraphicsItemGrid(GraphicsItem):
 
             #Based on the grid directions estimates number of lines and 
             #number of images per line
-            self.__num_lines =  abs(self.grid_direction['fast'][1] * \
-                 self.__num_cols) + abs(self.grid_direction['slow'][1] * \
-                 self.__num_rows)
-            self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
-                self.__num_cols) + abs(self.grid_direction['slow'][0] * \
-                self.__num_rows)
+            #self.__num_lines =  abs(self.grid_direction['fast'][1] * \
+            #     self.__num_cols) + abs(self.grid_direction['slow'][1] * \
+            #     self.__num_rows)
+            #self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
+            #    self.__num_cols) + abs(self.grid_direction['slow'][0] * \
+            #    self.__num_rows)
 
             self.update_grid_draw_parameters()
 
@@ -674,18 +687,29 @@ class GraphicsItemGrid(GraphicsItem):
                  self.__corner_coord[3].y()) + self.__grid_size_pix[1] / 2.0)
             self.scene().update() 
 
-    def update_grid_draw_parameters(self):
-        self.__grid_size_pix = [self.__num_cols * self.__cell_size_pix[0],
-                                self.__num_rows * self.__cell_size_pix[1]]
-        #Also grid range is estimated 
-        self.__grid_range_pix["fast"] = abs(self.grid_direction['fast'][0] * \
-             (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
-             abs(self.grid_direction['fast'][1] * \
-             (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
-        self.__grid_range_pix["slow"] = abs(self.grid_direction['slow'][0] * \
-             (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
-             abs(self.grid_direction['slow'][1] * \
-             (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+    def update_grid_draw_parameters(self, adjust_size=True):
+        if adjust_size:
+            self.__grid_size_pix = [self.__num_cols * self.__cell_size_pix[0],
+                                    self.__num_rows * self.__cell_size_pix[1]]
+            #Also grid range is estimated 
+            self.__grid_range_pix["fast"] = abs(self.grid_direction['fast'][0] * \
+                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+                 abs(self.grid_direction['fast'][1] * \
+                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+            self.__grid_range_pix["slow"] = abs(self.grid_direction['slow'][0] * \
+                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+                 abs(self.grid_direction['slow'][1] * \
+                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+        else:
+            self.__num_cols = int(self.__grid_size_pix[0] / self.__cell_size_pix[0])
+            self.__num_rows = int(self.__grid_size_pix[1] / self.__cell_size_pix[1])
+
+        self.__num_lines =  abs(self.grid_direction['fast'][1] * \
+                 self.__num_cols) + abs(self.grid_direction['slow'][1] * \
+                 self.__num_rows)
+        self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
+                self.__num_cols) + abs(self.grid_direction['slow'][0] * \
+                self.__num_rows)
 
     def set_corner_coord(self, corner_coord):
         self.update_grid_draw_parameters()
@@ -708,10 +732,10 @@ class GraphicsItemGrid(GraphicsItem):
                                          self.__corner_coord[0].y())
         """
 
-    def set_spacing(self, spacing):
+    def set_spacing(self, spacing, adjust_size=True):
         self.__spacing_mm = spacing
         self.update_item()
-        self.update_grid_draw_parameters()
+        self.update_grid_draw_parameters(adjust_size)
         self.scene().update()
 
     def set_draw_mode(self, draw_mode):
@@ -1291,8 +1315,8 @@ class GraphicsItemBeamDefine(GraphicsItem):
                          min(self.start_coord[1], self.end_coord[1]),
                          abs(self.start_coord[0] - self.end_coord[0]),
                          abs(self.start_coord[1] - self.end_coord[1]))
-        painter.drawText(self.end_coord[0] + 5, self.end_coord[1] + 5,
-                         "%d x %d %s" % (self.width_microns, 
+        painter.drawText(self.end_coord[0] + 7, self.end_coord[1],
+                         "%d x %d %sm" % (self.width_microns, 
                          self.height_microns, u"\u00B5"))
 
         self.custom_pen.setColor(QtCore.Qt.red)
