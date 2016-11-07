@@ -83,8 +83,9 @@ class FlexHCD(SampleChanger):
         return SampleChanger.init(self)
 
     def prepareCentring(self):
-        self.getCommandObject("unlockMinidiffMotors")()
-        self.getCommandObject("prepareCentring")()
+        gevent.sleep(2)
+        self.getCommandObject("unlockMinidiffMotors")(wait=True)
+        self.getCommandObject("prepareCentring")(wait=True)
 
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
@@ -114,7 +115,7 @@ class FlexHCD(SampleChanger):
             cmd_str = 'flex.%s(%s)' % (cmd, ",".join(map(repr, args)))
         else:
             cmd_str = 'flex.%s()' % cmd
-        cmd_id = self.robot.execute(cmd_str)
+        cmd_id = self.robot.eval(cmd_str)
         with gevent.Timeout(timeout, RuntimeError("Timeout while executing %s" % repr(cmd_str))):
           while True:
             if self.robot.is_finished(cmd_id):
@@ -147,12 +148,19 @@ class FlexHCD(SampleChanger):
     def chained_load(self, old_sample, sample):
         unload_load_task = gevent.spawn(self._execute_cmd, 'chainedUnldLd', [old_sample.getCellNo(), old_sample.getBasketNo(), old_sample.getVialNo()], [sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()])
 
+        gevent.sleep(15)
         while not unload_load_task.ready():
-          if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
-              break
-          gevent.sleep(1)
-        self._setLoadedSample(sample)
-        return True
+           if self._execute_cmd("get_robot_cache_variable", "SampleCentringReady") == "True":
+              self._setLoadedSample(sample)
+              return True
+           gevent.sleep(1)
+
+        logging.getLogger('HWR').info("unload load task done")
+        if not self._execute_cmd("pin_on_gonio"):
+            logging.getLogger('HWR').info("reset loaded sample")
+            self._resetLoadedSample()
+        logging.getLogger('HWR').info("return False")
+        return False
 
     @task
     def load(self, sample):
@@ -167,10 +175,7 @@ class FlexHCD(SampleChanger):
     def unload_sample(self, holderLength, sample_id=None, sample_location=None, successCallback=None, failureCallback=None):
         cell, basket, sample = sample_location
         sample = self.getComponentByAddress(Pin.getSampleAddress(cell, basket, sample))
-        # this is called from MXCuBE, by the queue - we ignore the unload request,
-        # since the sample will be unloaded at next 'load' command, which will execute
-        # unload-load as a chained operation
-        return #return self.unload(sample)
+        return self.unload(sample)
 
     @task
     def unload(self, sample):
@@ -195,7 +200,7 @@ class FlexHCD(SampleChanger):
 
     @task
     def enable_power(self):
-        self._execute_cmd("robot.enablePower", 1)
+        self._execute_cmd("enablePower", 1)
 
     @task
     def defreeze(self):
@@ -204,15 +209,20 @@ class FlexHCD(SampleChanger):
     def _doLoad(self, sample=None):
         self._doSelect(sample.getCell())
 
-        load_task = gevent.spawn(self._execute_cmd,'loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        load_task = gevent.spawn(self._execute_cmd, 'loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
+        gevent.sleep(5)
         while not load_task.ready():
-          if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
-              break
-          gevent.sleep(1)
-
-        self._setLoadedSample(sample)
-
-        return True
+           if self._execute_cmd("get_robot_cache_variable", "SampleCentringReady") == "True":
+              self._setLoadedSample(sample)
+              return True
+           gevent.sleep(1)
+         
+        if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
+          self._setLoadedSample(sample)
+          return True
+        if not self._execute_cmd("pin_on_gonio"):
+            self._resetLoadedSample()
+        return False
 
     def _doUnload(self, sample=None):
         loaded_sample = self.getLoadedSample()
@@ -220,8 +230,10 @@ class FlexHCD(SampleChanger):
           raise RuntimeError("Can't unload another sample")
 
         self._execute_cmd('unloadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
-
-        self._resetLoadedSample()
+        if self._execute_cmd("get_loaded_sample") == (-1,-1,-1):
+            self._resetLoadedSample()
+            return True
+        return False
 
     def _doAbort(self):
         self._execute_cmd('abort')
@@ -305,6 +317,6 @@ class FlexHCD(SampleChanger):
             self._setSelectedSample(s)
             return
 
-        self._setLoadedSample(None)
+        self._resetLoadedSample()
         self._setSelectedSample(None)
  
