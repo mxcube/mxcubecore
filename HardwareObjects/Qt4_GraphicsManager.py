@@ -30,7 +30,7 @@ example xml:
 """
 
 import os
-import atexit
+#import atexit
 import tempfile
 import logging
 import numpy as np
@@ -62,7 +62,8 @@ class Qt4_GraphicsManager(HardwareObject):
         self.diffractometer_hwobj = None
         self.camera_hwobj = None
         self.beam_info_hwobj = None
-     
+    
+        self.graphics_config_filename = None 
         self.pixels_per_mm = [0, 0]
         self.beam_position = [0, 0]
         self.beam_info_dict = {}
@@ -228,7 +229,7 @@ class Qt4_GraphicsManager(HardwareObject):
             pass
 
         if self.getProperty("store_graphics_config") == True:
-            atexit.register(self.save_graphics_config)
+            #atexit.register(self.save_graphics_config)
             self.graphics_config_filename = self.getProperty("graphics_config_filename")
             if self.graphics_config_filename is None:
                 self.graphics_config_filename = os.path.join(\
@@ -245,6 +246,10 @@ class Qt4_GraphicsManager(HardwareObject):
     def save_graphics_config(self):
         """Saves graphical objects in the file
         """
+
+        if self.graphics_config_filename is None:
+            return
+
         logging.getLogger("HWR").debug("GraphicsManager: Saving graphics " + \
             "in configuration file %s" % self.graphics_config_filename)
         try:
@@ -270,6 +275,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
             graphics_config_file.write(repr(graphics_config))
             graphics_config_file.close()
+            print 3 
         except:
             logging.getLogger("HWR").error("GraphicsManager: Error saving graphics " + \
                "in configuration file %s" % self.graphics_config_filename)
@@ -831,6 +837,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(shape)
         shape.setSelected(True)
         self.emit("shapeSelected", shape, True)
+        self.save_graphics_config()
 
     def delete_shape(self, shape):
         """Removes the shape <shape> from the list of handled shapes.
@@ -1568,3 +1575,6 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("shapeChanged", line, "Line")
         line.update_item()
 
+    def display_beam_size(self, state):
+        """Enables or disables displaying the beam size"""
+        self.graphics_beam_item.enable_beam_size(state) 
