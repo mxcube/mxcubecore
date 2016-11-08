@@ -295,7 +295,14 @@ class FlexHCD(SampleChanger):
             
     def _updateSelection(self):
         cell, puck = self._execute_cmd('get_cell_position')
-        cell2, puck2, sample = self._execute_cmd('get_loaded_sample')
+        sample = self.getLoadedSample()
+        if not sample:
+            cell2, puck2, sample = self._execute_cmd('get_loaded_sample')
+        else: 
+            puck2 = sample.getBasketNo()
+            cell2 = sample.getCellNo()
+            sample = sample.getVialNo()
+
         if cell != cell2 or puck != puck2:
           puck = None
           sample = None
