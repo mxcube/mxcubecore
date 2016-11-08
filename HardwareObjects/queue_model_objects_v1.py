@@ -1088,8 +1088,9 @@ class PathTemplate(object):
         PathTemplate.archive_folder = archive_folder
 
     @staticmethod
-    def set_path_template_style(synchotron_name):
-        PathTemplate.synchotron_name = synchotron_name 
+    def set_path_template_style(synchotron_name, template=None):
+        PathTemplate.synchotron_name = synchotron_name
+        PathTemplate.template = template
 
     def __init__(self):
         object.__init__(self)

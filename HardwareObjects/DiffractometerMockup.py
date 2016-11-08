@@ -73,6 +73,10 @@ class DiffractometerMockup(GenericDiffractometer):
         self.image_width = 400
         self.image_height = 400
 
+        self.mount_mode = self.getProperty("sample_mount_mode")
+        if self.mount_mode is None:
+            self.mount_mode = "manual"
+
         self.equipment_ready()
 
     def getStatus(self):
@@ -82,10 +86,10 @@ class DiffractometerMockup(GenericDiffractometer):
         return "ready"
 
     def in_plate_mode(self):
-        return False
+        return self.mount_mode == "plate"
 
     def use_sample_changer(self):
-        return True
+        return self.mount_mode == "sample_changer"
 
     def is_reversing_rotation(self):
         return True
