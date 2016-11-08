@@ -184,7 +184,7 @@ class FlexHCD(SampleChanger):
         SampleChanger.unload(self, sample)
 
     def get_gripper(self):
-        gripper_type = "SPINE" if self._execute_cmd("onewire.read")[1] == 3 else "UNIPUCK"
+        gripper_type = "SPINE" if self._execute_cmd("get_gripper_type") == 3 else "UNIPUCK"
         return gripper_type
 
     @task
