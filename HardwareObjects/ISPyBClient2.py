@@ -450,8 +450,8 @@ class ISPyBClient2(HardwareObject):
         if ldap_connection is None:
             ldap_connection = self.ldapConnection
         login_name=loginID
-        prpopsal_code = ""
-        prpopsal_number = ""
+        proposal_code = ""
+        proposal_number = ""
 
         # For porposal login, split the loginID to code and numbers
         if self.loginType == "proposal" :
