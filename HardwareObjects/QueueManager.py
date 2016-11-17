@@ -159,12 +159,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
           self.emit('queue_execution_finished', (None,))
           self.emit('centringAllowed', (True, ))
 
-    def __execute_entry(self, entry): 
+    def __execute_entry(self, entry):
         if not entry.is_enabled() or self._is_stopped:
             return
-        
+
         self.emit('centringAllowed', (False, ))
         self.emit('queue_execute_started', (entry, ))
+        self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
         logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
@@ -200,7 +201,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             entry.post_execute()
 
-        self._current_queue_entries.remove(entry)
+        finally:
+            self.set_current_entry(None)
+            self._current_queue_entries.remove(entry)
+
 
     def stop(self):
         """
