@@ -162,6 +162,10 @@ class FlexHCD(SampleChanger):
         logging.getLogger('HWR').info("return False")
         return False
 
+    def reset_loaded_sample(self):
+        self._execute_cmd("reset_loaded_position")
+        self._resetLoadedSample()
+
     @task
     def load(self, sample):
         self.prepareLoad(wait=True)
