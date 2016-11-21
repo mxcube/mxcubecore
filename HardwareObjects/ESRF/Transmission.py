@@ -1,6 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from bliss.controllers import matt
-from bliss.controllers import transmission
 
 class Transmission(HardwareObject):
     def __init__(self, name):
@@ -15,13 +13,9 @@ class Transmission(HardwareObject):
         self.setTransmission = self.set_value
 
     def init(self):
-        self.energy = self.getObjectByRole('energy')
-
-        self.__matt = matt.MattControl(self.getProperty("wago_ip"), len(self['filter']), self.getProperty('type'),
-                                   self.getProperty('alternate'), self.getProperty('status_module'),
-                                   self.getProperty('control_module'))
-        self.__matt.connect()
-        self.__transmission = transmission.transmission("", { "energy": self.energy, "matt": self.__matt, "datafile": self.getProperty("datafile") })
+        module_name = self.getProperty("module_name")
+        ctrl = self.getObjectByRole("controller")
+        self.__transmission = getattr(ctrl, module_name)
 
     def isReady(self):
         return True
@@ -35,7 +29,7 @@ class Transmission(HardwareObject):
             self.indexes.append(obj.index)
 
     def getAttState(self):
-        return self.__matt.pos_read()
+        return self.__transmission.matt.pos_read()
 
     def set_value(self, trans):
         self.__transmission.set(trans)
@@ -48,9 +42,9 @@ class Transmission(HardwareObject):
     def toggle(self, attenuator_index):
         idx = self.indexes[attenuator_index]
         if self.is_in(attenuator_index):
-            self.__matt.mattout(idx)
+            self.__transmission.matt.mattout(idx)
         else:
-            self.__matt.mattin(idx)
+            self.__transmission.matt.mattin(idx)
         self._update()
 
     def get_value(self):
