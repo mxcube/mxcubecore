@@ -11,6 +11,7 @@ class ID30BMultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_hook(self, data_collect_parameters):
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
       self._detector.shutterless = data_collect_parameters["shutterless"]
       
     @task
