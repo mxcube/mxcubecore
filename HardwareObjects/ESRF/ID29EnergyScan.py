@@ -47,8 +47,8 @@ class ID29EnergyScan(ESRFEnergyScan):
         min_ic = self.getProperty("min_integrated_counts")
         max_ic = self.getProperty("max_integrated_counts")
         self.ctrl.detcover.set_in()
-        self.ctrl.find_attenuation(ctime=2,emin=eroi_min,emax=eroi_max, min_ic=min_ic,max_ic=max_ic)
-        self.energy_scan_parameters["transmissionFactor"] = self.transmission.getAttFactor()
+        self.ctrl.find_attenuation(ctime=2,emin=eroi_min,emax=eroi_max, min_ic=min_ic,max_ic=max_ic, tm=self.transmission._Transmission__transmission)
+        self.energy_scan_parameters["transmissionFactor"] = self.transmission.get_value()
 
     @task
     def execute_energy_scan(self, energy_scan_parameters):
