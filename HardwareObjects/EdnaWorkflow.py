@@ -1,31 +1,93 @@
-from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+import os
+import time
+import gevent
+import pprint
+import httplib
 import logging
+#import threading
 from lxml import etree
 import types
 
-class EdnaWorkflow(Device):
+class State(object):
+    """
+    Class for mimic the PyTango state object
+    """
+    
+    def __init__(self, parent):
+        self._value = "ON"
+        self._parent = parent
+        
+    def getValue(self):
+        return self._value
+    
+    def setValue(self, newValue):
+        self._value = newValue
+        self._parent.state_changed(newValue)
+        
+    def delValue(self):
+        pass
+    
+    value = property(getValue, setValue, delValue, "Property for value")
+
+
+class EdnaWorkflow(HardwareObject):
+    """
+    This HO acts as a interface to the Passerelle EDM workflow engine.
+    
+    The previous version of this HO was a Tango client. In order to avoid
+    too many changes this version of the HO is a drop-in replacement of the 
+    previous version, hence the "State" object which mimics the PyTango state.
+    
+    Example of a corresponding XML file (currently called "ednaparams.xml"):
+
+    <object class = "EdnaWorkflow" role = "workflow">
+    <bes_host>mxhpc2-1705</bes_host>
+    <bes_port>8090</bes_port>
+    <object href="/session" role="session"/>
+    <workflow>
+        <title>MXPressA</title>
+        <path>MXPressA</path>
+    </workflow>    
+    <workflow>
+        <title>...</title>
+        <path>...</path>
+    </workflow>    
+    """
     
     def __init__(self, name):
-        Device.__init__(self, name)
+        HardwareObject.__init__(self, name)
+        self._state = State(self)
+        self._command_failed = False
+        self._besWorkflowId = None 
+        self._gevent_event = None
+        self._bes_host = None
+        self._bes_port = None
+        
+    def _init(self):
+        pass
 
     def init(self):
-        logging.getLogger('HWR').debug('%r initializing', self)
-        self.state = self.getChannelObject('state')
-        self.state.connectSignal('update', self.state_changed)
-        logging.getLogger('HWR').debug('got state channel %r with value %r', self.state, self.state.value)
+        self._session_object = self.getObjectByRole("session")        
+        self._gevent_event = gevent.event.Event()
+        self._bes_host = self.getProperty("bes_host")
+        self._bes_port = int(self.getProperty("bes_port"))
+        self.state.value = "ON"
 
-        self.start_command = self.getCommandObject('start')
-        self.start_command.connectSignal('commandFailed', self.set_command_failed)
-
-        self.abort_command = self.getCommandObject('abort')
-        self.abort_command.connectSignal('commandFailed', self.set_command_failed)
+    
+    def getState(self):
+        return self._state
+    
+    def setState(self, newState):
+        self._state = newState
         
-        self.get_parameters_command = self.getCommandObject('get_parameters')
-        self.get_values_map_command = self.getCommandObject('get_values_map')
-        self.set_values_map_command = self.getCommandObject('set_values_map')
-        self.get_available_workflows_command = self.getCommandObject('get_available_workflows')
-        self._command_failed = False
-        
+    def delState(self):
+        pass
+    
+    state = property(getState, setState, delState, "Property for state")
+    
+    
     def command_failure(self):
         return self._command_failed
     
@@ -37,79 +99,137 @@ class EdnaWorkflow(Device):
         new_value = str(new_value)
         logging.getLogger("HWR").debug('%s: state changed to %r', str(self.name()), new_value)
         self.emit('stateChanged', (new_value, ))
-        if new_value == "OPEN":
-            params = self.get_parameters()
-            self.emit('parametersNeeded', (params, ))
-            
-    def get_parameters(self):
-        params = None
-        try:
-            params = self.get_parameters_command()
-        except:
-            logging.getLogger("HWR").error('%s: could not read parameters', str(self.name()))
-        finally:
-            return params
     
-    def get_values_map(self):
-        # the server sends the map in the format:
-        # [key,value,key2,value2,...]
+    def workflow_end(self):
+        """
+        The workflow has finished, sets the state to 'ON'
+        """
+        # If necessary unblock dialog
+        if not self._gevent_event.is_set():
+            self._gevent_event.set()
+        self.state.value = "ON"
+    
+    def open_dialog(self, dict_dialog):
+        # If necessary unblock dialog
+        if not self._gevent_event.is_set():
+            self._gevent_event.set()
+        self.params_dict = dict()
+        if "reviewData" in dict_dialog and "inputMap" in dict_dialog:
+            review_data = dict_dialog["reviewData"]
+            for dictEntry in dict_dialog["inputMap"]:
+                if "value" in dictEntry:
+                    value = dictEntry["value"]
+                else:
+                    value = dictEntry["defaultValue"]
+                self.params_dict[dictEntry["variableName"]] = str(value)
+            self.emit('parametersNeeded', (review_data, ))
+            self.state.value = "OPEN"
+            self._gevent_event.clear()    
+            while not self._gevent_event.is_set():
+                self._gevent_event.wait()
+                time.sleep(0.1)
+        return self.params_dict
         
-        params_dict = dict()
-        try:
-            params = self.get_values_map_command()
-            for i in range(0, len(params), 2):
-                params_dict[params[i]] = params[i+1]
-        except:
-            logging.getLogger("HWR").error('%s: could not read values map', str(self.name()))
-        finally:
-            return params_dict
-
+    def get_values_map(self):
+        return self.params_dict
+    
     def set_values_map(self, params):
-        # params is a dict and we want to send a [key,value, ...] flat list
-        params_list = list()
-        for (k,v) in params.iteritems():
-            params_list.append(k)
-            params_list.append(v)
-            
-        try:
-            self.set_values_map_command(params_list)
-        except:
-            logging.getLogger("HWR").error('%s: could not set values map', str(self.name()))
-
+        self.params_dict = params
+        self._gevent_event.set()
+        
     def get_available_workflows(self):
-        workflows = list()
-        try:
-            wfxml = self.get_available_workflows_command()
-            if type(wfxml) == types.ListType and len(wfxml) > 0:
-                wfxml = wfxml[0]
-            logging.debug('workflow list from the server:\n%r', wfxml)
-        except:
-            logging.getLogger("HWR").exception('%s: could not get the list of available workflows', str(self.name()))
-            return workflows
-
-        # extract the infos in a list of dicts    
-        parsed = etree.fromstring(wfxml)
-        root = parsed#.getroot()
-        for child in root.iterchildren():
-            wfdict = dict()
-            if child.tag != 'workflow':
-                logging.warning('removing malformed wf entry %r (bad tag)', child)
-                continue
-            for subtag in child.iterchildren():
-                wfdict[subtag.tag] = subtag.text.strip()
-            # ensure we have all we need
-            if all([wfdict.has_key(x) for x in ['name', 'doc', 'path']]):
-                workflows.append(wfdict)
-            else:
-                logging.warning('removed malformed wf entry %r (missing one of name, doc or path subtags)', child)
-        return workflows
+        workflow_list = list()
+        no_wf = len( self['workflow'] )
+        for wf_i in range( no_wf ):
+            wf = self['workflow'][wf_i]
+            dict_workflow = dict()
+            dict_workflow["name"] = str(wf.title)
+            dict_workflow["path"] = str(wf.path)
+            dict_workflow["doc"] = ""
+            workflow_list.append(dict_workflow)
+        return workflow_list
 
     def abort(self):
         logging.getLogger("HWR").info('Aborting current workflow')
+        # If necessary unblock dialog
+        if not self._gevent_event.is_set():
+            self._gevent_event.set()
         self._command_failed = False
-        self.abort_command()
+        if self._besWorkflowId is not None:
+            abortWorkflowURL = os.path.join("/BES", "bridge", "rest", "processes", self._besWorkflowId, "STOP?timeOut=0")
+            logging.info("BES web service URL: %r" % abortWorkflowURL)
+            conn = httplib.HTTPConnection(self._bes_host, self._bes_port)
+            conn.request("POST", abortWorkflowURL)
+            response = conn.getresponse()
+            if response.status == 200:
+                workflowStatus=response.read()
+                logging.info("BES {0}: {1}".format(self._besWorkflowId, workflowStatus))
+        self.state.value = "ON"
+
         
-    def start(self, workflow):
-        self._command_failed = False
-        self.start_command(workflow)
+    def start(self, listArguments):
+        # If necessary unblock dialog
+        if not self._gevent_event.is_set():
+            self._gevent_event.set()
+        self.state.value = "RUNNING"
+
+        self.dictParameters = {}
+        iIndex = 0
+        if (len(listArguments) == 0):
+            self.error_stream("ERROR! No input arguments!")
+            return
+        elif (len(listArguments) % 2 != 0):
+            self.error_stream("ERROR! Odd number of input arguments!")
+            return
+        while iIndex < len(listArguments):
+            self.dictParameters[listArguments[iIndex]] = listArguments[iIndex+1]
+            iIndex += 2
+        logging.info("Input arguments:")
+        logging.info(pprint.pformat(self.dictParameters))
         
+        if "modelpath" in self.dictParameters:
+            modelPath = self.dictParameters["modelpath"]
+            if "." in modelPath:
+                modelPath = modelPath.split(".")[0]
+            self.workflowName = os.path.basename(modelPath)
+        else:
+            self.error_stream("ERROR! No modelpath in input arguments!")
+            return
+
+        time0 = time.time()
+        self.startBESWorkflow()
+        time1 = time.time()
+        logging.info("Time to start workflow: {0}".format(time1-time0))
+
+
+    def startBESWorkflow(self):
+        
+        logging.info("Starting workflow {0}".format(self.workflowName))
+        logging.info("Starting a workflow on http://%s:%d/BES" % (self._bes_host, self._bes_port))
+        startWorkflowURL = os.path.join("/BES", "bridge", "rest", "processes", self.workflowName, "RUN")
+        isFirstParameter = True
+        self.dictParameters["initiator"] = self._session_object.endstation_name
+        self.dictParameters["externalRef"] = self._session_object.get_proposal()
+        # Build the URL
+        for key in self.dictParameters:
+            urlParameter = "%s=%s" % (key, self.dictParameters[key].replace(" ", "_"))
+            if isFirstParameter:
+                startWorkflowURL += "?%s" % urlParameter
+            else:
+                startWorkflowURL += "&%s" % urlParameter
+            isFirstParameter = False
+        logging.info("BES web service URL: %r" % startWorkflowURL)
+        conn = httplib.HTTPConnection(self._bes_host, self._bes_port)
+        headers = {"Accept": "text/plain"}
+        conn.request("POST", startWorkflowURL, headers=headers)
+        response = conn.getresponse()
+        if response.status == 200:
+            self.state.value = "RUNNING"
+            requestId=response.read()
+            logging.info("Workflow started, request id: %r" % requestId)
+            self._besWorkflowId = requestId
+        else:
+            logging.error("Workflow didn't start!")
+            requestId = None
+            self.state.value = "ON"
+
