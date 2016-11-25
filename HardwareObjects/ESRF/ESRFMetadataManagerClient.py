@@ -133,10 +133,24 @@ class MXCuBEMetadataClient(object):
     
     def __init__(self, esrf_multi_collect):
         self.esrf_multi_collect = esrf_multi_collect
-        self._metadataManagerName = self.esrf_multi_collect.getProperty("metadata_manager_name")
-        self._metaExperimentName  = self.esrf_multi_collect.getProperty("meta_experiment_name")
+        if hasattr(self.esrf_multi_collect["metadata"], "manager"):
+            self._metadataManagerName = self.esrf_multi_collect["metadata"].manager
+        else:
+            self._metadataManagerName = None
+        if hasattr(self.esrf_multi_collect["metadata"], "experiment"):
+            self._metaExperimentName  = self.esrf_multi_collect["metadata"].experiment
+        else:
+            self._metaExperimentName  = None
+        if hasattr(self.esrf_multi_collect["metadata"], "error_email"):
+            self._listEmailReceivers = self.esrf_multi_collect["metadata"].error_email.split(" ")
+        else:
+            self._listEmailReceivers = []
+        if hasattr(self.esrf_multi_collect["metadata"], "replyto_email"):
+            self._emailReplyTo = self.esrf_multi_collect["metadata"].replyto_email
+        else:
+            self._emailReplyTo = None            
         self._sessionObject = self.esrf_multi_collect.getObjectByRole("session")
-
+        
     
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
@@ -146,25 +160,26 @@ class MXCuBEMetadataClient(object):
         errorMessage += "Traceback (most recent call last): \n"
         for listLine in listTrace:
             errorMessage += "  File \"%s\", line %d, in %s%s\n" % (listLine[0], listLine[1], listLine[2], os.linesep)
-        COMMASPACE = ', '
-        mime_text_message = MIMEText(errorMessage)
-        replyTo = "svensson@esrf.fr"
-        listTo = ["svensson@esrf.fr"]
-        listCC = []
-        listBCC = []
-        mime_text_message['Subject'] = "Metadata upload error on MASSIF 1"
-        mime_text_message['From'] = replyTo
-        mime_text_message['To'] = COMMASPACE.join(listTo)
-        if len(listCC) > 0:
-            mime_text_message['CC'] = COMMASPACE.join(listCC)
-        if len(listBCC) > 0:
-            mime_text_message['BCC'] = COMMASPACE.join(listBCC)
-        try:
-            smtp = smtplib.SMTP("localhost")
-            smtp.sendmail(replyTo, listTo + listCC + listBCC, mime_text_message.as_string())
-            smtp.quit()
-        except:
-            pass
+        if len(self._listEmailReceivers) > 0 and self._emailReplyTo is not None:
+            COMMASPACE = ', '
+            mime_text_message = MIMEText(errorMessage)
+            replyTo = self._emailReplyTo
+            listTo = self._listEmailReceivers
+            listCC = []
+            listBCC = []
+            mime_text_message['Subject'] = "Metadata upload error on MASSIF 1"
+            mime_text_message['From'] = replyTo
+            mime_text_message['To'] = COMMASPACE.join(listTo)
+            if len(listCC) > 0:
+                mime_text_message['CC'] = COMMASPACE.join(listCC)
+            if len(listBCC) > 0:
+                mime_text_message['BCC'] = COMMASPACE.join(listBCC)
+            try:
+                smtp = smtplib.SMTP("localhost")
+                smtp.sendmail(replyTo, listTo + listCC + listBCC, mime_text_message.as_string())
+                smtp.quit()
+            except:
+                pass
         return errorMessage
         
 
