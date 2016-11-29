@@ -608,7 +608,8 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").exception("Diffractometer: problem aborting the centring method")
             try:
                 #TODO... do we need this at all?
-                fun = self.cancel_centring_methods[self.current_centring_method]
+                #fun = self.cancel_centring_methods[self.current_centring_method]
+                pass
             except KeyError as diag:
                 self.emit_centring_failed()
             else:
