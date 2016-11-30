@@ -58,7 +58,12 @@ class BIOMAXMD3(GenericDiffractometer):
         self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
         self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
         self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
-
+	
+	try:
+	    use_sc = self.getProperty("use_sc")
+	    self.set_use_sc(use_sc)
+	except:
+            logging.getLogger("HWR").debug('Cannot set sc mode, use_sc: ', str(use_sc))
 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -278,15 +283,12 @@ class BIOMAXMD3(GenericDiffractometer):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
             """
-
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.command_dict["startScanEx"]
         self.wait_device_ready(200)
         scan(scan_params)
-        print "scan started at ----------->", time.time()
         if wait:
             self.wait_device_ready(300) #timeout of 5 min
-            print "finished at ---------->", time.time()
 
     def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
         if self.in_plate_mode():
@@ -313,10 +315,8 @@ class BIOMAXMD3(GenericDiffractometer):
         scan = self.command_dict["startScan4DEx"]
         self.wait_device_ready(200)
         scan(scan_params)
-        print "scan started at ----------->", time.time()
         if wait:
             self.wait_device_ready(300) #timeout of 5 min
-            print "finished at ---------->", time.time()
 
 
     def set_phase(self, phase, wait=False, timeout=None):
@@ -350,13 +350,6 @@ class BIOMAXMD3(GenericDiffractometer):
         if wait:
             while not self.is_ready():
                 time.sleep(0.5)
-
-    def is_ready(self):
-        """
-        Detects if device is ready
-        """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(\
-                    DiffractometerState.Ready)
 
     def moveToBeam(self, x, y):
         try:
