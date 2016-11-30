@@ -85,7 +85,7 @@ class BIOMAXEiger(Equipment):
                        'BeamCenterX': None, # length not pixel
                        'BeamCenterY': None,
                        'DetectorDistance': None,
-                       'FrameTime': None,
+                       'CountTime': None,
                        'NbImages': None,
                        'NbTriggers': None,
                        'ImagesPerFile': None,
@@ -154,13 +154,13 @@ class BIOMAXEiger(Equipment):
         return self.status_chan.getValue()
      
     def is_idle(self):
-        return self.status_chan.getValue() == "idle"
+        return self.get_status() == "idle"
 
     def is_ready(self):
-        return self.status_chan.getValue() == "ready"
+        return self.get_status() == "ready"
 
     def is_acquire(self):
-        return self.status_chan.getValue() == "acquire"
+        return self.get_status() == "acquire"
 
     def is_preparing(self):
         return self.config_state == "config"
@@ -194,6 +194,11 @@ class BIOMAXEiger(Equipment):
     def wait_buffer_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
             while self.get_buffer_free() < self.buffer_limit:
+                time.sleep(0.1)
+    
+    def wait_config_done(self):
+        with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
+            while self.is_preparing():
                 time.sleep(0.1)
     #  STATUS END
 
@@ -360,11 +365,15 @@ class BIOMAXEiger(Equipment):
             new_egy = self._config_vals["PhotonEnergy"]
             print("  configuring energy:  %s" % new_egy)
             if self.set_photon_energy( new_egy ) is False:
-               raise("Could not program energy in detector")
+               raise Exception("Could not program energy in detector")
+
+	if "CountTime" in self._config_vals.keys():
+	    self.set_value("CountTime",  self._config_vals["CountTime"])
+	    self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
 
         for cfg_name, cfg_value in self._config_vals.items():
             t0 = time.time()   
-            if cfg_name == "PhotonEnergy":
+            if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
                 continue # already handled above
 
             print("  configuring %s: %s" % (cfg_name, cfg_value))

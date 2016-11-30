@@ -137,36 +137,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         img = self.bl_control.diffractometer.camera.get_snapshot_img_str()
         self.bl_control.diffractometer.centring_status["images"] = [[phi,img]]
 
-    # to implement
-    @task
-    def loop_todel(self, owner, data_collect_parameters_list):
-        failed_msg = "Data collection failed!"
-        failed = True
-        collections_analyse_params = []
-        self.emit("collectReady", (False, ))
-        self.emit("collectStarted", (owner, 1))
-
-        print data_collect_parameters_list
-
-        for data_collect_parameters in data_collect_parameters_list:
-            logging.debug("collect parameters = %r", data_collect_parameters)
-            failed = False
-            data_collect_parameters["status"]='Data collection successful'
-            osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
-            self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
-
-            for image in range(data_collect_parameters["oscillation_sequence"][0]["number_of_images"]):
-                time.sleep(data_collect_parameters["oscillation_sequence"][0]["exposure_time"])
-                self.emit("collectImageTaken", image)
-
-            data_collect_parameters["status"]='Running'
-            data_collect_parameters["status"]='Data collection successful'
-            self.emit("collectOscillationFinished", (owner, True, data_collect_parameters["status"], "12345", osc_id, data_collect_parameters))
-
-        self.emit("collectEnded", owner, not failed, failed_msg if failed else "Data collection successful")
-        logging.getLogger('HWR').info("data collection successful in loop")
-        self.emit("collectReady", (True, ))
-
 
     #TODO: remove this hook!!!
     @task
@@ -200,11 +170,11 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def oscil(self, start, end, exptime, npass):
         diffr = self.bl_control.diffractometer
-        print "osil now...."
         if self.helical:
             diffr.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
         else:
             diffr.osc_scan(start, end, exptime, wait=True)
+
 
     @task
     def data_collection_cleanup(self):
@@ -253,12 +223,6 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def prepare_acquisition(self, start, osc_range, exptime, name_pattern, npass, number_of_images, images_per_file=100, roi="16M", ntrigger=1):
-        self.detector.set_photon_energy(self._tunable_bl.getCurrentEnergy()*1000) 
-
-                       
-        self.shutterless_range = osc_range*number_of_images
-        # needs to be done after set_photon_energy, as the readout_time will change accordingly
-        self.shutterless_exptime = exptime + (exptime + self.detector.get_readout_time())*(number_of_images-1)
 
         config = self.detector.col_config
 
@@ -267,16 +231,15 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-        
+        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()*1000
         config['OmegaStart'] = start
         config['OmegaIncrement'] = osc_range
         beam_x, beam_y = self.get_beam_centre_pixel() # returns pixel
         config['BeamCenterX'] = beam_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_y  
-        config['Wavelength'] = self.get_wavelength()
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
 
-        config['FrameTime'] = exptime + self.detector.get_readout_time()
+        config['CountTime'] = exptime
 
         config['NbImages'] = number_of_images
         config['NbTriggers'] = ntrigger # to check for different tasks
@@ -561,15 +524,16 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         file_parameters = data_collect_parameters["fileinfo"]
 
         file_parameters["suffix"] = self.bl_config.detector_fileext
-        image_file_template = "%(prefix)s_%(run_number)s_master.%(suffix)s" % file_parameters
+        image_file_template = "%(prefix)s_%(run_number)s" % file_parameters
+        image_filename_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
 
         archive_directory = self.get_archive_directory(file_parameters["directory"])
         data_collect_parameters["archive_dir"] = archive_directory
 
         if archive_directory:
-          jpeg_filename="%s.jpeg" % os.path.splitext(image_file_template)[0]
-          thumb_filename="%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
+          jpeg_filename="_%s.jpeg" % image_file_template
+          thumb_filename="_%s.thumb.jpeg" % image_file_template
           jpeg_file_template = os.path.join(archive_directory, jpeg_filename)
           jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
         else:
@@ -859,12 +823,12 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
                 for start, wedge_size in wedges_to_collect:
                     logging.getLogger("user_level_log").info("Preparing acquisition, start=%f, wedge size=%d", start, wedge_size)
-                    name_pattern = image_file_template 
+                    filename = "%s_master.h5" % image_file_template 
 
                     self.prepare_acquisition(start,
                                              osc_range,
                                              exptime,
-                                             name_pattern,
+                                             image_filename_pattern,
                                              npass,
                                              wedge_size,
                                              ntrigger = 1)
@@ -875,8 +839,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                     while j > 0: 
                       frame_start = start+i*osc_range
                       i+=1
-                      """ 
-                      filename = image_file_template % frame
+
+                      #filename = image_file_template % frame
                       try:
                         jpeg_full_path = jpeg_file_template % frame
                         jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame
@@ -886,21 +850,21 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                       file_location = file_parameters["directory"]
                       file_path  = os.path.join(file_location, filename)
 
-                      self.set_detector_filenames(frame, frame_start, str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path))
-                      """ 
-                      #osc_start, osc_end = self.prepare_oscillation(frame_start, osc_range, exptime, npass)
                       osc_start = frame_start
+                      self.shutterless_range = osc_range*wedge_size
                       osc_end = osc_start + self.shutterless_range
                       self.do_prepare_oscillation()
 
                       self.move_motors(motors_to_move_before_collect) 
 
                       with error_cleanup(self.reset_detector):
-                          self.start_acquisition(exptime, npass, j == wedge_size)
-                          #self.do_oscillation(osc_start, osc_end, exptime, npass)
-                          self.oscillation_task = self.oscil(osc_start, osc_end, self.shutterless_exptime, 1, wait=False)
+                          # Make sure the new energy is applied to the detector before getting the new readout time
+ 			  self.detector.wait_config_done()
+                          self.shutterless_exptime = self.detector.get_acquisition_time()
+
+                          self.start_acquisition(exptime, npass, j == wedge_size) 
+                          self.oscillation_task = self.oscil(osc_start, osc_end, self.shutterless_exptime, 1, wait=True)
                           self.stop_acquisition()
-                          #self.write_image(j == 1) todo, is this needed
                                      
                           # Store image in lims
                           if self.bl_control.lims:
@@ -933,9 +897,13 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                                          data_collect_parameters["do_inducedraddam"],
                                                          data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
-                          
-                          """todo, check if collectImageTaken signal is needed and also find a way to check if the detector is triggered
-  
+
+                          self.emit("collectImageTaken", frame)
+
+                          # skip the following, only do one subwedge
+                          # don't check the last image, in the oscil task, put wait=True instead   
+                          break 
+ 			   
                           if data_collect_parameters.get("shutterless"):
                               with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
    			          while self.last_image_saved() == 0:
@@ -954,9 +922,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                               frame += 1
                               if j == 0:
                                 break
-                          """
                 
-
     def get_beam_centre(self):
         #values from resolution obj is length, not pixel
         print self.bl_control.resolution
