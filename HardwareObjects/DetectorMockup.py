@@ -17,6 +17,7 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         HardwareObject.__init__(self, name)
  
         self.distance = None
+        self.exposure_time_limits = [0.04, 60000]
 
     def init(self):
         """
@@ -37,3 +38,6 @@ class DetectorMockup(AbstractDetector, HardwareObject):
 
     def get_beam_centre(self):
         return 0, 0
+
+    def get_exposure_time_limits(self):
+        return self.exposure_time_limits
