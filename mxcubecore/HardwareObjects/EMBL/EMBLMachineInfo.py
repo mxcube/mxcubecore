@@ -116,8 +116,9 @@ class EMBLMachineInfo(HardwareObject):
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = 0
-        temp_dict['in_range'] = None
+        temp_dict['value'] = 1
+        temp_dict['value_str'] = "Remeasure flux!"
+        temp_dict['in_range'] = False
         temp_dict['title'] = "Flux"
         self.values_list.append(temp_dict)
 
@@ -176,6 +177,8 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_sc_dewar_low_level_alarm is not None:
             self.chan_sc_dewar_low_level_alarm.connectSignal('update',
                self.low_level_alarm_changed)
+        else:
+            self.values_list.pop(5)
 
         self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
         if self.chan_sc_dewar_overflow_alarm is not None:
@@ -240,7 +243,7 @@ class EMBLMachineInfo(HardwareObject):
         if self.ring_energy:
             state_text += "\n%.2f GeV " % self.ring_energy
         if self.bunch_count:
-            state_text += "%d Bunches" % self.bunch_count
+            state_text += ", %d Bunches" % self.bunch_count
         self.values_list[1]['value'] = state_text
         self.update_values()
 
@@ -277,6 +280,7 @@ class EMBLMachineInfo(HardwareObject):
     def set_flux(self, value):
         """Sets flux value"""
         self.values_list[3]['value'] = value
+        self.values_list[3]['value_str'] = "%.2e ph/s" % value
         self.values_list[3]['in_range'] = value > 0
         self.update_values()
 
