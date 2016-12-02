@@ -56,13 +56,6 @@ import numpy
 import gevent
 import logging
 import tempfile
-import numpy as np
-
-try:
-   import pdfkit
-except:
-   logging.getLogger("HWR").warning("pdfkit not available")
-
 from csv import reader
 from datetime import datetime
 from random import random
@@ -70,6 +63,11 @@ from random import random
 from scipy.interpolate import interp1d
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+try:
+   import pdfkit
+except:
+   logging.getLogger("HWR").warning("pdfkit not available")
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -89,8 +87,7 @@ TEST_DICT = {"summary": "Beamline summary",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure",
              "measure_intensity": "Intensity measurement",
-             "graph": "Graph",
-             "sc_stats": "Sample changer statistics"}
+             "graph": "Graph"}
 
 TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
 TEST_COLORS_FONT = {False : '#FE0000', True : '#007800'}
@@ -327,11 +324,13 @@ class EMBLBeamlineTest(HardwareObject):
                 logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
             self.results_html_list.append("</p>\n<hr>")
 
-        #html_filename = None
+        html_filename = None
         if create_report: 
+            html_filename = os.path.join(self.test_directory, 
+                                         self.test_filename)
             self.generate_html_report()
 
-        #self.emit('testFinished', html_filename) 
+        self.emit('testFinished', html_filename) 
 
     def init_device_list(self):
         """
@@ -469,7 +468,7 @@ class EMBLBeamlineTest(HardwareObject):
         Descript. :
         """
         result = {}
-        try:
+        if self.bl_hwobj.ppu_control_hwobj is not None:
             is_error, msg = self.bl_hwobj.ppu_control_hwobj.get_status()
             result["result_bit"] = not is_error
             if result["result_bit"]:
@@ -480,7 +479,7 @@ class EMBLBeamlineTest(HardwareObject):
              
             msg = msg.replace("\n", "\n<br>")
             result["result_details"] = msg.split("\n")
-        except:
+        else:
             result["result_bit"] = False
             result["result_short"]  = "Test failed (ppu hwobj not define)."
 
@@ -507,7 +506,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.bl_hwobj.diffractometer_hwobj.set_phase("BeamLocation", timeout=30)
 
         aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj 
-        aperture_list = aperture_hwobj.get_position_list()
+        aperture_list = aperture_hwobj.get_aperture_list(as_origin=True)
         current_aperture = aperture_hwobj.get_value() 
 
         for index, value in enumerate(aperture_list):
@@ -563,191 +562,7 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_bit"] = True
         self.ready_event.set()
         return result
-
-    def test_sc_stats(self):
-        result = {}
-
-        log_filename = self.bl_hwobj.sample_changer_hwobj.get_log_filename()
-        min_datetime = None
-        log_arr = np.array([])
-        log_file = open(log_filename, "r")
-        read_lines = log_file.readlines()
-        first_time = None
-        last_time = None
-
-        for line in read_lines:
-            line = line.replace("\n","")
-            line = line.split(',')
-            if first_time is None:
-                first_time = line[0]
-            log_arr = np.append(log_arr,
-                                [np.datetime64(line[0]),
-                                 np.datetime64(line[1]),
-                                 int(line[2]),
-                                 line[3],
-                                 line[4],
-                                 int(line[5]),
-                                 int(line[6]),
-                                 line[7],
-                                 line[0][:13] + "h"])
-        last_time = line[0]
-        log_arr = log_arr.reshape(len(read_lines), 9)
-        log_file.close()
-
-        result["result_details"] = []
-        result["result_details"].append("Sample changer statistics from " + \
-            "<b>%s</b> till <b>%s</b>" % (first_time, last_time))
-        result["result_details"].append("<br>")
-
-        # 0 - start time
-        # 1 - end time
-        # 2 - time delta in sec
-        # 3 - user
-        # 4 - action
-        # 5 - puck
-        # 6 - sample
-        # 7 if exists Error  
-
-        table_cells = []
-        table_cells.append(("Mount",
-                            str((log_arr[:,4] == "load").sum()), 
-                            "bgcolor=#FFCCCC>%d" %
-                            (log_arr[(log_arr[:,4] == "load") & \
-                            (log_arr[:,7] == "Error")].size / 8)))
-        table_cells.append(("Unmount",
-                            str((log_arr[:,4] == "unload").sum()), 
-                            "bgcolor=#FFCCCC>%d" %
-                            (log_arr[(log_arr[:,4] == "unload") & \
-                            (log_arr[:,7] == "Error")].size / 8)))
-
-        result["result_details"].extend(SimpleHTML.create_table(\
-             ["Action", "Total", "bgcolor=#FFCCCC>Fails"],
-             table_cells))
-        result["result_details"].append("<br>")
  
-        table_cells = []
-        table_cells.append(("Min mount time",
-                            str(log_arr[log_arr[:,4] == "load"][:,2].min())))
-        table_cells.append(("Max mount time",
-                            str(log_arr[log_arr[:,4] == "load"][:,2].max())))
-        table_cells.append(("Mean mount time",
-                            "%d" %(log_arr[log_arr[:,4] == "load"][:,2].mean())))
-
-        table_cells.append(("Min unmount time",
-                            str(log_arr[log_arr[:,4] == "unload"][:,2].min())))
-        table_cells.append(("Max unmount time",
-                            str(log_arr[log_arr[:,4] == "unload"][:,2].max())))
-        table_cells.append(("Mean unmount time", 
-                            "%d" %(log_arr[log_arr[:,4] == "unload"][:,2].mean())))
-
-        result["result_details"].extend(SimpleHTML.create_table(\
-             ["Mount/unmount time", "sec"],
-             table_cells))
-        result["result_details"].append("<br>")
-
-        table_cells = []
-        user_list = []
-        for user in log_arr[:,3]:
-            if not user in user_list:
-               user_list.append(user)
-
-        for user in user_list:
-            load_total = log_arr[(log_arr[:,4] == "load") & \
-                                 (log_arr[:,3] == user)].size / 8 
-            load_failed = log_arr[(log_arr[:,4] == "load") & \
-                                  (log_arr[:,7] == "Error") & \
-                                  (log_arr[:,3] == user)].size / 8
-            unload_total = log_arr[(log_arr[:,4] == "unload") & \
-                                   (log_arr[:,3] == user)].size / 8 
-            unload_failed = log_arr[(log_arr[:,4] == "unload") & \
-                                    (log_arr[:,7] == "Error") & \
-                                    (log_arr[:,3] == user)].size / 8
-      
-
-            table_cells.append((user,
-                                str(load_total),
-                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
-                                load_failed, float(load_failed) / load_total * 100.0),
-                                str(unload_total),
-                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
-                                unload_failed, float(unload_failed) / unload_total * 100.0)))
-        result["result_details"].extend(SimpleHTML.create_table(\
-             ["User", "Mounts", "bgcolor=#FFCCCC>Failed mounts",
-              "Unmounts", "bgcolor=#FFCCCC>Failed unmounts"],
-             table_cells))
-
-        hour_arr = np.array([])
-        for hour in np.unique(log_arr[:,8]):
-            hour_arr = np.append(hour_arr,
-                  [hour,
-                   log_arr[(log_arr[:,4] == "load") & \
-                   (log_arr[:,8] == hour)].size / 8,
-                   log_arr[(log_arr[:,4] == "load") & \
-                   (log_arr[:,8] == hour) & \
-                   (log_arr[:,7] == "Error")].size / 8,
-                   log_arr[(log_arr[:,4] == "unload") & \
-                   (log_arr[:,8] == hour)].size / 8,
-                   log_arr[(log_arr[:,4] == "unload") & \
-                   (log_arr[:,8] == hour) & \
-                   (log_arr[:,7] == "Error")].size / 8])
-        hour_arr = hour_arr.reshape(hour_arr.size / 5, 5)
-
-        fig = Figure(figsize=(15, 12))
-        ax = fig.add_subplot(111)
-        ax.bar(np.arange(hour_arr.shape[0]),
-               hour_arr[:,1].astype(int))
-        ax.bar(np.arange(hour_arr.shape[0]),
-               hour_arr[:,2].astype(int), color="red")
-
-        ax.set_xticks(np.arange(hour_arr.shape[0]))
-        ax.set_xticklabels(hour_arr[:,0], 
-                           rotation="vertical",
-                           horizontalalignment="left")
-        ax.grid(True)
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Number of mounts")
-
-        sc_mount_stats_png_filename = os.path.join(\
-             self.test_source_directory,
-             "sc_mount_stats.png")
-          
-        canvas = FigureCanvasAgg(fig)
-        canvas.print_figure(sc_mount_stats_png_filename, dpi = 80)
-        result["result_details"].append("<br><b>Mounts and failed mounts / time</b></br>")
-        result["result_details"].append(\
-               "<img src=%s style=width:700px;><br>" % \
-               sc_mount_stats_png_filename)
-
-        fig = Figure(figsize=(15, 12))
-        ax = fig.add_subplot(111)
-        ax.bar(np.arange(hour_arr.shape[0]),
-               hour_arr[:,3].astype(int))
-        ax.bar(np.arange(hour_arr.shape[0]),
-               hour_arr[:,4].astype(int), color="red")
-
-        ax.set_xticks(np.arange(hour_arr.shape[0]))
-        ax.set_xticklabels(hour_arr[:,0],
-                           rotation="vertical",
-                           horizontalalignment="left")
-        ax.grid(True)
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Number of unmounts")
-
-        sc_unmount_stats_png_filename = os.path.join(\
-             self.test_source_directory,
-             "sc_unmount_stats.png")
-
-        canvas = FigureCanvasAgg(fig)
-        canvas.print_figure(sc_unmount_stats_png_filename, dpi = 80)
-        result["result_details"].append("<br><b>Unmounts and failed unmounts / time</b></br>")
-        result["result_details"].append(\
-               "<img src=%s style=width:700px;><br>" % \
-               sc_unmount_stats_png_filename)
-
-        #result["result_short"] = "Done!"
-        result["result_bit"] = True
-        self.ready_event.set()
-        return result
 
     def test_alignbeam(self):
         """
@@ -1111,6 +926,7 @@ class EMBLBeamlineTest(HardwareObject):
 
         # 1. close guillotine and fast shutter --------------------------------
         self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
+        
         self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
         gevent.sleep(0.1)        
 
@@ -1132,6 +948,7 @@ class EMBLBeamlineTest(HardwareObject):
             gevent.sleep(1)
             self.bl_hwobj.diffractometer_hwobj.\
                  wait_device_ready(30)
+            
 
         #5. open the fast shutter --------------------------------------------
         self.bl_hwobj.fast_shutter_hwobj.openShutter(wait=True)
@@ -1180,6 +997,10 @@ class EMBLBeamlineTest(HardwareObject):
         flux = 0.624151 * 1e16 * self.intensity_value / \
                self.diode_calibration_amp_per_watt(energy) / \
                energy / air_trsm / carb_trsm
+
+        #GB correcting diode misscalibration!!!
+        flux = flux * 1.8
+
         dose_rate = 1e-3 * 1e-14 * self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
                flux / beam_size[0] / beam_size[1]  
 
@@ -1212,7 +1033,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.intensity_measurements.insert(0, meas_item)
         result["result_details"].extend(SimpleHTML.create_table(\
              ["Time", "Energy (keV)", "Detector distance (mm)", "Beam size (mm)",
-              "Transmission (%%)", "Flux (photons/s)", "Dose rate (KGy/s)",
+              "Transmission (%%)", "Intensity (A)", "Flux (photons/s)", "Dose rate (KGy/s)",
               "Time to reach 20 MGy (sec, frames)", "Intensity (A)"],
              self.intensity_measurements))
 
@@ -1247,12 +1068,10 @@ class EMBLBeamlineTest(HardwareObject):
         """
         Descript. :
         """
-        html_filename = os.path.join(\
-           self.test_directory,
-           self.test_filename + ".html")
-        pdf_filename = os.path.join(\
-           self.test_directory,
-           self.test_filename + ".pdf")
+        html_filename = os.path.join(self.test_directory,
+                                     self.test_filename) + ".html"
+        pdf_filename = os.path.join(self.test_directory,
+                                     self.test_filename) + ".pdf"
         archive_filename = os.path.join(\
            self.test_directory,
            datetime.now().strftime("%Y_%m_%d_%H") + "_" + \
@@ -1292,14 +1111,19 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").error(\
                "BeamlineTest: Unable to generate html report file %s" % html_filename)
 
-        pdfkit.from_url(html_filename, pdf_filename)
-        logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        try:
+            pdfkit.from_url(html_filename, pdf_filename)
+            logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        except:
+            logging.getLogger("HWR").error(\
+               "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename)
+
         self.emit('testFinished', html_filename)
            
     def get_result_html(self):
         """
         Descript. :
         """
-        html_filename = os.path.join(self.test_directory, self.test_filename)
+        html_filename = os.path.join(self.test_directory, self.test_filename) + ".html"
         if os.path.exists(html_filename):
             return html_filename

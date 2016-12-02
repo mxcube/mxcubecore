@@ -58,6 +58,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self._error_or_aborting = False
         self.collect_frame  = None
         self.ready_event = None
+        self.use_still = None
 
         self.exp_type_dict = None
         self.aborted_by_user = None 
@@ -198,6 +199,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_close_guillotine = self.getCommandObject('cmdCloseGuillotine')
         self.cmd_set_calibration_name = self.getCommandObject('cmdSetCallibrationName')
 
+        #Properties
+        self.use_still = self.getProperty("use_still")
+ 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
@@ -259,9 +263,11 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 xds_range = self.current_dc_parameters['in_interleave']
                 self.cmd_collect_xds_data_range(xds_range)
 
-            self.cmd_collect_scan_type(self.exp_type_dict.get(\
-                 self.current_dc_parameters['experiment_type'], 'OSC'))
-            #self.cmd_collect_scan_type("still")
+            if self.use_still:
+                self.cmd_collect_scan_type("still")
+            else:
+                self.cmd_collect_scan_type(self.exp_type_dict.get(\
+                    self.current_dc_parameters['experiment_type'], 'OSC'))
             self.cmd_collect_start()
         else:
             self.emit_collection_failed("Detector server not in unknown state")
@@ -311,7 +317,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """ 
         if not failed_msg:
             failed_msg = 'Data collection failed!'
-        self.current_dc_parameters["status"] = failed_msg
+        self.current_dc_parameters["status"] = "Failed"
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
         #self.emit("collectOscillationFailed", (self.owner, False, 
         #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
@@ -319,8 +325,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ())
         self._collecting = None
-        self.ready_event.set()
         self.update_data_collection_in_lims()
+        self.ready_event.set()
 
     def guillotine_state_changed(self, state):
         if state[1] == 0:
@@ -335,6 +341,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def emit_collection_finished(self):  
         """Collection finished beahviour
         """
+
+        success_msg = "Data collection successful"
+        self.current_dc_parameters["status"] = success_msg
+
         if self.current_dc_parameters['experiment_type'] != "Collect - Multiwedge":
             self.update_data_collection_in_lims()
 
@@ -344,18 +354,16 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
                 self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
                 last_frame > 19):
-                self.trigger_auto_processing("after",
+                self.trigger_auto_processing("after", 
                                              self.current_dc_parameters,
                                              0)
 
-        success_msg = "Data collection successful"
-        self.current_dc_parameters["status"] = success_msg
-        self.emit("collectOscillationFinished", (self.owner, True, 
-              success_msg, self.current_dc_parameters.get('collection_id'), 
+        self.emit("collectOscillationFinished", (self.owner, True,
+              success_msg, self.current_dc_parameters.get('collection_id'),
               self.osc_id, self.current_dc_parameters))
         self.emit("collectEnded", self.owner, success_msg)
         self.emit("collectReady", (True, ))
-        self.emit("progressStop", ()) 
+        self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
 
@@ -391,13 +399,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        # Dont save mesh first and last images
-        # Mesh images (best positions) are stored after data analysis
-        if self.current_dc_parameters['experiment_type'] in ('Mesh') and \
-           motor_position_id is None:
-            return
         image_id = None
-
         self.trigger_auto_processing("image", self.current_dc_parameters, frame)
         image_id = self.store_image_in_lims(frame)
         return image_id 
@@ -498,6 +500,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             if not os.path.exists(xds_directory):
                 break
             i += 1
+        self.current_dc_parameters["xds_dir"] = xds_directory
 
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (\
                 self.current_dc_parameters['fileinfo']['prefix'],
@@ -671,8 +674,9 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.run_autoprocessing = status
 
     def close_guillotine(self, wait=True):
-        self.cmd_close_guillotine()
-        if wait:
-            with gevent.Timeout(10, Exception("Timeout waiting for close")):
-               while self.guillotine_state != "closed":
-                     gevent.sleep(0.1) 
+        if self.guillotine_state != "closed":
+            self.cmd_close_guillotine()
+            if wait:
+                with gevent.Timeout(10, Exception("Timeout waiting for close")):
+                   while self.guillotine_state != "closed":
+                         gevent.sleep(0.1) 
