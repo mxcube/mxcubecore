@@ -29,8 +29,6 @@ class SampleChangerMockup(SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
-        logging.getLogger("user_level_log").info("Loading sample " + \
-            "%s. Please wait..." % str(sample))
         try:
             
             self._setState(SampleChangerState.Loading)
@@ -39,6 +37,11 @@ class SampleChangerMockup(SampleChanger):
             else:
                 basket, sample = sample.split(":")
 
+            msg = "Loading sample %d:%d" %(\
+               int(basket), int(sample))
+            logging.getLogger("user_level_log").info(msg + ". Please wait...")
+
+            self.emit("progressInit", (msg, 100))
             time.sleep(7)
 
             mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
@@ -53,6 +56,7 @@ class SampleChangerMockup(SampleChanger):
         finally:
             self._selected_basket = int(basket)
             self._selected_sample = int(sample)
+            self.emit("progressStop", ())
 
         return self.getLoadedSample()
 

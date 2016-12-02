@@ -350,8 +350,8 @@ class ParallelProcessing(HardwareObject):
         # Parallel processing is also executed for all osc that have
         # more than 20 images, but results are not stored as workflow
 
-        if self.params_dict["lines_num"] > 1 and \
-           self.params_dict["workflow_type"] in ["MeshScan", "XrayCentring"]:
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        if self.params_dict["lines_num"] > 1:
             log.info("Saving autoprocessing program in ISPyB")
             self.lims_hwobj.store_autoproc_program(self.params_dict)
 
@@ -375,10 +375,8 @@ class ParallelProcessing(HardwareObject):
             except:
                 log.exception("Could not create result html %s" % html_filename)
 
-        # Heat map generation
-        fig, ax = plt.subplots(nrows=1, ncols=1)
-        if self.params_dict["lines_num"] > 1:
-            #If mesh scan then a 2D plot
+            # Heat map generation
+            # If mesh scan then a 2D plot
             im = ax.imshow(self.processing_results_align["score"],
                            interpolation='none', aspect='auto',
                            extent=[0, self.processing_results_align["score"].shape[1], 0,
@@ -532,7 +530,9 @@ class ParallelProcessing(HardwareObject):
             if (col < aligned_result_array.shape[0] and
                 row < aligned_result_array.shape[1]):
                 aligned_result_array[col][row] = result_array[cell_index]
-        aligned_result_array = aligned_result_array / aligned_result_array.max() 
+        if aligned_result_array.max() > 0:
+            aligned_result_array = aligned_result_array / \
+                aligned_result_array.max() 
 
         return numpy.transpose(aligned_result_array)
 
