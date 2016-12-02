@@ -123,6 +123,17 @@ class CollectMockup(AbstractCollect, HardwareObject):
         number_of_images = self.current_dc_parameters\
             ['oscillation_sequence'][0]['number_of_images']
         for image in range(self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]):
+            if self.aborted_by_user:
+                self.ready_event.set()
+                return
+
+            #Uncomment to test collection failed
+            #if image == 5:
+            #    self.emit("collectOscillationFailed", (self.owner, False, 
+            #       "Failed on 5", self.current_dc_parameters.get("collection_id")))
+            #    self.ready_event.set()
+            #    return
+
             time.sleep(self.current_dc_parameters["oscillation_sequence"][0]["exposure_time"])
             self.emit("collectImageTaken", image)
             self.emit("progressStep", (int(float(image) / number_of_images * 100)))
