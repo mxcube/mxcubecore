@@ -62,7 +62,8 @@ class AbstractCollect(object):
 
     def __init__(self):
         self.bl_config = BeamlineConfig(*[None]*17)
-        
+    
+        self.collection_id = None    
         self.data_collect_task = None
         self.current_dc_parameters = None
         self.current_lims_sample = {}
@@ -105,6 +106,7 @@ class AbstractCollect(object):
         self.emit("collectReady", (False, ))
         self.emit("collectOscillationStarted", (owner, None, \
                   None, None, self.current_dc_parameters, None))
+        self.collection_id = None
 
         # ----------------------------------------------------------------
         self.open_detector_cover()
@@ -423,6 +425,7 @@ class AbstractCollect(object):
                   store_data_collection(self.current_dc_parameters, 
                                         self.bl_config)
                 self.current_dc_parameters['collection_id'] = collection_id  
+                self.collection_id = collection_id
                 if detector_id:
                     self.current_dc_parameters['detector_id'] = detector_id 
             except:
@@ -476,7 +479,7 @@ class AbstractCollect(object):
             file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters['fileinfo']['template']
             filename = image_file_template % frame_number
-            lims_image = {'dataCollectionId': self.current_dc_parameters["collection_id"],
+            lims_image = {'dataCollectionId': self.current_dc_parameters.get("collection_id"),
                           'fileName': filename,
                           'fileLocation': file_location,
                           'imageNumber': frame_number,

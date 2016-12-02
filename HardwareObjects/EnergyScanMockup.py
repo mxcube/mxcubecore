@@ -10,11 +10,6 @@ from HardwareRepository.TaskUtils import *
 from AbstractEnergyScan import AbstractEnergyScan
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-try:
-   import PyChooch
-except:
-   print ("PyChooch not found")
-
 scan_test_data = [(10841.0, 20.0), (10842.0, 20.0), (10843.0, 20.0), 
 (10844.0, 20.0), (10845.0, 20.0), (10846.0, 20.0), (10847.0, 20.0), 
 (10848.0, 20.0), (10849.0, 20.0), (10850.0, 20.0), (10851.0, 20.0), 
@@ -34,6 +29,23 @@ scan_test_data = [(10841.0, 20.0), (10842.0, 20.0), (10843.0, 20.0),
 (10902.0, 15059.0), (10903.0, 15059.0), (10904.0, 15059.0), (10905.0, 15059.0), 
 (10906.0, 15059.0), (10907.0, 15059.0), (10908.0, 15059.0), (10909.0, 15059.0), 
 (10910.0, 15059.0)]
+
+chooch_graph_data = (\
+(12628, 0, -5), (12629, 0, -5), (12630, 0, -5), (12631, 0, -5), (12632, 0, -5),
+(12633, 0, -5), (12634, 0, -5), (12635, 0, -5), (12636, 0, -5), (12637, 0, -5),
+(12638, 0, -5), (12639, 0, -5), (12640, 0, -5), (12641, 0, -6), (12642, 0, -6),
+(12643, 0, -6), (12644, 0, -6), (12645, 0, -6), (12646, 0, -6), (12647, 0, -6),
+(12648, 0, -6), (12649, 0, -7), (12650, 0, -7), (12651, 0, -7), (12652, 0, -8),
+(12653, 0, -8), (12654, 0, -8), (12655, 1, -9), (12655, 2, -9), (12656, 3, -10),
+(12657, 4, -9), (12658, 5, -9), (12659, 6, -8), (12659, 6, -7), (12660, 6, -6),
+(12661, 5, -5), (12662, 4, -5), (12663, 4, -5), (12664, 3, -5), (12665, 3, -5),
+(12666, 3, -5), (12667, 3, -5), (12668, 3, -5), (12669, 3, -5), (12670, 3, -5),
+(12671, 3, -5), (12672, 3, -5), (12673, 3, -5), (12674, 3, -5), (12675, 3, -5),
+(12676, 3, -5), (12677, 3, -5), (12678, 3, -5), (12679, 3, -5), (12680, 3, -5),
+(12681, 3, -5), (12682, 3, -5), (12683, 3, -5), (12684, 3, -4), (12685, 3, -4),
+(12686, 3, -4), (12687, 3, -4), (12688, 3, -4), (12689, 3, -4), (12690, 3, -4),
+(12691, 3, -4), (12692, 3, -4), (12693, 3, -4), (12694, 3, -4),
+(12695, 3, -4), (12696, 3, -4))
 
 
 class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
@@ -92,6 +104,54 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         symbol = "_".join((elt, edge))
+        scan_file_prefix = os.path.join(scan_directory, prefix)
+        archive_file_prefix = os.path.join(archive_directory, prefix)
+
+        if os.path.exists(scan_file_prefix + ".raw"):
+            i = 1
+            while os.path.exists(scan_file_prefix + "%d.raw" %i):
+                  i = i + 1
+            scan_file_prefix += "_%d" % i
+            archive_file_prefix += "_%d" % i
+
+        scan_file_raw_filename = os.path.extsep.join((scan_file_prefix, "raw"))
+        archive_file_raw_filename = os.path.extsep.join((archive_file_prefix, "raw"))
+        scan_file_efs_filename = os.path.extsep.join((scan_file_prefix, "efs"))
+        archive_file_efs_filename = os.path.extsep.join((archive_file_prefix, "efs"))
+        scan_file_png_filename = os.path.extsep.join((scan_file_prefix, "png"))
+        archive_file_png_filename = os.path.extsep.join((archive_file_prefix, "png"))
+
+        try:
+            if not os.path.exists(scan_directory):
+                os.makedirs(scan_directory)
+            if not os.path.exists(archive_directory):
+                os.makedirs(archive_directory)
+        except:
+            logging.getLogger("HWR").exception("EnergyScan: could not create energy scan result directory.")
+            self.store_energy_scan()
+            self.emit("energyScanFailed", ())
+            return
+
+        try:
+            scan_file_raw = open(scan_file_raw_filename, "w")
+            archive_file_raw = open(archive_file_raw_filename, "w")
+        except:
+            logging.getLogger("HWR").exception("EnergyScan: could not create energy scan result raw file")
+            self.store_energy_scan()
+            self.emit("energyScanFailed", ())
+            return
+        else:
+            scanData = []
+            for i in range(len(self.scan_data)):
+                x = float(self.scan_data[i][0])
+                x = x < 1000 and x * 1000.0 or x
+                y = float(self.scan_data[i][1])
+                scanData.append((x, y))
+                scan_file_raw.write("%f,%f\r\n" % (x, y))
+                archive_file_raw.write("%f,%f\r\n" % (x, y))
+            scan_file_raw.close()
+            archive_file_raw.close()
+            self.scan_info["scanFileFullPath"] = str(scan_file_raw_filename)
 
         pk = 7.519
         ip = 7.516
@@ -125,9 +185,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
               ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl)
         fig = Figure(figsize = (15, 11))
         ax = fig.add_subplot(211)
-        ax.set_title("%s\n%s" % (scan_file_efs_filename, title))
+        ax.set_title("%s" % title)
         ax.grid(True)
-        ax.plot(*(zip(*scan_data)), **{"color": 'black'})
+        ax.plot(*(zip(*self.scan_data)), **{"color": 'black'})
         ax.set_xlabel("Energy")
         ax.set_ylabel("MCA counts")
         ax2 = fig.add_subplot(212)
@@ -160,14 +220,6 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                  rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, \
                  chooch_graph_y1, chooch_graph_y2, title
-
-    def getCurrentEnergy(self):
-        return 12
-
-
-    def getCurrentWavelength(self):
-        return 12
-
 
     def getElements(self):
         elements=[]
