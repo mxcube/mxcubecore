@@ -104,8 +104,9 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        self.user_clicked_event = AsyncResult()
-        x, y = self.user_clicked_event.get()
+        for click in range(3):
+            self.user_clicked_event = AsyncResult()
+            x, y = self.user_clicked_event.get()
         last_centred_position[0] = x
         last_centred_position[1] = y
         random_num = random.random()
