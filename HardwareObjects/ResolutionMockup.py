@@ -15,6 +15,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.detmState = None
         self.current_wavelength = 10
         self.energy = 12
+        self.det_radius = 0.1
 
     def beam_centre_updated(self, beam_pos_dict):
         pass
