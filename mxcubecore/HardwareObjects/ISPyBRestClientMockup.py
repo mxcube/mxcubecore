@@ -42,13 +42,12 @@ class ISPyBRestClientMockup(HardwareObject):
                              'startDate': '2013-06-11 00:00:00',
                              'endDate': '2013-06-12 07:59:59',
                              'beamlineName': 'ID:TEST',
-                             'timeStamp': datetime.datetime(2013, 6, 11, 9, 40, 36),
+                             'timeStamp': datetime(2013, 6, 11, 9, 40, 36),
                              'comments': 'Session created by the BCM',
                              'sessionId': 34591,
                              'proposalId': 1, 'nbShifts': 3}],
                 'Laboratory': {'laboratoryId': 1,
                                'name': 'TEST eh1'}}
-
 
     def init(self):
         self.session_hwobj = self.getObjectByRole('session')
@@ -126,7 +125,6 @@ class ISPyBRestClientMockup(HardwareObject):
         fname, data = ('', '')
         return fname, data
 
-
     def get_proposals_by_user(self, user_name):
         """
         Descript. : gets all proposals for selected user
@@ -136,11 +134,9 @@ class ISPyBRestClientMockup(HardwareObject):
         """
         return [self.__test_proposal]
 
-
     def get_proposal_sessions(self, proposal_id):
         session_list = []
         return session_list
-
 
     def get_session_local_contact(self, session_id):
         """
