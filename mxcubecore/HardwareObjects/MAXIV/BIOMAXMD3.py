@@ -58,7 +58,18 @@ class BIOMAXMD3(GenericDiffractometer):
         self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
         self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
         self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
-	
+ 
+        self.cent_vertical_pseudo_motor = None
+        try:
+            self.cent_vertical_pseudo_motor = self.addChannel({"type": "exporter",
+                                              "name": "CentringTableVerticalPositionPosition"},
+                                               "CentringTableVerticalPosition")
+            if self.cent_vertical_pseudo_motor is not None:
+                self.connect(self.cent_vertcial_pseudo_motor, "update",
+                             self.centring_motor_moved)
+        except:
+            logging.getLogger("HWR").warning('Cannot initialize CentringTableVerticalPosition')
+
 	try:
 	    use_sc = self.getProperty("use_sc")
 	    self.set_use_sc(use_sc)
@@ -305,7 +316,7 @@ class BIOMAXMD3(GenericDiffractometer):
         self.wait_device_ready(200)
         scan(scan_params)
         if wait:
-            self.wait_device_ready(300) #timeout of 5 min
+            self.wait_device_ready(900) #timeout of 5 min
 
     def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
         if self.in_plate_mode():
@@ -333,7 +344,7 @@ class BIOMAXMD3(GenericDiffractometer):
         self.wait_device_ready(200)
         scan(scan_params)
         if wait:
-            self.wait_device_ready(300) #timeout of 5 min
+            self.wait_device_ready(900) #timeout of 5 min
 
 
     def set_phase(self, phase, wait=False, timeout=None):
@@ -348,7 +359,8 @@ class BIOMAXMD3(GenericDiffractometer):
             print "moveToPhase - Ready is: ", self.is_ready()
 
 
-    def move_sync_motors(self, motors_dict, wait=False, timeout=None):
+    #def move_sync_motors(self, motors_dict, wait=False, timeout=None):
+    def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
         #print "start moving motors =============", time.time()
         for motor in motors_dict.keys():
@@ -370,14 +382,47 @@ class BIOMAXMD3(GenericDiffractometer):
 
     def moveToBeam(self, x, y):
         try:
+            self.emit_progress_message("Move to beam...")
+            self.centring_time = time.time()
+            curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.centring_status = {"valid": True,
+                                    "startTime": curr_time,
+                                    "endTime": curr_time}
+
+
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-	    self.phiy_motor_hwobj.moveRelative(-1*(y-beam_yc)/float(self.pixelsPerMmZ))
-	    self.phiz_motor_hwobj.moveRelative(-1*(x-beam_xc)/float(self.pixelsPerMmY))
-        except:
-	    logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
+            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue()-(x-beam_xc)/float(self.pixelsPerMmY)
+            self.emit_progress_message("")
 
+            motors = {}
+            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
+            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
+            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
+            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
+            print "positions before ", motors
+
+            self.phiy_motor_hwobj.moveRelative(-1*(y-beam_yc)/float(self.pixelsPerMmZ))
+            self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move) 
+            self.wait_device_ready(5)
+
+            #motors = {}
+            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
+            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
+            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
+            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
+            print "positions after ", motors
+           
+            self.centring_status["motors"] = motors
+            self.centring_status["valid"] = True
+            self.centring_status["angleLimit"] = True
+
+            self.emit('centringSuccessful', (self.CENTRING_METHOD_MOVE_TO_BEAM, self.get_centring_status())) 
+            self.current_centring_method = None
+            self.current_centring_procedure = None
+        except:
+            logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
