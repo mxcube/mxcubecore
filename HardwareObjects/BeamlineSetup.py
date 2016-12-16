@@ -457,3 +457,16 @@ class BeamlineSetup(HardwareObject):
         except:
            pass
         return result
+
+    def check_collection_parameters(self, parameters_list):
+        invalid_parameters_list = []
+        for parameter_item in parameters_list:
+            (bottom, top) = self.energy_hwobj.getEnergyLimits()
+            if parameter_item['energy'] > top or \
+               parameter_item['energy'] < bottom:
+               invalid_parameters_list.append('Energy')
+            (bottom, top) = self.detector_hwobj.get_exposure_time_limits()
+            if parameter_item['exp_time'] > top or \
+               parameter_item['exp_time'] < bottom:
+               invalid_parameters_list.append('Exposure time')
+        return invalid_parameters_list
