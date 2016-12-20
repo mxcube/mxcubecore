@@ -21,6 +21,7 @@ class Session(HardwareObject):
         self.endstation_name = None
         self.session_start_date = None
         self.user_group = ''
+        self.template = None
 
         self.default_precision = '05'
         self.suffix = None
@@ -35,6 +36,7 @@ class Session(HardwareObject):
         self.synchrotron_name = self.getProperty('synchrotron_name')
         self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
+        self.template = self["file_info"].getProperty('file_template')
         self.base_directory = self["file_info"].\
                               getProperty('base_directory')
 
@@ -56,12 +58,13 @@ class Session(HardwareObject):
         except:
            pass
 
-        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name) 
-        queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
-        queue_model_objects.PathTemplate.set_archive_path(self['file_info'].getProperty('archive_base_directory'),
-                                                          self['file_info'].getProperty('archive_folder'))
-        queue_model_objects.PathTemplate.set_path_template_style(self.getProperty('synchrotron_name'))
-
+        queue_model_objects.PathTemplate.\
+           set_path_template_style(self.synchrotron_name, self.template) 
+        queue_model_objects.PathTemplate.\
+           set_data_base_path(self.base_directory)
+        queue_model_objects.PathTemplate.set_archive_path(
+           self['file_info'].getProperty('archive_base_directory'),
+           self['file_info'].getProperty('archive_folder'))
 
     def get_base_data_directory(self):
         """

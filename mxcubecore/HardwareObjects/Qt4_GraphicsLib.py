@@ -176,9 +176,6 @@ class GraphicsItem(QtGui.QGraphicsItem):
         """
         self.update()
         self.scene().itemClickedSignal.emit(self, self.isSelected())
-        #self.scene().mouseClickedSignal.emit(self.start_coord[0],
-        #                                     self.start_coord[1],
-        #                                     True)
 
     def toggle_selected(self):
         """Toggles item selection
@@ -220,6 +217,7 @@ class GraphicsItemBeam(GraphicsItem):
         """
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
+        self.display_beam_size = False
         self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
         
     def paint(self, painter, option, widget):
@@ -253,6 +251,18 @@ class GraphicsItemBeam(GraphicsItem):
                          self.beam_position[1] * self.scene().image_scale - 10,
                          self.beam_position[0] * self.scene().image_scale, 
                          self.beam_position[1] * self.scene().image_scale + 10) 
+        if self.display_beam_size:
+            self.custom_pen.setColor(QtCore.Qt.darkGray)
+            painter.setPen(self.custom_pen)
+           
+            painter.drawText(self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
+                             self.beam_position[1] + self.beam_size_pix[1] / 2 + 10,
+                             "%d x %d %sm" % (self.beam_size_mm[0] * 1000,
+                                              self.beam_size_mm[1] * 1000,
+                                              u"\u00B5"))
+
+    def enable_beam_size(self, state):
+        self.display_beam_size = state
 
 class GraphicsItemInfo(GraphicsItem):
     """Message box for displaying information on the screen
@@ -293,17 +303,18 @@ class GraphicsItemInfo(GraphicsItem):
             painter.setPen(self.custom_pen)
             if type(self.__msg) == str:
                 painter.drawText(self.__pos_x + 5, 
-                                 self.__pos_y + 20,
+                                 self.__pos_y + 10,
                                  self.__msg)
             else:
                 for index, text_line in enumerate(self.__msg):
                     painter.drawText(self.__pos_x + 5, 
-                                     self.__pos_y + 20 + 20 * index,
+                                     self.__pos_y + 10 + 15 * index,
                                      text_line)
-        time_delta = datetime.now() - self.__created_time
-        if self.__display_time:
-           if time_delta.seconds > self.__display_time:
-               self.hide()
+        if self.__created_time:
+            time_delta = datetime.now() - self.__created_time
+            if self.__display_time:
+                if time_delta.seconds > self.__display_time:
+                    self.hide()
 
     def display_info(self, msg, pos_x, pos_y, hide_msg=True):
         """Shows message on pos_x, pos_y
@@ -311,17 +322,18 @@ class GraphicsItemInfo(GraphicsItem):
         self.__msg = msg
         self.__pos_x = pos_x
         self.__pos_y = pos_y
+        
         if hide_msg:
             self.__created_time = datetime.now()
         else:
             self.__created_time = None 
-        width = 300
         if type(msg) == str:
             height = 25
         else:
             height = 20 * len(msg)
         height += 10
-        self.__draw_rect = QtCore.QRectF(pos_x, pos_y, width, height)
+        self.__draw_rect = QtCore.QRectF(pos_x, pos_y,
+                                         self.scene().width() - 20, height)
         self.show()
         self.scene().update()
 
@@ -349,10 +361,18 @@ class GraphicsItemPoint(GraphicsItem):
             self.__centred_position.centring_method = False
         else:
             self.__centred_position = centred_position
-        self.set_size(20, 20)
+        #self.set_size(5,5)
 
         self.start_coord = [position_x, position_y] 
         self.setPos(position_x - 10, position_y - 10)
+
+    def boundingRect(self):
+        """Returns adjusted rect
+      
+        :returns: QRect
+        """
+
+        return self.rect.adjusted(0, 0, 20, 20)
 
     def get_display_name(self):
         return "Point %d" % self.index
@@ -386,19 +406,22 @@ class GraphicsItemPoint(GraphicsItem):
                 self.custom_pen.setColor(NORMAL_COLOR)
 
         painter.setPen(self.custom_pen)
-        painter.drawEllipse(self.rect.left(), self.rect.top(),
+        painter.drawEllipse(0, 0,
                             20, 20)
-        painter.drawLine(self.rect.left(), self.rect.top(),
-                         self.rect.right(), self.rect.bottom())
-        painter.drawLine(self.rect.right(), self.rect.top(),
-                         self.rect.left(), self.rect.bottom())
+        #painter.drawLine(self.rect.left(), self.rect.top(),
+        #                 self.rect.right(), self.rect.bottom())
+        #painter.drawLine(self.rect.right(), self.rect.top(),
+        #                 self.rect.left(), self.rect.bottom())
+        painter.drawLine(0, 0, 20, 20)
+        painter.drawLine(0, 20, 20, 0)
+
         if self.index:
             display_str = str(self.index)
         else:
             display_str = "#"
         if self.isSelected():
             display_str += " selected"
-        painter.drawText(self.rect.right() + 2, self.rect.top(), display_str)
+        painter.drawText(22, 0, display_str)
 
         if self.__centred_position.used_for_collection > 0: 
             painter.drawText(self.rect.right() + 2, self.rect.top() + 10, 
@@ -659,12 +682,12 @@ class GraphicsItemGrid(GraphicsItem):
 
             #Based on the grid directions estimates number of lines and 
             #number of images per line
-            self.__num_lines =  abs(self.grid_direction['fast'][1] * \
-                 self.__num_cols) + abs(self.grid_direction['slow'][1] * \
-                 self.__num_rows)
-            self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
-                self.__num_cols) + abs(self.grid_direction['slow'][0] * \
-                self.__num_rows)
+            #self.__num_lines =  abs(self.grid_direction['fast'][1] * \
+            #     self.__num_cols) + abs(self.grid_direction['slow'][1] * \
+            #     self.__num_rows)
+            #self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
+            #    self.__num_cols) + abs(self.grid_direction['slow'][0] * \
+            #    self.__num_rows)
 
             self.update_grid_draw_parameters()
 
@@ -674,18 +697,29 @@ class GraphicsItemGrid(GraphicsItem):
                  self.__corner_coord[3].y()) + self.__grid_size_pix[1] / 2.0)
             self.scene().update() 
 
-    def update_grid_draw_parameters(self):
-        self.__grid_size_pix = [self.__num_cols * self.__cell_size_pix[0],
-                                self.__num_rows * self.__cell_size_pix[1]]
-        #Also grid range is estimated 
-        self.__grid_range_pix["fast"] = abs(self.grid_direction['fast'][0] * \
-             (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
-             abs(self.grid_direction['fast'][1] * \
-             (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
-        self.__grid_range_pix["slow"] = abs(self.grid_direction['slow'][0] * \
-             (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
-             abs(self.grid_direction['slow'][1] * \
-             (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+    def update_grid_draw_parameters(self, adjust_size=True):
+        if adjust_size:
+            self.__grid_size_pix = [self.__num_cols * self.__cell_size_pix[0],
+                                    self.__num_rows * self.__cell_size_pix[1]]
+            #Also grid range is estimated 
+            self.__grid_range_pix["fast"] = abs(self.grid_direction['fast'][0] * \
+                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+                 abs(self.grid_direction['fast'][1] * \
+                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+            self.__grid_range_pix["slow"] = abs(self.grid_direction['slow'][0] * \
+                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+                 abs(self.grid_direction['slow'][1] * \
+                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+        else:
+            self.__num_cols = int(self.__grid_size_pix[0] / self.__cell_size_pix[0])
+            self.__num_rows = int(self.__grid_size_pix[1] / self.__cell_size_pix[1])
+
+        self.__num_lines =  abs(self.grid_direction['fast'][1] * \
+                 self.__num_cols) + abs(self.grid_direction['slow'][1] * \
+                 self.__num_rows)
+        self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
+                self.__num_cols) + abs(self.grid_direction['slow'][0] * \
+                self.__num_rows)
 
     def set_corner_coord(self, corner_coord):
         self.update_grid_draw_parameters()
@@ -708,10 +742,10 @@ class GraphicsItemGrid(GraphicsItem):
                                          self.__corner_coord[0].y())
         """
 
-    def set_spacing(self, spacing):
+    def set_spacing(self, spacing, adjust_size=True):
         self.__spacing_mm = spacing
         self.update_item()
-        self.update_grid_draw_parameters()
+        self.update_grid_draw_parameters(adjust_size)
         self.scene().update()
 
     def set_draw_mode(self, draw_mode):
@@ -1239,6 +1273,7 @@ class GraphicsItemCentringLines(GraphicsItem):
         GraphicsItem.__init__(self, parent)
 
         self.custom_pen.setColor(NORMAL_COLOR)
+        self.centring_points = []
 
     def paint(self, painter, option, widget):
         painter.setPen(self.custom_pen)
@@ -1246,7 +1281,23 @@ class GraphicsItemCentringLines(GraphicsItem):
                          self.start_coord[0], self.scene().height())
         painter.drawLine(0, self.start_coord[1],
                          self.scene().width(), self.start_coord[1])
+        if len(self.centring_points) in (0, 1):
+            painter.drawText(self.start_coord[0] + 10,
+                             self.start_coord[1] - 10,
+                             "%d clicks left" % (3 - len(self.centring_points)))
+        elif len(self.centring_points) == 2:
+            painter.drawText(self.start_coord[0] + 10,
+                             self.start_coord[1] - 10,
+                             "1 click left")
+        for centring_point in self.centring_points:
+            painter.drawLine(centring_point[0] - 3, centring_point[1] - 3,
+                             centring_point[0] + 3, centring_point[1] + 3)
+            painter.drawLine(centring_point[0] - 3, centring_point[1] + 3,
+                             centring_point[0] + 3, centring_point[1] - 3)
+            
 
+    def add_position(self, pos_x, pos_y):
+        self.centring_points.append((pos_x, pos_y))
 
 class GraphicsItemMoveBeamMark(GraphicsItem):
     """
@@ -1291,8 +1342,8 @@ class GraphicsItemBeamDefine(GraphicsItem):
                          min(self.start_coord[1], self.end_coord[1]),
                          abs(self.start_coord[0] - self.end_coord[0]),
                          abs(self.start_coord[1] - self.end_coord[1]))
-        painter.drawText(self.end_coord[0] + 5, self.end_coord[1] + 5,
-                         "%d x %d %s" % (self.width_microns, 
+        painter.drawText(self.end_coord[0] + 7, self.end_coord[1],
+                         "%d x %d %sm" % (self.width_microns, 
                          self.height_microns, u"\u00B5"))
 
         self.custom_pen.setColor(QtCore.Qt.red)
@@ -1506,6 +1557,66 @@ class GraphicsItemMeasureArea(GraphicsItem):
         self.scene().update()
 
 
+class GraphicsItemMove(GraphicsItem):
+    """
+    Descrip. : 
+    """
+
+    def __init__(self, parent, direction):
+        GraphicsItem.__init__(self, parent)
+
+        self.setAcceptsHoverEvents(True)
+        self.direction = direction
+        self.item_hover = False
+        self.arrow_polygon = QtGui.QPolygon(self)
+        self.set_size(20, 20)
+
+        if direction == "up":
+            self.setPos(25, 5)
+            points = ((10, 0), (20, 19), (10, 15), (0, 19), (10, 0))
+        elif direction == "right":
+            points = ((1, 0), (20, 10), (1, 20), (5, 10), (1, 0))
+            self.setPos(45, 25)
+        elif direction == "down":
+            points = ((0, 1), (10, 5), (20, 1), (10, 20), (0, 1))
+            self.setPos(25, 45)
+        elif direction == "left":
+            points = ((0, 10), (19, 0), (15, 10), (19, 20), (0, 10)) 
+            self.setPos(5, 25)
+        
+        for point in points:
+            self.arrow_polygon.append(QtCore.QPoint(*point))
+
+    def boundingRect(self):
+        """Returns bounding rect
+        :returns: QRect
+        """
+        return self.rect
+
+    def paint(self, painter, option, widget):
+        self.custom_pen.setStyle(SOLID_LINE_STYLE)
+        painter.setPen(self.custom_pen)
+        painter.setBrush(self.custom_brush)
+
+        painter.drawPolygon(self.arrow_polygon, QtCore.Qt.OddEvenFill)
+        if self.item_hover:
+            self.custom_brush.setColor(NORMAL_COLOR)
+        else:
+            self.custom_brush.setColor(QtGui.QColor(70, 70, 165, 40))
+        painter.drawPolygon(self.arrow_polygon, QtCore.Qt.OddEvenFill)
+
+    def hoverEnterEvent(self, event):
+        self.item_hover = True
+        QtGui.QGraphicsItem.hoverEnterEvent(self, event)
+
+    def hoverLeaveEvent(self, event):
+        self.item_hover = False
+        QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
+
+    def mousePressEvent(self, event):
+        self.scene().moveItemClickedSignal.emit(self.direction)
+        QtGui.QGraphicsItem.mousePressEvent(self, event)
+
 class GraphicsView(QtGui.QGraphicsView):
     mouseMovedSignal = QtCore.pyqtSignal(int, int)
     keyPressedSignal = QtCore.pyqtSignal(str)
@@ -1539,6 +1650,7 @@ class GraphicsView(QtGui.QGraphicsView):
     def mouseMoveEvent(self, event):
         self.mouseMovedSignal.emit(event.x(), event.y())
         self.update()
+        QtGui.QGraphicsView.mouseMoveEvent(self, event)
  
     def keyPressEvent(self, event):
         if event.key() in (QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace):  
@@ -1546,9 +1658,15 @@ class GraphicsView(QtGui.QGraphicsView):
         elif event.key() == QtCore.Qt.Key_Escape:
             self.keyPressedSignal.emit("Escape")
         elif event.key() == QtCore.Qt.Key_Up:
-            self.keyPressedSignal.emit("Up")
+            self.scene().moveItemClickedSignal.emit("up")
+            #self.keyPressedSignal.emit("Up")
         elif event.key() == QtCore.Qt.Key_Down:
-            self.keyPressedSignal.emit("Down")
+            self.scene().moveItemClickedSignal.emit("down")
+            #self.keyPressedSignal.emit("Down")
+        elif event.key() == QtCore.Qt.Key_Left:
+            self.scene().moveItemClickedSignal.emit("left")
+        elif event.key() == QtCore.Qt.Key_Right:
+            self.scene().moveItemClickedSignal.emit("right")
         elif event.key() == QtCore.Qt.Key_Plus: 
             self.keyPressedSignal.emit("Plus")
         elif event.key() == QtCore.Qt.Key_Minus:   
@@ -1605,6 +1723,7 @@ class GraphicsScene(QtGui.QGraphicsScene):
     mouseReleasedSignal = QtCore.pyqtSignal(int, int)
     itemDoubleClickedSignal = QtCore.pyqtSignal(GraphicsItem)
     itemClickedSignal = QtCore.pyqtSignal(GraphicsItem, bool) 
+    moveItemClickedSignal = QtCore.pyqtSignal(str)
 
     def __init__ (self, parent=None):
         super(GraphicsScene, self).__init__ (parent)

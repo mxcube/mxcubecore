@@ -22,6 +22,9 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
         self.motorState = MicrodiffMotorMockup.READY
         self.motorPosition = 10.124
 
+    def isReady(self):
+        return True 
+
     def connectNotify(self, signal):
         if signal == 'positionChanged':
                 self.emit('positionChanged', (self.getPosition(), ))
@@ -60,7 +63,7 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
         self.emit('stateChanged', (self.motorState, ))
 
     def moveRelative(self, relativePosition):
-        self.motorPosition = relativePosition
+        self.motorPosition = self.motorPosition + relativePosition
         self.emit('positionChanged', (self.motorPosition, ))
         self.emit('stateChanged', (self.motorState, ))
 

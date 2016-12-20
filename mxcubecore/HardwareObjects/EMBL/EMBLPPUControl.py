@@ -60,11 +60,17 @@ class EMBLPPUControl(Device):
         self.restart_result = ""
         self.last_resort_result = ""
 
+        self.emit('ppuStatusChanged', (True, "hwobj init...."))
+
         self.cmd_furka_restart = self.getCommandObject('furkaRestart')
         if self.cmd_furka_restart is not None:
             self.cmd_furka_restart.connectSignal('commandReplyArrived', \
                  self.restart_reply)
-            self.cmd_furka_restart("")
+            try:
+                self.cmd_furka_restart("")
+            except:
+                logging.getLogger("HWR").error("PPUControl: Unable to send " +\
+                   "Furka restard command")
 
         self.cmd_all_status = self.getCommandObject('allStatus')
         if self.cmd_all_status is not None:
@@ -80,7 +86,11 @@ class EMBLPPUControl(Device):
         self.execution_state = self.getProperty("executionState")
         self.error_state = self.getProperty("errorState")
 
-        self.restart_reply_cb()
+        try:
+            self.restart_reply_cb()
+        except:
+            logging.getLogger("HWR").error("PPUControl: Unable to send " +\
+                "Furka restart command")
 
     def restart_reply_cb(self):
         """
