@@ -573,14 +573,16 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         positions_str += " ".join([motor+("=%f" % pos) for motor, pos in motors_to_move_before_collect.iteritems()])
         data_collect_parameters['actualCenteringPosition'] = positions_str
 
-        self.move_motors(motors_to_move_before_collect)
-        # take snapshots, then assign centring status (which contains images) to centring_info variable
-        logging.getLogger("user_level_log").info("Taking sample snapshosts")
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
-        centring_info = self.bl_control.diffractometer.getCentringStatus()
-        # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
         self.move_motors(motors_to_move_before_collect, wait=True)
+        logging.getLogger("user_level_log").info("**NOT** Taking sample snapshosts")
+        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        #logging.getLogger("user_level_log").info("Taking sample snapshosts")
+        #self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        #centring_info = self.bl_control.diffractometer.getCentringStatus()
+        # move *again* motors, since taking snapshots may change positions
+        #logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
+        #self.move_motors(motors_to_move_before_collect, wait=True)
 
         if self.bl_control.lims:
           try:
@@ -807,7 +809,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                       osc_end = osc_start + self.shutterless_range
                       self.do_prepare_oscillation()
 
-                      self.move_motors(motors_to_move_before_collect) 
+                      self.move_motors(motors_to_move_before_collect, wait=True) 
 
                       with error_cleanup(self.reset_detector):
                           # Make sure the new energy is applied to the detector before getting the new readout time
@@ -900,7 +902,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         #return 750
         return self.bl_control.detector_distance.getPosition()
 
-    def start_processing(wedge_size, process_dir)
+    def start_processing(self, wedge_size, process_dir):
         #automatic processing     
         # wait until XDS.INP is ready
         if wedge_size < 10:        
