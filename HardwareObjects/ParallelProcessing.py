@@ -250,8 +250,7 @@ class ParallelProcessing(HardwareObject):
               "spots_int_aver" : numpy.zeros(self.params_dict["images_num"]),
               "spots_resolution" : numpy.zeros(self.params_dict["images_num"]),
               "score" : numpy.zeros(self.params_dict["images_num"])}
-        self.processing_results_align = self.align_processing_results(\
-              self.results_raw, self.grid)
+        self.align_processing_results(self.results_raw, self.grid)
         self.emit("paralleProcessingResults",
                   (self.processing_results_align,
                    self.params_dict,
@@ -275,16 +274,13 @@ class ParallelProcessing(HardwareObject):
                 subprocess.Popen(str(line_to_execute), shell=True, stdin=None,
                       stdout=None, stderr=None, close_fds=True)
         else:
+            add = 0 
             for key in self.results_raw.keys():
                 self.results_raw[key] = numpy.linspace(0, 
                    self.params_dict["images_num"], 
-                   self.params_dict["images_num"]).astype('uint8')
-            self.processing_results_align = self.align_processing_results(\
-                self.results_raw, self.grid)
-            self.emit("paralleProcessingResults",
-                (self.processing_results_align,
-                 self.params_dict,
-                 True))
+                   self.params_dict["images_num"]) + add
+                add += 10
+            self.align_processing_results(self.results_raw, self.grid)
             self.set_processing_status("Success")
 
     def is_running(self):
@@ -314,8 +310,7 @@ class ParallelProcessing(HardwareObject):
             self.results_raw["score"]\
                  [image["image_num"]] = image["score"]
 
-        self.processing_results_align = self.align_processing_results(\
-              self.results_raw, self.grid)
+        self.align_processing_results(self.results_raw, self.grid)
         self.emit("paralleProcessingResults",
                   (self.processing_results_align,
                    self.params_dict,
@@ -337,6 +332,7 @@ class ParallelProcessing(HardwareObject):
         else:
             self.emit("processingFinished")
 
+        
         self.emit("paralleProcessingResults",
                   (self.processing_results_align,
                    self.params_dict,
@@ -350,8 +346,11 @@ class ParallelProcessing(HardwareObject):
             self.processing_results_align["score"].max()
         best_positions = self.processing_results_align.get("best_positions", [])
 
-        #If lims used then and mesh then save results in ispyb
-        #Autoprocessin program
+        # We store MeshScan and XrayCentring workflow in ISPyB
+        # Parallel processing is also executed for all osc that have
+        # more than 20 images, but results are not stored as workflow
+
+        fig, ax = plt.subplots(nrows=1, ncols=1)
         if self.params_dict["lines_num"] > 1:
             log.info("Saving autoprocessing program in ISPyB")
             self.lims_hwobj.store_autoproc_program(self.params_dict)
@@ -366,21 +365,18 @@ class ParallelProcessing(HardwareObject):
             self.collect_hwobj.update_lims_with_workflow(workflow_id,
                  self.params_dict["grid_snapshot_filename"])
 
-            #try:
-            if True:
+            try:
                 html_filename = os.path.join(self.params_dict["result_file_path"],
                                              "index.html")
                 log.info("Generating results html %s" % html_filename)
                 SimpleHTML.generate_mesh_scan_report(\
                     self.processing_results_align, self.params_dict,
                     html_filename)
-            #except:
-            #    log.exception("Could not create result html %s" % html_filename)
+            except:
+                log.exception("Could not create result html %s" % html_filename)
 
-        # Heat map generation
-        fig, ax = plt.subplots(nrows=1, ncols=1)
-        if self.params_dict["lines_num"] > 1:
-            #If mesh scan then a 2D plot
+            # Heat map generation
+            # If mesh scan then a 2D plot
             im = ax.imshow(self.processing_results_align["score"],
                            interpolation='none', aspect='auto',
                            extent=[0, self.processing_results_align["score"].shape[1], 0,
@@ -397,7 +393,25 @@ class ParallelProcessing(HardwareObject):
             im.set_cmap('hot')
         else:
             #if helical line then a line plot
-            plt.plot(self.processing_results_align["score"])
+            plt.plot(self.processing_results_align["score"],
+                     label="Total score",
+                     color="r")
+            plt.plot(self.processing_results_align["spots_num"],
+                     label="Number of spots",
+                     linestyle="None",
+                     color="b",
+                     marker="o")
+            plt.plot(self.processing_results_align["spots_int_aver"],
+                     label="Int aver",
+                     linestyle="None",
+                     color="g",
+                     marker="s")
+            plt.plot(self.processing_results_align["spots_resolution"],
+                     linestyle="None",
+                     label="Resolution",
+                     color="m",
+                     marker="s")
+            plt.legend()
             ylim = ax.get_ylim()
             ax.set_ylim((-1, ylim[1]))
 
@@ -448,9 +462,9 @@ class ParallelProcessing(HardwareObject):
 
         #Each result array is realigned
         aligned_results = {}
-        for result_array_key in results_dict.iterkeys():
-            aligned_results[result_array_key] = self.align_result_array(\
-              results_dict[result_array_key], grid)
+        for key in results_dict.iterkeys():
+            self.processing_results_align[key] = \
+                self.align_result_array(results_dict[key], grid)
         if self.params_dict['lines_num'] > 1:
             grid.set_score(results_dict['score'])
 
@@ -488,8 +502,7 @@ class ParallelProcessing(HardwareObject):
                     best_position["row"] = self.params_dict["steps_y"] - row
                     best_position['cpos'] = cpos
                     best_positions_list.append(best_position)
-        aligned_results["best_positions"] = best_positions_list
-        return aligned_results
+        self.processing_results_align["best_positions"] = best_positions_list
 
     def align_result_array(self, result_array, grid):
         """Realigns result array based on the grid
@@ -498,7 +511,10 @@ class ParallelProcessing(HardwareObject):
         """
         num_lines = self.params_dict["lines_num"]
         if num_lines == 1:
-            return result_array
+            if result_array.max() != 0:
+                return result_array / result_array.max()
+            else:
+                return result_array
 
         num_images_per_line = self.params_dict["images_per_line"]
         num_colls = self.params_dict["steps_x"]
@@ -514,6 +530,10 @@ class ParallelProcessing(HardwareObject):
             if (col < aligned_result_array.shape[0] and
                 row < aligned_result_array.shape[1]):
                 aligned_result_array[col][row] = result_array[cell_index]
+        if aligned_result_array.max() > 0:
+            aligned_result_array = aligned_result_array / \
+                aligned_result_array.max() 
+
         return numpy.transpose(aligned_result_array)
 
     def extract_sweeps(self):

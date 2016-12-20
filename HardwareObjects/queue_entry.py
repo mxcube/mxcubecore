@@ -211,6 +211,7 @@ class BaseQueueEntry(QueueEntryContainer):
         self.beamline_setup = None
         self._execution_failed = False
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
+        self.type_str = ""
 
     def enqueue(self, queue_entry):
         """
@@ -358,6 +359,9 @@ class BaseQueueEntry(QueueEntryContainer):
             s += str(entry)
 
         return s + ']'
+
+    def get_type_str(self):
+        return self.type_str
 
 
 class DummyQueueEntry(BaseQueueEntry):
@@ -539,7 +543,6 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             self.interleave_task.kill()       
         self.get_view().setText(1, "Interleave stoped")
 
-
 class SampleQueueEntry(BaseQueueEntry):
     """
     Defines the behaviour of sample queue entries. Mounting, launching centring
@@ -656,6 +659,9 @@ class SampleQueueEntry(BaseQueueEntry):
     def _set_background_color(self):
         BaseQueueEntry._set_background_color(self)
 
+    def get_type_str(self):
+        return "Sample"
+
 class BasketQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
@@ -735,6 +741,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         #If centring is executed once then we dont have to execute it again
         self.get_view().set_checkable(False)
         BaseQueueEntry.post_execute(self)
+
+    def get_type_str(self):
+        return "Sample centering"
 
 
 class DataCollectionQueueEntry(BaseQueueEntry):
@@ -817,6 +826,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.parallel_processing_hwobj is not None:
             qc.connect(self.parallel_processing_hwobj, 'paralleProcessingResults',
                        self.processing_set_result)
+            qc.connect(self.parallel_processing_hwobj, 'processingFinished',
+                       self.processing_finished)
             qc.connect(self.parallel_processing_hwobj, 'processingFailed',
                        self.processing_failed)
 
@@ -848,6 +859,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.parallel_processing_hwobj is not None:
             qc.disconnect(self.parallel_processing_hwobj, 'paralleProcessingResults',
                        self.processing_set_result)
+            qc.disconnect(self.parallel_processing_hwobj, 'processingFinished',
+                       self.processing_finished)
             qc.disconnect(self.parallel_processing_hwobj, 'processingFailed',
                        self.processing_failed)
 
@@ -887,7 +900,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                          acq_1.acquisition_parameters.num_lines, 
                          acq_1.acquisition_parameters.mesh_range)
                     self.collect_hwobj.set_helical(False)
-                    dc.run_processing_parallel = True
                 else:
                     self.collect_hwobj.set_helical(False)
 
@@ -982,6 +994,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
+        logging.getLogger("user_level_log").info('Collection finished')
 
     def stop(self):
         BaseQueueEntry.stop(self)
@@ -1005,17 +1018,27 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def processing_set_result(self, result_dict, info_dict, last_result):
         data_model = self.get_data_model()
         data_model.parallel_processing_result = result_dict
-        if last_result:
-            dispatcher.send("collect_finished")
-            self.processing_task = None
-            self.get_view().setText(1, "Processing done")
-            logging.getLogger("user_level_log").info('Processing done')
+
+    def processing_finished(self):
+        dispatcher.send("collect_finished")
+        self.processing_task = None
+        self.get_view().setText(1, "Processing done")
+        logging.getLogger("user_level_log").info('Processing done')
 
     def processing_failed(self):
         self.processing_task = None
         self.get_view().setText(1, "Processing failed")
         logging.getLogger("user_level_log").error('Processing failed')
 
+    def get_type_str(self):
+        data_model = self.get_data_model()
+        if data_model.is_helical():
+            return "Helical"
+        elif data_model.is_mesh():
+            return "Mesh"
+        else:
+            return "OSC"
+            
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
     """
@@ -1187,6 +1210,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+
+    def get_type_str(self):
+        return "Characterisation"
 
 class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
@@ -1362,6 +1388,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
 
+    def get_type_str(self):
+        return "Energy scan"
+
 class XRFSpectrumQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
@@ -1469,6 +1498,9 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         self.status = QUEUE_ENTRY_STATUS.FAILED
         logging.getLogger("user_level_log").error("XRF spectrum failed.")
         raise QueueExecutionException("XRF spectrum failed", self)
+
+    def get_type_str(self):
+        return "XRF spectrum"
 
 class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):

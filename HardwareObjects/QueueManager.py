@@ -167,6 +167,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         status = "Successful"
         #self.emit('centringAllowed', (False, ))
         self.emit('queue_entry_execute_started', (entry, ))
+        self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
         logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
@@ -207,8 +208,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             raise ex
         else:
             entry.post_execute()
-
-        self._current_queue_entries.remove(entry)
+        finally:
+            self.set_current_entry(None)
+            self._current_queue_entries.remove(entry)
 
     def stop(self):
         """

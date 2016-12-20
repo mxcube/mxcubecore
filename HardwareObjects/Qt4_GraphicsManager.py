@@ -30,7 +30,7 @@ example xml:
 """
 
 import os
-import atexit
+#import atexit
 import tempfile
 import logging
 import numpy as np
@@ -62,7 +62,8 @@ class Qt4_GraphicsManager(HardwareObject):
         self.diffractometer_hwobj = None
         self.camera_hwobj = None
         self.beam_info_hwobj = None
-     
+    
+        self.graphics_config_filename = None 
         self.pixels_per_mm = [0, 0]
         self.beam_position = [0, 0]
         self.beam_info_dict = {}
@@ -139,6 +140,10 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_select_tool_item.hide()
         self.graphics_beam_define_item = GraphicsLib.GraphicsItemBeamDefine(self)
         self.graphics_beam_define_item.hide()
+        self.graphics_move_up_item = GraphicsLib.GraphicsItemMove(self, "up")
+        self.graphics_move_right_item = GraphicsLib.GraphicsItemMove(self, "right")
+        self.graphics_move_down_item = GraphicsLib.GraphicsItemMove(self, "down")
+        self.graphics_move_left_item = GraphicsLib.GraphicsItemMove(self, "left")
          
         self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
         self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
@@ -152,6 +157,10 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_area_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_select_tool_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_define_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
 
         self.graphics_view.scene().mouseClickedSignal.connect(\
              self.mouse_clicked)
@@ -163,6 +172,8 @@ class Qt4_GraphicsManager(HardwareObject):
              self.item_clicked)
         self.graphics_view.scene().itemDoubleClickedSignal.connect(\
              self.item_double_clicked)
+        self.graphics_view.scene().moveItemClickedSignal.connect(\
+             self.move_item_clicked)
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
@@ -228,7 +239,7 @@ class Qt4_GraphicsManager(HardwareObject):
             pass
 
         if self.getProperty("store_graphics_config") == True:
-            atexit.register(self.save_graphics_config)
+            #atexit.register(self.save_graphics_config)
             self.graphics_config_filename = self.getProperty("graphics_config_filename")
             if self.graphics_config_filename is None:
                 self.graphics_config_filename = os.path.join(\
@@ -238,13 +249,22 @@ class Qt4_GraphicsManager(HardwareObject):
         try:
            self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
         except:
-           self.auto_grid_size_mm = (0.2, 0.2)            
+           self.auto_grid_size_mm = (0.2, 0.2)
+
+        self.graphics_move_up_item.setVisible(self.getProperty("enable_move_buttons") == True)
+        self.graphics_move_right_item.setVisible(self.getProperty("enable_move_buttons") == True)
+        self.graphics_move_down_item.setVisible(self.getProperty("enable_move_buttons") == True)
+        self.graphics_move_left_item.setVisible(self.getProperty("enable_move_buttons") == True)
 
         #self.init_auto_grid()  
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
         """
+
+        if self.graphics_config_filename is None:
+            return
+
         logging.getLogger("HWR").debug("GraphicsManager: Saving graphics " + \
             "in configuration file %s" % self.graphics_config_filename)
         try:
@@ -512,7 +532,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 - infoMsg
         """
         if self.in_centring_state:
-            self.graphics_centring_lines_item.set_start_position(pos_x, pos_y)
+            self.graphics_centring_lines_item.add_position(pos_x, pos_y)
             self.diffractometer_hwobj.image_clicked(pos_x, pos_y)
         elif self.wait_grid_drawing_click:
             self.in_grid_drawing_state = True
@@ -733,6 +753,9 @@ class Qt4_GraphicsManager(HardwareObject):
         if isinstance(item, GraphicsLib.GraphicsItemPoint):
             self.diffractometer_hwobj.move_to_centred_position(\
                  item.get_centred_position())
+
+    def move_item_clicked(self, direction):
+        print "Move screen: ", direction
     
     def get_graphics_view(self):
         """Rturns current GraphicsView
@@ -770,6 +793,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         self.in_centring_state = state
         self.graphics_centring_lines_item.setVisible(state)
+        self.graphics_centring_lines_item.centring_points = []
 
     def get_shapes(self):
         """Returns currently handled shapes.
@@ -831,6 +855,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(shape)
         shape.setSelected(True)
         self.emit("shapeSelected", shape, True)
+        self.save_graphics_config()
 
     def delete_shape(self, shape):
         """Removes the shape <shape> from the list of handled shapes.
@@ -1209,6 +1234,8 @@ class Qt4_GraphicsManager(HardwareObject):
         """ 
         self.emit("centringInProgress", True)
         if tree_click:
+            self.hide_all_items()
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
             self.set_centring_state(True) 
             self.diffractometer_hwobj.start_centring_method(\
                  self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
@@ -1220,13 +1247,15 @@ class Qt4_GraphicsManager(HardwareObject):
     def accept_centring(self):
         """Accepts centring
         """
-
+        self.show_all_items()
+        QtGui.QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.accept_centring()
 
     def reject_centring(self):
         """Rejects centring
-        """ 
-
+        """
+        self.show_all_items()
+        QtGui.QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.reject_centring()  
 
     def cancel_centring(self, reject=False): 
@@ -1235,7 +1264,8 @@ class Qt4_GraphicsManager(HardwareObject):
         :param reject: reject position
         :type reject: bool
         """
-
+        self.show_all_items()
+        QtGui.QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.cancel_centring_method(reject = reject)
 
     def start_visual_align(self):
@@ -1554,9 +1584,11 @@ class Qt4_GraphicsManager(HardwareObject):
         Descript.
         """
         if pos_x is None:
-            pos_x = self.beam_position[0]
+            pos_x = 10
+            #pos_x = self.beam_position[0]
         if pos_y is None:
-            pos_y = self.beam_position[1]
+            pos_y = 50
+            #pos_y = self.beam_position[1]
         self.graphics_info_item.display_info(msg, pos_x, pos_y, hide_msg) 
 
     def hide_info_msg(self):
@@ -1568,3 +1600,6 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("shapeChanged", line, "Line")
         line.update_item()
 
+    def display_beam_size(self, state):
+        """Enables or disables displaying the beam size"""
+        self.graphics_beam_item.enable_beam_size(state) 

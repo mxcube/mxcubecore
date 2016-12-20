@@ -128,12 +128,24 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.connect(self.motor_hwobj_dict['phi'],
                      "positionChanged",
                      self.phi_motor_moved) 
+        self.connect(self.motor_hwobj_dict['phiy'],
+                     "positionChanged",
+                     self.phiy_motor_moved)
+        self.connect(self.motor_hwobj_dict['phiz'],
+                     "positionChanged",
+                     self.phiz_motor_moved)
         self.connect(self.motor_hwobj_dict['kappa'],
                      "positionChanged",
                      self.kappa_motor_moved)
         self.connect(self.motor_hwobj_dict['kappa_phi'],
                      "positionChanged",
                      self.kappa_phi_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampx'],
+                     "positionChanged",
+                     self.sampx_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampy'],
+                     "positionChanged",
+                     self.sampy_motor_moved)
 
         self.omega_reference_par = eval(self.getProperty("omega_reference"))
         self.omega_reference_motor = self.getObjectByRole(self.omega_reference_par["motor_name"])
@@ -212,8 +224,19 @@ class EMBLMiniDiff(GenericDiffractometer):
         Descript. :
         """
         self.current_motor_positions["phi"] = pos
-        self.emit_diffractometer_moved()
         self.emit("phiMotorMoved", pos)
+
+    def phiy_motor_moved(self, pos):
+        self.current_motor_positions["phiy"] = pos
+
+    def phiz_motor_moved(self, pos):
+        self.current_motor_positions["phiz"] = pos
+
+    def sampx_motor_moved(self, pos):
+        self.current_motor_positions["sampx"] = pos
+
+    def sampy_motor_moved(self, pos):
+        self.current_motor_positions["sampy"] = pos
 
     def kappa_motor_moved(self, pos):
         """
@@ -569,7 +592,6 @@ class EMBLMiniDiff(GenericDiffractometer):
             new_point[motor] = new_motor_pos
         return new_point
 
- 
     def get_osc_dynamic_limits(self):
         return self.motor_hwobj_dict['phi'].getDynamicLimits()
 
