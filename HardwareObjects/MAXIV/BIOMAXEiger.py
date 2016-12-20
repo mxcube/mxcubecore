@@ -383,6 +383,8 @@ class BIOMAXEiger(Equipment):
             if cfg_value is not None:
                 if self.get_value(cfg_name) != cfg_value:
                     self.set_value(cfg_name, cfg_value)
+                    if cfg_name == "RoiMode":
+                        self.emit("roiChanged")
                 else:
                     print("      - value does need to change")
             else:
