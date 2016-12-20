@@ -161,6 +161,9 @@ class ALBAMiniDiff(GenericDiffractometer):
 
         update_beam_callback(data)
 
+    def use_sample_changer(self):
+        return True
+
     def in_plate_mode(self):
         return False
 
