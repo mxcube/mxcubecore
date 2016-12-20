@@ -35,6 +35,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
 
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
 
+        self.beam_position[0] = 687 * self.chan_ImageZoom.getValue()
+        self.beam_position[1] = 519 * self.chan_ImageZoom.getValue()
     """
     def _polling(self):
         old_beam_pos = [-1, -1]
@@ -71,13 +73,11 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         #self.beam_position_changed()
 
     def beam_position_changed(self,value):
-        print "lalala position", value
         self.get_beam_position()
         self.emit("beamPosChanged", (self.beam_position, ))
         print "beam position changed", self.beam_position
 
     def beam_info_changed(self,value):
-        print "lalalla info", value
 	self.evaluate_beam_info()
 	self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
@@ -110,6 +110,9 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         Arguments :
         Return    :
         """
+        self.beam_position[0] = 687 * self.chan_ImageZoom.getValue()
+        self.beam_position[1] = 519 * self.chan_ImageZoom.getValue()
+        return self.beam_position
 	if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
