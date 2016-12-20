@@ -58,7 +58,7 @@ class XMLRPCServer(HardwareObject):
         else:
             host = socket.gethostname()
 
-        host = "riga.embl-hamburg.de"
+        #host = "riga.embl-hamburg.de"
        
         self.host = host    
 
