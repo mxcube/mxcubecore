@@ -123,7 +123,7 @@ class __HardwareRepositoryClient:
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
             if len(mnemonics) > 0:
                 self.requiredHardwareObjects = SpecWaitObject.waitReply(self.server, 'send_msg_cmd_with_return' , ('xml_getall(%s)' % mnemonics, ), timeout = 3)
-                logging.getLogger("HWR").debug("Getting all the hardware objects took %s ms." % ((time.time()-t0)*1000))
+                logging.getLogger("HWR").debug("Getting all the hardware objects (%s) took %s ms." % (len(self.requireHardwareObjects), (time.time()-t0)*1000))
         except SpecClientError.SpecClientTimeoutError:
             logging.getLogger('HWR').error("Timeout loading Hardware Objects")
         except:
