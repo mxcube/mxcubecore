@@ -362,7 +362,7 @@ class BIOMAXMD3(GenericDiffractometer):
     #def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
-        #print "start moving motors =============", time.time()
+        logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
         for motor in motors_dict.keys():
             position = motors_dict[motor]
             if position is None:
@@ -372,13 +372,11 @@ class BIOMAXMD3(GenericDiffractometer):
         if not argin:
             return
         self.wait_device_ready(2000)
-        #while not self.is_ready():
-        #    time.sleep(0.25)
         self.command_dict["startSimultaneousMoveMotors"](argin)
-
+	#task_info = self.command_dict["getTaskInfo"](task_id)
         if wait:
-            while not self.is_ready():
-                time.sleep(0.5)
+	    self.wait_device_ready(timeout)
+
 
     def moveToBeam(self, x, y):
         try:
@@ -417,8 +415,12 @@ class BIOMAXMD3(GenericDiffractometer):
             self.centring_status["motors"] = motors
             self.centring_status["valid"] = True
             self.centring_status["angleLimit"] = True
-
+            self.centring_status["accepted"] = True
+            
+            self.emit('centringAccepted', (True, self.get_centring_status()))
             self.emit('centringSuccessful', (self.CENTRING_METHOD_MOVE_TO_BEAM, self.get_centring_status())) 
+            self.emit_progress_message("")
+            self.ready_event.set()
             self.current_centring_method = None
             self.current_centring_procedure = None
         except:

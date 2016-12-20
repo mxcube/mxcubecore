@@ -32,11 +32,13 @@ class TunableEnergy:
     # self.bl_control is passed by ESRFMultiCollect
     @task
     def set_wavelength(self, wavelength):
+	return
         energy_obj = self.bl_control.energy
         return energy_obj.startMoveWavelength(wavelength)
 
     @task
     def set_energy(self, energy):
+	return
         energy_obj = self.bl_control.energy
         return energy_obj.startMoveEnergy(energy)
 
@@ -53,7 +55,8 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
         AbstractMultiCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._tunable_bl = FixedEnergy(1.125, 11.0)
+        #self._tunable_bl = FixedEnergy(0.9789, 12.666)
+        self._tunable_bl = TunableEnergy()
         self._centring_status = None
         self.helical = False
         self.shutterless_exptime = None
@@ -88,7 +91,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                cryo_stream = None, # disable for the moment, only needed for ISPyB
                                energy = self.getObjectByRole("energy"),
                                resolution = self.getObjectByRole("resolution"),
-                               detector_distance = self.getObjectByRole("detector_distance"),
+                               detector_distance = self.getObjectByRole("dtox"),
                                transmission = self.getObjectByRole("transmission"),
                                undulators = self.getObjectByRole("undulators"),
                                #flux = self.getObjectByRole("flux"),
@@ -124,8 +127,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
        
         self.detector = self.bl_control.detector
         self._tunable_bl.bl_control = self.bl_control
-
-
+	print "current resolution is .....", self.bl_control.resolution.recalculateResolution()
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
@@ -231,10 +233,10 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             config['RoiMode'] = "disabled" #disabled means 16M
 
-        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()*1000
+        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
         config['OmegaStart'] = start
         config['OmegaIncrement'] = osc_range
-        beam_x, beam_y = self.get_beam_centre_pixel() # returns pixel
+        beam_x, beam_y = self.get_beam_centre() #self.get_beam_centre_pixel() # returns pixel
         config['BeamCenterX'] = beam_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_y  
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
@@ -327,7 +329,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def get_archive_directory(self, directory): 
         tmp_directory = directory
-        tmp_directory.replace("visitor", "pyarch")
+        tmp_directory = tmp_directory.replace("visitor", "pyarch")
         return tmp_directory
 
     @task
@@ -444,6 +446,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def write_input_files(self, filename):
+        time.sleep(2)  # wait until the last data file copied in the buffer server
         os.system("cd %s;/home/mxcube/bin/generate_XDS.inp %s " % (self.raw_data_input_file_dir,filename))
         xds_input_file = os.path.join(self.raw_data_input_file_dir,"XDS.INP")
         os.chmod(xds_input_file, 0666)
@@ -577,7 +580,7 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
-        self.move_motors(motors_to_move_before_collect)
+        self.move_motors(motors_to_move_before_collect, wait=True)
 
         if self.bl_control.lims:
           try:
@@ -850,8 +853,12 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                           self.emit("collectImageTaken", frame)
                           
                           # generate input file
-                          self.write_input_files(file_path, wait=False)
-
+                          #self.write_input_files(file_path, wait=False) 
+                          self.write_input_files(os.path.join("../../",filename), wait=False)
+                          
+                          # launch xds on HPC automatically, if the images 
+                          # should be replaced by the automatic processing pipeline
+                          gevent.spawn(self.start_processing,wedge_size,self.raw_data_input_file_dir)
 
                           # skip the following, only do one subwedge
                           # don't check the last image, in the oscil task, put wait=True instead   
@@ -877,18 +884,35 @@ class BIOMAXMultiCollect(AbstractMultiCollect, HardwareObject):
                                 break
                 
     def get_beam_centre(self):
-        #values from resolution obj is length, not pixel
-        print self.bl_control.resolution
-        return 0,0
-        return self.bl_control.resolution.get_beam_centre() # length, not pixel
+        #values from resolution obj is  pixel
+        #print self.bl_control.resolution
+        #return 0,0
+        return self.bl_control.resolution.get_beam_centre() 
         
+    """
     def get_beam_centre_pixel(self):
-        return 0,0
+        #return 0,0
         x, y = self.bl_control.resolution.get_beam_centre()  # unit m
-        return float (x / self.detector.get_x_pixel_size()), float (y / self.detector.get_y_pixel_size()) 
+        return float (x / self.detector.get_pixel_size_x()), float (y / self.detector.get_pixel_size_y()) 
+    """
 
     def get_detector_distance(self):
         #return 750
-        #todo, return self.bl_control.detector_distance.getPosition()
-        return 150.0 # unit, mm
-    
+        return self.bl_control.detector_distance.getPosition()
+
+    def start_processing(wedge_size, process_dir)
+        #automatic processing     
+        # wait until XDS.INP is ready
+        if wedge_size < 10:        
+            return # not process if two few images
+
+        xds_input = os.path.join(process_dir,"XDS.INP")
+        with gevent.Timeout(10, RuntimeError("XDS.INP is not ready")):
+            while not os.path.exists(xds_input):
+                time.sleep(0.1)
+        try:
+            process_dir = process_dir.replace("/data", "/mxn/biomax-eiger-dc-1")
+            os.system("ssh mxuser@b-picard07-clu0-fe-0 'cd %s;sbatch /home/mxuser/bin/xtal/xds.sh '" % (process_dir))
+        except:
+            pass
+ 
