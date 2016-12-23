@@ -1,6 +1,13 @@
 """
 BIOMAXCollect
 """
+"""todo list
+cancellation
+exception
+stopCollect
+abort
+"""
+
 import os
 import logging
 import gevent
@@ -24,7 +31,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self._centring_status = None
 
-        """
         self._previous_collect_status = None
         self._actual_collect_status = None
 
@@ -37,43 +43,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.ready_event = None
 
         self.exp_type_dict = None
-        
-
-        self.chan_collect_status = None
-        self.chan_collect_frame = None
-        self.chan_collect_error = None
-        self.chan_undulator_gap = None
-
-        self.cmd_collect_description = None
-        self.cmd_collect_detector = None
-        self.cmd_collect_directory = None
-        self.cmd_collect_energy = None
-        self.cmd_collect_exposure_time = None
-        self.cmd_collect_helical_position = None
-        self.cmd_collect_in_queue = None
-        self.cmd_collect_num_images = None
-        self.cmd_collect_overlap = None
-        self.cmd_collect_range = None
-        self.cmd_collect_raster_lines = None
-        self.cmd_collect_raster_range = None
-        self.cmd_collect_resolution = None
-        self.cmd_collect_scan_type = None
-        self.cmd_collect_shutter = None
-        self.cmd_collect_shutterless = None
-        self.cmd_collect_start_angle = None
-        self.cmd_collect_start_image = None
-        self.cmd_collect_template = None
-        self.cmd_collect_transmission = None
-        self.cmd_collect_space_group = None
-        self.cmd_collect_unit_cell = None
-        self.cmd_collect_start = None
-        self.cmd_collect_abort = None
-
-        """
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         self.ready_event = gevent.event.Event()
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
@@ -86,6 +59,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.transmission_hwobj = self.getObjectByRole("transmission")
         self.dtox_hwobj = self.getObjectByRole("dtox")
+
+        #todo
+        self.detector_cover_hwobj.getObjectByRole("detector_cover") #use mockup now
+        self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
+        self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
+
         #todo
         #self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
 
@@ -120,56 +99,148 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """ to add """
         #self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
         #self.chan_machine_current = self.getChannelObject("MachineCurrent")
- 
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
+
+#---------------------------------------------------------
+#refactor do_collect
+    def do_collect(self, owner):
+        """
+        Actual collect sequence
+        """
+        log = logging.getLogger("user_level_log")
+        log.info("Collection: Preparing to collect")
+        self.emit("collectReady", (False, ))
+        self.emit("collectOscillationStarted", (owner, None, \
+                  None, None, self.current_dc_parameters, None))
+
+        # ----------------------------------------------------------------
+        """ should all go data collection hook
+        self.open_detector_cover()
+        self.open_safety_shutter()
+        self.open_fast_shutter()
+        """
+
+        # ----------------------------------------------------------------
+        self.current_dc_parameters["status"] = "Running"
+        self.current_dc_parameters["collection_start_time"] = \
+             time.strftime("%Y-%m-%d %H:%M:%S")
+        self.current_dc_parameters["synchrotronMode"] = \
+             self.get_machine_fill_mode()
+
+        log.info("Collection: Storing data collection in LIMS")
+        self.store_data_collection_in_lims()
+
+        log.info("Collection: Creating directories for raw images and processing files")
+        self.create_file_directories()
+
+        log.info("Collection: Getting sample info from parameters")
+        self.get_sample_info()
+
+        #log.info("Collect: Storing sample info in LIMS")
+        #self.store_sample_info_in_lims()
+
+        if all(item == None for item in self.current_dc_parameters['motors'].values()):
+            # No centring point defined
+            # create point based on the current position
+            current_diffractometer_position = self.diffractometer_hwobj.getPositions()
+            for motor in self.current_dc_parameters['motors'].keys():
+                self.current_dc_parameters['motors'][motor] = \
+                     current_diffractometer_position[motor]
+
+        log.info("Collection: Moving to centred position")
+
+        self.move_to_centered_position()
+        #todo, should go inside take_crystal_snapshots, which makes sure it move
+        #motors back if there is a phase change
+        self.take_crystal_snapshots()
+        #self.move_to_centered_position()
+
+        # prepare beamline for data acquisiion
+        self.prepare_acquisition()
+        self.data_collection_hook()
+        # ----------------------------------------------------------------
+
+        """ should all go data collection hook
+        self.close_fast_shutter()
+        self.close_safety_shutter()
+        self.close_detector_cover()
+        """
+
+    def prepare_acquisition(self):
+        """ todo
+        1. check the currrent value is the same as the tobeset value
+        2. check how to add detroi in the mode
+        """
+        if "transmission" in self.current_dc_parameters:
+            log.info("Collection: Setting transmission to %.3f",
+                     self.current_dc_parameters["transmission"])
+            self.set_transmission(self.current_dc_parameters["transmission"])
+
+        if "wavelength" in self.current_dc_parameters:
+            log.info("Collection: Setting wavelength to %.3f", \
+                     self.current_dc_parameters["wavelength"])
+            self.set_wavelength(self.current_dc_parameters["wavelength"])
+        elif "energy" in self.current_dc_parameters:
+            log.info("Collection: Setting energy to %.3f",
+                     self.current_dc_parameters["energy"])
+            self.set_energy(self.current_dc_parameters["energy"])
+
+        if "detroi" in self.current_dc_parameters:
+            log.info("Collection: Setting detector to %s",
+                     self.current_dc_parameters["detroi"])
+            self.set_detector_roi(self.current_dc_parameters["detroi"])
+
+        if "resolution" in self.current_dc_parameters:
+            resolution = self.current_dc_parameters["resolution"]["upper"]
+            log.info("Collection: Setting resolution to %.3f", resolution)
+            self.set_resolution(resolution)
+
+        elif 'detdistance' in self.current_dc_parameters:
+            log.info("Collection: Moving detector to %f",
+                     self.current_dc_parameters["detdistance"])
+            self.move_detector(self.current_dc_parameters["detdistance"])
+
+        log.info("Collection: Updating data collection in LIMS")
+        self.update_data_collection_in_lims()
+        self.prepare_detector()
+
+#-------------------------------------------------------------------------------
+
 
     def data_collection_hook(self):
         """
         Descript. : main collection command
         """
-        p = self.current_dc_parameters
-     
-        if self._actual_collect_status in ["ready", "unknown", "error"]:
-            self.emit("progressInit", ("Data collection", 100))
-            comment = 'Comment: %s' % str(p.get('comments', ""))
-            self._error_msg = ""
-            self._collecting = True
-            self.cmd_collect_description(comment)
-            self.cmd_collect_detector(self.detector_hwobj.get_collect_name())
-            self.cmd_collect_directory(str(p["fileinfo"]["directory"]))
-            self.cmd_collect_exposure_time(p['oscillation_sequence'][0]['exposure_time'])
-            self.cmd_collect_in_queue(p['in_queue'])
-            self.cmd_collect_overlap(p['oscillation_sequence'][0]['overlap'])
-            shutter_name = self.detector_hwobj.get_shutter_name()
-            if shutter_name is not None:  
-                self.cmd_collect_shutter(shutter_name)
-            if p['oscillation_sequence'][0]['overlap'] == 0:
-                self.cmd_collect_shutterless(1)
-            else:
-                self.cmd_collect_shutterless(0)
-            self.cmd_collect_range(p['oscillation_sequence'][0]['range'])
-            if p['experiment_type'] != 'Mesh':
-                self.cmd_collect_num_images(p['oscillation_sequence'][0]['number_of_images'])
-            self.cmd_collect_start_angle(p['oscillation_sequence'][0]['start'])
-            self.cmd_collect_start_image(p['oscillation_sequence'][0]['start_image_number'])
-            self.cmd_collect_template(str(p['fileinfo']['template']))
-            space_group = str(p['sample_reference']['spacegroup'])
-            if len(space_group) == 0:
-                space_group = " "
-            self.cmd_collect_space_group(space_group)
-            unit_cell = list(eval(p['sample_reference']['cell']))
-            self.cmd_collect_unit_cell(unit_cell)
-            self.cmd_collect_scan_type(self.exp_type_dict.get(p['experiment_type'], 'OSC'))
-            self.cmd_collect_start()
-        else:
-            self.emit_collection_failed()
+        oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+        osc_start = oscillation_parameters['start']
+        osc_end = osc_start + oscillation_parameters["range"] * \
+            oscillation_parameters['number_of_images']
 
-            
+        self.open_detector_cover()
+        self.open_safety_shutter()
+        self.detector.start_acquisition()
+        # call after start_acquisition (detector is armed), when all the config parameters are definitely
+        # implemented
+        shutterless_exptime = self.detector.get_acquisition_time()
+
+        self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+        self.stop_acquisition()
+
+        self.close_safety_shutter()
+        self.close_detector_cover()
+
+    def oscil(self, start, end, exptime, npass):
+        if self.helical:
+            self.diffractometer.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
+        else:
+            self.diffractometer.osc_scan(start, end, exptime, wait=True)
+
+
     def collect_status_update(self, status):
         """
-        Descript. : 
+        Descript. :
         """
         self._previous_collect_status = self._actual_collect_status
         self._actual_collect_status = status
@@ -180,7 +251,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
-                    logging.info("Preparing collecting...")  
+                    logging.info("Preparing collecting...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
                     self.emit("collectStarted", (self.owner, 1))
@@ -197,18 +268,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         if (self._collecting and
             len(error_msg) > 0):
-            self._error_msg = error_msg 
-            #logging.info(error_msg) 
+            self._error_msg = error_msg
+            #logging.info(error_msg)
             logging.getLogger("user_level_log").error(error_msg)
 
     def emit_collection_failed(self):
         """
         Descrip. :
-        """ 
+        """
         failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
-        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
-        self.emit("collectOscillationFailed", (self.owner, False, 
+        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
+        self.emit("collectOscillationFailed", (self.owner, False,
              failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
         self.emit("collectEnded", self.owner, failed_msg)
         self.emit("collectReady", (True, ))
@@ -217,18 +288,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.update_data_collection_in_lims()
 
-    def emit_collection_finished(self):  
+    def emit_collection_finished(self):
         """
         Descript. :
         """
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
-        self.emit("collectOscillationFinished", (self.owner, True, 
-              success_msg, self.current_dc_parameters.get('collection_id'), 
+        self.emit("collectOscillationFinished", (self.owner, True,
+              success_msg, self.current_dc_parameters.get('collection_id'),
               self.osc_id, self.current_dc_parameters))
         self.emit("collectEnded", self.owner, success_msg)
         self.emit("collectReady", (True, ))
-        self.emit("progressStop", ()) 
+        self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
 
@@ -254,27 +325,27 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
            motor_position_id is None:
             return
         image_id = None
-        
-        #todo  
+
+        #todo
         self.trigger_auto_processing("image", self.current_dc_parameters, frame)
         image_id = self.store_image_in_lims(frame)
-        return image_id 
+        return image_id
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return
 
         if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
+            self.autoprocessing_hwobj.execute_autoprocessing(process_event,
                                                              self.current_dc_parameters,
                                                              frame_number)
 
     def get_beam_centre(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.resolution_hwobj is not None:
             return self.resolution_hwobj.get_beam_centre()
@@ -283,40 +354,98 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def get_beam_shape(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
 
+    def open_detector_cover(self):
+        """
+        Descript. :
+        """
+        try:
+            self.detector_cover_hwobj.set_out()
+        except:
+            logging.getLogger("HWR").exception("Could not open the detector cover")
+            pass
+
+    def close_detector_cover(self):
+        """
+        Descript. :
+        """
+        pass
+
+    def open_safety_shutter(self):
+        """
+        Descript. :
+        """
+        #todo add time out? if over certain time, then stop acquisiion and
+        #popup an error message
+        self.safety_shutter_hwobj.openShutter()
+        while self.safety_shutter_hwobj.getShutterState() == 'closed':
+            time.sleep(0.1)
+
+    def close_safety_shutter(self):
+        """
+        Descript. :
+        """
+        #todo, add timeout, same as open
+        self.safety_shutter_hwobj.closeShutter()
+        while self.safety_shutter_hwobj.getShutterState() == 'opened':
+            time.sleep(0.1)
+
+    def open_fast_shutter(self):
+        """
+        Descript. : important to make sure it's passed, as we
+                    don't open the fast shutter in MXCuBE
+        """
+        pass
+
+    def close_fast_shutter(self):
+        """
+        Descript. :
+        """
+        #to do, close the fast shutter as early as possible in case
+        #MD3 fails to do so
+        pass
+
     @task
     def _take_crystal_snapshot(self, filename):
         """
-        Descript. : 
+        Descript. :
         """
         #todo,from client!?
 
-    def set_energy(self, value):
+    def set_detector_roi(self, value):
         """
-        Descript. : 
+        Descript. : set the detector roi mode
         """
-        #todo
-        pass
+        self.detector.set_roi_mode(value)
 
     def set_resolution(self, value):
         """
-        Descript. : 
+        Descript. :
         """
 
-        """ todo, move detector, 
+        """ todo, move detector,
             but then should be done after set energy and roi
         """
         pass
-        
-    @task 
+
+    def set_energy(self, value):
+        self.energy_hwobj.set_energy(value)
+        self.detector.set_photon_energy(value*1000)
+
+    def set_wavelength(self, value):
+        self.energy_hwobj.set_wavelength(value)
+        current_energy = self.energy_hwobj.get_energy()
+        self.detector.set_photon_energy(value*1000)
+
+    @task
     def move_motors(self, motor_position_dict):
         """
-        Descript. : 
-        """        
+        Descript. :
+        """
         self.diffractometer_hwobj.move_sync_motors(motor_position_dict)
 
 
@@ -341,7 +470,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             except os.error, e:
                 if e.errno != errno.EEXIST:
                     raise
-            """ 
+            """
             #os.symlink(files_directory, os.path.join(process_directory, "img"))
         except:
             logging.exception("Could not create processing file directory")
@@ -354,7 +483,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def prepare_input_files(self):
         """
-        Descript. : 
+        Descript. :
         """
         i = 1
         logging.info("Creating XDS (MAXIV-BioMAX) processing input file directories")
@@ -377,21 +506,57 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def get_detector_distance(self):
         """
-        Descript. : 
+        Descript. :
         """
-        if self.dtox_hwobj is not None:	
+        if self.dtox_hwobj is not None:
             return self.dtox_hwobj.getPosition()
 
     def get_detector_distance_limits(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return 1000
-       
+
+    def prepare_detector(self):
+
+        oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+        config = self.detector.col_config
+        """ move after setting energy
+        if roi == "4M":
+            config['RoiMode'] = "4M"
+        else:
+            config['RoiMode'] = "disabled" #disabled means 16M
+
+        config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
+        """
+        config['OmegaStart'] = oscillation_parameters['start']
+        config['OmegaIncrement'] = oscillation_parameters["range"]
+        beam_centre_x, beam_centre_y = self.get_beam_centre() #self.get_beam_centre_pixel() # returns pixel
+        config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
+        config['BeamCenterY'] = beam_centre_y
+        config['DetectorDistance'] = self.get_detector_distance()/1000.0
+
+        config['CountTime'] = oscillation_parameters['exposure_time']
+
+        config['NbImages'] = oscillation_parameters['number_of_images']
+        try:
+            # tocheck, perhaps can use oscillation_parameters["number_of_passes"]
+            config['NbTriggers'] = oscillation_parameters['number_of_triggers'] # to check for different tasks
+        except:
+            config['NbTriggers'] = 1
+        try:
+            config['ImagesPerFile'] = oscillation_parameters['images_per_file']
+        except:
+            config['ImagesPerFile'] = 100
+
+        import re
+        config['FilenamePattern'] = re.sub("^/data","",name_pattern)  # remove "/data in the beginning"
+        return self.detector.prepare_acquisition(config)
+
     def get_transmission(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return 100
@@ -405,35 +570,35 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def get_undulators_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         pass
         #todo
 
     def get_slit_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         pass
 
     def get_machine_current(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return 0
 
     def get_machine_message(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return ""
 
     def get_flux(self):
         """
-        Descript. : 
+        Descript. :
         """
         #todo
         return 0
