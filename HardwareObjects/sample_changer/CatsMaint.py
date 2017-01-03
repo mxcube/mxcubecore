@@ -43,10 +43,20 @@ class CatsMaint(Equipment):
         self._chnLN2Regulation = self.getChannelObject("_chnLN2RegulationDewar1")
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
            
-        for command_name in ("_cmdReset","_cmdDry","_cmdOpenTool","_cmdCloseTool", "_cmdCalibration","_cmdSetOnDiff", "_cmdClearMemory","_cmdResetParameters","_cmdBack", "_cmdSafe", "_cmdPowerOn", "_cmdPowerOff", \
-                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
-                             "_cmdRegulOn"):
-            setattr(self, command_name, self.getCommandObject(command_name))
+        for command_name in ("_cmdReset","_cmdDry", "_cmdBack", \
+                             "_cmdSafe", "_cmdHome", "_cmdSoak", \
+                             "_cmdOpenTool","_cmdCloseTool", "_cmdCalibration",\
+                             "_cmdPowerOn", "_cmdPowerOff", "_cmdRegulOn",\
+                             "_cmdMagnetOn","_cmdMagnetOff", "_cmdSetOnDiff", \
+                             "_cmdClearMemory","_cmdResetParameters",\
+                             "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", \
+                             "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
+                             "_cmdRestart", "_cmdPanic", "_cmdAbort", \
+                             "_cmdSendOperation"):
+            try:
+                setattr(self, command_name, self.getCommandObject(command_name))
+            except:
+                logging.getLogger("HWR").warning("Cannot create command for %s. Check xml" % command_name)
 
         for lid_index in range(CatsMaint.NO_OF_LIDS):            
             channel_name = "_chnLid%dState" % (lid_index + 1)
@@ -85,6 +95,7 @@ class CatsMaint(Equipment):
         :rtype: None
         """
         self._cmdReset()
+
     def _doResetMemory(self):
         """
         Launch the "reset memory" command on the CATS Tango DS
@@ -239,7 +250,28 @@ class CatsMaint(Equipment):
             self._executeServerTask(self._cmdOpenLid3)
         else:
             self._executeServerTask(self._cmdCloseLid3)
-           
+
+    def _doMagnetOn(self):
+        self._cmdMagnetOn()
+
+    def _doMagnetOff(self):
+        self._cmdMagnetOff()
+
+    def _doHome(self):
+        self._cmdHome()
+
+    def _doSoak(self):
+        self._cmdSoak()
+
+    def _doRestart(self):
+        self._cmdRestart()
+
+    def _doPanic(self):
+        self._cmdPanic()
+
+    def _doOperationCommand(self, cmdstr):
+        self._cmdSendOperation(cmdstr)
+       
     #########################          PROTECTED          #########################        
 
     def _executeTask(self,wait,method,*args):        
