@@ -11,10 +11,10 @@ Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
 """
 from .GenericSampleChanger import *
 import time
-import qt
+#import qt
 
-__author__ = "Jie Nan"
-__credits__ = ["The MxCuBE collaboration"]
+__author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
+__credits__ = ["The MXCuBE collaboration"]
 
 __email__ = "jie.nan@maxlab.lu.se"
 __status__ = "Alpha"
@@ -74,9 +74,16 @@ class Cats90(SampleChanger):
         self._scIsCharging = None
         self._startLoad =False # add flag to disable Load or UnLoad/Exchange Button immediately after 1 click (Avoid Click multiple times)
 
+        self._minidiff_type = None
+
         # add support for CATS dewars with variable number of lids
         # assumption: each lid provides access to three baskets
         self._propNoOfLids = self.getProperty('no_of_lids')
+        self._minidiff_type = self.getProperty("minidiff_type")
+
+        import logging
+        logging.getLogger("HWR").warning("Cats90:  no_of_lids:  %s" % self._propNoOfLids)
+
         if self._propNoOfLids is not None:
             try:
                 Cats90.NO_OF_LIDS = int(self._propNoOfLids)
@@ -90,11 +97,18 @@ class Cats90(SampleChanger):
         for i in range(Cats90.NO_OF_BASKETS):
             basket = Basket(self,i+1)
             self._addComponent(basket)
+
+        logging.getLogger("HWR").warning("Cats90:  components:  %s" % len(self.components))
             
-        for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected","_chnCurrentPhase", "_chnTransferMode"):
+        for channel_name in ("_chnState", "_chnPowered", "_chnNumLoadedSample", "_chnLidLoadedSample", "_chnSampleBarcode", "_chnPathRunning", "_chnSampleIsDetected"):
             setattr(self, channel_name, self.getChannelObject(channel_name))
+
+        if self._minidiff_type == "MD2":
+            for channel_name in ("_chnCurrentPhase", "_chnTransferMode"):
+                 setattr(self, channel_name, self.getChannelObject(channel_name))
+
            
-        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad","_cmdRestartMD2"):
+        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
             setattr(self, command_name, self.getCommandObject(command_name))
 
         for basket_index in range(Cats90.NO_OF_BASKETS):            
@@ -116,10 +130,11 @@ class Cats90(SampleChanger):
         self._closeLid3 = self.addCommand({"type":"tango", "name":"closelid3", "tangoname": self.tangoname}, "closelid3")
         self._back = self.addCommand({"type":"tango", "name":"back", "tangoname": self.tangoname}, "back")
         self._safe = self.addCommand({"type":"tango", "name":"safe", "tangoname": self.tangoname}, "safe")
-        self._lid1State = self.addChannel({"type":"tango", "name":"di_Lid1Open", "tangoname": self.tangoname, "polling": "events"}, "Lid1Open")
-        self._lid2State = self.addChannel({"type":"tango", "name":"di_Lid2Open", "tangoname": self.tangoname, "polling": "events"}, "Lid2Open")
-        self._lid3State = self.addChannel({"type":"tango", "name":"di_Lid3Open", "tangoname": self.tangoname, "polling": "events"}, "Lid3Open")
+        self._lid1State = self.addChannel({"type":"tango", "name":"di_Lid1Open", "tangoname": self.tangoname, "polling": "events"}, "di_Lid1Open")
+        self._lid2State = self.addChannel({"type":"tango", "name":"di_Lid2Open", "tangoname": self.tangoname, "polling": "events"}, "di_Lid2Open")
+        self._lid3State = self.addChannel({"type":"tango", "name":"di_Lid3Open", "tangoname": self.tangoname, "polling": "events"}, "di_Lid3Open")
 
+        logging.getLogger("HWR").warning("Cats90:  all channels created")
         self._initSCContents()
 
         # SampleChanger.init must be called _after_ initialization of the Cats because it starts the update methods which access
@@ -208,13 +223,14 @@ class Cats90(SampleChanger):
         if not self._chnPowered.getValue():
 #            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
             #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
-            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
+            #qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
             return
 
         # JN, 20150512, make sure MD2 TransferMode is "SAMPLE_CHANGER"
-        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
-            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
-            return
+        if self._minidiff_type == "MD2":
+            if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+                #qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+                return
        
         return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
 
@@ -226,15 +242,16 @@ class Cats90(SampleChanger):
         if not self._chnPowered.getValue():
 #            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
             #logging.getLogger("HWR").error("CATS power is not enabled. Please switch on arm power before transferring samples.")
-            qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
+            #qt.QMessageBox.warning(None,"Error", "CATS power is not enabled. Please switch on arm power before transferring samples.")
             raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
             return 
 
         # JN, 20150512, make sure MD2 TransferMode is "SAMPLE_CHANGER"
-        if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
-            qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
-            raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
-            return 
+        if self._minidiff_type == "MD2":
+            if not self._chnTransferMode.getValue()=="SAMPLE_CHANGER":
+                #qt.QMessageBox.warning(None,"Error", "TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+                raise Exception("TransferMode is %s. Please set the value to SAMPLE_CHANGER in MD2 software." % str(self._chnTransferMode.getValue()))
+                return 
 
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
@@ -248,15 +265,17 @@ class Cats90(SampleChanger):
         #return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
         logging.info("call load with a timer")
         self._executeTask(SampleChangerState.Loading,False,self._doLoad,sample)
-        timeout=0
-        time.sleep(20) # in case MD2 starts with Centring phase before loading the new sample
-        while self._chnCurrentPhase.getValue() != 'Centring':
-            if timeout > 60:
-                logging.info("waited for too long, change to centring mode manually")
-		return
-            time.sleep(1)
-            timeout+=1
-            logging.info("current phase is " + self._chnCurrentPhase.getValue())
+
+        if self._minidiff_type == "MD2":
+            timeout=0
+            time.sleep(20) # in case MD2 starts with Centring phase before loading the new sample
+            while self._chnCurrentPhase.getValue() != 'Centring':
+                if timeout > 60:
+                    logging.info("waited for too long, change to centring mode manually")
+		    return
+                time.sleep(1)
+                timeout+=1
+                logging.info("current phase is " + self._chnCurrentPhase.getValue())
    
     def _doScan(self,component,recursive):
         """
@@ -295,7 +314,7 @@ class Cats90(SampleChanger):
             for basket in self.getComponents():
                 self._doScan(basket, True)
     
-    def _doLoad(self,sample=None):
+    def _doLoad(self,sample=None, shifts=None):
         """
         Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
@@ -320,21 +339,33 @@ class Cats90(SampleChanger):
         # calculate CATS specific lid/sample number
         lid = ((selected.getBasketNo() - 1) / 3) + 1
         sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
-        argin = ["2", str(lid), str(sample), "0", "0", "0", "0", "0"]
+
+        if shifts is None:
+            xshift, yshift, zshift = ["0", "0", "0" ]
+        else:
+            xshift, yshift, zshift = map(str,shifts)
+
+        argin = ["2", str(lid), str(sample), "0", "0", xshift, yshift, zshift]
             
         if self.hasLoadedSample():
             if selected==self.getLoadedSample():
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             else:
-                self._startLoad = True
-                self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
-                time.sleep(5) # wait for the MD2 restart
-                self._startLoad = False
+                if self._minidiff_type == "MD2":
+                    self._startLoad = True
+                    self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
+                    time.sleep(5) # wait for the MD2 restart
+                    self._startLoad = False
+
+                import logging
+                logging.getLogger("HWR").warning("  ==========CATS=== chained load sample, sending to cats:  %s" % argin)
                 self._executeServerTask(self._cmdChainedLoad, argin)
         else:
+            import logging
+            logging.getLogger("HWR").warning("  ==========CATS=== load sample, sending to cats:  %s" % argin)
             self._executeServerTask(self._cmdLoad, argin)
 
-    def _doUnload(self,sample_slot=None):
+    def _doUnload(self,sample_slot=None, shifts=None):
         """
         Unloads a sample from the diffractometer.
 
@@ -346,12 +377,22 @@ class Cats90(SampleChanger):
             
         if (sample_slot is not None):
             self._doSelect(sample_slot)
-        argin = ["2", "0", "0", "0", "0"]
-        self._startLoad = True
-        
-        self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140703
-        time.sleep(5) # wait for the MD2 restart
-        self._startLoad = False
+
+        if shifts is None:
+            xshift, yshift, zshift = ["0", "0", "0" ]
+        else:
+            xshift, yshift, zshift = map(str,shifts)
+
+        argin = ["2", "0", xshift, yshift, zshift]
+
+        if self._minidiff_type == "MD2":
+            self._startLoad = True
+            self._cmdRestartMD2(0) # fix the bug of waiting for MD2 by a hot restart, JN,20140708
+            time.sleep(5) # wait for the MD2 restart
+            self._startLoad = False
+
+        import logging
+        logging.getLogger("HWR").warning("  ==========CATS=== unload sample, sending to cats:  %s" % argin)
         self._executeServerTask(self._cmdUnload, argin)
 
     def clearBasketInfo(self, basket):
@@ -409,6 +450,7 @@ class Cats90(SampleChanger):
         try:
           state = self._readState()
         except:
+          logging.getLogger("HWR").warning("SAMPLE CHANGER Unknown 1")
           state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             #print "*** _updateState return"
@@ -418,6 +460,7 @@ class Cats90(SampleChanger):
         if self.hasLoadedSample() ^ self._chnSampleIsDetected.getValue():
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
             # or registered but not on the gonio anymore
+            logging.getLogger("HWR").warning("SAMPLE CHANGER Unknown 2 (hasLoaded: %s / detected: %s)" % (self.hasLoadedSample(), self._chnSampleIsDetected.getValue()))
             state = SampleChangerState.Unknown 
         elif self._chnPathRunning.getValue() and not (state in [SampleChangerState.Loading, SampleChangerState.Unloading]):
             state = SampleChangerState.Moving
@@ -442,6 +485,8 @@ class Cats90(SampleChanger):
         state_converter = { "ALARM": SampleChangerState.Alarm,
                             "ON": SampleChangerState.Ready,
                             "RUNNING": SampleChangerState.Moving }
+        if stateStr not in state_converter:
+            logging.getLogger("HWR").warning("SAMPLE CHANGER Unknown 3 %s" % stateStr)
         return state_converter.get(stateStr, SampleChangerState.Unknown)
                         
     def _isDeviceBusy(self, state=None):
@@ -568,6 +613,7 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        logging.getLogger("HWR").warning("Cats90:  initializing contents")
         # create temporary list with default basket information
         basket_list= [('', 4)] * Cats90.NO_OF_BASKETS
         # write the default basket information into permanent Basket objects 
@@ -590,6 +636,7 @@ class Cats90(SampleChanger):
             sample._setInfo(present, datamatrix, scanned)
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])    
+        logging.getLogger("HWR").warning("Cats90:  initializing contents done")
 
     def _updateSCContents(self):
         """
@@ -637,3 +684,16 @@ class Cats90(SampleChanger):
                     loaded = has_been_loaded = False
                     sample._setLoaded(loaded, has_been_loaded)
 
+
+def test():
+    import os
+    from HardwareRepository import HardwareRepository
+
+    hwr_directory = os.environ["XML_FILES_PATH"]
+    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr.connect()
+
+    cats = hwr.getHardwareObject("/cats")
+
+if __name__ == '__main__':    
+    test()
