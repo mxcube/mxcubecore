@@ -61,7 +61,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.dtox_hwobj = self.getObjectByRole("dtox")
 
         #todo
-        self.detector_cover_hwobj.getObjectByRole("detector_cover") #use mockup now
+        self.detector_cover_hwobj = self.getObjectByRole("detector_cover") #use mockup now
         self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
         self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
 
