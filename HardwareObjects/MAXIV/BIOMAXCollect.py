@@ -11,6 +11,7 @@ abort
 import os
 import logging
 import gevent
+import time
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
@@ -40,6 +41,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self._error_msg = ""
         self._error_or_aborting = False
         self.collect_frame  = None
+        self.helical = False
+        self.helical_pos = None
         self.ready_event = None
 
         self.exp_type_dict = None
@@ -173,6 +176,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         1. check the currrent value is the same as the tobeset value
         2. check how to add detroi in the mode
         """
+        log = logging.getLogger("user_level_log")
         if "transmission" in self.current_dc_parameters:
             log.info("Collection: Setting transmission to %.3f",
                      self.current_dc_parameters["transmission"])
@@ -220,10 +224,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.open_detector_cover()
         self.open_safety_shutter()
-        self.detector.start_acquisition()
+        self.detector_hwobj.start_acquisition()
         # call after start_acquisition (detector is armed), when all the config parameters are definitely
         # implemented
-        shutterless_exptime = self.detector.get_acquisition_time()
+        shutterless_exptime = self.detector_hwobj.get_acquisition_time()
 
         self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
         self.stop_acquisition()
@@ -231,17 +235,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.close_safety_shutter()
         self.close_detector_cover()
 
-    def oscil(self, start, end, exptime, npass):
+    def oscil(self, start, end, exptime, npass, wait = True):
         if self.helical:
-            self.diffractometer.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
+            self.diffractometer_hwobj.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
         else:
-            self.diffractometer.osc_scan(start, end, exptime, wait=True)
+            self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
 
 
     def collect_status_update(self, status):
         """
         Descript. :
         """
+        log = logging.getLogger("user_level_log")
         self._previous_collect_status = self._actual_collect_status
         self._actual_collect_status = status
         if self._collecting:
@@ -251,7 +256,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
-                    logging.info("Preparing collecting...")
+                    log.info("Preparing collecting...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
                     self.emit("collectStarted", (self.owner, 1))
@@ -259,7 +264,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 if self._actual_collect_status == "ready":
                     self.emit_collection_finished()
                 elif self._actual_collect_status == "aborting":
-                    logging.info("Aborting...")
+                    log.info("Aborting...")
                     self.emit_collection_failed()
 
     def collect_error_update(self, error_msg):
@@ -381,6 +386,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         #todo add time out? if over certain time, then stop acquisiion and
         #popup an error message
+        return # disable temp
         self.safety_shutter_hwobj.openShutter()
         while self.safety_shutter_hwobj.getShutterState() == 'closed':
             time.sleep(0.1)
@@ -420,7 +426,20 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. : set the detector roi mode
         """
-        self.detector.set_roi_mode(value)
+        self.detector_hwobj.set_roi_mode(value)
+
+    def set_helical(self, helical_on):
+        """
+        Descript. : 
+        """
+        self.helical = helical_on
+
+    def set_helical_pos(self, helical_oscil_pos):
+        """
+        Descript. :
+        """
+        self.helical_pos = helical_oscil_pos
+
 
     def set_resolution(self, value):
         """
@@ -433,13 +452,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         pass
 
     def set_energy(self, value):
-        self.energy_hwobj.set_energy(value)
-        self.detector.set_photon_energy(value*1000)
+        #todo,disabled temp
+        #self.energy_hwobj.set_energy(value)
+
+        self.detector_hwobj.set_photon_energy(value*1000)
 
     def set_wavelength(self, value):
         self.energy_hwobj.set_wavelength(value)
         current_energy = self.energy_hwobj.get_energy()
-        self.detector.set_photon_energy(value*1000)
+        self.detector_hwobj.set_photon_energy(value*1000)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -485,8 +506,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        i = 1
-        logging.info("Creating XDS (MAXIV-BioMAX) processing input file directories")
+        i = 1 
+        logging.getLogger("user_level_log").info("Creating XDS (MAXIV-BioMAX) processing input file directories")
 
         while True:
           xds_input_file_dirname = "xds_%s_%s_%d" % (\
@@ -521,7 +542,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def prepare_detector(self):
 
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-        config = self.detector.col_config
+        config = self.detector_hwobj.col_config
         """ move after setting energy
         if roi == "4M":
             config['RoiMode'] = "4M"
@@ -551,8 +572,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             config['ImagesPerFile'] = 100
 
         import re
+        file_parameters = self.current_dc_parameters["fileinfo"]
+        file_parameters["suffix"] = self.bl_config.detector_fileext
+        image_file_template = "%(prefix)s_%(run_number)s" % file_parameters
+        name_pattern = os.path.join(file_parameters["directory"], image_file_template)
+        file_parameters["template"] = image_file_template
+ 
+        os.path.join(file_parameters["directory"], image_file_template) 
         config['FilenamePattern'] = re.sub("^/data","",name_pattern)  # remove "/data in the beginning"
-        return self.detector.prepare_acquisition(config)
+        return self.detector_hwobj.prepare_acquisition(config)
 
     def get_transmission(self):
         """
@@ -572,15 +600,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        pass
         #todo
+        return None
 
     def get_slit_gaps(self):
         """
-        Descript. :
+        Descript. : 
         """
         #todo
-        pass
+        return None, None
 
     def get_machine_current(self):
         """
