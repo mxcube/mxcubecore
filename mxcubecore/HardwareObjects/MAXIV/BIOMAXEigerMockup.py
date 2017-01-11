@@ -156,7 +156,7 @@ class BIOMAXEigerMockup(Equipment):
         Note, the readout_time will be changed
         engery, in eV
         """
-        self.photon_energy = value
+        self.photon_energy = energy
         return True
 
     def set_energy_threshold(self, threshold):
