@@ -153,12 +153,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                      current_diffractometer_position[motor]
 
         log.info("Collection: Moving to centred position")
-
-        self.move_to_centered_position()
-        #todo, should go inside take_crystal_snapshots, which makes sure it move
-        #motors back if there is a phase change
+        #todo, self.move_to_centered_position() should go inside take_crystal_snapshots, 
+        #which makes sure it move motors to the correct positions and move back 
+        #if there is a phase change
         self.take_crystal_snapshots()
-        #self.move_to_centered_position()
 
         # prepare beamline for data acquisiion
         self.prepare_acquisition()
@@ -176,6 +174,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         1. check the currrent value is the same as the tobeset value
         2. check how to add detroi in the mode
         """
+      
         log = logging.getLogger("user_level_log")
         if "transmission" in self.current_dc_parameters:
             log.info("Collection: Setting transmission to %.3f",
@@ -210,6 +209,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.update_data_collection_in_lims()
         self.prepare_detector()
 
+        #move MD3 to DataCollection phase if it's not
+        if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
+            log.info("Moving Diffractometer to Data Collection")
+            self.diffractometer_hwobj.set_phase("DataCollection", wait=True, timeout=200)
+        self.move_to_centered_position()
+
+
 #-------------------------------------------------------------------------------
 
 
@@ -230,7 +236,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         shutterless_exptime = self.detector_hwobj.get_acquisition_time()
 
         self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
-        self.stop_acquisition()
+        self.detector_hwobj.stop_acquisition()
 
         self.close_safety_shutter()
         self.close_detector_cover()
@@ -240,7 +246,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.diffractometer_hwobj.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
         else:
             self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
-
 
     def collect_status_update(self, status):
         """
@@ -396,6 +401,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         #todo, add timeout, same as open
+        return #disable temp
         self.safety_shutter_hwobj.closeShutter()
         while self.safety_shutter_hwobj.getShutterState() == 'opened':
             time.sleep(0.1)
