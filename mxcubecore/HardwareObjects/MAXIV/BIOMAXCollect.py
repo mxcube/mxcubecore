@@ -32,9 +32,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self._centring_status = None
 
-        self._previous_collect_status = None
-        self._actual_collect_status = None
-
         self.osc_id = None
         self.owner = None
         self._collecting = False
@@ -114,53 +111,58 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
-        self.emit("collectReady", (False, ))
-        self.emit("collectOscillationStarted", (owner, None, \
-                  None, None, self.current_dc_parameters, None))
+        # todo, add more exceptions and abort
+	try:
+		self.emit("collectReady", (False, ))
+                self.emit("collectStarted", (owner, 1))
 
-        # ----------------------------------------------------------------
-        """ should all go data collection hook
-        self.open_detector_cover()
-        self.open_safety_shutter()
-        self.open_fast_shutter()
-        """
+		# ----------------------------------------------------------------
+		""" should all go data collection hook
+		self.open_detector_cover()
+		self.open_safety_shutter()
+		self.open_fast_shutter()
+		"""
 
-        # ----------------------------------------------------------------
-        self.current_dc_parameters["status"] = "Running"
-        self.current_dc_parameters["collection_start_time"] = \
-             time.strftime("%Y-%m-%d %H:%M:%S")
-        self.current_dc_parameters["synchrotronMode"] = \
-             self.get_machine_fill_mode()
+		# ----------------------------------------------------------------
+		
+		self.current_dc_parameters["status"] = "Running"
+		self.current_dc_parameters["collection_start_time"] = \
+		     time.strftime("%Y-%m-%d %H:%M:%S")
+		self.current_dc_parameters["synchrotronMode"] = \
+		     self.get_machine_fill_mode()
 
-        log.info("Collection: Storing data collection in LIMS")
-        self.store_data_collection_in_lims()
+		log.info("Collection: Storing data collection in LIMS")
+		self.store_data_collection_in_lims()
 
-        log.info("Collection: Creating directories for raw images and processing files")
-        self.create_file_directories()
+		log.info("Collection: Creating directories for raw images and processing files")
+		self.create_file_directories()
 
-        log.info("Collection: Getting sample info from parameters")
-        self.get_sample_info()
+		log.info("Collection: Getting sample info from parameters")
+		self.get_sample_info()
 
-        #log.info("Collect: Storing sample info in LIMS")
-        #self.store_sample_info_in_lims()
+		#log.info("Collect: Storing sample info in LIMS")
+		#self.store_sample_info_in_lims()
 
-        if all(item == None for item in self.current_dc_parameters['motors'].values()):
-            # No centring point defined
-            # create point based on the current position
-            current_diffractometer_position = self.diffractometer_hwobj.getPositions()
-            for motor in self.current_dc_parameters['motors'].keys():
-                self.current_dc_parameters['motors'][motor] = \
-                     current_diffractometer_position[motor]
+		if all(item == None for item in self.current_dc_parameters['motors'].values()):
+		    # No centring point defined
+		    # create point based on the current position
+		    current_diffractometer_position = self.diffractometer_hwobj.getPositions()
+		    for motor in self.current_dc_parameters['motors'].keys():
+		        self.current_dc_parameters['motors'][motor] = \
+		             current_diffractometer_position[motor]
 
-        log.info("Collection: Moving to centred position")
-        #todo, self.move_to_centered_position() should go inside take_crystal_snapshots, 
-        #which makes sure it move motors to the correct positions and move back 
-        #if there is a phase change
-        self.take_crystal_snapshots()
+		log.info("Collection: Moving to centred position")
+		#todo, self.move_to_centered_position() should go inside take_crystal_snapshots, 
+		#which makes sure it move motors to the correct positions and move back 
+		#if there is a phase change
+		self.take_crystal_snapshots()
 
-        # prepare beamline for data acquisiion
-        self.prepare_acquisition()
-        self.data_collection_hook()
+		# prepare beamline for data acquisiion
+		self.prepare_acquisition()
+		self.data_collection_hook()
+		self.emit_collection_finished()
+	except:
+	        self.emit_collection_failed()
         # ----------------------------------------------------------------
 
         """ should all go data collection hook
@@ -223,23 +225,30 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. : main collection command
         """
-        oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-        osc_start = oscillation_parameters['start']
-        osc_end = osc_start + oscillation_parameters["range"] * \
-            oscillation_parameters['number_of_images']
+	self.emit("collectOscillationStarted", (owner, None, \
+                          None, None, self.current_dc_parameters, None))
+	try:
+            oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+            osc_start = oscillation_parameters['start']
+            osc_end = osc_start + oscillation_parameters["range"] * \
+                oscillation_parameters['number_of_images']
 
-        self.open_detector_cover()
-        self.open_safety_shutter()
-        self.detector_hwobj.start_acquisition()
-        # call after start_acquisition (detector is armed), when all the config parameters are definitely
-        # implemented
-        shutterless_exptime = self.detector_hwobj.get_acquisition_time()
+            self.open_detector_cover()
+            self.open_safety_shutter()
+            self.detector_hwobj.start_acquisition()
+            # call after start_acquisition (detector is armed), when all the config parameters are definitely
+            # implemented
+            shutterless_exptime = self.detector_hwobj.get_acquisition_time()
+            
+            self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+            self.detector_hwobj.stop_acquisition()
 
-        self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
-        self.detector_hwobj.stop_acquisition()
-
-        self.close_safety_shutter()
-        self.close_detector_cover()
+            self.close_safety_shutter()
+            self.close_detector_cover()
+            self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
+	except:
+	    self.data_collection_cleanup()
+            raise Exception("data collection hook failed")
 
     def oscil(self, start, end, exptime, npass, wait = True):
         if self.helical:
@@ -247,40 +256,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         else:
             self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
 
-    def collect_status_update(self, status):
-        """
-        Descript. :
-        """
-        log = logging.getLogger("user_level_log")
-        self._previous_collect_status = self._actual_collect_status
-        self._actual_collect_status = status
-        if self._collecting:
-            if self._actual_collect_status == "error":
-                self.emit_collection_failed()
-            elif self._actual_collect_status == "collecting":
-                self.store_image_in_lims_by_frame_num(1)
-            if self._previous_collect_status is None:
-                if self._actual_collect_status == 'busy':
-                    log.info("Preparing collecting...")
-            elif self._previous_collect_status == 'busy':
-                if self._actual_collect_status == 'collecting':
-                    self.emit("collectStarted", (self.owner, 1))
-            elif self._previous_collect_status == 'collecting':
-                if self._actual_collect_status == "ready":
-                    self.emit_collection_finished()
-                elif self._actual_collect_status == "aborting":
-                    log.info("Aborting...")
-                    self.emit_collection_failed()
-
-    def collect_error_update(self, error_msg):
-        """
-        Descrip. :
-        """
-        if (self._collecting and
-            len(error_msg) > 0):
-            self._error_msg = error_msg
-            #logging.info(error_msg)
-            logging.getLogger("user_level_log").error(error_msg)
 
     def emit_collection_failed(self):
         """
