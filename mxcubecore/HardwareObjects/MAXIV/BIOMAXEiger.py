@@ -363,9 +363,9 @@ class BIOMAXEiger(Equipment):
 
         if "PhotonEnergy" in self._config_vals.keys():
             new_egy = self._config_vals["PhotonEnergy"]
-            print("  configuring energy:  %s" % new_egy)
-            if self.set_photon_energy( new_egy ) is False:
-               raise Exception("Could not program energy in detector")
+            if new_egy is not None:
+                if self.set_photon_energy( new_egy ) is False:
+                    raise Exception("Could not program energy in detector")
 
 	if "CountTime" in self._config_vals.keys():
 	    self.set_value("CountTime",  self._config_vals["CountTime"])
