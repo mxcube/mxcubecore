@@ -42,6 +42,8 @@ class CatsMaint(Equipment):
         self._chnMessage.connectSignal("update", self._updateMessage)
         self._chnLN2Regulation = self.getChannelObject("_chnLN2RegulationDewar1")
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
+        self._chnBarcode = self.getChannelObject("_chnBarcode")
+        self._chnBarcode.connectSignal("update", self._updateBarcode)
            
         for command_name in ("_cmdReset","_cmdDry", "_cmdBack", \
                              "_cmdSafe", "_cmdHome", "_cmdSoak", \
@@ -309,6 +311,9 @@ class CatsMaint(Equipment):
 
     def _updateRegulationState(self, value):
         self.emit('regulationStateChanged', (value, ))
+
+    def _updateBarcode(self, value):
+        self.emit('barcodeChanged', (value, ))
 
     def _updateLid1State(self, value):
         self.emit('lid1StateChanged', (value, ))
