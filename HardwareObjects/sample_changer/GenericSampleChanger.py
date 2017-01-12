@@ -275,7 +275,6 @@ class SampleChanger(Container,Equipment):
     
     def _onTimerUpdate(self):        
         #if not self.isExecutingTask():
-        logging.getLogger().info ("timer update ") 
         self.updateInfo()  
              
     def _onTimer1s(self):
