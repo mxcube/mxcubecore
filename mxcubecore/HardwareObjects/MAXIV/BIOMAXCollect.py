@@ -159,6 +159,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
 		# prepare beamline for data acquisiion
 		self.prepare_acquisition()
+                self.emit("collectOscillationStarted", (owner, None, \
+                    None, None, self.current_dc_parameters, None))
+
 		self.data_collection_hook()
 		self.emit_collection_finished()
 	except:
@@ -225,8 +228,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. : main collection command
         """
-	#self.emit("collectOscillationStarted", (owner, None, \
-        #                  None, None, self.current_dc_parameters, None))
 
 	try:
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
