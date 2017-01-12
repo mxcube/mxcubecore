@@ -22,7 +22,13 @@
 Qt4_LimaVideo
 
 [Description]
-HwObj used to grab images via LImA library.
+HwObj used to grab images via LImA library or Lima Tango server.
+
+[Configuration]
+See example below.  To select between "Library" or "Tango" simply
+use and configure the field <address> (for Library) 
+or <tangoname> (for Tango)
+in the XML file.
 
 
 Example Hardware Object XML file :
@@ -42,30 +48,37 @@ import os
 import time
 import logging
 import gevent
+import struct
 import numpy as np
+
 from PyQt4 import QtGui
-from Lima import Core
+
+try:
+    from Lima import Core
+except:
+    pass
+
+try:
+    import PyTango
+except ImportError, e:
+    pass
 
 try:
     from Lima import Prosilica
 except ImportError, e:
-    #logging.getLogger().warning("%s: %s", __name__, e)
     pass
 
 try:
     from Lima import Basler
 except ImportError, e:
-    #logging.getLogger().warning("%s: %s", __name__, e)
     pass
 
 try:
     import cv2
 except ImportError:
-    #logging.getLogger().warning("%s: %s", __name__, e)
     pass 
 
 from HardwareRepository.BaseHardwareObjects import Device
-
 
 class Qt4_LimaVideo(Device):
     """
@@ -76,8 +89,12 @@ class Qt4_LimaVideo(Device):
         Descript. :
         """
         Device.__init__(self, name)
+
         self.force_update = None
-        self.cam_type = None
+
+        self.access_type = "LIMA"
+
+        self.cam_type = "basler" # default
         self.cam_address = None
         self.cam_mirror = None
         self.cam_scale_factor = None
@@ -92,38 +109,105 @@ class Qt4_LimaVideo(Device):
         self.image_format = None
         self.image_dimensions = None
 
+        # LIMA access
         self.camera = None
         self.interface = None
         self.control = None
         self.video = None 
 
-        self.image_polling = None
+        # TANGO access
+        self.device = None
 
-        self.exposure = None
-        self.gain = None
-        self.encoding = None
+        self.image_polling = None
         self.decoder = None
 
     def init(self):
         """
         Descript. : 
         """
-        self.force_update = False
-        self.cam_type = self.getProperty("type").lower()
+
+        tangoname = self.getProperty("tangoname")
         self.cam_address = self.getProperty("address")
+        self.cam_type = self.getProperty("type").lower()
+
+        if tangoname is not None:
+            self.init_tango(tangoname)
+        elif self.cam_address is not None:
+            self.init_lima()
+
+        self.set_exposure_time(self.getProperty("interval")/1000.0)
+        self.set_cam_encoding("yuv422g")  # default value
+
+        self.setIsReady(True)
+
+        self.force_update = False
 
         try:       
             self.cam_mirror = eval(self.getProperty("mirror"))
         except:
             pass        
 
+
+        # Basler
+        try:
+            self.cam_encoding = self.getProperty("encoding").lower()
+        except:
+            logging.getLogger().error("Cannot get encoding from xml file!")
+            raise
+
+        self.set_cam_encoding(self.cam_encoding)
+
+        try:
+            self.cam_gain = float(self.getProperty("gain"))
+            self.set_gain(self.cam_gain)
+            logging.getLogger().info("%s: Setting camera gain to %s",
+                                     self.name(), self.cam_gain)
+        except:
+            pass
+
+        try:
+            self.cam_exposure = float(self.getProperty("exposure"))
+            self.set_exposure_time(self.cam_exposure)
+            logging.getLogger().info("%s: Setting exposure to %s s",
+                                     self.name(), self.cam_exposure)
+        except:
+            pass
+
+        self.setIsReady(True)
+
+        if self.image_polling is None:
+            self.set_video_live(True)
+            self.change_owner()
+
+            self.image_polling = gevent.spawn(self.do_image_polling,
+                                              self.getProperty("interval") /
+                                              1000.0)
+
+    def init_tango(self, tangoname):
+        self.access_type = "TANGO"
+
+        try:
+            self.device = PyTango.DeviceProxy(tangoname)
+            self.device.ping()
+            self.image_dimensions = [self.device.image_width, self.device.image_height]
+        except PyTango.DevFailed, traceback:
+            last_error = traceback[-1]
+            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error.desc)
+
+            self.device = BaseHardwareObjects.Null()
+
+
+    def init_lima(self):
+        self.access_type = "LIMA"
+
         if self.cam_type == 'prosilica':
             self.camera = Prosilica.Camera(self.cam_address)
-            self.interface = Prosilica.Interface(self.camera)	
+            self.interface = Prosilica.Interface(self.camera) 
         elif self.cam_type == 'basler':
+            logging.getLogger("HWR").info("Connecting to camera with address %s" % self.cam_address)
             self.camera = Basler.Camera(self.cam_address)
             self.interface = Basler.Interface(self.camera)
-
+ 
         self.control = Core.CtControl(self.interface)
         self.video = self.control.video()
 
@@ -134,47 +218,11 @@ class Qt4_LimaVideo(Device):
             height = self.camera.getRoi().getSize().getHeight()
             self.image_dimensions = [width, height]
 
-            try:
-                self.cam_encoding = self.getProperty("encoding").lower()
-            except:
-                logging.getLogger().error("Cannot get encoding from xml file!")
-                raise
+    def is_tango(self):
+        return self.access_type == "TANGO"
 
-            if self.cam_encoding == "yuv422p":
-                self.video.setMode(Core.YUV422)
-                self.decoder = self.yuv_2_rgb
-            elif self.cam_encoding == "y8":
-                self.video.setMode(Core.Y8)
-                self.decoder = self.y8_2_rgb
-            logging.getLogger().debug("%s: Setting camera mode to %s", __name__,
-                                      self.video.getMode())
-        try:
-            self.cam_gain = float(self.getProperty("gain"))
-            self.set_gain(self.cam_gain)
-            logging.getLogger().info("%s: Setting camera gain to %s",
-                                     self.name(), self.cam_gain)
-        except:
-            #logging.getLogger().warning("%s: Cannot set camera gain", __name__)
-            pass
-
-        try:
-            self.cam_exposure = float(self.getProperty("exposure"))
-            self.set_exposure_time(self.cam_exposure)
-            logging.getLogger().info("%s: Setting exposure to %s s",
-                                     self.name(), self.cam_exposure)
-        except:
-            #logging.getLogger().warning("%s: Cannot set exposure", __name__)
-            pass
-
-        self.setIsReady(True)
-
-        if self.image_polling is None:
-            self.video.startLive()
-            self.change_owner()
-
-            self.image_polling = gevent.spawn(self.do_image_polling,
-                                              self.getProperty("interval") /
-                                              1000.0)
+    def is_lima(self):
+        return self.access_type == "LIMA"
 
     def get_image_dimensions(self):
         return self.image_dimensions
@@ -201,10 +249,10 @@ class Qt4_LimaVideo(Device):
         """
         return
         if mode:
-            self.video.startLive()
+            self.set_video_live(True)
             self.change_owner()
         else:
-            self.video.stopLive()
+            self.set_video_live(False)
     
     def change_owner(self):
         """
@@ -234,7 +282,7 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
-        while self.video.getLive():
+        while self.get_video_live() == True:
             self.get_new_image()
             time.sleep(sleep_time)
 
@@ -257,22 +305,41 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
+        if self.is_tango():
+            raw_buffer, width, height = self.get_tango_image()
+        else:
+            raw_buffer, width, height = self.get_lima_image()
+
+        if self.cam_type == "basler":
+            raw_buffer = self.decoder(raw_buffer)
+            qimage = QtGui.QImage(raw_buffer, width, height,
+                                  width * 3,
+                                  QtGui.QImage.Format_RGB888)
+        else:
+            qimage = QtGui.QImage(raw_buffer, width, height,
+                                  QtGui.QImage.Format_RGB888)
+
+        if self.cam_mirror is not None:
+            qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
+
+        qpixmap = QtGui.QPixmap(qimage)
+        self.emit("imageReceived", qpixmap)
+        return qimage
+
+    def get_tango_image(self):
+        img_data = self.device.video_last_image
+
+        if img_data[0]=="VIDEO_IMAGE":
+            header_fmt = ">IHHqiiHHHH"
+            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)])
+            raw_buffer = np.fromstring(img_data[1][32:], np.uint16)
+        return raw_buffer, width, height
+
+    def get_lima_image(self):
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
             raw_buffer = image.buffer()
-            if self.cam_type == "basler":
-                raw_buffer = self.decoder(raw_buffer)
-                qimage = QtGui.QImage(raw_buffer, image.width(), image.height(),
-                                      image.width() * 3,
-                                      QtGui.QImage.Format_RGB888)
-            else:
-                qimage = QtGui.QImage(raw_buffer, image.width(), image.height(),
-                                      QtGui.QImage.Format_RGB888)
-            if self.cam_mirror is not None:
-                qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
-            qpixmap = QtGui.QPixmap(qimage)
-            self.emit("imageReceived", qpixmap)
-            return qimage
+        return raw_buffer, image.width(), image.height()
 
     def y8_2_rgb(self, raw_buffer):
         image = np.fromstring(raw_buffer, dtype=np.uint8)
@@ -321,12 +388,19 @@ class Qt4_LimaVideo(Device):
 
     def get_gain(self):
         if self.cam_type == "basler":
-            value = self.video.getGain()
+            if self.is_tango():
+                value = self.device.video_gain
+            else:
+                value = self.video.getGain()
             return value
 
     def set_gain(self, gain_value):
         if self.cam_type == "basler":
-            self.video.setGain(gain_value)
+            if self.is_tango():
+                self.device.video_gain = gain_value
+            else:
+                value = self.video.setGain(gain_value)
+            return
 
     def get_gamma(self):
         return
@@ -336,8 +410,48 @@ class Qt4_LimaVideo(Device):
 
     def get_exposure_time(self):
         if self.cam_type == "basler":
-            value = self.video.getExposure()
+            if self.is_tango():
+                value = self.device.video_exposure
+            else:
+                value = self.video.getExposure()
             return value
 
     def set_exposure_time(self, exposure_time_value):
+        #if self.is_tango():
+            #self.device.video_exposure = exposure_time_value
+        #else:
+            #self.video.setExposure(exposure_time_value)
+        return
+
+    def set_cam_encoding(self, cam_encoding):
+        if cam_encoding == "yuv422p":
+            if self.is_tango():
+                self.device.video_mode = "YUV422"
+            else:
+                self.video.setMode(Core.YUV422)
+            self.decoder = self.yuv_2_rgb
+        elif cam_encoding == "y8":
+            if self.is_tango():
+                self.device.video_mode = "Y8"
+            else:
+                self.video.setMode(Core.Y8)
+            self.decoder = self.y8_2_rgb
+        return
+
+    def get_video_live(self):
+        if self.is_tango():
+            return self.device.video_live 
+        else:
+            return self.video.getLive()
+        return
+
+    def set_video_live(self, flag):
+        if self.is_tango():
+            self.device.video_live = flag
+        else:
+            if flag is True:
+                self.video.startLive()
+            else:
+                self.video.stopLive()
+
         return
