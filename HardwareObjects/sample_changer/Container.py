@@ -177,12 +177,12 @@ class Container(Component):
 
 class Basket(Container):
     __TYPE__ = "Puck"
-    #NO_OF_SAMPLES_PER_PUCK = 10
 
     def __init__(self, container, number, samples_num=10, name="Puck"):
         super(Basket, self).__init__(self.__TYPE__,container,Basket.getBasketAddress(number),True)
 
         self._name = name
+        self.samples_num = samples_num
         for i in range(samples_num):
             slot = Pin(self,number,i+1)
             self._addComponent(slot)
@@ -190,6 +190,9 @@ class Basket(Container):
     @staticmethod
     def getBasketAddress(basket_number):
         return str(basket_number)
+
+    def getNumberSamples(self):
+        return self.samples_num
 
     def clearInfo(self):
         #self.getContainer()._reset_basket_info(self.getIndex()+1)
