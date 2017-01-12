@@ -103,28 +103,8 @@ class ALBABackLight(Device):
             self.memorized_level = self.current_level
             self.setLevel(self.rest_level)
 
-def test():
-    import os
-    hwr_directory = os.environ["XML_FILES_PATH"]
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-    hwr.connect()
-
-    light = hwr.getHardwareObject("/backlight")
-    print "\nLight control for \"%s\"\n" % light.getUserName()
-    print "   Level limits are:",  light.getLimits()
-    print "   Current level is:",  light.getLevel()
-    print "   Current state is:",  light.getState()
-
-def test2():
-    from test_mxcube import get_hwr_object
-
-    light = get_hwr_object("/backlight")
-
-    print "\nLight control for \"%s\"\n" % light.getUserName()
-    print "   Level limits are:",  light.getLimits()
-    print "   Current level is:",  light.getLevel()
-    print "   Current state is:",  light.getState()
-
-
-if __name__ == '__main__':
-    test2()
+def test_hwo(hwo):
+    print "\nLight control for \"%s\"\n" % hwo.getUserName()
+    print "   Level limits are:",  hwo.getLimits()
+    print "   Current level is:",  hwo.getLevel()
+    print "   Current state is:",  hwo.getState()
