@@ -159,6 +159,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
 		# prepare beamline for data acquisiion
 		self.prepare_acquisition()
+                self.emit("collectOscillationStarted", (owner, None, \
+                    None, None, self.current_dc_parameters, None))
+
 		self.data_collection_hook()
 		self.emit_collection_finished()
 	except:
@@ -225,16 +228,16 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. : main collection command
         """
-	self.emit("collectOscillationStarted", (owner, None, \
-                          None, None, self.current_dc_parameters, None))
+
 	try:
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             osc_start = oscillation_parameters['start']
             osc_end = osc_start + oscillation_parameters["range"] * \
                 oscillation_parameters['number_of_images']
-
             self.open_detector_cover()
             self.open_safety_shutter()
+            #make sure detector configuration is finished
+            self.detector_hwobj.wait_config_done()
             self.detector_hwobj.start_acquisition()
             # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
