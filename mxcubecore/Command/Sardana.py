@@ -231,8 +231,6 @@ class SardanaCommand(CommandObject):
         self.taurusname = taurusname
         self.device = None    
 
-        logging.getLogger('HWR').debug("Creating command %s on device %s" % (self.command, self.taurusname))
-     
     def init_device(self): 
 
         try:
@@ -294,12 +292,11 @@ class SardanaChannel(ChannelObject, SardanaObject):
         self.info.minval = None
         self.info.maxval = None
 
-        logging.getLogger("HWR").debug("creating Sardana model %s, polling=%s", self.model, polling)
-
         self.init_device()
 
     def init_device(self):
 
+       
         try:
             self.attribute = Attribute(self.model)
             # 
@@ -313,21 +310,31 @@ class SardanaChannel(ChannelObject, SardanaObject):
             #        dp.subscribe_event = dp._subscribe_event
             #    except AttributeError:
             #        pass
-            logging.getLogger("HWR").info("initialized")
+            #logging.getLogger("HWR").debug("initialized")
         except DevFailed, traceback:
             self.imported = False
             return
         
         # read information
         try:
-            self.info.minval, self.info.maxval = self.attribute._TangoAttribute__attr_config.getLimits()
-            logging.getLogger("HWR").info("info initialized. Got minval=%s, maxval=%s" %(self.info.minval, self.info.maxval))
+            if taurus.Release.version_info[0] == 3:
+                ranges = self.attribute.getConfig().getRanges()
+                if ranges is not None and ranges[0] != "Not specified":
+                    self.info.minval = float(ranges[0])
+                if ranges is not None and ranges[-1] != "Not specified":
+                    self.info.maxval = float(ranges[-1])
+            elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
+                minval, maxval = self.attribute.ranges() 
+                self.info.minval = minval.magnitude   
+                self.info.maxval = maxval.magnitude   
         except:
+            import traceback
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
+            logging.getLogger("HWR").info("%s" % traceback.format_exc())
        
-        
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
+
         if self.polling:
              if type(self.polling) == types.IntType:
                   self.attribute.changePollingPeriod(self.polling)
@@ -348,6 +355,12 @@ class SardanaChannel(ChannelObject, SardanaObject):
         return value
             
     def getInfo(self):
+        try:
+            b=dir(self.attribute)
+            self.info.minval, self.info.maxval = self.attribute._TangoAttribute__attr_config.getLimits()
+        except:
+            import traceback
+            logging.getLogger("HWR").info("%s" % traceback.format_exc())
         return self.info
 
     def update(self, event):
