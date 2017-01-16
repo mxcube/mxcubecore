@@ -70,7 +70,6 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
         self.device = PyTango.DeviceProxy(tangoname)
         self.device.ping()
-        self.image_dimensions = [self.device.image_width, self.device.image_height]
 
         GenericVideoDevice.init(self)
 
@@ -83,6 +82,9 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
+    def get_image_dimensions(self):
+        return [self.device.image_width, self.device.image_height]
+
     def get_image(self):
         img_data = self.device.video_last_image
 
@@ -93,21 +95,21 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         return raw_buffer, width, height
 
     def get_gain(self):
-        if self.cam_type == "basler":
+        if self.get_cam_type() == "basler":
             value = self.device.video_gain
             return value
 
     def set_gain(self, gain_value):
-        if self.cam_type == "basler":
+        if self.get_cam_type() == "basler":
             self.device.video_gain = gain_value
             return
 
     def get_exposure_time(self):
-        if self.cam_type == "basler":
+        if self.get_cam_type() == "basler":
             return self.device.video_exposure
 
     def set_exposure_time(self, exposure_time_value):
-        if self.cam_type == "basler":
+        if self.get_cam_type() == "basler":
             self.device.video_exposure = exposure_time_value
         
     def get_video_live(self):
