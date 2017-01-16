@@ -135,8 +135,8 @@ class Cats90(SampleChanger):
         self._chnSampleBarcode = self.getChannelObject("_chnSampleBarcode")
         self._chnSampleIsDetected = self.getChannelObject("_chnSampleIsDetected")
 
-        #for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
-        #    setattr(self, command_name, self.getCommandObject(command_name))
+        for command_name in ("_cmdAbort", "_cmdLoad", "_cmdUnload", "_cmdChainedLoad"):
+            setattr(self, command_name, self.getCommandObject(command_name))
 
         for basket_index in range(self.number_of_baskets):            
             channel_name = "_chnBasket%dState" % (basket_index + 1)
@@ -246,12 +246,17 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
+        logging.info("selecting component %s / type=%s" % (str(component), type(component)))
+
         if isinstance(component, Sample):
             selected_basket_no = component.getBasketNo()
             selected_sample_no = component.getIndex()+1
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
             selected_basket_no = component.getIndex()+1
             selected_sample_no = None
+        elif isinstance(component,tuple) and len(component) == 2:
+            selected_basket_no = component[0]
+            selected_sample_no = component[1]
         self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
 
 # JN 20150324, load for CATS GUI, no timer and the window will not freeze
@@ -386,8 +391,12 @@ class Cats90(SampleChanger):
                 logging.getLogger("HWR").warning("  ==========CATS=== chained load sample, sending to cats:  %s" % argin)
                 self._executeServerTask(self._cmdChainedLoad, argin)
         else:
-            logging.getLogger("HWR").warning("  ==========CATS=== load sample, sending to cats:  %s" % argin)
-            self._executeServerTask(self._cmdLoad, argin)
+            if self.cats_sample_on_diffr():
+                logging.getLogger("HWR").warning("  ==========CATS=== trying to load sample, but sample detected on diffr. aborting") 
+                self._updateState() # remove software flags like Loading.
+            else:
+                logging.getLogger("HWR").warning("  ==========CATS=== load sample, sending to cats:  %s" % argin)
+                self._executeServerTask(self._cmdLoad, argin)
 
     def _doUnload(self,sample_slot=None, shifts=None):
         """
@@ -431,6 +440,7 @@ class Cats90(SampleChanger):
         :rtype: None
         """
         self._cmdAbort()            
+        self._updateState() # remove software flags like Loading.. reflects current hardware state 
 
     def _doReset(self):
         pass
@@ -477,6 +487,9 @@ class Cats90(SampleChanger):
     def cats_barcode_changed(self, value):
         self.cats_datamatrix = value
         self._updateLoadedSample() 
+
+    def cats_sample_on_diffr(self):
+        return self._chnSampleIsDetected.getValue()
 
     #########################           PRIVATE           #########################        
 
@@ -529,9 +542,9 @@ class Cats90(SampleChanger):
         elif self.cats_state == PyTango.DevState.UNKNOWN: 
             state = SampleChangerState.Unknown
         elif self.cats_state == PyTango.DevState.RUNNING: 
-            state == SampleChangerState.Moving 
+            state = SampleChangerState.Moving 
         elif self.cats_state == PyTango.DevState.ALARM: 
-            state == SampleChangerState.Alarm 
+            state = SampleChangerState.Alarm 
         elif self.hasLoadedSample() ^ self._chnSampleIsDetected.getValue():
             # go to Unknown state if a sample is detected on the gonio but not registered in the internal database
             # or registered but not on the gonio anymore

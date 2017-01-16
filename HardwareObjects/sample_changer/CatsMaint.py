@@ -54,7 +54,7 @@ class CatsMaint(Equipment):
                              "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", \
                              "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
                              "_cmdRestart", "_cmdPanic", "_cmdAbort", \
-                             "_cmdSendOperation"):
+                             "_cmdResetMotion", "_cmdSendOperation"):
             try:
                 setattr(self, command_name, self.getCommandObject(command_name))
             except:
@@ -260,7 +260,7 @@ class CatsMaint(Equipment):
         self._cmdMagnetOff()
 
     def _doHome(self):
-        self._cmdHome()
+        self._cmdHome(2)
 
     def _doSoak(self):
         self._cmdSoak()
@@ -270,6 +270,9 @@ class CatsMaint(Equipment):
 
     def _doPanic(self):
         self._cmdPanic()
+
+    def _doResetMotion(self):
+        self._cmdResetMotion()
 
     def _doOperationCommand(self, cmdstr):
         self._cmdSendOperation(cmdstr)
