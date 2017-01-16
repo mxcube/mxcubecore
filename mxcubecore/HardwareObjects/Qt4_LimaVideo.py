@@ -43,7 +43,6 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </device>
 """
-
 import os
 import time
 import logging
@@ -51,16 +50,11 @@ import gevent
 import struct
 import numpy as np
 
-from PyQt4 import QtGui
+from GenericVideoDevice import GenericVideoDevice
 
 try:
     from Lima import Core
 except:
-    pass
-
-try:
-    import PyTango
-except ImportError, e:
     pass
 
 try:
@@ -73,14 +67,7 @@ try:
 except ImportError, e:
     pass
 
-try:
-    import cv2
-except ImportError:
-    pass 
-
-from HardwareRepository.BaseHardwareObjects import Device
-
-class Qt4_LimaVideo(Device):
+class Qt4_LimaVideo(GenericVideoDevice):
     """
     Descript. : 
     """
@@ -88,26 +75,9 @@ class Qt4_LimaVideo(Device):
         """
         Descript. :
         """
-        Device.__init__(self, name)
+        GenericVideoDevice.__init__(self, name)
 
-        self.force_update = None
-
-        self.access_type = "LIMA"
-
-        self.cam_type = "basler" # default
         self.cam_address = None
-        self.cam_mirror = None
-        self.cam_scale_factor = None
-        self.cam_encoding = None        
-
-        self.brightness_exists = None 
-        self.contrast_exists = None
-        self.gain_exists = None
-        self.gamma_exists = None
-
-        self.qimage = None
-        self.image_format = None
-        self.image_dimensions = None
 
         # LIMA access
         self.camera = None
@@ -115,316 +85,9 @@ class Qt4_LimaVideo(Device):
         self.control = None
         self.video = None 
 
-        # TANGO access
-        self.device = None
-
-        self.image_polling = None
-        self.decoder = None
-
     def init(self):
-        """
-        Descript. : 
-        """
-
-        tangoname = self.getProperty("tangoname")
-        cam_address = self.getProperty("address")
-        cam_type = self.getProperty("type").lower()
-
-        if tangoname is not None:
-            self.device = Tango_LimaVideo_Device(tangoname)
-        elif cam_address is not None:
-            self.device = Library_LimaVideo_Device(cam_address, cam_type)
-
-        if self.device:
-            self.image_dimensions = self.device.get_image_dimensions()
-
-        self.set_exposure_time(self.getProperty("interval")/1000.0)
-        self.set_cam_encoding("yuv422g")  # default value
-
-        self.setIsReady(True)
-
-        self.force_update = False
-
-        try:       
-            self.cam_mirror = eval(self.getProperty("mirror"))
-        except:
-            pass        
-
-        # Basler
-        try:
-            self.cam_encoding = self.getProperty("encoding").lower()
-        except:
-            logging.getLogger().error("Cannot get encoding from xml file!")
-            raise
-
-        self.set_cam_encoding(self.cam_encoding)
-
-        try:
-            self.cam_gain = float(self.getProperty("gain"))
-            self.set_gain(self.cam_gain)
-            logging.getLogger().info("%s: Setting camera gain to %s",
-                                     self.name(), self.cam_gain)
-        except:
-            pass
-
-        try:
-            self.cam_exposure = float(self.getProperty("exposure"))
-            self.set_exposure_time(self.cam_exposure)
-            logging.getLogger().info("%s: Setting exposure to %s s",
-                                     self.name(), self.cam_exposure)
-        except:
-            pass
-
-        self.setIsReady(True)
-
-        if self.image_polling is None:
-            self.set_video_live(True)
-            self.change_owner()
-
-            self.image_polling = gevent.spawn(self.do_image_polling,
-                                              self.getProperty("interval") /
-                                              1000.0)
-
-    def get_image_dimensions(self):
-        return self.image_dimensions
-
-    def get_scaling_factor(self):
-        """
-        Descript. :
-        Returns   : Scaling factor in float. None if does not exists
-        """ 
-        return self.cam_scale_factor
-
-    def imageType(self):
-        """
-        Descript. : returns image type
-        """
-        return self.image_format
-
-    def start_camera(self):
-        return 
-
-    def setLive(self, mode):
-        """
-        Descript. :
-        """
-        return
-        if mode:
-            self.set_video_live(True)
-            self.change_owner()
-        else:
-            self.set_video_live(False)
-    
-    def change_owner(self):
-        """
-        Descript. :
-        """
-        if os.getuid() == 0:
-            try:
-                os.setgid(int(os.getenv("SUDO_GID")))
-                os.setuid(int(os.getenv("SUDO_UID")))
-            except:
-                logging.getLogger().warning('%s: failed to change the process'
-                                            'ownership.', self.name())
- 
-    def getWidth(self):
-        """
-        Descript. :
-        """
-        return int(self.image_dimensions[0])
-
-    def getHeight(self):
-        """
-        Descript. :
-        """
-        return int(self.image_dimensions[1])
-
-    def do_image_polling(self, sleep_time):
-        """
-        Descript. :
-        """
-        while self.get_video_live() == True:
-            self.get_new_image()
-            time.sleep(sleep_time)
-
-    def connectNotify(self, signal):
-        """
-        Descript. :
-        """
-        return
-        """if signal == "imageReceived" and self.image_polling is None:
-            self.image_polling = gevent.spawn(self.do_image_polling,
-                 self.getProperty("interval")/1000.0)"""
-
-    def refresh_video(self):
-        """
-        Descript. :
-        """
-        pass
- 
-    def get_new_image(self):
-        """
-        Descript. :
-        """
-        raw_buffer, width, height = self.device.get_image()
-
-        if self.cam_type == "basler":
-            raw_buffer = self.decoder(raw_buffer)
-            qimage = QtGui.QImage(raw_buffer, width, height,
-                                  width * 3,
-                                  QtGui.QImage.Format_RGB888)
-        else:
-            qimage = QtGui.QImage(raw_buffer, width, height,
-                                  QtGui.QImage.Format_RGB888)
-
-        if self.cam_mirror is not None:
-            qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
-
-        qpixmap = QtGui.QPixmap(qimage)
-        self.emit("imageReceived", qpixmap)
-        return qimage
-
-    def y8_2_rgb(self, raw_buffer):
-        image = np.fromstring(raw_buffer, dtype=np.uint8)
-        image.resize(self.image_dimensions[1], self.image_dimensions[0], 1)
-        return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-
-    def yuv_2_rgb(self, raw_buffer):
-        image = np.fromstring(raw_buffer, dtype=np.uint8)
-        image.resize(self.image_dimensions[1], self.image_dimensions[0], 2)
-        return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
-
-    def save_snapshot(self, filename, image_type='PNG'):
-        qimage = self.get_new_image() 
-        qimage.save(filename, image_type) 
-
-    def get_snapshot(self, bw=None, return_as_array=True):
-        qimage = self.get_new_image()
-        if return_as_array:
-            qimage = qimage.convertToFormat(4)
-            ptr = qimage.bits()
-            ptr.setsize(qimage.byteCount())
-            image_array = np.array(ptr).reshape(qimage.height(),
-                                                qimage.width(), 4)
-            if bw:
-                return np.dot(image_array[...,:3],[0.299, 0.587, 0.144])
-            else:
-                return image_array 
-            
-        else:
-            if bw:
-                return qimage.convertToFormat(QtGui.QImage.Format_Mono)
-            else:
-                return qimage
-
-    def get_contrast(self):
-        return
-
-    def set_contrast(self, contrast_value):
-        return
-
-    def get_brightness(self):
-        return
-
-    def set_brightness(self, brightness_value):
-        return
-
-    def get_gain(self):
-        if self.cam_type == "basler":
-            value = self.device.get_gain()
-            return value
-
-    def set_gain(self, gain_value):
-        if self.cam_type == "basler":
-            self.device.set_gain(gain_value)
-            return
-
-    def get_gamma(self):
-        return
-
-    def set_gamma(self, gamma_value):
-        return
-
-    def get_exposure_time(self):
-        if self.cam_type == "basler":
-            return self.device.get_exposure_time()
-
-    def set_exposure_time(self, exposure_time_value):
-        # self.device.set_exposure_time(exposure_time_value)
-        return
-
-    def set_cam_encoding(self, cam_encoding):
-        self.device.set_cam_encoding(cam_encoding)
-
-        if cam_encoding == "yuv422p":
-            self.decoder = self.yuv_2_rgb
-        elif cam_encoding == "y8":
-            self.decoder = self.y8_2_rgb
-
-    def get_video_live(self):
-        return self.device.get_video_live()
-
-    def set_video_live(self, flag):
-        self.device.set_video_live(flag)
-        return
-
-class Tango_LimaVideo_Device(object):
-    def __init__(self, tangoname):
-        try:
-            self.device = PyTango.DeviceProxy(tangoname)
-            self.device.ping()
-            self.image_dimensions = [self.device.image_width, self.device.image_height]
-        except PyTango.DevFailed, traceback:
-            last_error = traceback[-1]
-            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error.desc)
-            self.device = BaseHardwareObjects.Null()
-
-    def get_image_dimensions(self):
-        return self.image_dimensions
-
-    def get_image(self):
-        img_data = self.device.video_last_image
-
-        if img_data[0]=="VIDEO_IMAGE":
-            header_fmt = ">IHHqiiHHHH"
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)])
-            raw_buffer = np.fromstring(img_data[1][32:], np.uint16)
-        return raw_buffer, width, height
-
-    def get_gain(self):
-        value = self.device.video_gain
-        return value
-
-    def set_gain(self, gain_value):
-        self.device.video_gain = gain_value
-
-    def set_exposure_time(self, exposure_time_value):
-        self.device.video_exposure = exposure_time_value
-        
-    def set_cam_encoding(self, cam_encoding):
-        if cam_encoding == "yuv422p":
-            self.device.video_mode = "YUV422"
-        elif cam_encoding == "y8":
-            self.device.video_mode = "Y8"
-        return
-
-    def get_video_live(self):
-        return self.device.video_live 
-
-    def set_video_live(self, flag):
-        self.device.video_live = flag
-
-    def get_exposure_time(self):
-        return self.device.video_exposure
-
-class Library_LimaVideo_Device(object):
-
-    def __init__(self, cam_address, cam_type):
-
-        self.cam_address = cam_address
-        self.cam_type = cam_type
-
-        self.image_dimensions = [None,None]
+        self.cam_address = self.getProperty("address")
+        self.cam_type = self.getProperty("type").lower()
 
         if self.cam_type == 'prosilica':
             self.camera = Prosilica.Camera(self.cam_address)
@@ -444,9 +107,17 @@ class Library_LimaVideo_Device(object):
             height = self.camera.getRoi().getSize().getHeight()
             self.image_dimensions = [width, height]
 
-    def get_image_dimensions(self):
-        return self.image_dimensions
+        GenericVideoDevice.init(self)
 
+    def set_cam_encoding(self, cam_encoding):
+        if cam_encoding == "yuv422p":
+            self.video.setMode(Core.YUV422)
+        elif cam_encoding == "y8":
+            self.video.setMode(Core.Y8)
+
+        GenericVideoDevice.set_cam_encoding(self,cam_encoding)
+
+    """ Overloading of GenericVideoDevice methods """
     def get_image(self):
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
@@ -466,13 +137,6 @@ class Library_LimaVideo_Device(object):
     def set_exposure_time(self, exposure_time_value):
         self.video.setExposure(exposure_time_value)
 
-    def set_cam_encoding(self, cam_encoding):
-        if cam_encoding == "yuv422p":
-            self.video.setMode(Core.YUV422)
-        elif cam_encoding == "y8":
-            self.video.setMode(Core.Y8)
-        return
-
     def get_video_live(self):
         return self.video.getLive()
 
@@ -481,6 +145,8 @@ class Library_LimaVideo_Device(object):
             self.video.startLive()
         else:
             self.video.stopLive()
+
+    """ END Overloading of GenericVideoDevice methods """
 
 def test_hwo(hwo):
     print "Image dimensions: ", hwo.get_image_dimensions()
