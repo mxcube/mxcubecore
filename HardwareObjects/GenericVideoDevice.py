@@ -58,6 +58,7 @@ class GenericVideoDevice(Device):
         self.cam_gain = None
         self.cam_exposure = None
         self.poll_interval = None
+        self.cam_type = None
 
         self.cam_scale_factor = None
 
@@ -67,15 +68,27 @@ class GenericVideoDevice(Device):
         self.image_format = None # not used
 
     def init(self):
-        self.image_dimensions = self.get_image_dimensions()
 
         # Read values from XML
-        self.cam_mirror = eval(self.getProperty("mirror"))
+        try:
+            self.cam_mirror = eval(self.getProperty("mirror"))
+        except TypeError:
+            self.cam_mirror = [False, False]
+
         self.cam_encoding = self.getProperty("encoding").lower()
         self.poll_interval = self.getProperty("interval")
-        self.cam_gain = float(self.getProperty("gain"))
-        self.cam_exposure = float(self.getProperty("exposure"))
-        self.cam_type = self.getProperty("type")
+
+        try:
+            self.cam_gain = float(self.getProperty("gain"))
+        except ValueError:
+            pass
+
+        try:
+            self.cam_exposure = float(self.getProperty("exposure"))
+        except ValueError:
+            pass
+
+        self.cam_type = self.getProperty("type").lower()
 
         # Apply defaults if necessary
         if self.cam_encoding is None:
@@ -91,11 +104,14 @@ class GenericVideoDevice(Device):
             self.cam_exposure = self.default_cam_type
 
         # Apply values	
+
         self.set_cam_encoding(self.cam_encoding)
         self.set_exposure_time(self.cam_exposure)
 
         if self.cam_gain is not None:
             self.set_gain(self.cam_gain)
+
+        self.image_dimensions = self.get_image_dimensions()
 
         # Start polling greenlet
         if self.image_polling is None:
@@ -108,9 +124,6 @@ class GenericVideoDevice(Device):
         self.setIsReady(True)
 
     """ Generic methods """
-    def get_image_dimensions(self):
-        return self.image_dimensions
-
     def get_new_image(self):
         """
         Descript. :
@@ -132,6 +145,9 @@ class GenericVideoDevice(Device):
         qpixmap = QtGui.QPixmap(qimage)
         self.emit("imageReceived", qpixmap)
         return qimage
+
+    def get_cam_type(self):
+        return self.cam_type
 
     def y8_2_rgb(self, raw_buffer):
         image = np.fromstring(raw_buffer, dtype=np.uint8)
@@ -248,6 +264,10 @@ class GenericVideoDevice(Device):
             self.decoder = self.y8_2_rgb
 
     """  Methods to be implemented by the implementing class """
+    @abc.abstractmethod
+    def get_image_dimensions(self):
+        pass
+
     @abc.abstractmethod
     def get_image(self):
         """ The implementing class should return here the latest_image in

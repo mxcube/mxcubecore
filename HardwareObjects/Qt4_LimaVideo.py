@@ -100,13 +100,6 @@ class Qt4_LimaVideo(GenericVideoDevice):
         self.control = Core.CtControl(self.interface)
         self.video = self.control.video()
 
-        if self.cam_type == 'prosilica':
-            self.image_dimensions = list(self.camera.getMaxWidthHeight())
-        elif self.cam_type == 'basler':
-            width = self.camera.getRoi().getSize().getWidth()
-            height = self.camera.getRoi().getSize().getHeight()
-            self.image_dimensions = [width, height]
-
         GenericVideoDevice.init(self)
 
     def set_cam_encoding(self, cam_encoding):
@@ -118,6 +111,16 @@ class Qt4_LimaVideo(GenericVideoDevice):
         GenericVideoDevice.set_cam_encoding(self,cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
+    def get_image_dimensions(self):
+        if self.cam_type == 'prosilica':
+            return list(self.camera.getMaxWidthHeight())
+        elif self.cam_type == 'basler':
+            width = self.camera.getRoi().getSize().getWidth()
+            height = self.camera.getRoi().getSize().getHeight()
+            return [width, height]
+        else:
+            return [None,None]
+
     def get_image(self):
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
