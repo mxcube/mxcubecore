@@ -1,8 +1,135 @@
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+--------------------------------------------
+Description
+--------------------------------------------
+
+GenericSampleChanger is a base class to help in the implementation of 
+Hardware Objects for SampleChangers following the 
+"SampleChanger Standard Interface".
+
+If this class is used as base class a standard class is then provided for
+its use by generic bricks or by MXCuBE itself.  This class exposes the
+following API for bricks and MXCuBE:
+
+--------------------------------------------
+SampleChanger - Standard Interface
+--------------------------------------------
+
+Sample Changer States
+----------------------
+
+    SampleChangerState.Unknown
+    SampleChangerState.Ready
+    SampleChangerState.Loaded
+    SampleChangerState.Loading
+    SampleChangerState.Unloading
+    SampleChangerState.Selecting
+    SampleChangerState.Scanning 
+    SampleChangerState.Resetting
+    SampleChangerState.Charging
+    SampleChangerState.Moving
+    SampleChangerState.ChangingMode
+    SampleChangerState.StandBy
+    SampleChangerState.Disabled
+    SampleChangerState.Alarm
+    SampleChangerState.Fault
+    SampleChangerState.Initializing
+    SampleChangerState.Closing
+
+Commands
+----------------------
+
+load()
+unload()
+select()
+abort()
+changeMode()
+
+getState()
+getStatus()
+isReady()
+waitReady()
+hasLoadedSample()
+getLoadedSample()
+
+Specifying sample locations
+-----------------------------
+The sample model in a sample changer is based
+in the model:
+   SampleChanger
+      Container
+         [Container...]
+            Sample
+
+Tipycally for a sample changer with Pucks and Sample
+there is a single level for Container. Specifying 
+a sample location will consist in giving the puck (basket)
+number followed by the sample number. In the location 
+example `3:5` the fifth sample in the third puck is specified.
+
+For other more complex constructions (for example for
+a plate manipulator) each nested container will be specified
+until getting to the sample:
+
+In the example for a location in a plate manipulator like `1:5:2`
+the location specifies first plate well, fifth drop, second crystal.
+   
+
+Events emitted
+----------------------
+
+SampleChanger.STATE_CHANGED_EVENT
+SampleChanger.STATUS_CHANGED_EVENT
+SampleChanger.INFO_CHANGED_EVENT
+SampleChanger.LOADED_SAMPLE_CHANGED_EVENT
+SampleChanger.SELECTION_CHANGED_EVENT
+SampleChanger.TASK_FINISHED_EVENT
+
+Tools for SC Classes
+----------------------
+
+- useUpdateTimer (xml property):
+   This property can accept a boolean value (True/False)
+
+   If this property is set the HardwareObject will
+   poll itself for state changes, information change and  
+   other needed values.
+
+   Include a line like `<useUpdateTimer>True</useUpdateTimer`
+   in the xml file
+
+
+
+--------------------------------------------
+How to implement derived SC Classes 
+--------------------------------------------
+
+"""
+
 from Container import *
 
 from HardwareRepository.TaskUtils import *
 import HardwareRepository.HardwareObjectFileParser  ###This is just to avoid an error when importing Equipment
 from HardwareRepository.BaseHardwareObjects import Equipment
+
 import abc
 import logging
 import time
@@ -96,16 +223,21 @@ class SampleChanger(Container,Equipment):
 
     def init(self):
         use_update_timer = self.getProperty("useUpdateTimer")
+
         if use_update_timer is None:
             use_update_timer = True
+
+        logging.getLogger("HWR").info("SampleChanger: Using update timer is %s " % use_update_timer)
 
         if use_update_timer:
             task1s=self.__timer_1s_task(wait=False)
             task1s.link(self._onTimer1sExit)
             updateTask=self.__update_timer_task(wait=False)
             updateTask.link(self._onTimerUpdateExit)
+
+        self.use_update_timer = use_update_timer
+
         self.updateInfo()
-        
         
     def _onTimer1sExit(self, task):
         logging.warning("Exiting Sample Changer 1s timer task")
@@ -143,7 +275,7 @@ class SampleChanger(Container,Equipment):
     
     def _onTimerUpdate(self):        
         #if not self.isExecutingTask():
-            self.updateInfo()  
+        self.updateInfo()  
              
     def _onTimer1s(self):
         pass        
@@ -293,7 +425,6 @@ class SampleChanger(Container,Equipment):
                 self._triggerLoadedSampleChangedEvent(loaded)
                 
         self._resetDirty()                    
-
     
     def isTransient(self):
         return self._transient      
@@ -506,8 +637,8 @@ class SampleChanger(Container,Equipment):
             self._triggerStateChangedEvent(former)
         
         if (status is not None) and (self.status!=status):
-                self.status=status
-                self._triggerStatusChangedEvent()        
+            self.status=status
+            self._triggerStatusChangedEvent()        
         
     def _resetLoadedSample(self):
         for s in self.getSampleList():

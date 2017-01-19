@@ -42,6 +42,8 @@ class CatsMaint(Equipment):
         self._chnMessage.connectSignal("update", self._updateMessage)
         self._chnLN2Regulation = self.getChannelObject("_chnLN2RegulationDewar1")
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
+        self._chnBarcode = self.getChannelObject("_chnBarcode")
+        self._chnBarcode.connectSignal("update", self._updateBarcode)
            
         for command_name in ("_cmdReset","_cmdDry", "_cmdBack", \
                              "_cmdSafe", "_cmdHome", "_cmdSoak", \
@@ -52,7 +54,7 @@ class CatsMaint(Equipment):
                              "_cmdOpenLid1", "_cmdCloseLid1", "_cmdOpenLid2", \
                              "_cmdCloseLid2", "_cmdOpenLid3", "_cmdCloseLid3", \
                              "_cmdRestart", "_cmdPanic", "_cmdAbort", \
-                             "_cmdSendOperation"):
+                             "_cmdResetMotion", "_cmdSendOperation"):
             try:
                 setattr(self, command_name, self.getCommandObject(command_name))
             except:
@@ -258,7 +260,7 @@ class CatsMaint(Equipment):
         self._cmdMagnetOff()
 
     def _doHome(self):
-        self._cmdHome()
+        self._cmdHome(2)
 
     def _doSoak(self):
         self._cmdSoak()
@@ -268,6 +270,9 @@ class CatsMaint(Equipment):
 
     def _doPanic(self):
         self._cmdPanic()
+
+    def _doResetMotion(self):
+        self._cmdResetMotion()
 
     def _doOperationCommand(self, cmdstr):
         self._cmdSendOperation(cmdstr)
@@ -309,6 +314,9 @@ class CatsMaint(Equipment):
 
     def _updateRegulationState(self, value):
         self.emit('regulationStateChanged', (value, ))
+
+    def _updateBarcode(self, value):
+        self.emit('barcodeChanged', (value, ))
 
     def _updateLid1State(self, value):
         self.emit('lid1StateChanged', (value, ))
