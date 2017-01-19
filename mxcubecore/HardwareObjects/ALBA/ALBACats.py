@@ -45,6 +45,9 @@ class ALBACats(Cats90):
 
         return self._executeTask(SampleChangerState.Loading,wait,self._doLoad,sample)
 
+    def load_ht(self, sample=None, wait=True, wash=False):
+        logging.getLogger("user_level_log").error("Loading HT sample %s" % sample)
+
     def unload(self, sample_slot=None, wait=True):
         """
         Unload the sample. 
@@ -70,6 +73,9 @@ class ALBACats(Cats90):
 
     def isPathRunning(self):
         return self._chnPathRunning.getValue()
+
+    def hasLoadedSample(self):  # not used.  to use it remove _
+        return self._chnSampleIsDetected.getValue()
 
     def _updateRunningState(self, value):
         self.emit('runningStateChanged', (value, ))
@@ -157,16 +163,10 @@ class ALBACats(Cats90):
             shifts = None
         return shifts
 
-def test():
-    import os
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-    hwr.connect()
-
-    cats = hwr.getHardwareObject("/cats")
-    print cats._get_shifts()
+def test_hwo(hwo):
+    print(" Is path running? ", hwo.isPathRunning())
+    print(" Loading shifts:  ", hwo._get_shifts())
 
 if  __name__ == '__main__':
     test()
+
