@@ -288,6 +288,19 @@ class HardwareObjectNode:
     def getProperties(self):
         return self._propertySet
             
+    def update_values(self):
+        """Method called from Qt bricks to ensure that bricks have values
+           after the initialization.
+           Problem arrise when a hardware object is used by several bricks.
+           If first brick connects to some signal emited by a brick then
+           other bricks connecting to the same signal will no receive the 
+           values on the startup.
+           The easiest solution is to call update_values method directly
+           after getHardwareObject and connect.
+
+           Normaly this method would emit all values 
+        """
+        return
 
 class HardwareObject(HardwareObjectNode, CommandContainer):
     def __init__(self, rootName):

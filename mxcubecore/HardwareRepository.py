@@ -78,14 +78,11 @@ class __HardwareRepositoryClient:
         serverAddress needs to be the HWR server address (host:port) or
         a list of paths where to find XML files locally (when server is not in use)
         """
-        if not type(serverAddress) in (list, tuple): 
-            self.serverAddress = [serverAddress]
-        else:
-            self.serverAddress = serverAddress
-        
+        self.serverAddress = serverAddress
         self.requiredHardwareObjects = {}
         self.xml_source={}
         self.__connected = False
+        self.server = None
         
     def connect(self):
         if self.__connected:
@@ -96,7 +93,6 @@ class __HardwareRepositoryClient:
 
             if type(self.serverAddress)==bytes:
                 mngr = SpecConnectionsManager.SpecConnectionsManager() 
-
                 self.server = mngr.getConnection(self.serverAddress)
       
                 with gevent.Timeout(3): 
@@ -176,6 +172,8 @@ class __HardwareRepositoryClient:
                     try:
                         #t0 = time.time()
                         ho = self.parseXML(xmldata, hoName)
+                        if type(ho) == str:
+                            return self.loadHardwareObject(ho)  
                     except:
                         logging.getLogger("HWR").exception("Cannot parse XML file for Hardware Object %s", hoName)
                     else:
