@@ -22,37 +22,37 @@ sys.path.insert(0, getStdHardwareObjectsPath())
 #
 # create the HardwareRepository logger
 #
-_logger = logging.getLogger('HWR')
-_logger.setLevel(logging.DEBUG)
+_hwr_logger = logging.getLogger('HWR')
+_hwr_logger.setLevel(logging.DEBUG)
 _oldLevel = logging.DEBUG
-_formatter = logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
+_hwr_formatter = logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
 
 if len(logging.root.handlers) == 0:
     #
     # log to stdout
     #
     _hdlr = logging.StreamHandler(sys.stdout)
-    _hdlr.setFormatter(_formatter)
-    _logger.addHandler(_hdlr)
+    _hdlr.setFormatter(_hwr_formatter)
+    _hwr_logger.addHandler(_hdlr)
     
 
 def removeLoggingHandlers():
-    for handler in _logger.handlers:
-        _logger.removeHandler(handler)
+    for handler in _hwr_logger.handlers:
+        _hwr_logger.removeHandler(handler)
 
 
 def setLoggingOff():
     global _oldLevel
-    _oldLevel = _logger.getEffectiveLevel()
-    _logger.setLevel(1000) #disable all logging events less severe than 1000 (CRITICAL is 50...)
+    _oldLevel = _hwr_logger.getEffectiveLevel()
+    _hwr_logger.setLevel(1000) #disable all logging events less severe than 1000 (CRITICAL is 50...)
 
 
 def setLoggingOn():
-    _logger.setLevel(_oldLevel)
+    _hwr_logger.setLevel(_oldLevel)
     
 
 def addLoggingHandler(handler):
-    _logger.addHandler(handler)
+    _hwr_logger.addHandler(handler)
 
     
 def setLoggingHandler(handler):
@@ -69,7 +69,7 @@ def setLogFile(filename):
     # log to rotating files
     #
     hdlr = RotatingFileHandler(filename, 'a', 1048576, 5) #1 MB by file, 5 files max.           
-    hdlr.setFormatter(_formatter)
+    hdlr.setFormatter(_hwr_formatter)
     
     setLoggingHandler(hdlr)
 

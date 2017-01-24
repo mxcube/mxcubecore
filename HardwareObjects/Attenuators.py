@@ -56,10 +56,10 @@ class Attenuators(Device):
         Descript. :
         """
         try:
-            value = float(self.chan_att_value.getValue())
+            self.att_value = float(self.chan_att_value.getValue())
         except:
-            value=None
-        return value
+            self.att_value = None
+        return self.att_value
 
     def get_value(self):
         """
@@ -137,6 +137,7 @@ class Attenuators(Device):
         self.chan_att_value.setValue(value)
 
     def update_values(self):
+        self.att_value = self.getAttFactor()
         self.emit('attStateChanged', (self.att_state, ))
         self.emit('attFactorChanged', (self.att_value, ))
         self.emit('attLimitsChanged', (self.att_limits, ))
