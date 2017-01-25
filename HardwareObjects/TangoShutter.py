@@ -170,10 +170,7 @@ class TangoShutter(BaseHardwareObjects.Device):
 
     def _convert_state_to_str(self, value):
         state = str(value).upper()
-        if state in self.shutterState:
-             state_str = self.shutterState[state]
-        else:
-             state_str = "unknown"
+        state_str = self.shutterState.get(state,"unknown")
         return state_str
 
     def readShutterState(self):
