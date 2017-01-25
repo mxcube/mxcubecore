@@ -8,9 +8,9 @@ import time
 
 """
 <procedure class="LdapLogin">
-  <ldaphost>ldaphost.mydomain</ldaphost>
+  <ldaphost>ldaphost.mydomain</ldaphost> 195.221.10.1
   <ldapport>389</ldapport>
-  <ldapdc>esrf.fr</ldapdc>
+  <ldapdc>EXP</ldapdc>
 </procedure>
 """
 

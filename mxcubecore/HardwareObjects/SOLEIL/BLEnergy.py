@@ -1,12 +1,12 @@
-from qt import *
+#from qt import *
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 from PyTango import DeviceProxy
 
 import logging
-import os
+#import os
 import time
-import types
+#import types
 
 class BLEnergy (Device) :
     
@@ -16,6 +16,7 @@ class BLEnergy (Device) :
                    'MOVING' : 'moving',
                    'STANDBY' : 'ready',
                    'UNKNOWN': 'unknown',
+                   'DISABLE': 'disable',
                    'EXTRACT': 'outlimits'}
 
     def init(self):
@@ -60,8 +61,15 @@ class BLEnergy (Device) :
             self.mono_mt_rx_oncmd = self.getCommandObject("mono_mt_rx_on")
         except KeyError:
             logging.info("Beware that mt_rx control is not properly defined for BLEnergy")
- 
         
+        try:
+            self.mono_mt_rx_fine_statech = self.getChannelObject("mono_mt_rx_fine_state")
+            self.mono_mt_rx_fine_oncmd = self.getCommandObject("mono_mt_rx_fine_on")
+        except KeyError:
+            logging.info("Beware that mt_rx control is not properly defined for BLEnergy")
+            
+        self.get_energy_limits = self.getEnergyLimits
+        self.get_wavelength_limits = self.getWavelengthLimits
         # parameters for polling     
         if self.deviceOk :
             self.isConnected()
@@ -72,28 +80,32 @@ class BLEnergy (Device) :
 
             stateChan = self.getChannelObject("state") # utile seulement si statechan n'est pas defini dans le code
             stateChan.connectSignal("update", self.stateChanged)
+        self.can_move_energy = self.canMoveEnergy
+        self.move_energy = self.startMoveEnergy
+        self.move_wavelength = self.startMoveWavelength
 
     def stateChanged(self,value):
         if (str(value) == 'MOVING') :
             self.moveEnergyCmdStarted()
         if self.prev_state == 'MOVING' or self.moving == True:
             if str(value) != 'MOVING' :
-                self.moveEnergyCmdFinished() 
-                     
+                self.moveEnergyCmdFinished()
+                
         self.prev_state = str(value)
-        
+
         self.emit('stateChanged', BLEnergy.stateEnergy[str(value)])
         
     # function called during polling
     def energyChanged(self,value):
         #logging.getLogger("HWR").debug("%s: BLEnergy.energyChanged: %.3f", self.name(), value)
+        #logging.info(">>>>>>>>  %s: BLEnergy.energyChanged: %.3f", self.name(), value)
         wav = self.monodevice.read_attribute("lambda").value
         if wav is not None:
             self.emit('energyChanged', (value,wav))
             
             
     def connectNotify(self, signal):
-        #logging.getLogger("HWR").info("%s: BLEnergy.connectNotify, : %s", self.name(), signal)           
+        logging.getLogger("HWR").info("%s: BLEnergy.connectNotify, : %s", self.name(), signal)           
         if signal == 'energyChanged':
             self.energyChanged(self.BLEnergydevice.energy)
         if signal == 'stateChanged' :    
@@ -141,7 +153,7 @@ class BLEnergy (Device) :
         return self.BLEnergydevice.State().name
         
     def getEnergyComputedFromCurrentGap(self):
-        #logging.getLogger("HWR").debug("%s: BLEnergy.getCurrentEnergy", self.name())
+        logging.getLogger("HWR").debug("%s: BLEnergy.getCurrentEnergy", self.name())
         if self.deviceOk:
             # PL. Rq: if the device is not redy, it send a NaN...
             return self.U20Energydevice.energy
@@ -156,7 +168,7 @@ class BLEnergy (Device) :
             return None
             
     def getCurrentWavelength(self):
-        #logging.getLogger("HWR").debug("%s: BLEnergy.getCurrentWavelength", self.name())
+        logging.getLogger("HWR").debug("%s: BLEnergy.getCurrentWavelength", self.name())
         # Pb with the attribute name "lamdda" which is a keyword for python
         if self.deviceOk :           
             # using calculation of the device mono
@@ -199,7 +211,7 @@ class BLEnergy (Device) :
             
     def startMoveEnergy(self, value, wait=False):   
         logging.getLogger("HWR").debug("%s: BLEnergy.startMoveEnergy: %.3f", self.name(), float(value))
-    
+        
         # MODIFICATION DE CETTE FONCTION POUR COMPENSER LE PROBLEME D'HYSTERESIS DE L"ONDULEUR
         # PAR CETTE METHODE ON APPLIQUE TOUJOURS UN GAP CROISSANT
         backlash = 0.1 # en mm
@@ -210,7 +222,13 @@ class BLEnergy (Device) :
                 logging.getLogger("HWR").info("BLEnergy : turning mono1-mt_rx on") 
                 self.mono_mt_rx_oncmd()
                 time.sleep(0.2)
-            
+        
+        if self.mono_mt_rx_fine_statech is not None and self.mono_mt_rx_fine_oncmd is not None:
+            while str(self.mono_mt_rx_fine_statech.getValue()) == 'OFF':
+                logging.getLogger("HWR").info("BLEnergy : turning mono1-mt_rx_fine on") 
+                self.mono_mt_rx_fine_oncmd()
+                time.sleep(0.2)
+                
         if (  str( self.BLEnergydevice.State() ) != "MOVING" and self.deviceOk) :
             if self.doBacklashCompensation :
                 try : 
@@ -331,7 +349,10 @@ def test():
     if str(egy.mono_mt_rx_statech.getValue()) == "OFF":
         print "mono_mt_rx motor is off. putting it on"
         egy.mono_mt_rx_oncmd()
- 
+    
+    if str(egy.mono_mt_rx_fine_statech.getValue()) == "OFF":
+        print "mono_mt_rx motor is off. putting it on"
+        egy.mono_mt_rx_fine_oncmd()
 
 if __name__ == '__main__':
     test()

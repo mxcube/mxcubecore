@@ -17,12 +17,12 @@ beamPosChanged
 
 [Example XML file]
 
-<device class = "SoleilBeamInfo">
+<device class = "BeaminfoPX2">
   <username>Beamstop</username>
-  <channel type="tango" tangoname="i10-c-cx1/ex/beamsize" polling="1000" name="beamsizex">sizeX</channel>
-  <channel type="tango" tangoname="i10-c-cx1/ex/beamsize" polling="1000" name="beamsizey">sizeZ</channel>
-  <channel type="tango" tangoname="i10-c-cx1/ex/beamposition" polling="1000" name="positionx">positionX</channel>
-  <channel type="tango" tangoname="i10-c-cx1/ex/beamposition" polling="1000" name="positiony">positionZ</channel>
+  <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="beamsizex">BeamSizeHorizontal</channel>
+  <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="beamsizey">BeamSizeVertical</channel>
+  <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="positionx">BeamPositionHorizontal</channel>
+  <channel type="tango" tangoname="i11-ma-cx1/ex/md2" polling="1000" name="positiony">BeamPositionVertical</channel>
   <object  role="zoom"  hwrid="/zoom"></object>
 </device>
 
@@ -31,7 +31,6 @@ beamPosChanged
 """
 
 import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 class BeamInfoPX2(Equipment):
@@ -39,8 +38,8 @@ class BeamInfoPX2(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 
-        self.beam_position = [None, None] # [329, 246] #[None, None]
-        self.beam_size     = [None, None] #[0.010, 0.005] #[None, None]
+        self.beam_position = [328, 220] #[None, None]
+        self.beam_size     = [0.010, 0.005] #[None, None]
         self.shape         = 'rectangular'
 
         self.beam_info_dict  = {'size_x': None, 'size_y': None, 'shape': self.shape}
@@ -89,7 +88,7 @@ class BeamInfoPX2(Equipment):
         self.zoomMotor = self.getDeviceByRole("zoom")
         
         self.beam_position[0], self.beam_position[1] = self.chanBeamPosX.value, self.chanBeamPosY.value
-        
+       
         if self.zoomMotor is not None:
            self.connect(self.zoomMotor, 'predefinedPositionChanged', self.zoomPositionChanged)
         else:
@@ -118,11 +117,11 @@ class BeamInfoPX2(Equipment):
     def zoomPositionChanged(self, name, offset):
         logging.getLogger().info('zoom position changed. It is %s / offset=%s ' % (name,offset))
         self.beam_position[0], self.beam_position[1] = self.chanBeamPosX.value, self.chanBeamPosY.value
-        logging.getLogger().info('getting info on beam position from channels: x %s y: %s ' % (self.chanBeamPosX.value, self.chanBeamPosY.value))
 
     def sizeUpdated(self):
-        self.beam_info_dict['size_x'] = 0.010
-        self.beam_info_dict['size_y'] = 0.005
+        #TODO check values give by md2 it appears that  beamSizeXChanged beamSizeYChanged it is not the reality !!!!!!
+        self.beam_info_dict['size_x'] = 0.010 # in micro channel in MD2 doesn't work
+        self.beam_info_dict['size_y'] = 0.005#
         self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
     def sizeUpdated2(self):
@@ -131,6 +130,7 @@ class BeamInfoPX2(Equipment):
              return
         self.beam_info_dict['size_x'] = self.beam_size[0]
         self.beam_info_dict['size_y'] = self.beam_size[1]
+        
         self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
     def positionUpdated(self):
@@ -138,11 +138,11 @@ class BeamInfoPX2(Equipment):
         self.sizeUpdated()
 
     def get_beam_info(self):
-        logging.getLogger().warning('returning beam info It is %s ' % str(self.beam_info_dict))
+        #logging.getLogger().warning('returning beam info It is %s ' % str(self.beam_info_dict))
         return self.beam_info_dict
         
     def get_beam_position(self):
-        logging.getLogger().warning('returning beam positions. It is %s ' % str(self.beam_position))
+        #logging.getLogger().warning('returning beam positions. It is %s ' % str(self.beam_position))
         return self.beam_position	
 
     def get_beam_size(self):

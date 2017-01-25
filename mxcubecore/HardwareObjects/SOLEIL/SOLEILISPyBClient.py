@@ -29,6 +29,9 @@ class SOLEILISPyBClient(ISPyBClient2.ISPyBClient2):
         self.ws_shipping = self.getProperty('ws_shipping')
         self.ws_tools = self.getProperty('ws_tools')
         
+        self.loginType = self.getProperty("loginType") or "proposal"
+        self.loginTranslate = self.getProperty("loginTranslate") or True
+        
         logging.debug("Initializing SOLEIL ISPyB Client")
         logging.debug("   - using http_proxy = %s " % os.environ['http_proxy'])
 
