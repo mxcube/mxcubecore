@@ -1751,3 +1751,30 @@ class GraphicsCameraFrame(QtGui.QGraphicsPixmapItem):
         self.scene().mouseReleasedSignal.emit(position.x(), position.y())
         self.update()
         #self.setSelected(True)
+
+class GraphicsMagnificationFrame(QtGui.QGraphicsPixmapItem):
+    def __init__ (self, parent=None):
+        super(GraphicsMagnificationFrame, self).__init__(parent)
+
+        self.start_x = 0
+        self.start_y = 0
+        self.scale = 3
+        self.area_size = 100
+        
+    def set_pixmap(self, pixmap_image):
+        crop_pixmap = pixmap_image.copy(self.start_x, self.start_y,
+             self.area_size, self.area_size).scaled(\
+             self.area_size * self.scale, self.area_size * self.scale)
+        self.setPixmap(crop_pixmap)
+
+    def set_position(self, pos_x, pos_y):
+        self.start_x = pos_x
+        self.start_y = pos_y
+        self.setPos(pos_x - self.area_size * self.scale / 2,
+                    pos_y - self.area_size * self.scale / 2)
+
+    def set_properties(self, property_dict):
+        property_dict = eval(property_dict)
+        if property_dict:
+            self.scale = property_dict.get("scale", 3)
+            self.area_size = property_dict.get("area_size", 100)
