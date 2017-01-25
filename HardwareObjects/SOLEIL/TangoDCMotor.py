@@ -8,7 +8,8 @@ from HardwareRepository.Command.Tango import TangoCommand
 
 from PyTango import DeviceProxy
 
-from qt import qApp
+from PyQt4.QtGui import QApplication
+#from qt import qApp
 
 import numpy
 
@@ -19,7 +20,7 @@ class TangoDCMotor(Device):
     UNUSABLE       = 0
     READY          = 2
     MOVING         = 4
-    ONLIMITS       = 1
+    ONLIMIT       = 1
 
     stateDict = {
         "UNKNOWN": 0,
@@ -107,7 +108,7 @@ class TangoDCMotor(Device):
         self.emit('stateChanged', (TangoDCMotor.stateDict[self.stateValue], ))
         
     def getState(self):
-        state = self.stateValue
+        #state = self.stateValue
         return TangoDCMotor.stateDict[self.stateValue]
     
     def getLimits(self):
@@ -118,14 +119,14 @@ class TangoDCMotor(Device):
             if numpy.inf in limits:
                 limits = numpy.array([-10000, 10000])
         except:
-            import traceback
+            #import traceback
             #logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             limits = None
             
         if limits is None:
             try:
                 limits = self.getProperty('min'), self.getProperty('max')
-                logging.getLogger("HWR").info("TangoDCMotor.getLimits: %.4f %.4f" % limits)
+                logging.getLogger("HWR").info("TangoDCMotor.getLimits: %.4f ***** %.4f" % limits)
                 limits = numpy.array(limits)
             except:
                 #logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s" % self.name())
@@ -165,7 +166,7 @@ class TangoDCMotor(Device):
         self.syncMoveRelative(relative_position)
         time.sleep(0.2) # allow MD2 to change the state
         while self.stateValue == "RUNNING" or self.stateValue == "MOVING": # or self.stateValue == SpecMotor.MOVESTARTED:
-            qApp.processEvents(100)
+            QApplication.processEvents(100)
 
     def moveRelative(self, position):
         old_pos = self.positionValue
@@ -174,7 +175,7 @@ class TangoDCMotor(Device):
         logging.info("TangoDCMotor: movingRelative. motor will go to %s " % str(self.positionValue))
 
         while self.stateValue == "RUNNING" or self.stateValue == "MOVING":
-            qApp.processEvents(100)
+            QApplication.processEvents(100)
         
     def convertValue(self, value):
         logging.info("TangoDCMotor: converting value to %s " % str(self.dataType))
@@ -199,7 +200,7 @@ class TangoDCMotor(Device):
             logging.info("TangoDCMotor: syncMoveRelative is moving %s" % str( mystate ))
             time.sleep(0.1)
             mystate = str( dev.State() )
-            qApp.processEvents(100)
+            QApplication.processEvents(100)
         
     def getMotorMnemonic(self):
         return self.name()
