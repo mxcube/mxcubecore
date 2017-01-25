@@ -1,90 +1,212 @@
-'''Tango Shutter Hardware Object
-Example XML:
+# -*- coding: utf-8 -*-
+'''
+File:  TangoShutter.py
+
+Description:
+---------------------------------------------------------------
+Hardware Object to provide Shutter functionality through Tango
+or other compatible system. In fact any combination of HardwareRepository
+commands/states will work.
+
+Two possible situations are supported by this hardware object:
+    - One state attribute
+    - Two action commands (in/out, open/close, insert/extract..)
+
+ or 
+    - One read/write attribute with two states
+
+Signals
+---------------------------------------------------------------
+This hardware object will emit signals:
+
+    stateChanged(new_state)
+
+The `new_state` will be one string out of:
+
+    'closed',
+    'opened',
+    'standby',
+    'alarm',
+    'unknown',
+    'fault',
+    'disabled',
+    'moving',
+    'init',
+    'automatic',
+    'running',
+    'insert',
+    'extract',
+
+The state strings will be converted from the state reported by the hardware by a conversion 
+table detailed below. This table is inspired in the Tango.DevState possible values, but also
+in other cases like for example an attribute being True/False or other known real cases.
+
+Methods
+---------------------------------------------------------------
+   openShutter()
+   closeShutter()
+
+Hardware to Shutter State conversion
+---------------------------------------------------------------
+
+The following table details the conversion to shutter states from 
+hardware state::
+
+  --------- --------------- ---------------
+  Hardware   Shutter         PyTango.DevState
+  --------- --------------- -------------------
+    False    'closed'
+    True     'opened'
+    0        'closed'
+    1        'opened'       
+    4        'insert'       
+    5        'extract'
+    6        'moving'
+    7        'standby'
+    8        'fault'
+    9        'init'
+   10        'running'
+   11        'alarm'
+   12        'disabled'
+   13        'unknown'
+   -1        'fault'
+   None      'unknown'
+  '_'        'automatic' 
+  'UNKNOWN'  'unknown'        UNKNOWN
+  'CLOSE'    'closed'         CLOSE
+  'OPEN'     'opened'         OPEN
+  'INSERT'   'closed'         INSERT
+  'EXTRACT'  'opened'         EXTRACT
+  'MOVING'   'moving'         MOVING
+  'RUNNING'  'moving'         MOVING
+  'FAULT'    'fault'          FAULT
+  'DISABLE'  'disabled'       DISABLE
+  'ON'       'unknown'        ON
+  'OFF'      'fault'          OFF
+  'STANDBY'  'standby'        STANDBY
+  'ALARM'    'alarm'          ALARM
+  'INIT'     'init'           INIT
+  --------- ---------------
+
+XML Configuration Example:
+---------------------------------------------------------------
+
+* With state attribute and open/close commands
+
 <device class = "TangoShutter">
-  <username>label for users</username>
-  <command type="tango" tangoname="my device" name="Open">Open</command>
-  <command type="tango" tangoname="my device" name="Close">Close</command>
-  <channel type="tango" name="State" tangoname="my device" polling="1000">State</channel>
+  <username>FrontEnd</username>
+  <tangoname>c-x1/sh-c1-4/1</tangoname>
+  <command type="tango" name="Open">Open</command>
+  <command type="tango" name="Close">Close</command>
+  <channel type="tango" name="State" polling="1000">State</channel>
+</device>
+
+* With read/write attribute :
+
+In the example the tango attribute is called "exper_shutter"
+
+<device class = "TangoShutter">
+  <username>Fast Shutter</username>
+  <channel type="tango" name="State" tangoname="c-x2/sh-ex-12/fs" polling="events">exper_shutter</channel>
 </device>
 
 '''
 
-
+from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
+
 import logging
 
 class TangoShutter(BaseHardwareObjects.Device):
+
     shutterState = {
-        0:  'ON',
-        1:  'OFF',
-        2:  'CLOSED',
-        3:  'OPENED',
-        4:  'INSERT',
-        5:  'EXTRACT',
-        6:  'MOVING',
-        7:  'STANDBY',
-        8:  'FAULT',
-        9:  'INIT',
-        10: 'RUNNING',
-        11: 'ALARM',
-        12: 'DISABLED',
-        13: 'UNKNOWN',
-        -1: 'FAULT'
+        'FALSE':    'closed',
+        'TRUE':     'opened',
+        '0':        'closed',
+        '1':        'opened',
+        '4':        'insert',
+        '5':        'extract',
+        '6':        'moving',
+        '7':        'standby',
+        '8':        'fault',
+        '9':        'init',
+        '10':       'running',
+        '11':       'alarm',
+        '12':       'disabled',
+        '13':       'unknown',
+        '-1':       'fault',
+        'NONE':     'unknown',
+        'UNKNOWN':  'unknown',
+        'CLOSE':    'closed',
+        'OPEN':     'opened',
+        'INSERT':   'closed',
+        'EXTRACT':  'opened',
+        'MOVING':   'moving',
+        'RUNNING':  'moving',
+        '_':        'automatic',
+        'FAULT':    'fault',
+        'DISABLE':  'disabled',
+        'OFF':      'fault',
+        'STANDBY':  'standby',
+        'ON':       'unknown',
+        'ALARM':    'alarm',
         }
-
-    shutterStateString = {
-        'ON':        'white',
-        'OFF':       '#012345',
-        'CLOSED':    '#FF00FF',
-        'OPEN':      '#00FF00',
-        'INSERT':    '#412345',
-        'EXTRACT':   '#512345',
-        'MOVING':    '#663300',
-        'STANDBY':   '#009900',
-        'FAULT':     '#990000',
-        'INIT':      '#990000',
-        'RUNNING':   '#990000',
-        'ALARM':     '#990000',
-        'DISABLED':  '#EC3CDD',
-        'UNKNOWN':   'GRAY',
-        'FAULT':     '#FF0000',
-        }
-
-    def __init__(self, name):
-        BaseHardwareObjects.Device.__init__(self, name)
 
     def init(self):
-        self.shutterStateValue = 13
+        self.state_value_str = 'unknown'
 
         try:
-            chanStatus = self.getChannelObject('State')
-            chanStatus.connectSignal('update', self.shutterStateChanged)
+            self.shutter_channel = self.getChannelObject('State')
+            self.shutter_channel.connectSignal('update', self.shutterStateChanged)
         except KeyError:
-            logging.getLogger().warning('%s: cannot report State', self.name())
+            logging.getLogger().warning('%s: cannot connect to shutter channel', self.name())
 
+        self.open_cmd = self.getCommandObject("Open")
+        self.close_cmd = self.getCommandObject("Close")
 
     def shutterStateChanged(self, value):
-        #
-        # emit signal
-        #
-        self.shutterStateValue = value
-        # print "emit : ",TangoShutter.shutterState[self.shutterStateValue]
-        self.emit('shutterStateChanged', (self.getShutterState(),))
+        self.state_value_str = self._convert_state_to_str(value)
+        self.emit('shutterStateChanged', (self.state_value_str,))
 
+    def _convert_state_to_str(self, value):
+        state = str(value).upper()
+        state_str = self.shutterState.get(state,"unknown")
+        return state_str
+
+    def readShutterState(self):
+        state = self.shutter_channel.getValue() 
+        return self._convert_state_to_str(state)
 
     def getShutterState(self):
-        #print "getShutterState return :", TangoShutter.shutterState[self.shutterStateValue]
-        #print "                      self.shutterStateValue=", self.shutterStateValue
-        return TangoShutter.shutterState.get(self.shutterStateValue, "UNKNOWN").lower()
-
-
-    def isShutterOk(self):
-        return not self.getShutterState() in ('OFF', 'UNKNOWN', 'MOVING', 'FAULT', 'INSERT', 'EXTRACT',
-                                              'INIT', 'DISABLED', 'ERROR', 'ALARM', 'STANDBY')
+        return self.state_value_str
 
     def openShutter(self):
-        self.getCommandObject("Open")()
+        # Try getting open command configured in xml
+        # If command is not defined then try writing the channel
+        if self.open_cmd is not None:
+            self.open_cmd()
+        else:
+            self.shutter_channel.setValue(True)
 
     def closeShutter(self):
-        self.getCommandObject("Close")()
+        # Try getting close command configured in xml
+        # If command is not defined try writing the channel
+        if self.close_cmd is not None:
+            self.close_cmd()
+        else:
+            self.shutter_channel.setValue(False)
+
+def test():
+    import os
+    hwr_directory = os.environ["XML_FILES_PATH"]
+
+    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr.connect()
+
+    shut = hwr.getHardwareObject("/fastshutter")
+
+    print "Shutter State is: ",shut.readShutterState()
+
+if __name__ == '__main__':
+    test()
 
