@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import math
 import logging
-import time
-import qt
+#import time
+#import qt
 
 #from SimpleDevice import SimpleDevice
 from PyTango import DeviceProxy
@@ -57,18 +57,27 @@ class TangoResolutionComplex(BaseHardwareObjects.Equipment):
         #self.device.timeout = 3000 # Setting timeout to 3 sec
         
         #self.monodevice = SimpleDevice(self.getProperty("tangoname2"), waitMoves = False, verbose=False)
-        self.blenergyHOname = self.getProperty("BLEnergy")
-        if self.blenergyHOname is None:
-            logging.getLogger("HWR").error('TangoResolution: you must specify the %s hardware object' % self.blenergyHOname)
-            hobj=None
-            self.configOk=False
+
+        hobj = self.getProperty("BLEnergy")
+        logging.getLogger("HWR").debug('TangoResolution: load specify the %s hardware object' % hobj)
+        self.blenergyHO = None
+        if hobj is not None:
+            try:
+                self.blenergyHO=HardwareRepository.HardwareRepository().getHardwareObject(hobj)
+            except:
+                logging.getLogger("HWR").error('TangoResolutionComplex: BLEnergy is not defined in resolution equipment %s', str(self.name()))
+       
+        if self.blenergyHO is not None:
+            #self.connect(self.blenergyHO, "energyChanged",self.energyChanged)
+            self.blenergyHO.connect("energyChanged",self.energyChanged)
         else:
-            hobj=HardwareRepository.HardwareRepository().getHardwareObject(self.blenergyHOname)
-            if hobj is None:
-                logging.getLogger("HWR").error('TangoResolution: invalid %s hardware object' % self.blenergyHOname)
-                self.configOk=False
-            self.blenergyHO=hobj
-            self.connect(self.blenergyHO,qt.PYSIGNAL('energyChanged'), self.energyChanged)
+            logging.info('TANGORESOLUTION : BLENERGY is not defined in TangoResolution equipment %s', str(self.name()))
+
+        #self.connect(self.blenergyHO,, "energyChanged",self.energyChanged)
+        #self.connect(self.beam_info_hwobj, 
+        #                 "beamPosChanged", 
+        #                 self.beam_position_changed)
+            #self.blenergyHO.connectSignal('energyChanged', self.energyChanged)
         # creer un chanel sur l'energy: pour faire un update 
         positChan = self.getChannelObject("position") # utile seulement si statechan n'est pas defini dans le code
         positChan.connectSignal("update", self.positionChanged)
@@ -126,7 +135,8 @@ class TangoResolutionComplex(BaseHardwareObjects.Equipment):
         self.recalculateResolution()
         return self.currentResolution
 
-    def energyChanged(self, energy):
+    def energyChanged(self, energy,wave=None):
+        #logging.getLogger("HWR").debug(" %s energychanged : %.3f wave is %.3f", self.name(), energy,wave)
         if self.currentEnergy is None:
             self.currentEnergy = energy
         if type(energy) is not float:
@@ -186,8 +196,6 @@ class TangoResolutionComplex(BaseHardwareObjects.Equipment):
                                                     % (self.name(), low, high))
         
         if callable(callback):
-            #logging.getLogger("HWR").debug("getLimits with callback: %s" % callback)
-
             self.__resLimitsCallback = callback
             self.__resLimitsErrCallback = error_callback
 
@@ -197,13 +205,14 @@ class TangoResolutionComplex(BaseHardwareObjects.Equipment):
             rhigh = self.dist2res(high, callback=self.__resHighLimitCallback,\
                                    error_callback=self.__resLimitsErrCallback)
         else:
-            #logging.getLogger("HWR").debug("getLimits with no callback")
             #rlow, rhigh = map(self.dist2res, self.device.getLimits("position"))
             # MS 18.09.2012 adapted for use without SimpleDevice
             #rhigh = self.device.attribute_query("positon").max_value
-            position_info = self.device.attribute_query("position")
-            rlow  = float(position_info.min_value)
-            rhigh = float(position_info.max_value)
+            rlow  = self.dist2res(low)
+            rhigh   = self.dist2res(high)
+            #position_info = self.device.attribute_query("position")
+            #rlow  = float(position_info.min_value)
+            #rhigh = float(position_info.max_value)
             
         
         logging.getLogger("HWR").debug("%s: TangoResolution.getLimits: [%.3f - %.3f]"\
@@ -281,6 +290,22 @@ class TangoResolutionComplex(BaseHardwareObjects.Equipment):
                 self.currentWavelength = self.blenergyHO.getCurrentWavelength()
             thetaangle2 = math.atan(DETECTOR_DIAMETER/2./Distance)
             Resolution = 0.5*self.currentWavelength /math.sin(thetaangle2/2.)
+            if callable(callback):
+                callback(Resolution)
+            return Resolution
+        except:
+            if callable(error_callback):
+                error_callback()
+    
+    def dist2resWaveLenght(self,wavelength, Distance, callback=None, error_callback=None):
+
+        #Distance = float(Distance)# MS 2015-03-26 moving statement inside try loop
+        try:
+            #Distance = Distance
+            #Wavelength = self.monodevice._SimpleDevice__DevProxy.read_attribute("lambda").value
+            
+            thetaangle2 = math.atan(DETECTOR_DIAMETER/2./Distance)
+            Resolution = 0.5*wavelength /math.sin(thetaangle2/2.)
             if callable(callback):
                 callback(Resolution)
             return Resolution

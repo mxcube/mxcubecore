@@ -2,6 +2,7 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 import logging
+import PyTango
 
 class PX2Flux(BaseHardwareObjects.Device):
 
