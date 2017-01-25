@@ -83,6 +83,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.in_move_beam_mark_state = None
         self.in_select_items_state = None
         self.in_beam_define_state = None
+        self.in_magnification_mode = None
         self.wait_grid_drawing_click = None
         self.wait_measure_distance_click = None
         self.wait_measure_angle_click = None
@@ -107,6 +108,11 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_beam_mark_item = None
         self.graphics_select_tool_item = None
         self.graphics_beam_define_item = None
+        self.graphics_move_up_item = None
+        self.graphics_move_right_item = None
+        self.graphics_move_down_item = None
+        self.graphics_move_left_item = None
+        self.graphics_magnification_frame = None
  
     def init(self):
         """Main init function. Initiates all graphics items, hwobjs and 
@@ -144,6 +150,9 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item = GraphicsLib.GraphicsItemMove(self, "right")
         self.graphics_move_down_item = GraphicsLib.GraphicsItemMove(self, "down")
         self.graphics_move_left_item = GraphicsLib.GraphicsItemMove(self, "left")
+        self.graphics_magnification_frame = \
+             GraphicsLib.GraphicsMagnificationFrame()
+        self.graphics_magnification_frame.hide()
          
         self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
         self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
@@ -161,6 +170,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
+        self.graphics_view.graphics_scene.addItem(self.graphics_magnification_frame)
 
         self.graphics_view.scene().mouseClickedSignal.connect(\
              self.mouse_clicked)
@@ -255,7 +265,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item.setVisible(self.getProperty("enable_move_buttons") == True)
         self.graphics_move_down_item.setVisible(self.getProperty("enable_move_buttons") == True)
         self.graphics_move_left_item.setVisible(self.getProperty("enable_move_buttons") == True)
-
+        self.graphics_magnification_frame.set_properties(self.getProperty("magnification_tool"))
         #self.init_auto_grid()  
 
     def save_graphics_config(self):
@@ -334,7 +344,10 @@ class Qt4_GraphicsManager(HardwareObject):
             pixmap_image = pixmap_image.scaled(QtCore.QSize(\
                pixmap_image.width() * self.image_scale,
                pixmap_image.height() * self.image_scale))
-        self.graphics_camera_frame.setPixmap(pixmap_image) 
+        self.graphics_camera_frame.setPixmap(pixmap_image)
+
+        if self.in_magnification_mode:
+            self.graphics_magnification_frame.set_pixmap(pixmap_image)
 
     def beam_position_changed(self, position):
         """Method called when beam position on the screen changed.
@@ -685,6 +698,8 @@ class Qt4_GraphicsManager(HardwareObject):
                         self.emit("pointSelected", point)
                 self.select_lines_and_grids()
                 """
+        elif self.in_magnification_mode:
+            self.graphics_magnification_frame.set_position(pos_x, pos_y)
 
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
@@ -704,6 +719,8 @@ class Qt4_GraphicsManager(HardwareObject):
             self.stop_measure_area()  
             if self.in_beam_define_state:
                 self.stop_beam_define()
+            if self.in_magnification_mode:
+                self.set_magnification_mode(False)
         #elif key_event == "Up":
         #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
         #                                           self.beam_position[1] - 50)
@@ -1603,3 +1620,12 @@ class Qt4_GraphicsManager(HardwareObject):
     def display_beam_size(self, state):
         """Enables or disables displaying the beam size"""
         self.graphics_beam_item.enable_beam_size(state) 
+
+    def set_magnification_mode(self, mode):
+        if mode:
+            QtGui.QApplication.setOverrideCursor(\
+                  QtGui.QCursor(QtCore.Qt.ClosedHandCursor))
+        else:
+            QtGui.QApplication.restoreOverrideCursor()
+        self.graphics_magnification_frame.setVisible(mode)
+        self.in_magnification_mode = mode 
