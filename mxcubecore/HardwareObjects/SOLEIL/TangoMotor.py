@@ -31,7 +31,7 @@ class TangoMotor(Device):
         self.UNUSABLE = 0
         self.READY = 2
         self.MOVING = 4
-        self.ONLIMITS = 1
+        self.ONLIMIT = 1
 
         self.device = DeviceProxy(self.getProperty("tangoname")) #, verbose=False)
         self.device.timeout = 6000 # Setting timeout to 6 sec

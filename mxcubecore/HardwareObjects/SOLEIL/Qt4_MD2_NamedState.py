@@ -1,10 +1,13 @@
 
-from qt import *
+#from qt import *
+
+from PyQt4 import QtGui
+from PyQt4 import QtCore
 
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
 
-class MD2_NamedState(Device):
+class Qt4_MD2_NamedState(Device):
 
     def __init__(self, name):
         Device.__init__(self,name)
@@ -64,7 +67,8 @@ class MD2_NamedState(Device):
             # This is the case for ApertureDiameterList *configured as statelist channel in xml
             statelist = self.stateListChannel.getValue()
             for statename in statelist:
-                self.stateList.append(statename)
+                #cenvert in str because statename is numpy.int32 from Tango and deosn't work in QCombox !!!!!!
+                self.stateList.append(str(statename))
         else:
             # This is the case where state names are listed in xml
             try:
@@ -110,7 +114,7 @@ class MD2_NamedState(Device):
     def setState(self, statename):
 
         self.emit('hardwareStateChanged', ("STANDBY",))
-        logging.getLogger().exception('changing state for %s to ws: %s.' % ( self.getUserName(), statename))
+        logging.getLogger().exception('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..............changing state for %s to ws: %s.' % ( self.getUserName(), statename))
 
         if self.commandtype is not None and self.commandtype == 'index':
             logging.getLogger().info('   this is index mode. %s' % str(self.stateList))
@@ -123,7 +127,7 @@ class MD2_NamedState(Device):
                 self.emit('hardwareStateChanged', ("ERROR",))
                 return
         else:
-            statevalue = statename
+            statevalue = unicode(statename)
 
         try:
             logging.getLogger().exception('changing state for %s to ws: %s' % ( self.getUserName(), statevalue))
@@ -133,7 +137,8 @@ class MD2_NamedState(Device):
             else:
                 logging.getLogger().exception('  - using attribute mode')
                 try:
-                    self.stateChan.setValue(statevalue) 
+                    #probleme de unicode tester en mettant un unicode
+                    self.stateChan.setValue(statevalue)
                 except:
                     logging.getLogger().exception("cannot write attribute")
                     self.emit('stateChanged', (self.getState(), ))

@@ -1,5 +1,5 @@
 
-from qt import *
+#from qt import *
 
 from HardwareRepository.BaseHardwareObjects import Device
 from TangoDCMotor import TangoDCMotor
