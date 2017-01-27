@@ -43,6 +43,7 @@ class SoleilSafetyShutter(HardwareObject):
         #
         self.shutterStateValue = value # str(value)
         self.emit('shutterStateChanged', (self.getShutterState(),))
+        self.emit('stateChanged', (self.getShutterState(),))
 
 
     def openShutter(self):

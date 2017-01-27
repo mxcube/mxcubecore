@@ -535,7 +535,7 @@ class PixelDetector:
           self.oscillation_task.kill()
       self.execute_command("reset_detector")
 
-SOLEILBeamlineConfig = namedtuple('SOLEILBeamlineConfig', BeamlineConfig._fields+('detector_radius', 'synchrotron_name',))
+SOLEILBeamlineConfig = namedtuple('SOLEILBeamlineConfig', BeamlineConfig._fields+('detector_radius', ))
 
 class SOLEILMultiCollect(AbstractMultiCollect, HardwareObject):
     def __init__(self, name, detector, tunable_bl):
