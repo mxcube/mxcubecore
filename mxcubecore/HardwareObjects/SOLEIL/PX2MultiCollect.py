@@ -40,9 +40,11 @@ class PX2MultiCollect(SOLEILMultiCollect):
         self.take_sample_snapshots = int(self.getProperty("take_sample_snapshots"))
         self.move_detector_flag = int(self.getProperty("move_detector_flag"))
         self.move_resolution_flag = int(self.getProperty("move_resolution_flag"))
-        self.lima_overhead = float(self.getProperty("lima_overhead"))
-        
+        self.lima_overhead = self.getProperty("lima_overhead")
         logging.info("<PX2 MultiCollect> lima_overhead %s" % self.lima_overhead)
+        self.lima_overhead = float(self.lima_overhead)
+
+        
         self._detector.prepareHeader = self.prepareHeader
         logging.getLogger("user_level_log").info("initializing PX2MultiCollect")
         SOLEILMultiCollect.init(self)

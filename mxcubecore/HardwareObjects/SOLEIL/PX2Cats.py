@@ -218,6 +218,9 @@ class PX2Cats(SampleChanger):
         """
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)#WASA
         
+    def can_wash(self):
+        return True
+
     # a tester from PX1 si util !!!!
     def is_mounted_sample(self, sample_location):        
         try:
