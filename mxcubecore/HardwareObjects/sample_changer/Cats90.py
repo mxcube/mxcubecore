@@ -203,6 +203,11 @@ class Cats90(SampleChanger):
         return basket_list
 
         
+    def isPowered(self):
+        return self._chnPowered.getValue()
+    def isPathRunning(self):
+        return self._chnPathRunning.getValue()
+
     #########################           TASKS           #########################
 
     def _doUpdateInfo(self):       
@@ -556,7 +561,8 @@ class Cats90(SampleChanger):
             state = SampleChangerState.Ready
 
         logging.getLogger("HWR").warning("SAMPLE CHANGER state updated poweron=%s / cats_state=%s / cats_status=%s " % (self.cats_powered, self.cats_state, self.cats_status))
-        status = self.cats_status
+        #status = self.cats_status
+        status = SampleChangerState.tostring(state)
         self._setState(state, status)
        
     def _readState(self):
