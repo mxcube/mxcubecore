@@ -1,5 +1,5 @@
 <object class="DataAnalysis">
   <!-- Path to script that launches edna -->
-  <edna_command>/users/blissadm/local/bin/edna_script.sh</edna_command>
+  <edna_command>PATH_TO_EDNA_LAUNCH_SCRIPT</edna_command>
   <edna_default_file>edna_defaults.xml</edna_default_file>
 </object>
