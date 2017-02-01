@@ -2,7 +2,7 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
-from sample_changer.Cats90 import Cats90
+from sample_changer.Cats90 import Cats90, SampleChangerState
 import logging
 
 class ALBACats(Cats90):
@@ -29,7 +29,7 @@ class ALBACats(Cats90):
         """
         Load a sample. 
         """
-        if self.read_diff_phase() != "TRANSFER":
+        if self.read_diff_phase().upper() != "TRANSFER":
             logging.getLogger("user_level_log").error("Cannot mount. Diffractometer is not in transfer phase")
             return
 
@@ -53,7 +53,7 @@ class ALBACats(Cats90):
         Unload the sample. 
         If sample_slot=None, unloads to the same slot the sample was loaded from.        
         """
-        if self.read_diff_phase() != "TRANSFER":
+        if self.read_diff_phase().upper() != "TRANSFER":
             logging.getLogger("user_level_log").error("Cannot mount. Diffractometer is not in transfer phase")
             return
 
@@ -124,11 +124,14 @@ class ALBACats(Cats90):
                 raise Exception("The sample " + str(self.getLoadedSample().getAddress()) + " is already loaded")
             else:
                 logging.getLogger("HWR").warning("  ==========CATS=== chained load sample, sending to cats:  %s" % argin)
-                #self._executeServerTask(self._cmdChainedLoad, argin)
+                self._executeServerTask(self._cmdChainedLoad, argin)
         else:
-            import logging
-            logging.getLogger("HWR").warning("  ==========CATS=== load sample, sending to cats:  %s" % argin)
-            #self._executeServerTask(self._cmdLoad, argin)
+            if self.cats_sample_on_diffr():
+                logging.getLogger("HWR").warning("  ==========CATS=== sample on diffr, loading aborted") 
+                self._updateState() # remove transient states like Loading. Reflect hardware state
+            else:
+                logging.getLogger("HWR").warning("  ==========CATS=== load sample, sending to cats:  %s" % argin)
+                self._executeServerTask(self._cmdLoad, argin)
 
     def _doUnload(self,sample_slot=None, shifts=None):
         """
@@ -152,9 +155,8 @@ class ALBACats(Cats90):
 
         argin = ["2", "0", xshift, yshift, zshift]
 
-        import logging
         logging.getLogger("HWR").warning("  ==========CATS=== unload sample, sending to cats:  %s" % argin)
-        #self._executeServerTask(self._cmdUnload, argin)
+        self._executeServerTask(self._cmdUnload, argin)
 
     def _get_shifts(self):
         if self.shifts_channel is not None:
@@ -166,6 +168,7 @@ class ALBACats(Cats90):
 def test_hwo(hwo):
     print(" Is path running? ", hwo.isPathRunning())
     print(" Loading shifts:  ", hwo._get_shifts())
+    print(" Sample on diffr :  ", hwo.cats_sample_on_diffr())
 
 if  __name__ == '__main__':
     test()
