@@ -1801,39 +1801,3 @@ class GraphicsCameraFrame(QGraphicsPixmapItem):
         self.scene().mouseReleasedSignal.emit(position.x(), position.y())
         self.update()
         #self.setSelected(True)
-
-class GraphicsMagnificationFrame(QGraphicsPixmapItem):
-    """Class provides a magnification tool.
-       Defined rectangle is maginfied and displayed next to the 
-       magnification area.
-    """
-
-    def __init__ (self, parent=None):
-        super(GraphicsMagnificationFrame, self).__init__(parent)
-
-        self.start_x = 0
-        self.start_y = 0
-        self.scale = 3
-        self.area_size = 100
-
-        self.custom_pen = QPen(SOLID_LINE_STYLE)
-        self.custom_pen.setWidth(1)
-        self.custom_pen.setColor(Qt.white)
-        
-    def set_pixmap(self, pixmap_image):
-        crop_pixmap = pixmap_image.copy(self.start_x, self.start_y,
-             self.area_size, self.area_size).scaled(\
-             self.area_size * self.scale, self.area_size * self.scale)
-        self.setPixmap(crop_pixmap)
-
-    def set_position(self, pos_x, pos_y):
-        self.start_coord[0] = pos_x
-        self.start_coord[1] = pos_y
-        self.setPos(pos_x + self.area_size + 50,
-                    pos_y + self.area_size + 50)
-
-    def set_properties(self, property_dict):
-        property_dict = eval(property_dict)
-        if property_dict:
-            self.scale = property_dict.get("scale", 3)
-            self.area_size = property_dict.get("area_size", 100)
