@@ -39,8 +39,7 @@ from copy import deepcopy
 from scipy import ndimage
 from scipy.interpolate import splrep, sproot
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from QtImport import *
 
 import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects_v1 as queue_model_objects
@@ -112,7 +111,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item = None
         self.graphics_move_down_item = None
         self.graphics_move_left_item = None
-        self.graphics_magnification_frame = None
+        self.graphics_magnification_item = None
  
     def init(self):
         """Main init function. Initiates all graphics items, hwobjs and 
@@ -150,9 +149,11 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item = GraphicsLib.GraphicsItemMove(self, "right")
         self.graphics_move_down_item = GraphicsLib.GraphicsItemMove(self, "down")
         self.graphics_move_left_item = GraphicsLib.GraphicsItemMove(self, "left")
-        self.graphics_magnification_frame = \
-             GraphicsLib.GraphicsMagnificationFrame()
-        self.graphics_magnification_frame.hide()
+        #self.graphics_magnification_frame = \
+        #     GraphicsLib.GraphicsMagnificationFrame()
+        self.graphics_magnification_item = \
+              GraphicsLib.GraphicsMagnificationItem(self)
+        self.graphics_magnification_item.hide()
          
         self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
         self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
@@ -170,7 +171,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_magnification_frame)
+        self.graphics_view.graphics_scene.addItem(self.graphics_magnification_item)
 
         self.graphics_view.scene().mouseClickedSignal.connect(\
              self.mouse_clicked)
@@ -265,7 +266,11 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item.setVisible(self.getProperty("enable_move_buttons") == True)
         self.graphics_move_down_item.setVisible(self.getProperty("enable_move_buttons") == True)
         self.graphics_move_left_item.setVisible(self.getProperty("enable_move_buttons") == True)
-        self.graphics_magnification_frame.set_properties(self.getProperty("magnification_tool"))
+        try:
+            self.graphics_magnification_item.set_properties(\
+                 self.getProperty("magnification_tool"))
+        except:
+            pass
         #self.init_auto_grid()  
 
     def save_graphics_config(self):
@@ -341,13 +346,13 @@ class Qt4_GraphicsManager(HardwareObject):
         :type pixmap_image: QtGui.QPixmapImage
         """
         if self.image_scale:
-            pixmap_image = pixmap_image.scaled(QtCore.QSize(\
+            pixmap_image = pixmap_image.scaled(QSize(\
                pixmap_image.width() * self.image_scale,
                pixmap_image.height() * self.image_scale))
         self.graphics_camera_frame.setPixmap(pixmap_image)
 
         if self.in_magnification_mode:
-            self.graphics_magnification_frame.set_pixmap(pixmap_image)
+            self.graphics_magnification_item.set_pixmap(pixmap_image)
 
     def beam_position_changed(self, position):
         """Method called when beam position on the screen changed.
@@ -627,7 +632,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: shapeCreated
         """
         if self.in_grid_drawing_state:
-            QtGui.QApplication.restoreOverrideCursor()
+            QApplication.restoreOverrideCursor()
             self.update_grid_motor_positions(self.graphics_grid_draw_item)
             self.graphics_grid_draw_item.set_draw_mode(False)
             self.wait_grid_drawing_click = False
@@ -686,7 +691,7 @@ class Qt4_GraphicsManager(HardwareObject):
             select_start_y = self.graphics_select_tool_item.start_coord[1]
             if abs(select_start_x - pos_x) > 5 and \
                abs(select_start_y - pos_y) > 5:
-                painter_path = QtGui.QPainterPath()
+                painter_path = QPainterPath()
                 painter_path.addRect(min(select_start_x, pos_x),
                                      min(select_start_y, pos_y),
                                      abs(select_start_x - pos_x),
@@ -699,7 +704,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 self.select_lines_and_grids()
                 """
         elif self.in_magnification_mode:
-            self.graphics_magnification_frame.set_position(pos_x, pos_y)
+            self.graphics_magnification_item.set_end_position(pos_x, pos_y)
 
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
@@ -1016,10 +1021,10 @@ class Qt4_GraphicsManager(HardwareObject):
             #self.select_shape_with_cpos(shape.get_centred_position())
         self.graphics_omega_reference_item.hide() 
 
-        image = QtGui.QImage(self.graphics_view.graphics_scene.sceneRect().\
-            size().toSize(), QtGui.QImage.Format_ARGB32)
-        image.fill(QtCore.Qt.transparent)
-        image_painter = QtGui.QPainter(image)
+        image = QImage(self.graphics_view.graphics_scene.sceneRect().\
+            size().toSize(), QImage.Format_ARGB32)
+        image.fill(Qt.transparent)
+        image_painter = QPainter(image)
         self.graphics_view.render(image_painter)
         image_painter.end()
         self.show_all_items()
@@ -1070,7 +1075,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """ 
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         if wait_click:
             logging.getLogger("user_level_log").info("Click to start " + \
                     "distance  measuring (Double click stops)")  
@@ -1089,7 +1094,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         if wait_click:
             logging.getLogger("user_level_log").info("Click to start " + \
                  "angle measuring (Double click stops)")
@@ -1108,7 +1113,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         if wait_click:
             logging.getLogger("user_level_log").info("Click to start area " + \
                     "measuring (Double click stops)")
@@ -1125,7 +1130,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         self.emit("infoMsg", "Move beam mark")
         self.in_move_beam_mark_state = True
         self.start_graphics_item(\
@@ -1141,8 +1146,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.setOverrideCursor(\
-              QtGui.QCursor(QtCore.Qt.BusyCursor))
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         logging.getLogger("user_level_log").info("Select an area to " + \
                  "define beam size")
         self.wait_beam_define_click = True
@@ -1174,7 +1178,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.in_measure_distance_state = False
         self.wait_measure_distance_click = False
         self.graphics_measure_distance_item.hide()
@@ -1187,7 +1191,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.in_measure_angle_state = False
         self.wait_measure_angle_click = False
         self.graphics_measure_angle_item.hide()
@@ -1200,7 +1204,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.in_measure_area_state = False
         self.wait_measure_area_click = False
         self.graphics_measure_area_item.hide()
@@ -1213,7 +1217,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.in_move_beam_mark_state = False
         self.graphics_move_beam_mark_item.hide()
         self.graphics_view.graphics_scene.update()
@@ -1228,7 +1232,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg
         """
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.in_beam_define_state = False
         self.wait_beam_define_click = False
         self.graphics_beam_define_item.hide()
@@ -1252,7 +1256,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("centringInProgress", True)
         if tree_click:
             self.hide_all_items()
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
+            QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
             self.set_centring_state(True) 
             self.diffractometer_hwobj.start_centring_method(\
                  self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
@@ -1265,14 +1269,14 @@ class Qt4_GraphicsManager(HardwareObject):
         """Accepts centring
         """
         self.show_all_items()
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.accept_centring()
 
     def reject_centring(self):
         """Rejects centring
         """
         self.show_all_items()
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.reject_centring()  
 
     def cancel_centring(self, reject=False): 
@@ -1282,7 +1286,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :type reject: bool
         """
         self.show_all_items()
-        QtGui.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         self.diffractometer_hwobj.cancel_centring_method(reject = reject)
 
     def start_visual_align(self):
@@ -1348,8 +1352,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :type spacing: list with two floats (can be negative)        
         """ 
         if not self.wait_grid_drawing_click: 
-            QtGui.QApplication.setOverrideCursor(\
-                  QtGui.QCursor(QtCore.Qt.BusyCursor))
+            QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
             self.graphics_grid_draw_item = GraphicsLib.GraphicsItemGrid(self, 
                  self.beam_info_dict, spacing, self.pixels_per_mm)
             self.graphics_grid_draw_item.set_draw_mode(True) 
@@ -1623,9 +1626,8 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def set_magnification_mode(self, mode):
         if mode:
-            QtGui.QApplication.setOverrideCursor(\
-                  QtGui.QCursor(QtCore.Qt.ClosedHandCursor))
+            QApplication.setOverrideCursor(QCursor(Qt.ClosedHandCursor))
         else:
-            QtGui.QApplication.restoreOverrideCursor()
-        self.graphics_magnification_frame.setVisible(mode)
+            QApplication.restoreOverrideCursor()
+        self.graphics_magnification_item.setVisible(mode)
         self.in_magnification_mode = mode 
