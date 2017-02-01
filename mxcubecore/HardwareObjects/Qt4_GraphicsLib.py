@@ -40,19 +40,18 @@ Graphics item library:
 import copy
 import math
 import logging
-
-from PyQt4 import QtGui
-from PyQt4 import QtCore
 from datetime import datetime
+
+from QtImport import *
 
 import queue_model_objects_v1 as queue_model_objects
 
-SELECTED_COLOR = QtCore.Qt.green
-NORMAL_COLOR = QtCore.Qt.yellow
-SOLID_LINE_STYLE = QtCore.Qt.SolidLine
+SELECTED_COLOR = Qt.green
+NORMAL_COLOR = Qt.yellow
+SOLID_LINE_STYLE = Qt.SolidLine
 
 
-class GraphicsItem(QtGui.QGraphicsItem):
+class GraphicsItem(QGraphicsItem):
     """Base class for all graphics items.
     """
 
@@ -65,7 +64,7 @@ class GraphicsItem(QtGui.QGraphicsItem):
         :type position_y: int
         """
       
-        QtGui.QGraphicsItem.__init__(self)
+        QGraphicsItem.__init__(self)
         self.index = None
         self.base_color = None
         self.used_count = 0
@@ -76,21 +75,21 @@ class GraphicsItem(QtGui.QGraphicsItem):
         self.beam_size_pix = [0, 0]
         self.beam_position = [0, 0]
         self.beam_is_rectangle = False
-        self.rect = QtCore.QRectF(0, 0, 0, 0)
+        self.rect = QRectF(0, 0, 0, 0)
         self.display_beam_shape = None
 
         self.setPos(position_x, position_y)
-        self.setMatrix = QtGui.QMatrix()
+        self.setMatrix = QMatrix()
 
-        self.custom_pen = QtGui.QPen(SOLID_LINE_STYLE)
+        self.custom_pen = QPen(SOLID_LINE_STYLE)
         self.custom_pen.setWidth(1)
-        self.custom_pen.setColor(QtCore.Qt.white)
+        self.custom_pen.setColor(Qt.white)
 
-        self.custom_brush = QtGui.QBrush(SOLID_LINE_STYLE)
-        brush_color = QtGui.QColor(70, 70, 165)
+        self.custom_brush = QBrush(SOLID_LINE_STYLE)
+        brush_color = QColor(70, 70, 165)
         brush_color.setAlpha(70)
         self.custom_brush.setColor(brush_color)
-        self.custom_brush.setStyle(QtCore.Qt.SolidPattern)
+        self.custom_brush.setStyle(Qt.SolidPattern)
 
         self.setPos(position_x, position_y)
 
@@ -120,7 +119,8 @@ class GraphicsItem(QtGui.QGraphicsItem):
        
         if (position_x is not None and
             position_y is not None):
-            self.start_coord = [position_x, position_y]
+            self.start_coord[0] = position_x
+            self.start_coord[1] = position_y
         self.scene().update()
 
     def get_start_position(self):
@@ -218,13 +218,13 @@ class GraphicsItemBeam(GraphicsItem):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
         self.display_beam_size = False
-        self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
+        self.setFlags(QGraphicsItem.ItemIsMovable)
         
     def paint(self, painter, option, widget):
         """Main beam painter method
            Draws ellipse or rectangle with a cross in the middle
         """
-        self.custom_pen.setColor(QtCore.Qt.blue)
+        self.custom_pen.setColor(Qt.blue)
         painter.setPen(self.custom_pen)
 
         if self.beam_is_rectangle:
@@ -241,7 +241,7 @@ class GraphicsItemBeam(GraphicsItem):
                                 self.beam_size_pix[1] / 2 * self.scene().image_scale,
                                 self.beam_size_pix[0] * self.scene().image_scale,
                                 self.beam_size_pix[1] * self.scene().image_scale)
-        self.custom_pen.setColor(QtCore.Qt.red) 
+        self.custom_pen.setColor(Qt.red) 
         painter.setPen(self.custom_pen)
         painter.drawLine(self.beam_position[0] * self.scene().image_scale - 10, 
                          self.beam_position[1] * self.scene().image_scale,
@@ -252,7 +252,7 @@ class GraphicsItemBeam(GraphicsItem):
                          self.beam_position[0] * self.scene().image_scale, 
                          self.beam_position[1] * self.scene().image_scale + 10) 
         if self.display_beam_size:
-            self.custom_pen.setColor(QtCore.Qt.darkGray)
+            self.custom_pen.setColor(Qt.darkGray)
             painter.setPen(self.custom_pen)
            
             painter.drawText(self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
@@ -274,7 +274,7 @@ class GraphicsItemInfo(GraphicsItem):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
         self.start_coord = [position_x, position_y]
-        self.setFlags(QtGui.QGraphicsItem.ItemIsMovable)
+        self.setFlags(QGraphicsItem.ItemIsMovable)
 
         self.__msg = None
         self.__pos_x = None
@@ -286,9 +286,9 @@ class GraphicsItemInfo(GraphicsItem):
         """Main painter class. Draws message box and after display time
            hides the message box.
         """
-        self.custom_pen.setColor(QtCore.Qt.transparent)
+        self.custom_pen.setColor(Qt.transparent)
         painter.setPen(self.custom_pen)
-        self.custom_brush.setColor(QtGui.QColor(255, 255, 255, 140))
+        self.custom_brush.setColor(QColor(255, 255, 255, 140))
         painter.setBrush(self.custom_brush)
 
         font = painter.font()
@@ -299,7 +299,7 @@ class GraphicsItemInfo(GraphicsItem):
 
         if self.__msg:
             painter.drawRoundedRect(self.__draw_rect, 10, 10) 
-            self.custom_pen.setColor(QtCore.Qt.black)
+            self.custom_pen.setColor(Qt.black)
             painter.setPen(self.custom_pen)
             if type(self.__msg) == str:
                 painter.drawText(self.__pos_x + 5, 
@@ -332,7 +332,7 @@ class GraphicsItemInfo(GraphicsItem):
         else:
             height = 20 * len(msg)
         height += 10
-        self.__draw_rect = QtCore.QRectF(pos_x, pos_y,
+        self.__draw_rect = QRectF(pos_x, pos_y,
                                          self.scene().width() - 20, height)
         self.show()
         self.scene().update()
@@ -354,7 +354,7 @@ class GraphicsItemPoint(GraphicsItem):
         GraphicsItem.__init__(self, position_x, position_y)
 
         self.__full_centring = full_centring
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
         if centred_position is None:
             self.__centred_position = queue_model_objects.CentredPosition()
@@ -395,7 +395,7 @@ class GraphicsItemPoint(GraphicsItem):
         self.__centred_position = centred_position
 
     def paint(self, painter, option, widget):
-        if option.state & QtGui.QStyle.State_Selected:
+        if option.state & QStyle.State_Selected:
             self.custom_pen.setColor(SELECTED_COLOR)
             self.custom_pen.setWidth(2)
         else:
@@ -430,7 +430,8 @@ class GraphicsItemPoint(GraphicsItem):
     def set_start_position(self, position_x, position_y):
         if (position_x is not None and
             position_y is not None):
-            self.start_coord = [position_x, position_y]
+            self.start_coord[0] = position_x
+            self.start_coord[1] = position_y
             self.setPos(position_x - 10, position_y - 10)
             self.scene().update() 
 
@@ -438,7 +439,7 @@ class GraphicsItemPoint(GraphicsItem):
     #    return self.start_coord[0], self.start_coord[1]
 
     def mouseDoubleClickEvent(self, event):
-        position = QtCore.QPointF(event.pos())
+        position = QPointF(event.pos())
         self.scene().itemDoubleClickedSignal.emit(self)
         self.update()
 
@@ -450,20 +451,20 @@ class GraphicsItemLine(GraphicsItem):
     def __init__(self, cp_start, cp_end):
         GraphicsItem.__init__(self)
 
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
         self.__cp_start = cp_start
         self.__cp_end = cp_end
         self.__num_images = 0
         self.__display_overlay = False
         self.__fill_alpha = 120
 
-        brush_color = QtGui.QColor(70, 70, 165)
+        brush_color = QColor(70, 70, 165)
         brush_color.setAlpha(5)
         self.custom_brush.setColor(brush_color)
 
     def set_fill_alpha(self, value):
         self.__fill_alpha = value
-        brush_color = QtGui.QColor(70, 70, 165, self.__fill_alpha)
+        brush_color = QColor(70, 70, 165, self.__fill_alpha)
         self.custom_brush.setColor(brush_color)
 
     def set_display_overlay(self, state):
@@ -495,9 +496,9 @@ class GraphicsItemLine(GraphicsItem):
         mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
         mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0) 
 
-        if option.state & QtGui.QStyle.State_Selected and \
+        if option.state & QStyle.State_Selected and \
            self.__num_images and self.__display_overlay:
-              painter.setPen(QtCore.Qt.NoPen)
+              painter.setPen(Qt.NoPen)
               for beam_index in range(self.__num_images):
                   coord_x = start_cp_x + (end_cp_x - start_cp_x) * \
                        beam_index / float(self.__num_images)
@@ -511,7 +512,7 @@ class GraphicsItemLine(GraphicsItem):
         info_txt = "Line %d (%d->%d)" % (self.index,
                self.__cp_start.index, self.__cp_end.index)
 
-        if option.state & QtGui.QStyle.State_Selected:
+        if option.state & QStyle.State_Selected:
             self.custom_pen.setColor(SELECTED_COLOR)
             info_txt += " selected"
             painter.drawText(mid_x + 5, mid_y, info_txt)
@@ -561,7 +562,7 @@ class GraphicsItemGrid(GraphicsItem):
     def __init__(self, parent, beam_info, spacing_mm, pixels_per_mm):
         GraphicsItem.__init__(self, parent)
 
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)  
+        self.setFlags(QGraphicsItem.ItemIsSelectable)  
 
         self.pixels_per_mm = pixels_per_mm
         self.beam_size_mm = [beam_info.get("size_x"), 
@@ -572,11 +573,9 @@ class GraphicsItemGrid(GraphicsItem):
         self.__spacing_pix = [0, 0]
         self.__cell_size_mm = [0, 0]
         self.__cell_size_pix = [0, 0]
-        self.__corner_coord = (QtCore.QPoint(),
-                               QtCore.QPoint(),
-                               QtCore.QPoint(),
-                               QtCore.QPoint())
-        self.__center_coord = QtCore.QPoint()
+        self.__corner_coord = (QPoint(), QPoint(),
+                               QPoint(), QPoint())
+        self.__center_coord = QPoint()
         self.__num_cols = 0      
         self.__num_rows = 0
         self.__num_lines = 0
@@ -822,9 +821,9 @@ class GraphicsItemGrid(GraphicsItem):
         self.__osc_start = self.__centred_position.phi
 
         """
-        self.__overlay_pixmap = QtGui.QGraphicsPixmapItem(self)
+        self.__overlay_pixmap = QGraphicsPixmapItem(self)
         #self.scene().addItem(self.__overlay_pixmap)
-        qpixmap = QtGui.QPixmap("/tmp/smoth_result_smoth.png")
+        qpixmap = QPixmap("/tmp/smoth_result_smoth.png")
         width, height = self.get_size_pix()
         self.__overlay_pixmap.setPixmap(qpixmap.scaled(width, height))
         self.__overlay_pixmap.setVisible(True)
@@ -851,11 +850,11 @@ class GraphicsItemGrid(GraphicsItem):
         self.__display_overlay = state
 
     def paint(self, painter, option, widget):
-        self.custom_pen.setColor(QtCore.Qt.darkGray)
+        self.custom_pen.setColor(Qt.darkGray)
         self.custom_pen.setWidth(1)
 
         if self.__draw_mode:
-            self.custom_pen.setStyle(QtCore.Qt.DashLine)
+            self.custom_pen.setStyle(Qt.DashLine)
         if self.__draw_mode or self.isSelected():
             self.custom_pen.setColor(SELECTED_COLOR)
 
@@ -895,7 +894,7 @@ class GraphicsItemGrid(GraphicsItem):
                         line, image = self.get_line_image_num(\
                             cell_index + self.__first_image_num)
                         pos_x, pos_y = self.get_coord_from_line_image(line, image)
-                        paint_rect = QtCore.QRect(\
+                        paint_rect = QRect(\
                             pos_x - self.__cell_size_pix[0] / 2, 
                             pos_y - self.__cell_size_pix[1] / 2,
                             self.__cell_size_pix[0], 
@@ -907,10 +906,10 @@ class GraphicsItemGrid(GraphicsItem):
                             brush_color = self.base_color
                             brush_color.setAlpha(self.__fill_alpha)
                         else:
-                            brush_color = QtGui.QColor(70, 70, 165, self.__fill_alpha)
+                            brush_color = QColor(70, 70, 165, self.__fill_alpha)
                         #if self.__display_overlay and not self.__overlay_pixmap: 
                         if self.__display_overlay:
-                            #painter.setBrush(QtGui.QColor(70, 70, 165))
+                            #painter.setBrush(QColor(70, 70, 165))
                             if self.__score is not None:
                                 cell_score = self.__score[cell_index]
                                 if self.__score.max() > 0:
@@ -921,7 +920,7 @@ class GraphicsItemGrid(GraphicsItem):
                             self.custom_brush.setColor(brush_color)
                             painter.setBrush(self.custom_brush)
                         else:
-                            painter.setBrush(QtCore.Qt.transparent)
+                            painter.setBrush(Qt.transparent)
 
                         if self.beam_is_rectangle:
                             painter.drawRect(pos_x - self.beam_size_pix[0] / 2,
@@ -933,7 +932,7 @@ class GraphicsItemGrid(GraphicsItem):
                                                 pos_y - self.beam_size_pix[1] / 2,
                                                 self.beam_size_pix[0],
                                                 self.beam_size_pix[1])
-                        painter.drawText(paint_rect, QtCore.Qt.AlignCenter, \
+                        painter.drawText(paint_rect, Qt.AlignCenter, \
                               str(cell_index + self.__first_image_num))
                         cell_index += 1
 
@@ -1172,9 +1171,9 @@ class GraphicsItemScale(GraphicsItem):
                          "%d %s" % (self.__scale_len / 2, u"\u00B5"))
 
         if self.__display_grid:
-            self.custom_pen.setStyle(QtCore.Qt.DotLine)
+            self.custom_pen.setStyle(Qt.DotLine)
             self.custom_pen.setWidth(1)
-            self.custom_pen.setColor(QtCore.Qt.gray)
+            self.custom_pen.setColor(Qt.gray)
             painter.setPen(self.custom_pen)
             for line in range(1, 3): 
                 painter.drawLine(scene_width / 2 + line * 80, 
@@ -1196,9 +1195,9 @@ class GraphicsItemScale(GraphicsItem):
                                  scene_height / 2 + 50 * line)
             
 
-            self.custom_pen.setStyle(QtCore.Qt.DashLine)
+            self.custom_pen.setStyle(Qt.DashLine)
             self.custom_pen.setWidth(1)
-            self.custom_pen.setColor(QtCore.Qt.yellow)
+            self.custom_pen.setColor(Qt.yellow)
             painter.setPen(self.custom_pen)
             painter.drawLine(scene_width / 2 - 20, scene_height / 2,
                              scene_width / 2 + 20, scene_height / 2)
@@ -1215,7 +1214,8 @@ class GraphicsItemScale(GraphicsItem):
     def set_start_position(self, position_x, position_y):
         if (position_x is not None and
             position_y is not None):
-            self.start_coord = [int(position_x), int(position_y)]
+            self.start_coord[0] = int(position_x)
+            self.start_coord[1] = int(position_y)
 
     def set_display_grid(self, display_grid):
         self.__display_grid = display_grid
@@ -1313,7 +1313,7 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
         painter.drawLine(self.start_coord[0], self.start_coord[1],
                          self.end_coord[0], self.end_coord[1])
         if self.beam_size_pix:
-            self.custom_pen.setStyle(QtCore.Qt.DashLine)
+            self.custom_pen.setStyle(Qt.DashLine)
             painter.setPen(self.custom_pen)
             painter.drawEllipse(self.end_coord[0] - \
                                 self.beam_size_pix[0] / 2,
@@ -1346,7 +1346,7 @@ class GraphicsItemBeamDefine(GraphicsItem):
                          "%d x %d %sm" % (self.width_microns, 
                          self.height_microns, u"\u00B5"))
 
-        self.custom_pen.setColor(QtCore.Qt.red)
+        self.custom_pen.setColor(Qt.red)
         painter.setPen(self.custom_pen)
         painter.drawLine(self.center_coord[0] - 10, self.center_coord[1],
                          self.center_coord[0] + 10, self.center_coord[1])
@@ -1354,7 +1354,8 @@ class GraphicsItemBeamDefine(GraphicsItem):
                          self.center_coord[0], self.center_coord[1] + 10)
 
     def set_end_position(self, position_x, position_y):
-        self.end_coord = [position_x, position_y]
+        self.end_coord[0] = position_x
+        self.end_coord[1] = position_y
 
         pix_width = max(self.start_coord[0], self.end_coord[0]) - \
                     min(self.start_coord[0], self.end_coord[0])
@@ -1378,7 +1379,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
     """
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
         self.do_measure = None
         self.measure_points = None
         self.measured_distance = None
@@ -1395,8 +1396,8 @@ class GraphicsItemMeasureDistance(GraphicsItem):
     def set_start_position(self, position_x, position_y):
         self.measured_distance = 0
         self.measure_points = []
-        self.measure_points.append(QtCore.QPoint(position_x, position_y))
-        self.measure_points.append(QtCore.QPoint(position_x, position_y))
+        self.measure_points.append(QPoint(position_x, position_y))
+        self.measure_points.append(QPoint(position_x, position_y))
  
     def set_coord(self, coord):
         self.measure_points[len(self.measure_points) - 1].setX(coord[0])
@@ -1411,8 +1412,8 @@ class GraphicsItemMeasureDistance(GraphicsItem):
     def store_coord(self, position_x, position_y):
         if len(self.measure_points) == 3:
             self.measure_points = []
-            self.measure_points.append(QtCore.QPoint(position_x, position_y))
-        self.measure_points.append(QtCore.QPoint(position_x, position_y)) 
+            self.measure_points.append(QPoint(position_x, position_y))
+        self.measure_points.append(QPoint(position_x, position_y)) 
  
 class GraphicsItemMeasureAngle(GraphicsItem):
     """
@@ -1422,7 +1423,7 @@ class GraphicsItemMeasureAngle(GraphicsItem):
         GraphicsItem.__init__(self, parent)
         self.measure_points = None
         self.measured_angle = None
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
         self.custom_pen.setColor(SELECTED_COLOR)
 
@@ -1440,8 +1441,8 @@ class GraphicsItemMeasureAngle(GraphicsItem):
     def set_start_position(self, position_x, position_y):
         self.measured_angle = 0
         self.measure_points = []
-        self.measure_points.append(QtCore.QPoint(position_x, position_y))
-        self.measure_points.append(QtCore.QPoint(position_x, position_y))
+        self.measure_points.append(QPoint(position_x, position_y))
+        self.measure_points.append(QPoint(position_x, position_y))
 
     def set_coord(self, coord):
         self.measure_points[len(self.measure_points) - 1].setX(coord[0])
@@ -1457,8 +1458,8 @@ class GraphicsItemMeasureAngle(GraphicsItem):
     def store_coord(self, position_x, position_y):
         if len(self.measure_points) == 4:
             self.measure_points = []
-            self.measure_points.append(QtCore.QPoint(position_x, position_y))        
-        self.measure_points.append(QtCore.QPoint(position_x, position_y))
+            self.measure_points.append(QPoint(position_x, position_y))        
+        self.measure_points.append(QPoint(position_x, position_y))
 
 class GraphicsItemMeasureArea(GraphicsItem):
     """
@@ -1469,9 +1470,9 @@ class GraphicsItemMeasureArea(GraphicsItem):
         self.measured_area = None
         self.current_point = None
         self.last_point_set = None
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.measure_polygon = QtGui.QPolygon(self) 
-        self.current_point = QtCore.QPoint(0, 0)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
+        self.measure_polygon = QPolygon(self) 
+        self.current_point = QPoint(0, 0)
         self.min_max_coord = None
 
     def paint(self, painter, option, widget):
@@ -1482,7 +1483,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
 
         painter.drawLine(self.measure_polygon.last(),
                          self.current_point)
-        painter.drawPolygon(self.measure_polygon, QtCore.Qt.OddEvenFill)
+        painter.drawPolygon(self.measure_polygon, Qt.OddEvenFill)
         painter.drawText(self.current_point.x() + 10,
                          self.current_point.y() + 10,
                          "%.2f %s" % (self.measured_area, u"\u00B5"))
@@ -1511,8 +1512,8 @@ class GraphicsItemMeasureArea(GraphicsItem):
         self.min_max_coord = None
         self.measured_area = 0
         self.measure_polygon.clear()
-        self.measure_polygon.append(QtCore.QPoint(pos_x, pos_y))
-        self.current_point = QtCore.QPoint(pos_x, pos_y)
+        self.measure_polygon.append(QPoint(pos_x, pos_y))
+        self.current_point = QPoint(pos_x, pos_y)
 
     def set_coord(self, coord):
         if not self.last_point_set:
@@ -1568,7 +1569,7 @@ class GraphicsItemMove(GraphicsItem):
         self.setAcceptsHoverEvents(True)
         self.direction = direction
         self.item_hover = False
-        self.arrow_polygon = QtGui.QPolygon(self)
+        self.arrow_polygon = QPolygon(self)
         self.set_size(20, 20)
 
         if direction == "up":
@@ -1585,7 +1586,7 @@ class GraphicsItemMove(GraphicsItem):
             self.setPos(5, 25)
         
         for point in points:
-            self.arrow_polygon.append(QtCore.QPoint(*point))
+            self.arrow_polygon.append(QPoint(*point))
 
     def boundingRect(self):
         """Returns bounding rect
@@ -1598,29 +1599,78 @@ class GraphicsItemMove(GraphicsItem):
         painter.setPen(self.custom_pen)
         painter.setBrush(self.custom_brush)
 
-        painter.drawPolygon(self.arrow_polygon, QtCore.Qt.OddEvenFill)
+        painter.drawPolygon(self.arrow_polygon, Qt.OddEvenFill)
         if self.item_hover:
             self.custom_brush.setColor(NORMAL_COLOR)
         else:
-            self.custom_brush.setColor(QtGui.QColor(70, 70, 165, 40))
-        painter.drawPolygon(self.arrow_polygon, QtCore.Qt.OddEvenFill)
+            self.custom_brush.setColor(QColor(70, 70, 165, 40))
+        painter.drawPolygon(self.arrow_polygon, Qt.OddEvenFill)
 
     def hoverEnterEvent(self, event):
         self.item_hover = True
-        QtGui.QGraphicsItem.hoverEnterEvent(self, event)
+        QGraphicsItem.hoverEnterEvent(self, event)
 
     def hoverLeaveEvent(self, event):
         self.item_hover = False
-        QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
+        QGraphicsItem.hoverLeaveEvent(self, event)
 
     def mousePressEvent(self, event):
         self.scene().moveItemClickedSignal.emit(self.direction)
-        QtGui.QGraphicsItem.mousePressEvent(self, event)
+        QGraphicsItem.mousePressEvent(self, event)
 
-class GraphicsView(QtGui.QGraphicsView):
-    mouseMovedSignal = QtCore.pyqtSignal(int, int)
-    keyPressedSignal = QtCore.pyqtSignal(str)
-    wheelSignal = QtCore.pyqtSignal(int)
+class GraphicsMagnificationItem(GraphicsItem):
+    """
+    Descrip. : 
+    """
+    def __init__(self, parent):
+        GraphicsItem.__init__(self, parent)
+
+        self.graphics_pixmap = QPixmap()
+
+    def paint(self, painter, option, widget):
+        self.custom_pen.setColor(SELECTED_COLOR)
+        painter.setPen(self.custom_pen)
+        #painter.setBrush(self.custom_brush)
+
+        if self.end_coord[0] > (self.scene().width() - \
+           self.area_size * self.scale + self.area_size / 2.0):
+            offset_x = - self.area_size * (self.scale + 1)
+        else:
+            offset_x = self.area_size / 2.0 + 20
+        if self.end_coord[1] > (self.scene().height() - \
+           self.area_size * self.scale + self.area_size / 2.0):
+            offset_y = - self.area_size * (self.scale + 1)
+        else:
+            offset_y = self.area_size / 2.0 + 20
+
+        painter.drawRect(self.end_coord[0] - self.area_size / 2.0,
+                         self.end_coord[1] - self.area_size / 2.0,
+                         self.area_size,
+                         self.area_size)
+        painter.drawPixmap(self.end_coord[0] + offset_x,
+                           self.end_coord[1] + offset_y,
+                           self.area_size * self.scale,
+                           self.area_size * self.scale,
+                           self.graphics_pixmap)
+
+    def set_pixmap(self, pixmap_image):
+        self.graphics_pixmap = pixmap_image.copy(\
+             self.end_coord[0] - self.area_size / 2.0,
+             self.end_coord[1] - self.area_size / 2.0,
+             self.area_size, self.area_size).scaled(\
+                  self.area_size * self.scale, \
+                  self.area_size * self.scale)
+
+    def set_properties(self, property_dict):
+        property_dict = eval(property_dict)
+        if property_dict:
+            self.scale = property_dict.get("scale", 3)
+            self.area_size = property_dict.get("area_size", 50)
+
+class GraphicsView(QGraphicsView):
+    mouseMovedSignal = pyqtSignal(int, int)
+    keyPressedSignal = pyqtSignal(str)
+    wheelSignal = pyqtSignal(int)
 
     def __init__ (self, parent=None):
         super(GraphicsView, self).__init__(parent)
@@ -1629,9 +1679,9 @@ class GraphicsView(QtGui.QGraphicsView):
         self.setScene(self.graphics_scene)  
         self.graphics_scene.clearSelection()
         self.setMouseTracking(True)
-        self.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setDragMode(QGraphicsView.RubberBandDrag)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         """
         self.setToolTip("Keyboard shortcuts:\n" + \
@@ -1650,35 +1700,35 @@ class GraphicsView(QtGui.QGraphicsView):
     def mouseMoveEvent(self, event):
         self.mouseMovedSignal.emit(event.x(), event.y())
         self.update()
-        QtGui.QGraphicsView.mouseMoveEvent(self, event)
+        QGraphicsView.mouseMoveEvent(self, event)
  
     def keyPressEvent(self, event):
-        if event.key() in (QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace):  
+        if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):  
             self.keyPressedSignal.emit("Delete")
-        elif event.key() == QtCore.Qt.Key_Escape:
+        elif event.key() == Qt.Key_Escape:
             self.keyPressedSignal.emit("Escape")
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == Qt.Key_Up:
             self.scene().moveItemClickedSignal.emit("up")
             #self.keyPressedSignal.emit("Up")
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == Qt.Key_Down:
             self.scene().moveItemClickedSignal.emit("down")
             #self.keyPressedSignal.emit("Down")
-        elif event.key() == QtCore.Qt.Key_Left:
+        elif event.key() == Qt.Key_Left:
             self.scene().moveItemClickedSignal.emit("left")
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == Qt.Key_Right:
             self.scene().moveItemClickedSignal.emit("right")
-        elif event.key() == QtCore.Qt.Key_Plus: 
+        elif event.key() == Qt.Key_Plus: 
             self.keyPressedSignal.emit("Plus")
-        elif event.key() == QtCore.Qt.Key_Minus:   
+        elif event.key() == Qt.Key_Minus:   
             self.keyPressedSignal.emit("Minus")
 
     def toggle_scrollbars_enable(self, state):
         if state:
-            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-            self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         else:
-            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-            self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def wheelEvent(self, event):
         self.wheelSignal.emit(event.delta())
@@ -1708,7 +1758,7 @@ class GraphicsView(QtGui.QGraphicsView):
 	SetCenter(newCenter);
         """
 
-class GraphicsScene(QtGui.QGraphicsScene):
+class GraphicsScene(QGraphicsScene):
     """
     Implemented signals:
     - mouseClickedSignal (pos_x, pos_y, is left key)
@@ -1718,12 +1768,12 @@ class GraphicsScene(QtGui.QGraphicsScene):
     - itemClickedSignal (GraphicsItem, isSelected)
     """
 
-    mouseClickedSignal = QtCore.pyqtSignal(int, int, bool)
-    mouseDoubleClickedSignal = QtCore.pyqtSignal(int, int)  
-    mouseReleasedSignal = QtCore.pyqtSignal(int, int)
-    itemDoubleClickedSignal = QtCore.pyqtSignal(GraphicsItem)
-    itemClickedSignal = QtCore.pyqtSignal(GraphicsItem, bool) 
-    moveItemClickedSignal = QtCore.pyqtSignal(str)
+    mouseClickedSignal = pyqtSignal(int, int, bool)
+    mouseDoubleClickedSignal = pyqtSignal(int, int)  
+    mouseReleasedSignal = pyqtSignal(int, int)
+    itemDoubleClickedSignal = pyqtSignal(GraphicsItem)
+    itemClickedSignal = pyqtSignal(GraphicsItem, bool) 
+    moveItemClickedSignal = pyqtSignal(str)
 
     def __init__ (self, parent=None):
         super(GraphicsScene, self).__init__ (parent)
@@ -1731,50 +1781,23 @@ class GraphicsScene(QtGui.QGraphicsScene):
         self.image_scale = 1
 
 
-class GraphicsCameraFrame(QtGui.QGraphicsPixmapItem):
+class GraphicsCameraFrame(QGraphicsPixmapItem):
     def __init__ (self, parent=None):
         super(GraphicsCameraFrame, self).__init__(parent)
 
     def mousePressEvent(self, event): 
-        position = QtCore.QPointF(event.pos())
+        position = QPointF(event.pos())
         self.scene().mouseClickedSignal.emit(position.x(), position.y(), 
-             event.button() == QtCore.Qt.LeftButton)
+             event.button() == Qt.LeftButton)
         self.update()  
 
     def mouseDoubleClickEvent(self, event):
-        position = QtCore.QPointF(event.pos())
+        position = QPointF(event.pos())
         self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
         self.update()
 
     def mouseReleaseEvent(self, event):
-        position = QtCore.QPointF(event.pos())
+        position = QPointF(event.pos())
         self.scene().mouseReleasedSignal.emit(position.x(), position.y())
         self.update()
         #self.setSelected(True)
-
-class GraphicsMagnificationFrame(QtGui.QGraphicsPixmapItem):
-    def __init__ (self, parent=None):
-        super(GraphicsMagnificationFrame, self).__init__(parent)
-
-        self.start_x = 0
-        self.start_y = 0
-        self.scale = 3
-        self.area_size = 100
-        
-    def set_pixmap(self, pixmap_image):
-        crop_pixmap = pixmap_image.copy(self.start_x, self.start_y,
-             self.area_size, self.area_size).scaled(\
-             self.area_size * self.scale, self.area_size * self.scale)
-        self.setPixmap(crop_pixmap)
-
-    def set_position(self, pos_x, pos_y):
-        self.start_x = pos_x
-        self.start_y = pos_y
-        self.setPos(pos_x - self.area_size * self.scale / 2,
-                    pos_y - self.area_size * self.scale / 2)
-
-    def set_properties(self, property_dict):
-        property_dict = eval(property_dict)
-        if property_dict:
-            self.scale = property_dict.get("scale", 3)
-            self.area_size = property_dict.get("area_size", 100)
