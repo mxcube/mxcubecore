@@ -38,9 +38,12 @@ import logging
 import gevent
 import numpy as np
 
-from PyQt4 import QtGui
+from QtImport import *
 
-import cv2
+try:
+    import cv2
+except:
+    pass
 
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -68,27 +71,38 @@ class GenericVideoDevice(Device):
         self.image_format = None # not used
 
     def init(self):
+        
 
         # Read values from XML
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
-        except TypeError:
+        except:
             self.cam_mirror = [False, False]
 
-        self.cam_encoding = self.getProperty("encoding").lower()
-        self.poll_interval = self.getProperty("interval")
+        try:
+            self.cam_encoding = self.getProperty("encoding").lower()
+        except:
+            pass
+
+        try:
+            self.poll_interval = self.getProperty("interval")
+        except:
+            self.poll_interval = 1
 
         try:
             self.cam_gain = float(self.getProperty("gain"))
-        except ValueError:
+        except:
             pass
 
         try:
             self.cam_exposure = float(self.getProperty("exposure"))
-        except ValueError:
+        except:
             pass
 
-        self.cam_type = self.getProperty("type").lower()
+        try:
+            self.cam_type = self.getProperty("type").lower()
+        except:
+            pass
 
         # Apply defaults if necessary
         if self.cam_encoding is None:
@@ -132,17 +146,17 @@ class GenericVideoDevice(Device):
 
         if self.cam_type == "basler":
             raw_buffer = self.decoder(raw_buffer)
-            qimage = QtGui.QImage(raw_buffer, width, height,
-                                  width * 3,
-                                  QtGui.QImage.Format_RGB888)
+            qimage = QImage(raw_buffer, width, height,
+                            width * 3,
+                            QImage.Format_RGB888)
         else:
-            qimage = QtGui.QImage(raw_buffer, width, height,
-                                  QtGui.QImage.Format_RGB888)
+            qimage = QImage(raw_buffer, width, height,
+                            QImage.Format_RGB888)
 
         if self.cam_mirror is not None:
             qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
 
-        qpixmap = QtGui.QPixmap(qimage)
+        qpixmap = QPixmap(qimage)
         self.emit("imageReceived", qpixmap)
         return qimage
 
@@ -178,7 +192,7 @@ class GenericVideoDevice(Device):
             
         else:
             if bw:
-                return qimage.convertToFormat(QtGui.QImage.Format_Mono)
+                return qimage.convertToFormat(QImage.Format_Mono)
             else:
                 return qimage
 
