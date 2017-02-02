@@ -21,13 +21,12 @@ import os
 import gevent
 import numpy as np
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from QtImport import QPixmap, QImage
 
-from HardwareRepository.BaseHardwareObjects import Device
+from GenericVideoDevice import GenericVideoDevice
 
 
-class Qt4_VideoMockup(Device):
+class Qt4_VideoMockup(GenericVideoDevice):
     """
     Descript. :
     """
@@ -35,13 +34,10 @@ class Qt4_VideoMockup(Device):
         """
         Descript. :
         """
-        Device.__init__(self, name)
+        GenericVideoDevice.__init__(self, name)
         self.force_update = None
-        self.image_dimensions = None
-        self.image_polling = None
         self.image_type = None
         self.image = None
-        self.sleep_time = 1
 
     def init(self):
         """
@@ -50,56 +46,23 @@ class Qt4_VideoMockup(Device):
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-1])
         image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
-        self.image = QtGui.QPixmap(image_path)
+        self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
         self.setIsReady(True)
-        self.sleep_time = self.getProperty("interval")
-
-    def start_camera(self):
-        if self.image_polling is None:
-            self.image_polling = gevent.spawn(self._do_imagePolling, 1.0 / self.sleep_time)
+        GenericVideoDevice.init(self)
 
     def get_image_dimensions(self):
         return self.image_dimensions
 
-    def imageType(self):
-        """
-        Descript. :
-        """
-        return
-
-    def setLive(self, mode):
-        """
-        Descript. :
-        """
-        return
-    
-    def getWidth(self):
-        """
-        Descript. :
-        """
-        return self.image_dimensions[0]
-	
-    def getHeight(self):
-        """
-        Descript. :
-        """
-        return self.image_dimensions[1]
-
-    def _do_imagePolling(self, sleep_time):
-        """
-        Descript. :
-        """ 
-        while True:
-            self.emit("imageReceived", self.image)
-            gevent.sleep(sleep_time)
+    def get_new_image(self):
+        self.emit("imageReceived", self.image) 
 
     def save_snapshot(self, filename, image_type='PNG'):
-        qimage = QtGui.QImage(self.image)
+        qimage = QImage(self.image)
         qimage.save(filename, image_type)
 
     def get_snapshot(self, bw=None, return_as_array=None):
-        qimage = QtGui.QImage(self.image)
+        qimage = QImage(self.image)
         if return_as_array:
             qimage = qimage.convertToFormat(4)
             ptr = qimage.bits()
@@ -112,7 +75,7 @@ class Qt4_VideoMockup(Device):
                 return image_array
         else:
             if bw:
-                return qimage.convertToFormat(QtGui.QImage.Format_Mono)
+                return qimage.convertToFormat(QImage.Format_Mono)
             else:
                 return qimage
 
@@ -143,5 +106,5 @@ class Qt4_VideoMockup(Device):
     def get_exposure_time(self):
         return 0.23
 
-    def set_exposure_time(self, exposure_time_value):
-        return
+    def get_video_live(self):
+        return True

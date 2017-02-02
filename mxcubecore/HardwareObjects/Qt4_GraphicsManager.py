@@ -17,15 +17,22 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Qt4_GraphicsManager keeps track of the current shapes the user has created. 
-All shapes (graphics items) are based on Qt native QGraphicsLib.GraphicsItem objects.
-QGraphicsScene and QGraphicsView are used to display objects
+Qt4/5/PySide Graphics manager for MxCuBE.
+Hardware object handles QGraphicsView and QGraphicsScene with all
+objects and actions necessary for MXCuBE:
+- Creating/removing/editing/drawing of centring points, collection vectors
+  and 2D grids
+- Display of beam shape, rotatio axis, scales
+- Distance, angle and area measurement tools
+- Video handling, scalling and magnification tools
 
 example xml:
-
 <object class="Qt4_GraphicsManager">
-   <object href="/Qt4_mini-diff-mockup" role="diffractometer"/>
+   <object href="/mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
+   <object href="/Qt4_video-mockup" role="camera"/>
+
+   <magnification_tool>{"scale": 4, "area_size": 50}</magnification_tool>
 </object>
 """
 
@@ -48,9 +55,8 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 class Qt4_GraphicsManager(HardwareObject):
     """
-    Descript. : Keeps track of the current shapes the user has created. The
-                Diffractometer and BeamInfo hardware objects are mandotary
     """
+
     def __init__(self, name):
         """
         :param name: name
@@ -149,8 +155,6 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_right_item = GraphicsLib.GraphicsItemMove(self, "right")
         self.graphics_move_down_item = GraphicsLib.GraphicsItemMove(self, "down")
         self.graphics_move_left_item = GraphicsLib.GraphicsItemMove(self, "left")
-        #self.graphics_magnification_frame = \
-        #     GraphicsLib.GraphicsMagnificationFrame()
         self.graphics_magnification_item = \
               GraphicsLib.GraphicsMagnificationItem(self)
         self.graphics_magnification_item.hide()
@@ -242,9 +246,9 @@ class Qt4_GraphicsManager(HardwareObject):
             logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
 
         try:
-            self.image_scale_list = eval(self.getProperty("imageScaleList"))
+            self.image_scale_list = eval(self.getProperty("image_scale_list"))
             if len(self.image_scale_list) > 0:
-                self.image_scale = self.getProperty("defaultImageScale") 
+                self.image_scale = self.getProperty("default_image_scale") 
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
         except:
             pass
@@ -271,6 +275,13 @@ class Qt4_GraphicsManager(HardwareObject):
                  self.getProperty("magnification_tool"))
         except:
             pass
+
+        try:
+            if self.getProperty("view_scale") is not None:
+                self.set_view_scale(self.getProperty("view_scale"))
+        except:
+            pass
+
         #self.init_auto_grid()  
 
     def save_graphics_config(self):
@@ -1447,8 +1458,12 @@ class Qt4_GraphicsManager(HardwareObject):
 
         return self.image_scale_list
 
+    def set_view_scale(self, view_scale):
+        """Scales all objects on the view"""
+        self.graphics_view.scale(view_scale, view_scale)
+
     def set_image_scale(self, image_scale, use_scale=False):
-        """Scales scene
+        """Scales the incomming frame
         
         :param image_scale: image scale
         :type image_scale: float 0 - 1.0 
@@ -1456,6 +1471,9 @@ class Qt4_GraphicsManager(HardwareObject):
         :type use_scale: bool
         :emits: imageScaleChanged
         """
+
+        self.graphics_view.scale(image_scale, image_scale)
+        return 
         scene_size = self.graphics_scene_size
         if image_scale == 1:
             use_scale = False
@@ -1467,7 +1485,6 @@ class Qt4_GraphicsManager(HardwareObject):
             self.image_scale = 1
         self.graphics_view.graphics_scene.image_scale = self.image_scale
         
-
         self.graphics_view.scene().setSceneRect(0, 0, \
              scene_size[0] - 10, scene_size[1] - 10)
         self.graphics_view.toggle_scrollbars_enable(self.image_scale > 1)
