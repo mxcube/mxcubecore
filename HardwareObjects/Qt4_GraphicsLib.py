@@ -21,17 +21,21 @@
 Graphics item library:
  - GraphicsItem : base class for all items
  - GraphicsItemBeam : beam shape
+ - GraphicsItemInfo : info message
  - GraphicsItemPoint : centring point
  - GraphicsItemLine : line between two centring points
  - GraphicsItemGrid : 2D grid
- - GraphicsItemScale : scale 
+ - GraphicsItemScale : scale on the bottom left corner
  - GraphicsItemOmegaReference : omega rotation line
+ - GraphicsSelectTool : item selection tool
  - GraphicsItemCentringLine : centring lines for 3 click centring
+ - GraphicsItemMoveBeamMark : item to move beam mark
+ - GraphicsItemBeamDefine : beam size definer with slits
  - GraphicsItemMeasureDistance : line to measure distance
  - GraphicsItemMeasureAngle : object to measure angle between two lines
  - GraphicsItemMeasureArea : item to measure area
- - GraphicsSelectTool : item selection tool
- - GraphicsItemMoveBeamMark : item to move beam mark
+ - GraphicsItemMove : move buttons
+ - GraphicsMagnificationItem : tool to zoom selected area
  - GraphicsCameraFrame : camera frame
  - GraphicsScene : scene where all items are displayed
  - GraphicsView : widget that contains GraphicsScene
@@ -49,6 +53,7 @@ import queue_model_objects_v1 as queue_model_objects
 SELECTED_COLOR = Qt.green
 NORMAL_COLOR = Qt.yellow
 SOLID_LINE_STYLE = Qt.SolidLine
+SOLID_PATTERN_STYLE = Qt.SolidPattern
 
 
 class GraphicsItem(QGraphicsItem):
@@ -79,13 +84,13 @@ class GraphicsItem(QGraphicsItem):
         self.display_beam_shape = None
 
         self.setPos(position_x, position_y)
-        self.setMatrix = QMatrix()
+        #self.setMatrix = QMatrix()
 
         self.custom_pen = QPen(SOLID_LINE_STYLE)
         self.custom_pen.setWidth(1)
         self.custom_pen.setColor(Qt.white)
 
-        self.custom_brush = QBrush(SOLID_LINE_STYLE)
+        self.custom_brush = QBrush(SOLID_PATTERN_STYLE)
         brush_color = QColor(70, 70, 165)
         brush_color.setAlpha(70)
         self.custom_brush.setColor(brush_color)
@@ -1471,7 +1476,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
         self.current_point = None
         self.last_point_set = None
         self.setFlags(QGraphicsItem.ItemIsSelectable)
-        self.measure_polygon = QPolygon(self) 
+        self.measure_polygon = QPolygon() 
         self.current_point = QPoint(0, 0)
         self.min_max_coord = None
 
@@ -1566,10 +1571,10 @@ class GraphicsItemMove(GraphicsItem):
     def __init__(self, parent, direction):
         GraphicsItem.__init__(self, parent)
 
-        self.setAcceptsHoverEvents(True)
+        self.setAcceptHoverEvents(True)
         self.direction = direction
         self.item_hover = False
-        self.arrow_polygon = QPolygon(self)
+        self.arrow_polygon = QPolygon()
         self.set_size(20, 20)
 
         if direction == "up":
