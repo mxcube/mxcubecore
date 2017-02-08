@@ -292,7 +292,7 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
-    def get_acqisition_limt_values(self):
+    def get_acquisition_limit_values(self):
         parent_key = "acquisition_limit_values"
 
         limits = {}
