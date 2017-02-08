@@ -434,7 +434,10 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def prepare_intensity_monitors(self):
-        self.execute_command("adjust_gains")
+        try:
+            self.execute_command("adjust_gains")
+        except AttributeError:
+            pass
 
 
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):

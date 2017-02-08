@@ -3,6 +3,7 @@ from PyTango.gevent import DeviceProxy
 import gevent
 import cPickle
 import base64
+import logging
 
 class Pin(Sample):        
     def __init__(self,basket,cell_no,basket_no,sample_no):
@@ -156,6 +157,9 @@ class FlexHCD(SampleChanger):
            gevent.sleep(1)
 
         logging.getLogger('HWR').info("unload load task done")
+        for msg in self.get_robot_exceptions():
+            logging.getLogger("HWR").error(msg)
+
         if not self._execute_cmd("pin_on_gonio"):
             logging.getLogger('HWR').info("reset loaded sample")
             self._resetLoadedSample()
@@ -166,11 +170,26 @@ class FlexHCD(SampleChanger):
         self._execute_cmd("reset_loaded_position")
         self._resetLoadedSample()
 
+    def get_robot_exceptions(self):
+        return self._execute_cmd("getRobotExceptions")
+
     @task
     def load(self, sample):
+        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepareLoad(wait=True)
         self.enable_power()
-        res = SampleChanger.load(self, sample)
+        #warning_task.kill()
+        try:
+            res = SampleChanger.load(self, sample)
+        finally:
+            for msg in self.get_robot_exceptions():
+                logging.getLogger("HWR").error(msg)
+        #DN
+        if not self._execute_cmd("pin_on_gonio"):
+            logging.getLogger('HWR').info("reset loaded sample")
+            self._resetLoadedSample()
+        logging.getLogger('HWR').info("return False")
+       
         if res:
             self.prepareCentring()
         return res
@@ -183,9 +202,15 @@ class FlexHCD(SampleChanger):
 
     @task
     def unload(self, sample):
+        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepareLoad(wait=True)
         self.enable_power()
-        SampleChanger.unload(self, sample)
+        #warning_task.kill()
+        try:
+            SampleChanger.unload(self, sample)
+        finally:
+            for msg in self.get_robot_exceptions():
+                logging.getLogger("HWR").error(msg)
 
     def get_gripper(self):
         gripper_type = "SPINE" if self._execute_cmd("get_gripper_type") == 3 else "UNIPUCK"
@@ -198,8 +223,10 @@ class FlexHCD(SampleChanger):
 
     @task
     def home(self):
+        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepareLoad(wait=True)
         self.enable_power()
+        #warning_task.kill()
         self._execute_cmd("homeClear")
 
     @task
