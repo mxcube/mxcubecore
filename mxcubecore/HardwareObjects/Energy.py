@@ -52,7 +52,7 @@ class Energy(Equipment):
         except KeyError:
             logging.getLogger("HWR").info("No controller used")
 
-        if self.energy_motor:
+        if self.energy_motor is not None:
             self.energy_motor.connect('positionChanged', self.energyPositionChanged)
             self.energy_motor.connect('stateChanged', self.energyStateChanged)
 
@@ -67,9 +67,9 @@ class Energy(Equipment):
 
     def getCurrentEnergy(self):
         logging.getLogger('user_level_log').debug("Get current energy")
-        if self.energy_motor:
+        if self.energy_motor is not None:
             try:
-                return  self.energy_motor.getPosition()
+                return self.energy_motor.getPosition()
             except:
                 logging.getLogger("HWR").exception("EnergyHO: could not read current energy")
                 return None
@@ -87,7 +87,7 @@ class Energy(Equipment):
         if not self.tunable:
             return None
 
-        if self.energy_motor:
+        if self.energy_motor is not None:
             try:
                 self.en_lims = self.energy_motor.getLimits()
                 return self.en_lims 
