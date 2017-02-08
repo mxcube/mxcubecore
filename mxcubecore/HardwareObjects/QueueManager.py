@@ -200,8 +200,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             raise ex
         else:
             entry.post_execute()
-
         finally:
+            self.emit('queue_execute_entry_finished', (entry, ))
             self.set_current_entry(None)
             self._current_queue_entries.remove(entry)
 
