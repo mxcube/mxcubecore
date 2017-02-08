@@ -77,16 +77,27 @@ class FlexHCD(SampleChanger):
             cell = Cell(self, i+1)
             self._addComponent(cell)
 
+
     def init(self):
         self.robot = DeviceProxy(self.getProperty('tango_device'))
+        self.controller = self.getObjectByRole("controller")
         self.prepareLoad = self.getCommandObject("moveToLoadingPosition")
- 
         return SampleChanger.init(self)
 
+    @task
+    def prepare_load(self):
+        if self.controller:
+            self.controller.prepare_flex(load=True)
+        else:
+            self.prepareLoad()
+
     def prepareCentring(self):
-        gevent.sleep(2)
-        self.getCommandObject("unlockMinidiffMotors")(wait=True)
-        self.getCommandObject("prepareCentring")(wait=True)
+        if self.controller:
+            self.controller.prepare_flex(load=False)
+        else:
+            gevent.sleep(2)
+            self.getCommandObject("unlockMinidiffMotors")(wait=True)
+            self.getCommandObject("prepareCentring")(wait=True)
 
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
@@ -176,7 +187,7 @@ class FlexHCD(SampleChanger):
     @task
     def load(self, sample):
         #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
-        self.prepareLoad(wait=True)
+        self.prepare_load(wait=True)
         self.enable_power()
         #warning_task.kill()
         try:
@@ -184,11 +195,6 @@ class FlexHCD(SampleChanger):
         finally:
             for msg in self.get_robot_exceptions():
                 logging.getLogger("HWR").error(msg)
-        #DN
-        if not self._execute_cmd("pin_on_gonio"):
-            logging.getLogger('HWR').info("reset loaded sample")
-            self._resetLoadedSample()
-        logging.getLogger('HWR').info("return False")
        
         if res:
             self.prepareCentring()
@@ -203,7 +209,7 @@ class FlexHCD(SampleChanger):
     @task
     def unload(self, sample):
         #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
-        self.prepareLoad(wait=True)
+        self.prepare_load(wait=True)
         self.enable_power()
         #warning_task.kill()
         try:
@@ -224,7 +230,7 @@ class FlexHCD(SampleChanger):
     @task
     def home(self):
         #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
-        self.prepareLoad(wait=True)
+        self.prepare_load(wait=True)
         self.enable_power()
         #warning_task.kill()
         self._execute_cmd("homeClear")
@@ -294,8 +300,11 @@ class FlexHCD(SampleChanger):
         self._setState(state)
       
     def isSequencerReady(self):
-        cmdobj = self.getCommandObject
-        return all([cmd.isSpecReady() for cmd in (cmdobj("moveToLoadingPosition"),)])
+        if self.prepareLoad:
+            cmdobj = self.getCommandObject
+            return all([cmd.isSpecReady() for cmd in (cmdobj("moveToLoadingPosition"),)])
+        return True
+            
  
     def _readState(self):
         # should read state from robot
@@ -326,20 +335,7 @@ class FlexHCD(SampleChanger):
             
     def _updateSelection(self):
         cell, puck = self._execute_cmd('get_cell_position')
-        sample = self.getLoadedSample()
-        if not sample:
-            cell2, puck2, sample = self._execute_cmd('get_loaded_sample')
-        else: 
-            puck2 = sample.getBasketNo()
-            cell2 = sample.getCellNo()
-            sample = sample.getVialNo()
-
-        if cell != cell2 or puck != puck2:
-          puck = None
-          sample = None
-        if cell is None:
-          self._setSelectedComponent(None)
-          return
+        sample_cell, sample_puck, sample = self._execute_cmd('get_loaded_sample')
 
         for c in self.getComponents():
           i = c.getIndex()
@@ -348,11 +344,10 @@ class FlexHCD(SampleChanger):
             break
 
         # find sample
-        cell = self.getSelectedComponent()
-        for s in cell.getSampleList():
-          if s.getVialNo() == sample and s.getBasketNo()==puck:
+        for s in self.getSampleList():
+          if s.getCoords() == (sample_cell, sample_puck, sample):
             self._setLoadedSample(s)
-            self._setSelectedSample(s)
+            #self._setSelectedSample(s)
             return
 
         self._resetLoadedSample()

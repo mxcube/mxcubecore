@@ -56,7 +56,7 @@ class Pilatus:
       acq_status_chan = self.getChannelObject("acq_status")
       with gevent.Timeout(10, RuntimeError("Detector not ready")):
           while acq_status_chan.getValue() != "Ready":
-              time.sleep(1)
+              time.sleep(3)
 
   def last_image_saved(self):
       try:

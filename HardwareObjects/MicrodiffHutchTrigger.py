@@ -36,6 +36,13 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
             self.device = None
 
+        try:
+            self.flex_device = PyTango.gevent.DeviceProxy(self.getProperty("flex_tangoname"))
+        except PyTango.DevFailed, traceback:
+            last_error = traceback[-1]
+            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
+            self.flex_device = None
+
         self.pollingTask=None
         self.initialized = False
         self.__oldValue = None
@@ -77,14 +84,14 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         udiff_ctrl = self.getObjectByRole("predefined")
         ctrl_obj = self.getObjectByRole("controller")
         if not entering_hutch:
-            ctrl_obj.detcover.set_out()
             if old["dtox"] is not None:
                 print "Moving %s to %g" % (dtox.name(), old["dtox"])
                 dtox.move(old["dtox"])
+            self.flex_device.eval("flex.user_port(0)")
             udiff_ctrl.moveToPhase(phase="Centring",wait=True)
         else:
-            ctrl_obj.detcover.set_in()
             old["dtox"] = dtox.getPosition()
+            ctrl_obj.detcover.set_in()
             dtox.move(700)
             udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
 
