@@ -104,15 +104,3 @@ def send_all(p, data):
         data = buffer(data, sent)
 
 
-if __name__ == '__main__':
-    shell, commands, tail = ('xclock', (), '\n')
-    
-    a = Popen(shell, shell=False,stdin=PIPE, stdout=PIPE)
-    print(recv_some(a), end=' ')
-    for cmd in commands:
-        send_all(a, cmd + tail)
-        print(recv_some(a), end=' ')
-    send_all(a, 'exit' + tail)
-    print(recv_some(a, e=0))
-    a.wait()
-
