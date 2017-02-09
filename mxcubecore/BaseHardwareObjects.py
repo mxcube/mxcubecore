@@ -329,6 +329,8 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def __bool__(self):
         return True
         
+    def __nonzero__(self):
+        return True
 
     def __getattr__(self, attr):
         if attr.startswith("__"):

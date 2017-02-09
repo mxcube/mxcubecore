@@ -10,6 +10,11 @@ import gevent.server
 import socket
 import pwd
 
+try:
+    from QtImport import qt_variant
+except ImportError:
+    qt_variant = 'qt3'
+
 import BlissFramework
 
 """
@@ -65,7 +70,6 @@ class InstanceServer(Procedure):
         # Remove BlissFramework application lockfile
         #self.guiConfiguration=qt.qApp.mainWidget().configuration
 
-        from QtImport import qt_variant
         if qt_variant == 'PyQt5':
             from PyQt5.QtWidgets import QApplication
             for widget in QApplication.allWidgets():

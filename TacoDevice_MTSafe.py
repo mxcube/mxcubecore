@@ -548,7 +548,9 @@ def TacoDevice(name, dc=False):
       
 
 #--------------------------------------------------------------
-class _TacoDevice(object, metaclass=ThreadSafeMethodsMetaClass):
+class _TacoDevice(object):
+   __metaclass__ = ThreadSafeMethodsMetaClass
+
    def __init__(self, name, dc=False):             # constructor     
       # print 'Welcome ' + name
       self.__dc = dc
