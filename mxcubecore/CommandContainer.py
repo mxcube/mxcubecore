@@ -147,11 +147,7 @@ class CommandContainer:
 
     def __getattr__(self, attr):
         try:
-            # LNLS
-            # python2.7
-            #return self.__commands[attr]
-            # python3.4
-            return self.__dict__['__commands'][attr]
+            return self.__dict__['_CommandContainer__commands'][attr]
         except KeyError:
             raise AttributeError(attr)
     
