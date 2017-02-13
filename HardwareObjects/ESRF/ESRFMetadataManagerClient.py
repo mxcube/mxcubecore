@@ -5,6 +5,7 @@
 
 import os
 import sys
+import math
 import logging
 import PyTango.client
 import traceback
@@ -29,7 +30,7 @@ class MetadataManagerClient(object):
         self.proposal = None
         self.sample = None
         self.datasetName = None
-        
+
         if metadataManagerName:
             self.metadataManagerName = metadataManagerName
         if metaExperimentName:
@@ -38,7 +39,7 @@ class MetadataManagerClient(object):
         print('MetadataManager: %s' % metadataManagerName)
         print('MetaExperiment: %s' % metaExperimentName)
 
-        # Tango Devices instances     
+        # Tango Devices instances
         try:
             MetadataManagerClient.metadataManager = PyTango.client.Device(self.metadataManagerName)
             MetadataManagerClient.metaExperiment = PyTango.client.Device(self.metaExperimentName)
@@ -73,7 +74,7 @@ class MetadataManagerClient(object):
 
     def appendFile(self, filePath):
         try:
-            MetadataManagerClient.metadataManager.lastDataFile = filePath          
+            MetadataManagerClient.metadataManager.lastDataFile = filePath
         except:
             print "Unexpected error:", sys.exc_info()[0]
             raise
@@ -102,7 +103,7 @@ class MetadataManagerClient(object):
                 self.__setProposal(proposal)
 
                 # setting dataRoot
-                self.__setDataRoot(dataRoot)               
+                self.__setDataRoot(dataRoot)
 
                 # setting sample
                 self.__setSample(sampleName)
@@ -114,7 +115,7 @@ class MetadataManagerClient(object):
                 if (str(MetadataManagerClient.metaExperiment.state()) == 'ON'):
                     if (str(MetadataManagerClient.metadataManager.state()) == 'ON'):
                         MetadataManagerClient.metadataManager.StartScan()
-                        
+
             except:
                 print "Unexpected error:", sys.exc_info()[0]
                 raise
@@ -124,13 +125,13 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metadataManager.endScan()
         except:
             print "Unexpected error:", sys.exc_info()[0]
-            raise        
+            raise
 
     def getState(self):
         return str(MetadataManagerClient.metadataManager.state())
 
 class MXCuBEMetadataClient(object):
-    
+
     def __init__(self, esrf_multi_collect):
         self.esrf_multi_collect = esrf_multi_collect
         if hasattr(self.esrf_multi_collect["metadata"], "manager"):
@@ -138,9 +139,9 @@ class MXCuBEMetadataClient(object):
         else:
             self._metadataManagerName = None
         if hasattr(self.esrf_multi_collect["metadata"], "experiment"):
-            self._metaExperimentName  = self.esrf_multi_collect["metadata"].experiment
+            self._metaExperimentName = self.esrf_multi_collect["metadata"].experiment
         else:
-            self._metaExperimentName  = None
+            self._metaExperimentName = None
         if hasattr(self.esrf_multi_collect["metadata"], "error_email"):
             self._listEmailReceivers = self.esrf_multi_collect["metadata"].error_email.split(" ")
         else:
@@ -148,10 +149,12 @@ class MXCuBEMetadataClient(object):
         if hasattr(self.esrf_multi_collect["metadata"], "replyto_email"):
             self._emailReplyTo = self.esrf_multi_collect["metadata"].replyto_email
         else:
-            self._emailReplyTo = None            
+            self._emailReplyTo = None
         self._sessionObject = self.esrf_multi_collect.getObjectByRole("session")
-        
-    
+
+        self._beamline = self._sessionObject.endstation_name
+
+
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
         errorMessage = "{0} {1}".format(exc_type, exc_value)
@@ -167,7 +170,7 @@ class MXCuBEMetadataClient(object):
             listTo = self._listEmailReceivers
             listCC = []
             listBCC = []
-            mime_text_message['Subject'] = "Metadata upload error on MASSIF 1"
+            mime_text_message['Subject'] = "Metadata upload error on {0} for proposal {1}".format(self._beamline, self._proposal)
             mime_text_message['From'] = replyTo
             mime_text_message['To'] = COMMASPACE.join(listTo)
             if len(listCC) > 0:
@@ -181,29 +184,28 @@ class MXCuBEMetadataClient(object):
             except:
                 pass
         return errorMessage
-        
+
 
     def start(self, data_collect_parameters):
         # Metadata
         if self._metadataManagerName is not None and self._metaExperimentName is not None:
             try:
+                self._proposal = self._sessionObject.get_proposal()
                 # Create proxy object
                 self._metadataManagerClient = MetadataManagerClient(self._metadataManagerName, self._metaExperimentName)
-                
+
                 # First check the state of the device server
                 serverState = self._metadataManagerClient.getState()
                 if serverState == "RUNNING":
                     # Force end of scan
                     self._metadataManagerClient.end()
-                    
-                fileinfo =  data_collect_parameters["fileinfo"]
+
+                fileinfo = data_collect_parameters["fileinfo"]
                 directory = fileinfo["directory"]
                 prefix = fileinfo["prefix"]
                 run_number = int(fileinfo["run_number"])
                 # Connect to ICAT metadata database
-                
-                proposal = self._sessionObject.get_proposal()
-                
+
                 # Strip the prefix from any workflow expTypePrefix
                 # TODO: use the ISPyB sample name instead
                 sampleName = prefix
@@ -213,8 +215,8 @@ class MXCuBEMetadataClient(object):
                         break
                 # The data set name must be unique so we use the ISPyB data collection id
                 datasetName = "{0}_{1}_{2}".format(prefix, run_number, self.esrf_multi_collect.collection_id)
-                self._metadataManagerClient.start(directory, proposal, sampleName, datasetName)
-                self._metadataManagerClient.printStatus()        
+                self._metadataManagerClient.start(directory, self._proposal, sampleName, datasetName)
+                self._metadataManagerClient.printStatus()
             except:
                 logging.getLogger("user_level_log").warning("Cannot connect to metadata server")
                 errorMessage = self.reportStackTrace()
@@ -222,15 +224,37 @@ class MXCuBEMetadataClient(object):
                 self._metadataManagerClient = None
 
 
-    def upload_images_to_icat(self, template, prefix, run_number, directory, 
+    def upload_images_to_icat(self, template, prefix, run_number, directory,
                               number_of_images, start_image_number, overlap):
         logging.getLogger("user_level_log").info("Uploading to images to ICAT")
-        for index in range(number_of_images):
-            image_no = index + start_image_number
-            image_path = os.path.join(directory, template % image_no)
-            self._metadataManagerClient.appendFile(image_path)
+        if template.endswith(".h5"):
+            if math.fabs(overlap) > 1:
+                for image_number in range(1, number_of_images + 1):
+                    h5_master_file_name = "{prefix}_{run_number}_{image_number}_master.h5".format(
+                        prefix=prefix, run_number=run_number, image_number=image_number)
+                    h5_master_file_path = os.path.join(directory, h5_master_file_name)
+                    self._metadataManagerClient.appendFile(h5_master_file_path)
+                    h5_data_file_name = "{prefix}_{run_number}_{image_number}_data_000001.h5".format(
+                       prefix=prefix, run_number=run_number, image_number=image_number)
+                    h5_data_file_path = os.path.join(directory, h5_data_file_name)
+                    self._metadataManagerClient.appendFile(h5_data_file_path)
+            else:
+                h5_master_file_name = "{prefix}_{run_number}_{start_image_number}_master.h5".format(
+                    prefix=prefix, run_number=run_number, start_image_number=start_image_number)
+                h5_master_file_path = os.path.join(directory, h5_master_file_name)
+                self._metadataManagerClient.appendFile(h5_master_file_path)
+                for index in range(int((number_of_images - 1) / 100) + 1):
+                    h5_data_file_name = "{prefix}_{run_number}_{start_image_number}_data_{data_index:06d}.h5".format(
+                        prefix=prefix, run_number=run_number, start_image_number=start_image_number, data_index=(index + 1))
+                    h5_data_file_path = os.path.join(directory, h5_data_file_name)
+                    self._metadataManagerClient.appendFile(h5_data_file_name)
+        else:
+            for index in range(number_of_images):
+                image_no = index + start_image_number
+                image_path = os.path.join(directory, template % image_no)
+                self._metadataManagerClient.appendFile(image_path)
 
- 
+
     def end(self, data_collect_parameters):
         try:
             dictMetadata = self.getMetadata(data_collect_parameters)
@@ -245,23 +269,21 @@ class MXCuBEMetadataClient(object):
                     number_of_images = oscillation_parameters["number_of_images"]
                     start_image_number = oscillation_parameters["start_image_number"]
                     overlap = oscillation_parameters["overlap"]
-                    self.upload_images_to_icat(template, prefix, run_number, directory, 
+                    self.upload_images_to_icat(template, prefix, run_number, directory,
                                                number_of_images, start_image_number, overlap)
                 # Upload the two paths to the meta data HDF5 files
-                beamline = self._sessionObject.endstation_name
-                proposal = self._sessionObject.get_proposal()
-                pathToHdf5File1 = os.path.join(directory, 
+                pathToHdf5File1 = os.path.join(directory,
                                                "{proposal}-{beamline}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                    beamline=beamline,
-                                                    proposal=proposal,
+                                                    beamline=self._beamline,
+                                                    proposal=self._proposal,
                                                     prefix=prefix,
                                                     run_number=run_number,
                                                     dataCollectionId=self.esrf_multi_collect.collection_id)
                                                )
                 self._metadataManagerClient.appendFile(pathToHdf5File1)
-                pathToHdf5File2 = os.path.join(directory, 
+                pathToHdf5File2 = os.path.join(directory,
                                                "{proposal}-{prefix}-{prefix}_{run_number}_{dataCollectionId}.h5".format(
-                                                    proposal=proposal,
+                                                    proposal=self._proposal,
                                                     prefix=prefix,
                                                     run_number=run_number,
                                                     dataCollectionId=self.esrf_multi_collect.collection_id)
@@ -270,8 +292,8 @@ class MXCuBEMetadataClient(object):
                 # Upload meta data as attributes
                 # These attributes are common for all ESRF MX beamlines
                 dictMetadata = self.getMetadata(data_collect_parameters)
-                #import pprint
-                #pprint.pprint(dictMetadata)
+                # import pprint
+                # pprint.pprint(dictMetadata)
                 for attributeName, value in dictMetadata.iteritems():
                     logging.getLogger("HWR").info("Setting metadata client attribute '{0}' to '{1}'".format(attributeName, value))
                     setattr(self._metadataManagerClient.metadataManager, attributeName, str(value))
@@ -282,32 +304,32 @@ class MXCuBEMetadataClient(object):
             errorMessage = self.reportStackTrace()
             logging.getLogger("user_level_log").warning(errorMessage)
             self._metadataManagerClient = None
-            
+
 
     def getMetadata(self, data_collect_parameters):
         """
         Common metadata parameters for ESRF MX beamlines.
         """
         listAttributes = [
-                          ["MX_beamShape", "beamShape"], 
-                          ["MX_beamSizeAtSampleX", "beamSizeAtSampleX"], 
-                          ["MX_beamSizeAtSampleY", "beamSizeAtSampleY"], 
-                          ["MX_dataCollectionId", "collection_id"],  
+                          ["MX_beamShape", "beamShape"],
+                          ["MX_beamSizeAtSampleX", "beamSizeAtSampleX"],
+                          ["MX_beamSizeAtSampleY", "beamSizeAtSampleY"],
+                          ["MX_dataCollectionId", "collection_id"],
                           ["MX_directory", "fileinfo.directory"],
                           ["MX_exposureTime", "oscillation_sequence.exposure_time"],
-                          ["MX_flux", "flux"], 
+                          ["MX_flux", "flux"],
                           ["MX_fluxEnd", "flux_end"],
                           ["MX_numberOfImages", "oscillation_sequence.number_of_images"],
                           ["MX_oscillationRange", "oscillation_sequence.range"],
                           ["MX_oscillationStart", "oscillation_sequence.start"],
                           ["MX_oscillationOverlap", "oscillation_sequence.overlap"],
-                          ["MX_resolution", "resolution"], 
+                          ["MX_resolution", "resolution"],
                           ["MX_startImageNumber", "oscillation_sequence.start_image_number"],
-                          ["MX_scanType", "experiment_type"], 
+                          ["MX_scanType", "experiment_type"],
                           ["MX_template", "fileinfo.template"],
-                          ["MX_transmission", "transmission"], 
-                          ["MX_xBeam", "xBeam"], 
-                          ["MX_yBeam", "yBeam"], 
+                          ["MX_transmission", "transmission"],
+                          ["MX_xBeam", "xBeam"],
+                          ["MX_yBeam", "yBeam"],
                           ["InstrumentMonochromator_wavelength", "wavelength"],
                           ]
         dictMetadata = {}
@@ -339,11 +361,11 @@ class MXCuBEMetadataClient(object):
             if type(motor) == str:
                 motorName = motor
             else:
-                 nameAttribute = getattr(motor, "name")
-                 if type(nameAttribute) == str:
-                     motorName = nameAttribute
-                 else:
-                     motorName = nameAttribute()
+                nameAttribute = getattr(motor, "name")
+                if type(nameAttribute) == str:
+                    motorName = nameAttribute
+                else:
+                    motorName = nameAttribute()
             if motorNames == "":
                 motorNames = motorName
                 motorPositions = str(round(position, 3))
@@ -352,14 +374,14 @@ class MXCuBEMetadataClient(object):
                 motorPositions += " " + str(round(position, 3))
         dictMetadata["MX_motors_name"] = motorNames
         dictMetadata["MX_motors_value"] = motorPositions
-          # Detector distance
+        # Detector distance
         distance = self.esrf_multi_collect.get_detector_distance()
         if distance is not None:
             dictMetadata["MX_detectorDistance"] = distance
         # Aperture
         if self.esrf_multi_collect.bl_control.beam_info is not None and self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj is not None:
             aperture = self.esrf_multi_collect.bl_control.beam_info.aperture_hwobj.getPosition()
-            dictMetadata["MX_aperture"] =  aperture
+            dictMetadata["MX_aperture"] = aperture
         return dictMetadata
 
 
@@ -374,4 +396,4 @@ if __name__ == '__main__':
     client.appendFile('/data/visitor/mx415/id30a1/20161014/RAW_DATA/t1/test2.txt')
     client.printStatus()
     client.end()
-   
+
