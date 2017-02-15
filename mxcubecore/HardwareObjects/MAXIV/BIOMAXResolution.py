@@ -42,12 +42,3 @@ class BIOMAXResolution(Resolution.Resolution):
         beam_x, beam_y = self.get_beam_centre(dtox)
         self.det_radius =  min(self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y)*0.075
 
-    def getWavelength(self):
-        try:
-            return self.energy.getCurrentWavelength()*1000 # need to fix
-        except:
-            current_en = self.energy.getPosition()
-            if current_en:
-                return (12.3984/current_en)
-            return None
- 
