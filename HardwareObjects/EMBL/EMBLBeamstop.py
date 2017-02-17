@@ -26,36 +26,28 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__version__ = "2.3."
 
 
 class EMBLBeamstop(Device):
-    """
-    Descrip. :
-    """
 
     def __init__(self, name):
-        """
-        Descrip. :
-        """
         Device.__init__(self, name)
 
         self.distance = None
         self.default_size = None
         self.default_distance = None
-        self.default_direction = None 
+        self.default_direction = None
 
         self.chan_distance = None
         self.chan_position = None
 
     def init(self):
-        """
-        Descrip. :
-        """
+        """Reads parameters from xml and adds neccessary channels"""
         self.default_size = self.getProperty("defaultBeamstopSize")
         self.default_distance = self.getProperty("defaultBeamstopDistance")
         self.default_direction = self.getProperty("defaultBeamstopDirection")
- 
+
         self.chan_distance = self.getChannelObject('BeamstopDistance')
         if self.chan_distance is not None:
             self.chan_distance.connectSignal("update", self.distance_changed)
@@ -63,33 +55,30 @@ class EMBLBeamstop(Device):
         self.chan_position = self.getChannelObject('BeamstopPosition')
 
     def isReady(self):
-        """
-        Descrip. :
-        """
+        """Returns True if device ready"""
         return True
 
     def distance_changed(self, value):
+        """Callback when distance changed"""
         self.distance = value
         self.emit('beamstopDistanceChanged', (value))
 
-    def moveToPosition(self, name):
-        pass
- 
     def get_size(self):
-        """
-        Descrip. :
-        """
+        """Returns default beamstop size"""
         return self.default_size
 
-    def set_distance(self, position):
+    def set_distance(self, distance):
+        """Sets beamstop distance
+
+        :param distance: beamstop distance
+        :type distance: float (mm)
+        """
         if self.chan_distance is not None:
-            self.chan_distance.setValue(position)
-            self.distance_changed(position)
+            self.chan_distance.setValue(distance)
+            self.distance_changed(distance)
 
     def get_distance(self):
-        """
-        Descrip. :
-        """
+        """Returns beamstop distance in mm"""
         distance = None
         if self.chan_distance is not None:
             distance = self.chan_distance.getValue()
@@ -100,17 +89,18 @@ class EMBLBeamstop(Device):
             return distance
 
     def get_direction(self):
-        """
-        Descrip. :
-        """
+        """Returns beamstop direction"""
         return self.default_direction
 
     def get_position(self):
+        """Returns beamstop position"""
         return self.chan_position.getValue()
 
     def set_position(self, position):
+        """Sets position"""
         self.chan_position.setValue(position)
 
     def update_values(self):
+        """Reemits available signals"""
         self.distance = self.chan_distance.getValue()
         self.emit('beamstopDistanceChanged', (self.distance))

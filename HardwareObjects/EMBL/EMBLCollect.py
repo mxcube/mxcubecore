@@ -19,27 +19,28 @@
 """
 EMBLCollect
 """
+
 import os
 import logging
 import gevent
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__version__ = "2.3."
 
 
 class EMBLCollect(AbstractCollect, HardwareObject):
-    """Main data collection class. Inherited from AbstractMulticollect
-       Collection is done by setting collection parameters and 
-       executing collect command  
+    """Main data collection class. Inherited from AbstractCollect.
+       Collection is done by setting collection parameters and
+       executing collect command
     """
     def __init__(self, name):
-        """
 
+        """
         :param name: name of the object
         :type name: string
         """
@@ -56,12 +57,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self._collecting = False
         self._error_msg = ""
         self._error_or_aborting = False
-        self.collect_frame  = None
+        self.collect_frame = None
         self.ready_event = None
         self.use_still = None
 
         self.exp_type_dict = None
-        self.aborted_by_user = None 
+        self.aborted_by_user = None
+        self.run_autoprocessing = None
+        self.guillotine_state = None
 
         self.chan_collect_status = None
         self.chan_collect_frame = None
@@ -110,9 +113,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.graphics_manager_hwobj = None
 
     def init(self):
-        """Main init method
-        """
-
+        """Main init method"""
         self.ready_event = gevent.event.Event()
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
         self.lims_client_hwobj = self.getObjectByRole("lims_client")
@@ -130,27 +131,28 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             for undulator in self["undulators"]:
                 undulators.append(undulator)
         except:
-            pass  
+            pass
+
         self.exp_type_dict = {'Mesh': 'raster',
                               'Helical': 'Helical'}
         self.set_beamline_configuration(\
-             synchrotron_name = "EMBL-HH",
-             directory_prefix = self.getProperty("directory_prefix"),
-             default_exposure_time = self.detector_hwobj.getProperty("default_exposure_time"),
-             minimum_exposure_time = self.detector_hwobj.getProperty("minimum_exposure_time"),
-             detector_fileext = self.detector_hwobj.getProperty("fileSuffix"),
-             detector_type = self.detector_hwobj.getProperty("type"),
-             detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
-             detector_model = self.detector_hwobj.getProperty("model"),
-             detector_px = self.detector_hwobj.getProperty("px"),
-             detector_py = self.detector_hwobj.getProperty("py"),
-             undulators = undulators,
-             focusing_optic = self.getProperty('focusing_optic'),
-             monochromator_type = self.getProperty('monochromator'),
-             beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation = self.getProperty('polarisation'),
-             input_files_server = self.getProperty("input_files_server"))
+             synchrotron_name="EMBL-HH",
+             directory_prefix=self.getProperty("directory_prefix"),
+             default_exposure_time=self.detector_hwobj.getProperty("default_exposure_time"),
+             minimum_exposure_time=self.detector_hwobj.getProperty("minimum_exposure_time"),
+             detector_fileext=self.detector_hwobj.getProperty("fileSuffix"),
+             detector_type=self.detector_hwobj.getProperty("type"),
+             detector_manufacturer=self.detector_hwobj.getProperty("manufacturer"),
+             detector_model=self.detector_hwobj.getProperty("model"),
+             detector_px=self.detector_hwobj.getProperty("px"),
+             detector_py=self.detector_hwobj.getProperty("py"),
+             undulators=undulators,
+             focusing_optic=self.getProperty('focusing_optic'),
+             monochromator_type=self.getProperty('monochromator'),
+             beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
+             beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
+             polarisation=self.getProperty('polarisation'),
+             input_files_server=self.getProperty("input_files_server"))
 
         self.chan_collect_status = self.getChannelObject('collectStatus')
         self._actual_collect_status = self.chan_collect_status.getValue()
@@ -158,14 +160,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.chan_collect_frame = self.getChannelObject('collectFrame')
         self.chan_collect_frame.connectSignal('update', self.collect_frame_update)
         self.chan_collect_error = self.getChannelObject('collectError')
-        if self.chan_collect_error is not None:
-            self.chan_collect_error.connectSignal('update', self.collect_error_update)
+        self.chan_collect_error.connectSignal('update', self.collect_error_update)
 
         self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
         self.chan_guillotine_state = self.getChannelObject('guillotineState')
-        if self.chan_guillotine_state is not None:
-            self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
- 
+        self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
+
         #Commands to set collection parameters
         self.cmd_collect_description = self.getCommandObject('collectDescription')
         self.cmd_collect_detector = self.getCommandObject('collectDetector')
@@ -190,7 +190,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_space_group = self.getCommandObject('collectSpaceGroup')
         self.cmd_collect_unit_cell = self.getCommandObject('collectUnitCell')
         self.cmd_collect_xds_data_range = self.getCommandObject('collectXdsDataRange')
-    
+
         #Collect start and abort commands
         self.cmd_collect_start = self.getCommandObject('collectStart')
         self.cmd_collect_abort = self.getCommandObject('collectAbort')
@@ -201,13 +201,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         #Properties
         self.use_still = self.getProperty("use_still")
- 
+
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
     def data_collection_hook(self):
-        """Main collection hook
-        """
+        """Main collection hook"""
 
         if self.aborted_by_user:
             self.emit_collection_failed("Aborted by user")
@@ -230,7 +229,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.cmd_collect_in_queue(self.current_dc_parameters['in_queue'])
             self.cmd_collect_overlap(osc_seq['overlap'])
             shutter_name = self.detector_hwobj.get_shutter_name()
-            if shutter_name is not None:  
+            if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
 
             calibration_name = self.beam_info_hwobj.get_focus_mode()
@@ -270,9 +269,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters['experiment_type'], 'OSC'))
             self.cmd_collect_start()
         else:
-            self.emit_collection_failed("Detector server not in unknown state")
+            self.emit_collection_failed("Detector server in unknown state")
 
-            
     def collect_status_update(self, status):
         """Status event that controls execution
 
@@ -289,7 +287,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
-                    logging.info("Preparing collecting...")  
+                    logging.info("Preparing collecting...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
                     self.emit("collectStarted", (self.owner, 1))
@@ -309,17 +307,17 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         if (self._collecting and
             len(error_msg) > 0):
-            self._error_msg = error_msg 
-            logging.getLogger("user_level_log").error(error_msg)
+            self._error_msg = error_msg
+            logging.getLogger("GUI").error(error_msg)
 
     def emit_collection_failed(self, failed_msg=None):
-        """Collection failed method
-        """ 
+        """Collection failed method"""
+
         if not failed_msg:
-            failed_msg = 'Data collection failed!'
+            failed_msg = "Data collection failed!"
         self.current_dc_parameters["status"] = "Failed"
-        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
-        #self.emit("collectOscillationFailed", (self.owner, False, 
+        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
+        #self.emit("collectOscillationFailed", (self.owner, False,
         #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
         self.emit("collectEnded", self.owner, failed_msg)
         self.emit("collectReady", (True, ))
@@ -329,6 +327,11 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.ready_event.set()
 
     def guillotine_state_changed(self, state):
+        """Updates guillotine state"
+
+        :param state: guillotine state (close, opened, ..)
+        :type state: str
+        """
         if state[1] == 0:
             self.guillotine_state = "closed"
         elif state[1] == 1:
@@ -338,14 +341,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         elif state[1] == 3:
             self.guillotine_state = "opening"
 
-    def emit_collection_finished(self):  
-        """Collection finished beahviour
-        """
+    def emit_collection_finished(self):
+        """Collection finished beahviour"""
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
 
-        if self.current_dc_parameters['experiment_type'] != "Collect - Multiwedge":
+        if self.current_dc_parameters['experiment_type'] != \
+           "Collect - Multiwedge":
             self.update_data_collection_in_lims()
 
             last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
@@ -354,7 +357,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
                 self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
                 last_frame > 19):
-                self.trigger_auto_processing("after", 
+                self.trigger_auto_processing("after",
                                              self.current_dc_parameters,
                                              0)
 
@@ -382,112 +385,105 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                      grid_snapshot_filename
                 self.lims_client_hwobj.update_data_collection(self.current_dc_parameters)
             except:
-                logging.getLogger("HWR").exception("Could not store data collection into ISPyB")
+                logging.getLogger("HWR").exception(\
+                     "Could not store data collection into ISPyB")
 
     def collect_frame_update(self, frame):
-        """Image frame update 
+        """Image frame update
+
+        :param frame: frame num.
+        :type frame: int
         """
 
-        if self._collecting: 
+        if self._collecting:
             self.collect_frame = frame
             number_of_images = self.current_dc_parameters\
                  ['oscillation_sequence'][0]['number_of_images']
             self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
-            self.emit("collectImageTaken", frame) 
+            self.emit("collectImageTaken", frame)
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
+        """Store image in lims
+
+        :param frame: dict with frame parameters
+        :type frame: dict
+        :param motor_position_id: position id
+        :type motor_position_id: int
         """
-        Descript. :
-        """
-        image_id = None
         self.trigger_auto_processing("image", self.current_dc_parameters, frame)
-        image_id = self.store_image_in_lims(frame)
-        return image_id 
+
+        return self.store_image_in_lims(frame)
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
-        """
-        Descript. : 
-        """
-        self.autoprocessing_hwobj.execute_autoprocessing(process_event, 
+        """Starts autoprocessing"""
+        self.autoprocessing_hwobj.execute_autoprocessing(process_event,
              self.current_dc_parameters, frame_number, self.run_processing_after)
 
     def stopCollect(self, owner="MXCuBE"):
-        """
-        Descript. :
-        """
-        self.aborted_by_user = True 
+        """Stops collect"""
+
+        self.aborted_by_user = True
         self.cmd_collect_abort()
         self.emit_collection_failed("Aborted by user")
-        #self.ready_event.set() 
+        #self.ready_event.set()
 
     def set_helical_pos(self, arg):
+        """Sets helical positions
+           8 floats describe:
+             p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
+             p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY
         """
-        Descript. : 8 floats describe
-        p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
-        p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY               
-        """
-        helical_positions = [arg["1"]["phiy"],  arg["1"]["phiz"], 
+        helical_positions = [arg["1"]["phiy"], arg["1"]["phiz"],
                              arg["1"]["sampx"], arg["1"]["sampy"],
-                             arg["2"]["phiy"],  arg["2"]["phiz"],
+                             arg["2"]["phiy"], arg["2"]["phiz"],
                              arg["2"]["sampx"], arg["2"]["sampy"]]
-        self.cmd_collect_helical_position(helical_positions)       
+        self.cmd_collect_helical_position(helical_positions)
 
     def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
-        """
-        Descript. : 
-        """
+        """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
-        self.cmd_collect_num_images(num_images_per_line)        
+        self.cmd_collect_num_images(num_images_per_line)
         self.cmd_collect_raster_range(mesh_range[::-1])
 
     @task
     def _take_crystal_snapshot(self, filename):
-        """
-        Descript. : 
-        """
+        """Saves crystal snapshot"""
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
 
     def set_energy(self, value):
-        """
-        Descript. : 
-        """
+        """Sets energy"""
         if abs(value - self.get_energy()) > 0.001:
             self.energy_hwobj.release_break_bragg()
         self.cmd_collect_energy(value * 1000.0)
 
     def get_energy(self):
+        """Returns energy value in keV"""
         return self.energy_hwobj.getCurrentEnergy()
 
     def set_resolution(self, value):
-        """
-        Descript. : 
-        """
+        """Sets resolution in A"""
         self.cmd_collect_resolution(value)
 
     def set_transmission(self, value):
-        """
-        Descript. : 
-        """
+        """Sets transmission in %"""
         self.cmd_collect_transmission(value)
 
     def set_detector_roi_mode(self, roi_mode):
-        """
-        Descript. : 
+        """Sets detector ROI mode
+
+        :param roi_mode: roi mode
+        :type roi_mode: str (0, C2, ..)
         """
         if self.detector_hwobj is not None:
-            self.detector_hwobj.set_collect_mode(roi_mode) 
-        
-    @task 
+            self.detector_hwobj.set_collect_mode(roi_mode)
+
+    @task
     def move_motors(self, motor_position_dict):
-        """
-        Descript. : 
-        """        
+        """Move to centred position"""
         self.diffractometer_hwobj.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
-        """
-        Descript. : 
-        """
+        """Prepares xds and mosfl directories"""
         i = 1
         while True:
             xds_input_file_dirname = "xds_%s_%s_%d" % (\
@@ -514,80 +510,59 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
 
     def get_wavelength(self):
-        """
-        Descript. : 
-        """
+        """Returns wavelength"""
         if self.energy_hwobj is not None:
             return self.energy_hwobj.getCurrentWavelength()
 
     def get_detector_distance(self):
-        """
-        Descript. : 
-        """
-        if self.detector_hwobj is not None:	
+        """Returns detector distance in mm"""
+        if self.detector_hwobj is not None:
             return self.detector_hwobj.get_distance()
 
     def get_detector_distance_limits(self):
-        """
-        Descript. : 
-        """
+        """Returns detector distance limits"""
         if self.detector_hwobj is not None:
             return self.detector_hwobj.get_distance_limits()
-       
+
     def get_resolution(self):
-        """
-        Descript. : 
-        """
+        """Returns resolution in A"""
         if self.resolution_hwobj is not None:
             return self.resolution_hwobj.getPosition()
 
     def get_transmission(self):
-        """
-        Descript. : 
-        """
+        """Returns transmision in %"""
         if self.transmission_hwobj is not None:
             return self.transmission_hwobj.getAttFactor()
 
     def get_undulators_gaps(self):
+        """Return triplet with gaps. In our case we have one gap,
         """
-        Descript. : return triplet with gaps. In our case we have one gap, 
-                    others are 0        
-        """
-        #TODO 
         if self.chan_undulator_gap:
             und_gaps = self.chan_undulator_gap.getValue()
             if type(und_gaps) in (list, tuple):
                 return und_gaps
-            else: 
+            else:
                 return (und_gaps)
         else:
-            return {} 
+            return {}
 
     def get_beam_size(self):
-        """
-        Descript. : 
-        """
+        """Returns beam size as a list with two floats"""
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_size()
 
     def get_slit_gaps(self):
-        """
-        Descript. : 
-        """
+        """Returns slits sizes as a list with two floats"""
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_slits_gap()
 
     def get_beam_shape(self):
-        """
-        Descript. : 
-        """
+        """Returns beam shape: rectangle or ellipse"""
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
-    
+
     def get_measured_intensity(self):
-        """
-        Descript. : 
-        """
+        """Returns flux"""
         flux = None
         if self.lims_client_hwobj:
             if self.lims_client_hwobj.beamline_name == "P13":
@@ -601,7 +576,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 elif aperture_size == 70:
                     flux = 1.14e12
                 elif aperture_size == 50:
-                    flux = 0.8e12  
+                    flux = 0.8e12
                 elif aperture_size == 30:
                     flux = 0.48e12
                 elif aperture_size == 15:
@@ -613,7 +588,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 if flux is None or flux < 0:
                     fullflux = 3.5e12
                     fullsize_hor = 1.200
-                    fullsize_ver =  0.700
+                    fullsize_ver = 0.700
 
                     foc = self.beam_info_hwobj.get_focus_mode()
 
@@ -631,52 +606,44 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         return float("%.3e" % flux)
 
     def get_machine_current(self):
-        """
-        Descript. : 
-        """
+        """Returns flux"""
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_current()
         else:
             return 0
 
     def get_machine_message(self):
-        """
-        Descript. : 
-        """
+        """Returns machine message"""
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
         else:
             return ''
 
     def get_machine_fill_mode(self):
-        """
-        Descript. : 
-        """
+        """Returns machine filling mode"""
         if self.machine_info_hwobj:
-            fill_mode = str(self.machine_info_hwobj.get_message()) 
+            fill_mode = str(self.machine_info_hwobj.get_message())
             return fill_mode[:20]
         else:
             return ''
 
     def getBeamlineConfiguration(self, *args):
-        """
-        Descript. : 
-        """
+        """Returns beamline config"""
         return self.bl_config._asdict()
 
     def get_flux(self):
-        """
-        Descript. : 
-        """
+        """Returns flux"""
         return self.get_measured_intensity()
 
     def set_run_autoprocessing(self, status):
+        """Enables or disables autoprocessing after a collection"""
         self.run_autoprocessing = status
 
     def close_guillotine(self, wait=True):
+        """Closes guillotine"""
         if self.guillotine_state != "closed":
             self.cmd_close_guillotine()
             if wait:
                 with gevent.Timeout(10, Exception("Timeout waiting for close")):
-                   while self.guillotine_state != "closed":
-                         gevent.sleep(0.1) 
+                    while self.guillotine_state != "closed":
+                          gevent.sleep(0.1) 
