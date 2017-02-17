@@ -18,40 +18,8 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] EMBLBeamFocusing
-
-[Description]
+EMBLBeamFocusing
 Hardware Object is used to evaluate and set beam focusing mode.
-
-[Channels]
-
-[Commands]
-
-[Emited signals]
-- focusModeChanged 
-
-[Functions]
-- mGroupFocModeChanged()
-- getFocModesNames()
-- getFocMode()
-- setFocMode()
-
-[Included Hardware Objects]
------------------------------------------------------------------------
-| name            | signals              | functions
------------------------------------------------------------------------
-| MotorsGroup     | mGroupFocModeChanged | setMotorGroupFocMode()
------------------------------------------------------------------------
-
-Example Hardware Object XML file :
-==================================
-<equipment class="BeamFocusing">
-    <focusModes>
-      <focusMode>
-           <modeName>Unfocused</modeName>
-           <message>'Set beam focusing to Unfocused mode'</message>
-      </focusMode>
-</equipment>
 """
 
 import gevent
@@ -62,18 +30,14 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__version__ = "2.3."
 
 
 class EMBLBeamFocusing(Equipment):
-    """
-    Descript. :
-    """
+
     def __init__(self, name):
-        """
-        Descript. :
-        """
-        Equipment.__init__(self, name) 
+        Equipment.__init__(self, name)
+
         self.active_focus_mode = None
         self.size = [9999, 9999]
         self.focus_modes = None
@@ -81,53 +45,50 @@ class EMBLBeamFocusing(Equipment):
         self.motors_groups = []
 
         self.cmd_set_calibration_name = None
-        self.cmd_set_phase = None 
+        self.cmd_set_phase = None
 
     def init(self):
+        """Reads available focusing modes from the config xml and
+           attaches corresponding motors
         """
-        Descript. :
-        """
-        self.focus_modes = [] 
+        self.focus_modes = []
         for focus_mode in self['focusModes']:
-            self.focus_modes.append({'modeName': focus_mode.modeName, 
-                                     'lensCombination': eval(focus_mode.lensCombination),
-                                     'lensModes': eval(focus_mode.lensModes),
-                                     'size': eval(focus_mode.size), 
-                                     'message': eval(focus_mode.message),
-                                     'diverg': eval(focus_mode.divergence)})
-        self.focus_motors_dict = {} 
+            self.focus_modes.append(\
+                 {'modeName': focus_mode.modeName,
+                  'lensCombination': eval(focus_mode.lensCombination),
+                  'lensModes': eval(focus_mode.lensModes),
+                  'size': eval(focus_mode.size),
+                  'message': eval(focus_mode.message),
+                  'diverg': eval(focus_mode.divergence)})
+        self.focus_motors_dict = {}
 
         focus_motors = []
-        try: 
-            focus_motors = eval(self.getProperty('focusMotors'))
-        except:
-            pass
-      
+        focus_motors = eval(self.getProperty('focusMotors'))
+
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
-       
+
         self.motors_groups = self.getDevices()
         if len(self.motors_groups) > 0:
             for motors_group in self.motors_groups:
-                self.connect(motors_group, 'mGroupFocModeChanged', 
-                     self.motor_group_focus_mode_changed)
+                self.connect(motors_group,
+                             'mGroupFocModeChanged',
+                             self.motor_group_focus_mode_changed)
         else:
-            logging.getLogger("HWR").debug('BeamFocusing: No motors defined') 
-            self.active_focus_mode = self.focus_modes[0]['modeName'] 
+            logging.getLogger("HWR").debug('BeamFocusing: No motors defined')
+            self.active_focus_mode = self.focus_modes[0]['modeName']
             self.size = self.focus_modes[0]['size']
             self.update_values()
-        
+
         self.cmd_set_calibration_name = self.getCommandObject(\
             'cmdSetCallibrationName')
         try:
             self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
         except:
-            pass 
+            pass
 
     def get_focus_motors(self):
-        """
-        Descript. :
-        """ 
+        """Returns a list with all focusing motors"""
         focus_motors = []
         if self.motors_groups is not None:
             for motors_group in self.motors_groups:
@@ -137,10 +98,10 @@ class EMBLBeamFocusing(Equipment):
         return focus_motors
 
     def motor_group_focus_mode_changed(self, value):
-        """
-	Descript. : called if motors group focusing is changed 
-        Arguments : new focus mode name(string                                 
-        Return    : -
+        """Called if motors group focusing is changed
+
+        :param value: focusing mode
+        :type value: str or None
         """
         motors_group_foc_mode = eval(value)
         for motor in motors_group_foc_mode:
@@ -151,45 +112,48 @@ class EMBLBeamFocusing(Equipment):
         self.active_focus_mode, self.size = self.get_active_focus_mode()
 
         if prev_mode != self.active_focus_mode:
-            logging.getLogger("HWR").info('Focusing: %s mode detected' % self.active_focus_mode)
+            logging.getLogger("HWR").info('Focusing: %s mode detected' %\
+                                          self.active_focus_mode)
             self.emit('focusingModeChanged', self.active_focus_mode, self.size)
             if self.cmd_set_calibration_name and self.active_focus_mode:
                 self.cmd_set_calibration_name(self.active_focus_mode.lower())
 
     def get_focus_mode_names(self):
-        """
-        Descript. : returns defined focus modes names 
-        Arguments : -                                        
-        Return    : focus mode names (list of strings)
-        """
+        """Returns defined focus modes names"""
         names = []
         for focus_mode in self.focus_modes:
             names.append(focus_mode['modeName'])
         return names
 
     def get_focus_mode_message(self, focus_mode_name):
-        """
-        Descript. : returns foc mode message
-        Arguments : mode name (string)                                        
-        Return    : message (string)
+        """Returns messages used when a new focusing mode is requisted.
+
+        :param focus_mode_name: name of the mode
+        :type focus_mode_name: str
         """
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == focus_mode_name:
                 return focus_mode['message']
 
     def get_available_lens_modes(self, focus_mode_name=None):
-        """
-        Descript. :
+        """Get available CRL lens combination for the given focusing mode
+
+        :param focus_mode_name: requested focusing mode. If None passed then
+                                current focusing mode is used
+        :type focus_mode_name: str
         """
         if focus_mode_name == None:
             focus_mode_name = self.active_focus_mode
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == focus_mode_name:
-                return focus_mode['lensModes']   
+                return focus_mode['lensModes']
 
     def get_lens_combination(self, focus_mode_name=None):
-        """
-        Descript. :
+        """Returns available lens combination for the given focusing mode
+
+        :param focus_mode_name: requested focusing mode. If None passed then
+                                current focusing mode is used
+        :type focus_mode_name: str
         """
         if focus_mode_name == None:
             focus_mode_name, beam_size = self.get_active_focus_mode()
@@ -199,11 +163,7 @@ class EMBLBeamFocusing(Equipment):
                 return focus_mode['lensCombination']
 
     def get_active_focus_mode(self):
-        """
-	Descript. : evaluate and get active foc mode
-    	Arguments : -                                        
-    	Return    : mode name (string or None if unable to detect)
-	"""
+        """Evaluates and returns active focusing mode"""
         if len(self.focus_motors_dict) > 0:
             active_focus_mode = None
             for focus_mode in self.focus_modes:
@@ -221,40 +181,46 @@ class EMBLBeamFocusing(Equipment):
                 if active_focus_mode is not None:
                     break
             if active_focus_mode != self.active_focus_mode:
-                self.active_focus_mode = active_focus_mode	
-                #logging.getLogger("HWR").info('Focusing: %s mode detected' %active_focus_mode)
+                self.active_focus_mode = active_focus_mode
         return self.active_focus_mode, self.size
 
     def get_focus_mode(self):
-        """
-        Descript. :
-        """
+        """Returns active focusing mode"""
         if self.active_focus_mode:
             return self.active_focus_mode.lower()
 
-    def set_motor_focus_mode(self, motor_name, focus_mode):	
+    def set_motor_focus_mode(self, motor_name, focus_mode):
+        """Sets focusing mode of a selected motor
+
+        :param motor_name: motor name
+        :type motor_name: str
+        :param focus_mode: requested focusing mode
+        :type focus_mode: str
         """
-        Descript. :
-        """ 
         if focus_mode is not None:
             for motor in self.motors_groups:
                 motor.set_motor_focus_mode(motor_name, focus_mode)
 
     def set_focus_mode(self, focus_mode):
+        """Sets focusing mode to all motors
+
+        :param focus_mode: requested focusing mode
+        :type focus_mode: str
         """
-        Descript. : sets focusing mode
-        Arguments : new mode name (string)                                        
-        Return    : -
-	"""
         gevent.spawn(self.focus_mode_task,
                      focus_mode)
 
     def focus_mode_task(self, focus_mode):
+        """Gevent task to set focusing mode
+
+        :param focus_mode: requested focusing mode
+        :type focus_mode: str
+        """
         if focus_mode and self.cmd_set_phase:
-            tinequery(self.cmd_set_phase['address'], 
-                      self.cmd_set_phase['property'], 
+            tinequery(self.cmd_set_phase['address'],
+                      self.cmd_set_phase['property'],
                       self.cmd_set_phase['argument'])
-            if self.motors_groups:		 
+            if self.motors_groups:
                 for motors_group in self.motors_groups:
                     motors_group.set_motor_group_focus_mode(focus_mode)
         else:
@@ -262,23 +228,19 @@ class EMBLBeamFocusing(Equipment):
             self.active_focus_mode = focus_mode
 
     def get_divergence_hor(self):
-        """
-        Descript. :
-        """
+        """Returns horizontal beam divergence"""
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == self.active_focus_mode:
                 return focus_mode['diverg'][0]
 
     def get_divergence_ver(self):
-        """
-        Descript. :
-        """
+        """Returns vertical beam divergence"""
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == self.active_focus_mode:
                 return focus_mode['diverg'][1]
 
     def update_values(self):
-        """
-        Descript. :
-        """
-        self.emit('focusingModeChanged', self.active_focus_mode, self.size)
+        """Reemits available signals"""
+        self.emit('focusingModeChanged',
+                  self.active_focus_mode,
+                  self.size)
