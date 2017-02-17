@@ -18,58 +18,27 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] EMBLAperture
-
-[Description]
-Hardware Object is used to set and get current aperture.
-
-[Channels]
-
-[Commands]
-
-[Emited signals]
-- apertureChanged
-
-[Functions]
-- setAllowedPositions()
-- getShape()
-- activePosChanged()
-- setActivePos()
-- isPosAllowed()
-- focModeChanged()
-- evaluateAperture()
- 
-[Included Hardware Objects]
------------------------------------------------------------------------
-| name            | signals        | functions
------------------------------------------------------------------------
-| BeamFocusing    | focModeChanged |
------------------------------------------------------------------------
-
-Example Hardware Object XML file :
-==================================
+Controls aperture of MD2/3 diffractometer
 """
 
-import logging
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
 
 __author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__version__ = "2.3."
+
+
+POSITIONS = ("BEAM", "OFF", "PARK")
 
 
 class EMBLAperture(Device):
+    """Aperture control hwobj uses exporter or Tine channels and commands
+       to control aperture position
     """
-    Description:	
-    """	
-    POSITIONS = ("BEAM", "OFF", "PARK")
 
     def __init__(self, name):
-        """
-        Description: Active position is defined as index (int)	
-        """
+        """Inherited from Device"""
         Device.__init__(self, name)
 
         self.position = None
@@ -79,82 +48,93 @@ class EMBLAperture(Device):
         self.chan_diameter_index = None
         self.chan_diameters = None
         self.chan_position = None
-  
+
     def init(self):
-        """
-	Description:
-	"""
+        """Initialization of channels and commands"""
 
         self.chan_diameters = self.getChannelObject('ApertureDiameters')
         if self.chan_diameters:
-            self.diameter_list = self.chan_diameters.getValue()         
+            self.diameter_list = self.chan_diameters.getValue()
         else:
             self.diameter_list = [10, 20]
 
-        self.chan_diameter_index = self.getChannelObject('CurrentApertureDiameterIndex')
-        if self.chan_diameter_index is not None: 
+        self.chan_diameter_index = \
+            self.getChannelObject('CurrentApertureDiameterIndex')
+        if self.chan_diameter_index is not None:
             self.current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self.current_diameter_index)
-            self.chan_diameter_index.connectSignal('update', self.diameter_index_changed)
+            self.chan_diameter_index.connectSignal(\
+                 'update', self.diameter_index_changed)
         else:
             self.current_diameter_index = 0
-        
+
         self.chan_position = self.getChannelObject('AperturePosition')
         if self.chan_position:
             self.position = self.chan_position.getValue()
-            self.position_changed(self.position) 
+            self.position_changed(self.position)
             self.chan_position.connectSignal('update', self.position_changed)
 
     def diameter_index_changed(self, diameter_index):
-        """
-        Descript. :
-        """
+        """Callback when diameter index has been changed"""
         self.current_diameter_index = diameter_index
-        self.emit('diameterIndexChanged', diameter_index, 
+        self.emit('diameterIndexChanged', diameter_index,
              self.diameter_list[diameter_index] / 1000.0)
 
     def get_diameter_size(self):
+        """Returns: diameter index as int"""
         return self.diameter_list[self.current_diameter_index] / 1000.0
 
     def position_changed(self, position):
+        """Position change callback"""
         self.position = position
         self.emit('positionChanged', position)
 
     def set_diameter_index(self, diameter_index):
-        """   
-        Description : cmd to set new aperture
-        Arguments   : new aperture name(string) 
-        Return      : -
+        """Sets new diameter index
+
+        :param diameter_index: new diameter index
+        :type diameter_index: int
         """
         self.chan_diameter_index.setValue(diameter_index)
 
-    def set_diameter(self, diameter):
-        self.chan_diameter_index.setValue(self.diameter_list.index(diameter)) 
+    def set_diameter(self, diameter_size):
+        """Sets new aperture size
+
+        :param diameter_size: new size
+        :type diameter_size: int
+        """
+        self.chan_diameter_index.setValue(\
+             self.diameter_list.index(diameter_size))
 
     def set_position(self, position):
-        self.chan_position.setValue(EMBLAperture.POSITION[position])
+        """Sets new aperture position
+
+        :param diameter_index: new position
+        :type diameter_index: str
+        """
+        self.chan_position.setValue(POSITIONS[position])
 
     def set_in(self):
+        """Sets aperture to the BEAM position"""
         self.chan_position.setValue("BEAM")
 
     def set_out(self):
+        """Sets aperture to the OUT position"""
         self.chan_position.setValue("OFF")
 
     def is_out(self):
+        """Returns True if aperture is on the beam"""
         return self.position != "BEAM"
-	   	
+
     def get_diameter_list(self):
-        """
-        Descript. :
-        """
+        """Returns a list with  available apertures"""
         return self.diameter_list
 
     def get_position_list(self):
-        return EMBLAperture.POSITIONS 
+        """Returns a list with available aperture positions"""
+        return POSITIONS
 
     def update_values(self):
-        """
-        Descript. :
-        """
-        self.diameter_index_changed(self.current_diameter_index) 
+        """Reemits hwobj signals"""
+        self.diameter_index_changed(self.current_diameter_index)
         self.position_changed(self.position)
