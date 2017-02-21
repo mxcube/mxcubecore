@@ -46,7 +46,6 @@ Example Hardware Object XML file :
 import os
 import time
 import logging
-import gevent
 import struct
 import numpy as np
 
