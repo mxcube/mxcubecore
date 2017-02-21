@@ -121,7 +121,6 @@ class BIOMAXEiger(Equipment):
                              "timeout": 8000, 
                              "tangoname": tango_device },
                              cmd_name)
-
         # init the detector settings in case of detector restart
         # use bslz4 for compression ()        
 
@@ -151,7 +150,7 @@ class BIOMAXEiger(Equipment):
             else:
                 return "not_init"
 
-        return self.status_chan.getValue()
+        return self.status_chan.getValue().split('\n')[0]
      
     def is_idle(self):
         return self.get_status() == "idle"
@@ -174,32 +173,34 @@ class BIOMAXEiger(Equipment):
     def wait_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_ready():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
 
     def wait_ready_or_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector neither ready or idle")):
             while not (self.is_ready() or self.is_idle()):
-                time.sleep(0.1)
+                gevent.sleep(0.1)
 
     def wait_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_idle():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
 
     def wait_acquire(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_acquire():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
 
     def wait_buffer_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
             while self.get_buffer_free() < self.buffer_limit:
-                time.sleep(0.1)
+                gevent.sleep(0.1)
     
     def wait_config_done(self):
-        with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
+        logging.getLogger("HWR").info("Waiting to configure the detector.")
+        with gevent.Timeout(30, RuntimeError("Detector configuration error")):
             while self.is_preparing():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
+        logging.getLogger("HWR").info("Detector configuration finished.")
     #  STATUS END
 
     #  GET INFORMATION
@@ -366,11 +367,11 @@ class BIOMAXEiger(Equipment):
             if new_egy is not None:
                 if self.set_photon_energy( new_egy ) is False:
                     raise Exception("Could not program energy in detector")
-
 	if "CountTime" in self._config_vals.keys():
 	    self.set_value("CountTime",  self._config_vals["CountTime"])
+            print "readout time and count time is ", self.get_readout_time(), self.get_value("CountTime")
 	    self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
-
+            print "new frame time is ", self.get_value("FrameTime")
         for cfg_name, cfg_value in self._config_vals.items():
             t0 = time.time()   
             if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
@@ -409,7 +410,7 @@ class BIOMAXEiger(Equipment):
 
         self.config_state = None
 
-        logging.getLogger("user_level_log").info("Detector armed")
+        logging.getLogger("user_level_log").info("Detector going to arm")
 
         return self.arm()
     
@@ -445,6 +446,7 @@ class BIOMAXEiger(Equipment):
         cmd = self.getCommandObject("Arm")
         cmd.setTimeout(10000)
         cmd()
+        logging.getLogger("user_level_log").info("Detector armed")
 
     def trigger(self):
         self.getCommandObject("Trigger")()
