@@ -90,9 +90,6 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            # python2.7
-            #return self._propertySet[attr]
-            # python3.4
             return self.__dict__['_propertySet'][attr]
         except KeyError:
             raise AttributeError(attr)
