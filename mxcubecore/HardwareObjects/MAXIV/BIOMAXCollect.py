@@ -100,7 +100,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         #self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
         #self.chan_machine_current = self.getChannelObject("MachineCurrent")
 
-        self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
 
 #---------------------------------------------------------
@@ -237,21 +236,30 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.open_detector_cover()
             self.open_safety_shutter()
             #make sure detector configuration is finished
+	    #TODO: investigate gevent.timeout exception handing, this wait is to ensure
+	    # that conf is done before arming
+	    time.sleep(2)
             self.detector_hwobj.wait_config_done()
-            self.detector_hwobj.start_acquisition()
+	    self.detector_hwobj.start_acquisition()
             # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
             shutterless_exptime = self.detector_hwobj.get_acquisition_time()
-            
+	    # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
+	    # is accepted by the detector but without any effect at all... sad...
+            self.detector_hwobj.wait_ready()
             self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
             self.detector_hwobj.stop_acquisition()
 
             self.close_safety_shutter()
             self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
+	except RuntimeError as ex:
+	    self.data_collection_cleanup()
+            raise Exception("data collection hook failed... ", str(ex))
 	except:
 	    self.data_collection_cleanup()
-            raise Exception("data collection hook failed")
+	    logging.getLogger("HWR").error("Unexpected error:", sys.exc_info()[0])
+            raise Exception("data collection hook failed... ", sys.exc_info()[0])
 
     def oscil(self, start, end, exptime, npass, wait = True):
         if self.helical:
@@ -290,13 +298,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
-
         self.update_data_collection_in_lims()
-
         last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
         if last_frame > 1:
-            self.store_image_in_lims_by_frame_num(last_frame)
-
+            print "TODO: fix store_image_in_lims_by_frame_num method for nimages >1"#self.store_image_in_lims_by_frame_num(last_frame)
         if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
             self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
             self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
@@ -309,6 +314,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # Dont save mesh first and last images
         # Mesh images (best positions) are stored after data analysis
+        logging.getLogger("HWR").INFO("TODO: fix store_image_in_lims_by_frame_num method for nimages >1")
+ 	return	
         if self.current_dc_parameters['experiment_type'] in ('Mesh') and \
            motor_position_id is None:
             return
@@ -563,7 +570,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         file_parameters["template"] = image_file_template
  
         os.path.join(file_parameters["directory"], image_file_template) 
-        config['FilenamePattern'] = re.sub("^/data","",name_pattern)  # remove "/data in the beginning"
+        config['FilenamePattern'] = re.sub("^/data/bs","",name_pattern)  # remove "/data in the beginning"
         return self.detector_hwobj.prepare_acquisition(config)
 
     def get_transmission(self):
