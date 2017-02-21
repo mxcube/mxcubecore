@@ -62,13 +62,13 @@ class GraphicsItem(QGraphicsItem):
 
     def __init__(self, parent=None, position_x=0, position_y=0):
         """
-        
+
         :param position_x: x coordinate in the scene
         :type position_x: int
         :param position_y: y coordinate in the scene
         :type position_y: int
         """
-      
+
         QGraphicsItem.__init__(self)
         self.index = None
         self.base_color = None
@@ -100,10 +100,10 @@ class GraphicsItem(QGraphicsItem):
 
     def boundingRect(self):
         """Returns adjusted rect
-      
+
         :returns: QRect
         """
-     
+
         return self.rect.adjusted(0, 0, 40, 40)
 
     def set_size(self, width, height):
@@ -121,7 +121,7 @@ class GraphicsItem(QGraphicsItem):
     def set_start_position(self, position_x, position_y):
         """Sets start position
         """
-       
+
         if (position_x is not None and
             position_y is not None):
             self.start_coord[0] = position_x
@@ -130,7 +130,7 @@ class GraphicsItem(QGraphicsItem):
 
     def get_start_position(self):
         """Returns start coordinate of the shape
- 
+
         :return: list with two int
         """
 
@@ -151,25 +151,25 @@ class GraphicsItem(QGraphicsItem):
 
     def get_display_name(self):
         """Returns items display name
-       
+
         :returns: str
         """
         return "Item %d" % self.index
 
-    def get_full_name(self): 
+    def get_full_name(self):
         """Returns full name of the item
-         
+
         :returns: str
         """
         return self.get_display_name() 
 
     def set_base_color(self, color):
         """Sets base color for lines
-         
+
         :param color: color
         :type color: QColor
         """
-        self.base_color = color 
+        self.base_color = color
 
     def update_item(self):
         """Updates current item. Calls parent scene update method
@@ -185,7 +185,7 @@ class GraphicsItem(QGraphicsItem):
     def toggle_selected(self):
         """Toggles item selection
         """
-        self.setSelected(not self.isSelected()) 
+        self.setSelected(not self.isSelected())
         self.update()
 
     def set_beam_info(self, beam_info):
@@ -197,9 +197,11 @@ class GraphicsItem(QGraphicsItem):
         """
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
         self.beam_size_mm[0] = beam_info.get("size_x", 0)
-        self.beam_size_mm[1] = beam_info.get("size_y", 0) 
-        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0]) 
-        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1]) 
+        self.beam_size_mm[1] = beam_info.get("size_y", 0)
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
+             self.pixels_per_mm[0])
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
+             self.pixels_per_mm[1])
 
     def set_beam_position(self, beam_position):
         """Sets beam position
@@ -210,8 +212,10 @@ class GraphicsItem(QGraphicsItem):
         """Sets pixels per mm and updates item
         """
         self.pixels_per_mm = pixels_per_mm
-        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0]) 
-        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1]) 
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
+             self.pixels_per_mm[0])
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
+             self.pixels_per_mm[1])
         self.update_item()
 
 class GraphicsItemBeam(GraphicsItem):
@@ -224,7 +228,7 @@ class GraphicsItemBeam(GraphicsItem):
         self.beam_is_rectangle = True
         self.display_beam_size = False
         self.setFlags(QGraphicsItem.ItemIsMovable)
-        
+
     def paint(self, painter, option, widget):
         """Main beam painter method
            Draws ellipse or rectangle with a cross in the middle
@@ -234,10 +238,10 @@ class GraphicsItemBeam(GraphicsItem):
 
         if self.beam_is_rectangle:
             painter.drawRect(self.beam_position[0] * self.scene().image_scale - \
-                             self.beam_size_pix[0] / 2 * self.scene().image_scale, 
+                             self.beam_size_pix[0] / 2 * self.scene().image_scale,
                              self.beam_position[1] * self.scene().image_scale - \
                              self.beam_size_pix[1] / 2 * self.scene().image_scale,
-                             self.beam_size_pix[0] * self.scene().image_scale, 
+                             self.beam_size_pix[0] * self.scene().image_scale,
                              self.beam_size_pix[1] * self.scene().image_scale)
         else:
             painter.drawEllipse(self.beam_position[0] * self.scene().image_scale - \
@@ -246,20 +250,19 @@ class GraphicsItemBeam(GraphicsItem):
                                 self.beam_size_pix[1] / 2 * self.scene().image_scale,
                                 self.beam_size_pix[0] * self.scene().image_scale,
                                 self.beam_size_pix[1] * self.scene().image_scale)
-        self.custom_pen.setColor(Qt.red) 
+        self.custom_pen.setColor(Qt.red)
         painter.setPen(self.custom_pen)
-        painter.drawLine(self.beam_position[0] * self.scene().image_scale - 10, 
+        painter.drawLine(self.beam_position[0] * self.scene().image_scale - 10,
                          self.beam_position[1] * self.scene().image_scale,
                          self.beam_position[0] * self.scene().image_scale + 10,
-                         self.beam_position[1] * self.scene().image_scale) 
+                         self.beam_position[1] * self.scene().image_scale)
         painter.drawLine(self.beam_position[0] * self.scene().image_scale, 
                          self.beam_position[1] * self.scene().image_scale - 10,
-                         self.beam_position[0] * self.scene().image_scale, 
-                         self.beam_position[1] * self.scene().image_scale + 10) 
+                         self.beam_position[0] * self.scene().image_scale,
+                         self.beam_position[1] * self.scene().image_scale + 10)
         if self.display_beam_size:
             self.custom_pen.setColor(Qt.darkGray)
             painter.setPen(self.custom_pen)
-           
             painter.drawText(self.beam_position[0] + self.beam_size_pix[0] / 2 + 2,
                              self.beam_position[1] + self.beam_size_pix[1] / 2 + 10,
                              "%d x %d %sm" % (self.beam_size_mm[0] * 1000,
@@ -307,12 +310,12 @@ class GraphicsItemInfo(GraphicsItem):
             self.custom_pen.setColor(Qt.black)
             painter.setPen(self.custom_pen)
             if type(self.__msg) == str:
-                painter.drawText(self.__pos_x + 5, 
+                painter.drawText(self.__pos_x + 5,
                                  self.__pos_y + 10,
                                  self.__msg)
             else:
                 for index, text_line in enumerate(self.__msg):
-                    painter.drawText(self.__pos_x + 5, 
+                    painter.drawText(self.__pos_x + 5,
                                      self.__pos_y + 10 + 15 * index,
                                      text_line)
         if self.__created_time:
@@ -327,18 +330,18 @@ class GraphicsItemInfo(GraphicsItem):
         self.__msg = msg
         self.__pos_x = pos_x
         self.__pos_y = pos_y
-        
+
         if hide_msg:
             self.__created_time = datetime.now()
         else:
-            self.__created_time = None 
+            self.__created_time = None
         if type(msg) == str:
             height = 25
         else:
             height = 20 * len(msg)
         height += 10
         self.__draw_rect = QRectF(pos_x, pos_y,
-                                         self.scene().width() - 20, height)
+                                  self.scene().width() - 20, height)
         self.show()
         self.scene().update()
 
@@ -354,7 +357,7 @@ class GraphicsItemPoint(GraphicsItem):
         :type centred_position: dict with motors positions
         :param full_centring: indicates centring method
         :type full_centring : bool. True if 3click centring
-        """ 
+        """
 
         GraphicsItem.__init__(self, position_x, position_y)
 
@@ -368,12 +371,12 @@ class GraphicsItemPoint(GraphicsItem):
             self.__centred_position = centred_position
         #self.set_size(5,5)
 
-        self.start_coord = [position_x, position_y] 
+        self.start_coord = [position_x, position_y]
         self.setPos(position_x - 10, position_y - 10)
 
     def boundingRect(self):
         """Returns adjusted rect
-      
+
         :returns: QRect
         """
 
@@ -385,12 +388,12 @@ class GraphicsItemPoint(GraphicsItem):
     def get_full_name(self):
         full_name = "Point %d" % self.index
         try:
-           full_name += " (kappa: %0.2f phi: %0.2f)" % \
-               (self.__centred_position.kappa,
-                self.__centred_position.kappa_phi)
+            full_name += " (kappa: %0.2f phi: %0.2f)" % \
+                (self.__centred_position.kappa,
+                 self.__centred_position.kappa_phi)
         except:
            pass
-        self.setToolTip(full_name) 
+        self.setToolTip(full_name)
         return full_name
 
     def get_centred_position(self):
@@ -411,8 +414,7 @@ class GraphicsItemPoint(GraphicsItem):
                 self.custom_pen.setColor(NORMAL_COLOR)
 
         painter.setPen(self.custom_pen)
-        painter.drawEllipse(0, 0,
-                            20, 20)
+        painter.drawEllipse(0, 0, 20, 20)
         #painter.drawLine(self.rect.left(), self.rect.top(),
         #                 self.rect.right(), self.rect.bottom())
         #painter.drawLine(self.rect.right(), self.rect.top(),
@@ -428,9 +430,9 @@ class GraphicsItemPoint(GraphicsItem):
             display_str += " selected"
         painter.drawText(22, 0, display_str)
 
-        if self.__centred_position.used_for_collection > 0: 
-            painter.drawText(self.rect.right() + 2, self.rect.top() + 10, 
-              "Used %d time(s)" % self.__centred_position.used_for_collection)            
+        if self.__centred_position.used_for_collection > 0:
+            painter.drawText(self.rect.right() + 2, self.rect.top() + 10,
+              "Used %d time(s)" % self.__centred_position.used_for_collection)
 
     def set_start_position(self, position_x, position_y):
         if (position_x is not None and
@@ -438,7 +440,7 @@ class GraphicsItemPoint(GraphicsItem):
             self.start_coord[0] = position_x
             self.start_coord[1] = position_y
             self.setPos(position_x - 10, position_y - 10)
-            self.scene().update() 
+            self.scene().update()
 
     #def get_position(self):
     #    return self.start_coord[0], self.start_coord[1]
@@ -499,7 +501,7 @@ class GraphicsItemLine(GraphicsItem):
         (start_cp_x, start_cp_y) = self.__cp_start.get_start_position()
         (end_cp_x, end_cp_y) = self.__cp_end.get_start_position()
         mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
-        mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0) 
+        mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0)
 
         if option.state & QStyle.State_Selected and \
            self.__num_images and self.__display_overlay:
@@ -509,9 +511,9 @@ class GraphicsItemLine(GraphicsItem):
                        beam_index / float(self.__num_images)
                   coord_y = start_cp_y + (end_cp_y - start_cp_y) * \
                        beam_index / float(self.__num_images)
-                  painter.drawEllipse(coord_x - self.beam_size_pix[0] / 2, 
+                  painter.drawEllipse(coord_x - self.beam_size_pix[0] / 2,
                                       coord_y - self.beam_size_pix[1] / 2, 
-                                      self.beam_size_pix[0], 
+                                      self.beam_size_pix[0],
                                       self.beam_size_pix[1])
 
         info_txt = "Line %d (%d->%d)" % (self.index,
@@ -560,20 +562,20 @@ class GraphicsItemGrid(GraphicsItem):
                In draw mode during the draw grid size is esitmated and based
                on the cell size and number of col and row actual grid
                object is painted. After drawing corner_points are added. These
-               4 corner points are motor position dict. When one or several 
+               4 corner points are motor position dict. When one or several
                motors are moved corner_cord are updated and grid is painted
-               in projection mode.              
+               in projection mode.
     """
     def __init__(self, parent, beam_info, spacing_mm, pixels_per_mm):
         GraphicsItem.__init__(self, parent)
 
-        self.setFlags(QGraphicsItem.ItemIsSelectable)  
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
         self.pixels_per_mm = pixels_per_mm
         self.beam_size_mm = [beam_info.get("size_x"), 
                              beam_info.get("size_y")]
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
-     
+
         self.__spacing_mm = spacing_mm
         self.__spacing_pix = [0, 0]
         self.__cell_size_mm = [0, 0]
@@ -581,7 +583,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.__corner_coord = (QPoint(), QPoint(),
                                QPoint(), QPoint())
         self.__center_coord = QPoint()
-        self.__num_cols = 0      
+        self.__num_cols = 0
         self.__num_rows = 0
         self.__num_lines = 0
         self.__num_images_per_line = 0
@@ -598,12 +600,12 @@ class GraphicsItemGrid(GraphicsItem):
         self.__grid_size_pix = [0, 0]
         self.__grid_range_pix = {"fast": 0, "slow": 0}
         self.__reversing_rotation = True
-        self.__score = None 
+        self.__score = None
         self.__automatic = False
         self.__fill_alpha = 120
         self.__display_overlay = True
         self.__osc_range = 0
-       
+
         #self.__overlay_pixmap = None
 
         self.update_item()
@@ -624,7 +626,7 @@ class GraphicsItemGrid(GraphicsItem):
         return "Mesh %d (hor. spacing: %.1f, ver. spacing: %.1f, beam size: %d, %d)" % \
                (self.index + 1, self.__spacing_mm[0], self.__spacing_mm[1],
                 self.beam_size_mm[0], self.beam_size_mm[1])
-  
+
     def get_col_row_num(self):
         return self.__num_cols, self.__num_rows
 
@@ -634,20 +636,28 @@ class GraphicsItemGrid(GraphicsItem):
     def get_grid_range_mm(self):
         return (float(self.__cell_size_mm[0] * (self.__num_cols - 1)), \
                 float(self.__cell_size_mm[1] * (self.__num_rows - 1)))
- 
+
     def get_grid_size_mm(self):
         return (float(self.__cell_size_mm[0] * self.__num_cols), \
-                float(self.__cell_size_mm[1] * self.__num_rows)) 
- 
+                float(self.__cell_size_mm[1] * self.__num_rows))
+
     def update_item(self):
-        self.__cell_size_mm = [self.beam_size_mm[0] + self.__spacing_mm[0] * 2,
-                               self.beam_size_mm[1] + self.__spacing_mm[1] * 2]
-        self.__spacing_pix = [self.pixels_per_mm[0] * self.__spacing_mm[0],
-                              self.pixels_per_mm[1] * self.__spacing_mm[1]]
-        self.__cell_size_pix = [self.pixels_per_mm[0] * self.__cell_size_mm[0],
-                                self.pixels_per_mm[1] * self.__cell_size_mm[1]]
-        self.beam_size_pix[0] = int(self.beam_size_mm[0] * self.pixels_per_mm[0])
-        self.beam_size_pix[1] = int(self.beam_size_mm[1] * self.pixels_per_mm[1])
+        self.__cell_size_mm = [self.beam_size_mm[0] + \
+                               self.__spacing_mm[0] * 2,
+                               self.beam_size_mm[1] + \
+                               self.__spacing_mm[1] * 2]
+        self.__spacing_pix = [self.pixels_per_mm[0] * \
+                              self.__spacing_mm[0],
+                              self.pixels_per_mm[1] * \
+                              self.__spacing_mm[1]]
+        self.__cell_size_pix = [self.pixels_per_mm[0] * \
+                                self.__cell_size_mm[0],
+                                self.pixels_per_mm[1] * \
+                                self.__cell_size_mm[1]]
+        self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
+                                    self.pixels_per_mm[0])
+        self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
+                                    self.pixels_per_mm[1])
 
     def set_osc_range(self, osc_range):
         self.__osc_range = osc_range
@@ -670,21 +680,24 @@ class GraphicsItemGrid(GraphicsItem):
             self.__corner_coord[2].setY(pos_y)
             self.__corner_coord[3].setX(pos_x)
             self.__corner_coord[3].setY(pos_y)
-  
+
         #Number of columns and rows is calculated
         num_cols = int(abs(self.__corner_coord[1].x() - \
-            self.__corner_coord[0].x()) / self.__cell_size_pix[0])
+                           self.__corner_coord[0].x()) / \
+                       self.__cell_size_pix[0])
         num_rows = int(abs((self.__corner_coord[3].y() - \
-            self.__corner_coord[1].y()) / self.__cell_size_pix[1]))
+                            self.__corner_coord[1].y()) / \
+                       self.__cell_size_pix[1]))
 
         if num_rows * num_cols > pow(2, 16):
-            msg_text = "Unable to draw grid containing more than %d cells!" % pow(2, 16)
+            msg_text = "Unable to draw grid containing " + \
+                       "more than %d cells!" % pow(2, 16)
             logging.getLogger("GUI").info(msg_text)
         else:
             self.__num_cols = num_cols
             self.__num_rows = num_rows
 
-            #Based on the grid directions estimates number of lines and 
+            #Based on the grid directions estimates number of lines and
             #number of images per line
             #self.__num_lines =  abs(self.grid_direction['fast'][1] * \
             #     self.__num_cols) + abs(self.grid_direction['slow'][1] * \
@@ -695,35 +708,49 @@ class GraphicsItemGrid(GraphicsItem):
 
             self.update_grid_draw_parameters()
 
-            self.__center_coord.setX(min(self.__corner_coord[0].x(),
-                 self.__corner_coord[1].x()) + self.__grid_size_pix[0] / 2.0)
-            self.__center_coord.setY(min(self.__corner_coord[0].y(),
-                 self.__corner_coord[3].y()) + self.__grid_size_pix[1] / 2.0)
-            self.scene().update() 
+            self.__center_coord.setX(\
+                 min(self.__corner_coord[0].x(),
+                     self.__corner_coord[1].x()) + \
+                 self.__grid_size_pix[0] / 2.0)
+            self.__center_coord.setY(\
+                 min(self.__corner_coord[0].y(),
+                     self.__corner_coord[3].y()) + \
+                 self.__grid_size_pix[1] / 2.0)
+            self.scene().update()
 
     def update_grid_draw_parameters(self, adjust_size=True):
         if adjust_size:
-            self.__grid_size_pix = [self.__num_cols * self.__cell_size_pix[0],
-                                    self.__num_rows * self.__cell_size_pix[1]]
-            #Also grid range is estimated 
-            self.__grid_range_pix["fast"] = abs(self.grid_direction['fast'][0] * \
-                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+            self.__grid_size_pix = [self.__num_cols * \
+                                    self.__cell_size_pix[0],
+                                    self.__num_rows * \
+                                    self.__cell_size_pix[1]]
+            #Also grid range is estimated
+            self.__grid_range_pix["fast"] = \
+                 abs(self.grid_direction['fast'][0] * \
+                     (self.__grid_size_pix[0] - \
+                      self.__cell_size_pix[0])) + \
                  abs(self.grid_direction['fast'][1] * \
-                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
-            self.__grid_range_pix["slow"] = abs(self.grid_direction['slow'][0] * \
-                 (self.__grid_size_pix[0] - self.__cell_size_pix[0])) + \
+                     (self.__grid_size_pix[1] - \
+                      self.__cell_size_pix[1]))
+            self.__grid_range_pix["slow"] = \
+                 abs(self.grid_direction['slow'][0] * \
+                     (self.__grid_size_pix[0] - \
+                      self.__cell_size_pix[0])) + \
                  abs(self.grid_direction['slow'][1] * \
-                 (self.__grid_size_pix[1] - self.__cell_size_pix[1]))
+                     (self.__grid_size_pix[1] - \
+                      self.__cell_size_pix[1]))
         else:
-            self.__num_cols = int(self.__grid_size_pix[0] / self.__cell_size_pix[0])
-            self.__num_rows = int(self.__grid_size_pix[1] / self.__cell_size_pix[1])
+            self.__num_cols = int(self.__grid_size_pix[0] / \
+                                  self.__cell_size_pix[0])
+            self.__num_rows = int(self.__grid_size_pix[1] / \
+                                  self.__cell_size_pix[1])
 
-        self.__num_lines =  abs(self.grid_direction['fast'][1] * \
-                 self.__num_cols) + abs(self.grid_direction['slow'][1] * \
-                 self.__num_rows)
-        self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
-                self.__num_cols) + abs(self.grid_direction['slow'][0] * \
-                self.__num_rows)
+        self.__num_lines =  \
+            abs(self.grid_direction['fast'][1] * self.__num_cols) + \
+            abs(self.grid_direction['slow'][1] * self.__num_rows)
+        self.__num_images_per_line = \
+            abs(self.grid_direction['fast'][0] * self.__num_cols) + \
+            abs(self.grid_direction['slow'][0] * self.__num_rows)
 
     def set_corner_coord(self, corner_coord):
         self.update_grid_draw_parameters()
@@ -753,13 +780,13 @@ class GraphicsItemGrid(GraphicsItem):
         self.scene().update()
 
     def set_draw_mode(self, draw_mode):
-        self.__draw_mode = draw_mode 
+        self.__draw_mode = draw_mode
 
     def is_draw_mode(self):
         return self.__draw_mode
 
     def set_projection_mode(self, mode):
-        self.__draw_projection = mode 
+        self.__draw_projection = mode
 
     def get_properties(self):
         (dx_mm, dy_mm) = self.get_grid_range_mm()
@@ -767,12 +794,12 @@ class GraphicsItemGrid(GraphicsItem):
                 "direction":  self.grid_direction,
                 "reversing_rotation": self.__reversing_rotation,
                 "steps_x": self.__num_cols,
-                "steps_y": self.__num_rows, 
+                "steps_y": self.__num_rows,
                 "xOffset": self.__spacing_mm[0],
-                "yOffset": self.__spacing_mm[1],  
+                "yOffset": self.__spacing_mm[1],
                 "dx_mm": dx_mm,
                 "dy_mm": dy_mm,
-                "beam_x_mm": self.beam_size_mm[0], 
+                "beam_x_mm": self.beam_size_mm[0],
                 "beam_y_mm": self.beam_size_mm[1],
                 "num_lines": self.__num_lines,
                 "num_images_per_line": self.__num_images_per_line,
@@ -784,20 +811,23 @@ class GraphicsItemGrid(GraphicsItem):
         self.__num_cols = int(grid_size[0] / self.beam_size_mm[0])
         self.__num_rows = int(grid_size[1] / self.beam_size_mm[1])
 
-        self.set_center_coord(self.beam_position)    
+        self.set_center_coord(self.beam_position)
 
         self.update_item()
-        self.__num_lines =  abs(self.grid_direction['fast'][1] * \
-            self.__num_cols) + abs(self.grid_direction['slow'][1] * \
-            self.__num_rows)
-        self.__num_images_per_line = abs(self.grid_direction['fast'][0] * \
-            self.__num_cols) + abs(self.grid_direction['slow'][0] * \
-            self.__num_rows)
+        self.__num_lines =  \
+             abs(self.grid_direction['fast'][1] * \
+                 self.__num_cols) + \
+             abs(self.grid_direction['slow'][1] * \
+                 self.__num_rows)
+        self.__num_images_per_line = \
+            abs(self.grid_direction['fast'][0] * \
+                self.__num_cols) + \
+            abs(self.grid_direction['slow'][0] * \
+                self.__num_rows)
         self.update_grid_draw_parameters()
 
         self.__automatic = True
         self.__draw_projection = False
-     
 
         self.__motor_pos_corner = []
         self.__motor_pos_corner.append(\
@@ -873,8 +903,10 @@ class GraphicsItemGrid(GraphicsItem):
             painter.drawLine(self.__corner_coord[3], self.__corner_coord[1])
             painter.drawLine(self.__corner_coord[3], self.__corner_coord[2])
         else:
-            draw_start_x = self.__center_coord.x() - self.__grid_size_pix[0] / 2.0
-            draw_start_y = self.__center_coord.y() - self.__grid_size_pix[1] / 2.0
+            draw_start_x = self.__center_coord.x() - \
+                           self.__grid_size_pix[0] / 2.0
+            draw_start_y = self.__center_coord.y() - \
+                           self.__grid_size_pix[1] / 2.0
 
             # Horizontal and vertical grid lines
             for i in range(0, self.__num_cols + 1):
@@ -886,9 +918,9 @@ class GraphicsItemGrid(GraphicsItem):
                 offset = i * self.__cell_size_pix[1]
                 painter.drawLine(draw_start_x, draw_start_y + offset,
                                  draw_start_x + self.__num_cols * self.__cell_size_pix[0],
-                                 draw_start_y + offset)    
+                                 draw_start_y + offset)
 
-            #Draws beam shape and displays number of image if 
+            #Draws beam shape and displays number of image if
             #less than 1000 cells and size is greater than 20px
             cell_index = 0
             if self.__num_cols * self.__num_rows < 1000 and \
@@ -900,9 +932,9 @@ class GraphicsItemGrid(GraphicsItem):
                             cell_index + self.__first_image_num)
                         pos_x, pos_y = self.get_coord_from_line_image(line, image)
                         paint_rect = QRect(\
-                            pos_x - self.__cell_size_pix[0] / 2, 
+                            pos_x - self.__cell_size_pix[0] / 2,
                             pos_y - self.__cell_size_pix[1] / 2,
-                            self.__cell_size_pix[0], 
+                            self.__cell_size_pix[0],
                             self.__cell_size_pix[1])
 
                         #If score exists overlay color may change
@@ -912,7 +944,7 @@ class GraphicsItemGrid(GraphicsItem):
                             brush_color.setAlpha(self.__fill_alpha)
                         else:
                             brush_color = QColor(70, 70, 165, self.__fill_alpha)
-                        #if self.__display_overlay and not self.__overlay_pixmap: 
+                        #if self.__display_overlay and not self.__overlay_pixmap:
                         if self.__display_overlay:
                             #painter.setBrush(QColor(70, 70, 165))
                             if self.__score is not None:
@@ -920,7 +952,7 @@ class GraphicsItemGrid(GraphicsItem):
                                 if self.__score.max() > 0:
                                     cell_score = float(cell_score) / \
                                                  self.__score.max()
-                                    brush_color.setHsv(0 + 60 * cell_score, 
+                                    brush_color.setHsv(0 + 60 * cell_score,
                                      255, 255 * cell_score, self.__fill_alpha)
                             self.custom_brush.setColor(brush_color)
                             painter.setBrush(self.custom_brush)
@@ -956,7 +988,7 @@ class GraphicsItemGrid(GraphicsItem):
                          self.__center_coord.x() - 5,
                          self.__center_coord.y() + 5)
 
-        if self.__automatic: 
+        if self.__automatic:
             grid_info = "Auto mesh"
         else:
             grid_info = "Mesh %d" % (self.index + 1)
@@ -970,9 +1002,9 @@ class GraphicsItemGrid(GraphicsItem):
                          self.__grid_size_pix[0] / 2.0 + 3,
                          self.__center_coord.y() - \
                          self.__grid_size_pix[1] / 2.0 + 12,
-                         "%d x %d" % (self.__num_lines, 
+                         "%d x %d" % (self.__num_lines,
                                       self.__num_images_per_line))
- 
+
     def move_by_pix(self, move_direction):
         """Moves grid by one pixel
         """
@@ -981,14 +1013,14 @@ class GraphicsItemGrid(GraphicsItem):
         if move_direction == "left":
             move_delta_x = - 1
         elif move_direction == "right":
-            move_delta_x = 1        
+            move_delta_x = 1
         elif move_direction == "up":
             move_delta_y = - 1
         elif move_direction == "down":
             move_delta_y = 1
         for corner_coord in self.__corner_coord:
             corner_coord.setX(corner_coord.x() + move_delta_x)
-            corner_coord.setY(corner_coord.y() + move_delta_y)    
+            corner_coord.setY(corner_coord.y() + move_delta_y)
         self.__center_coord.setX(self.__center_coord.x() + move_delta_x)
         self.__center_coord.setY(self.__center_coord.y() + move_delta_y)
         self.scene().update()
@@ -1000,7 +1032,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_line_image_num(self, image_number):
         """
-        Descript. :  from serial frame (==image) number returns a number 
+        Descript. :  from serial frame (==image) number returns a number
                      of line == grid coord. along scan slow direction,
                      image == grid coord. along scan fast direction
         """
@@ -1012,9 +1044,9 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_coord_from_line_image(self, line, image):
         """
-        Descript. : returns the screen coordinates x, y in pixel, of a middle 
-                    of the cell that correspoinds to 
-        Args.     : number an frame #image in line #line  
+        Descript. : returns the screen coordinates x, y in pixel, of a middle
+                    of the cell that correspoinds to
+        Args.     : number an frame #image in line #line
         """
         ref_fast, ref_slow = self.get_coord_ref_from_line_image(line, image)
 
@@ -1030,8 +1062,8 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_coord_ref_from_line_image(self, line, image):
         """
-        Descript. : returns nameless constants used in conversion between 
-                    scan and screen coordinates. 
+        Descript. : returns nameless constants used in conversion between
+                    scan and screen coordinates.
         """
         fast_ref = 0.5
         if self.__num_images_per_line > 1:
@@ -1047,9 +1079,9 @@ class GraphicsItemGrid(GraphicsItem):
     def get_direction_parameters(self):
         start_x, start_y = self.get_coord_from_line_image(0, 0)
         end_x, end_y = self.get_coord_from_line_image(0, 2)
-        return {'start_x' : start_x, 
-                'start_y': start_y, 
-                'end_x': end_x, 
+        return {'start_x' : start_x,
+                'start_y': start_y,
+                'end_x': end_x,
                 'end_y': end_y}
 
     def get_image_from_col_row(self, col, row):
@@ -1059,12 +1091,15 @@ class GraphicsItemGrid(GraphicsItem):
                  col and row can be floats
         """
         image = int(self.__num_images_per_line / 2.0 + \
-                    self.grid_direction['fast'][0] * (self.__num_cols / 2.0 - col) - \
-                    self.grid_direction['fast'][1] * (self.__num_rows / 2.0 - row))
+                    self.grid_direction['fast'][0] * \
+                    (self.__num_cols / 2.0 - col) - \
+                    self.grid_direction['fast'][1] * \
+                    (self.__num_rows / 2.0 - row))
         line  = int(self.__num_lines / 2.0 + \
-                 self.grid_direction['slow'][0] * (self.__num_cols / 2.0 - col) - \
-                 self.grid_direction['slow'][1] * (self.__num_rows / 2.0 - row))
-
+                    self.grid_direction['slow'][0] * \
+                    (self.__num_cols / 2.0 - col) - \
+                    self.grid_direction['slow'][1] * \
+                    (self.__num_rows / 2.0 - row))
 
         if self.__reversing_rotation and line % 2 :
             image_serial = self.__first_image_num + \
@@ -1081,13 +1116,13 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_col_row_from_line_image(self, line, image):
         """
-        Descript. :  converts frame grid coordinates from scan grid 
+        Descript. :  converts frame grid coordinates from scan grid
                      ("slow","fast") to screen grid ("col","raw"),
                      i.e. rotates/inverts the scan coordinates into 
                      grid coordinates.
         """
         ref_fast, ref_slow = self.get_coord_ref_from_line_image(line, image)
-   
+
         col = self.__num_cols / 2.0 + (self.__num_images_per_line - 1) * \
               self.grid_direction['fast'][0] * ref_fast + \
               (self.__num_lines - 1) * \
@@ -1100,15 +1135,17 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_motor_pos_from_col_row(self, col, row, as_cpos=False):
         """
-        Descript. : x = x(click - x_middle_of_the_plot), y== the same 
+        Descript. : x = x(click - x_middle_of_the_plot), y== the same
         """
         new_point = copy.deepcopy(self.__centred_position.as_dict())
         (hor_range, ver_range) = self.get_grid_size_mm()
-        hor_range = - hor_range * (self.__num_cols / 2.0 - col) / self.__num_cols
-        ver_range = - ver_range * (self.__num_rows / 2.0 - row) / self.__num_rows
+        hor_range = - hor_range * (self.__num_cols / 2.0 - col) / \
+                    self.__num_cols
+        ver_range = - ver_range * (self.__num_rows / 2.0 - row) / \
+                    self.__num_rows
 
         if self.grid_direction['fast'][0] == 1:
-            #MD2 when fast direction is horizontal direction 
+            #MD2 when fast direction is horizontal direction
             new_point['sampx'] = new_point['sampx'] + ver_range * \
                                  math.sin(math.pi * (self.__osc_start - \
                                  self.grid_direction['omega_ref']) / 180.0)
@@ -1130,16 +1167,17 @@ class GraphicsItemGrid(GraphicsItem):
             new_point['phiy'] = new_point['phiy'] + ver_range
             new_point['phi'] = new_point['phi'] - self.__osc_range * \
                                self.__num_rows / 2 + (self.__num_rows - row) * \
-                               self.__osc_range  
+                               self.__osc_range
 
         if as_cpos:
             return queue_model_objects.CentredPosition(new_point)
         else:
             return new_point
- 
+
+
 class GraphicsItemScale(GraphicsItem):
     """
-    Descrip. : Displays vertical and horizontal scale on the bottom, left 
+    Descrip. : Displays vertical and horizontal scale on the bottom, left
                corner. Horizontal scale is scaled to 50 or 100 microns and
                vertical scale is two times shorter.
     """
@@ -1149,7 +1187,7 @@ class GraphicsItemScale(GraphicsItem):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
         self.__display_grid = None
-        
+
     def paint(self, painter, option, widget):
         #TODO move to set_pixels_per_mm
         hor_scale_len_pix = int(self.pixels_per_mm[0] * \
@@ -1180,17 +1218,17 @@ class GraphicsItemScale(GraphicsItem):
             self.custom_pen.setWidth(1)
             self.custom_pen.setColor(Qt.gray)
             painter.setPen(self.custom_pen)
-            for line in range(1, 3): 
-                painter.drawLine(scene_width / 2 + line * 80, 
+            for line in range(1, 3):
+                painter.drawLine(scene_width / 2 + line * 80,
                                  scene_height / 2 - 20 * line,
-                                 scene_width / 2 + line * 80,  
+                                 scene_width / 2 + line * 80,
                                  scene_height / 2 + 20 * line)
-                painter.drawLine(scene_width / 2 - line * 80,              
+                painter.drawLine(scene_width / 2 - line * 80,
                                  scene_height / 2 - 20 * line,
                                  scene_width / 2 - line * 80,
                                  scene_height / 2 + 20 * line)
 
-                painter.drawLine(scene_width / 2 - line * 30,        
+                painter.drawLine(scene_width / 2 - line * 30,
                                  scene_height / 2 - 50 * line,
                                  scene_width / 2 + line * 30,
                                  scene_height / 2 - 50 * line)
@@ -1198,7 +1236,6 @@ class GraphicsItemScale(GraphicsItem):
                                  scene_height / 2 + 50 * line,
                                  scene_width / 2 + line * 30,
                                  scene_height / 2 + 50 * line)
-            
 
             self.custom_pen.setStyle(Qt.DashLine)
             self.custom_pen.setWidth(1)
@@ -1224,21 +1261,21 @@ class GraphicsItemScale(GraphicsItem):
 
     def set_display_grid(self, display_grid):
         self.__display_grid = display_grid
-     
+
+
 class GraphicsItemOmegaReference(GraphicsItem):
-    """
-    Descrip. : 
-    """
+    """Reference line of the rotation axis"""
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
         self.phi_position = None
 
     def paint(self, painter, option, widget):
         painter.setPen(self.custom_pen)
-        painter.drawLine(self.start_coord[0], self.start_coord[1], 
+        painter.drawLine(self.start_coord[0], self.start_coord[1],
                          self.end_coord[0], self.end_coord[1])
         if self.phi_position:
-            painter.drawText(self.end_coord[0] - 40, 
+            painter.drawText(self.end_coord[0] - 40,
                              self.end_coord[1] - 10,
                              "%d %s" % (self.phi_position, u"\u00b0"))
 
@@ -1249,15 +1286,17 @@ class GraphicsItemOmegaReference(GraphicsItem):
         if omega_reference[0] > 0:
             #Omega reference is a vertical axis
             self.start_coord = [int(omega_reference[0]), 0]
-            self.end_coord = [int(omega_reference[0]), self.scene().height()]
+            self.end_coord = [int(omega_reference[0]),\
+                              self.scene().height()]
         else:
             self.start_coord = [0, int(omega_reference[1])]
-            self.end_coord = [self.scene().width(), int(omega_reference[1])] 
+            self.end_coord = [self.scene().width(), \
+                              int(omega_reference[1])] 
+
 
 class GraphicsSelectTool(GraphicsItem):
-    """
-    Descrip. : 
-    """
+    """Draws a rectangle and selects centring points"""
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
 
@@ -1270,10 +1309,10 @@ class GraphicsSelectTool(GraphicsItem):
                          abs(self.start_coord[0] - self.end_coord[0]),
                          abs(self.start_coord[1] - self.end_coord[1]))
 
+
 class GraphicsItemCentringLines(GraphicsItem):
-    """
-    Descrip. : 
-    """
+    """Centring lines are displayed during the 3-click centering"""
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
 
@@ -1295,21 +1334,25 @@ class GraphicsItemCentringLines(GraphicsItem):
                              self.start_coord[1] - 10,
                              "1 click left")
         for centring_point in self.centring_points:
-            painter.drawLine(centring_point[0] - 3, centring_point[1] - 3,
-                             centring_point[0] + 3, centring_point[1] + 3)
-            painter.drawLine(centring_point[0] - 3, centring_point[1] + 3,
-                             centring_point[0] + 3, centring_point[1] - 3)
-            
+            painter.drawLine(centring_point[0] - 3,
+                             centring_point[1] - 3,
+                             centring_point[0] + 3,
+                             centring_point[1] + 3)
+            painter.drawLine(centring_point[0] - 3,
+                             centring_point[1] + 3,
+                             centring_point[0] + 3,
+                             centring_point[1] - 3)
 
     def add_position(self, pos_x, pos_y):
         self.centring_points.append((pos_x, pos_y))
 
+
 class GraphicsItemMoveBeamMark(GraphicsItem):
-    """
-    Descrip. : 
-    """
+    """Tool to move beam mark to a new location"""
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
+
         self.custom_pen.setColor(SELECTED_COLOR)
 
     def paint(self, painter, option, widget):
@@ -1329,16 +1372,18 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
 
 
 class GraphicsItemBeamDefine(GraphicsItem):
+    """Tool to define beam size with slits.
+       Draw a rectange to define width and height.
+       After drawing move diffractometer to the center of the rect.
     """
-    Descrip. : 
-    """
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
 
         self.center_coord = [0, 0]
         self.width_microns = 0
         self.height_microns = 0
-        
+
     def paint(self, painter, option, widget):
         self.custom_pen.setColor(SELECTED_COLOR)
         painter.setPen(self.custom_pen)
@@ -1348,7 +1393,7 @@ class GraphicsItemBeamDefine(GraphicsItem):
                          abs(self.start_coord[0] - self.end_coord[0]),
                          abs(self.start_coord[1] - self.end_coord[1]))
         painter.drawText(self.end_coord[0] + 7, self.end_coord[1],
-                         "%d x %d %sm" % (self.width_microns, 
+                         "%d x %d %sm" % (self.width_microns,
                          self.height_microns, u"\u00B5"))
 
         self.custom_pen.setColor(Qt.red)
@@ -1366,11 +1411,9 @@ class GraphicsItemBeamDefine(GraphicsItem):
                     min(self.start_coord[0], self.end_coord[0])
         pix_height = max(self.start_coord[1], self.end_coord[1]) - \
                      min(self.start_coord[1], self.end_coord[1])
-        self.center_coord[0] = min(self.start_coord[0], 
-                                   self.end_coord[0]) + \
+        self.center_coord[0] = min(self.start_coord[0], self.end_coord[0]) + \
                                pix_width / 2
-        self.center_coord[1] = min(self.start_coord[1], 
-                                   self.end_coord[1]) + \
+        self.center_coord[1] = min(self.start_coord[1], self.end_coord[1]) + \
                                pix_height / 2
         self.width_microns = pix_width / self.pixels_per_mm[0] * 1000
         self.height_microns = pix_height / self.pixels_per_mm[1] * 1000
@@ -1379,11 +1422,12 @@ class GraphicsItemBeamDefine(GraphicsItem):
 
 
 class GraphicsItemMeasureDistance(GraphicsItem):
+    """Item to measure distance between to points
     """
-    Descrip. : 
-    """
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
+
         self.setFlags(QGraphicsItem.ItemIsSelectable)
         self.do_measure = None
         self.measure_points = None
@@ -1408,7 +1452,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
         self.measure_points[len(self.measure_points) - 1].setX(coord[0])
         self.measure_points[len(self.measure_points) - 1].setY(coord[1])
         if len(self.measure_points) == 2:
-            self.measured_distance = math.sqrt(pow((self.measure_points[0].x() - 
+            self.measured_distance = math.sqrt(pow((self.measure_points[0].x() - \
                 self.measure_points[1].x()) / self.pixels_per_mm[0], 2) + \
                 pow((self.measure_points[0].y() - self.measure_points[1].y()) / \
                 self.pixels_per_mm[1], 2)) * 1000
@@ -1418,14 +1462,16 @@ class GraphicsItemMeasureDistance(GraphicsItem):
         if len(self.measure_points) == 3:
             self.measure_points = []
             self.measure_points.append(QPoint(position_x, position_y))
-        self.measure_points.append(QPoint(position_x, position_y)) 
- 
+        self.measure_points.append(QPoint(position_x, position_y))
+
+
 class GraphicsItemMeasureAngle(GraphicsItem):
+    """Item to measure angle between two vectors
     """
-    Descrip. : 
-    """
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
+
         self.measure_points = None
         self.measured_angle = None
         self.setFlags(QGraphicsItem.ItemIsSelectable)
@@ -1440,7 +1486,7 @@ class GraphicsItemMeasureAngle(GraphicsItem):
                 painter.drawLine(self.measure_points[1],
                                  self.measure_points[2])
                 painter.drawText(self.measure_points[2].x() + 10,
-                                 self.measure_points[2].y() + 10, 
+                                 self.measure_points[2].y() + 10,
                                  "%.2f %s" % (self.measured_angle, u"\u00B0"))
 
     def set_start_position(self, position_x, position_y):
@@ -1453,30 +1499,34 @@ class GraphicsItemMeasureAngle(GraphicsItem):
         self.measure_points[len(self.measure_points) - 1].setX(coord[0])
         self.measure_points[len(self.measure_points) - 1].setY(coord[1])
         if len(self.measure_points) == 3: 
-            self.measured_angle = - math.degrees(math.atan2(self.measure_points[2].y() - \
-                 self.measure_points[1].y(), self.measure_points[2].x() - \
-                 self.measure_points[1].x()) - math.atan2(self.measure_points[0].y() - \
-                 self.measure_points[1].y(), self.measure_points[0].x() - \
-                 self.measure_points[1].x()))
+            self.measured_angle = - \
+                 math.degrees(math.atan2(\
+                    self.measure_points[2].y() - self.measure_points[1].y(), 
+                    self.measure_points[2].x() - self.measure_points[1].x()) - \
+                 math.atan2(\
+                    self.measure_points[0].y() - self.measure_points[1].y(), 
+                    self.measure_points[0].x() - self.measure_points[1].x()))
             self.scene().update()
 
     def store_coord(self, position_x, position_y):
         if len(self.measure_points) == 4:
             self.measure_points = []
-            self.measure_points.append(QPoint(position_x, position_y))        
+            self.measure_points.append(QPoint(position_x, position_y)) 
         self.measure_points.append(QPoint(position_x, position_y))
 
+
 class GraphicsItemMeasureArea(GraphicsItem):
+    """Item to measure area
     """
-    Descrip. : 
-    """
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
+
         self.measured_area = None
         self.current_point = None
         self.last_point_set = None
         self.setFlags(QGraphicsItem.ItemIsSelectable)
-        self.measure_polygon = QPolygon() 
+        self.measure_polygon = QPolygon()
         self.current_point = QPoint(0, 0)
         self.min_max_coord = None
 
@@ -1492,13 +1542,15 @@ class GraphicsItemMeasureArea(GraphicsItem):
         painter.drawText(self.current_point.x() + 10,
                          self.current_point.y() + 10,
                          "%.2f %s" % (self.measured_area, u"\u00B5"))
-        
+
         if self.min_max_coord:
-            hor_size = abs(self.min_max_coord[0][0] - self.min_max_coord[1][0]) /\
+            hor_size = abs(self.min_max_coord[0][0] - \
+                           self.min_max_coord[1][0]) / \
                        self.pixels_per_mm[0] * 1000
-            ver_size = abs(self.min_max_coord[0][1] - self.min_max_coord[1][1]) /\
+            ver_size = abs(self.min_max_coord[0][1] - \
+                           self.min_max_coord[1][1]) / \
                        self.pixels_per_mm[1] * 1000
-            painter.drawLine(self.min_max_coord[0][0] - 10, 
+            painter.drawLine(self.min_max_coord[0][0] - 10,
                              self.min_max_coord[0][1],
                              self.min_max_coord[0][0] - 10,
                              self.min_max_coord[1][1])
@@ -1512,7 +1564,7 @@ class GraphicsItemMeasureArea(GraphicsItem):
             painter.drawText(self.min_max_coord[1][0],
                              self.min_max_coord[1][1] + 25,
                              "%.1f %s" % (hor_size, u"\u00B5")) 
-                             
+
     def set_start_position(self, pos_x, pos_y):
         self.min_max_coord = None
         self.measured_area = 0
@@ -1528,10 +1580,10 @@ class GraphicsItemMeasureArea(GraphicsItem):
 
     def store_coord(self, last = None):
         self.last_point_set = last
-        self.measure_polygon.append(self.current_point) 
+        self.measure_polygon.append(self.current_point)
         if self.min_max_coord is None:
             self.min_max_coord = [[self.measure_polygon.value(0).x(),
-                                  self.measure_polygon.value(0).y()],  
+                                  self.measure_polygon.value(0).y()],
                                   [self.measure_polygon.value(0).x(),
                                   self.measure_polygon.value(0).y()]]
         for point_index in range(1, self.measure_polygon.count()):
@@ -1545,27 +1597,33 @@ class GraphicsItemMeasureArea(GraphicsItem):
                self.min_max_coord[0][1]:
                 self.min_max_coord[0][1] = self.measure_polygon.value(point_index).y()
             elif self.measure_polygon.value(point_index).y() > \
-                 self.min_max_coord[1][1]: 
+                 self.min_max_coord[1][1]:
                 self.min_max_coord[1][1] = self.measure_polygon.value(point_index).y()
         if self.measure_polygon.count() > 2:
             self.measured_area = 0
             for point_index in range(self.measure_polygon.count() - 1):
-                self.measured_area += self.measure_polygon.value(point_index).x() * \
-                                      self.measure_polygon.value(point_index + 1).y()
-                self.measured_area -= self.measure_polygon.value(point_index + 1).x() * \
-                                      self.measure_polygon.value(point_index).y()
-            self.measured_area += self.measure_polygon.value(len(self.measure_polygon) - 1).x() * \
-                                  self.measure_polygon.value(0).y()
-            self.measured_area -= self.measure_polygon.value(0).x() * \
-                                  self.measure_polygon.value(len(self.measure_polygon) - 1).y()
-            self.measured_area = abs(self.measured_area / (2 * self.pixels_per_mm[0] * \
-                                 self.pixels_per_mm[1]) * 1e6)
+                self.measured_area += \
+                     self.measure_polygon.value(point_index).x() * \
+                     self.measure_polygon.value(point_index + 1).y()
+                self.measured_area -= \
+                     self.measure_polygon.value(point_index + 1).x() * \
+                     self.measure_polygon.value(point_index).y()
+            self.measured_area += \
+                     self.measure_polygon.value(\
+                          len(self.measure_polygon) - 1).x() * \
+                          self.measure_polygon.value(0).y()
+            self.measured_area -= \
+                     self.measure_polygon.value(0).x() * \
+                     self.measure_polygon.value(\
+                          len(self.measure_polygon) - 1).y()
+            self.measured_area = abs(\
+                 self.measured_area / (2 * self.pixels_per_mm[0] * \
+                                       self.pixels_per_mm[1]) * 1e6)
         self.scene().update()
 
 
-class GraphicsItemMove(GraphicsItem):
-    """
-    Descrip. : 
+class GraphicsItemMoveButton(GraphicsItem):
+    """Move buttons
     """
 
     def __init__(self, parent, direction):
@@ -1589,7 +1647,7 @@ class GraphicsItemMove(GraphicsItem):
         elif direction == "left":
             points = ((0, 10), (19, 0), (15, 10), (19, 20), (0, 10)) 
             self.setPos(5, 25)
-        
+
         for point in points:
             self.arrow_polygon.append(QPoint(*point))
 
@@ -1624,9 +1682,8 @@ class GraphicsItemMove(GraphicsItem):
         QGraphicsItem.mousePressEvent(self, event)
 
 class GraphicsMagnificationItem(GraphicsItem):
-    """
-    Descrip. : 
-    """
+    """Magnification tool"""
+
     def __init__(self, parent):
         GraphicsItem.__init__(self, parent)
 
@@ -1672,6 +1729,7 @@ class GraphicsMagnificationItem(GraphicsItem):
             self.scale = property_dict.get("scale", 3)
             self.area_size = property_dict.get("area_size", 50)
 
+
 class GraphicsView(QGraphicsView):
     mouseMovedSignal = pyqtSignal(int, int)
     keyPressedSignal = pyqtSignal(str)
@@ -1685,8 +1743,11 @@ class GraphicsView(QGraphicsView):
         self.graphics_scene.clearSelection()
         self.setMouseTracking(True)
         self.setDragMode(QGraphicsView.RubberBandDrag)
+        #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        #self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
 
         """
         self.setToolTip("Keyboard shortcuts:\n" + \
@@ -1762,6 +1823,7 @@ class GraphicsView(QGraphicsView):
 	QPointF newCenter = screenCenter + offset;
 	SetCenter(newCenter);
         """
+
 
 class GraphicsScene(QGraphicsScene):
     """
