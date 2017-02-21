@@ -316,7 +316,7 @@ class BIOMAXMD3(GenericDiffractometer):
         self.wait_device_ready(200)
         scan(scan_params)
         if wait:
-            self.wait_device_ready(900) #timeout of 5 min
+            self.wait_device_ready(exptime+30) #timeout of 5 min
 
     def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
         if self.in_plate_mode():
