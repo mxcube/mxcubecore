@@ -35,7 +35,7 @@ class SampleChangerMockup(SampleChanger):
             else:
                 basket, sample = sample.split(":")
 
-            time.sleep(7)
+            time.sleep(2)
 
             self._setState(SampleChangerState.Ready)
             self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
@@ -61,7 +61,7 @@ class SampleChangerMockup(SampleChanger):
         return basket_list
 
     def getLoadedSample(self):
-        return "%s:%s" % (self._selected_basket, self._selected_sample)
+        return self.getComponentByAddress(Pin.getSampleAddress(self._selected_basket, self._selected_sample))
 
     def is_mounted_sample(self, sample):
         if isinstance(sample, tuple):
