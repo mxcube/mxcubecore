@@ -11,7 +11,7 @@ class ID30Controller(Bliss):
      self.minidiff.diagfile = diagfile
 
   def __getattr__(self, attr):
-     if attr.startswith("__"):
+     if attr.startswith("__") or attr=='minidiff':
        raise AttributeError,attr
      return getattr(self.minidiff, attr)
 
