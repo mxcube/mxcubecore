@@ -81,9 +81,9 @@ def take_snapshots(number_of_snapshots, light, light_motor, phi, zoom, drawing):
   set_light_in(light, light_motor, zoom)
 
   for i, angle in enumerate([0]+[-90]*(number_of_snapshots-1)):
+     phi.syncMoveRelative(angle)
      logging.getLogger("HWR").info("MiniDiff: taking snapshot #%d", i+1)
      centredImages.append((phi.getPosition(),str(myimage(drawing))))
-     phi.syncMoveRelative(angle)
 
   centredImages.reverse() # snapshot order must be according to positive rotation direction
 
