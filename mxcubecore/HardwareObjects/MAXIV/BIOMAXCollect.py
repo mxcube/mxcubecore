@@ -48,7 +48,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.helical_pos = None
         self.ready_event = None
         self.stopCollect = self.stop_collect
-        self.triggers_to_collect = None
 
         self.exp_type_dict = None
         self.display = {} 
@@ -709,7 +708,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
         logging.getLogger("HWR").error("Collection stopped")
-        self.stop_display = True
 
     def get_transmission(self):
         """
