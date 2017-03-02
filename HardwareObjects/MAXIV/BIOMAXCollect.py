@@ -158,12 +158,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters['motors'][motor] = \
                          current_diffractometer_position[motor]
 
+            log.info("Collection: Moving to centred position")
             # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
-            log.debug("Collection: going to take snapshots...")
-            #self.take_crystal_snapshots()
-            log.debug("Collection: snapshots taken")
+            self.take_crystal_snapshots()
 
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
@@ -175,9 +174,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             self.emit_collection_failed()
             # ----------------------------------------------------------------
+
+            """ should all go data collection hook
             self.close_fast_shutter()
-            #self.close_safety_shutter()
+            self.close_safety_shutter()
             self.close_detector_cover()
+            """
 
     def prepare_acquisition(self):
         """ todo
