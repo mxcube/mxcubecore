@@ -442,6 +442,7 @@ class BIOMAXEiger(Equipment):
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
+        logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
         except:
