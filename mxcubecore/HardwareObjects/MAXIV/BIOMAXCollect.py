@@ -46,6 +46,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.helical = False
         self.helical_pos = None
         self.ready_event = None
+        self.stopCollect = self.stop_collect
 
         self.exp_type_dict = None
 
@@ -571,6 +572,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         os.path.join(file_parameters["directory"], image_file_template)
         config['FilenamePattern'] = re.sub("^/data/bs", "", name_pattern)  # remove "/data in the beginning"
         return self.detector_hwobj.prepare_acquisition(config)
+
+    def stop_collect(self, owner):
+        """
+        Stops data collection
+        """
+        logging.getLogger("HWR").error("Stopping collection ....")
+        self.detector_hwobj.cancel()
+        self.detector_hwobj.disarm()
+        self.diffractometer_hwobj.abort()
+        if self.data_collect_task is not None:
+            self.data_collect_task.kill(block=False)
+        logging.getLogger("HWR").error("Collection stopped")
 
     def get_transmission(self):
         """
