@@ -117,66 +117,66 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
         # todo, add more exceptions and abort
-    try:
-        self.emit("collectReady", (False, ))
-        self.emit("collectStarted", (owner, 1))
+        try:
+            self.emit("collectReady", (False, ))
+            self.emit("collectStarted", (owner, 1))
 
-        # ----------------------------------------------------------------
-        """ should all go data collection hook
-        self.open_detector_cover()
-        self.open_safety_shutter()
-        self.open_fast_shutter()
-        """
-        # ----------------------------------------------------------------
+            # ----------------------------------------------------------------
+            """ should all go data collection hook
+            self.open_detector_cover()
+            self.open_safety_shutter()
+            self.open_fast_shutter()
+            """
+            # ----------------------------------------------------------------
 
-        self.current_dc_parameters["status"] = "Running"
-        self.current_dc_parameters["collection_start_time"] = \
-            time.strftime("%Y-%m-%d %H:%M:%S")
-        self.current_dc_parameters["synchrotronMode"] = \
-            self.get_machine_fill_mode()
+            self.current_dc_parameters["status"] = "Running"
+            self.current_dc_parameters["collection_start_time"] = \
+                time.strftime("%Y-%m-%d %H:%M:%S")
+            self.current_dc_parameters["synchrotronMode"] = \
+                self.get_machine_fill_mode()
 
-        log.info("Collection: Storing data collection in LIMS")
-        self.store_data_collection_in_lims()
+            log.info("Collection: Storing data collection in LIMS")
+            self.store_data_collection_in_lims()
 
-        log.info("Collection: Creating directories for raw images and processing files")
-        self.create_file_directories()
+            log.info("Collection: Creating directories for raw images and processing files")
+            self.create_file_directories()
 
-        log.info("Collection: Getting sample info from parameters")
-        self.get_sample_info()
+            log.info("Collection: Getting sample info from parameters")
+            self.get_sample_info()
 
-        # log.info("Collect: Storing sample info in LIMS")
-        # self.store_sample_info_in_lims()
+            # log.info("Collect: Storing sample info in LIMS")
+            # self.store_sample_info_in_lims()
 
-        if all(item == None for item in self.current_dc_parameters['motors'].values()):
-            # No centring point defined
-            # create point based on the current position
-            current_diffractometer_position = self.diffractometer_hwobj.getPositions()
-            for motor in self.current_dc_parameters['motors'].keys():
-                self.current_dc_parameters['motors'][motor] = \
-                     current_diffractometer_position[motor]
+            if all(item == None for item in self.current_dc_parameters['motors'].values()):
+                # No centring point defined
+                # create point based on the current position
+                current_diffractometer_position = self.diffractometer_hwobj.getPositions()
+                for motor in self.current_dc_parameters['motors'].keys():
+                    self.current_dc_parameters['motors'][motor] = \
+                         current_diffractometer_position[motor]
 
-        log.info("Collection: Moving to centred position")
-        # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
-        # which makes sure it move motors to the correct positions and move back
-        # if there is a phase change
-        self.take_crystal_snapshots()
+            log.info("Collection: Moving to centred position")
+            # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
+            # which makes sure it move motors to the correct positions and move back
+            # if there is a phase change
+            self.take_crystal_snapshots()
 
-        # prepare beamline for data acquisiion
-        self.prepare_acquisition()
-        self.emit("collectOscillationStarted", (owner, None,
-                  None, None, self.current_dc_parameters, None))
+            # prepare beamline for data acquisiion
+            self.prepare_acquisition()
+            self.emit("collectOscillationStarted", (owner, None,
+                      None, None, self.current_dc_parameters, None))
 
-        self.data_collection_hook()
-        self.emit_collection_finished()
-    except:
-        self.emit_collection_failed()
-        # ----------------------------------------------------------------
+            self.data_collection_hook()
+            self.emit_collection_finished()
+        except:
+            self.emit_collection_failed()
+            # ----------------------------------------------------------------
 
-        """ should all go data collection hook
-        self.close_fast_shutter()
-        self.close_safety_shutter()
-        self.close_detector_cover()
-        """
+            """ should all go data collection hook
+            self.close_fast_shutter()
+            self.close_safety_shutter()
+            self.close_detector_cover()
+            """
 
     def prepare_acquisition(self):
         """ todo
