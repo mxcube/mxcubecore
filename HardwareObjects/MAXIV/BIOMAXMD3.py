@@ -432,3 +432,12 @@ class BIOMAXMD3(GenericDiffractometer):
         if return_by_names:
             pos = self.convert_from_obj_to_name(pos)
         return pos
+
+    def abort(self):
+        """
+        Stops all the pending tasks, stops all the motors and closes all theirs control loop.
+        """
+        logging.getLogger("HWR").exception("MiniDiff: going to abort")
+        self.command_dict["abort"]()
+        logging.getLogger("HWR").exception("MiniDiff: all movements aborted")
+
