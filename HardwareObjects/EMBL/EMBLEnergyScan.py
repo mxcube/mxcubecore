@@ -350,6 +350,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info["inflectionFPrime"] = fpInfl
         self.scan_info["inflectionFDoublePrime"] = fppInfl
         self.scan_info["comments"] = comm
+        self.scan_info["choochFileFullPath"] = scan_file_efs_filename
+        self.scan_info["filename"] = archive_file_raw_filename
+        self.scan_info["workingDirectory"] = archive_directory
 
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
