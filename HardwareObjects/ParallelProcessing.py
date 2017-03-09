@@ -365,6 +365,8 @@ class ParallelProcessing(HardwareObject):
             self.collect_hwobj.update_lims_with_workflow(workflow_id,
                  self.params_dict["grid_snapshot_filename"])
 
+            self.lims_hwobj.store_workflow_step(self.params_dict)
+
             try:
                 html_filename = os.path.join(self.params_dict["result_file_path"],
                                              "index.html")
