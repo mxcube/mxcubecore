@@ -44,7 +44,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         AbstractXRFSpectrum.__init__(self)
         HardwareObject.__init__(self, name)
 
-        self.can_spectrum = None
         self.ready_event = None
         self.spectrum_running = None
         self.spectrum_info = None
@@ -88,8 +87,10 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
             self.chan_spectrum_status.connectSignal('update', self.spectrum_status_update)
         self.chan_spectrum_consts = self.getChannelObject('chanSpectrumConsts')
 
-        self.can_spectrum = True
         self.config_filename = self.getProperty("configFile")
+
+    def can_spectrum(self):
+        return True
 
     def execute_spectrum_command(self, count_sec, filename, adjust_transmission=True):
         try:

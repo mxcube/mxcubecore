@@ -64,6 +64,11 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.energy2WavelengthConstant = 12.3980
         self.defaultWavelength = 0.976 
 
+        self.energy_hwobj = self.getObjectByRole("energy")
+        self.db_connection_hwobj = self.getObjectByRole("dbserver")
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+
     def emit_result_values(self):
         for value_tuple in scan_test_data:
             x = value_tuple[0]
@@ -87,12 +92,23 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self._edge = edge
         self.scan_info = {"sessionId": session_id, "blSampleId": blsample_id,
                          "element": element,"edgeEnergy": edge}
-        self.scan_info['transmissionFactor'] = 0
         self.scan_info['exposureTime'] = exptime
+
+        if self.transmission_hwobj is not None:
+            self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
+        else:
+            self.scan_info['transmissionFactor'] = None
+        size_hor = None
+        size_ver = None
+        if self.beam_info_hwobj is not None:
+            size_hor, size_ver = self.beam_info_hwobj.get_beam_size()
+            size_hor = size_hor * 1000
+            size_ver = size_ver * 1000
+        self.scan_info['beamSizeHorizontal'] = size_hor
+        self.scan_info['beamSizeVertical'] = size_ver
         self.scan_info['startEnergy'] = 0
         self.scan_info['endEnergy'] = 0
-        self.scan_info['beamSizeHorizontal'] = 0
-        self.scan_info['beamSizeVertical'] = 0
+        self.scan_info['fluorescenceDetector'] = "Mockup detector"
         self.scan_data = []
         self.scanCommandStarted()
         self.result_value_emitter = gevent.spawn(self.emit_result_values)
@@ -160,7 +176,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         fppPeak = 20.7
         fpInfl = -21.1
         fppInfl = 11.9
-        comm = "Results from mockuResults from mockupp" 
+        comm = "Mockup results" 
         self.scan_info['edgeEnergy'] = 0.1
         self.thEdge = self.scan_info['edgeEnergy']
         logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
@@ -173,6 +189,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.scan_info["inflectionFPrime"] = fpInfl
         self.scan_info["inflectionFDoublePrime"] = fppInfl
         self.scan_info["comments"] = comm
+        self.scan_info["choochFileFullPath"] = scan_file_efs_filename
+        self.scan_info["filename"] = archive_file_raw_filename
+        self.scan_info["workingDirectory"] = archive_directory
 
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
@@ -270,8 +289,8 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             self.scan_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
             logging.getLogger("HWR").debug("EMBLEnergyScan: energy scan finished")
             self.scanning = False
-            self.scan_info["startEnergy"] = self.scan_data[-1][0]
-            self.scan_info["endEnergy"] = self.scan_data[-1][1]
+            self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.
+            self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.
             self.emit('energyScanFinished', self.scan_info)
 
     def get_scan_data(self):
@@ -284,4 +303,5 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        return 
+        if self.db_connection_hwobj:
+            db_status = self.db_connection_hwobj.storeEnergyScan(self.scan_info)
