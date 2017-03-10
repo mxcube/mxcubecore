@@ -1,53 +1,51 @@
-import logging
-import gevent
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 import time
-import numpy
 
+from AbstractXRFSpectrum import AbstractXRFSpectrum
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.TaskUtils import cleanup
 
-class XRFSpectrumMockup(HardwareObject):
+
+spectrum_test_data = [0, 20, 340, 70, 100, 110, 120, 200, 200, 210, 1600,
+                      210, 200, 200, 200, 250, 300, 200, 100, 0, 0 ,0, 90]
+
+
+class XRFSpectrumMockup(AbstractXRFSpectrum, HardwareObject):
+
+    def __init__(self, name):
+        AbstractXRFSpectrum.__init__(self)
+        HardwareObject.__init__(self, name)
+
     def init(self):
-        self.ready_event = gevent.event.Event()
-
-        self.spectrumInfo = {}
-        self.spectrumInfo['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrumInfo['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.spectrumInfo["energy"] = 0
-        self.spectrumInfo["beamSizeHorizontal"] = 0
-        self.spectrumInfo["beamSizeVertical"] = 0
-        self.ready_event = gevent.event.Event()
+        self.energy_hwobj = self.getObjectByRole("energy")
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+        self.db_connection_hwobj = self.getObjectByRole("dbserver")
+        self.beam_info_hwobj = self.getObjectByRole("beam_info") 
 
     def isConnected(self):
         return True
 
-    def canSpectrum(self):
+    def can_spectrum(self):
         return True
 
-    def startXrfSpectrum(self, ct, directory, archive_directory, prefix,
-           session_id=None, blsample_id=None, adjust_transmission=False):
-
-        self.scanning = True
-        self.emit('xrfSpectrumStarted', ())
-
-        with cleanup(self.ready_event.set):
-            self.spectrumInfo["sessionId"] = session_id
-            self.spectrumInfo["blSampleId"] = blsample_id
-      
-            mcaData = []
-            calibrated_data = []  
-            values = [0, 20, 340, 70, 100, 110, 120, 200, 200, 210, 1600,
-                      210, 200, 200, 200, 250, 300, 200, 100, 0, 0 ,0, 90]
-            for n, value in enumerate(values):
-                mcaData.append((n, value))
-
-            mcaCalib = [10,1, 21, 0]
-            mcaConfig = {}
-            mcaConfig["legend"] = "XRF test scan from XRF mockup"
-            mcaConfig['htmldir'] = "html dir not defined"
-            mcaConfig["min"] = values[0]
-            mcaConfig["max"] = values[-1]
-            mcaConfig["file"] = "/Not/existing/Configure/file"
-
-            time.sleep(3)
-            self.emit('xrfSpectrumFinished', (mcaData, mcaCalib, mcaConfig))
+    def execute_spectrum_command(self, count_time, filename, adjust_transmission):
+        self.spectrum_data = spectrum_test_data
+        time.sleep(3)
+        self.spectrum_command_finished()

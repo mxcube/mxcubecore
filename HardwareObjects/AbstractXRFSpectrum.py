@@ -32,13 +32,12 @@ class AbstractXRFSpectrum(object):
         """
         Descript. :
         """
-        self.can_spectrum = None
         self.ready_event = None
         self.spectrum_info = None
         self.spectrum_data = None
         self.mca_calib = (10, 20, 0)
         self.spectrum_running = None
-        self.config_filename = None
+        self.config_filename = ""
 
         self.energy_hwobj = None
         self.transmission_hwobj = None
@@ -57,7 +56,6 @@ class AbstractXRFSpectrum(object):
         if not self.can_spectrum:
             self.spectrum_command_aborted()
             return False
-
         self.spectrum_info = {"sessionId": session_id, "blSampleId": blsample_id}
         if not os.path.isdir(archive_directory):
             logging.getLogger().debug("XRFSpectrum: creating directory %s" % archive_directory)
@@ -73,7 +71,6 @@ class AbstractXRFSpectrum(object):
                 self.emit('xrfSpectrumStatusChanged', ("Error creating directory", ))
                 self.spectrum_command_aborted()
                 return False
-
         archive_file_template = os.path.join(archive_directory, prefix)
         spectrum_file_template = os.path.join(spectrum_directory, prefix)
         if os.path.exists(archive_file_template + ".dat"):
@@ -90,6 +87,7 @@ class AbstractXRFSpectrum(object):
         archive_file_html_filename = os.path.extsep.join((archive_file_template, "html"))
 
         self.spectrum_info["filename"] = prefix
+        self.spectrum_info["workingDirectory"] = archive_directory
         self.spectrum_info["scanFilePath"] = spectrum_file_dat_filename
         self.spectrum_info["scanFileFullPath"] = archive_file_dat_filename
         self.spectrum_info["jpegScanFileFullPath"] = archive_file_png_filename
@@ -101,6 +99,9 @@ class AbstractXRFSpectrum(object):
         logging.getLogger().debug("XRFSpectrum: archive file is %s", archive_file_dat_filename)
 
         self.execute_spectrum_command(ct, spectrum_file_dat_filename, adjust_transmission)
+
+    def can_spectrum(self):
+        return
        
     def execute_spectrum_command(self, count_time, filename, adjust_transmission=True):    
         """
@@ -194,14 +195,16 @@ class AbstractXRFSpectrum(object):
                 spectrum_file_raw.close()
             if archive_file_raw:
                 archive_file_raw.close()
-
             calibrated_array = numpy.array(calibrated_data)
-
-            self.spectrum_info["beamTransmission"] = self.transmission_hwobj.getAttFactor()
+    
+            if self.transmission_hwobj is not None:
+                self.spectrum_info["beamTransmission"] = \
+                   self.transmission_hwobj.getAttFactor()
             self.spectrum_info["energy"] = self.get_current_energy()
-            beam_size = self.beam_info_hwobj.get_beam_size()
-            self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
-            self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
+            if self.beam_info_hwobj is not None:
+                beam_size = self.beam_info_hwobj.get_beam_size()
+                self.spectrum_info["beamSizeHorizontal"] = int(beam_size[0] * 1000)
+                self.spectrum_info["beamSizeVertical"] = int(beam_size[1] * 1000)
 
             mca_config = {}
             mca_config["legend"] = self.spectrum_info["filename"]
