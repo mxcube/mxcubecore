@@ -1688,6 +1688,8 @@ class GraphicsMagnificationItem(GraphicsItem):
         GraphicsItem.__init__(self, parent)
 
         self.graphics_pixmap = QPixmap()
+        self.scale = 3
+        self.area_size = 50
 
     def paint(self, painter, option, widget):
         self.custom_pen.setColor(SELECTED_COLOR)
@@ -1724,11 +1726,8 @@ class GraphicsMagnificationItem(GraphicsItem):
                   self.area_size * self.scale)
 
     def set_properties(self, property_dict):
-        property_dict = eval(property_dict)
-        if property_dict:
-            self.scale = property_dict.get("scale", 3)
-            self.area_size = property_dict.get("area_size", 50)
-
+        self.scale = property_dict.get("scale", 3)
+        self.area_size = property_dict.get("area_size", 50)
 
 class GraphicsView(QGraphicsView):
     mouseMovedSignal = pyqtSignal(int, int)
