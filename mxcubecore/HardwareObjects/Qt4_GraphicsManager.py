@@ -292,7 +292,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         try:
             self.graphics_magnification_item.set_properties(\
-                 self.getProperty("magnification_tool", True))
+                 eval(self.getProperty("magnification_tool")))
         except:
             pass
 
