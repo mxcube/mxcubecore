@@ -34,7 +34,16 @@ class Microdiff(MiniDiff.MiniDiff):
         else:
             self.hwstate_attr = None
         self.swstate_attr = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"swstate" }, "State")
+        self.nb_frames =  self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"nbframes" }, "ScanNumberOfFrames")
         
+         # raster scan attributes
+        self.scan_range = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"scan_range" }, "ScanRange")
+        self.scan_exposure_time = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"exposure_time" }, "ScanExposureTime")
+        self.scan_start_angle = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"start_angle" }, "ScanStartAngle")
+        self.scan_detector_gate_pulse_enabled = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"detector_gate_pulse_enabled" }, "DetectorGatePulseEnabled")
+        self.scan_detector_gate_pulse_readout_time = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"detector_gate_pulse_readout_time" }, "DetectorGatePulseReadoutTime")
+
+
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
@@ -131,7 +140,8 @@ class Microdiff(MiniDiff.MiniDiff):
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-
+                
+        self.nb_frames.setValue(1)
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
         scan(scan_params)
@@ -148,7 +158,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-                
+        self.nb_frames.setValue(1)        
         scan_params = "%0.3f\t%0.3f\t%f\t"% (start, (end-start), exptime)
         scan_params += "%0.3f\t" % motors_pos['1']['phiy']
         scan_params += "%0.3f\t" % motors_pos['1']['phiz']
@@ -165,6 +175,36 @@ class Microdiff(MiniDiff.MiniDiff):
         if wait:
             self._wait_ready(900) #timeout of 15 min
             print "finished at ---------->", time.time()
+            
+    def oscilScanMesh(self,start, end, exptime, dead_time, mesh_num_lines, mesh_total_nb_frames, mesh_center, mesh_range, wait=False):
+        #import pdb; pdb.set_trace()
+        self.scan_range.setValue(end-start)
+        self.scan_exposure_time.setValue(exptime/mesh_num_lines)
+        self.scan_start_angle.setValue(start)
+        self.scan_detector_gate_pulse_enabled.setValue(True)
+        servo_time = 0.110 # adding the servo time to the readout time to avoid any servo cycle jitter 
+        self.scan_detector_gate_pulse_readout_time.setValue(dead_time*1000 +servo_time)  # TODO
+
+        # Prepositionning at the center of the grid      
+        self.moveMotors(mesh_center.as_dict())
+        self.centringVertical.syncMoveRelative((mesh_range['vertical_range'])/2)
+        self.centringPhiy.syncMoveRelative(-(mesh_range['horizontal_range'])/2)
+        
+
+        scan_params = "%0.3f\t" % mesh_range['vertical_range']
+        scan_params += "%0.3f\t" % -mesh_range['horizontal_range']
+        scan_params += "%d\t" % mesh_num_lines
+        scan_params += "%d\t" % (mesh_total_nb_frames/mesh_num_lines)
+        #scan_params += "%d\t" % 1
+        scan_params += "%r" % True   # TODO
+
+        scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_raster_scan" }, "startRasterScan")
+        scan(scan_params)
+        print "scan started at ----------->", time.time()
+        if wait:
+            self._wait_ready(1800) #timeout of 30 min
+            print "finished at ---------->", time.time()
+
 
     def in_plate_mode(self):
         try:
@@ -181,7 +221,11 @@ class Microdiff(MiniDiff.MiniDiff):
                 "phiy": float(self.phiyMotor.getPosition()),
                 "phiz": float(self.phizMotor.getPosition()),
                 "sampx": float(self.sampleXMotor.getPosition()),
-                "sampy": float(self.sampleYMotor.getPosition()), "zoom": float(self.zoomMotor.getPosition())}
+                "sampy": float(self.sampleYMotor.getPosition()),
+                "zoom": float(self.zoomMotor.getPosition()),
+                "kappa":  float(self.sampleYMotor.getPosition()) if self.in_kappa_mode() else None,
+                "kappa_phi": float(self.zoomMotor.getPosition()) if self.in_kappa_mode() else None,
+        }
         if self.in_kappa_mode() == True:
             pos.update({"kappa": float(self.kappaMotor.getPosition()), "kappa_phi": float(self.kappaPhiMotor.getPosition())})
         return pos
