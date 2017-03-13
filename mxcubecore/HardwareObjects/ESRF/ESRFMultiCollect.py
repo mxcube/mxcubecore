@@ -62,14 +62,14 @@ class CcdDetector:
           self._detector.init(config, collect_obj)
 
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, gate = False):
         if osc_range < 1E-4:
             still = True
         else:
             still = False
         
         if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still, gate)
         else:
             self.getChannelObject("take_dark").setValue(take_dark)
             self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
@@ -159,9 +159,12 @@ class PixelDetector:
 
     def last_image_saved(self):
         return self._detector.last_image_saved()
+        
+    def get_deadtime(self):
+        return self._detector.get_deadtime()
 
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, gate = False):
         self.new_acquisition = True
         if osc_range < 1E-4:
             still = True
@@ -172,7 +175,7 @@ class PixelDetector:
             self.shutterless_range = osc_range*number_of_images
             self.shutterless_exptime = (exptime + self._detector.get_deadtime())*number_of_images
         if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still)
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still, gate)
         else:
             self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
         
@@ -341,7 +344,6 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         self._metadataClient.end(data_collect_parameters)
-
 
     def do_prepare_oscillation(self, start, end, exptime, npass):
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
@@ -535,7 +537,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         os.chmod(hkl_file_path, 0666)
 
         for input_file_dir, file_prefix in ((self.raw_data_input_file_dir, "../.."), (self.xds_directory, "../links")): 
-	    xds_input_file = os.path.join(input_file_dir, "XDS.INP")
+            xds_input_file = os.path.join(input_file_dir, "XDS.INP")
             conn.request("GET", "/xds.inp/%d?basedir=%s" % (collection_id, file_prefix))
             xds_file = open(xds_input_file, "w")
             r = conn.getresponse()
