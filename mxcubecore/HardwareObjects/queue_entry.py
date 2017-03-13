@@ -807,6 +807,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     self.collect_hwobj.set_helical(True)
+                    self.collect_hwobj.set_mesh(False)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -817,13 +818,16 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
-                    self.collect_hwobj.setMeshScanParameters(\
-                         acq_1.acquisition_parameters.num_lines,
-                         acq_1.acquisition_parameters.num_images / acq_1.acquisition_parameters.num_lines, 
-                         acq_1.acquisition_parameters.mesh_range)
+                    mesh_nb_lines = acq_1.acquisition_parameters.mesh_steps
+                    mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
+                    mesh_range = acq_1.acquisition_parameters.mesh_range
+                    mesh_center = acq_1.acquisition_parameters.centred_position
+                    self.collect_hwobj.set_mesh_scan_parameters(mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range)
                     self.collect_hwobj.set_helical(False)
+                    self.collect_hwobj.set_mesh(True)
                 else:
                     self.collect_hwobj.set_helical(False)
+                    self.collect_hwobj.set_mesh(False)
 
                 empty_cpos = queue_model_objects.CentredPosition()
 

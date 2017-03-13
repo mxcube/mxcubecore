@@ -18,59 +18,21 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
         self._notify_greenlet = None
 
-    def upload_images_to_icat(self, template, prefix, run_number, directory, 
-                              number_of_images, start_image_number, overlap):
-        logging.getLogger("user_level_log").info("Uploading to images to ICAT")
-        if math.fabs(overlap) > 1:
-            for image_number in range(1, number_of_images + 1):
-                h5_master_file_name = "{prefix}_{run_number}_{image_number}_master.h5".format(
-                    prefix=prefix, run_number=run_number, image_number=image_number)
-                h5_master_file_path = os.path.join(directory, h5_master_file_name)
-                self._metadataManagerClient.appendFile(h5_master_file_path)
-                h5_data_file_name = "{prefix}_{run_number}_{image_number}_data_000001.h5".format(
-                    prefix=prefix, run_number=run_number, image_number=image_number)
-                h5_data_file_path = os.path.join(directory, h5_data_file_name)
-                self._metadataManagerClient.appendFile(h5_data_file_path)
-        else:
-            h5_master_file_name = "{prefix}_{run_number}_{start_image_number}_master.h5".format(
-                prefix=prefix, run_number=run_number, start_image_number=start_image_number)
-            h5_master_file_path = os.path.join(directory, h5_master_file_name)
-            self._metadataManagerClient.appendFile(h5_master_file_path)
-            for index in range(int((number_of_images-1)/100)+1):
-                h5_data_file_name = "{prefix}_{run_number}_{start_image_number}_data_{data_index:06d}.h5".format(
-                    prefix=prefix, run_number=run_number, start_image_number=start_image_number, data_index=(index+1))
-                h5_data_file_path = os.path.join(directory, h5_data_file_name)
-                self._metadataManagerClient.appendFile(h5_data_file_name)
-
     @task
     def data_collection_hook(self, data_collect_parameters):
-      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
-      self._reset_detector_task = None
+        ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
+        self._reset_detector_task = None
 
-      oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
-      exp_time = oscillation_parameters['exposure_time']
-      if oscillation_parameters['range']/exp_time > 90:
-          raise RuntimeError("Cannot move omega axis too fast (limit set to 90 degrees per second).")
+        oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
+        exp_time = oscillation_parameters['exposure_time']
+        if oscillation_parameters['range']/exp_time > 90:
+            raise RuntimeError("Cannot move omega axis too fast (limit set to 90 degrees per second).")
 
-      self.first_image_timeout = 30+exp_time*min(100, oscillation_parameters["number_of_images"])
+        self.first_image_timeout = 30+exp_time*min(100, oscillation_parameters["number_of_images"])
  
-      file_info = data_collect_parameters["fileinfo"]
-      diagfile = os.path.join(file_info["directory"], file_info["prefix"])+"_%d_diag.dat" % file_info["run_number"]
-      self.getObjectByRole("diffractometer").controller.set_diagfile(diagfile)
+        file_info = data_collect_parameters["fileinfo"]
 
-      self._detector.shutterless = data_collect_parameters["shutterless"]
-
-      """      
-      try:
-          albula_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-          albula_socket.connect(('localhost', 31337))
-      except:
-          pass
-      else:
-          albula_socket.sendall(pickle.dumps({"type":"newcollection"}))
-      """
-       
-
+        self._detector.shutterless = data_collect_parameters["shutterless"]
 
     @task
     def get_beam_size(self):
@@ -78,7 +40,8 @@ class ID30A3MultiCollect(ESRFMultiCollect):
  
     @task
     def get_slit_gaps(self):
-        return (self.bl_control.diffractometer.controller.hgap.position(), self.bl_control.diffractometer.controller.vgap.position())
+        ctrl = self.getObjectByRole("controller")
+        return (ctrl.s1h.position(), ctrl.s1v.position())
 
     def get_measured_intensity(self):
         return 0
@@ -109,6 +72,15 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def move_motors(self, motors_to_move_dict):
+        diffr = self.bl_control.diffractometer
+        try:
+            motors_to_move_dict.pop('kappa')
+            motors_to_move_dict.pop('kappa_phi')
+        except:
+            pass
+        diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
+
+        """
         motion = ESRFMultiCollect.move_motors(self,motors_to_move_dict,wait=False)
 
         # DvS:
@@ -118,29 +90,67 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         motion.get()
         # DvS:
         cover_task.get()
+        """
+
+    @task
+    def take_crystal_snapshots(self, number_of_snapshots):
+       if self.bl_control.diffractometer.in_plate_mode():
+            if number_of_snapshots > 0:
+                number_of_snapshots = 1
+
+       #this has to be done before each chage of phase
+       self.bl_control.diffractometer.getCommandObject("save_centring_positions")()
+       # not going to centring phase if in plate mode (too long)
+       if not self.bl_control.diffractometer.in_plate_mode():        
+           self.bl_control.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
+       self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+
+
+
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
-        return
+        #set the detector cover out
+        self.getObjectByRole("controller").detcover.set_out()
+        diffr = self.getObjectByRole("diffractometer")
+        #send again the command as MD2 software only handles one
+        #centered position!!
+        #has to be where the motors are and before changing the phase
+        diffr.getCommandObject("save_centring_positions")()
+        #move to DataCollection phase
+        if diffr.getPhase() != "DataCollection":
+            logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
+        diffr.moveToPhase("DataCollection", wait=True, timeout=200)
+        #switch on the front light
+        diffr.getObjectByRole("flight").move(0.8)
+        #take the back light out
+        diffr.getObjectByRole("lightInOut").actuatorOut()
 
     @task
-    def oscil(self, start, end, exptime, npass):
-        save_diagnostic = True
-        operate_shutter = True
-        if self.helical: 
-              self.getObjectByRole("diffractometer").helical_oscil(start, end, self.helical_pos, exptime, save_diagnostic)
+    def oscil(self, start, end, exptime, npass, wait=True):
+        diffr = self.getObjectByRole("diffractometer")
+        if self.helical:
+            diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
+        elif self.mesh:
+            diffr.oscilScanMesh(start, end, exptime, self._detector.get_deadtime(), self.mesh_num_lines, self.mesh_total_nb_frames, self.mesh_center, self.mesh_range , wait=True) 
         else:
-              self.getObjectByRole("diffractometer").oscil(start, end, exptime, save_diagnostic, operate_shutter)
+            diffr.oscilScan(start, end, exptime, wait=True)
+            
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+        energy = self._tunable_bl.getCurrentEnergy()
+        return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, self.mesh)
+
 
     def open_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.open()
+        self.getObjectByRole("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        self.getObjectByRole("diffractometer").controller.fshut.close()
+        self.getObjectByRole("fastshut").actuatorOut()
 
     def stop_oscillation(self):
-        self.getObjectByRole("diffractometer").controller.omega.stop()
-        self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
+        #self.getObjectByRole("diffractometer").controller.omega.stop()
+        #self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
+        pass
 
     def reset_detector(self):
         self.stop_oscillation()
@@ -148,8 +158,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_cleanup(self):
-        self.stop_oscillation()
-        self.close_fast_shutter()
+        #self.stop_oscillation()
+        self.getObjectByRole("diffractometer")._wait_ready(10)
+        state = self.getObjectByRole("fastshut").getActuatorState(read=True)
+        if state != "out":
+            self.close_fast_shutter()
+
         if self._reset_detector_task is not None:
             self._reset_detector_task.get()
  
@@ -158,9 +172,31 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
+        
+    # specifies the next scan will be a mesh scan
+    def set_mesh(self, mesh_on):
+        self.mesh = mesh_on
+
+    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
+        """
+        sets the mesh scan parameters :
+         - vertcal range
+         - horizontal range
+         - nb lines
+         - nb frames per line
+         - invert direction (boolean)  # NOT YET DONE
+         """
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param
+
+        
+        
+        
 
     def set_transmission(self, transmission):
-    	self.getObjectByRole("transmission").set_value(transmission)
+        self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
         return self.getObjectByRole("transmission").get_value()
@@ -219,11 +255,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     @task
     def write_input_files(self, datacollection_id):
+        """
         # copy *geo_corr.cbf* files to process directory
-	
-	# DvS 23rd Feb. 2016: For the moment, we don't have these correction files for the Eiger,
-	# thus skipping the copying for now:
-	# 	
+    
+    # DvS 23rd Feb. 2016: For the moment, we don't have these correction files for the Eiger,
+    # thus skipping the copying for now:
+    #     
         # try:
         #     process_dir = os.path.join(self.xds_directory, "..")
         #     raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
@@ -235,7 +272,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         #             shutil.copyfile(os.path.join("/data/pyarch/id30a3", filename), dest)
         # except:
         #     logging.exception("Exception happened while copying geo_corr files")
-
+        """
         return ESRFMultiCollect.write_input_files(self, datacollection_id)
 
 
