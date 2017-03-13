@@ -153,8 +153,7 @@ class MXCuBEMetadataClient(object):
         self._sessionObject = self.esrf_multi_collect.getObjectByRole("session")
 
         self._beamline = self._sessionObject.endstation_name
-
-
+    
     def reportStackTrace(self):
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
         errorMessage = "{0} {1}".format(exc_type, exc_value)
@@ -205,7 +204,6 @@ class MXCuBEMetadataClient(object):
                 prefix = fileinfo["prefix"]
                 run_number = int(fileinfo["run_number"])
                 # Connect to ICAT metadata database
-
                 # Strip the prefix from any workflow expTypePrefix
                 # TODO: use the ISPyB sample name instead
                 sampleName = prefix
@@ -253,7 +251,6 @@ class MXCuBEMetadataClient(object):
                 image_no = index + start_image_number
                 image_path = os.path.join(directory, template % image_no)
                 self._metadataManagerClient.appendFile(image_path)
-
 
     def end(self, data_collect_parameters):
         try:

@@ -675,11 +675,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
         self.shape_history = None
-        self.move_kappa_phi_task = None
 
     def __getstate__(self):
         d = dict(self.__dict__)
-        d["move_kappa_phi_task"] = None
         return d
  
     def __setstate__(self, d):
@@ -694,7 +692,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         kappa = self._data_model.get_kappa()
         phi = self._data_model.get_kappa_phi()
 
-        self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+        if hasattr(self.diffractometer_hwobj, "in_kappa_mode") and self.diffractometer_hwobj.in_kappa_mode():
+            self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
 
         #TODO agree on correct message
         log.warning("Please center a new point, and press continue.")
@@ -882,7 +881,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     self.collect_hwobj.set_helical(True)
-                    #self.collect_hwobj.set_run_autoprocessing(dc.run_autoprocessing)
+                    self.collect_hwobj.set_mesh(False)
 
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
@@ -894,14 +893,16 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #list_item.setText(1, "Moving sample")
 
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
-                    self.collect_hwobj.setMeshScanParameters(\
-                         acq_1.acquisition_parameters.num_lines,
-                         acq_1.acquisition_parameters.num_images / \
-                         acq_1.acquisition_parameters.num_lines, 
-                         acq_1.acquisition_parameters.mesh_range)
+                    mesh_nb_lines = acq_1.acquisition_parameters.mesh_steps
+                    mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
+                    mesh_range = acq_1.acquisition_parameters.mesh_range
+                    mesh_center = acq_1.acquisition_parameters.centred_position
+                    self.collect_hwobj.set_mesh_scan_parameters(mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range)
                     self.collect_hwobj.set_helical(False)
+                    self.collect_hwobj.set_mesh(True)
                 else:
                     self.collect_hwobj.set_helical(False)
+                    self.collect_hwobj.set_mesh(False)
 
                 if dc.run_processing_parallel and \
                    self.parallel_processing_hwobj is not None:
