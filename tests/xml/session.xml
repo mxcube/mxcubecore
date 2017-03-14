@@ -1,7 +1,11 @@
 <object class = "Session" role = "session">  
-  <synchotron_name>TEST</synchotron_name>
+  <!-- <synchotron_name>TEST</synchotron_name>
   <endstation_name>eh1</endstation_name>
-  <beamline_name>TEST01</beamline_name>
+  <beamline_name>p13</beamline_name> -->
+
+  <synchrotron_name>EMBL-HH</synchrotron_name>
+  <endstation_name>p13eh1</endstation_name>
+  <beamline_name>P13</beamline_name>
 
   <file_info>
     <file_suffix>cfg</file_suffix>

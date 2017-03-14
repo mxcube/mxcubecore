@@ -1,4 +1,16 @@
+<object class="ISPyBClient2">
+  <ws_root>http://riga.embl-hamburg.de:8080/ispyb/ispyb-ws/ispybWS/</ws_root>
+  <object role="session" href="/session"/>
+  <ws_username>mx0000</ws_username>
+  <ws_password>test</ws_password>
+  <loginType>user</loginType>
+  <authServerType>ispyb</authServerType>
+</object>
+
+<!-- 
 <object class="ISPyBClient2Mockup">
    <object href="/session" role="session"/>
    <loginType>user</loginType>
 </object> 
+
+-->
