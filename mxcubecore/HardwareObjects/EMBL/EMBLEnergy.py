@@ -17,18 +17,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-EMBLEnergy
-"""
-
 import logging
 from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
 
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
+__category__ = "General"
 
 
 class EMBLEnergy(Device):
