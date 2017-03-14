@@ -636,11 +636,9 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.sample_changer_hwobj = None
         self.diffractometer_hwobj = None
         self.shape_history = None
-        self.move_kappa_phi_task = None
 
     def __getstate__(self):
         d = dict(self.__dict__)
-        d["move_kappa_phi_task"] = None
         return d
  
     def __setstate__(self, d):
@@ -655,7 +653,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         kappa = self._data_model.get_kappa()
         phi = self._data_model.get_kappa_phi()
 
-        self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+        if hasattr(self.diffractometer_hwobj, "in_kappa_mode") and self.diffractometer_hwobj.in_kappa_mode():
+            self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
 
         #TODO agree on correct message
         log.warning("Please center a new point, and press continue.")
