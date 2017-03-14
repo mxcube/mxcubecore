@@ -14,6 +14,7 @@ class ID30A1PhotonFlux(Equipment):
         self.musst = controller.musst
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
+        self.aperture = self.getObjectByRole("aperture")
         self.factor = self.getProperty("current_photons_factor")
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
@@ -38,6 +39,15 @@ class ID30A1PhotonFlux(Equipment):
         """
         self.tg_device.MeasureSingle()
         counts = abs(self.tg_device.ReadData)*1E6
+        if self.aperture:
+            try:
+                aperture_coef = self.aperture.getApertureCoef()
+            except Exception:
+                aperture_coef = 1
+        else:
+            aperture_coef = 1
+
+        counts *= aperture_coef
         return counts
 
     def connectNotify(self, signal):
@@ -61,9 +71,9 @@ class ID30A1PhotonFlux(Equipment):
         return self.current_flux
 
     def emitValueChanged(self, flux=None):
+        self.current_flux = flux
+
         if flux is None:
-          self.current_flux = None
-          self.emit("valueChanged", ("?", ))
+            self.emit("valueChanged", ("?", ))
         else:
-          self.current_flux = flux
-          self.emit("valueChanged", (self.current_flux, ))
+            self.emit("valueChanged", (self.current_flux, ))
