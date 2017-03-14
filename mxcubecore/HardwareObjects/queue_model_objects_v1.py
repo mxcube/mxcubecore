@@ -606,10 +606,9 @@ class DataCollection(TaskNode):
                 display_name = "%s (Line %d:%d)" %(self.get_name(), start_index, end_index)
             else:
                 display_name = self.get_name()
-        elif self.is_mesh():
-            lines, images_per_line = self.grid.get_line_image_per_line_num()
-            display_name = "%s (Mesh %d - %d x %d)" % (self.get_name(), 
-                  self.grid.index + 1, lines, images_per_line)
+        elif self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            #display_name = "%s (%s)" %(self.get_name(), self.grid_id)
+            display_name = "%s" %(self.get_name())
         else:
             index = self.get_point_index()
             if index:
