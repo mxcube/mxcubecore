@@ -25,6 +25,12 @@ from HardwareRepository import HardwareRepository
 
 (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
+
+__credits__ = ["EMBL Hamburg"]
+__version__ = "2.3"
+__category__ = "Motor"
+
+
 def energyConverter(wavelength):
     """
     Descript. :

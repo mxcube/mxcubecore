@@ -17,10 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-EMBLCRL
-"""
-
 import math
 import gevent
 import logging
@@ -28,8 +24,9 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
+__category__ = "General"
 
 
 class EMBLCRL(HardwareObject):
