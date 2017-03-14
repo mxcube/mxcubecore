@@ -1282,6 +1282,7 @@ class AcquisitionParameters(object):
         self.inverse_beam = False
         self.shutterless = False
         self.take_snapshots = True
+        self.take_video = False
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
@@ -1429,6 +1430,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     """ return [{'comment': '',
           'helical': 0,
           'motors': {},
+          'take_video': False,
           'take_snapshots': False,
           'fileinfo': {'directory': '/data/id14eh4/inhouse/opid144/' +\
                                     '20120808/RAW_DATA',
@@ -1469,6 +1471,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     return [{'comment': '',
              #'helical': 0,
              #'motors': {},
+             'take_video': acq_params.take_video,
              'take_snapshots': acq_params.take_snapshots,
              'fileinfo': {'directory': acquisition.path_template.directory,
                           'prefix': acquisition.path_template.get_prefix(),
