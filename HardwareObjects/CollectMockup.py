@@ -119,6 +119,9 @@ class CollectMockup(AbstractCollect, HardwareObject):
         """
         self.emit("collectStarted", (self.owner, 1)) 
         self.emit("progressInit", ("Data collection", 100))
+        self.emit("fsmConditionChanged",
+                  "data_collection_started",
+                  True)
         self.store_image_in_lims_by_frame_num(1)
         number_of_images = self.current_dc_parameters\
             ['oscillation_sequence'][0]['number_of_images']
@@ -163,6 +166,12 @@ class CollectMockup(AbstractCollect, HardwareObject):
         self.emit("collectEnded", self.owner, success_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ()) 
+        self.emit("fsmConditionChanged",
+                  "data_collection_successful",
+                  True)
+        self.emit("fsmConditionChanged",
+                  "data_collection_started",
+                  False)
         self._collecting = None
         self.ready_event.set()
 
@@ -210,10 +219,14 @@ class CollectMockup(AbstractCollect, HardwareObject):
 
     @task
     def _take_crystal_snapshot(self, filename):
-        """
-        Descript. : 
-        """
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
+
+    @task
+    def _take_crystal_animation(self, animation_filename, duration_sec):
+        """Rotates sample by 360 and composes a gif file
+           Animation is saved as the fourth snapshot
+        """
+        self.graphics_manager_hwobj.save_scene_animation(animation_filename, duration_sec)
 
     @task 
     def move_motors(self, motor_position_dict):
