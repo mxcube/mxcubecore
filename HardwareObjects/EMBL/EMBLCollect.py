@@ -436,10 +436,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                              arg["2"]["sampx"], arg["2"]["sampy"]]
         self.cmd_collect_helical_position(helical_positions)
 
-    def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
+    def set_mesh_scan_parameters(self, num_lines, num_total_frames, mesh_center, mesh_range):
         """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
-        self.cmd_collect_num_images(num_images_per_line)
+        self.cmd_collect_num_images(num_total_frames / num_lines)
         self.cmd_collect_raster_range(mesh_range[::-1])
 
     @task

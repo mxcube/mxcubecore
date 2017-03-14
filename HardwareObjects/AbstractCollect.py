@@ -661,7 +661,10 @@ class AbstractCollect(object):
         """
         pass
 
-    def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
+    def set_mesh(self, arg):
+        pass
+
+    def set_mesh_scan_parameters(self, num_lines, num_total_frames, mesh_center, mesh_range):
         """
         Descript. : 
         """
