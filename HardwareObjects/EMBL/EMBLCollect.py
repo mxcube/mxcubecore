@@ -16,10 +16,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-EMBLCollect
-"""
-
 import os
 import logging
 import gevent
@@ -29,8 +25,9 @@ from AbstractCollect import AbstractCollect
 
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
+__category__ = "General"
 
 
 class EMBLCollect(AbstractCollect, HardwareObject):
@@ -449,6 +446,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def _take_crystal_snapshot(self, filename):
         """Saves crystal snapshot"""
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
+
+    @task
+    def _take_crystal_animation(self, animation_filename, duration_sec):
+        """Rotates sample by 360 and composes a gif file
+           Animation is saved as the fourth snapshot
+        """
+        self.graphics_manager_hwobj.save_scene_animation(animation_filename,
+                                                         duration_sec)
 
     def set_energy(self, value):
         """Sets energy"""

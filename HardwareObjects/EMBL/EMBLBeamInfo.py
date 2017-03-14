@@ -42,8 +42,9 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__credits__ = ["EMBL Hamburg"]
+__version__ = "2.3."
+__category__ = "General"
 
 
 class EMBLBeamInfo(Equipment):

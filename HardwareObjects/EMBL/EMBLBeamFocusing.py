@@ -17,11 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-EMBLBeamFocusing
-Hardware Object is used to evaluate and set beam focusing mode.
-"""
-
 import gevent
 import logging
 from _tine import query as tinequery
@@ -29,11 +24,14 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
+__category__ = "General"
 
 
 class EMBLBeamFocusing(Equipment):
+    """Hardware Object is used to evaluate and set beam focusing mode.
+    """
 
     def __init__(self, name):
         Equipment.__init__(self, name)
