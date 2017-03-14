@@ -185,6 +185,7 @@ class BIOMAXEiger(Equipment):
     def wait_ready_or_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector neither ready or idle")):
             while not (self.is_ready() or self.is_idle()):
+                logging.getLogger("HWR").debug("Waiting for the detector to be ready, current state: " + self.get_status())
                 gevent.sleep(0.1)
 
     def wait_idle(self):
@@ -208,6 +209,7 @@ class BIOMAXEiger(Equipment):
             while self.is_preparing():
                 gevent.sleep(0.1)
         logging.getLogger("HWR").info("Detector configuration finished.")
+    
     #  STATUS END
 
     #  GET INFORMATION
@@ -224,7 +226,9 @@ class BIOMAXEiger(Equipment):
         frame_time = self.get_value("FrameTime")
         readout_time = self.get_value("ReadoutTime")
         nb_images = self.get_value("NbImages")
-        return nb_images * frame_time - readout_time
+        time =  nb_images * frame_time - readout_time
+	logging.getLogger("HWR").info("Detector acquisition time: "+str(time))
+        return time
 
     def get_buffer_free(self):
         return self.get_value("BufferFree")
@@ -349,14 +353,20 @@ class BIOMAXEiger(Equipment):
         self.config_state = "config"
 
         self._config_vals = copy.copy(config)
-        self._config_task = gevent.spawn(self._prepare_acquisition_sequence)
-        self._config_task.link(self._configuration_done)
-        self._config_task.link_exception(self._configuration_failed)
+       # self._config_task = gevent.spawn(self._prepare_acquisition_sequence)
+       # self._config_task.link(self._configuration_done)
+       # self._config_task.link_exception(self._configuration_failed)
+	try:
+	    self._prepare_acquisition_sequence()
+	except Exception:
+	    self._configuration_failed()
+	else:
+     	    self._configuration_done()
 
-    def _configuration_done(self, gl):
+    def _configuration_done(self): # (self, gl)
         self.config_state = None
 
-    def _configuration_failed(self, gl):
+    def _configuration_failed(self): # (self, gl)
         self.config_state = "error"
         RuntimeError("Could not configure detector")
 
@@ -428,6 +438,7 @@ class BIOMAXEiger(Equipment):
         """
 
         print("Stop acquisition. waiting")
+        logging.getLogger("HWR").info("[DETECTOR] Stop acquisition, waiting...")
         self.wait_ready_or_idle()
 
         try:
@@ -437,6 +448,7 @@ class BIOMAXEiger(Equipment):
             # when called from Tango it does not. Once bug is solved in tango server, the
             # call to "cancel()" is not necessary here
             self.disarm()
+            logging.getLogger("HWR").info("[DETECTOR] Stop acquisition, detector canceled and disarmed.")
         except:
             pass
 
@@ -452,9 +464,12 @@ class BIOMAXEiger(Equipment):
         self.disarm()
 
     def arm(self):
+        logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
         cmd = self.getCommandObject("Arm")
         cmd.setTimeout(10000)
         cmd()
+	self.wait_ready()
+        logging.getLogger("HWR").info("[DETECTOR] Arm command executed, new state of the dectector: " + self.get_status())
         logging.getLogger("user_level_log").info("Detector armed")
 
     def trigger(self):
