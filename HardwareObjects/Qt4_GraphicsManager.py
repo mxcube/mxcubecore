@@ -46,7 +46,9 @@ import os
 #import atexit
 import tempfile
 import logging
+import subprocess
 import numpy as np
+from gevent import spawn
 from time import sleep
 
 from QtImport import *
@@ -54,9 +56,6 @@ from QtImport import *
 from copy import deepcopy
 from scipy import ndimage
 from scipy.interpolate import splrep, sproot
-
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects_v1 as queue_model_objects
@@ -107,6 +106,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.line_count = 0
         self.grid_count = 0
         self.shape_dict = {}
+        self.temp_animation_dir = None
 
         self.graphics_view = None
         self.graphics_camera_frame = None
@@ -302,6 +302,9 @@ class Qt4_GraphicsManager(HardwareObject):
         #    pass
 
         #self.init_auto_grid()  
+
+        self.temp_animation_dir = os.path.join(\
+            tempfile.gettempdir(), "mxcube", "animation")
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -1049,7 +1052,7 @@ class Qt4_GraphicsManager(HardwareObject):
             shape.show()
             #shape.setSelected(True)
             #self.select_shape_with_cpos(shape.get_centred_position())
-        self.graphics_omega_reference_item.hide() 
+        #self.graphics_omega_reference_item.hide() 
 
         image = QImage(self.graphics_view.graphics_scene.sceneRect().\
             size().toSize(), QImage.Format_ARGB32)
@@ -1074,40 +1077,45 @@ class Qt4_GraphicsManager(HardwareObject):
         :param file_name: file name
         :type file_name: str 
         """
-        logging.getLogger("user_level_log").debug(\
+        logging.getLogger("GUI").debug(\
             "Saving scene snapshot: %s" % filename)
-        snapshot = self.get_scene_snapshot()
-        snapshot.save(filename)
+        try:
+            if not os.path.exists(os.path.dirname(filename)):
+                os.makedirs(os.path.dirname(filename))
+            snapshot = self.get_scene_snapshot()
+            snapshot.save(filename)
+        except:
+            logging.getLogger("GUI").exception(\
+                 "Unable to save scene snapshot: %s" % filename)
 
     def save_scene_animation(self, filename, duration_sec):
-
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_axis_off()
-
+        """Saves animated gif of a rotating sample"""
+        """Save animation task"""
+        fps = 15.
         imgs = []
-        for frame_index in range(duration_sec * 25):
-            imgs.append(self.get_scene_snapshot(return_as_array=True))
-            sleep(0.04)
 
-        title = "Test"
-         
-        ims = map(lambda x: (ax.imshow(x), ax.set_title(title)), imgs)
-        im_ani = animation.ArtistAnimation(fig, ims, interval=40, repeat_delay=0, blit=False)
-        im_ani.save('/tmp/animation.gif', fps=25, writer='imagemagick')
-        #im_ani.to_html5_video('/tmp/animation.html5')
-        logging.getLogger("user_level_log").debug(\
-            "Saving scene animation: %s" % filename)
-        
-        #frame_list = []
-        #for frame in range(duration_sec * 25):
-        #    scene = self.get_scene_snapshot(return_as_array=True)
-        #    frame_list.append((plt.imshow(scene), ))
+        for frame_index in range(int(duration_sec * fps)):
+            self.save_scene_snapshot("%s/anim_%.04d.png" % \
+                                     (self.temp_animation_dir, frame_index))
+            self.diffractometer_hwobj.move_omega_relative(360 / (duration_sec * fps))
+            sleep(0.001)
 
-        #im_ani.save(filename, metadata={'artist':'MXCuBE'})
-        #anim = animation.FuncAnimation(fig, update, frames=100, interval=20, blit=True)
-        #anim.save('/tmp/line.gif', fps=25, dpi=40, writer='imagemagick')
-          
+       
+        def convert_to_gif_task():
+            process = subprocess.Popen(["convert","-delay", "20", "-loop", "0",
+                                        "%s/anim*.png" % self.temp_animation_dir,
+                                        filename])
+            #TODO implement correct waiting and file delete in the backround
+            # like the edna characterisation thread in DataAnalysis
+ 
+            #process.wait()
+            #for frame_index in range(duration_sec * 15):
+            #    if os.path.exists("%s/anim_%.04d.png" % \
+            #            (self.temp_animation_dir, frame_index)): 
+            #        os.remove("%s/anim_%.04d.png" % \
+            #            (self.temp_animation_dir, frame_index))
+
+        spawn(convert_to_gif_task)
 
     def get_raw_snapshot(self, bw=False, return_as_array=False):
         """Returns a raw snapshot from camera
