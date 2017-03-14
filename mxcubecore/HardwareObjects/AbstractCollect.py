@@ -84,6 +84,11 @@ class AbstractCollect(object):
         self.ready_event = gevent.event.Event()
 
     def set_beamline_configuration(self, **configuration_parameters):
+        """Sets beamline configuration
+
+        :param configuration_parameters: dict with config param.
+        :type configuration_parameters: dict
+        """
         self.bl_config = BeamlineConfig(**configuration_parameters)
 
     def collect(self, owner, dc_parameters_list):
@@ -601,6 +606,19 @@ class AbstractCollect(object):
                 self._take_crystal_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
+
+        if not self.diffractometer_hwobj.in_plate_mode() and \
+            self.current_dc_parameters.get("take_video"):
+            #Add checkbox to allow enable/disable creation of gif
+            logging.getLogger("user_level_log").info(\
+                   "Collection: Saving animated gif")
+            animation_filename = os.path.join(
+                   snapshot_directory,
+                   "%s_%s_animation.gif" % (\
+                   self.current_dc_parameters["fileinfo"]["prefix"],
+                   self.current_dc_parameters["fileinfo"]["run_number"]))
+            self.current_dc_parameters['xtalSnapshotFullPath2'] = animation_filename
+            self._take_crystal_animation(animation_filename, duration_sec=3)
         
     @abc.abstractmethod
     @task
@@ -609,6 +627,11 @@ class AbstractCollect(object):
         Depends on gui version how this method is implemented.
         In Qt3 diffractometer has a function,
         In Qt4 graphics_manager is making crystal snapshots
+        """
+        pass
+
+    def _take_crystal_animation(self, animation_filename):
+        """Rotates sample by 360 and composes a gif file
         """
         pass
 
