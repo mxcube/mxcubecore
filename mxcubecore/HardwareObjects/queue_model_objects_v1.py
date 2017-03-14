@@ -208,7 +208,7 @@ class Sample(TaskNode):
         self.lims_container_location = -1
         self.free_pin_mode = False
         self.loc_str = str()
-        self.diffraction_plan = {}
+        self.diffraction_plan = None
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
@@ -337,12 +337,7 @@ class Sample(TaskNode):
                                    ':' + str(self.lims_location[1]))
 
         if hasattr(lims_sample, 'diffractionPlan'):
-            self.diffraction_plan["exp_time"] = \
-                 lims_sample.diffractionPlan.exposureTime
-            self.diffraction_plan["osc_range"] = \
-                 lims_sample.diffractionPlan.oscillationRange
-            self.diffraction_plan["resolution"] = \
-                 lims_sample.diffractionPlan.requiredResolution
+            self.diffraction_plan = lims_sample.diffractionPlan
 
         name = ''
 
