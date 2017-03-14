@@ -212,22 +212,6 @@ class BIOMAXEiger(Equipment):
                 gevent.sleep(0.1)
         logging.getLogger("HWR").info("Detector configuration finished.")
     
-    def wait_attribute_applied(self, att, new_val):
-	with gevent.Timeout(10, RuntimeError("Timeout setting attr: %s to value %s, type: %s" %(att, new_val, type(new_val)))):
-	    # format numbers to remove the precission comparison, 3 decimal enough?
-	    print att, new_val, type(new_val)
-	    #if type(new_val)== 'str' or type(new_val) == 'unicode':
-	    #	while self.get_value(att) != new_val:
-            #	    gevent.sleep(0.1)
-	    if att == 'FilenamePattern':
-	    	while self.get_value(att) != new_val:
-                    gevent.sleep(0.1)
-	    elif 'BeamCenter' in att:
-		while format(self.get_value(att), '.2f') != format(new_val, '.2f'):
-		    gevent.sleep(0.1)
-	    else: 	    
-		while format(self.get_value(att), '.4f') != format(new_val, '.4f'):
-		    gevent.sleep(0.1)
     #  STATUS END
 
     #  GET INFORMATION
@@ -251,12 +235,6 @@ class BIOMAXEiger(Equipment):
         readout_time = self.get_value("ReadoutTime")
         nb_images = self.get_value("NbImages")
         time =  nb_images * frame_time - readout_time
-	_count_time = self._config_vals.get('CountTime') 
-	_nb_images = self._config_vals.get('NbImages')  
-	logging.getLogger("HWR").debug("[DETECTOR] Configuration params: CounTime: %s, NbImages: %s" %(_count_time, _nb_images))
-	logging.getLogger("HWR").debug("[DETECTOR] Params applied IN the detector: FrameTime: %s, NbImages: %s" %(frame_time, nb_images))
-	if format(time, '.4f') != format(_nb_images * _count_time - readout_time, '.4f'):
-	    logging.getLogger("HWR").error("[DETECTOR] Acquisition time configuration wrong.")    
 	logging.getLogger("HWR").info("Detector acquisition time: "+str(time))
         return time
 
@@ -388,14 +366,12 @@ class BIOMAXEiger(Equipment):
        # self._config_task.link_exception(self._configuration_failed)
 	try:
 	    self._prepare_acquisition_sequence()
-	except Exception as ex:
-	    print ex
+	except Exception:
 	    self._configuration_failed()
 	else:
      	    self._configuration_done()
 
     def _configuration_done(self): # (self, gl)
-	logging.getLogger("HWR").info("Detector configuration done")
         self.config_state = None
 
     def _configuration_failed(self): # (self, gl)
