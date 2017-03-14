@@ -311,10 +311,15 @@ class BIOMAXMD3(GenericDiffractometer):
             """
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end-start), exptime)
         scan = self.command_dict["startScanEx"]
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, waiting device ready..., params "+str(scan_params))
         self.wait_device_ready(200)
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, device ready.")
         scan(scan_params)
-        if wait:
-            self.wait_device_ready(exptime+30)  # timeout of 5 min
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation launched, waiting for device ready.")
+        #if wait:
+        time.sleep(0.1)	
+        self.wait_device_ready(exptime+30)  # timeout of 5 min
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation, device ready.")
 
     def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
         if self.in_plate_mode():
@@ -337,8 +342,11 @@ class BIOMAXMD3(GenericDiffractometer):
         scan_params += "%0.3f\t" % helical_pos['2']['sampx']
         scan_params += "%0.3f\t" % helical_pos['2']['sampy']
 
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
         scan = self.command_dict["startScan4DEx"]
+        time.sleep(0.1)	
         self.wait_device_ready(200)
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, device ready.")
         scan(scan_params)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
