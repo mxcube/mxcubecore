@@ -67,8 +67,9 @@ class GenericVideoDevice(Device):
 
         self.image_dimensions = [None,None]
         self.image_polling = None
-
         self.image_format = None # not used
+        self.default_cam_encoding = None
+        self.default_poll_interval = None
 
     def init(self):
         
@@ -144,21 +145,22 @@ class GenericVideoDevice(Device):
         """
         raw_buffer, width, height = self.get_image()
 
-        if self.cam_type == "basler":
-            raw_buffer = self.decoder(raw_buffer)
-            qimage = QImage(raw_buffer, width, height,
-                            width * 3,
-                            QImage.Format_RGB888)
-        else:
-            qimage = QImage(raw_buffer, width, height,
-                            QImage.Format_RGB888)
+        if raw_buffer:
+            if self.cam_type == "basler":
+                raw_buffer = self.decoder(raw_buffer)
+                qimage = QImage(raw_buffer, width, height,
+                                width * 3,
+                                QImage.Format_RGB888)
+            else:
+                qimage = QImage(raw_buffer, width, height,
+                                QImage.Format_RGB888)
 
-        if self.cam_mirror is not None:
-            qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
+            if self.cam_mirror is not None:
+                qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
 
-        qpixmap = QPixmap(qimage)
-        self.emit("imageReceived", qpixmap)
-        return qimage
+            qpixmap = QPixmap(qimage)
+            self.emit("imageReceived", qpixmap)
+            return qimage
 
     def get_cam_type(self):
         return self.cam_type

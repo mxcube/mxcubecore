@@ -43,33 +43,25 @@ class EMBLDoorInterlock(Device):
 
         Device.__init__(self, name)
 
+        self.use_door_interlock = None
+        self.door_interlock_state = None
+        self.door_interlock_final_state = None
+        self.door_interlock_breakabled = None
+
         self.detector_distance_hwobj = None
 
-        self.door_interlock_state = None
-        self.door_interlocked_cond = None
-        self.door_interlocked_cond_value = None
-
-        self.can_unlock_cond = None
-        self.can_unlock_cond_value = None
         self.before_unlock_commands_present = None
         self.before_unlock_commands = None
 
-        self.use_door_interlock = None
+        self.chan_state_locked = None
+        self.chan_state_breakable = None
         self.cmd_break_interlock = None
-        self.chan_can_unlock_cond = None
-        self.chan_door_is_interlocked = None
-        self.chan_door_is_interlocked = None
 
     def init(self):
         self.door_interlock_state = "unknown"
 
         self.detector_distance_hwobj = \
             self.getObjectByRole("detector_distance")
-
-        self.can_unlock_cond_value = None
-        self.can_unlock_cond = int(self.getProperty("canUnlockCond"))
-        self.door_interlocked_cond_value = None
-        self.door_interlocked_cond = int(self.getProperty("doorInterlockedCond"))
 
         self.before_unlock_commands_present = \
             self.getProperty("before_unlock_commands_present")
@@ -79,16 +71,12 @@ class EMBLDoorInterlock(Device):
         if self.use_door_interlock is None:
             self.use_door_interlock = True
 
-        self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock')
-        self.chan_can_unlock_cond = self.getChannelObject('chanCanUnlockCond')
-        if self.chan_can_unlock_cond is not None:
-            self.chan_can_unlock_cond.connectSignal(\
-                'update', self.can_unlock_cond_changed)
-        self.chan_door_is_interlocked = \
-            self.getChannelObject('chanDoorInterlocked')
-        if self.chan_door_is_interlocked is not None:
-            self.chan_door_is_interlocked.connectSignal(\
-                'update', self.door_interlock_state_changed)
+        self.chan_state_locked = self.getChannelObject('chanStateLocked')
+        self.chan_state_locked.connectSignal('update', self.state_locked_changed)
+        self.chan_state_breakable = self.getChannelObject('chanStateBreakable')
+        self.chan_state_breakable.connectSignal('update', self.state_breakable_changed)
+
+        self.cmd_break_interlock = self.getCommandObject('cmdBreak')
 
     def connected(self):
         """Sets is ready"""
@@ -97,27 +85,14 @@ class EMBLDoorInterlock(Device):
     def disconnected(self):
         self.setIsReady(False)
 
-    def can_unlock_cond_changed(self, state):
-        """Returns True if for the given state it is possible
-           to unlock doors
-        """
-        self.can_unlock_cond_value = int(state)
+    def state_breakable_changed(self, state):
+        self.door_interlock_breakabled = state
         self.get_state()
 
-    def door_interlock_state_changed(self, state):
+    def state_locked_changed(self, state):
         """Updates door interlock state"""
-        #value = self.door_interlocked_cond_value
-        self.door_interlocked_cond_value = int(state)
-        #if (value != self.door_interlocked_cond_value):
+        self.door_interlock_state = state
         self.get_state()
-
-    def door_interlock_can_unlock(self):
-        """Checks if doors can be unlocked"""
-        return self.can_unlock_cond == self.can_unlock_cond_value
-
-    def door_is_interlocked(self):
-        """Checks if doors are unlocked"""
-        return self.door_interlocked_cond == self.door_interlocked_cond_value
 
     def getState(self):
         """Returns current state"""
@@ -125,23 +100,23 @@ class EMBLDoorInterlock(Device):
 
     def get_state(self):
         """Returns current state"""
-        if self.door_is_interlocked():
-            if self.door_interlock_can_unlock():
-                self.door_interlock_state = 'locked_active'
+        if self.door_interlock_state:
+            if self.door_interlock_breakabled:
+                self.door_interlock_final_state = 'locked_active'
                 msg = "Locked (unlock enabled)"
             else:
-                self.door_interlock_state = 'locked_inactive'
+                self.door_interlock_final_state = 'locked_inactive'
                 msg = "Locked (unlock disabled)"
         else:
-            self.door_interlock_state = 'unlocked'
+            self.door_interlock_final_state = 'unlocked'
             msg = "Unlocked"
 
         if not self.use_door_interlock:
-            self.door_interlock_state = 'locked_active'
+            self.door_interlock_final_state = 'locked_active'
             msg = "Locked (unlock enabled)"
 
-        self.emit('doorInterlockStateChanged', self.door_interlock_state, msg)
-        return self.door_interlock_state
+        self.emit('doorInterlockStateChanged', self.door_interlock_final_state, msg)
+        return self.door_interlock_final_state
 
     def unlock_door_interlock(self):
         """Break Interlock (only if it is allowed by doorInterlockCanUnlock)
@@ -156,7 +131,7 @@ class EMBLDoorInterlock(Device):
             logging.getLogger().info('Door interlock is disabled')
             return
 
-        if self.door_is_interlocked():
+        if self.door_interlock_state:
             gevent.spawn(self.unlock_doors_thread)
         else:
             logging.getLogger().info('Door is Interlocked')
@@ -180,14 +155,14 @@ class EMBLDoorInterlock(Device):
 
     def unlock_doors_thread(self):
         """Gevent method to unlock the doors"""
-        if self.door_interlock_can_unlock():
+        if self.door_interlock_breakabled:
             try:
                 self.before_unlock_actions()
             except:
                 pass
             if self.cmd_break_interlock is None:
                 self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock')
-            self.cmd_break_interlock("b")
+            self.cmd_break_interlock()
         else:
             msg = "Door Interlock cannot be broken at the moment " + \
                   "please check its status and try again."

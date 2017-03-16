@@ -124,7 +124,9 @@ class Qt4_LimaVideo(GenericVideoDevice):
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
             raw_buffer = image.buffer()
-        return raw_buffer, image.width(), image.height()
+            return raw_buffer, image.width(), image.height()
+        else:
+            return None, None, None 
 
     def get_gain(self):
         value = self.video.getGain()

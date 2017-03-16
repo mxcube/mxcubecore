@@ -347,6 +347,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Descript. :
         """
+        if not self.in_plate_mode():
+            self.motor_hwobj_dict['phi'].move(40)
+
         self.centring_hwobj.initCentringProcedure()
         #self.head_type = self.chan_head_type.getValue()
         for click in range(3):
