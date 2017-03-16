@@ -54,6 +54,10 @@ class HardwareObjectNode:
         self.__name = nodeName
         self.__references = []
 
+    @staticmethod
+    def setUserFileDirectory(user_file_directory):
+        HardwareObjectNode.user_file_directory = user_file_directory       
+
     def name(self):
         return self.__name
     

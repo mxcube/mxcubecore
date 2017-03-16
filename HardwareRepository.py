@@ -44,6 +44,8 @@ def addHardwareObjectsDirs(hoDirs):
 default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
 addHardwareObjectsDirs(default_local_ho_dir)
 
+def setUserFileDirectory(user_file_directory):
+    BaseHardwareObjects.HardwareObjectNode.setUserFileDirectory(user_file_directory)
 
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
