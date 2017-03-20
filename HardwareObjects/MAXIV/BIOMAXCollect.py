@@ -159,7 +159,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
+            log.debug("Collection: going to take snapshots...")
             self.take_crystal_snapshots()
+            log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
@@ -244,12 +246,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             time.sleep(2)
             self.detector_hwobj.wait_config_done()
             self.detector_hwobj.start_acquisition()
+            self.detector_hwobj.wait_ready()
             # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
             shutterless_exptime = self.detector_hwobj.get_acquisition_time()
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
-            self.detector_hwobj.wait_ready()
+            # self.detector_hwobj.wait_ready()
             self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
             self.detector_hwobj.stop_acquisition()
 
