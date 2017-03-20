@@ -162,7 +162,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
+            log.debug("Collection: going to take snapshots...")
             self.take_crystal_snapshots()
+            log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
@@ -274,11 +276,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
             # self.detector_hwobj.wait_ready()
-            for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
-                osc_end = osc_start + osc_range * nframes_per_trigger 
-                self.display_task = gevent.spawn(self._update_image_to_display)
-                self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
-            
+            self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
             self.detector_hwobj.stop_acquisition()
 
             #self.close_safety_shutter()
