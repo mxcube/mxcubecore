@@ -34,7 +34,7 @@ class MaxIVSession(Session):
         if self.is_inhouse():
             user_category = 'staff'
         else:
-            user_category = 'visitors'
+            user_category = 'visitor'
         # missing industrial users and visit info
         # now it is a new visit everyday
         directory = os.path.join(self.base_directory,
