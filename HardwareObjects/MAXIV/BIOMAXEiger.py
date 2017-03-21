@@ -217,7 +217,10 @@ class BIOMAXEiger(Equipment):
         return self.getChannelObject(name).getValue()
 
     def set_value(self, name, value):
-        self.getChannelObject(name).setValue(value)
+	try:
+            self.getChannelObject(name).setValue(value)
+	except:
+	    logging.getLogger("HWR").info("Cannot set value: %s for attribute %s"  %(value, name))
 
     def get_readout_time(self):
         return self.get_value("ReadoutTime")
