@@ -220,11 +220,8 @@ class BIOMAXEiger(Equipment):
 
     def set_value(self, name, value):
 	try:
-	    logging.getLogger("HWR").debug("[DETECTOR] Setting value: %s for attribute %s"  %(value, name))
             self.getChannelObject(name).setValue(value)
-	    self.wait_attribute_applied(name, value)
-	except Exception as ex:
-	    logging.getLogger("HWR").error(ex)
+	except:
 	    logging.getLogger("HWR").info("Cannot set value: %s for attribute %s"  %(value, name))
 
     def get_readout_time(self):
