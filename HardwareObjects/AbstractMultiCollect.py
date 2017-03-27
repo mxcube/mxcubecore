@@ -61,6 +61,11 @@ class AbstractMultiCollect(object):
         #wait for the 1st image from detector for 30 seconds by default
         self.first_image_timeout = 30
 
+        self.mesh = None
+        self.mesh_num_lines = None
+        self.mesh_total_nb_frames = None
+        self.mesh_range = None
+        self.mesh_center = None
 
     def setControlObjects(self, **control_objects):
       self.bl_control = BeamlineControl(**control_objects)
@@ -983,4 +988,22 @@ class AbstractMultiCollect(object):
               autoprocessing.startInducedRadDam(processAnalyseParams)
             except:
               logging.exception("Error starting induced rad.dam")
+
+    # specifies the next scan will be a mesh scan
+    def set_mesh(self, mesh_on):
+        self.mesh = mesh_on
+
+    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
+        """
+        sets the mesh scan parameters :
+         - vertcal range
+         - horizontal range
+         - nb lines
+         - nb frames per line
+         - invert direction (boolean)  # NOT YET DONE
+         """
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param
                
