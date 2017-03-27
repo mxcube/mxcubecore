@@ -304,3 +304,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
     @task
     def generate_image_jpeg(self, filename, jpeg_path, jpeg_thumbnail_path):
         pass
+    
+    def set_mesh(self, flag):
+        return
+
