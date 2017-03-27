@@ -176,11 +176,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             self.emit_collection_failed()
             # ----------------------------------------------------------------
-            """ should all go data collection hook
-            self.close_fast_shutter()
-            self.close_safety_shutter()
+
+            #self.close_fast_shutter()
+            #self.close_safety_shutter()
             self.close_detector_cover()
-            """
 
     def prepare_acquisition(self):
         """ todo
@@ -447,7 +446,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             self.detector_cover_hwobj.openShutter()
-            time.sleep(1) # make sure the cover is up before the data collection stars
         except:
             logging.getLogger("HWR").exception("Could not open the detector cover")
             pass
