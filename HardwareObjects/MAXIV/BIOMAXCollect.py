@@ -173,7 +173,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             self.emit_collection_failed()
             # ----------------------------------------------------------------
-
             """ should all go data collection hook
             self.close_fast_shutter()
             self.close_safety_shutter()
@@ -441,11 +440,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-
-        """ todo, move detector,
-            but then should be done after set energy and roi
-        """
-        pass
+        new_distance = self.resolution_hwobj.res2dist(value)
+        self.move_detector(new_distance) 
 
     def set_energy(self, value):
         # todo,disabled temp
@@ -519,6 +515,23 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             xds_input_file_dirname)
         return xds_directory, auto_directory
 
+    def move_detector(self, value):
+        """
+        Descript. : move detector to the set distance
+        """
+        lower_limit, upper_limit = self.get_detector_distance_limits()
+        if upper_limit is not None and lower_limit is not None:
+            if value >= upper_limit or value <= lower_limit:
+                logging.getLogger("HWR").exception("Can't move detector, the value is out of limits")
+            else:
+                try:
+                    if self.dtox_hwobj is not None:
+                        self.dtox_hwobj.move(value)
+                except:
+                    logging.getLogger("HWR").exception("Problems when moving detector!!") 
+        else:
+            logging.getLogger("HWR").exception("Can't get distance limits, not moving detector!!")
+
     def get_detector_distance(self):
         """
         Descript. :
@@ -530,8 +543,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        # todo
-        return 1000
+        if self.dtox_hwobj is not None:
+            return self.dtox_hwobj.getLimits()
 
     def prepare_detector(self):
 
