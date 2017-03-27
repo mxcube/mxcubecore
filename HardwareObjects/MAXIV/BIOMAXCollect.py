@@ -176,7 +176,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             self.emit_collection_failed()
             # ----------------------------------------------------------------
-
             """ should all go data collection hook
             self.close_fast_shutter()
             self.close_safety_shutter()
@@ -613,22 +612,17 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. : move detector to the set distance
         """
         lower_limit, upper_limit = self.get_detector_distance_limits()
-        logging.getLogger("HWR").info("...................value %s, detector movement start..... %s" % (value, self.dtox_hwobj.getPosition()))
         if upper_limit is not None and lower_limit is not None:
             if value >= upper_limit or value <= lower_limit:
                 logging.getLogger("HWR").exception("Can't move detector, the value is out of limits")
-                self.stop_collect()
             else:
                 try:
                     if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.syncMove(value, timeout = 50) #30s is not enough for the whole range
+                        self.dtox_hwobj.move(value)
                 except:
                     logging.getLogger("HWR").exception("Problems when moving detector!!") 
-                    self.stop_collect()
         else:
             logging.getLogger("HWR").exception("Can't get distance limits, not moving detector!!")
-        logging.getLogger("HWR").info("....................value %s detector movement finished.....%s" % (value, self.dtox_hwobj.getPosition()))
-
 
     def get_detector_distance(self):
         """
