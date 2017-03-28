@@ -92,11 +92,13 @@ class EMBLMachineInfo(HardwareObject):
         self.state_text = ""
         self.ring_energy = None
         self.bunch_count = None
+        self.flux_area = None
 
 	#Intensity current ranges
         self.values_list = []
         temp_dict = {}
-        temp_dict['value'] = None
+        temp_dict['value'] = 0
+        temp_dict['value_str'] = ""
         temp_dict['in_range'] = False
         temp_dict['title'] = "Machine current"
         temp_dict['bold'] = True
@@ -112,6 +114,7 @@ class EMBLMachineInfo(HardwareObject):
 
         temp_dict = {}
         temp_dict['value'] = ""
+        temp_dict['value_str'] = ""
         temp_dict['in_range'] = None
         temp_dict['title'] = "Hutch temperature and humidity"
         self.values_list.append(temp_dict)
@@ -189,6 +192,9 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
+        self.set_flux(5e11)
+        self.update_values()
+
     def cryojet_in_changed(self, value):
         """Cryojet in/out value changed"""
 
@@ -241,9 +247,9 @@ class EMBLMachineInfo(HardwareObject):
     def update_machine_state(self):
         """Machine state assembly"""
         state_text = self.state_text
-        if self.ring_energy:
+        if self.ring_energy is not None:
             state_text += "\n%.2f GeV " % self.ring_energy
-        if self.bunch_count:
+        if self.bunch_count is not None:
             state_text += ", %d Bunches" % self.bunch_count
         self.values_list[1]['value'] = state_text
         self.update_values()
@@ -278,16 +284,34 @@ class EMBLMachineInfo(HardwareObject):
             self.values_list[5]['in_range'] = True
         self.update_values()
 
-    def set_flux(self, value):
+    def set_flux(self, value, beam_info=None):
         """Sets flux value"""
+        if beam_info:
+            if beam_info['shape'] == 'ellipse':
+                self.flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
+            else:
+                self.flux_area = beam_info['size_x'] * beam_info['size_y']
         self.values_list[3]['value'] = value
         self.values_list[3]['value_str'] = "%.2e ph/s" % value
         self.values_list[3]['in_range'] = value > 0
         self.update_values()
 
-    def get_flux(self):
+    def get_flux(self, beam_info=None):
         """Returns flux value"""
-        return self.values_list[3]['value']
+        if beam_info:
+            if beam_info['shape'] == 'ellipse':
+                flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
+            else:
+                flux_area = beam_info['size_x'] * beam_info['size_y']
+
+        print "previous_area = ", self.flux_area
+        print "now area = ", flux_area
+        print "previous flux: ", self.values_list[3]['value'] 
+        if self.flux_area:
+            print "now flux: ", self.values_list[3]['value'] * (flux_area / self.flux_area)
+            return self.values_list[3]['value'] * (flux_area / self.flux_area)
+        else:
+            return self.values_list[3]['value'] 
 
     def update_values(self):
         """Emits list of values"""

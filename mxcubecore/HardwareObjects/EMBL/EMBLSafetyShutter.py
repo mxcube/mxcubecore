@@ -29,7 +29,7 @@ __category__ = "General"
 
 
 class EMBLSafetyShutter(Device):
-    shutterState = {
+    shutter_state_list = {
         3: 'unknown',
         1: 'closed',
         0: 'opened',
@@ -45,55 +45,32 @@ class EMBLSafetyShutter(Device):
 
         self.use_shutter = None
         self.data_collection_state = None
-        self.shutter_open_perm_abs_cond = None
-        self.shutter_open_perm_bp_cond = None
-        self.shutter_open_perm_abs_value = None
-        self.shutter_open_perm_bp_value = None
-        self.shutter_is_open_condition = None
-        self.shutter_is_open_value = None
-        self.shutter_state_value = None
-
-        self.cmd_open_shutter = None
-        self.cmd_close_shutter = None
+        self.shutter_can_open = None
+        self.shutter_state = None
+        self.shutter_state_open = None
 
         self.chan_collection_state = None
-        self.chan_shutter_open_perm_abs_value = None
-        self.chan_shutter_open_perm_bp_value = None
-        self.chan_shutter_is_open = None
+        self.chan_state_open = None
+        self.chan_state_open_permission = None
+
+        self.cmd_open = None
+        self.cmd_close = None
 
     def init(self):
         self.chan_collection_state = self.getChannelObject('chanCollectStatus')
-        if self.chan_collection_state is not None:
-            self.chan_collection_state.connectSignal('update',
-                self.data_collection_state_changed)
+        self.chan_collection_state.connectSignal('update',
+             self.data_collection_state_changed)
 
-        self.cmd_open_shutter = self.getCommandObject('cmdOpenShutter')
-        self.cmd_close_shutter = self.getCommandObject('cmdCloseShutter')
+        self.chan_state_open = self.getChannelObject('chanStateOpen')
+        self.chan_state_open.connectSignal('update',
+             self.state_open_changed)
 
-        self.shutter_open_perm_abs_cond = \
-             int(self.getProperty('shutterOpenPermissionCondAbs'))
-        self.shutter_open_perm_bp_cond = \
-             int(self.getProperty('shutterOpenPermissionCondBp'))
+        self.chan_state_open_permission = self.getChannelObject('chanStateOpenPermission')
+        self.chan_state_open_permission.connectSignal('update',
+             self.state_open_permission_changed)
 
-        self.chan_shutter_open_perm_abs_value = \
-             self.getChannelObject('chanShutterPermCondAbs')
-        if self.chan_shutter_open_perm_abs_value is not None:
-            self.chan_shutter_open_perm_abs_value.connectSignal('update', \
-                 self.shutter_perm_abs_value_changed)
-
-        self.chan_shutter_open_perm_bp_value = \
-             self.getChannelObject('chanShutterPermCondBp')
-        if self.chan_shutter_open_perm_bp_value is not None:
-            self.chan_shutter_open_perm_bp_value.connectSignal('update', \
-                 self.shuuter_perm_bp_value_changed)
-
-        self.chan_shutter_is_open = self.getChannelObject('chanShutterIsOpen')
-        if self.chan_shutter_is_open is not None:
-            self.chan_shutter_is_open.connectSignal('update',
-                 self.shutter_is_open_changed)
-
-        self.shutter_is_open_condition = \
-             int(self.getProperty("shutterIsOpenCondition"))
+        self.cmd_open = self.getCommandObject('cmdOpen')
+        self.cmd_close = self.getCommandObject('cmdClose')
 
         self.use_shutter = self.getProperty('useShutter')
         if self.use_shutter is None:
@@ -107,52 +84,35 @@ class EMBLSafetyShutter(Device):
     def disconnected(self):
         self.setIsReady(False)
 
-    def check_conditions(self):
-        if (self.shutter_open_perm_abs_value != \
-            self.shutter_open_perm_abs_cond or
-            self.shutter_open_perm_bp_value != \
-            self.shutter_open_perm_bp_cond):
-            return False
-        else:
-            return True
-
-    def shutter_perm_abs_value_changed(self, state):
-        self.shutter_open_perm_abs_value = int(state)
-        self.getShutterState()
-
-    def shuuter_perm_bp_value_changed(self, state):
-        self.shutter_open_perm_bp_value = int(state)
-        self.getShutterState()
-
     def data_collection_state_changed(self, state):
         self.data_collection_state = state
         self.getShutterState()
 
-    def shutter_can_open(self):
-        return self.check_conditions()
+    def state_open_changed(self, state):
+        self.shutter_state_open = state
 
-    def shutter_is_open_changed(self, state):
-        value = self.shutter_is_open_value
-        self.shutter_is_open_value = int(state)
+    def state_open_permission_changed(self, state):
+        self.chan_state_open = state
         self.getShutterState()
 
-    def is_shuter_open(self):
-        return self.shutter_is_open_value == self.shutter_is_open_condition
+    def shutter_can_open(self):
+        return self.chan_state_open_permission
 
     def getShutterState(self):
-        if (not self.shutter_can_open()  or
+        if (not self.shutter_can_open  or
 	    self.data_collection_state == "collecting"):
-            self.shutter_state_value = self.shutterState[46] #disabled
-        elif self.is_shuter_open():
-            self.shutter_state_value = self.shutterState[0] #opened
+            self.shutter_state = self.shutter_state_list[46] #disabled
+        elif self.shutter_state_open:
+            self.shutter_state = self.shutter_state_list[0] #opened
         else:
-            self.shutter_state_value = self.shutterState[1] #closed
+            self.shutter_state = self.shutter_state_list[1] #closed
 
         if not self.use_shutter:
-            self.shutter_state_value = self.shutterState[0]
+            self.shutter_state = self.shutter_state_list[0]
 
-        self.emit('shutterStateChanged', (self.shutter_state_value,))
-        return self.shutter_state_value
+        print 111, self.shutter_state
+        self.emit('shutter_state_listChanged', (self.shutter_state,))
+        return self.shutter_state
 
     # set the shutter open command to any TEXT value of size 1 to open it
     def openShutter(self):
@@ -173,19 +133,19 @@ class EMBLSafetyShutter(Device):
 
     def close_shutter_thread(self):
         logging.getLogger().info('Safety shutter: Closing beam shutter...')
-        #self.emit('shutterStateChanged', (self.shutterState[0])) #closed
+        #self.emit('shutter_state_listChanged', (self.shutterState[0])) #closed
         gevent.sleep(2)
         try:
-            self.cmd_close_shutter("c")
+            self.cmd_close()
         except:
             logging.getLogger().error('Safety shutter: unable to close shutter')
 
     def open_shutter_thread(self):
         logging.getLogger().info('Safety shutter: Openning beam shutter...')
-        #self.emit('shutterStateChanged', (self.shutterState[1])) #opened
+        #self.emit('shutter_state_listChanged', (self.shutterState[1])) #opened
         gevent.sleep(2)
         try:
-            self.cmd_open_shutter("o")
+            self.cmd_open()
             gevent.sleep(4)
             if (not self.is_shuter_open()):
                 logging.getLogger().info("Safety shutter: Opening beam " + \
@@ -193,5 +153,3 @@ class EMBLSafetyShutter(Device):
                 self.cmd_open_shutter("o")
         except:
             logging.getLogger().error('Safety shutter: unable to open shutter')
-
-
