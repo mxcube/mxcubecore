@@ -570,33 +570,15 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """Returns flux"""
         flux = None
         if self.lims_client_hwobj:
-            if self.lims_client_hwobj.beamline_name == "P13":
-                if self.beam_info_hwobj.aperture_hwobj.is_out():
-                    aperture_size = "Out"
+            flux = self.machine_info_hwobj.get_flux(self.beam_info_hwobj.get_beam_info())
+            if flux is None or flux < 0:
+                if self.lims_client_hwobj.beamline_name == "P13":
+                    flux = 0.333333e12
                 else:
-                    aperture_size = self.beam_info_hwobj.aperture_hwobj.get_diameter_size() * 1000
-
-                if aperture_size == 100:
-                    flux = 1.5e12
-                elif aperture_size == 70:
-                    flux = 1.14e12
-                elif aperture_size == 50:
-                    flux = 0.8e12
-                elif aperture_size == 30:
-                    flux = 0.48e12
-                elif aperture_size == 15:
-                    flux = 0.2e12
-                flux = 0.333333e12
-            else:
-                flux = self.machine_info_hwobj.get_flux()
-
-                if flux is None or flux < 0:
                     fullflux = 3.5e12
                     fullsize_hor = 1.200
                     fullsize_ver = 0.700
-
                     foc = self.beam_info_hwobj.get_focus_mode()
-
                     if foc == 'unfocused':
                         flux = fullflux * self.get_beam_size()[0] * \
                                self.get_beam_size()[1] / fullsize_hor / fullsize_ver

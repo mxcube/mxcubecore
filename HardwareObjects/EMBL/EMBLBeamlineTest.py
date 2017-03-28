@@ -1024,7 +1024,8 @@ class EMBLBeamlineTest(HardwareObject):
         dose_rate = 1e-3 * 1e-14 * self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
                flux / beam_size[0] / beam_size[1]
 
-        self.bl_hwobj.collect_hwobj.machine_info_hwobj.set_flux(flux)
+        self.bl_hwobj.collect_hwobj.machine_info_hwobj.\
+           set_flux(flux, self.bl_hwobj.beam_info_hwobj.get_beam_info())
 
         msg = "Intensity = %1.1e A" % self.intensity_value
         result["result_details"].append(msg + "<br>")
@@ -1047,7 +1048,7 @@ class EMBLBeamlineTest(HardwareObject):
               (20000. / dose_rate, int(25 * 20000. / dose_rate))
         result["result_details"].append(msg + "<br><br>")
         logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%1.1e s, %d frames" % \
+        meas_item.append("%d, %d frames" % \
               (20000. / dose_rate, int(25 * 20000. / dose_rate)))
 
         self.intensity_measurements.insert(0, meas_item)

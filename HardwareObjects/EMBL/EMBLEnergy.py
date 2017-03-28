@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import gevent
 import logging
 from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
