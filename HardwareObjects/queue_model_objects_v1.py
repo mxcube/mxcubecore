@@ -820,7 +820,7 @@ class EnergyScan(TaskNode):
         if not sample:
             self.sample = Sample()
         else:
-            self.sampel = sample
+            self.sample = sample
 
         if not path_template:
             self.path_template = PathTemplate()
