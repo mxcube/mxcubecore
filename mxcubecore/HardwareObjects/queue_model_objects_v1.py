@@ -820,7 +820,7 @@ class EnergyScan(TaskNode):
         if not sample:
             self.sample = Sample()
         else:
-            self.sampel = sample
+            self.sample = sample
 
         if not path_template:
             self.path_template = PathTemplate()
@@ -1122,7 +1122,7 @@ class PathTemplate(object):
         #        setattr(self, key, value)
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
-                setattr(self, key, dict_item[1])
+                setattr(self, dict_item[0], dict_item[1])
 
     def get_prefix(self):
         prefix = self.base_prefix
@@ -1359,7 +1359,7 @@ class CentredPosition(object):
         #    if hasattr(self, key):
         #        setattr(self, key, value)   
 
-        for dict_item in params_dict.iteritems():
+        for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
 
