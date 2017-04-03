@@ -330,6 +330,50 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     # image_id = self.store_image_in_lims(frame)
     # return image_id
 
+    def take_crystal_snapshots(self):
+        """
+        Descript. :
+        """
+        if self.current_dc_parameters["take_snapshots"]:
+            #snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
+            #save the image to the data collection directory for the moment
+            snapshot_directory = os.path.join(self.current_dc_parameters["fileinfo"]["directory"],"snapshot")
+            if not os.path.exists(snapshot_directory):
+                try:
+                    self.create_directories(snapshot_directory)
+                except:
+                    logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
+
+            # for plate head, takes only one image
+            if self.diffractometer_hwobj.head_type == self.diffractometer_hwobj.HEAD_TYPE_PLATE:
+                number_of_snapshots = 1
+            else:
+                number_of_snapshots = 4 #4 take only one image for the moment
+            logging.getLogger("user_level_log").info(\
+                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots)
+
+            if self.diffractometer_hwobj.get_current_phase() != "Centring":
+                logging.getLogger("user_level_log").info("Moving Diffractometer to CentringPhase")
+                self.diffractometer_hwobj.set_phase("Centring", wait=True, timeout=200)
+            self.move_to_centered_position()
+
+            for snapshot_index in range(number_of_snapshots):
+                snapshot_filename = os.path.join(\
+                       snapshot_directory,
+                       "%s_%s_%s.snapshot.jpeg" % (\
+                       self.current_dc_parameters["fileinfo"]["prefix"],
+                       self.current_dc_parameters["fileinfo"]["run_number"],
+                       (snapshot_index + 1)))
+                self.current_dc_parameters['xtalSnapshotFullPath%i' % \
+                    (snapshot_index + 1)] = snapshot_filename
+                #self.do_take_snapshot(snapshot_filename)
+                self._take_crystal_snapshot(snapshot_filename)
+                time.sleep(1) #needed, otherwise will get the same images
+                if number_of_snapshots > 1:
+                    self.diffractometer_hwobj.move_omega_relative(90)
+                    time.sleep(1) # needed, otherwise will get the same images
+
+
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
         Descript. :
@@ -419,7 +463,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        # todo,from client!?
+        # take image from server
+        self.diffractometer_hwobj.camera_hwobj.takeSnapshot(filename)
 
     def set_detector_roi(self, value):
         """
