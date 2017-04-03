@@ -649,9 +649,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         image_file_template = "%(prefix)s_%(run_number)s" % file_parameters
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
+        file_parameters["filename"] = "%s_master.h5" % name_pattern
 
-        os.path.join(file_parameters["directory"], image_file_template)
-        config['FilenamePattern'] = re.sub("^/data/bs", "", name_pattern)  # remove "/data in the beginning"
+        #os.path.join(file_parameters["directory"], image_file_template)
+        config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
         return self.detector_hwobj.prepare_acquisition(config)
 
     def stop_collect(self, owner):
