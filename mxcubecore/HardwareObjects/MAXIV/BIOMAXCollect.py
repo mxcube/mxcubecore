@@ -506,9 +506,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.move_detector(new_distance) 
 
     def set_energy(self, value):
-        # todo,disabled temp
-        # self.energy_hwobj.set_energy(value)
-
+        self.energy_hwobj.set_energy(value)
         self.detector_hwobj.set_photon_energy(value*1000)
 
     def set_wavelength(self, value):
