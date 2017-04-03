@@ -111,6 +111,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.emit("collectReady", (True, ))
 
+
 # ---------------------------------------------------------
 # refactor do_collect
     def do_collect(self, owner):
@@ -158,12 +159,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters['motors'][motor] = \
                          current_diffractometer_position[motor]
 
-            log.info("Collection: Moving to centred position")
             # todo, self.move_to_centered_position() should go inside take_crystal_snapshots,
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
             log.debug("Collection: going to take snapshots...")
-            self.take_crystal_snapshots()
+            #self.take_crystal_snapshots()
             log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
@@ -176,8 +176,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             self.emit_collection_failed()
             # ----------------------------------------------------------------
-
-            #self.close_fast_shutter()
+            self.close_fast_shutter()
             #self.close_safety_shutter()
             self.close_detector_cover()
 
@@ -260,7 +259,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         try:
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             self.open_detector_cover()
-            self.open_safety_shutter()
+            #self.open_safety_shutter()
             # make sure detector configuration is finished
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
@@ -330,6 +329,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if last_frame > 1:
             print "TODO: fix store_image_in_lims_by_frame_num method for nimages >1"
             # self.store_image_in_lims_by_frame_num(last_frame)
+        
         # generate XDS.INP only in raw/process
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
             % (self.current_dc_parameters["xds_dir"], self.current_dc_parameters['fileinfo']['filename']))
@@ -359,7 +359,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def take_crystal_snapshots(self):
         """
         Descript. : 
-        Descript. :
         """
         if self.current_dc_parameters["take_snapshots"]:
             #snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
@@ -370,6 +369,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.create_directories(snapshot_directory)
                 except:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
+            
             # for plate head, takes only one image
             if self.diffractometer_hwobj.head_type == self.diffractometer_hwobj.HEAD_TYPE_PLATE:
                 number_of_snapshots = 1
@@ -397,6 +397,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
                     time.sleep(1) # needed, otherwise will get the same images
+                    
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
