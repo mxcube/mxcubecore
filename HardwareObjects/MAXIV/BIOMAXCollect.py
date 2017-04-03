@@ -680,8 +680,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
-        self.display["file_name1"] = file_parameters["filename"]
-        self.display["file_name2"] = re.sub("^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"])
 
         #os.path.join(file_parameters["directory"], image_file_template)
         config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
