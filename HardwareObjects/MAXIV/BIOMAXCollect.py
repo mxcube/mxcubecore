@@ -586,12 +586,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if upper_limit is not None and lower_limit is not None:
             if value >= upper_limit or value <= lower_limit:
                 logging.getLogger("HWR").exception("Can't move detector, the value is out of limits")
+                self.stop_collect()
             else:
                 try:
                     if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.move(value)
+                        self.dtox_hwobj.syncMove(value, timeout = 30)
                 except:
                     logging.getLogger("HWR").exception("Problems when moving detector!!") 
+                    self.stop_collect()
         else:
             logging.getLogger("HWR").exception("Can't get distance limits, not moving detector!!")
 
