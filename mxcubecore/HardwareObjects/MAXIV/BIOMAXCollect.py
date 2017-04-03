@@ -407,7 +407,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         fast_dp_dir = os.path.join(params_dict["auto_dir"],"fast_dp")
         biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
         autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
-        
         self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
             % (fast_dp_dir, params_dict['fileinfo']['filename']))
