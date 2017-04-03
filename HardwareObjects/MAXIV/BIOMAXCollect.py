@@ -360,6 +360,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def take_crystal_snapshots(self):
         """
         Descript. : 
+        Descript. :
         """
         if self.current_dc_parameters["take_snapshots"]:
             #snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
@@ -370,7 +371,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                     self.create_directories(snapshot_directory)
                 except:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
-            
             # for plate head, takes only one image
             if self.diffractometer_hwobj.head_type == self.diffractometer_hwobj.HEAD_TYPE_PLATE:
                 number_of_snapshots = 1
@@ -393,13 +393,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                        (snapshot_index + 1)))
                 self.current_dc_parameters['xtalSnapshotFullPath%i' % \
                     (snapshot_index + 1)] = snapshot_filename
-                #self._do_take_snapshot(snapshot_filename)
                 self._take_crystal_snapshot(snapshot_filename)
                 time.sleep(1) #needed, otherwise will get the same images
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
                     time.sleep(1) # needed, otherwise will get the same images
-                    
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
