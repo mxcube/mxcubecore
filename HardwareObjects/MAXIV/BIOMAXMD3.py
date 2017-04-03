@@ -449,3 +449,8 @@ class BIOMAXMD3(GenericDiffractometer):
         self.command_dict["abort"]()
         logging.getLogger("HWR").exception("MiniDiff: all movements aborted")
 
+    def move_omega_relative(self, relative_angle):
+        """
+        Descript. :
+        """
+        self.phi_motor_hwobj.moveRelative(relative_angle)
