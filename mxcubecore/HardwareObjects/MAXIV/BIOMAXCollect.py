@@ -330,7 +330,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if last_frame > 1:
             print "TODO: fix store_image_in_lims_by_frame_num method for nimages >1"
             # self.store_image_in_lims_by_frame_num(last_frame)
-        
         # generate XDS.INP only in raw/process
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
             % (self.current_dc_parameters["xds_dir"], self.current_dc_parameters['fileinfo']['filename']))
