@@ -48,6 +48,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.helical_pos = None
         self.ready_event = None
         self.stopCollect = self.stop_collect
+        self.triggers_to_collect = None
 
         self.exp_type_dict = None
         self.display = {} 
@@ -273,7 +274,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
             # self.detector_hwobj.wait_ready()
-            self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+            for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
+                osc_end = osc_start + osc_range * nframes_per_trigger
+                self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+            
             self.detector_hwobj.stop_acquisition()
 
             #self.close_safety_shutter()
@@ -533,7 +537,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.move_detector(new_distance) 
 
     def set_energy(self, value):
-        self.energy_hwobj.set_energy(value)
+        #self.energy_hwobj.set_energy(value)
         self.detector_hwobj.set_photon_energy(value*1000)
 
     def set_wavelength(self, value):
