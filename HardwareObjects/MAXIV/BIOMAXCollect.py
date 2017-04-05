@@ -47,6 +47,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.helical_pos = None
         self.ready_event = None
         self.stopCollect = self.stop_collect
+        self.triggers_to_collect = None
 
         self.exp_type_dict = None
 
@@ -213,6 +214,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                      self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
 
+        self.triggers_to_collect = self.prepare_triggers_to_collect()
+
         log.info("Collection: Updating data collection in LIMS")
         self.update_data_collection_in_lims()
         self.prepare_detector()
@@ -225,6 +228,27 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     # -------------------------------------------------------------------------------
 
+    def prepare_triggers_to_collect(self):
+        
+        oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+        osc_start = oscillation_parameters['start']
+        osc_range = oscillation_parameters['range']
+        nframes = oscillation_parameters['number_of_images']
+        overlap = oscillation_parameters['overlap']
+        triggers_to_collect = []
+
+        if overlap > 0 or overlap <0:
+            #currently for characterization, only collect one image at each omega position
+            ntriggers = nframes
+            nframes_per_trigger = 1 
+            for trigger_num in range (1, ntriggers+1):
+                triggers_to_collect.append((osc_start, trigger_num, nframes_per_trigger, osc_range))
+                osc_start += osc_range * nframes_per_trigger - overlap
+        else:
+            triggers_to_collect.append((osc_start, 1, nframes, osc_range))
+
+        return triggers_to_collect
+
     def data_collection_hook(self):
         """
         Descript. : main collection command
@@ -232,9 +256,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         try:
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
-            osc_start = oscillation_parameters['start']
-            osc_end = osc_start + oscillation_parameters["range"] * \
-                oscillation_parameters['number_of_images']
             self.open_detector_cover()
             #self.open_safety_shutter()
             # make sure detector configuration is finished
@@ -250,7 +271,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
             # self.detector_hwobj.wait_ready()
-            self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+            for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
+                osc_end = osc_start + osc_range * nframes_per_trigger
+                self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
+            
             self.detector_hwobj.stop_acquisition()
 
             #self.close_safety_shutter()
@@ -506,7 +530,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.move_detector(new_distance) 
 
     def set_energy(self, value):
-        self.energy_hwobj.set_energy(value)
+        #self.energy_hwobj.set_energy(value)
         self.detector_hwobj.set_photon_energy(value*1000)
 
     def set_wavelength(self, value):
@@ -611,6 +635,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def prepare_detector(self):
 
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+        osc_start, trigger_num, nframes_per_trigger, osc_range = self.triggers_to_collect[0]
+        ntrigger = len(self.triggers_to_collect)
         config = self.detector_hwobj.col_config
         """ move after setting energy
         if roi == "4M":
@@ -620,21 +646,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         config['PhotonEnergy'] = self._tunable_bl.getCurrentEnergy()
         """
-        config['OmegaStart'] = oscillation_parameters['start']
-        config['OmegaIncrement'] = oscillation_parameters["range"]
+        config['OmegaStart'] = osc_start #oscillation_parameters['start']
+        config['OmegaIncrement'] = osc_range #oscillation_parameters["range"]
         beam_centre_x, beam_centre_y = self.get_beam_centre()  # self.get_beam_centre_pixel() # returns pixel
         config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_centre_y
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
 
         config['CountTime'] = oscillation_parameters['exposure_time']
+ 
+        config['NbImages'] = nframes_per_trigger
+        config['NbTriggers'] = ntrigger
 
-        config['NbImages'] = oscillation_parameters['number_of_images']
-        try:
-            # tocheck, perhaps can use oscillation_parameters["number_of_passes"]
-            config['NbTriggers'] = oscillation_parameters['number_of_triggers']  # to check for different tasks
-        except:
-            config['NbTriggers'] = 1
         try:
             config['ImagesPerFile'] = oscillation_parameters['images_per_file']
         except:
