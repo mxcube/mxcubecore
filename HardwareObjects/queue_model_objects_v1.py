@@ -998,10 +998,11 @@ class XrayCentering(TaskNode):
 
     def get_display_name(self):
         path_template = self.get_path_template()
-        grid_info = "Mesh %d" % (self.reference_image_collection.grid.index + 1)
-        return '%s_%i (XrayCentring, %s)' % (path_template.get_prefix(),
-                                             path_template.run_number,
-                                             grid_info)
+        if self.reference_image_collection.grid is not None:
+            grid_info = "Mesh %d" % (self.reference_image_collection.grid.index + 1)
+        else:
+            grid_info = "Autogrid"
+        return "Xray centring (%s)" % grid_info
 
     def get_path_template(self):
         return self.reference_image_collection.acquisitions[0].path_template
@@ -1011,7 +1012,12 @@ class XrayCentering(TaskNode):
         file_locations = path_template.get_files_to_be_written()
         return file_locations
 
+    def add_task(self, task):
+        pass
+
 class SampleCentring(TaskNode):
+    """Manual 3 click centering"""
+
     def __init__(self, name = None, kappa = None, kappa_phi = None):
         TaskNode.__init__(self)
         self._tasks = []
@@ -1036,6 +1042,27 @@ class SampleCentring(TaskNode):
 
     def get_kappa_phi(self):
         return self.kappa_phi
+
+class OpticalCentring(TaskNode):
+    """Optical automatic centering with lucid"""
+
+    def __init__(self, user_confirms=False):
+        TaskNode.__init__(self)
+
+        if user_confirms:
+            self.set_name("Optical automatic centring (user confirms)")
+        else:
+            self.set_name("Optical automatic centring")
+        if user_confirms:
+            self.try_count = 3
+        else:
+            self.try_count = 1
+
+    def add_task(self, task_node):
+        pass
+
+    def get_name(self):
+        return self._name
 
 class Acquisition(object):
     def __init__(self):

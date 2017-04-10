@@ -122,6 +122,8 @@ class AbstractCollect(object):
         self.current_dc_parameters["status"] = "Running"
         self.current_dc_parameters["collection_start_time"] = \
              time.strftime("%Y-%m-%d %H:%M:%S")
+
+        logging.getLogger("HWR").info("Collection parameters: %s" % str(self.current_dc_parameters))
      
         log.info("Collection: Storing data collection in LIMS") 
         self.store_data_collection_in_lims()
