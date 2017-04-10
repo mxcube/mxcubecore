@@ -26,6 +26,7 @@ retreiving nodes are all done via this object. It is possbile to
 handle several models by using register_model and select_model.
 """
 
+import os
 import atexit
 import logging
 import jsonpickle
@@ -387,11 +388,14 @@ class QueueModel(HardwareObject):
 
         return new_node
 
-    def save_queue(self, filename):
+    def save_queue(self, filename=None):
         """Saves queue in the file. Current selected model is saved as a list
            of dictionaries. Information about samples and baskets is not saved
         """
- 
+        if not filename:
+            filename = os.path.join(self.user_file_directory,
+                                    "queue_active.dat")
+
         items_to_save = []
 
         selected_model = "" 
