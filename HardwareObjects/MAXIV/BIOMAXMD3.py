@@ -345,11 +345,43 @@ class BIOMAXMD3(GenericDiffractometer):
         logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
         scan = self.command_dict["startScan4DEx"]
         time.sleep(0.1)	
-        self.wait_device_ready(200)
+        self.wait_device_ready(exptime+30)
         logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, device ready.")
         scan(scan_params)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
+
+    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=True, wait=False):
+        """
+           raster_scan: snake scan by default
+           Note: vertical_range and horizontal_range unit is mm
+        """ 
+        if self.in_plate_mode():
+            scan_speed = math.fabs(end-start) / exptime
+            # todo, JN, get scan_speed limit
+            """
+            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            if start < low_lim:
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
+            elif end > hi_lim:
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
+            """
+
+        self.channel_dict["ScanStartAngle"].setValue(start)
+        self.channel_dict["ScanExposureTime"].setValue(exptime)
+        self.channel_dict["ScanRange"].setValue(end-start)
+        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (vertical_range, horizontal_range, nlines, nframes, invert_direction)
+        raster = self.command_dict["startRasterScan"]
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, waiting device ready..., params "+str(raster_params))
+
+        self.wait_device_ready(200)
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, device ready.")
+        raster(raster_parames)
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation launched, waiting for device ready.")
+        time.sleep(0.1)
+        self.wait_device_ready(exptime+30)  # timeout of 5 min
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 finish raster scan, device ready.")
+        
 
     def set_phase(self, phase, wait=False, timeout=None):
         if self.is_ready():
