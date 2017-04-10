@@ -979,3 +979,13 @@ class AbstractMultiCollect(object):
     
     def set_run_autoprocessing(self, status):
         pass
+
+
+    def set_mesh(self, arg):
+        pass
+
+    def set_mesh_scan_parameters(self, num_lines, num_total_frames, mesh_center, mesh_range):
+        """
+        Descript. : 
+        """
+        pass
