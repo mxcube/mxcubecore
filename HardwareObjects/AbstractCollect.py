@@ -78,6 +78,11 @@ class AbstractCollect(object):
         self.sample_changer_hwobj = None
         self.transmission_hwobj = None
 
+        self.mesh = None
+        self.mesh_num_lines = None
+        self.mesh_total_nb_frames = None
+        self.mesh_range = None
+        self.mesh_center = None
         self.ready_event = gevent.event.Event()
 
     def set_beamline_configuration(self, **configuration_parameters):
@@ -644,3 +649,22 @@ class AbstractCollect(object):
         Descript. : 
         """
         pass
+
+
+    # specifies the next scan will be a mesh scan
+    def set_mesh(self, mesh_on):
+        self.mesh = mesh_on
+
+    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
+        """
+        sets the mesh scan parameters :
+         - vertcal range
+         - horizontal range
+         - nb lines
+         - nb frames per line
+         - invert direction (boolean)  # NOT YET DONE
+         """
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param
