@@ -347,18 +347,16 @@ class BIOMAXMD3(GenericDiffractometer):
         logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
         scan = self.command_dict["startScan4DEx"]
         time.sleep(0.1)	
-        self.wait_device_ready(200)
+        self.wait_device_ready(exptime+30)
         logging.getLogger("HWR").info("[BIOMAXMND3] MD3 helical oscillation requested, device ready.")
         scan(scan_params)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
 
-    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=1, wait=False):
+    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=True, wait=False):
         """
            raster_scan: snake scan by default
-           start, end, exptime are the parameters per line
-           Note: vertical_range and horizontal_range unit is mm, a test value could be 0.1,0.1
-           example, raster_scan(20, 22, 5, 0.1, 0.1, 10, 10)
+           Note: vertical_range and horizontal_range unit is mm
         """ 
         if self.in_plate_mode():
             scan_speed = math.fabs(end-start) / exptime
@@ -374,33 +372,18 @@ class BIOMAXMD3(GenericDiffractometer):
         self.channel_dict["ScanStartAngle"].setValue(start)
         self.channel_dict["ScanExposureTime"].setValue(exptime)
         self.channel_dict["ScanRange"].setValue(end-start)
-        raster_parames = ""
         raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (vertical_range, horizontal_range, nlines, nframes, invert_direction)
         raster = self.command_dict["startRasterScan"]
-
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, waiting device ready..., params "+str(raster_params))
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, waiting device ready..., params "+str(raster_params))
 
         self.wait_device_ready(200)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, device ready.")
-        raster(raster_params)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation launched, waiting for device ready.")
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation requested, device ready.")
+        raster(raster_parames)
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 oscillation launched, waiting for device ready.")
         time.sleep(0.1)
         self.wait_device_ready(exptime+30)  # timeout of 5 min
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 finish raster scan, device ready.")
+        logging.getLogger("HWR").info("[BIOMAXMND3] MD3 finish raster scan, device ready.")
         
-    def keep_position_after_phase_change(self, new_phase):
-        """
-          Check if MD3 should keep the current position after changing phase
-        """
-        current_phase = self.get_current_phase()
-        if current_phase == "DataCollection" and new_phase == "Centring":
-            return True
-
-        #Probably not needed
-        #if current_phase == "Centring" and new_phase == "DataCollection":
-        #    return True
-           
-        return False
 
     def set_phase(self, phase, wait=False, timeout=None):
         keep_position = self.keep_position_after_phase_change(phase)
