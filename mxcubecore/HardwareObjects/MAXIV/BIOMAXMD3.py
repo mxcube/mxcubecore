@@ -384,6 +384,19 @@ class BIOMAXMD3(GenericDiffractometer):
         self.wait_device_ready(exptime+30)  # timeout of 5 min
         logging.getLogger("HWR").info("[BIOMAXMND3] MD3 finish raster scan, device ready.")
         
+    def keep_position_after_phase_change(self, new_phase):
+        """
+          Check if MD3 should keep the current position after changing phase
+        """
+        current_phase = self.get_current_phase()
+        if current_phase == "DataCollection" and new_phase == "Centring":
+            return True
+
+        #Probably not needed
+        #if current_phase == "Centring" and new_phase == "DataCollection":
+        #    return True
+           
+        return False
 
     def set_phase(self, phase, wait=False, timeout=None):
         keep_position = self.keep_position_after_phase_change(phase)
