@@ -101,6 +101,13 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.anneal) 
         self._server.register_function(self.open_dialog) 
         self._server.register_function(self.workflow_end) 
+        self._server.register_function(self.set_zoom_level) 
+        self._server.register_function(self.get_zoom_level) 
+        self._server.register_function(self.get_available_zoom_levels) 
+        self._server.register_function(self.set_front_light_level) 
+        self._server.register_function(self.get_front_light_level) 
+        self._server.register_function(self.set_back_light_level) 
+        self._server.register_function(self.get_back_light_level) 
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -370,13 +377,10 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def get_aperture(self):
-        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getPosition()
+        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getCurrentPositionName()
 
     def get_aperture_list(self):
-        aperture_list=[]
-        for i in range(0, len(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'])):
-            aperture_list.append(self.diffractometer_hwobj.beam_info.aperture_hwobj['positions'][0][i].getProperty('name'))
-        return aperture_list
+        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getPredefinedPositionsList()
 
     def open_dialog(self, dict_dialog):
         """
@@ -395,6 +399,54 @@ class XMLRPCServer(HardwareObject):
         if self.workflow_hwobj is not None:
             self.workflow_hwobj.workflow_end()
     
+    def set_zoom_level(self, zoom_level):
+        """
+        Sets the zoom to a pre-defined level.
+        """
+        self.diffractometer_hwobj.zoomMotor.moveToPosition(zoom_level)
+
+    def get_zoom_level(self):
+        """
+        Returns the zoom level.
+        """
+        return self.diffractometer_hwobj.zoomMotor.getCurrentPositionName()
+
+    def get_available_zoom_levels(self):
+        """
+        Returns the avaliable pre-defined zoom levels.
+        """
+        return self.diffractometer_hwobj.zoomMotor.getPredefinedPositionsList()
+
+    def set_zoom_level(self, zoom_level):
+        """
+        Sets the zoom to a pre-defined level.
+        """
+        self.diffractometer_hwobj.zoomMotor.moveToPosition(zoom_level)
+
+    def set_front_light_level(self, level):
+        """
+        Sets the level of the front light
+        """
+        self.diffractometer_hwobj.setFrontLightLevel(level)
+
+    def get_front_light_level(self):
+        """
+        Gets the level of the front light
+        """
+        return self.diffractometer_hwobj.getFrontLightLevel()
+
+    def set_back_light_level(self, level):
+        """
+        Sets the level of the back light
+        """
+        self.diffractometer_hwobj.setBackLightLevel(level)
+
+    def get_back_light_level(self):
+        """
+        Gets the level of the back light
+        """
+        return self.diffractometer_hwobj.getBackLightLevel()
+
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
         log.info('Registering functions in module %s with XML-RPC server' %

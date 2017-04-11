@@ -46,6 +46,10 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringFocus = self.getDeviceByRole('centringFocus')   
         
 
+        self.frontLight = self.getDeviceByRole('flight')
+        self.backLight = self.getDeviceByRole('light')  
+        self.beam_info = self.getObjectByRole('beam_info')
+
     def getMotorToExporterNames(self):
         #only temporary. Get the names from the xml files
         MOTOR_TO_EXPORTER_NAME = {"focus":"AlignmentX", "kappa":"Kappa",
@@ -240,6 +244,18 @@ class Microdiff(MiniDiff.MiniDiff):
         self.do_centring = False
         self.startCentringMethod(self,self.MANUAL3CLICK_MODE)
         self.do_centring = True
+
+    def getFrontLightLevel(self):
+        return self.frontLight.getPosition()
+
+    def setFrontLightLevel(self, level):
+        return self.frontLight.move(level)
+
+    def getBackLightLevel(self):
+        return self.backLight.getPosition()
+
+    def setBackLightLevel(self, level):
+        return self.backLight.move(level)
 
 def set_light_in(light, light_motor, zoom):
     MICRODIFF.getDeviceByRole("flight").move(0)
