@@ -1058,7 +1058,6 @@ class Acquisition(object):
                                     suffix='thumb.jpeg') % i)
 
             paths.append(path)
-
         return paths
 
 
@@ -1068,6 +1067,7 @@ class PathTemplate(object):
         # os.path.abspath returns path without trailing slash, if any
         # eg. '/data/' => '/data'.
         PathTemplate.base_directory = os.path.abspath(base_directory)
+
     @staticmethod
     def set_archive_path(archive_base_directory, archive_folder):
         PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
@@ -1425,8 +1425,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     proc_params = data_collection.processing_parameters
 
     return [{'comment': '',
-             #'helical': 0,
-             #'motors': {},
              'take_snapshots': acq_params.take_snapshots,
              'fileinfo': {'directory': acquisition.path_template.directory,
                           'prefix': acquisition.path_template.get_prefix(),
@@ -1449,14 +1447,10 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
              'processing': str(proc_params.process_data and True),
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
-             #'scan4d': 0,
              'resolution': {'upper': acq_params.resolution},
              'transmission': acq_params.transmission,
              'energy': float(acq_params.energy),
-             #'input_files': 1,
              'oscillation_sequence': [{'exposure_time': acq_params.exp_time,
-                                       #'kappaStart': 0.0,
-                                       #'phiStart': 0.0,
                                        'start_image_number': acq_params.first_image,
                                        'number_of_images': acq_params.num_images,
                                        'overlap': acq_params.overlap,
@@ -1466,11 +1460,9 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                        'number_of_lines': acq_params.num_lines,
                                        'mesh_range': acq_params.mesh_range}],
              'group_id': data_collection.lims_group_id,
-             #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'xds_dir': acquisition.path_template.xds_dir,
              'anomalous': proc_params.anomalous,
-             #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
              EXPERIMENT_TYPE_STR[data_collection.experiment_type],
              'skip_images': acq_params.skip_existing_images,
