@@ -6,6 +6,7 @@ access and manipulate this information.
 """
 import os
 import time
+import socket
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects_v1 as queue_model_objects
@@ -21,7 +22,7 @@ class Session(HardwareObject):
         self.endstation_name = None
         self.session_start_date = None
         self.user_group = ''
-        self.email_extension = ''
+        self.email_extension = None
 
         self.default_precision = '04'
         self.suffix = None
@@ -34,7 +35,6 @@ class Session(HardwareObject):
     # by the framework after the object has been initialized.
     def init(self):
         self.endstation_name = self.getProperty('endstation_name').lower()
-        self.email_extension = self.getProperty('email_extension')
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].\
                               getProperty('base_directory')
@@ -54,6 +54,17 @@ class Session(HardwareObject):
         for prop in inhouse_proposals:
             self.in_house_users.append((prop.getProperty('code'),
                 str(prop.getProperty('number'))))
+
+
+        email_extension = self.getProperty('email_extension')
+        if email_extension:
+            self.email_extension = email_extension
+        else:
+            try:
+                domain = socket.getfqdn().split('.')
+                self.email_extension = '.'.join((domain[-2], domain[-1]))
+            except (TypeError, IndexError):
+                pass
 
         queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
         queue_model_objects.PathTemplate.set_archive_path(self['file_info'].getProperty('archive_base_directory'),
