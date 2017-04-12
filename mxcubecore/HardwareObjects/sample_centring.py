@@ -465,8 +465,7 @@ def auto_center(camera,
                 msg_cb("No loop detected, aborting")
             return
     
-    # Number of lucid2 runs increased to 3 (Olof June 26th 2015)
-    for k in range(3):
+    for k in range(2):
       if callable(msg_cb):
             msg_cb("Doing automatic centring")
             
