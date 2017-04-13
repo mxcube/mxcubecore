@@ -26,8 +26,8 @@ COLLECTION_ORIGIN_STR = CollectionOrigin('mxcube', 'edna', 'workflow')
 EDNARefImages = namedtuple('EDNARefImages', ['FOUR', 'TWO', 'ONE', 'NONE'])
 EDNA_NUM_REF_IMAGES = EDNARefImages(0, 1, 2, 3)
 
-CentringMethod = namedtuple('CentringMethod', ['NO', 'MANUAL', 'LOOP', 'FULLY_AUTOMATIC', 'XRAY'])
-CENTRING_METHOD = CentringMethod(0, 1, 2, 3, 4)
+CentringMethod = namedtuple('CentringMethod', ['MANUAL', 'LOOP', 'FULLY_AUTOMATIC', 'XRAY'])
+CENTRING_METHOD = CentringMethod(0, 1, 2, 3)
 
 WorkflowType = namedtuple('WorkflowType', ['BURN', 'WF1', 'WF2', 'LineScan', 'MeshScan', 'XrayCentring'])
 WORKFLOW_TYPE = WorkflowType(0, 1, 2, 3, 4, 5)
