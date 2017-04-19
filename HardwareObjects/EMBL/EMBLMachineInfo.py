@@ -66,7 +66,6 @@ from datetime import datetime, timedelta
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -192,7 +191,6 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
-        self.set_flux(5e11)
         self.update_values()
 
     def cryojet_in_changed(self, value):
