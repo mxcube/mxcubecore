@@ -123,6 +123,7 @@ class DiffractometerMockup(GenericDiffractometer):
                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
                          'phi': 311.1, 'focus': -0.42, 'kappa': 11,
                          'kappa_phi': 22.0}
+        self.emit("newAutomaticCentringPoint", centred_pos_dir)
         return centred_pos_dir
 
     def is_ready(self):
