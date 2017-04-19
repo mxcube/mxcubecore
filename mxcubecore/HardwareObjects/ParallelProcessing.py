@@ -256,6 +256,8 @@ class ParallelProcessing(HardwareObject):
                    self.params_dict,
                    False))
 
+        return
+
         if not self.run_as_mockup:
             if not os.path.isfile(self.start_command):
                 msg = "ParallelProcessing: Start command %s" % \
@@ -300,6 +302,7 @@ class ParallelProcessing(HardwareObject):
         :type batch: list
         """
 
+        """
         for image in batch:
             self.results_raw["spots_num"]\
                  [image["image_num"]] = image["spots_num_of"]
@@ -309,6 +312,16 @@ class ParallelProcessing(HardwareObject):
                  [image["image_num"]] = image["spots_resolution"]
             self.results_raw["score"]\
                  [image["image_num"]] = image["score"]
+        """
+        for image in batch:
+            self.results_raw["spots_num"]\
+                 [image[0]] = image[1]
+            self.results_raw["spots_int_aver"]\
+                 [image[0]] = image[2]
+            self.results_raw["spots_resolution"]\
+                 [image[0]] = image[3]
+            self.results_raw["score"]\
+                 [image[0]] = image[4]
 
         self.align_processing_results(self.results_raw, self.grid)
         self.emit("paralleProcessingResults",

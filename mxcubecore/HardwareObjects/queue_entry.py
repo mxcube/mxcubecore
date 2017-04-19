@@ -893,7 +893,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     #list_item.setText(1, "Moving sample")
 
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
-                    mesh_nb_lines = acq_1.acquisition_parameters.mesh_steps
+                    mesh_nb_lines = acq_1.acquisition_parameters.num_lines
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
                     mesh_range = acq_1.acquisition_parameters.mesh_range
                     mesh_center = acq_1.acquisition_parameters.centred_position
@@ -1205,7 +1205,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         #should be an other way how to get queue_model_hwobj:
         self.queue_model_hwobj = self.get_view().listView().\
-             parent().queue_model_hwobj
+             parent().parent().queue_model_hwobj
         
         self.session_hwobj = self.beamline_setup.session_hwobj
 
@@ -1635,6 +1635,32 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
             self.status = self.mesh_qe
         BaseQueueEntry.post_execute(self)
 
+class OpticalCentringQueueEntry(BaseQueueEntry):
+    """
+    Entry for automatic sample centring with lucid
+    """
+    def __init__(self, view=None, data_model=None):
+        BaseQueueEntry.__init__(self, view, data_model)
+        self.diffractometer_hwobj = None
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        self.diffractometer_hwobj.automatic_centring_try_count = \
+             self.get_data_model().try_count
+ 
+        self.diffractometer_hwobj.start_automatic_centring(wait_result=True)
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+
+    def post_execute(self):
+        self.get_view().set_checkable(False)
+        BaseQueueEntry.post_execute(self)
+
+    def get_type_str(self):
+        return "Optical automatic centering"
+
 def mount_sample(beamline_setup_hwobj,
                  view, data_model,
                  centring_done_cb, async_result):
@@ -1715,6 +1741,7 @@ MODEL_QUEUE_ENTRY_MAPPINGS = \
      queue_model_objects.EnergyScan: EnergyScanQueueEntry,
      queue_model_objects.XRFSpectrum: XRFSpectrumQueueEntry,
      queue_model_objects.SampleCentring: SampleCentringQueueEntry,
+     queue_model_objects.OpticalCentring: OpticalCentringQueueEntry,
      queue_model_objects.Sample: SampleQueueEntry,
      queue_model_objects.Basket: BasketQueueEntry,
      queue_model_objects.TaskGroup: TaskGroupQueueEntry,

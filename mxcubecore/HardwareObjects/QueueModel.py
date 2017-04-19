@@ -382,7 +382,9 @@ class QueueModel(HardwareObject):
             new_node.set_number(new_run_number)
 
         #We do not copy grid object, but keep a link to the original grid
-        new_node.grid = node.grid
+        if hasattr(new_node, "grid"):
+            new_node.grid = node.grid
+
         new_node.set_executed(False)
 
         return new_node

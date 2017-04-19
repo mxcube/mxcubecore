@@ -34,7 +34,6 @@ from GenericDiffractometer import GenericDiffractometer
 from HardwareRepository.TaskUtils import *
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -594,6 +593,17 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def get_osc_dynamic_limits(self):
         return self.motor_hwobj_dict['phi'].getDynamicLimits()
+
+    def get_osc_range_limits(self, num_images, exp_time):
+        motor_acc_const = 5
+        motor_acc_time = num_images / exp_time / motor_acc_const
+        min_acc_time = 0.0015
+        acc_time = min(motor_acc_time, min_acc_time)
+
+        shutter_time = 3.7 / 1000.
+        max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
+
+        return [0, max_limit]
 
     def get_scintillator_position(self):
         return self.chan_scintillator_position.getValue()

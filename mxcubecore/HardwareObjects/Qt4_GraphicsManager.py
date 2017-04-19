@@ -269,8 +269,9 @@ class Qt4_GraphicsManager(HardwareObject):
             #atexit.register(self.save_graphics_config)
             self.graphics_config_filename = self.getProperty("graphics_config_filename")
             if self.graphics_config_filename is None:
-                self.graphics_config_filename = os.path.join(\
-                    tempfile.gettempdir(), "mxcube", "graphics_config.dat")
+                self.graphics_config_filename = os.path.join(
+                    self.user_file_directory,
+                    "graphics_config.dat")
             self.load_graphics_config()
         
         try:
@@ -304,7 +305,8 @@ class Qt4_GraphicsManager(HardwareObject):
         #self.init_auto_grid()  
 
         self.temp_animation_dir = os.path.join(\
-            tempfile.gettempdir(), "mxcube", "animation")
+            self.user_file_directory,
+            "animation")
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -415,7 +417,8 @@ class Qt4_GraphicsManager(HardwareObject):
            Updates point screen coordinates and grid coorner coordinates.
            If diffractometer not ready then hides all shapes.
         """
-        if self.diffractometer_hwobj.is_ready():
+        if self.diffractometer_hwobj.is_ready() and \
+           not self.in_centring_state:
             for shape in self.get_shapes():
                 if isinstance(shape, GraphicsLib.GraphicsItemPoint):
                     cpos =  shape.get_centred_position()
@@ -664,7 +667,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: shapeCreated
         """
         if self.in_grid_drawing_state:
-            QApplication.restoreOverrideCursor()
+            QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
             self.update_grid_motor_positions(self.graphics_grid_draw_item)
             self.graphics_grid_draw_item.set_draw_mode(False)
             self.wait_grid_drawing_click = False
@@ -1088,7 +1091,7 @@ class Qt4_GraphicsManager(HardwareObject):
             logging.getLogger("GUI").exception(\
                  "Unable to save scene snapshot: %s" % filename)
 
-    def save_scene_animation(self, filename, duration_sec):
+    def save_scene_animation(self, filename, duration_sec=1):
         """Saves animated gif of a rotating sample"""
         """Save animation task"""
         fps = 15.
@@ -1244,7 +1247,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :emits: infoMsg as str
         """
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.in_measure_distance_state = False
         self.wait_measure_distance_click = False
         self.graphics_measure_distance_item.hide()
@@ -1256,7 +1259,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :emits: infoMsg as str
         """
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.in_measure_angle_state = False
         self.wait_measure_angle_click = False
         self.graphics_measure_angle_item.hide()
@@ -1268,7 +1271,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :emits: infoMsg as str
         """
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.in_measure_area_state = False
         self.wait_measure_area_click = False
         self.graphics_measure_area_item.hide()
@@ -1280,7 +1283,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :emits: infoMsg as str
         """
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.in_move_beam_mark_state = False
         self.graphics_move_beam_mark_item.hide()
         self.graphics_view.graphics_scene.update()
@@ -1294,7 +1297,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :emits: infoMsg as str
         """
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.in_beam_define_state = False
         self.wait_beam_define_click = False
         self.graphics_beam_define_item.hide()
@@ -1323,23 +1326,23 @@ class Qt4_GraphicsManager(HardwareObject):
             self.diffractometer_hwobj.start_centring_method(\
                  self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
             self.emit("infoMsg", "3 click centring")
-        else: 
+        else:
             self.diffractometer_hwobj.start_move_to_beam(
                  self.beam_position[0], self.beam_position[1])
 
     def accept_centring(self):
         """Accepts centring
         """
-        self.show_all_items()
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.diffractometer_hwobj.accept_centring()
+        self.show_all_items()
 
     def reject_centring(self):
         """Rejects centring
         """
-        self.show_all_items()
-        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.diffractometer_hwobj.reject_centring()  
+        self.show_all_items()
 
     def cancel_centring(self, reject=False): 
         """Cancels centring
@@ -1347,9 +1350,9 @@ class Qt4_GraphicsManager(HardwareObject):
         :param reject: reject position
         :type reject: bool
         """
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
+        self.diffractometer_hwobj.cancel_centring_method(reject=reject)
         self.show_all_items()
-        QApplication.restoreOverrideCursor()
-        self.diffractometer_hwobj.cancel_centring_method(reject = reject)
 
     def start_visual_align(self):
         """Starts visual align procedure when two centring points are selected
@@ -1579,11 +1582,12 @@ class Qt4_GraphicsManager(HardwareObject):
                              "width": -1,
                              "height": -1}
         image_array = self.camera_hwobj.get_snapshot(bw=True, return_as_array=True)
-        #image_array[image_array < 120] = 0
-        #image_array[image_array > 120] = 1
 
         hor_sum = image_array.sum(axis=0)
         ver_sum = image_array.sum(axis=1)
+ 
+        beam_x = None
+        beam_y = None
 
         try:
             half_max = hor_sum.max() / 2.0
@@ -1597,22 +1601,23 @@ class Qt4_GraphicsManager(HardwareObject):
             if len(hor_roots) and len(ver_roots):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
+
+            beam_x = hor_roots[0] + (hor_roots[1] - hor_roots[0]) /2.0
+            beam_y = ver_roots[0] + (ver_roots[1] - ver_roots[0]) /2.0
         except:
             logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
                 "Unable to detect object shape")
 
-        try:
-            image_array = np.transpose(image_array)
+        if None in (beam_x, beam_y):
+            #image_array = np.transpose(image_array)
             beam_x, beam_y = ndimage.measurements.\
-                center_of_mass(image_array)
+                center_of_mass(np.transpose(image_array) - 10)
             #(beam_x, beam_y) = np.unravel_index(np.argmax(image_array), image_array.shape)
             if np.isnan(beam_x) or np.isnan(beam_y):
                 beam_x = None
                 beam_y = None
-            object_shape_dict["center"] = (beam_x, beam_y)
-        except:
-            logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
-                "Unable to detect image center of mass")
+        object_shape_dict["center"] = (beam_x, beam_y)
+
         return object_shape_dict
 
     def get_beam_displacement(self, reference=None):
@@ -1692,7 +1697,7 @@ class Qt4_GraphicsManager(HardwareObject):
         if mode:
             QApplication.setOverrideCursor(QCursor(Qt.ClosedHandCursor))
         else:
-            QApplication.restoreOverrideCursor()
+            QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.graphics_magnification_item.setVisible(mode)
         self.in_magnification_mode = mode
   
