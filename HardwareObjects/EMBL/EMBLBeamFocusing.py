@@ -20,21 +20,20 @@
 import gevent
 import logging
 from _tine import query as tinequery
-from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
 
 
-class EMBLBeamFocusing(Equipment):
+class EMBLBeamFocusing(HardwareObject):
     """Hardware Object is used to evaluate and set beam focusing mode.
     """
 
     def __init__(self, name):
-        Equipment.__init__(self, name)
+        HardwareObject.__init__(self, name)
 
         self.active_focus_mode = None
         self.size = [9999, 9999]
@@ -66,7 +65,13 @@ class EMBLBeamFocusing(Equipment):
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
 
-        self.motors_groups = self.getDevices()
+        #TODO
+        self.motors_groups = [self.getObjectByRole("P14ExpTbl"),
+                              self.getObjectByRole("P14KB"),
+                              self.getObjectByRole("P14DetTrans"),
+                              self.getObjectByRole("slitsMotors")]
+        
+
         if len(self.motors_groups) > 0:
             for motors_group in self.motors_groups:
                 self.connect(motors_group,

@@ -24,7 +24,6 @@ from HardwareRepository.BaseHardwareObjects import Device
 import _tine as tine
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -78,6 +77,8 @@ class EMBLDoorInterlock(Device):
 
         self.cmd_break_interlock = self.getCommandObject('cmdBreak')
 
+        self.getState = self.get_state
+
     def connected(self):
         """Sets is ready"""
         self.setIsReady(True)
@@ -93,10 +94,6 @@ class EMBLDoorInterlock(Device):
         """Updates door interlock state"""
         self.door_interlock_state = state
         self.get_state()
-
-    def getState(self):
-        """Returns current state"""
-        return self.door_interlock_state
 
     def get_state(self):
         """Returns current state"""
@@ -116,7 +113,7 @@ class EMBLDoorInterlock(Device):
             msg = "Locked (unlock enabled)"
 
         self.emit('doorInterlockStateChanged', self.door_interlock_final_state, msg)
-        return self.door_interlock_final_state
+        return self.door_interlock_final_state, msg
 
     def unlock_door_interlock(self):
         """Break Interlock (only if it is allowed by doorInterlockCanUnlock)
@@ -167,3 +164,6 @@ class EMBLDoorInterlock(Device):
             msg = "Door Interlock cannot be broken at the moment " + \
                   "please check its status and try again."
             logging.getLogger("user_level_log").error(msg)
+
+    def update_values(self):
+        self.get_state()

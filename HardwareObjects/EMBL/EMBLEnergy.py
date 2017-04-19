@@ -23,7 +23,6 @@ from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -31,7 +30,6 @@ __category__ = "General"
 
 class EMBLEnergy(Device):
 
-    (READY, MOVING) = (0, 1)
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -233,12 +231,10 @@ class EMBLEnergy(Device):
         current_en = self.getCurrentEnergy()
         pos = abs(current_en - energy)
         if pos < 0.001:
-            logging.getLogger('GUI').debug(\
-                "Energy: already at %g, not moving", energy)
             self.emit('energyStateChanged', ('ready', ))
         else:
-            logging.getLogger('GUI').debug(\
-                "Energy: moving energy to %g", energy)
+            logging.getLogger('GUI').info(\
+                "Moving energy to %.3f", energy)
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
                     #p13 63, p14 15
@@ -251,6 +247,7 @@ class EMBLEnergy(Device):
             sleep(2)
 
             if self.cmd_set_energy:
+                logging.getLogger('GUI').info("Moving energy to %.3f", energy)
                 self.cmd_set_energy(energy)
             else:
                 #Mockup mode
@@ -281,9 +278,10 @@ class EMBLEnergy(Device):
             if self.moving:
                 self.set_break_bragg()
             self.move_energy_finished(0)
+            self.emit('stateChanged', "ready")
         elif state == 1:
             self.move_energy_started()
-        self.emit('energyStateChanged', (state,))
+            self.emit('stateChanged', "busy")
 
     def get_value(self):
         return self.getCurrentEnergy()
@@ -305,11 +303,21 @@ class EMBLEnergy(Device):
 
     def set_break_bragg(self):
         if self.cmd_set_break_bragg is not None:
-            logging.getLogger('GUI').info("Setting bragg brake")
+            logging.getLogger('GUI').info("Setting bragg brake...")
             self.cmd_set_break_bragg(1)
+            sleep(2)
+            with gevent.Timeout(10, Exception("Timeout waiting for break set")):
+                while self.cmd_set_break_bragg.get() != 0:
+                    sleep(0.01)
+            logging.getLogger('GUI').info("Bragg brake set")
 
     def release_break_bragg(self):
         if self.cmd_release_break_bragg is not None:
-            logging.getLogger('GUI').info("Releasing bragg brake")
+            logging.getLogger('GUI').info("Releasing bragg brake...")
             self.cmd_release_break_bragg(1)
-            sleep(1)
+            sleep(2)
+            with gevent.Timeout(10, Exception("Timeout waiting for break release")):
+                while self.cmd_release_break_bragg.get() != 0:
+                    sleep(0.01)
+            logging.getLogger('GUI').info("Bragg brake released")
+            

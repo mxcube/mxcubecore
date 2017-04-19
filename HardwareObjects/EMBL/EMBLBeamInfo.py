@@ -41,7 +41,6 @@ import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -274,7 +273,7 @@ class EMBLBeamInfo(Equipment):
   		     self.beam_size_slits[1], 
 		     self.beam_size_focusing[1]) 
 
-        if size_x == 9999 or size_y == 999:
+        if size_x == 9999 or size_y == 9999:
             #fix this
             return
         if (abs(size_x - self.beam_info_dict.get("size_x", 0)) > 1e-3 or

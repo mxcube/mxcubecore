@@ -110,16 +110,15 @@ Example Hardware Object XML file :
 """
 
 import logging
-from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "Motor"
 
 
-class EMBLSlitBox(Equipment):
+class EMBLSlitBox(HardwareObject):
     """User can define sizes of horizontal and verstical slits by
        entering direct size and pressing Enter or by using up and
        down buttons. Slits operations are enabled accordingly to
@@ -134,7 +133,7 @@ class EMBLSlitBox(Equipment):
 
     def __init__(self, *args):
 
-        Equipment.__init__(self, *args)
+        HardwareObject.__init__(self, *args)
 
         self.decimal_places = None
         self.active_focus_mode = None
@@ -176,7 +175,7 @@ class EMBLSlitBox(Equipment):
             self.motors_dict[motor.motorName]['status'] = None
             self.motors_dict[motor.motorName]['focMode'] = []
 
-        self.motors_groups = self.getDevices()
+        self.motors_groups = [self.getObjectByRole("slitsMotors")]
         if self.motors_groups is not None:
             for motor_group in self.motors_groups:
                 self.connect(motor_group, 'mGroupPosChanged',
@@ -184,6 +183,7 @@ class EMBLSlitBox(Equipment):
                 self.connect(motor_group, 'mGroupStatusChanged',
                      self.motors_group_status_changed)
 
+        """
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
             self.connect(self.beam_focus_hwobj,
@@ -193,6 +193,7 @@ class EMBLSlitBox(Equipment):
         else:
             logging.getLogger("HWR").debug(\
                 'EMBLSlitBox: beamFocus HO not defined')
+        """
 
     def get_step_sizes(self):
         """Returns Hor and Ver step sizes (list of two values)
