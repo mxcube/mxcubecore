@@ -256,8 +256,6 @@ class ParallelProcessing(HardwareObject):
                    self.params_dict,
                    False))
 
-        return
-
         if not self.run_as_mockup:
             if not os.path.isfile(self.start_command):
                 msg = "ParallelProcessing: Start command %s" % \
