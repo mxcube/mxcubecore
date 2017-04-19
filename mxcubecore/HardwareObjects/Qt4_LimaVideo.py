@@ -47,7 +47,6 @@ import os
 import time
 import logging
 import struct
-import numpy as np
 
 from GenericVideoDevice import GenericVideoDevice
 

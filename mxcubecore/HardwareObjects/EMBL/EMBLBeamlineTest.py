@@ -23,10 +23,12 @@ import numpy
 import gevent
 import logging
 import tempfile
+
+import numpy as np
+
 from csv import reader
 from datetime import datetime
 from random import random
-
 from scipy.interpolate import interp1d
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -40,7 +42,6 @@ import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -51,7 +52,7 @@ TEST_DICT = {"summary": "Beamline summary",
              "ppu": "PPU control",
              "focusing": "Focusing modes",
              "aperture": "Aperture",
-             "alignbeam": "Align beam position",
+             "centerbeam": "Align beam position",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure",
              "measure_intensity": "Intensity measurement",
@@ -92,9 +93,14 @@ class EMBLBeamlineTest(HardwareObject):
         self.intensity_ranges = []
         self.intensity_value = None
 
+        self.chan_encoder_ar = None
+        self.chan_qbpm_ar = None
+        self.chan_pitch_position_ar = None
         self.chan_pitch_scan_status = None
         self.chan_intens_range = None
         self.chan_intens_mean = None
+        self.cmd_set_pitch_position = None
+        self.cmd_set_pitch = None
         self.cmd_start_pitch_scan = None
         self.cmd_set_vmax_pitch = None
         self.cmd_set_intens_acq_time = None
@@ -135,12 +141,25 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.scale_hor = self.getProperty("scale_hor")
         self.scale_ver = self.getProperty("scale_ver")
-        self.chan_pitch_scan_status = \
-            self.getChannelObject("chanPitchScanStatus")
+        self.chan_pitch_scan_status = self.getChannelObject("chanPitchScanStatus")
         self.connect(self.chan_pitch_scan_status,
                      "update",
                      self.pitch_scan_status_changed)
 
+        self.chan_encoder_ar = self.getChannelObject("chanEncoderAr")
+        #self.connect(self.chan_encoder_ar,
+        #             "update",
+        #             self.encoder_ar_changed)
+
+        self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
+
+        self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
+        #self.connect(self.chan_pitch_position_ar,
+        #             "update",
+        #             self.pitch_position_ar_changed)
+
+        self.cmd_set_pitch_position = self.getCommandObject("cmdSetPitchPosition")
+        self.cmd_set_pitch = self.getCommandObject("cmdSetPitch")
         self.cmd_start_pitch_scan = self.getCommandObject("cmdStartPitchScan")
         self.cmd_set_vmax_pitch = self.getCommandObject("cmdSetVMaxPitch")
 
@@ -316,7 +335,8 @@ class EMBLBeamlineTest(HardwareObject):
         html_filename = None
         if create_report:
             html_filename = os.path.join(self.test_directory,
-                                         self.test_filename)
+                                         self.test_filename) + \
+                                         ".html"        
             self.generate_report()
 
         self.emit('testFinished', html_filename)
@@ -567,9 +587,13 @@ class EMBLBeamlineTest(HardwareObject):
 
         return result
 
-    def test_alignbeam(self):
+    def center_beam_report(self):
+        self.start_test_queue(["centerbeam"])
+
+    def test_centerbeam(self):
         """Beam centering procedure"""
-        result = {}
+
+        result = {} 
         result["result_bit"] = False
         result["result_details"] = []
         result["result_short"] = "Test started"
@@ -577,20 +601,22 @@ class EMBLBeamlineTest(HardwareObject):
         self.bl_hwobj.diffractometer_hwobj.set_phase(\
              self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM,
              timeout=30)
+        self.bl_hwobj.fast_shutter_hwobj.openShutter()
+        gevent.sleep(0.1)
 
         result["result_details"].append(\
-             "Beam shape before alignment<br><br>")
+             "Beam shape before and after entring<br><br>")
         beam_image_filename = os.path.join(\
              self.test_source_directory,
              "center_beam_before.png")
         self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
         result["result_details"].append(\
-             "<img src=%s style=width:300px;><br>" % beam_image_filename)
+             "<img src=%s style=width:300px;>" % beam_image_filename)
 
-        self.center_beam()
+        self.center_beam_test()
 
-        result["result_details"].append(\
-             "Beam shape after alignment<br><br>")
+        #result["result_details"].append(\
+        #     "Beam shape after centring<br><br>")
         beam_image_filename = os.path.join(\
              self.test_source_directory,
              "center_beam_after.png")
@@ -599,9 +625,16 @@ class EMBLBeamlineTest(HardwareObject):
              beam_image_filename)
         self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
-        self.bl_hwobj.diffractometer_hwobj.set_phase(\
-             self.bl_hwobj.diffractometer_hwobj.PHASE_CENTRING,\
-             timeout=30)
+        result["result_details"].append(\
+             "Encoder values<br><br>")
+ 
+        encoder_plot_filename = os.path.join(\
+             self.test_source_directory,
+             "encoder_plot.png")
+        result["result_details"].append(\
+             "<img src=%s style=width:300px;><br>" % \
+             encoder_plot_filename)
+
 
         self.ready_event.set()
 
@@ -624,7 +657,7 @@ class EMBLBeamlineTest(HardwareObject):
         slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj
 
         log = logging.getLogger("HWR")
-        msg = "Starting beam align"
+        msg = "Starting beam centring"
         progress_info = {"progress_total": 6,
                          "progress_msg": msg}
         log.debug("BeamlineTest: %s" % msg)
@@ -748,12 +781,39 @@ class EMBLBeamlineTest(HardwareObject):
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (3, progress_info))
-            self.cmd_start_pitch_scan(1)
-            gevent.sleep(2.0)
+            self.cmd_set_pitch_position(0)
+            self.cmd_set_pitch(1)
+            gevent.sleep(0.1)
 
-            while self.scan_status != 0:
-                gevent.sleep(0.1)
+            self.cmd_start_pitch_scan(1)
+            gevent.sleep(1.0)
+
+            with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
+                 while self.scan_status != 0:
+                     gevent.sleep(0.01)
+
+            gevent.sleep(0.5)
             self.cmd_set_vmax_pitch(1)
+            gevent.sleep(1)
+
+        if self.chan_encoder_ar and self.chan_pitch_position_ar:
+            encoder_ar_values = self.chan_encoder_ar.getValue()
+            pitch_position_ar_values = self.chan_pitch_position_ar.getValue()
+            qbpm_ar_values = self.chan_qbpm_ar.getValue()
+
+            #encoder_ar_values = np.array(encoder_ar_values) * 4200.0 + -1563.6
+
+            fig = Figure(figsize=(15, 11))
+            ax = fig.add_subplot(111)
+            #ax.set_title(self.spectrum_info["jpegScanFileFullPath"])
+            ax.grid(True)
+            ax.plot(encoder_ar_values, pitch_position_ar_values)
+            canvas = FigureCanvasAgg(fig)
+            canvas.print_figure("/tmp/test_plot.png", dpi = 80)
+            encoder_plot_filename = os.path.join(\
+                       self.test_source_directory,
+                       "encoder_plot.png")
+            canvas.print_figure(encoder_plot_filename, dpi = 80)
 
         # 3.3/6 If crl used then set previous position -----------------------
         if crl_used:
@@ -801,7 +861,8 @@ class EMBLBeamlineTest(HardwareObject):
                 log.debug("Applying %.4f mm horizontal " % \
                           delta_hor + \
                           "and %.4f mm vertical correction" % delta_ver)
-
+    
+                """
                 if self.bl_hwobj.session_hwobj.beamline_name == "P13":
                     log.debug("Enabling vertical and horizontal motors")
                     self.vertical_motor_hwobj.enable_motor()
@@ -820,6 +881,7 @@ class EMBLBeamlineTest(HardwareObject):
                                                            wait=True)
                     self.horizontal_motor_hwobj.moveRelative(delta_hor,
                                                              wait=True)
+                """
 
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             log.debug("Disabling vertical and horizontal motors")
@@ -829,6 +891,14 @@ class EMBLBeamlineTest(HardwareObject):
     def pitch_scan_status_changed(self, status):
         """Store pitch scan status"""
         self.scan_status = status
+
+    """
+    def encoder_ar_changed(self, position):
+        print "encoder_ar_changed: ", position
+
+    def pitch_position_ar_changed(self, position):
+        print "pitch_position_ar_changed: ", position
+    """
 
     def test_autocentring(self):
         """Tests autocentring"""

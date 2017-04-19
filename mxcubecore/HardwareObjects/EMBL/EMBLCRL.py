@@ -23,7 +23,6 @@ import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -151,9 +150,6 @@ class EMBLCRL(HardwareObject):
 
     def focusing_mode_changed(self, focusing_mode, beam_size):
         """Sets CRL combination based on the focusing mode"""
-        #TODO do not set at startup
-        return
-
         if focusing_mode != None and self.at_startup:
             self.current_focusing_mode = focusing_mode
             self.modes = self.beam_focusing_hwobj.\

@@ -29,6 +29,7 @@ class MicrodiffMotor(AbstractMotor, Device):
                                 "Created": NOTINITIALIZED,
                                 "Initializing": NOTINITIALIZED,
                                 "Unknown": UNUSABLE,
+                                "Offline": UNUSABLE,
                                 "LowLim": ONLIMIT,
                                 "HighLim": ONLIMIT }
 

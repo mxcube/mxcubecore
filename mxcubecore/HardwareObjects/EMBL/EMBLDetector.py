@@ -22,7 +22,6 @@ from AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
 __category__ = "General"
@@ -220,10 +219,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-        if self.roi_mode:
-            self.emit('detectorModeChanged', (self.roi_mode, ))
+        self.emit('detectorModeChanged', (self.roi_mode, ))
         temp = self.chan_temperature.getValue()
         self.emit('temperatureChanged', (temp, temp < self.temp_treshold))
         hum = self.chan_humidity.getValue()
         self.emit('humidityChanged', (hum, hum < self.hum_treshold))
         self.status_changed("")
+        self.emit('expTimeLimitsChanged', (self.exp_time_limits, ))
