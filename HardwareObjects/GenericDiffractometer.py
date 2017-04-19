@@ -195,6 +195,7 @@ class GenericDiffractometer(HardwareObject):
         self.centring_time = 0
         self.user_confirms_centring = None
         self.user_clicked_event = None
+        self.automatic_centring_try_count = 1
         self.omega_reference_par = None
         self.move_to_motors_positions_task = None
         self.move_to_motors_positions_procedure = None
@@ -652,27 +653,31 @@ class GenericDiffractometer(HardwareObject):
         """
         """
         self.emit_progress_message("Automatic centring...")
-	if self.use_sample_centring:
-            self.current_centring_procedure = \
-                 sample_centring.start_auto(self.camera_hwobj,
-                                            {"phi": self.centring_phi,
-                                             "phiy": self.centring_phiy,
-                                             "sampx": self.centring_sampx,
-                                             "sampy": self.centring_sampy,
-                                             "phiz": self.centring_phiz },
-                                             self.pixels_per_mm_x,
-                                             self.pixels_per_mm_y,
-                                             self.beam_position[0],
-                                             self.beam_position[1],
-                                             msg_cb = self.emit_progress_message,
-                                             new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
-	else:
-            self.current_centring_procedure = gevent.spawn(self.automatic_centring)
-        self.current_centring_procedure.link(self.centring_done)
 
-        if wait_result:
-            self.ready_event.wait()
-            self.ready_event.clear()
+        while self.automatic_centring_try_count > 0:
+              if self.use_sample_centring:
+                  self.current_centring_procedure = \
+                      sample_centring.start_auto(self.camera_hwobj,
+                                                 {"phi": self.centring_phi,
+                                                  "phiy": self.centring_phiy,
+                                                  "sampx": self.centring_sampx,
+                                                  "sampy": self.centring_sampy,
+                                                  "phiz": self.centring_phiz },
+                                                  self.pixels_per_mm_x,
+                                                  self.pixels_per_mm_y,
+                                                  self.beam_position[0],
+                                                  self.beam_position[1],
+                                                  msg_cb = self.emit_progress_message,
+                                                  new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
+              else:
+                  self.current_centring_procedure = gevent.spawn(self.automatic_centring)
+              self.current_centring_procedure.link(self.centring_done)
+
+              if wait_result:
+                  self.ready_event.wait()
+                  self.ready_event.clear()
+
+              self.automatic_centring_try_count -= 1
 
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None, wait_result=None):
         """
