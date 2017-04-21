@@ -406,7 +406,6 @@ class BIOMAXMD3(GenericDiffractometer):
                 current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
                 
         if self.is_ready():
-            print "current state is", self.current_state
             self.command_dict["startSetPhase"](phase)
             if keep_position:
                 self.move_sync_motors(current_positions)
@@ -511,3 +510,12 @@ class BIOMAXMD3(GenericDiffractometer):
         Descript. :
         """
         self.phi_motor_hwobj.moveRelative(relative_angle)
+
+    def is_ready(self):
+        """
+        Detects if device is ready
+        """
+        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(\
+        #return self.current_state == DiffractometerState.tostring(\
+                    DiffractometerState.Ready)
+
