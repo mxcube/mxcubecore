@@ -913,6 +913,8 @@ class Qt4_GraphicsManager(HardwareObject):
             self.emit("infoMsg", "%s created" % shape.get_full_name())
         self.shape_dict[shape.get_display_name()] = shape
         self.graphics_view.graphics_scene.addItem(shape)
+
+        shape.set_tool_tip()
         shape.setSelected(True)
         self.emit("shapeSelected", shape, True)
         self.save_graphics_config()
@@ -1041,6 +1043,16 @@ class Qt4_GraphicsManager(HardwareObject):
         for shape in self.get_shapes():
             if shape != self.auto_grid:
                shape.show()
+
+    def inc_used_for_collection(self, cpos):
+        for shape in self.get_points():
+            if shape.get_centred_position() == cpos:
+                shape.used_count += 1
+
+    def set_shape_tooltip(self, cpos, tooltip):
+        for shape in self.get_points():
+            if shape.get_centred_position() == cpos:
+                shape.set_tool_tip(tooltip)
 
     def get_scene_snapshot(self, shape=None, bw=None, return_as_array=None):
         """Takes a snapshot of the scene

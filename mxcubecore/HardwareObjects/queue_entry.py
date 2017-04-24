@@ -921,6 +921,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = snapshot
 
+                self.shape_history.inc_used_for_collection(cpos)
+
                 param_list = queue_model_objects.to_collect_dict(dc, self.session, sample, cpos if cpos!=empty_cpos else None)
                
                 self.collect_task = self.collect_hwobj.\
