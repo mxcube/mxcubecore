@@ -218,6 +218,12 @@ class GraphicsItem(QGraphicsItem):
              self.pixels_per_mm[1])
         self.update_item()
 
+    def set_tool_tip(self, tooltip=None):
+        if tooltip:
+            self.setToolTip(self.get_full_name() + "\n" + tooltip)
+        else:
+            self.setToolTip(self.get_full_name())
+
 class GraphicsItemBeam(GraphicsItem):
     """Beam base class
     """
@@ -393,7 +399,6 @@ class GraphicsItemPoint(GraphicsItem):
                  self.__centred_position.kappa_phi)
         except:
            pass
-        self.setToolTip(full_name)
         return full_name
 
     def get_centred_position(self):
@@ -403,7 +408,7 @@ class GraphicsItemPoint(GraphicsItem):
         self.__centred_position = centred_position
 
     def paint(self, painter, option, widget):
-        if option.state & QStyle.State_Selected:
+        if self.isSelected():
             self.custom_pen.setColor(SELECTED_COLOR)
             self.custom_pen.setWidth(2)
         else:
@@ -430,9 +435,10 @@ class GraphicsItemPoint(GraphicsItem):
             display_str += " selected"
         painter.drawText(22, 0, display_str)
 
-        if self.__centred_position.used_for_collection > 0:
-            painter.drawText(self.rect.right() + 2, self.rect.top() + 10,
-              "Used %d time(s)" % self.__centred_position.used_for_collection)
+        if self.isSelected() and self.used_count > 0:
+            painter.drawText(22, 27,
+                             "%s exposure(s)" % \
+                             self.used_count)
 
     def set_start_position(self, position_x, position_y):
         if (position_x is not None and
@@ -469,6 +475,8 @@ class GraphicsItemLine(GraphicsItem):
         brush_color.setAlpha(5)
         self.custom_brush.setColor(brush_color)
 
+        self.setToolTip(self.get_full_name())
+
     def set_fill_alpha(self, value):
         self.__fill_alpha = value
         brush_color = QColor(70, 70, 165, self.__fill_alpha)
@@ -490,7 +498,7 @@ class GraphicsItemLine(GraphicsItem):
                                                    start_cpos.kappa_phi)
         except:
            pass
-        self.setToolTip(full_name)
+        #self.setToolTip(full_name)
         return full_name
 
     def get_graphics_points(self):
@@ -503,8 +511,9 @@ class GraphicsItemLine(GraphicsItem):
         mid_x = min(start_cp_x, end_cp_x) + abs((start_cp_x - end_cp_x) / 2.0)
         mid_y = min(start_cp_y, end_cp_y) + abs((start_cp_y - end_cp_y) / 2.0)
 
-        if option.state & QStyle.State_Selected and \
-           self.__num_images and self.__display_overlay:
+        if self.isSelected() and \
+           self.__num_images and \
+           self.__display_overlay:
               painter.setPen(Qt.NoPen)
               for beam_index in range(self.__num_images):
                   coord_x = start_cp_x + (end_cp_x - start_cp_x) * \
@@ -519,7 +528,7 @@ class GraphicsItemLine(GraphicsItem):
         info_txt = "Line %d (%d->%d)" % (self.index,
                self.__cp_start.index, self.__cp_end.index)
 
-        if option.state & QStyle.State_Selected:
+        if self.isSelected():
             self.custom_pen.setColor(SELECTED_COLOR)
             info_txt += " selected"
             painter.drawText(mid_x + 5, mid_y, info_txt)
