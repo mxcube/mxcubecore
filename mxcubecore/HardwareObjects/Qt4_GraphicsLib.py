@@ -1334,6 +1334,7 @@ class GraphicsItemCentringLines(GraphicsItem):
                          self.start_coord[0], self.scene().height())
         painter.drawLine(0, self.start_coord[1],
                          self.scene().width(), self.start_coord[1])
+        """
         if len(self.centring_points) in (0, 1):
             painter.drawText(self.start_coord[0] + 10,
                              self.start_coord[1] - 10,
@@ -1342,6 +1343,7 @@ class GraphicsItemCentringLines(GraphicsItem):
             painter.drawText(self.start_coord[0] + 10,
                              self.start_coord[1] - 10,
                              "1 click left")
+        """
         for centring_point in self.centring_points:
             painter.drawLine(centring_point[0] - 3,
                              centring_point[1] - 3,
