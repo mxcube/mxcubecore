@@ -1295,6 +1295,7 @@ class AcquisitionParameters(object):
         self.num_images = int()
         self.osc_start = float()
         self.osc_range = float()
+        self.osc_total_range = float()
         self.overlap = float()
         self.kappa = float()
         self.kappa_phi = float()
@@ -1369,7 +1370,7 @@ class CentredPosition(object):
         self.snapshot_image = None
         self.centring_method = True
         self.index = None
-        self.used_for_collection = 0
+        #self.used_for_collection = 0
         self.motor_pos_delta = CentredPosition.MOTOR_POS_DELTA
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
