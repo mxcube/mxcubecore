@@ -97,8 +97,6 @@ class Shapes(HardwareObject):
         :param shape: Shape to add.
         :type shape: Shape object.
         """
-        shape.set_id(shape.SHAPE_COUNT)
-        shape.name = shape.id
         self.shapes[shape.id] = shape
 
     def add_shape_from_mpos(self, mpos_list, screen_coord, t):
@@ -232,13 +230,13 @@ class Shape(object):
     """
     SHAPE_COUNT = 0
 
-    def __init__(self, mpos_list = [], screen_coord = (-1, -1)):
+    def __init__(self, mpos_list=[], screen_coord=(-1, -1)):
         object.__init__(self)
         Shape.SHAPE_COUNT += 1
         self.t = "S"
-        self.name = ""
         self.id = ""
         self.cp_list = []
+        self.name = ""
         self.state = "SAVED"
         self.screen_coord = screen_coord
         self.selected = False
@@ -269,6 +267,7 @@ class Shape(object):
 
     def set_id(self, id_num):
         self.id = self.t + "%s" % id_num
+        self.name = self.id
 
     def update_from_dict(self, shape_dict):
         # We dont allow id updates
@@ -300,6 +299,7 @@ class Point(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Point.SHAPE_COUNT += 1
         self.t = "P"
+        self.set_id(Point.SHAPE_COUNT)
 
     def get_centred_position(self):
         return self.cp_list[0]
@@ -325,6 +325,7 @@ class Line(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Line.SHAPE_COUNT += 1
         self.t = "L"
+        self.set_id(Line.SHAPE_COUNT)
 
     def get_centred_positions(self):
         return [self.start_cpos, self.end_cpos]
@@ -341,6 +342,7 @@ class Grid(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Grid.SHAPE_COUNT += 1
         self.t = "G"
+        self.set_id(Grid.SHAPE_COUNT)
 
         self.top = -1
         self.left = -1
@@ -355,3 +357,16 @@ class Grid(Shape):
         self.num_cols = -1
         self.num_rows = -1
         self.selected = False
+
+    def get_centred_position(self):
+        return self.cp_list[0]
+
+    def set_id(self, id_num):
+        Shape.set_id(self, id_num)
+        self.cp_list[0].index = self.id
+
+    def as_dict(self):
+        d = Shape.as_dict(self)
+        # replace cpos_list with the motor positions
+        d["motor_positions"] = self.cp_list[0].as_dict()
+        return d
