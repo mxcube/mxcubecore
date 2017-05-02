@@ -15,6 +15,7 @@ import os
 import logging
 import gevent
 import time
+import math
 
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -50,6 +51,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.triggers_to_collect = None
 
         self.exp_type_dict = None
+        self.display = {} 
+        self.stop_display = False
 
     def init(self):
         """
@@ -109,7 +112,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.emit("collectReady", (True, ))
 
-
 # ---------------------------------------------------------
 # refactor do_collect
     def do_collect(self, owner):
@@ -161,7 +163,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
             log.debug("Collection: going to take snapshots...")
-            #self.take_crystal_snapshots()
+            self.take_crystal_snapshots()
             log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
@@ -183,7 +185,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         1. check the currrent value is the same as the tobeset value
         2. check how to add detroi in the mode
         """
-    
+        self.stop_display = False
         log = logging.getLogger("user_level_log")
         if "transmission" in self.current_dc_parameters:
             log.info("Collection: Setting transmission to %.3f",
@@ -272,7 +274,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # is accepted by the detector but without any effect at all... sad...
             # self.detector_hwobj.wait_ready()
             for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
-                osc_end = osc_start + osc_range * nframes_per_trigger
+                osc_end = osc_start + osc_range * nframes_per_trigger 
+                self.display_task = gevent.spawn(self._update_image_to_display)
                 self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
             
             self.detector_hwobj.stop_acquisition()
@@ -393,7 +396,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                        (snapshot_index + 1)))
                 self.current_dc_parameters['xtalSnapshotFullPath%i' % \
                     (snapshot_index + 1)] = snapshot_filename
-                #self.do_take_snapshot(snapshot_filename)
+                #self._do_take_snapshot(snapshot_filename)
                 self._take_crystal_snapshot(snapshot_filename)
                 time.sleep(1) #needed, otherwise will get the same images
                 if number_of_snapshots > 1:
@@ -476,7 +479,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # todo, add timeout, same as open
-        return  # disable temp
         self.safety_shutter_hwobj.closeShutter()
         while self.safety_shutter_hwobj.getShutterState() == 'opened':
             time.sleep(0.1)
@@ -604,6 +606,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. : move detector to the set distance
         """
         lower_limit, upper_limit = self.get_detector_distance_limits()
+        logging.getLogger("HWR").info("...................value %s, detector movement start..... %s" % (value, self.dtox_hwobj.getPosition()))
         if upper_limit is not None and lower_limit is not None:
             if value >= upper_limit or value <= lower_limit:
                 logging.getLogger("HWR").exception("Can't move detector, the value is out of limits")
@@ -611,12 +614,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             else:
                 try:
                     if self.dtox_hwobj is not None:
-                        self.dtox_hwobj.syncMove(value, timeout = 30)
+                        self.dtox_hwobj.syncMove(value, timeout = 50) #30s is not enough for the whole range
                 except:
                     logging.getLogger("HWR").exception("Problems when moving detector!!") 
                     self.stop_collect()
         else:
             logging.getLogger("HWR").exception("Can't get distance limits, not moving detector!!")
+        logging.getLogger("HWR").info("....................value %s detector movement finished.....%s" % (value, self.dtox_hwobj.getPosition()))
+
 
     def get_detector_distance(self):
         """
@@ -652,6 +657,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_centre_y
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
+        
 
         config['CountTime'] = oscillation_parameters['exposure_time']
  
@@ -663,6 +669,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         except:
             config['ImagesPerFile'] = 100
 
+        if nframes_per_trigger * ntrigger < config['ImagesPerFile']:
+            self.display['delay']= nframes_per_trigger * ntrigger * oscillation_parameters['exposure_time']
+        else:
+            self.display['delay']= config['ImagesPerFile'] * oscillation_parameters['exposure_time']
+        self.display['exp'] = oscillation_parameters['exposure_time']
+        self.display['nimages'] = nframes_per_trigger * ntrigger
+
         import re
         file_parameters = self.current_dc_parameters["fileinfo"]
         file_parameters["suffix"] = self.bl_config.detector_fileext
@@ -670,6 +683,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
+        self.display["file_name"] = file_parameters["filename"]
 
         #os.path.join(file_parameters["directory"], image_file_template)
         config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
@@ -686,6 +700,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if self.data_collect_task is not None:
             self.data_collect_task.kill(block=False)
         logging.getLogger("HWR").error("Collection stopped")
+        self.stop_display = True
 
     def get_transmission(self):
         """
@@ -735,3 +750,32 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # todo
         return 0
+
+    def prepare_for_new_sample(self, manual_mode = True):
+        """
+        Descript.: prepare beamline for a new sample,
+        """   
+        if manual_mode:
+            if self.detector_cover_hwobj is not None:
+               self.close_detector_cover()
+            if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
+                self.close_safety_shutter()
+            if self.dtox_hwobj is not None:
+                self.dtox_hwobj.syncMove(800, timeout = 30)
+            self.diffractometer_hwobj.set_phase("Transfer", wait=True, timeout=200)
+
+    def _update_image_to_display(self):
+        fname = "/mxn/groups/biomax/ctrl_soft/auto_load_img/to_display"
+        time.sleep(self.display["delay"]+3)
+        frequency = 5
+        step = int(math.ceil(frequency/self.display["exp"]))
+        if step == 1:
+            frequency = self.display["exp"] 
+        for i in range(1, self.display["nimages"]+1, step): 
+            #if self.stop_display:
+            #    break
+            #time.sleep(frequency)
+            os.system("echo %s, %s > %s" % (self.display["file_name"],i,fname))
+            if self.stop_display:
+                break
+            time.sleep(frequency)
