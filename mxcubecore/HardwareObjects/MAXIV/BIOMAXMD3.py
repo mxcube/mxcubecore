@@ -96,7 +96,7 @@ class BIOMAXMD3(GenericDiffractometer):
                        'not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
                 logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
-
+ 
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
 
@@ -351,10 +351,12 @@ class BIOMAXMD3(GenericDiffractometer):
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
 
-    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=True, wait=False):
+    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=1, wait=False):
         """
            raster_scan: snake scan by default
-           Note: vertical_range and horizontal_range unit is mm
+           start, end, exptime are the parameters per line
+           Note: vertical_range and horizontal_range unit is mm, a test value could be 0.1,0.1
+           example, raster_scan(20, 22, 5, 0.1, 0.1, 10, 10)
         """ 
         if self.in_plate_mode():
             scan_speed = math.fabs(end-start) / exptime
@@ -370,13 +372,15 @@ class BIOMAXMD3(GenericDiffractometer):
         self.channel_dict["ScanStartAngle"].setValue(start)
         self.channel_dict["ScanExposureTime"].setValue(exptime)
         self.channel_dict["ScanRange"].setValue(end-start)
+        raster_parames = ""
         raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (vertical_range, horizontal_range, nlines, nframes, invert_direction)
         raster = self.command_dict["startRasterScan"]
+
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, waiting device ready..., params "+str(raster_params))
 
         self.wait_device_ready(200)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, device ready.")
-        raster(raster_parames)
+        raster(raster_params)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation launched, waiting for device ready.")
         time.sleep(0.1)
         self.wait_device_ready(exptime+30)  # timeout of 5 min
