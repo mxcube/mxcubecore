@@ -69,6 +69,7 @@ class EMBLBeamFocusing(HardwareObject):
         self.motors_groups = [self.getObjectByRole("P14ExpTbl"),
                               self.getObjectByRole("P14KB"),
                               self.getObjectByRole("P14DetTrans"),
+                              self.getObjectByRole("P14BCU"),
                               self.getObjectByRole("slitsMotors")]
         
 
@@ -212,6 +213,7 @@ class EMBLBeamFocusing(HardwareObject):
         """
         gevent.spawn(self.focus_mode_task,
                      focus_mode)
+        self.emit('focusingModeRequested', focus_mode)
 
     def focus_mode_task(self, focus_mode):
         """Gevent task to set focusing mode

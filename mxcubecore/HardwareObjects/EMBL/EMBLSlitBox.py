@@ -65,10 +65,10 @@ Example Hardware Object XML file :
 ==================================
 <equipment class="BeamSlitBox">
     <focModeEq>/beamFocusing</focModeEq>             - focusing mode equipment
-    <focModes>['Unfocused', 'Horizontal', 'Vertical', 'Double']</focModes>
+    <focModes>['Collimated', 'Horizontal', 'Vertical', 'Double']</focModes>
                                                      - used focusing modes
     <gapH>
-       <modesAllowed>['Unfocused', 'Vertical']</modesAllowed> - used modes
+       <modesAllowed>['Collimated', 'Vertical']</modesAllowed> - used modes
        <stepSize>0.0050</stepSize>                   - step size
        <minGap>0.010</minGap>                        - min gap
        <maxGap>1.10</maxGap>                         - max max gap
@@ -87,7 +87,7 @@ Example Hardware Object XML file :
        </motors>
     </gapH>
     <gapV>
-       <modesAllowed>['Unfocused', 'Horizontal']</modesAllowed>
+       <modesAllowed>['Collimated', 'Horizontal']</modesAllowed>
        <stepSize>0.0050</stepSize>
        <minGap>0.010</minGap>
        <maxGap>1.10</maxGap>
@@ -123,7 +123,7 @@ class EMBLSlitBox(HardwareObject):
        entering direct size and pressing Enter or by using up and
        down buttons. Slits operations are enabled accordingly to
        the detected focusing mode.
-          - Unfocused beam (both enabled)
+          - Collimated beam (both enabled)
           - Horizontally focused (hor. disabled and ver. enabled)
           - Vertically focused (hor. enabled and ver. disabled)
           - Double focused (both disabled)
@@ -183,17 +183,16 @@ class EMBLSlitBox(HardwareObject):
                 self.connect(motor_group, 'mGroupStatusChanged',
                      self.motors_group_status_changed)
 
-        """
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
             self.connect(self.beam_focus_hwobj,
                          'focusingModeChanged',
                          self.focus_mode_changed)
-            self.active_focus_mode = self.beam_focus_hwobj.get_active_focus_mode()
+            self.active_focus_mode, size = self.beam_focus_hwobj.get_active_focus_mode()
+            self.focus_mode_changed(self.active_focus_mode, size)
         else:
             logging.getLogger("HWR").debug(\
                 'EMBLSlitBox: beamFocus HO not defined')
-        """
 
     def get_step_sizes(self):
         """Returns Hor and Ver step sizes (list of two values)

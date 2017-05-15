@@ -149,6 +149,8 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
 
+        self.set_flux(2.3e12)
+
     def init(self):
         """init"""
         self.update_interval = int(self.getProperty('updateIntervalS'))
@@ -254,7 +256,7 @@ class EMBLMachineInfo(HardwareObject):
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
-        self.low_level_alarm = value
+        self.low_level_alarm = value == 0
         self.update_sc_alarm()
 
     def overflow_alarm_changed(self, value):
@@ -302,11 +304,7 @@ class EMBLMachineInfo(HardwareObject):
             else:
                 flux_area = beam_info['size_x'] * beam_info['size_y']
 
-        print "previous_area = ", self.flux_area
-        print "now area = ", flux_area
-        print "previous flux: ", self.values_list[3]['value'] 
         if self.flux_area:
-            print "now flux: ", self.values_list[3]['value'] * (flux_area / self.flux_area)
             return self.values_list[3]['value'] * (flux_area / self.flux_area)
         else:
             return self.values_list[3]['value'] 

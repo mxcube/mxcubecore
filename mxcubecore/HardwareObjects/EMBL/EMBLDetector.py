@@ -50,6 +50,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.exp_time_limits = None
         self.pixel_min = None
         self.pixel_max = None
+        self.actual_frame_rate = None
 
         self.chan_beam_xy = None
         self.chan_temperature = None
@@ -57,6 +58,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_status = None
         self.chan_roi_mode = None
         self.chan_frame_rate = None
+        self.chan_actual_frame_rate = None
 
         self.distance_motor_hwobj = None
 
@@ -99,6 +101,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         else:
             logging.getLogger().error("Detector: Frame rate channel not defined")
 
+        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate')
+        if self.chan_actual_frame_rate is not None:
+            self.chan_actual_frame_rate.connectSignal('update', self.actual_frame_rate_changed)
+
         self.chan_beam_xy = self.getChannelObject('chanBeamXY')
 
         self.collect_name = self.getProperty("collectName")
@@ -112,10 +118,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def get_distance(self):
         """Returns detector distance in mm"""
-        if self.distance_motor_hwobj is not None:
-            return self.distance_motor_hwobj.getPosition()
-        else:
-            return self.default_distance
+        return self.distance_motor_hwobj.getPosition()
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
@@ -187,6 +190,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             self.exp_time_limits = (1 / float(frame_rate), 6000)
         self.emit('expTimeLimitsChanged', (self.exp_time_limits, ))
 
+    def actual_frame_rate_changed(self, value):
+        self.actual_frame_rate = value
+        self.emit('frameRateChanged', value)
+
     def set_roi_mode(self, mode):
         """Sets roi mode
 
@@ -226,3 +233,4 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.emit('humidityChanged', (hum, hum < self.hum_treshold))
         self.status_changed("")
         self.emit('expTimeLimitsChanged', (self.exp_time_limits, ))
+        self.emit('frameRateChanged', self.actual_frame_rate)
