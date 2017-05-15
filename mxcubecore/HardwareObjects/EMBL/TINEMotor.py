@@ -164,6 +164,7 @@ class TINEMotor(Device):
         """
         Descript. :
         """
+        self.limits = limits
         self.emit('limitsChanged', (limits, ))
 
     def getLimits(self):
@@ -307,7 +308,7 @@ class TINEMotor(Device):
         return True
 
     def update_values(self):    
-        self.emit('limitsChanged', (self.limits, ))
+        self.emit('limitsChanged', self.limits)
         self.emit('positionChanged', (self.current_position, ))
 
     def _isDeviceReady(self):
