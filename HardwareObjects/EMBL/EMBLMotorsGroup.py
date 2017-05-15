@@ -68,7 +68,7 @@ Example Hardware Object XML file :
           <evalTolerance>0.005</evalTolerance>      - absolute tolerance of
 					              beam focus mode evaluation
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': 0.22, 'Horizontal': 0.22,
+          <focusingModes>{'Collimated': 0.22, 'Horizontal': 0.22,
           'Vertical': 0.22, 'Double': 0.22}</focusingModes>
         </motor>
     </motors>

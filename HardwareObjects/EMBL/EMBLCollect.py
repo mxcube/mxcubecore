@@ -451,8 +451,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
-        self.graphics_manager_hwobj.save_scene_animation(animation_filename,
-                                                         duration_sec)
+
+        return
+        #self.graphics_manager_hwobj.save_scene_animation(animation_filename,
+        #                                                 duration_sec)
 
     def set_energy(self, value):
         """Sets energy"""

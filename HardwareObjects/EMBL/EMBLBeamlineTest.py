@@ -27,6 +27,7 @@ import tempfile
 import numpy as np
 
 from csv import reader
+from time import sleep
 from datetime import datetime
 from random import random
 from scipy.interpolate import interp1d
@@ -56,6 +57,7 @@ TEST_DICT = {"summary": "Beamline summary",
              "attenuators": "Attenuators",
              "autocentring": "Auto centring procedure",
              "measure_intensity": "Intensity measurement",
+             "sc_stats": "Sample changer statistics",
              "graph": "Graph"}
 
 TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
@@ -113,24 +115,26 @@ class EMBLBeamlineTest(HardwareObject):
         self.graphics_manager_hwobj = None
         self.horizontal_motor_hwobj = None
         self.vertical_motor_hwobj = None
+        self.horizontal_double_mode_motor_hwobj = None
+        self.vertical_double_mode_motor_hwobj = None
         self.graphics_manager_hwobj = None
 
         self.diode_calibration_amp_per_watt = interp1d(\
-              [4., 6., 8., 10., 12., 12.5, 15., 16., 20., 30.],
+              [3.99, 6., 8., 10., 12., 12.5, 15., 16., 20., 30.],
               [0.2267, 0.2116, 0.1405, 0.086, 0.0484, 0.0469,
                0.0289, 0.0240, 0.01248, 0.00388])
 
         self.air_absorption_coeff_per_meter = interp1d(\
-               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
+               [3.99, 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
                [9.19440446, 2.0317802, 0.73628084, 0.34554261,
                 0.19176669, 0.12030697, 0.08331135, 0.06203213,
                 0.04926173, 0.04114024, 0.0357374])
         self.carbon_window_transmission = interp1d(\
-               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
+               [3.99, 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30],
                [0.74141, 0.93863, 0.97775, 0.98946, 0.99396,
                 0.99599, 0.99701, 0.99759, 0.99793, 0.99815, 0.99828])
         self.dose_rate_per_10to14_ph_per_mmsq = interp1d(\
-               [4., 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30.0],
+               [3.99, 6.6, 9.2, 11.8, 14.4, 17., 19.6, 22.2, 24.8, 27.4, 30.0],
                [459000., 162000., 79000., 45700., 29300., 20200.,
                 14600., 11100., 8610., 6870., 5520.])
 
@@ -165,6 +169,8 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.horizontal_motor_hwobj = self.getObjectByRole("horizontal_motor")
         self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
+        self.horizontal_double_mode_motor_hwobj = self.getObjectByRole("horizontal_double_mode_motor")
+        self.vertical_double_mode_motor_hwobj = self.getObjectByRole("vertical_double_mode_motor")
 
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
@@ -344,7 +350,7 @@ class EMBLBeamlineTest(HardwareObject):
     def init_device_list(self):
         """Initializes a list of device from a csv file"""
         self.devices_list = []
-        if os.path.exists(self.csv_file_name):
+        if self.csv_file_name and os.path.exists(self.csv_file_name):
             with open(self.csv_file_name, 'rb') as csv_file:
                 csv_reader = reader(csv_file, delimiter=',')
                 for row in csv_reader:
@@ -385,7 +391,7 @@ class EMBLBeamlineTest(HardwareObject):
         if self.beam_focusing_hwobj is not None:
             return self.beam_focusing_hwobj.get_active_focus_mode()
         else:
-            return "Unfocused", None
+            return "Collimated", None
 
     def set_focus_mode(self, mode):
         """Sets focusing mode
@@ -438,6 +444,206 @@ class EMBLBeamlineTest(HardwareObject):
         """Restart ppu processes"""
         if self.bl_hwobj.ppu_control_hwobj is not None:
             self.bl_hwobj.ppu_control_hwobj.restart_all()
+
+    def test_sc_stats(self):
+        result = {}
+
+        log_filename = self.bl_hwobj.sample_changer_hwobj.get_log_filename()
+        min_datetime = None
+        log_arr = np.array([])
+        log_file = open(log_filename, "r")
+        read_lines = log_file.readlines()
+        first_time = None
+        last_time = None
+
+        for line in read_lines:
+            line = line.replace("\n","")
+            line = line.split(',')
+            if first_time is None:
+                first_time = line[0]
+            log_arr = np.append(log_arr,
+                                [np.datetime64(line[0]),
+                                 np.datetime64(line[1]),
+                                 int(line[2]),
+                                 line[3],
+                                 line[4],
+                                 int(line[5]),
+                                 int(line[6]),
+                                 line[7],
+                                 line[0][:13] + "h"])
+        last_time = line[0]
+        log_arr = log_arr.reshape(len(read_lines), 9)
+        log_file.close()
+
+        result["result_details"] = []
+        result["result_details"].append("Sample changer statistics from " + \
+            "<b>%s</b> till <b>%s</b>" % (first_time, last_time))
+        result["result_details"].append("<br>")
+        
+        result["result_details"] = []
+        result["result_details"].append("Sample changer statistics from " + \
+            "<b>%s</b> till <b>%s</b>" % (first_time, last_time))
+        result["result_details"].append("<br>")
+
+        # 0 - start time
+        # 1 - end time
+        # 2 - time delta in sec
+        # 3 - user
+        # 4 - action
+        # 5 - puck
+        # 6 - sample
+        # 7 if exists Error  
+
+        table_cells = []
+        table_cells.append(("Mount",
+                            str((log_arr[:,4] == "load").sum()), 
+                            "bgcolor=#FFCCCC>%d" %
+                            (log_arr[(log_arr[:,4] == "load") & \
+                            (log_arr[:,7] == "Error")].size / 8)))
+        table_cells.append(("Unmount",
+                            str((log_arr[:,4] == "unload").sum()), 
+                            "bgcolor=#FFCCCC>%d" %
+                            (log_arr[(log_arr[:,4] == "unload") & \
+                            (log_arr[:,7] == "Error")].size / 8)))
+
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["Action", "Total", "bgcolor=#FFCCCC>Fails"],
+             table_cells))
+        result["result_details"].append("<br>")
+ 
+        table_cells = []
+        table_cells.append(("Min mount time",
+                            str(log_arr[log_arr[:,4] == "load"][:,2].min())))
+        table_cells.append(("Max mount time",
+                            str(log_arr[log_arr[:,4] == "load"][:,2].max())))
+        table_cells.append(("Mean mount time",
+                            "%d" %(log_arr[log_arr[:,4] == "load"][:,2].mean())))
+
+        table_cells.append(("Min unmount time",
+                            str(log_arr[log_arr[:,4] == "unload"][:,2].min())))
+        table_cells.append(("Max unmount time",
+                            str(log_arr[log_arr[:,4] == "unload"][:,2].max())))
+        table_cells.append(("Mean unmount time", 
+                            "%d" %(log_arr[log_arr[:,4] == "unload"][:,2].mean())))
+
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["Mount/unmount time", "sec"],
+             table_cells))
+        result["result_details"].append("<br>")
+
+        table_cells = []
+        user_list = []
+        for user in log_arr[:,3]:
+            if not user in user_list:
+               user_list.append(user)
+
+        for user in user_list:
+            load_total = log_arr[(log_arr[:,4] == "load") & \
+                                 (log_arr[:,3] == user)].size / 8 
+            load_failed = log_arr[(log_arr[:,4] == "load") & \
+                                  (log_arr[:,7] == "Error") & \
+                                  (log_arr[:,3] == user)].size / 8
+            unload_total = log_arr[(log_arr[:,4] == "unload") & \
+                                   (log_arr[:,3] == user)].size / 8 
+            unload_failed = log_arr[(log_arr[:,4] == "unload") & \
+                                    (log_arr[:,7] == "Error") & \
+                                    (log_arr[:,3] == user)].size / 8
+    
+            if load_total == 0:
+                info_row = [user,
+                            "0",
+                            "bgcolor=#FFCCCC>%d (%.1f %%)" % (0, 0)]
+            else:
+                info_row = [user,
+                            str(load_total),
+                            "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+                            load_failed, float(load_failed) / load_total * 100.0)]
+            if unload_total == 0:
+                info_row.extend(("0",
+                                 "bgcolor=#FFCCCC>%d (%.1f %%)" % (0, 0)))
+            else:
+                info_row.extend((str(unload_total),
+                                 "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+                                unload_failed, float(unload_failed) / unload_total * 100.0)))
+          
+            table_cells.append(info_row)
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["User", "Mounts", "bgcolor=#FFCCCC>Failed mounts",
+              "Unmounts", "bgcolor=#FFCCCC>Failed unmounts"],
+             table_cells))
+
+        hour_arr = np.array([])
+        for hour in np.unique(log_arr[:,8]):
+            hour_arr = np.append(hour_arr,
+                  [hour,
+                   log_arr[(log_arr[:,4] == "load") & \
+                   (log_arr[:,8] == hour)].size / 8,
+                   log_arr[(log_arr[:,4] == "load") & \
+                   (log_arr[:,8] == hour) & \
+                   (log_arr[:,7] == "Error")].size / 8,
+                   log_arr[(log_arr[:,4] == "unload") & \
+                   (log_arr[:,8] == hour)].size / 8,
+                   log_arr[(log_arr[:,4] == "unload") & \
+                   (log_arr[:,8] == hour) & \
+                   (log_arr[:,7] == "Error")].size / 8])
+        hour_arr = hour_arr.reshape(hour_arr.size / 5, 5)
+
+        fig = Figure(figsize=(15, 12))
+        ax = fig.add_subplot(111)
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,1].astype(int))
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,2].astype(int), color="red")
+
+        ax.set_xticks(np.arange(hour_arr.shape[0]))
+        ax.set_xticklabels(hour_arr[:,0], 
+                           rotation="vertical",
+                           horizontalalignment="left")
+        ax.grid(True)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Number of mounts")
+
+        sc_mount_stats_png_filename = os.path.join(\
+             self.test_source_directory,
+             "sc_mount_stats.png")
+          
+        canvas = FigureCanvasAgg(fig)
+        canvas.print_figure(sc_mount_stats_png_filename, dpi = 80)
+        result["result_details"].append("<br><b>Mounts and failed mounts / time</b></br>")
+        result["result_details"].append(\
+               "<img src=%s style=width:700px;><br>" % \
+               sc_mount_stats_png_filename)
+
+        fig = Figure(figsize=(15, 12))
+        ax = fig.add_subplot(111)
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,3].astype(int))
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,4].astype(int), color="red")
+
+        ax.set_xticks(np.arange(hour_arr.shape[0]))
+        ax.set_xticklabels(hour_arr[:,0],
+                           rotation="vertical",
+                           horizontalalignment="left")
+        ax.grid(True)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Number of unmounts")
+
+        sc_unmount_stats_png_filename = os.path.join(\
+             self.test_source_directory,
+             "sc_unmount_stats.png")
+
+        canvas = FigureCanvasAgg(fig)
+        canvas.print_figure(sc_unmount_stats_png_filename, dpi = 80)
+        result["result_details"].append("<br><b>Unmounts and failed unmounts / time</b></br>")
+        result["result_details"].append(\
+               "<img src=%s style=width:700px;><br>" % \
+               sc_unmount_stats_png_filename)
+
+        #result["result_short"] = "Done!"
+        result["result_bit"] = True
+        self.ready_event.set()
+        return result
 
     def test_com(self):
         """Test communication (ping) with beamline devices"""
@@ -587,6 +793,197 @@ class EMBLBeamlineTest(HardwareObject):
 
         return result
 
+    def test_sc_stats(self, log_filename=None):
+        result = {}
+
+        if log_filename is None:
+            log_filename = self.bl_hwobj.sample_changer_hwobj.get_log_filename()
+        min_datetime = None
+        log_arr = np.array([])
+        log_file = open(log_filename, "r")
+        read_lines = log_file.readlines()
+        first_time = None
+        last_time = None
+
+        for line in read_lines:
+            line = line.replace("\n","")
+            line = line.split(',')
+            if first_time is None:
+                first_time = line[0]
+            log_arr = np.append(log_arr,
+                                [np.datetime64(line[0]),
+                                 np.datetime64(line[1]),
+                                 int(line[2]),
+                                 line[3],
+                                 line[4],
+                                 int(line[5]),
+                                 int(line[6]),
+                                 line[7],
+                                 line[0][:13] + "h"])
+        last_time = line[0]
+        log_arr = log_arr.reshape(len(read_lines), 9)
+        log_file.close()
+
+        result["result_details"] = []
+        result["result_details"].append("Sample changer statistics from " + \
+            "<b>%s</b> till <b>%s</b>" % (first_time, last_time))
+        result["result_details"].append("<br>")
+        
+        result["result_details"] = []
+        result["result_details"].append("Sample changer statistics from " + \
+            "<b>%s</b> till <b>%s</b>" % (first_time, last_time))
+        result["result_details"].append("<br>")
+
+        # 0 - start time
+        # 1 - end time
+        # 2 - time delta in sec
+        # 3 - user
+        # 4 - action
+        # 5 - puck
+        # 6 - sample
+        # 7 if exists Error  
+
+        table_cells = []
+        table_cells.append(("Mount",
+                            str((log_arr[:,4] == "load").sum()), 
+                            "bgcolor=#FFCCCC>%d" %
+                            (log_arr[(log_arr[:,4] == "load") & \
+                            (log_arr[:,7] == "Error")].size / 8)))
+        table_cells.append(("Unmount",
+                            str((log_arr[:,4] == "unload").sum()), 
+                            "bgcolor=#FFCCCC>%d" %
+                            (log_arr[(log_arr[:,4] == "unload") & \
+                            (log_arr[:,7] == "Error")].size / 8)))
+
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["Action", "Total", "bgcolor=#FFCCCC>Fails"],
+             table_cells))
+        result["result_details"].append("<br>")
+ 
+        table_cells = []
+        table_cells.append(("Min mount time",
+                            str(log_arr[log_arr[:,4] == "load"][:,2].min())))
+        table_cells.append(("Max mount time",
+                            str(log_arr[log_arr[:,4] == "load"][:,2].max())))
+        table_cells.append(("Mean mount time",
+                            "%d" %(log_arr[log_arr[:,4] == "load"][:,2].mean())))
+
+        table_cells.append(("Min unmount time",
+                            str(log_arr[log_arr[:,4] == "unload"][:,2].min())))
+        table_cells.append(("Max unmount time",
+                            str(log_arr[log_arr[:,4] == "unload"][:,2].max())))
+        table_cells.append(("Mean unmount time", 
+                            "%d" %(log_arr[log_arr[:,4] == "unload"][:,2].mean())))
+
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["Mount/unmount time", "sec"],
+             table_cells))
+        result["result_details"].append("<br>")
+
+        table_cells = []
+        user_list = []
+        for user in log_arr[:,3]:
+            if not user in user_list:
+               user_list.append(user)
+
+        for user in user_list:
+            load_total = log_arr[(log_arr[:,4] == "load") & \
+                                 (log_arr[:,3] == user)].size / 8 
+            load_failed = log_arr[(log_arr[:,4] == "load") & \
+                                  (log_arr[:,7] == "Error") & \
+                                  (log_arr[:,3] == user)].size / 8
+            unload_total = log_arr[(log_arr[:,4] == "unload") & \
+                                   (log_arr[:,3] == user)].size / 8 
+            unload_failed = log_arr[(log_arr[:,4] == "unload") & \
+                                    (log_arr[:,7] == "Error") & \
+                                    (log_arr[:,3] == user)].size / 8
+      
+
+            table_cells.append((user,
+                                str(load_total),
+                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+                                load_failed, float(load_failed) / load_total * 100.0),
+                                str(unload_total),
+                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+                                unload_failed, float(unload_failed) / unload_total * 100.0)))
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["User", "Mounts", "bgcolor=#FFCCCC>Failed mounts",
+              "Unmounts", "bgcolor=#FFCCCC>Failed unmounts"],
+             table_cells))
+
+        hour_arr = np.array([])
+        for hour in np.unique(log_arr[:,8]):
+            hour_arr = np.append(hour_arr,
+                  [hour,
+                   log_arr[(log_arr[:,4] == "load") & \
+                   (log_arr[:,8] == hour)].size / 8,
+                   log_arr[(log_arr[:,4] == "load") & \
+                   (log_arr[:,8] == hour) & \
+                   (log_arr[:,7] == "Error")].size / 8,
+                   log_arr[(log_arr[:,4] == "unload") & \
+                   (log_arr[:,8] == hour)].size / 8,
+                   log_arr[(log_arr[:,4] == "unload") & \
+                   (log_arr[:,8] == hour) & \
+                   (log_arr[:,7] == "Error")].size / 8])
+        hour_arr = hour_arr.reshape(hour_arr.size / 5, 5)
+
+        fig = Figure(figsize=(15, 12))
+        ax = fig.add_subplot(111)
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,1].astype(int))
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,2].astype(int), color="red")
+
+        ax.set_xticks(np.arange(hour_arr.shape[0]))
+        ax.set_xticklabels(hour_arr[:,0], 
+                           rotation="vertical",
+                           horizontalalignment="left")
+        ax.grid(True)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Number of mounts")
+
+        sc_mount_stats_png_filename = os.path.join(\
+             self.test_source_directory,
+             "sc_mount_stats.png")
+          
+        canvas = FigureCanvasAgg(fig)
+        canvas.print_figure(sc_mount_stats_png_filename, dpi = 80)
+        result["result_details"].append("<br><b>Mounts and failed mounts / time</b></br>")
+        result["result_details"].append(\
+               "<img src=%s style=width:700px;><br>" % \
+               sc_mount_stats_png_filename)
+
+        fig = Figure(figsize=(15, 12))
+        ax = fig.add_subplot(111)
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,3].astype(int))
+        ax.bar(np.arange(hour_arr.shape[0]),
+               hour_arr[:,4].astype(int), color="red")
+
+        ax.set_xticks(np.arange(hour_arr.shape[0]))
+        ax.set_xticklabels(hour_arr[:,0],
+                           rotation="vertical",
+                           horizontalalignment="left")
+        ax.grid(True)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Number of unmounts")
+
+        sc_unmount_stats_png_filename = os.path.join(\
+             self.test_source_directory,
+             "sc_unmount_stats.png")
+
+        canvas = FigureCanvasAgg(fig)
+        canvas.print_figure(sc_unmount_stats_png_filename, dpi = 80)
+        result["result_details"].append("<br><b>Unmounts and failed unmounts / time</b></br>")
+        result["result_details"].append(\
+               "<img src=%s style=width:700px;><br>" % \
+               sc_unmount_stats_png_filename)
+
+        #result["result_short"] = "Done!"
+        result["result_bit"] = True
+        self.ready_event.set()
+        return result
+
     def center_beam_report(self):
         self.start_test_queue(["centerbeam"])
 
@@ -702,7 +1099,7 @@ class EMBLBeamlineTest(HardwareObject):
         # 2.2/6 Opening slits when unfocused mode
         # 2.3/6 Setting zoom 4 if unfocused and zoom 8 for focused mode
 
-        if active_mode == "Unfocused":
+        if active_mode == "Collimated":
             msg = "2.1/6 : Setting transmission to 100%"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
@@ -737,7 +1134,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.center_beam_task()
 
         # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
-        if active_mode == "Unfocused" and slits_hwobj:
+        if active_mode == "Collimated" and slits_hwobj:
             msg = "5/6 : Setting slits to 0.1 x 0.1 mm%"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
@@ -796,9 +1193,9 @@ class EMBLBeamlineTest(HardwareObject):
             self.cmd_set_vmax_pitch(1)
             gevent.sleep(1)
 
+        """
         if self.chan_encoder_ar and self.chan_pitch_position_ar:
             encoder_ar_values = self.chan_encoder_ar.getValue()
-            pitch_position_ar_values = self.chan_pitch_position_ar.getValue()
             qbpm_ar_values = self.chan_qbpm_ar.getValue()
 
             #encoder_ar_values = np.array(encoder_ar_values) * 4200.0 + -1563.6
@@ -814,6 +1211,7 @@ class EMBLBeamlineTest(HardwareObject):
                        self.test_source_directory,
                        "encoder_plot.png")
             canvas.print_figure(encoder_plot_filename, dpi = 80)
+        """
 
         # 3.3/6 If crl used then set previous position -----------------------
         if crl_used:
@@ -827,13 +1225,14 @@ class EMBLBeamlineTest(HardwareObject):
         active_mode, beam_size = self.get_focus_mode()
 
         # 4/6 Applying Perp and Roll2nd correction ---------------------------
-        if active_mode == "Unfocused":
+        if active_mode == "Collimated":
             msg = "4/6 : Applying Perp and Roll2nd correction"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (4, progress_info))
 
         for i in range(3):
+            """
             if self.bl_hwobj.session_hwobj.beamline_name == "P13":
                 if i == 1:
                     log.debug("Setting in the capillary")
@@ -843,45 +1242,45 @@ class EMBLBeamlineTest(HardwareObject):
                     self.bl_hwobj.beam_info_hwobj.aperture_hwobj.set_diameter(70)
                     self.bl_hwobj.beam_info_hwobj.aperture_hwobj.set_in()
                     self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)
+            """
 
             with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
                 beam_pos_displacement = [None, None]
                 while None in beam_pos_displacement:
                     beam_pos_displacement = self.graphics_manager_hwobj.\
-                        get_beam_displacement(reference="beam")
+                        get_beam_displacement()
                     gevent.sleep(0.1)
                 if None or 0 in beam_pos_displacement:
                     log.debug("No beam detected")
                     continue
 
+            delta_hor = beam_pos_displacement[0] * self.scale_hor
+            delta_ver = beam_pos_displacement[1] * self.scale_ver
+            log.info("Applying %.4f mm horizontal " % delta_hor + \
+                      "and %.4f mm vertical correction" % delta_ver)
+
             active_mode, beam_size = self.get_focus_mode()
-            if active_mode == "Unfocused":
-                delta_hor = beam_pos_displacement[0] * self.scale_hor
-                delta_ver = beam_pos_displacement[1] * self.scale_ver
-                log.debug("Applying %.4f mm horizontal " % \
-                          delta_hor + \
-                          "and %.4f mm vertical correction" % delta_ver)
-    
-                """
+            if active_mode == "Collimated":
                 if self.bl_hwobj.session_hwobj.beamline_name == "P13":
-                    log.debug("Enabling vertical and horizontal motors")
+                    log.info("Enabling vertical and horizontal motors")
                     self.vertical_motor_hwobj.enable_motor()
                     self.horizontal_motor_hwobj.enable_motor()
 
-                    if abs(delta_ver) > 0.001:
-                        log.debug("Moving vertical by %.4f" % delta_ver)
-                        self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
-                    if abs(delta_hor) > 0.001:
-                        log.debug("Moving horizontal by %.4f" % delta_ver)
-                        self.horizontal_motor_hwobj.moveRelative(delta_hor,
-                                                                 wait=True)
-                    gevent.sleep(1)
-                else:
-                    self.vertical_motor_hwobj.moveRelative(delta_ver,
-                                                           wait=True)
-                    self.horizontal_motor_hwobj.moveRelative(delta_hor,
-                                                             wait=True)
-                """
+                if abs(delta_hor) > 0.001:
+                    log.info("Moving horizontal by %.4f" % delta_hor)
+                    self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+                if abs(delta_ver) > 0.001:
+                    log.info("Moving vertical by %.4f" % delta_ver)
+                    self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
+                sleep(2)
+            elif active_mode == "Double":
+                if abs(delta_hor) > 0.001:
+                    log.info("Moving horizontal by %.4f" % delta_hor)
+                    self.horizontal_double_mode_motor_hwobj.moveRelative(delta_hor, wait=True)
+                if abs(delta_ver) > 0.001:
+                    log.info("Moving vertical by %.4f" % delta_ver)
+                    self.vertical_double_mode_motor_hwobj.moveRelative(delta_ver, wait=True)
+                sleep(2)
 
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             log.debug("Disabling vertical and horizontal motors")

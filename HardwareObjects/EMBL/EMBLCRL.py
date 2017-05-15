@@ -69,14 +69,15 @@ class EMBLCRL(HardwareObject):
             self.connect(self.energy_hwobj,
                          "energyStateChanged",
                          self.energy_state_changed)
+
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         self.connect(self.beam_focusing_hwobj,
-                     "focusingModeChanged",
-                     self.focusing_mode_changed)
+                     "focusingModeRequested",
+                     self.focusing_mode_requested)
 
-        self.current_focusing_mode, beam_size = self.beam_focusing_hwobj.\
-             get_active_focus_mode()
-        self.focusing_mode_changed(self.current_focusing_mode, beam_size)
+        focus_modes = self.beam_focusing_hwobj.get_available_lens_modes()
+        if focus_modes is not None:
+            self.set_mode(focus_modes[0])
 
     def convert_value(self, value):
         """Converts int to list of bits"""
@@ -102,9 +103,9 @@ class EMBLCRL(HardwareObject):
     def set_mode(self, mode):
         """Sets crl mode"""
         self.current_mode = mode
-        if self.current_mode == "Out":
-            self.set_crl_value([0, 0, 0, 0, 0, 0])
-        elif self.current_mode == "Automatic":
+        #if self.current_mode == "Out":
+        #    self.set_crl_value([0, 0, 0, 0, 0, 0])
+        if self.current_mode == "Automatic":
             self.set_according_to_energy()
         self.emit('crlModeChanged', self.current_mode)
 
@@ -148,18 +149,14 @@ class EMBLCRL(HardwareObject):
         return 1. / (2 * 341.52 * lens_combination / 2000 /\
                (self.energy_value ** 2) - 1 / 42.6696)
 
-    def focusing_mode_changed(self, focusing_mode, beam_size):
+    def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
-        if focusing_mode != None and self.at_startup:
-            self.current_focusing_mode = focusing_mode
+        if focusing_mode != None:
             self.modes = self.beam_focusing_hwobj.\
                 get_available_lens_modes()
             self.set_mode(self.modes[0])
             self.set_crl_value(self.beam_focusing_hwobj.\
-                get_lens_combination(self.current_focusing_mode))
-        else:
-            self.emit('crlValueChanged', None)
-        self.at_startup = True
+                get_lens_combination(focusing_mode))
 
     def crl_value_changed(self, value):
         """Emit signal when crl combination changed"""
