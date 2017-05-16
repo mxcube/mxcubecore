@@ -13,8 +13,13 @@ from Session import Session
 class MaxIVSession(Session):
     def __init__(self, name):
         Session.__init__(self, name)
+
+    # Framework-2 method, inherited from HardwareObject and called
+    # by the framework after the object has been initialized.
+    def init(self):
         self.default_precision = "03"
         self.login = ''
+        self.in_house_users = self.getProperty('inhouse_users').split(',')
 
     def prepare_directories(self, proposal_info):
         self.login = proposal_info['Person']['login']
@@ -30,7 +35,7 @@ class MaxIVSession(Session):
 
         # this checks that the beamline data path has been properly created
         # e.g. /data/visitor/biomax
-        self.storage = storage.Storage(self.get_user_category(), self.endstation_name)
+        self.storage = storage.Storage(self.get_user_category(self.login), self.endstation_name)
 
         # this creates the path for the data and ensures proper permissions.
         # e.g. /data/visitor/biomax/<propsal>/<visit>/{raw, process}
@@ -39,26 +44,18 @@ class MaxIVSession(Session):
                                  self.get_session_start_date(),
                                  self.login)
 
-    def is_inhouse(self, proposal_code=None, proposal_number=None):
+
+    def is_inhouse(self, user):
         """
-        Determines if a given proposal is considered to be inhouse.
+        Determines if a given user is considered to be inhouse.
 
-        :param proposal_code: Proposal code
-        :type propsal_code: str
+        :param login: username
+        :type login: str
 
-        :param proposal_number: Proposal number
-        :type proposal_number: str
-
-        :returns: True if the proposal is inhouse, otherwise False.
+        :returns: True if the user is inhouse, otherwise False.
         :rtype: bool
         """
-        if not proposal_code:
-            proposal_code = self.proposal_code
-
-        if not proposal_number:
-            proposal_number = self.proposal_number
-
-        if (proposal_code, proposal_number) in self.in_house_users:
+        if user in self.in_house_users:
             return True
         else:
             return False
