@@ -316,6 +316,8 @@ class BaseQueueEntry(QueueEntryContainer):
         view.setOn(False)
         self.get_data_model().set_executed(True)
         self.get_data_model().set_running(False)
+        self.get_data_model().set_enabled(False)
+        self.set_enabled(False)
         self._set_background_color()
 
     def _set_background_color(self):
