@@ -1659,7 +1659,7 @@ class ISPyBClient2(HardwareObject):
         
 
     def store_image_quality_indicators(self, image_dict):
-        """
+        """Stores image quality indicators
         """
         quality_ind_id = -1
         quality_ind_dict = {"imageId": image_dict["image_id"],
@@ -1676,6 +1676,29 @@ class ISPyBClient2(HardwareObject):
             msg = 'Could not store image quality indicators in lims: %s' % ex.message
             logging.getLogger("ispyb_client").exception(msg)
         return quality_ind_id
+
+    def set_image_quality_indicators_plot(self, collection_id, plot_path, csv_path):
+        """Assigns image quality indicators png and csv filenames to collection"""
+        try:
+            self.__collection.service.setImageQualityIndicatorsPlot(\
+                collection_id, plot_path, csv_path)
+        except ex:
+            msg = 'Could not set image quality indicators in lims: %s' % ex.message
+            logging.getLogger("ispyb_client").exception(msg)
+
+    def store_robot_action(self, sample_id, session_id, robot_action_dict):
+        """Stores robot action"""
+        try:
+            ws_client = Client(_WS_COLLECTION_URL,
+                               cache = None)
+            robot_action_vo = ws_client.factory.create('robotActionWS3VO')
+            robot_action_vo.sessionId = session_id
+            robot_action_vo.blSampleId = sample_id
+            action_id = self.__collection.service.storeRobotAction(robot_action_vo)
+        except ex:
+            msg = 'Could not store robot action in lims: %s' % ex.message
+            logging.getLogger("ispyb_client").exception(msg)
+    
 
     # Bindings to methods called from older bricks.
     getProposal = get_proposal
