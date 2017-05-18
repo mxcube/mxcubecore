@@ -7,7 +7,7 @@ from sample_changer.GenericSampleChanger import *
 
 class SampleChangerMockup(SampleChanger):
 
-    __TYPE__ = "SC3"
+    __TYPE__ = "Mockup"
     NO_OF_BASKETS = 17
     def __init__(self, *args, **kwargs):
         super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
@@ -60,12 +60,12 @@ class SampleChangerMockup(SampleChanger):
 
         return self.getLoadedSample()
 
-    def unload(self, sample_slot, wait):
+    def unload(self, sample_slot=None, wait=None):
         logging.getLogger("user_level_log").info("Unloading sample")
         sample = self.getLoadedSample()
         sample._setLoaded(False, True)
-        self._selected_basket = None
-        self._selected_sample = None
+        self._selected_basket = -1
+        self._selected_sample = -1
         self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
  
     def getLoadedSample(self):
@@ -114,7 +114,8 @@ class SampleChangerMockup(SampleChanger):
         for basket_index in range(5):
             basket=self.getComponents()[basket_index]
             datamatrix = None
-            present = scanned = False
+            present = True
+            scanned = False
             basket._setInfo(present, datamatrix, scanned)
 
         sample_list=[]
