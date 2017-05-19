@@ -195,6 +195,10 @@ class TaskGroup(TaskNode):
         self.lims_group_id = None
         self.interleave_num_images = None
 
+    def set_name_from_task(self, task):
+        if isinstance(task, DataCollection):
+            self._name = "Standart"
+
 class Sample(TaskNode):
     def __init__(self):
         TaskNode.__init__(self)
@@ -1117,6 +1121,10 @@ class PathTemplate(object):
         PathTemplate.synchotron_name = synchotron_name
         PathTemplate.template = template
 
+    @staticmethod
+    def set_precision(precision):
+        PathTemplate.precision = precision
+
     def __init__(self):
         object.__init__(self)
 
@@ -1129,7 +1137,7 @@ class PathTemplate(object):
         self.wedge_prefix = str()
         self.run_number = int()
         self.suffix = str()
-        self.precision = str()
+        #self.precision = str()
         self.start_num = int()
         self.num_files = int()
 
