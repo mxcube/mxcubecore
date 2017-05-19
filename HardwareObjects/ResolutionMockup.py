@@ -13,27 +13,25 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def init(self):
         self.currentResolution = 3
         self.detmState = None
-        self.current_wavelength = 10
-        self.energy = 12
-        self.det_radius = 0.1
+        self.det_radius = 100
+        self.state = 2
+        self.dtox = self.getObjectByRole("dtox")
+        self.energy = self.getObjectByRole("energy")
+        self.detector = self.getObjectByRole("detector")
+        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
+        self.dtox.move(self.res2dist(self.currentResolution))
 
     def beam_centre_updated(self, beam_pos_dict):
         pass
 
+    def dtoxPositionChanged(self, pos):
+        self.newResolution(self.dist2res(pos))
+
     def getWavelength(self):
-        if self.wavelength is None:
-            if self.energy is None:
-                return self.getwavelength(wait=True)
-            else:
-                return 12.3984 / self.energy.getPosition()
-        else:
-            return self.wavelength.getPosition()
+        return self.energy.getCurrentWavelength()
 
     def wavelengthChanged(self, pos=None):
-        if pos is None:
-            pos = self.getWavelength()
-        self.current_wavelength = pos
-        self.recalculateResolution()
+        self.recalculateResolution(pos)
 
     def energyChanged(self, energy):
         self.wavelengthChanged(12.3984 / energy)
@@ -45,23 +43,21 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             res = self.currentResolution
 
         try:
-            ttheta = 2 * math.asin(self.current_wavelength / (2 * res))
+            ttheta = 2 * math.asin(self.getWavelength() / (2 * res))
             return self.det_radius / math.tan(ttheta)
         except:
             return None
 
     def dist2res(self, dist=None):
-        dist = 520
-
         try:
             ttheta = math.atan(self.det_radius / dist)
-            return self.current_wavelength / (2 * math.sin(ttheta / 2))
+            return self.getWavelength() / (2 * math.sin(ttheta / 2))
         except:
             logging.getLogger().exception("error while calculating resolution")
             return None
 
     def recalculateResolution(self):
-        pass
+        self.currentResolution = self.dist2res(self.dtox.getPosition())
 
     def equipmentReady(self):
         self.emit("deviceReady")
@@ -83,7 +79,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.emit('valueChanged', (res, ))
 
     def getState(self):
-        pass
+        return self.state
 
     def connectNotify(self, signal):
         pass
@@ -98,14 +94,13 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def move(self, pos, wait=True):
-        logging.getLogger().info("move Resolution to %s", pos)
-        self.newResolution(pos)
- 
+        self.dtox.move(self.res2dist(pos))
+
     def motorIsMoving(self):
-        return False
+        return self.dtox.motorIsMoving() or self.energy.moving
 
     def newDistance(self, dist):
         pass
 
     def stop(self):
-        pass
+        self.dtox.stop()
