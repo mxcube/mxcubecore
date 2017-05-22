@@ -125,7 +125,7 @@ class TineChannel(ChannelObject):
     def __del__(self):
        try:
           tine.detach(self.linkid)
-          logging.getLogger("HWR").debug('Detached %s %s'%(self.tineName,self.attributeName))
+          logging.getLogger("HWR").debug('TINE channel %s %s detached'%(self.tineName,self.attributeName))
           self.linkid = -1
        except IOError as strerror:
            logging.getLogger("HWR").error("%s detaching %s %s"%(strerror,self.tineName,self.attributeName))
@@ -138,7 +138,7 @@ class TineChannel(ChannelObject):
             self.update(data_list)
         else:
             self.callback_fail_counter = self.callback_fail_counter + 1
-            logging.getLogger("HWR").debug("Tine event callback error %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
+            logging.getLogger("HWR").error("Tine event callback error %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
 	    if self.callback_fail_counter >= 3:
 	       logging.getLogger("HWR").error("Repeated tine event callback errors %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
           
