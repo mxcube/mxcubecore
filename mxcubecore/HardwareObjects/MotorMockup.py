@@ -49,7 +49,7 @@ class MotorMockup(Device):
         while (time.time() - t0) < (delta / float(self.velocity)):
           self.motorPosition = start_pos + d*self.velocity*(time.time() - t0)
           self.emit('positionChanged', (self.motorPosition, ))
-          time.sleep(0.02)
+          time.sleep(0.2)
         self.motorPosition = target_pos
         self.emit('positionChanged', (target_pos, ))
 
