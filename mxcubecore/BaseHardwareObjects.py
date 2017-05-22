@@ -279,12 +279,8 @@ class HardwareObjectNode:
         self._propertySet.setPropertyPath(name, self._path+'/'+str(name))
         
 
-    def getProperty(self, name):
-        try:
-            return self._propertySet[str(name)]
-        except:
-            return None
-
+    def getProperty(self, name, default_value=None):
+        return self._propertySet.get(str(name), default_value)
 
     def getProperties(self):
         return self._propertySet
