@@ -74,7 +74,7 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
         pass
 
     def syncMove(self, position, timeout=None):
-        self.moveRelative(position)
+        self.move(position)
 
     def motorIsMoving(self):
         return False
