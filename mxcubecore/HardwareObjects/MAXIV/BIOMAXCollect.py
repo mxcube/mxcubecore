@@ -112,7 +112,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
         self.emit("collectReady", (True, ))
 
-        print "........................",self.safety_shutter_hwobj.getShutterState()
 # ---------------------------------------------------------
 # refactor do_collect
     def do_collect(self, owner):
@@ -164,7 +163,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
             log.debug("Collection: going to take snapshots...")
-            #self.take_crystal_snapshots()
+            self.take_crystal_snapshots()
             log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
@@ -398,7 +397,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.current_dc_parameters['xtalSnapshotFullPath%i' % \
                     (snapshot_index + 1)] = snapshot_filename
                 #self._do_take_snapshot(snapshot_filename)
-                #self._take_crystal_snapshot(snapshot_filename)
+                self._take_crystal_snapshot(snapshot_filename)
                 time.sleep(1) #needed, otherwise will get the same images
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
@@ -450,6 +449,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         try:
             self.detector_cover_hwobj.openShutter()
+            time.sleep(1) # make sure the cover is up before the data collection stars
         except:
             logging.getLogger("HWR").exception("Could not open the detector cover")
             pass
@@ -531,7 +531,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         new_distance = self.resolution_hwobj.res2dist(value)
         self.move_detector(new_distance) 
-        print "...........................are setting detector to a new position ", new_distance
 
     def set_energy(self, value):
         #self.energy_hwobj.set_energy(value)
@@ -658,7 +657,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         beam_centre_x, beam_centre_y = self.get_beam_centre()  # self.get_beam_centre_pixel() # returns pixel
         config['BeamCenterX'] = beam_centre_x  # unit, should be pixel for master file
         config['BeamCenterY'] = beam_centre_y
-        print "........................preparing detector now and the current distance is ", self.get_detector_distance()
         config['DetectorDistance'] = self.get_detector_distance()/1000.0
         
 
@@ -686,7 +684,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
-        self.display["file_name"] = file_parameters["filename"]
+        #self.display["file_name"] = file_parameters["filename"]
+        self.display["file_name"] = re.sub("^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"])
 
         #os.path.join(file_parameters["directory"], image_file_template)
         config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
@@ -761,7 +760,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if manual_mode:
             if self.detector_cover_hwobj is not None:
                self.close_detector_cover()
-            #print "........................",self.safety_shutter_hwobj.getShutterState()
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
             if self.dtox_hwobj is not None:
@@ -779,7 +777,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             #if self.stop_display:
             #    break
             #time.sleep(frequency)
-            print "............................fname %s, %s" % (self.display["file_name"],i)
             os.system("echo %s, %s > %s" % (self.display["file_name"],i,fname))
             if self.stop_display:
                 break
