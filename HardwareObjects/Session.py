@@ -66,6 +66,14 @@ class Session(HardwareObject):
            self['file_info'].getProperty('archive_base_directory'),
            self['file_info'].getProperty('archive_folder'))
 
+        precision = "04"
+        try:
+            precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
+        except:
+            pass
+
+        queue_model_objects.PathTemplate.set_precision(precision)
+
     def get_base_data_directory(self):
         """
         Returns the base data directory taking the 'contextual'
