@@ -197,7 +197,7 @@ class TaskGroup(TaskNode):
 
     def set_name_from_task(self, task):
         if isinstance(task, DataCollection):
-            self._name = "Standart"
+            self._name = "Standard"
 
 class Sample(TaskNode):
     def __init__(self):
