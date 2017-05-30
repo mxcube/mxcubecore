@@ -678,6 +678,7 @@ class GenericDiffractometer(HardwareObject):
                   self.ready_event.clear()
 
               self.automatic_centring_try_count -= 1
+        self.automatic_centring_try_count = 1  
 
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None, wait_result=None):
         """

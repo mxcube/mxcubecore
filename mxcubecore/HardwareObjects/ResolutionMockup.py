@@ -51,7 +51,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def dist2res(self, dist=None):
         try:
             ttheta = math.atan(self.det_radius / dist)
-            return self.getWavelength() / (2 * math.sin(ttheta / 2))
+            if ttheta != 0:
+                return self.getWavelength() / (2 * math.sin(ttheta / 2))
         except:
             logging.getLogger().exception("error while calculating resolution")
             return None
@@ -74,9 +75,10 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return self.getPosition()
 
     def newResolution(self, res):
-        self.currentResolution = res
-        self.emit("positionChanged", (res, ))
-        self.emit('valueChanged', (res, ))
+        if res:
+            self.currentResolution = res
+            self.emit("positionChanged", (res, ))
+            self.emit('valueChanged', (res, ))
 
     def getState(self):
         return self.state
