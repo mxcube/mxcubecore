@@ -25,6 +25,11 @@ class SampleChangerMockup(SampleChanger):
         self.signal_wait_task = None
         SampleChanger.init(self)
 
+        self.log_filename = self.getProperty("log_filename")
+
+    def get_log_filename(self):
+        return self.log_filename
+
     def load_sample(self, holder_length, sample_location=None, wait=False):
         self.load(sample_location, wait)
 
