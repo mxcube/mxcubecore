@@ -54,6 +54,10 @@ class HardwareObjectNode:
         self.__name = nodeName
         self.__references = []
 
+    @staticmethod
+    def setUserFileDirectory(user_file_directory):
+        HardwareObjectNode.user_file_directory = user_file_directory       
+
     def name(self):
         return self.__name
     
@@ -90,9 +94,6 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            # python2.7
-            #return self._propertySet[attr]
-            # python3.4
             return self.__dict__['_propertySet'][attr]
         except KeyError:
             raise AttributeError(attr)
@@ -278,12 +279,8 @@ class HardwareObjectNode:
         self._propertySet.setPropertyPath(name, self._path+'/'+str(name))
         
 
-    def getProperty(self, name):
-        try:
-            return self._propertySet[str(name)]
-        except:
-            return None
-
+    def getProperty(self, name, default_value=None):
+        return self._propertySet.get(str(name), default_value)
 
     def getProperties(self):
         return self._propertySet
@@ -329,6 +326,8 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def __bool__(self):
         return True
         
+    def __nonzero__(self):
+        return True
 
     def __getattr__(self, attr):
         if attr.startswith("__"):

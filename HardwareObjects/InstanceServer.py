@@ -10,6 +10,11 @@ import gevent.server
 import socket
 import pwd
 
+try:
+    from QtImport import qt_variant
+except ImportError:
+    qt_variant = 'qt3'
+
 import BlissFramework
 
 """
@@ -65,18 +70,21 @@ class InstanceServer(Procedure):
         # Remove BlissFramework application lockfile
         #self.guiConfiguration=qt.qApp.mainWidget().configuration
 
-        if BlissFramework.get_gui_version() == "qt3":
-            from qt import qApp
-            self.guiConfiguration = qApp.mainWidget().configuration     
-        elif BlissFramework.get_gui_version() == "qt4":
-            from PyQt4.QtGui import QApplication
+        if qt_variant == 'PyQt5':
+            from PyQt5.QtWidgets import QApplication
             for widget in QApplication.allWidgets():
-                if hasattr(widget, 'configuration'):
+                if hasattr(widget, "configuration"):
                     self.guiConfiguration = widget.configuration
                     break
-        else:
-            logging.getLogger("HWR").error('InstanceServer: % gui version not supported' % \
-                                            BlissFramework.get_gui_version())
+        elif qt_variant == 'PyQt4':
+            from PyQt4.QtGui import QApplication
+            for widget in QApplication.allWidgets():
+                if hasattr(widget, "configuration"):
+                    self.guiConfiguration = widget.configuration
+                    break
+        else: 
+            from qt import qApp
+            self.guiConfiguration = qApp.mainWidget().configuration
 
         lockfilename=os.path.join(tempfile.gettempdir(), '.%s.lock' % BlissFramework.loggingName)
         
@@ -315,17 +323,13 @@ class InstanceServer(Procedure):
         self.emit('chatMessageReceived', (priority,my_id,message))
 
     def addEventToCache(self,brick_name,widget_name,message_data):
-        #print "ADD EVENT TO CACHE",brick_name,widget_name,message_data
         self.bricksEventCache[(brick_name,widget_name)]=message_data
 
     def synchronizeClientWithEvents(self,client_addr):
-        #print "SYNCHRONIZE CLIENT WITH EVENTS",client_addr
         for event_data in list(self.bricksEventCache.values()):
             send_data_to_client(client_addr, event_data) 
 
     def sendBrickUpdateMessage(self,brick_name,widget_name,widget_method,widget_method_args,masterSync):
-        #print "UPDATE",brick_name,widget_name,widget_method,widget_method_args
-
         msg=BrickUpdateInstanceMessage()
         msg.setBrickUpdate(brick_name,widget_name,widget_method,widget_method_args,masterSync)
         data=msg.encode()
@@ -338,8 +342,6 @@ class InstanceServer(Procedure):
             logging.getLogger("HWR").warning('InstanceServer: sendBrickUpdateMessage while not server nor client!')
 
     def sendTabUpdateMessage(self,tab_name,tab_index):
-        #print "SEND TAB UPDATE",tab_name,tab_index
-
         msg=TabUpdateInstanceMessage()
         msg.setTabUpdate(tab_name,tab_index)
         data=msg.encode()
@@ -464,7 +466,6 @@ class InstanceServer(Procedure):
             except:
                 logging.getLogger("HWR").exception('InstanceServer: problem parsing received message')
             else:
-                #print "TYPE IS",t
                 if t==InstanceMessage.TYPE_CHAT:
                     msg_obj=ChatInstanceMessage(message)
                 elif t==InstanceMessage.TYPE_CONTROL:
@@ -492,11 +493,9 @@ class InstanceServer(Procedure):
         return msg_obj
     
     def clientMessageReceived(self,data):
-        #print "CLIENT MESSAGE RECEIVED",data
         m=self.parseReceivedMessage(data)
         if m is None:
             return
-        #print "CLIENT MESSAGE RECEIVED",m.messageDict
 
         if isinstance(m,ChatInstanceMessage):
             self.emit('chatMessageReceived', (m.getChatPriority(),(m.getChatNick(),m.getProposal()),m.getChatMessage())
@@ -578,8 +577,10 @@ class InstanceServer(Procedure):
                 widget_method=m.getWidgetMethod()
                 widget_method_args=m.getWidgetMethodArgs()
                 masterSync = m.getMasterSync()
-                brick=self.guiConfiguration.findItem(brick_name).brick
-                
+ 
+                #if necessary check this with Qt3 version
+                brick=self.guiConfiguration.findItem(brick_name).get("brick")
+               
                 if widget_name=="":
                     exec("method=brick.%s" % widget_method)
                 else:
@@ -605,7 +606,7 @@ class InstanceServer(Procedure):
         m=self.parseReceivedMessage(data)
         if m is None:
             return
-        #print "SERVER MESSAGE RECEIVED",client_addr,m.messageDict,self.clients
+        
 
         if isinstance(m,NewClientInstanceMessage):
             try:
@@ -636,7 +637,6 @@ class InstanceServer(Procedure):
                     self.clients[cli_id][1]=new_proposal
 
             else:
-                #print "SERVER NEWCLIENT",client_new_id,self.clients
 
                 try:
                     count=self.idCount[client_new_id]

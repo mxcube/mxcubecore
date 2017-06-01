@@ -44,6 +44,8 @@ def addHardwareObjectsDirs(hoDirs):
 default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
 addHardwareObjectsDirs(default_local_ho_dir)
 
+def setUserFileDirectory(user_file_directory):
+    BaseHardwareObjects.HardwareObjectNode.setUserFileDirectory(user_file_directory)
 
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
@@ -119,7 +121,7 @@ class __HardwareRepositoryClient:
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
             if len(mnemonics) > 0:
                 self.requiredHardwareObjects = SpecWaitObject.waitReply(self.server, 'send_msg_cmd_with_return' , ('xml_getall(%s)' % mnemonics, ), timeout = 3)
-                logging.getLogger("HWR").debug("Getting all the hardware objects took %s ms." % ((time.time()-t0)*1000))
+                logging.getLogger("HWR").debug("Getting %s hardware objects took %s ms." % (len(self.requiredHardwareObjects), (time.time()-t0)*1000))
         except SpecClientError.SpecClientTimeoutError:
             logging.getLogger('HWR').error("Timeout loading Hardware Objects")
         except:
