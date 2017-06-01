@@ -28,6 +28,7 @@ import pwd
 import os
 import grp
 import getpass
+import logging
 
 __all__ = ['SDM Storage']
 __author__ = 'kits'
@@ -96,20 +97,22 @@ class Storage(object):
         the ownership of the path.
         :return: It returns an string with the final path that has been generated.
         """
-
         proposal_path = '{0}/{1}'.format(self.beamline_path, proposal)
 
         self.fix_path(proposal_path, 02750)
         self.fix_ownership(proposal_path, self.service_account, proposal_group)
+        logging.getLogger("HWR").info('[SDM] Proposal path created: %s' %proposal_path)
 
         visit_path = '{0}/{1}'.format(proposal_path, visit)
 
         self.fix_path(visit_path, 02770)
         self.fix_ownership(visit_path, self.service_account, proposal_group)
+        logging.getLogger("HWR").info('[SDM] Visit path created: %s' %visit_path)
 
         raw_path = '{0}/{1}'.format(visit_path, 'raw')
         self.fix_path(raw_path, 02770)
         self.fix_ownership(raw_path, self.service_account, proposal_group)
+        logging.getLogger("HWR").info('[SDM] Raw path created: %s' %raw_path)
 
         process_path = '{0}/{1}'.format(visit_path, 'process')
         self.fix_path(process_path, 02770)
