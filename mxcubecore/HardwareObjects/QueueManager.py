@@ -149,10 +149,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
                 if isinstance(ex, queue_entry.QueueAbortedException):
                     logging.getLogger('user_level_log').\
-                        warning('Queue execution was aborted, ' + str(ex.message))
+                        warning('Queue execution was aborted, ' + str(ex))
                 else:
                     logging.getLogger('user_level_log').\
-                        error('Queue execution failed with: ' + str(ex.message))
+                        error('Queue execution failed with: ' + str(ex))
 
                 raise ex
         finally:
@@ -160,7 +160,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
           self.emit('queue_execution_finished', (None,))
           #self.emit('centringAllowed', (True, ))
 
-    def __execute_entry(self, entry): 
+    def __execute_entry(self, entry):
         if not entry.is_enabled() or self._is_stopped:
             return
         

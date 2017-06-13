@@ -73,11 +73,22 @@ class ID30BMultiCollect(ESRFMultiCollect):
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
+        #this has to be done before each chage of phase
+        self.bl_control.diffractometer.getCommandObject("save_centring_positions")()
+        # not going to centring phase if in plate mode (too long)
+        if not self.bl_control.diffractometer.in_plate_mode():        
+            self.bl_control.diffractometer.moveToPhase("Centring", wait=True, timeout=200)
+
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
-        diffr = self.getObjectByRole("diffractometer")
+        diffr = self.bl_control.diffractometer
+        #send again the command as MD2 software only handles one
+        #centered position!!
+        #has to be where the motors are and before changing the phase
+        diffr.getCommandObject("save_centring_positions")()
+        
         #move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
@@ -88,6 +99,11 @@ class ID30BMultiCollect(ESRFMultiCollect):
         diffr.getObjectByRole("lightInOut").actuatorOut()
 
     @task
+    def data_collection_cleanup(self):
+        self.getObjectByRole("diffractometer")._wait_ready(10)
+        self.close_fast_shutter()
+
+    @task
     def oscil(self, start, end, exptime, npass):
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
@@ -96,11 +112,9 @@ class ID30BMultiCollect(ESRFMultiCollect):
             diffr.oscilScan(start, end, exptime, wait=True)
 
     def open_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.open()
         self.getObjectByRole("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.close()
         self.getObjectByRole("fastshut").actuatorOut()
 
     def set_helical(self, helical_on):

@@ -35,7 +35,6 @@ class SampleChangerMockup(SampleChanger):
 
     def load(self, sample, wait=False):
         try:
-            
             self._setState(SampleChangerState.Loading)
             if isinstance(sample, tuple):
                 basket, sample = sample

@@ -129,12 +129,13 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         
         return pars
 
-    def open_safety_shutter(self):
+    def open_safety_shutter(self,timeout=None):
         self.safety_shutter.openShutter()
-        while self.safety_shutter.getShutterState() == 'closed':
-            time.sleep(0.1)
+        with gevent.Timeout(timeout, RuntimeError("Timeout waiting for safety shutter to open")):
+            while self.safety_shutter.getShutterState() == 'closed':
+                time.sleep(0.1)
 
-    def close_safety_shutter(self):
+    def close_safety_shutter(self, timeout=None):
         self.safety_shutter.closeShutter()
         while self.safety_shutter.getShutterState() == 'opened':
             time.sleep(0.1)
@@ -259,7 +260,6 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 f.write("%f,%f\r\n" % (x, y))
                 pyarch_f.write("%f,%f\r\n"% (x, y))
 
-
             f.close()
             pyarch_f.close()
             self.energy_scan_parameters["scanFileFullPath"]=str(archiveRawScanFile)
@@ -295,6 +295,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
           fi.close()
           fo.close()
 
+        self.energy_scan_parameters["filename"] = scanArchiveFilePrefix.split("/")[-1]
         self.energy_scan_parameters["peakEnergy"]=pk
         self.energy_scan_parameters["inflectionEnergy"]=ip
         self.energy_scan_parameters["remoteEnergy"]=rm

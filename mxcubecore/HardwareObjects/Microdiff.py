@@ -15,6 +15,7 @@ MICRODIFF = None
 
 class Microdiff(MiniDiff.MiniDiff):
     def init(self):
+        
         global MICRODIFF
         MICRODIFF = self
         self.timeout = 3
@@ -47,7 +48,11 @@ class Microdiff(MiniDiff.MiniDiff):
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
         self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
+        self.move_to_coord = self.moveToBeam
 
+        self.centringVertical = self.getDeviceByRole('centringVertical')
+        self.centringFocus = self.getDeviceByRole('centringFocus')   
+        
         self.frontLight = self.getDeviceByRole('flight')
         self.backLight = self.getDeviceByRole('light')  
         self.beam_info = self.getObjectByRole('beam_info')
@@ -60,7 +65,7 @@ class Microdiff(MiniDiff.MiniDiff):
                                   "sampx":"CentringX", "sampy":"CentringY",
                                   "zoom":"Zoom"}
         return MOTOR_TO_EXPORTER_NAME
- 
+
     def getCalibrationData(self, offset):
         return (1.0/self.x_calib.getValue(), 1.0/self.y_calib.getValue())
 
@@ -221,18 +226,38 @@ class Microdiff(MiniDiff.MiniDiff):
                 "kappa_phi": float(self.zoomMotor.getPosition()) if self.in_kappa_mode() else None,
         }
         if self.in_kappa_mode() == True:
-            pos.update({"kappa": float(self.kappaMotor.getPosition()), "kappa_phi": float(self.kappaPhiMotor.getPosition())})
+            try:
+                kappa = float(self.kappaMotor.getPosition())
+            except:
+                kappa = 0.
+            try:
+                kappa_phi = float(self.kappaPhiMotor.getPosition())
+            except:
+                kappa_phi = 0.
+            pos.update({"kappa": kappa, "kappa_phi": kappa_phi})
+
         return pos
 
     def moveMotors(self, roles_positions_dict):
-        if not self.in_kappa_mode():
-            try:
-                roles_positions_dict.pop["kappa"]
-                roles_positions_dict.pop["kappa_phi"]
-            except:
-                pass
-            
         self.moveSyncMotors(roles_positions_dict, wait=True)
+
+
+    def moveToBeam(self, x, y):
+        if not self.in_plate_mode():  
+            super(Microdiff,this).moveToBeam(x,y)
+        else:          
+            try:
+                beam_xc = self.getBeamPosX()
+                beam_yc = self.getBeamPosY()
+
+                self.centringVertical.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
+                self.centringPhiy.moveRelative(-(x-beam_xc)/float(self.pixelsPerMmY))
+
+            except:
+                logging.getLogger("user_level_log").exception("Microdiff: could not move to beam, aborting")
+        
+
+   
 
     def start3ClickCentring(self, sample_info=None):
         if self.in_plate_mode():
@@ -240,17 +265,16 @@ class Microdiff(MiniDiff.MiniDiff):
             cmd_set_plate_vertical = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"plate_vertical" }, "setPlateVertical")
             low_lim, high_lim = self.phiMotor.getDynamicLimits()
             phi_range = math.fabs(high_lim - low_lim -1)
-
-            self.currentCentringProcedure = sample_centring.start_plate({"phi":self.centringPhi,
-                                                                         "phiy":self.centringPhiy,
-                                                                         "sampx": self.centringSamplex,
-                                                                         "sampy": self.centringSampley,
-                                                                         "phiz": self.centringPhiz,
-                                                                         "plateTranslation": plateTranslation}, 
-                                                                        self.pixelsPerMmY, self.pixelsPerMmZ, 
-                                                                        self.getBeamPosX(), self.getBeamPosY(),
-                                                                        cmd_set_plate_vertical,
-                                                                        phi_range = phi_range,lim_pos=high_lim-0.5)
+            self.currentCentringProcedure = sample_centring.start_plate_1_click({"phi":self.centringPhi,
+                                                                                 "phiy":self.centringPhiy,
+                                                                                 "sampx": self.centringSamplex,
+                                                                                 "sampy": self.centringSampley,
+                                                                                 "phiz": self.centringVertical,
+                                                                                 "plateTranslation": plateTranslation}, 
+                                                                                self.pixelsPerMmY, self.pixelsPerMmZ, 
+                                                                                self.getBeamPosX(), self.getBeamPosY(),
+                                                                                cmd_set_plate_vertical,
+                                                                                low_lim+0.5, high_lim-0.5)
         else:
             self.currentCentringProcedure = sample_centring.start({"phi":self.centringPhi,
                                                                    "phiy":self.centringPhiy,
@@ -259,8 +283,17 @@ class Microdiff(MiniDiff.MiniDiff):
                                                                    "phiz": self.centringPhiz }, 
                                                                   self.pixelsPerMmY, self.pixelsPerMmZ, 
                                                                   self.getBeamPosX(), self.getBeamPosY())
-                                                                         
+
         self.currentCentringProcedure.link(self.manualCentringDone)
+
+    def interruptAndAcceptCentring(self):
+        """ Used when plate. Kills the current 1 click centring infinite loop
+        and accepts fake centring - only save the motor positions
+        """
+        self.currentCentringProcedure.kill()
+        self.do_centring = False
+        self.startCentringMethod(self,self.MANUAL3CLICK_MODE)
+        self.do_centring = True
 
     def getFrontLightLevel(self):
         return self.frontLight.getPosition()

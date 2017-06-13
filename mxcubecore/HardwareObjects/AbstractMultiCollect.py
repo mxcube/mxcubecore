@@ -59,7 +59,14 @@ class AbstractMultiCollect(object):
         self.__safety_shutter_close_task = None
         self.run_without_loop = None
         self.run_autoprocessing = None
+        #wait for the 1st image from detector for 30 seconds by default
+        self.first_image_timeout = 30
 
+        self.mesh = None
+        self.mesh_num_lines = None
+        self.mesh_total_nb_frames = None
+        self.mesh_range = None
+        self.mesh_center = None
 
     def setControlObjects(self, **control_objects):
       self.bl_control = BeamlineControl(**control_objects)
@@ -348,7 +355,7 @@ class AbstractMultiCollect(object):
           return self.take_crystal_snapshots(4)
         else:
           return
-      else: 
+      if number_of_snapshots:
           return self.take_crystal_snapshots(number_of_snapshots)
 
 
@@ -523,8 +530,10 @@ class AbstractMultiCollect(object):
 
         self.move_motors(motors_to_move_before_collect)
         # take snapshots, then assign centring status (which contains images) to centring_info variable
-        logging.getLogger("user_level_log").info("Taking sample snapshosts")
-        self._take_crystal_snapshots(data_collect_parameters.get("take_snapshots", False))
+        take_snapshots = data_collect_parameters.get("take_snapshots", False)
+        if take_snapshots:
+            logging.getLogger("user_level_log").info("Taking sample snapshosts")
+            self._take_crystal_snapshots(take_snapshots)
         centring_info = self.bl_control.diffractometer.getCentringStatus()
         # move *again* motors, since taking snapshots may change positions
         logging.getLogger("user_level_log").info("Moving motors: %r", motors_to_move_before_collect)
@@ -584,6 +593,9 @@ class AbstractMultiCollect(object):
         if self.bl_control.lims:
             try:
                 logging.getLogger("user_level_log").info("Updating data collection in LIMS")
+                if 'kappa' in data_collect_parameters['actualCenteringPosition']:
+                    data_collect_parameters['oscillation_sequence'][0]['kappaStart'] = current_diffractometer_position['kappa']
+                    data_collect_parameters['oscillation_sequence'][0]['phiStart'] = current_diffractometer_position['kappa_phi']
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
             except:
                 logging.getLogger("HWR").exception("Could not update data collection in LIMS")
@@ -628,6 +640,7 @@ class AbstractMultiCollect(object):
             return
 
 	# data collection
+        self.first_image_timeout = 30+oscillation_parameters["exposure_time"]
         self.data_collection_hook(data_collect_parameters)
 
         if 'transmission' in data_collect_parameters:
@@ -788,7 +801,7 @@ class AbstractMultiCollect(object):
                                                          data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
                           if data_collect_parameters.get("shutterless"):
-                              with gevent.Timeout(30, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+                              with gevent.Timeout(self.first_image_timeout, RuntimeError("Timeout waiting for detector trigger, no image taken")):
                                  while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
@@ -980,12 +993,20 @@ class AbstractMultiCollect(object):
     def set_run_autoprocessing(self, status):
         pass
 
+    # specifies the next scan will be a mesh scan
+    def set_mesh(self, mesh_on):
+        self.mesh = mesh_on
 
-    def set_mesh(self, arg):
-        pass
-
-    def set_mesh_scan_parameters(self, num_lines, num_total_frames, mesh_center, mesh_range):
+    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
         """
-        Descript. : 
-        """
-        pass
+        sets the mesh scan parameters :
+         - vertcal range
+         - horizontal range
+         - nb lines
+         - nb frames per line
+         - invert direction (boolean)  # NOT YET DONE
+         """
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param

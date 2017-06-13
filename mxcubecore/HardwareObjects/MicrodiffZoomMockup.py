@@ -45,7 +45,8 @@ class MicrodiffZoomMockup(Device):
                 self.emit(signal, (positionName, pos))
         else:
             return True#.connectNotify.im_func(self, signal)
-
+    def getState(self):
+    	return 2
     def getLimits(self):
         return (1,10)
 

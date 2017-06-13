@@ -15,9 +15,9 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_cleanup(self):
+        self.getObjectByRole("diffractometer")._wait_ready(10)
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
         if state != "out":
-            print "-----------------------> Closing fast shutter"
             self.close_fast_shutter()
       
     @task
@@ -77,13 +77,17 @@ class ID29MultiCollect(ESRFMultiCollect):
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
-        diffr.moveToPhase("Centring", wait=True, timeout=200)
+        #diffr.moveToPhase("Centring", wait=True, timeout=200)
         self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
         diffr._wait_ready(20)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
         diffr = self.getObjectByRole("diffractometer")
+        #send again the command as MD2 software only handles one
+        #centered position!!
+        #has to be where the motors are and before changing the phase
+        diffr.getCommandObject("save_centring_positions")()
         #move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
@@ -100,11 +104,9 @@ class ID29MultiCollect(ESRFMultiCollect):
             diffr.oscilScan(start, end, exptime, wait=True)
 
     def open_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.open()
         self.getObjectByRole("fastshut").actuatorIn()
 
     def close_fast_shutter(self):
-        #self.getObjectByRole("diffractometer").controller.fshut.close()
         self.getObjectByRole("fastshut").actuatorOut()
 
     def set_helical(self, helical_on):

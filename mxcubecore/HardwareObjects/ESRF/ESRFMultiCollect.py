@@ -382,6 +382,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def data_collection_cleanup(self):
+        self.stop_oscillation()
         self.close_fast_shutter()
 
 
@@ -454,7 +455,9 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     
     def do_oscillation(self, start, end, exptime, npass):
         return self._detector.do_oscillation(start, end, exptime, npass)
-    
+   
+    def stop_oscillation(self):
+        pass 
   
     def start_acquisition(self, exptime, npass, first_frame):
         return self._detector.start_acquisition(exptime, npass, first_frame)
@@ -547,7 +550,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
         input_file_dir = self.mosflm_raw_data_input_file_dir 
         file_prefix = "../.." 
-	    mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
+        mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
         conn.request("GET", "/mosflm.inp/%d?basedir=%s" % (collection_id, file_prefix))
         mosflm_file = open(mosflm_input_file, "w")
         mosflm_file.write(conn.getresponse().read()) 
@@ -659,10 +662,16 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             return self.bl_control.machine_current.getFillMode()
         else:
             ''
-
     def get_cryo_temperature(self):
-      return self.bl_control.cryo_stream.getTemperature()
-
+      while True:
+          logging.info("Reading cryostream temperature")
+          try:
+              T = self.bl_control.cryo_stream.getTemperature()
+          except Exception:
+              time.sleep(0.1)
+              continue
+          else:
+              return T
 
     def getCurrentEnergy(self):
       return self._tunable_bl.getCurrentEnergy()

@@ -388,9 +388,9 @@ if __name__ == '__main__':
     metaExperimentName = 'id30a1/metadata/experiment'
     client = MetadataManagerClient(metadataManagerName, metaExperimentName)
     
-    client.start('/data/visitor/mx415/id30a2/20160909/RAW_DATA', 'mx415', 'sample2', 'dataset_20160909_1')
-    client.appendFile('/data/visitor/mx415/id30a2/20160909/RAW_DATA/t1/test1.txt')
-    client.appendFile('/data/visitor/mx415/id30a2/201600909/RAW_DATA/t1/test2.txt')
+    client.start('/data/visitor/mx415/id30a1/20161014/RAW_DATA', 'mx415', 'sample1', 'dataset_20161014_1')
+    client.appendFile('/data/visitor/mx415/id30a1/20161014/RAW_DATA/t1/test1.txt')
+    client.appendFile('/data/visitor/mx415/id30a1/20161014/RAW_DATA/t1/test2.txt')
     client.printStatus()
     client.end()
 

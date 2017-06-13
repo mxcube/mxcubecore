@@ -7,6 +7,7 @@ import socket
 import shutil
 import logging
 import os
+import math
 import gevent
 #import cPickle as pickle
 from PyTango.gevent import DeviceProxy
@@ -165,34 +166,12 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
         if self._reset_detector_task is not None:
             self._reset_detector_task.get()
- 
+
     def set_helical(self, helical_on):
         self.helical = helical_on
 
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
-        
-    # specifies the next scan will be a mesh scan
-    def set_mesh(self, mesh_on):
-        self.mesh = mesh_on
-
-    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
-        """
-        sets the mesh scan parameters :
-         - vertcal range
-         - horizontal range
-         - nb lines
-         - nb frames per line
-         - invert direction (boolean)  # NOT YET DONE
-         """
-        self.mesh_num_lines = num_lines
-        self.mesh_total_nb_frames = total_nb_frames
-        self.mesh_range = mesh_range_param
-        self.mesh_center = mesh_center_param
-
-        
-        
-        
 
     def set_transmission(self, transmission):
         self.getObjectByRole("transmission").set_value(transmission)

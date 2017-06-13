@@ -23,6 +23,7 @@ import time
 import logging
 import tempfile
 import random
+import warnings
 
 try:
    import lucid2
@@ -233,11 +234,18 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. : function to create a centring point based on all motors
                     positions.
         """
+        
         print "moving to beam position: %d %d" % (self.beam_position[0], self.beam_position[1])
+        return
 
     def move_to_coord(self, x, y, omega=None):
-        return 
-  
+        """
+        Descript. : function to create a centring point based on all motors
+                    positions.
+        """
+        warnings.warn("Deprecated method, call move_to_beam instead", DeprecationWarning)
+        return self.move_to_beam(x, y, omega)
+
     def start_move_to_beam(self, coord_x=None, coord_y=None, omega=None):
         """
         Descript. :
