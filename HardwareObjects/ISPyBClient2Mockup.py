@@ -74,16 +74,16 @@ class ISPyBClient2Mockup(HardwareObject):
             return {'status':{ "code": "error", "msg": "loginID 'wrong' does not exist!" }, 'Proposal': None, 'Session': None} 
         # to simulate wrong psd
         if psd == "wrong":
-            return {'status':{ "code": "error", "msg": "Wrong password!" }, 'Proposal': None, 'Session': None}
+	    return {'status':{ "code": "error", "msg": "Wrong password!" }, 'Proposal': None, 'Session': None}
         # to simulate ispybDown, but login succeed
         if psd == "ispybDown":
-            return {'status':{ "code": "ispybDown", "msg": "ispyb is down" }, 'Proposal': None, 'Session': None}
+	    return {'status':{ "code": "ispybDown", "msg": "ispyb is down" }, 'Proposal': None, 'Session': None}
  
         new_session = False
         if psd == "nosession":
-            new_session=True
+	    new_session=True
         prop=self.get_proposal(loginID,"")
-        return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
+	return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
                  'session': {"session": prop['Session'],"new_session_flag":new_session, "is_inhouse": False},
                  'local_contact': "BL Scientist",
                  'person': prop['Person'],

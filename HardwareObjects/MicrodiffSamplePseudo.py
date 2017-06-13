@@ -51,12 +51,14 @@ class MicrodiffSamplePseudo(MD2Motor):
     def getPosition(self):
         sampx = self.sampx.getPosition()
         sampy = self.sampy.getPosition()
-        phi = math.radians(self.phi.getPosition())
-        if self.direction == "horizontal":
-          new_pos = sampx*math.cos(phi)+sampy*math.sin(phi)
-        else:
-          new_pos = sampx*math.sin(-phi)+sampy*math.cos(-phi)
-        return new_pos
+        phi = self.phi.getPosition()
+        if phi:
+            phi = math.radians(self.phi.getPosition())
+            if self.direction == "horizontal":
+                new_pos = sampx*math.cos(phi)+sampy*math.sin(phi)
+            else:
+                new_pos = sampx*math.sin(-phi)+sampy*math.cos(-phi)
+            return new_pos
 
     def getState(self):
         if self.motorState == MD2Motor.NOTINITIALIZED:

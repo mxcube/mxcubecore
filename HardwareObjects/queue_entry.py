@@ -213,6 +213,12 @@ class BaseQueueEntry(QueueEntryContainer):
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
         self.type_str = ""
 
+    # def __getstate__(self):
+    #     return QueueEntryContainer.__getstate__(self)
+    
+    # def __setstate__(self, d):
+    #     return QueueEntryContainer.__setstate__(self, d)
+
     def enqueue(self, queue_entry):
         """
         Method inherited from QueueEntryContainer, a derived class
@@ -397,9 +403,16 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         task_model = self.get_data_model()
         gid = task_model.lims_group_id
 
-        sample_model = task_model.get_parent()
-
-        if not gid:
+        do_new_dc_group = True
+        # Do not create a new data collection group if one already exists
+        # or if the current task group contains a GenericWorkflowQueueEntry
+        if gid:
+            do_new_dc_group = False
+        elif len(self._queue_entry_list) > 0:
+            if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
+                do_new_dc_group = False
+                
+        if do_new_dc_group:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
@@ -588,7 +601,7 @@ class SampleQueueEntry(BaseQueueEntry):
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = "Error loading sample, please check" +\
-                              " sample changer: " + e.message
+                              " sample changer: " + str(e)
                         log.error(msg)
                         if isinstance(e, QueueSkippEntryException):
                             raise
@@ -1109,7 +1122,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.edna_result = None
 
-        
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger("queue_exec")

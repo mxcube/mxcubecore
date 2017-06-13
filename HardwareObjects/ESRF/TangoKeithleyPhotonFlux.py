@@ -5,13 +5,12 @@ import time
 import logging
 from PyTango.gevent import DeviceProxy
 
-class ID30A1PhotonFlux(Equipment):
+class TangoKeithleyPhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
         controller = self.getObjectByRole("controller")
-        self.musst = controller.musst
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.aperture = self.getObjectByRole("aperture")
@@ -19,7 +18,7 @@ class ID30A1PhotonFlux(Equipment):
 
         self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
         
-        self.tg_device = DeviceProxy("id30/keithley_massif1/i0")
+        self.tg_device = DeviceProxy(self.getProperty("tango_device"))
         self.counts_reading_task = self._read_counts_task(wait=False)
 
     @task
@@ -33,10 +32,6 @@ class ID30A1PhotonFlux(Equipment):
             time.sleep(1)
 
     def _get_counts(self):
-        """counts = abs((2/2.1)*10*int(self.musst.putget("#?VAL CH5")) / float(0x7FFFFFFF))
-        if counts < 0:
-            counts = 0
-        """
         self.tg_device.MeasureSingle()
         counts = abs(self.tg_device.ReadData)*1E6
         if self.aperture:
@@ -61,9 +56,9 @@ class ID30A1PhotonFlux(Equipment):
         self.countsUpdated(self._get_counts(), ignore_shutter_state=True)
 
     def countsUpdated(self, counts, ignore_shutter_state=False):
-        #if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
-        #  self.emitValueChanged(0)
-        #  return
+        if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
+          self.emitValueChanged(0)
+          return
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 

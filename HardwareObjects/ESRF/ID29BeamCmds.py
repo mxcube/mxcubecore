@@ -49,7 +49,8 @@ class ID29BeamCmds(HardwareObject):
     def init(self):
         controller = self.getObjectByRole("controller")
         controller.detcover.set_in()
-        self.centrebeam = ControllerCommand("Centre beam", controller.diffractometer.centrebeam)
+        ##self.centrebeam = ControllerCommand("Centre beam", controller.diffractometer.centrebeam)
+        self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam_exec)
         self.quick_realign = ControllerCommand("Quick realign", controller.quick_realign)
         self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 

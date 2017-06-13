@@ -263,15 +263,25 @@ class Sample(TaskNode):
         return display_name
 
     def init_from_sc_sample(self, sc_sample):
-        #self.loc_str = ":".join(map(str,sc_sample[-1]))
-        #self.location = sc_sample[-1]
-        #self.set_name(self.loc_str)
-        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
-        self.location = (sc_sample[1], sc_sample[2])
+        self.loc_str = ":".join(map(str,sc_sample[-1]))
+        self.location = sc_sample[-1]
+        self.set_name(self.loc_str)
         if sc_sample[3] != "":
             self.set_name(sc_sample[3])
         else:
             self.set_name(self.loc_str)
+
+
+    def init_from_plate_sample(self, plate_sample):
+        """
+        location : col, row, index
+        """
+        self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
+                                    str(plate_sample[2]),
+                                    str(plate_sample[3]))
+        self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
+        self.location_plate = plate_sample[5]
+        self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
@@ -366,6 +376,7 @@ class Sample(TaskNode):
 
         return processing_params
 
+
 class Basket(TaskNode):
     """
     Class represents a basket in the tree. It has not task assigned.
@@ -385,26 +396,25 @@ class Basket(TaskNode):
     def init_from_sc_basket(self, sc_basket, name="Puck"):
         self._basket_object = sc_basket[1] #self.is_present = sc_basket[2]
 
-        if self._basket_object is None:
+        if name == 'Row' or self._basket_object is None:
             self.location = sc_basket[0]
             if name == "Row":
                 self.name = "%s %s" % (name, chr(65 + self.location))
             else:
                 self.name = "%s %d" % (name, self.location)
         else:
-            self.location = sc_basket[0]
-            if name == "Row":
-                self.name = "%s %s" % (name, chr(65 + self.location))
+            self.location = self._basket_object.getCoords()
+            if len(self.location) == 2:
+                self.name = "Cell %d, puck %d" % self.location
+            elif len(self.location) == 1:
+                self.name = "%s %s" % (name, self.location[0])
             else:
-                self.name = "%s %d" % (name, self.location)
-            #if len(self.location) == 2:
-            #    self.name = "Cell %d, puck %d" % self.location
+                self.name = "%s %s" % (name, self.location)
 
     def get_name(self):
         return self.name
 
     def get_location(self):
-        #return int(self.location[0])
         return self.location 
 
     def get_is_present(self):
@@ -418,9 +428,6 @@ class Basket(TaskNode):
 
     def get_sample_list(self):
         return self.sample_list
- 
-    #def set_is_present(self, present):
-    #    self.is_present = present
 
 
 class DataCollection(TaskNode):
@@ -913,7 +920,7 @@ class EnergyScanResult(object):
 
 class XRFSpectrum(TaskNode):
     """
-    Descript. : Class represents XRF spectrum task
+    Class represents XRF spectrum task
     """ 
     def __init__(self, sample=None, path_template=None, cpos=None):
         TaskNode.__init__(self)
@@ -1156,9 +1163,6 @@ class PathTemplate(object):
                 "num_files" : self.num_files}
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])
@@ -1196,9 +1200,11 @@ class PathTemplate(object):
 
     def get_archive_directory(self):
         """
-        Descript. : Returns the archive directory, for longer term storage.
-                    synchotron_name is set via static function calles from session hwobj
-        Return    : Archive directory. :rtype: str
+        Returns the archive directory, for longer term storage. synchotron_name
+        is set via static function calles from session hwobj
+
+        :rtype: str
+        :returns: Archive directory
         """
         folders = self.directory.split('/')
         if PathTemplate.synchotron_name == "MAXLAB":
@@ -1228,18 +1234,6 @@ class PathTemplate(object):
 
         return archive_directory
 
-    def get_files_to_be_written(self):
-        file_locations = []
-        file_name_template = self.get_image_file_name()
-
-        for i in range(self.start_num,
-                       self.start_num + self.num_files):
-
-            file_locations.append(os.path.join(self.directory,
-                                               file_name_template % i))
-
-        return file_locations
-
     def __eq__(self, path_template):
         result = False
         lh_dir = os.path.normpath(self.directory)
@@ -1264,7 +1258,6 @@ class PathTemplate(object):
     
         return result
 
-
     def get_files_to_be_written(self):
         file_locations = []
         file_name_template = self.get_image_file_name()
@@ -1276,7 +1269,6 @@ class PathTemplate(object):
                                                file_name_template % i))
 
         return file_locations
-
 
     def is_part_of(self, path_template):
         result = False
@@ -1329,12 +1321,6 @@ class AcquisitionParameters(object):
         self.in_interleave = None
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        if key == "centred_position": 
-        #            self.centred_position.set_from_dict(value)     
-        #        else:
-        #            setattr(self, key, value)
         for item in params_dict.items():
             if hasattr(self, item[0]):
                 if item[0] == "centred_position": 
@@ -1385,8 +1371,6 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            #for motor_name, position in motor_dict.iteritems():
-            #    setattr(self, motor_name, position)
             for motor_item in motor_dict.items():
                 setattr(self, motor_item[0], motor_item[1])
 
@@ -1395,10 +1379,6 @@ class CentredPosition(object):
                     [getattr(self, motor_name) for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES]))
 
     def set_from_dict(self, params_dict):
-        #for key, value in params_dict.iteritems():
-        #    if hasattr(self, key):
-        #        setattr(self, key, value)   
-
         for dict_item in params_dict.items():
             if hasattr(self, dict_item[0]):
                 setattr(self, dict_item[0], dict_item[1])

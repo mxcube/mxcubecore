@@ -5,7 +5,7 @@ import time
 import logging
 import math
 from calc_flux import *
-
+import sys
 
 class ID29PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
@@ -54,7 +54,8 @@ class ID29PhotonFlux(Equipment):
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
                 except:
-                    aperture_coef = 1.
+                    sys.excepthook(*sys.exc_info())
+                    aperture_coef = 1
             counts = math.fabs(counts * calib[0] * aperture_coef)
         return counts
 

@@ -9,33 +9,42 @@ class RobodiffFShut(Equipment):
 
     def init(self):
         self.robodiff = self.getObjectByRole("robot")
-        self.connect(self.robodiff.controller.fshut, "status", self.valueChanged)
-        self.robodiff.controller.fshut.musst.putget("#ABORT")
-        self.wagoState = "unknown"
+        self.connect(self.robodiff.controller.fshut, "state", self.valueChanged)
+        self.actuatorState = "unknown"
 
     def connectNotify(self, signal):
-        if signal=='wagoStateChanged':
-           self.getWagoState(read=True)
+        if signal=='actuatorStateChanged':
+           self.getActuatorState(read=True)
 
     def valueChanged(self, value): 
         if value == "CLOSED":
-            self.wagoState = 'out'
+            self.actuatorState = 'out'
         elif value == "OPENED":
-            self.wagoState = 'in'
+            self.actuatorState = 'in'
         else:
-            self.wagoState = "unknown"
-        self.emit('wagoStateChanged', (self.wagoState, ))
+            self.actuatorState = "unknown"
+        self.emit('actuatorStateChanged', (self.actuatorState, ))
+        self.emit('actuatorStateChanged', (self.actuatorState, ))
+
+    def getWagoState(self, *args):
+        return self.getActuatorState(self, *args)
         
-    def getWagoState(self, read=False):
+    def getActuatorState(self, read=False):
         if read:
           self.valueChanged(self.robodiff.controller.fshut.state())
-        return self.wagoState 
+        return self.actuatorState 
 
-    def wagoIn(self):
+    def actuatorIn(self, wait=True, timeout=None):
         self.robodiff.controller.fshut.open()
-        self.getWagoState(read=True)
-           
-    def wagoOut(self):  
+        self.getActuatorState(read=True)
+        
+    def wagoIn(self):
+        return self.actuatorIn()
+       
+    def actuatorOut(self, wait=True, timeout=None):
         self.robodiff.controller.fshut.close()
-        self.getWagoState(read=True)
+        self.getActuatorState(read=True)
+
+    def wagoOut(self):
+        return self.actuatorOut()
            
