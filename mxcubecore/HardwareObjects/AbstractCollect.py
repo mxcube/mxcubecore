@@ -30,6 +30,7 @@ import errno
 import abc
 import collections
 import gevent
+import gevent.event
 import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.TaskUtils import *
 

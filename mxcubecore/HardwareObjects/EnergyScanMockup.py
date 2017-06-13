@@ -1,6 +1,7 @@
 import os
 import time
 import gevent
+import gevent.event
 import logging
 
 from matplotlib.figure import Figure
