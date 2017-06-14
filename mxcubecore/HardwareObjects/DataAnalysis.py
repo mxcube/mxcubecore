@@ -1,0 +1,267 @@
+import os
+import logging
+import gevent.event
+import threading
+import subprocess
+import AbstractDataAnalysis
+
+import queue_model_enumerables_v1 as qme
+
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareRepository import HardwareRepository
+
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
+from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+
+from XSDataCommon import XSDataAngle
+from XSDataCommon import XSDataBoolean
+from XSDataCommon import XSDataDouble
+from XSDataCommon import XSDataFile
+from XSDataCommon import XSDataFlux
+from XSDataCommon import XSDataLength
+from XSDataCommon import XSDataTime
+from XSDataCommon import XSDataWavelength
+from XSDataCommon import XSDataInteger
+from XSDataCommon import XSDataSize
+from XSDataCommon import XSDataString
+
+#from edna_test_data import EDNA_DEFAULT_INPUT
+#from edna_test_data import EDNA_TEST_DATA
+
+
+class EdnaProcessingThread(threading.Thread):
+    def __init__(self, edna_cmd, edna_input_file, edna_output_file, base_dir):
+        threading.Thread.__init__(self)
+
+        self.edna_cmd = edna_cmd
+        self.edna_input_file = edna_input_file
+        self.edna_output_file = edna_output_file
+        self.base_dir = base_dir
+
+    def start(self):
+        self.edna_processing_watcher = gevent.get_hub().loop.async()
+        self.edna_processing_done = gevent.event.Event()
+        threading.Thread.start(self)
+        return self.edna_processing_done
+
+    def run(self):
+        self.edna_processing_watcher.start(self.edna_processing_done.set)
+        args = (self.edna_cmd, self.edna_input_file,
+                self.edna_output_file, self.base_dir)
+        subprocess.call("%s %s %s %s" % args, shell=True)
+        self.edna_processing_watcher.send()
+
+
+class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+        self.collect_obj = None
+        self.result = None
+        self.processing_done_event = gevent.event.Event()
+
+    def init(self):
+        self.collect_obj = self.getObjectByRole("collect")
+        self.start_edna_command = self.getProperty("edna_command")
+        self.edna_default_file = self.getProperty("edna_default_file")
+        hwr_dir = HardwareRepository().getHardwareRepositoryPath()
+
+        with open(os.path.join(hwr_dir, self.edna_default_file), 'r') as f:
+            self.edna_default_input = ''.join(f.readlines())
+
+    def get_html_report(self, edna_result):
+        html_report = None
+
+        try:
+            html_report = str(edna_result.getHtmlPage().getPath().getValue())
+        except AttributeError:
+            pass
+
+        return html_report
+
+    def execute_command(self, command_name, *args, **kwargs):
+        wait = kwargs.get("wait", True)
+        cmd_obj = self.getCommandObject(command_name)
+        return cmd_obj(*args, wait=wait)
+
+    def get_beam_size(self):
+        beam_info = self.getObjectByRole("beam")
+        return beam_info.get_beam_size()
+
+    def modify_strategy_option(self, diff_plan, strategy_option):
+        """Method for modifying the diffraction plan 'strategyOption' entry"""
+        if diff_plan.getStrategyOption() is None:
+            new_strategy_option = strategy_option
+        else:
+            new_strategy_option = diff_plan.getStrategyOption().getValue() + ' ' + strategy_option
+        diff_plan.setStrategyOption(XSDataString(new_strategy_option))
+
+
+    def from_params(self, data_collection, char_params):
+        edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
+
+        if data_collection.id:
+            edna_input.setDataCollectionId(XSDataInteger(data_collection.id))
+
+        #Beam object
+        beam = edna_input.getExperimentalCondition().getBeam()
+
+        try:
+            transmission = self.collect_obj.get_transmission()
+            beam.setTransmission(XSDataDouble(transmission))
+        except AttributeError:
+            pass
+
+        try:
+            wavelength = self.collect_obj.get_wavelength()
+            beam.setWavelength(XSDataWavelength(wavelength))
+        except AttributeError:
+            pass
+
+        try:
+            beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+        except AttributeError:
+            pass
+
+        try:
+            beamsize = self.get_beam_size()
+            if not None in beamsize:
+                beam.setSize(XSDataSize(x=XSDataLength(float(beamsize[0])),
+                                        y=XSDataLength(float(beamsize[1]))))
+        except AttributeError:
+            pass
+
+        #Optimization parameters
+        diff_plan = edna_input.getDiffractionPlan()
+
+        aimed_i_sigma = XSDataDouble(char_params.aimed_i_sigma)
+        aimed_completness = XSDataDouble(char_params.aimed_completness)
+        aimed_multiplicity = XSDataDouble(char_params.aimed_multiplicity)
+        aimed_resolution = XSDataDouble(char_params.aimed_resolution)
+
+        complexity = char_params.strategy_complexity
+        complexity = XSDataString(qme.STRATEGY_COMPLEXITY[complexity])
+
+        permitted_phi_start = XSDataAngle(char_params.permitted_phi_start)
+        _range = char_params.permitted_phi_end - char_params.permitted_phi_start
+        rotation_range = XSDataAngle(_range)
+
+        diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
+        diff_plan.setAimedCompleteness(aimed_completness)
+
+        if char_params.use_aimed_multiplicity:
+            diff_plan.setAimedMultiplicity(aimed_multiplicity)
+
+        if char_params.use_aimed_resolution:
+            diff_plan.setAimedResolution(aimed_resolution)
+
+        diff_plan.setComplexity(complexity)
+
+        if char_params.use_permitted_rotation:
+            diff_plan.setUserDefinedRotationStart(permitted_phi_start)
+            diff_plan.setUserDefinedRotationRange(rotation_range)
+
+        #Vertical crystal dimension
+        sample = edna_input.getSample()
+        sample.getSize().setY(XSDataLength(char_params.max_crystal_vdim))
+        sample.getSize().setZ(XSDataLength(char_params.min_crystal_vdim))
+
+        #Radiation damage model
+        sample.setSusceptibility(XSDataDouble(char_params.rad_suscept))
+        sample.setChemicalComposition(None)
+        sample.setRadiationDamageModelBeta(XSDataDouble(char_params.beta / 1e6))
+        sample.setRadiationDamageModelGamma(XSDataDouble(char_params.gamma / 1e6))
+
+        diff_plan.setForcedSpaceGroup(XSDataString(char_params.space_group))
+
+        # Characterisation type - Routine DC
+        if char_params.use_min_dose:
+            pass
+
+        if char_params.use_min_time:
+            time = XSDataTime(char_params.min_time)
+            diff_plan.setMaxExposureTimePerDataCollection(time)
+
+        # Account for radiation damage
+        if char_params.induce_burn:
+            self.modify_strategy_option(diff_plan, "-DamPar")
+
+        # Characterisation type - SAD
+        if char_params.opt_sad:
+          if char_params.auto_res: 
+            diff_plan.setAnomalousData(XSDataBoolean(True))
+          else:
+            diff_plan.setAnomalousData(XSDataBoolean(False))
+            self.modify_strategy_option(diff_plan, "-SAD yes")
+            diff_plan.setAimedResolution(XSDataDouble(char_params.sad_res))
+        else:
+            diff_plan.setAnomalousData(XSDataBoolean(False))
+
+        #Data set
+        data_set = XSDataMXCuBEDataSet()
+        acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
+        path_template = data_collection.acquisitions[0].path_template
+        path_str = os.path.join(path_template.directory,
+                                path_template.get_image_file_name())
+
+        for img_num in range(int(acquisition_parameters.num_images)):
+            image_file = XSDataFile()
+            path = XSDataString()
+            path.setValue(path_str % (img_num + 1))
+            image_file.setPath(path)
+            data_set.addImageFile(image_file)
+
+        edna_input.addDataSet(data_set)
+        edna_input.process_directory = path_template.process_directory
+
+        return edna_input
+
+    def characterise(self, edna_input):
+
+        # if there is no data collection id, the id will be a random number
+        # this is to give a unique number to the EDNA input and result files;
+        # something more clever might be done to give a more significant
+        # name, if there is no dc id.
+        try:
+            dc_id = edna_input.getDataCollectionId().getValue()
+        except:
+            dc_id = id(edna_input)
+
+        for dataSet in edna_input.dataSet:
+            for imageFile in dataSet.imageFile:
+                firstImage = imageFile.path.value
+                break
+
+        listImageName = os.path.basename(firstImage).split("_")
+        prefix = "_".join(listImageName[:-2])
+        run_number = listImageName[-2]
+        i = 1
+
+        if hasattr(edna_input, "process_directory"):
+            edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
+            while os.path.exists(edna_directory):
+                i += 1
+                edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
+            os.makedirs(edna_directory)
+        else:
+            raise RuntimeError("No process directory specified in edna_input")
+
+        edna_input_file = os.path.join(edna_directory, "EDNAInput_%s.xml" % dc_id)
+        edna_input.exportToFile(edna_input_file)
+        edna_results_file = os.path.join(edna_directory, "EDNAOutput_%s.xml" % dc_id)
+
+        msg = "Starting EDNA using xml file %r", edna_input_file
+        logging.getLogger("queue_exec").info(msg)
+
+        edna_processing_thread = \
+          EdnaProcessingThread(self.start_edna_command, edna_input_file,
+                               edna_results_file, edna_directory)
+
+        self.processing_done_event = edna_processing_thread.start()
+        self.processing_done_event.wait()
+        self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
+
+        return self.result
+
+    def is_running(self):
+        return not self.processing_done_event.is_set()
