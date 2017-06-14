@@ -1,0 +1,6 @@
+<equipment class="Qt4_DiffractometerMockup">
+  <beam_info>/beam-info</beam_info>
+  <object href="/Qt4_video-mockup" role="camera"/>
+  <zoomcentre>{"x":340,"y":250}</zoomcentre>
+  <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference>
+</equipment>

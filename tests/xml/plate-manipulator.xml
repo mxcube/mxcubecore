@@ -1,0 +1,14 @@
+<equipment class = "PlateManipulator">
+   <!-- <exporter_address>ActualAddress:9001</exporter_address>
+   <command type="exporter" name="startMovePlateToLocation">startMovePlateToLocation</command>
+   <channel type="exporter" name="PlateLocation">PlateLocation</channel>   
+   <channel type="exporter" name="State">State</channel>
+   <channel type="exporter" name="CurrentPhase">CurrentPhase</channel> -->
+ 
+
+   <numRows>8</numRows>
+   <numCols>12</numCols>
+   <numDrops>3</numDrops>
+
+   <referencePosX>0.65</referencePosX>
+</equipment>

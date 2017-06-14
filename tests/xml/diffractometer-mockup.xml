@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<equipment class="DiffractometerMockup">
+  <beam_info>/beam-info-mockup</beam_info>
+  <object href="/diff-phiz" role="phiz"/>
+  <object href="/diff-kappa" role="kappa"/>
+  <object href="/diff-kappaphi" role="kappa_phi"/>
+  <object href="/mockup_camera" role="camera"/>
+  <zoomcentre>{"x":340,"y":250}</zoomcentre>
+  <omega_reference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omega_reference> 
+</equipment>

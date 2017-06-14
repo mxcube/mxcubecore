@@ -1,0 +1,16 @@
+<object class="MultiCollectMockup">
+  <object href="/transmission-mockup" role="transmission"/>
+  <object href="/diffractometer-mockup" role="diffractometer"/>
+  <object href="/sc-mockup" role="sample_changer"/>
+  <object href="/resolution-mockup" role="resolution"/>
+  <object href="/energy-mockup" role="energy"/>
+  <object href="/lims-client-mockup" role="dbserver"/>
+  <directory_prefix>mockup</directory_prefix>
+
+  <auto_processing>
+    <program>
+      <executable>none_present_executable</executable>
+      <event>after</event>
+    </program>
+  </auto_processing>
+</object>
