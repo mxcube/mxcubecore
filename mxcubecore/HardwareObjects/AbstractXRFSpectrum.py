@@ -15,6 +15,7 @@ import os
 import logging
 import time
 import gevent
+import gevent.event
 import numpy
 import abc
 from HardwareRepository.TaskUtils import cleanup	
