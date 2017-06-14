@@ -1,0 +1,33 @@
+<equipment class = "sample_changer.Cats90">
+  <username>Cats</username>
+  <tangoname>bl141/cats/1</tangoname>    
+  <!-- specify the number of lids here to support different models-->
+  <no_of_lids>3</no_of_lids>
+ 
+  <channel type="tango" name="_chnState" polling="events">State</channel>
+  
+  <command type="tango" name="_cmdAbort">abort</command>
+
+  <channel type="tango" name="_chnBasket1State" polling="events">di_Cassette1Presence</channel>
+  <channel type="tango" name="_chnBasket2State" polling="events">di_Cassette2Presence</channel>
+  <channel type="tango" name="_chnBasket3State" polling="events">di_Cassette3Presence</channel>
+  <channel type="tango" name="_chnBasket4State" polling="events">di_Cassette4Presence</channel>
+  <channel type="tango" name="_chnBasket5State" polling="events">di_Cassette5Presence</channel>
+  <channel type="tango" name="_chnBasket6State" polling="events">di_Cassette6Presence</channel>
+  <channel type="tango" name="_chnBasket7State" polling="events">di_Cassette7Presence</channel>
+  <channel type="tango" name="_chnBasket8State" polling="events">di_Cassette8Presence</channel>
+  <channel type="tango" name="_chnBasket9State" polling="events">di_Cassette9Presence</channel>
+
+  <channel type="tango" name="_chnTotalLidState" polling="events">di_AllLidsClosed</channel>
+
+  <command type="tango" name="_cmdLoad">put_bcrd</command>
+  <command type="tango" name="_cmdUnload">get</command>
+  <command type="tango" name="_cmdChainedLoad">getput_bcrd</command>
+  <channel type="tango" name="_chnNumLoadedSample" polling="events">NumSampleOnDiff</channel>
+  <channel type="tango" name="_chnLidLoadedSample" polling="events">LidSampleOnDiff</channel>
+  <command type="tango" name="_cmdScanSample">barcode</command>
+  <channel type="tango" name="_chnSampleBarcode" polling="events">Barcode</channel>
+  <channel type="tango" name="_chnPathRunning" polling="events">PathRunning</channel>
+  <channel type="tango" name="_chnSampleIsDetected" polling="events">di_PRI1_GFM</channel>
+</equipment>
+
