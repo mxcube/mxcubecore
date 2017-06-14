@@ -1,0 +1,5 @@
+<object class="BeamstopMockup">
+  <defaultBeamstopSize>1.5</defaultBeamstopSize>
+  <defaultBeamstopDistance>34.0</defaultBeamstopDistance>
+  <defaultBeamstopDirection>Y</defaultBeamstopDirection>
+</object>
