@@ -1,0 +1,11 @@
+<device class = "TransmissionMockup">
+  <username>Transmission</username>
+  <atte>
+     <label>Test 1</label>
+     <bits>1</bits>
+  </atte>
+  <atte>
+     <label>Test 2</label>
+     <bits>2</bits>
+  </atte>
+</device>
