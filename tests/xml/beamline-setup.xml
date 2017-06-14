@@ -1,0 +1,89 @@
+<!-- Example beamline setup file -->
+
+<object class="BeamlineSetup" role="BeamlineSetup">
+  <!-- Objects directly associatd with hardware -->
+  <object href="/transmission-mockup" role="transmission"/>
+  <object href="/diffractometer-mockup" role="diffractometer"/>
+  <object href="/diff-omega" role="omega_axis"/>
+  <object href="/diff-kappa" role="kappa_axis"/>
+  <object href="/diff-kappaphi" role="kappa_phi_axis"/>
+  <object href="/sc-mockup" role="sample_changer"/>    
+  <object href="/resolution-mockup" role="resolution"/>
+  <object href="/energy-mockup" role="energy"/>
+
+  <!-- Software (abstract) concepts -->
+  <object href="/shape-history" role="shape_history"/>
+  <object href="/session" role="session"/>
+  <object href="/lims-client-mockup" role="lims_client"/>
+  <object href="/data-analysis" role="data_analysis"/>
+  <!--<object href="/workflow-mockup" role="workflow"/> -->
+ 
+  <!-- Procedures and routines -->
+  <object href="/energyscan-mockup" role="energyscan"/>
+  <object href="/collect-mockup" role="collect"/>
+  <object href="/xrfscan-mockup" role="xrfscan"/>
+  <object href="/detector-mockup" role="detector"/>
+
+  <!-- Is it possible to change the beam wavelentgh.
+       Should perhaps be associated with the diffractometer -->
+  <tunable_wavelength>True</tunable_wavelength>
+
+  <!-- Disables or enables the number of passes input box, used
+  for acquisitions.-->
+  <disable_num_passes>True</disable_num_passes>
+
+  <!-- Should be moved to a detector object in the future -->
+  <detector>
+    <manufacturer>DECTRIS</manufacturer>
+    <type>pilatus</type>
+    <model>6M_F</model>
+    <px>0.172</px>
+    <py>0.172</py>
+    <cansum>yes</cansum>
+    <has_shutterless>True</has_shutterless>
+  </detector>
+
+  <!-- Default values for an acquisition -->
+  <default_acquisition_values>
+    <exposure_time>0.037</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>0.1</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>1</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_acquisition_values>
+
+  <default_helical_values>
+    <exposure_time>0.040</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>0.1</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>100</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_helical_values>
+
+  <acquisition_limit_values>
+    <osc_range>0.0001,10000</osc_range>
+    <exposure_time>0.003,6000</exposure_time>
+    <number_of_images>1,9999</number_of_images>
+  </acquisition_limit_values>
+
+  <!-- Default values for a characterization -->
+  <default_characterisation_values>
+    <exposure_time>0.037</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>1</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>1</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_characterisation_values>
+ </object>
