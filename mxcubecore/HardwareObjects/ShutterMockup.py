@@ -16,15 +16,17 @@ class ShutterMockup(Device):
     def __init__(self, name):
         Device.__init__(self, name)
 
-        self.shutterStateValue = 0
+        self.shutterStateValue = 3
         self.getWagoState = self.getShutterState
+        self.state_value_str = ShutterMockup.shutterState[self.shutterStateValue]
 
     def init(self):
         self.setIsReady(True)
         
-    def valueChanged(self, deviceName, value):
+    def valueChanged(self, value):
         self.shutterStateValue = value
-        self.emit('shutterStateChanged', (TempShutter.shutterState[self.shutterStateValue], ))
+        self.state_value_str = ShutterMockup.shutterState[self.shutterStateValue]
+        self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))
        
     def getShutterState(self):
         return ShutterMockup.shutterState[self.shutterStateValue] 
@@ -36,9 +38,7 @@ class ShutterMockup(Device):
         return True
 
     def openShutter(self):
-        self.shutterStateValue = 4
-        self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))
+        self.valueChanged(4)
 
     def closeShutter(self):
-        self.shutterStateValue = 3
-        self.emit('shutterStateChanged', (ShutterMockup.shutterState[self.shutterStateValue], ))
+        self.valueChanged(3)
