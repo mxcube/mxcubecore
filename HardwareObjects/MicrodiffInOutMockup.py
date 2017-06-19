@@ -26,8 +26,8 @@ class MicrodiffInOutMockup(Device):
 
 
     def init(self):
-        self.cmdname =  self.getProperty("cmd_name")
-        self.username =  self.getProperty("username")
+        self.cmdname = self.getProperty("cmd_name")
+        self.username = self.getProperty("username")
 
         self.states = {True:"in", False:"out"}
         self.state_attr = False
@@ -45,7 +45,7 @@ class MicrodiffInOutMockup(Device):
         except:
             pass
 
-        self.moves =  dict((self.states[k], k) for k in self.states)
+        self.moves = dict((self.states[k], k) for k in self.states)
 
     def connectNotify(self, signal):
         if signal=='actuatorStateChanged':
