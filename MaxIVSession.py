@@ -69,8 +69,7 @@ class MaxIVSession(Session):
 
         logging.getLogger("HWR").info("[SDM] Directories created.")
 
-    def is_inhouse(self, user=None, proposal_number=None):
->>>>>>> b90c265... sdm related fixes
+    def is_inhouse(self, user, proposal_number=None):
         """
         Determines if a given user is considered to be inhouse.
 
