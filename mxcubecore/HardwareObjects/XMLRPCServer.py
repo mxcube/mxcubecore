@@ -363,8 +363,11 @@ class XMLRPCServer(HardwareObject):
         self.diffractometer_hwobj.moveMotors(roles_positions_dict)
         return True
 
-    def save_snapshot(self, imgpath):
-        self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
+    def save_snapshot(self, imgpath, showScale=True):
+        if showScale:
+            self.diffractometer_hwobj.save_snapshot(imgpath)
+        else:
+            self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
         return True
 
     def save_current_pos(self):
