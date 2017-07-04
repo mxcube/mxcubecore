@@ -440,12 +440,12 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
         if len(self.interleave_items) > 1:
             interleave_num_images = task_model.interleave_num_images
-            self.interleave_task = gevent.spawn(self.execute_iterleaved,
-                                                ref_num_images, 
+            self.interleave_task = gevent.spawn(self.execute_interleaved,
+                                                ref_num_images,
                                                 interleave_num_images)
             self.interleave_task.get()
 
-    def execute_iterleaved(self, ref_num_images, interleave_num_images):
+    def execute_interleaved(self, ref_num_images, interleave_num_images):
         self.get_view().setText(1, "Interleaving...") 
         logging.getLogger("user_level_log").info("Preparing interleaved data collection")
 
