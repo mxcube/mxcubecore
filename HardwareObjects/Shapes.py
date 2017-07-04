@@ -241,6 +241,8 @@ class Shape(object):
         self.screen_coord = screen_coord
         self.selected = False
         self.refs = []
+        self.overlay_level = 1
+        self.image_ratio = 1
 
         self.add_cp_from_mp(mpos_list)
 
@@ -360,6 +362,18 @@ class Grid(Shape):
 
     def get_centred_position(self):
         return self.cp_list[0]
+
+    def get_grid_range(self):
+        return (float(self.cell_width * (self.num_cols - 1)), \
+                float(self.cell_height * (self.num_rows - 1)))
+
+    def get_num_lines(self):
+        if self.cell_count_fun == "zig-zag":
+            return self.num_rows
+        elif self.cell_count_fun == "inverse-zig-zag":
+            return self.num_cols
+        else:
+            return self.num_rows
 
     def set_id(self, id_num):
         Shape.set_id(self, id_num)
