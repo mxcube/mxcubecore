@@ -298,6 +298,59 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
+    def get_default_mesh_parameters(self, parent_key=None):
+        """
+        :returns: A AcquisitionParameters object with all default parameters.
+        """
+        default_key = "default_mesh_values"
+        if parent_key is None:
+            parent_key = default_key
+
+        acq_parameters = queue_model_objects.AcquisitionParameters()
+
+        try:
+           self[parent_key]
+        except IndexError:
+           logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
+           parent_key = default_key
+
+        img_start_num = self[parent_key].getProperty('start_image_number')
+        num_images = self[parent_key].getProperty('number_of_images')
+        osc_range = round(float(self[parent_key].getProperty('range')), 2)
+        overlap = round(float(self[parent_key].getProperty('overlap')), 2)
+        exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
+        num_passes = int(self[parent_key].getProperty('number_of_passes'))
+        shutterless = self.detector_has_shutterless()
+        try:
+            detector_mode = self.detector_hwobj.default_mode() 
+        except AttributeError:
+            detector_mode = None
+
+        acq_parameters.first_image = img_start_num
+        acq_parameters.num_images = num_images
+        acq_parameters.osc_start = self._get_omega_axis_position()
+        acq_parameters.osc_range = osc_range
+        acq_parameters.kappa = self._get_kappa_axis_position()
+        acq_parameters.kappa_phi = self._get_kappa_phi_axis_position()
+        acq_parameters.overlap = overlap
+        acq_parameters.exp_time = exp_time
+        acq_parameters.num_passes = num_passes
+        acq_parameters.resolution = self._get_resolution()
+        acq_parameters.energy = self._get_energy()
+        acq_parameters.transmission = self._get_transmission()
+
+        acq_parameters.shutterless = self._has_shutterless()
+        acq_parameters.detector_mode = self._get_roi_modes()
+
+        acq_parameters.inverse_beam = False
+        acq_parameters.take_dark_current = True
+        acq_parameters.skip_existing_images = False
+        acq_parameters.take_snapshots = True
+        acq_parameters.cell_counting = self[parent_key].getProperty('cell_counting')
+
+        return acq_parameters
+
+
     def get_acquisition_limit_values(self, parent_key = "acquisition_limit_values"):
         limits = {}
 
