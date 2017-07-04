@@ -1844,16 +1844,10 @@ class ISPyBValueFactory():
                     directory = mx_collect_dict['fileinfo']['directory']
                 except:
                     directory = ''
-                else:
-                    if 'mesh' in directory:
-                        mesh_used = True
-                    else:
-                        mesh_used = False
-
-                    if mesh_used:
-                        mx_collect_dict['experiment_type'] = 'Mesh'
-
-                group.experimentType = mx_collect_dict['experiment_type']
+                experiment_type = mx_collect_dict['experiment_type']
+                if experiment_type.lower() == "mesh":
+                    experiment_type = "Mesh"
+                group.experimentType = experiment_type
             except KeyError,diag:
                 pass
 
