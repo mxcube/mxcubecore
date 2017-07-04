@@ -163,7 +163,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
             log.debug("Collection: going to take snapshots...")
-            self.take_crystal_snapshots()
+            #self.take_crystal_snapshots()
             log.debug("Collection: snapshots taken")
 
             # prepare beamline for data acquisiion
@@ -259,7 +259,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         try:
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             self.open_detector_cover()
-            #self.open_safety_shutter()
+            self.open_safety_shutter()
             # make sure detector configuration is finished
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
@@ -470,10 +470,17 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # todo add time out? if over certain time, then stop acquisiion and
         # popup an error message
-        return  # disable temp
+        if self.safety_shutter_hwobj.getShutterState() == 'opened':
+            return 
+        timeout = 3
+        count_time=0
         self.safety_shutter_hwobj.openShutter()
-        while self.safety_shutter_hwobj.getShutterState() == 'closed':
+        while self.safety_shutter_hwobj.getShutterState() == 'closed' and count_time < timeout:
             time.sleep(0.1)
+            count_time+=0.1 
+        if self.safety_shutter_hwobj.getShutterState() == 'closed':
+            logging.getLogger("HWR").exception("Could not open the safety shutter") 
+            raise Exception("Could not open the safety shutter")
 
     def close_safety_shutter(self):
         """
@@ -684,8 +691,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
         file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
-        #self.display["file_name"] = file_parameters["filename"]
-        self.display["file_name"] = re.sub("^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"])
+        self.display["file_name1"] = file_parameters["filename"]
+        self.display["file_name2"] = re.sub("^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"])
 
         #os.path.join(file_parameters["directory"], image_file_template)
         config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
@@ -760,14 +767,16 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         if manual_mode:
             if self.detector_cover_hwobj is not None:
                self.close_detector_cover()
+            self.diffractometer_hwobj.set_phase("Transfer", wait=False)             
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
             if self.dtox_hwobj is not None:
                 self.dtox_hwobj.syncMove(800, timeout = 30)
-            self.diffractometer_hwobj.set_phase("Transfer", wait=True, timeout=200)
+           # self.diffractometer_hwobj.set_phase("Transfer", wait=True, timeout=200)
 
     def _update_image_to_display(self):
-        fname = "/mxn/groups/biomax/ctrl_soft/auto_load_img/to_display"
+        fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"
+        fname2 = "/mxn/groups/biomax/ctrl_soft/auto_load_img/to_display"
         time.sleep(self.display["delay"]+3)
         frequency = 5
         step = int(math.ceil(frequency/self.display["exp"]))
@@ -777,7 +786,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             #if self.stop_display:
             #    break
             #time.sleep(frequency)
-            os.system("echo %s, %s > %s" % (self.display["file_name"],i,fname))
+            os.system("echo %s, %s > %s" % (self.display["file_name1"],i,fname1))
+            os.system("echo %s, %s > %s" % (self.display["file_name2"],i,fname2))
             if self.stop_display:
                 break
             time.sleep(frequency)
