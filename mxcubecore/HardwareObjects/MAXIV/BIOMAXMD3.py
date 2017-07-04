@@ -96,6 +96,8 @@ class BIOMAXMD3(GenericDiffractometer):
                        'not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
                 logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
+        #self.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
+      
  
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
