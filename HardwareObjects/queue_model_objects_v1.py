@@ -1272,6 +1272,28 @@ class Crystal(object):
         self.energy_scan_result = EnergyScanResult()
 
 
+class OpticalCentring(TaskNode):
+    """Optical automatic centering with lucid"""
+
+    def __init__(self, user_confirms=False):
+        TaskNode.__init__(self)
+
+        if user_confirms:
+            self.set_name("Optical automatic centring (user confirms)")
+        else:
+            self.set_name("Optical automatic centring")
+        if user_confirms:
+            self.try_count = 3
+        else:
+            self.try_count = 1
+
+    def add_task(self, task_node):
+        pass
+
+    def get_name(self):
+        return self._name
+
+
 class CentredPosition(object):
     """
     Class that represents a centred position.
