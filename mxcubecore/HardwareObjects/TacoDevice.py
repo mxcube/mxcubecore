@@ -28,7 +28,7 @@ class TacoDevice(Device):
 
             self.device = Null()
             
-        if self.device.imported:
+        if self.device.imported == 1:
             if not self.__dc:
               self.device.tcp()
             
