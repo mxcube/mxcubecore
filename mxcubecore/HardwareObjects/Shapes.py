@@ -254,7 +254,7 @@ class Shape(object):
     def select(self):
         self.selected = True
 
-    def un_select(self):
+    def de_select(self):
         self.selected = False
 
     def update_position(self, transform):
