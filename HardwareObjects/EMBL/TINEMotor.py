@@ -193,7 +193,11 @@ class TINEMotor(Device):
             self.emit('stateChanged', (self.motorState, ))
             return self.motorState
 
-        actualState = self.chan_state.getValue()
+        if self.chan_state is not None: 
+            actualState = self.chan_state.getValue()
+        else:
+            actualState = 'ready'
+
         if type(actualState) in (list, tuple):
             actualState = actualState[0]
 
