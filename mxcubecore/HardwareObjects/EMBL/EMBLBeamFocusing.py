@@ -146,11 +146,14 @@ class EMBLBeamFocusing(HardwareObject):
                                 current focusing mode is used
         :type focus_mode_name: str
         """
+        lens_modes = []
+
         if focus_mode_name == None:
             focus_mode_name = self.active_focus_mode
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == focus_mode_name:
-                return focus_mode['lensModes']
+                lens_modes = focus_mode['lensModes']
+        return lens_modes
 
     def get_lens_combination(self, focus_mode_name=None):
         """Returns available lens combination for the given focusing mode

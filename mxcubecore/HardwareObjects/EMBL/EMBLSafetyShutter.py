@@ -145,11 +145,11 @@ class EMBLSafetyShutter(Device):
         gevent.sleep(2)
         try:
             self.cmd_open()
-            gevent.sleep(4)
-            if (not self.is_shuter_open()):
-                logging.getLogger().info("Safety shutter: Opening beam " + \
-                    "shutter a second time is taking some more time....")
-                self.cmd_open_shutter("o")
+            """
+            gevent.sleep(6)
+            if self.getShutterState() != "opened":
+                self.cmd_open()
+            """
         except:
             logging.getLogger().error('Safety shutter: unable to open shutter')
 
