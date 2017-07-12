@@ -54,6 +54,8 @@ class BIOMAXMD3(GenericDiffractometer):
         # to make it comaptible
         self.camera = self.camera_hwobj
         self.acceptCentring = self.accept_centring
+        self.image_width = self.camera.getWidth()
+        self.image_height = self.camera.getHeight()
 
         self.phi_motor_hwobj = self.motor_hwobj_dict['phi']
         self.phiz_motor_hwobj = self.motor_hwobj_dict['phiz']
@@ -111,14 +113,18 @@ class BIOMAXMD3(GenericDiffractometer):
 
         :returns: list with two floats
         """
-        return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
-        return (1/self.channel_dict["CoaxCamScaleX"].getValue(), 1/self.channel_dict["CoaxCamScaleY"].getValue())
+        zoom = self.camera_hwobj.get_image_zoom()
+        #return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
+        return (zoom/self.channel_dict["CoaxCamScaleX"].getValue(), 1/self.channel_dict["CoaxCamScaleY"].getValue())
 
     def update_zoom_calibration(self):
         """
         """
-        self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+        #self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
+        #self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+        zoom = self.camera_hwobj.get_image_zoom()
+        self.pixels_per_mm_x = zoom/self.channel_dict["CoaxCamScaleX"].getValue()
+        self.pixels_per_mm_y = zoom/self.channel_dict["CoaxCamScaleY"].getValue()
 
     def manual_centring(self):
         """
