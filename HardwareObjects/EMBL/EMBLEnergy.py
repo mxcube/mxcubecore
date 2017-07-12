@@ -40,7 +40,7 @@ class EMBLEnergy(Device):
         self.current_wav = 0
         self.moving = None
         self.default_en = 0
-        self.limits = [None, None]
+        self.en_lims = [None, None]
         self.undulator_gaps = []
         self.ctrl_bytes = None
         self.bragg_break_status = None
@@ -59,11 +59,6 @@ class EMBLEnergy(Device):
     def init(self):
         self.moving = False
         self.ready_event = gevent.event.Event()
-
-        try:
-            self.limits = eval(self.getProperty("staticLimits"))
-        except:
-            self.limits = [None, None]
 
         self.cmd_set_energy = \
              self.getCommandObject('cmdSetEnergy')
@@ -113,6 +108,10 @@ class EMBLEnergy(Device):
         except:
             logging.getLogger("HWR").warning('Energy: no default energy defined')
 
+        try:
+            self.en_lims = eval(self.getProperty("staticLimits"))
+        except:
+            self.en_lims = [None, None]
         self.ctrl_bytes = eval(self.getProperty("ctrlBytes"))
 
         self.get_energy_limits = self.getEnergyLimits
@@ -157,49 +156,19 @@ class EMBLEnergy(Device):
         if (self.chan_limit_low is not None and \
             self.chan_limit_high is not None):
             try:
-                self.limits[0] = self.chan_limit_low.getValue()
-                self.limits[1] = self.chan_limit_high.getValue()
+                self.en_lims[0] = self.chan_limit_low.getValue()
+                self.en_lims[1] = self.chan_limit_high.getValue()
             except:
                 logging.getLogger("HWR").exception("Energy: could not read energy limits")
-        return self.limits
+        return self.en_lims
 
     def getWavelengthLimits(self):
         """Returns wavelength limits as list of two floats"""
         lims = None
-        self.limits = self.getEnergyLimits()
-        if self.limits is not None:
-            lims = (12.3984 / self.limits[1], 12.3984 / self.en_lims[0])
+        self.en_lims = self.getEnergyLimits()
+        if self.en_lims is not None:
+            lims = (12.3984 / self.en_lims[1], 12.3984 / self.en_lims[0])
         return lims
-
-    def startMoveEnergy(self, value, wait=True):
-        """Starts actual energy move"""
-        try:
-            value = float(value)
-        except (TypeError, ValueError), diag:
-            logging.getLogger('GUI').error(\
-                  "Energy: invalid energy (%s)" % value)
-            return False
-
-        #current_en = self.getCurrentEnergy()
-        """
-        if current_en is not None:
-            if math.fabs(value - current_en) < 0.001:
-                self.moveEnergyCmdFinished(True)
-        """
-        if self.check_limits(value) is False:
-            return False
-        self.move_energy_started()
-        def change_energy():
-            try:
-                self.move_energy(value, wait=True)
-            except:
-                self.move_energy_failed()
-            #else:
-            #    self.moveEnergyCmdFinished(True)
-        if wait:
-            change_energy()
-        else:
-            gevent.spawn(change_energy)
 
     def move_energy_started(self):
         self.emit('moveEnergyStarted', ())
@@ -219,7 +188,7 @@ class EMBLEnergy(Device):
     def check_limits(self, value):
         """Checks given value if it is within limits"""
         logging.getLogger("HWR").info("Checking the move limits")
-        if value >= self.limits[0] and value <= self.en_lims[1]:
+        if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True
         logging.getLogger("GUI").info("Requested value is out of limits")
@@ -227,7 +196,7 @@ class EMBLEnergy(Device):
 
     def start_move_wavelength(self, value, wait=True):
         logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
-        return self.start_move_energy(12.3984/value, wait)
+        return self.move_energy(12.3984/value, wait)
         #return self.startMoveEnergy(value, wait)
 
     def cancel_move_energy(self):
@@ -236,13 +205,15 @@ class EMBLEnergy(Device):
 
     def move_energy(self, energy, wait=True):
         """In our case we set energy in keV"""
+        #gevent.spawn(self.move_energy_task(energy))
+        self.move_energy_task(energy)
+ 
+    def move_energy_task(self, energy):
         current_en = self.getCurrentEnergy()
         pos = abs(current_en - energy)
         if pos < 0.001:
             self.emit('energyStateChanged', ('ready', ))
         else:
-            logging.getLogger('GUI').info(\
-                "Moving energy to %.3f", energy)
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
                     #p13 63, p14 15
@@ -256,6 +227,7 @@ class EMBLEnergy(Device):
 
             if self.cmd_set_energy:
                 logging.getLogger('GUI').info("Moving energy to %.3f", energy)
+                self.emit('statusInfoChanged', "Moving energy to %.2f keV" % energy)
                 self.cmd_set_energy(energy)
             else:
                 #Mockup mode
@@ -277,8 +249,8 @@ class EMBLEnergy(Device):
                 self.emit('valueChanged', (self.current_energy, ))
 
     def energy_limits_changed(self, limits):
-        self.limits = self.getEnergyLimits()
-        self.emit('energyLimitsChanged', (self.limits,))
+        limits = self.getEnergyLimits()
+        self.emit('energyLimitsChanged', (limits,))
 
     def energy_state_changed(self, state):
         state = int(state[0])
@@ -287,16 +259,13 @@ class EMBLEnergy(Device):
                 self.set_break_bragg()
             self.move_energy_finished(0)
             self.emit('stateChanged', "ready")
+            self.emit('statusInfoChanged', "")
         elif state == 1:
             self.move_energy_started()
             self.emit('stateChanged', "busy")
    
     def bragg_break_status_changed(self, status):
         self.bragg_break_status = status
-        if status == 0:
-            self.emit('statusInfoChanged', "Bragg brake set")
-        if status == 1:
-            self.emit('statusInfoChanged', "Bragg brake released")
 
     def get_value(self):
         return self.getCurrentEnergy()
@@ -304,12 +273,6 @@ class EMBLEnergy(Device):
     def update_values(self):
         self.emit('energyChanged', (self.current_energy, self.current_wav))
         self.emit('valueChanged', (self.current_energy, ))
-        self.emit('energyLimitsChanged', self.limits)
-
-        if self.bragg_break_status == 0:
-            self.emit('statusInfoChanged', "Bragg brake set")
-        if self.bragg_break_status == 1:
-            self.emit('statusInfoChanged', "Bragg brake released")
 
     def undulator_gaps_changed(self, value):
         if type(value) in (list, tuple):
@@ -324,28 +287,23 @@ class EMBLEnergy(Device):
 
     def set_break_bragg(self):
         logging.getLogger('GUI').info("Setting bragg brake...")
-        self.emit('statusInfoChanged', "Setting bragg brake...")
+        self.emit('statusInfoChanged', "Setting Bragg break...")
         self.cmd_set_break_bragg(1)
-        sleep(5)
-        with gevent.Timeout(15, Exception("Timeout waiting for break set")):
-            while self.chan_status_bragg_break.getValue() != 0:
-               gevent.sleep(0.1)
-        #TODO status changes 0 -> 1 -> 0
-        # so we wait again. this should be fixed in energy server or do some workaround here
-        sleep(5) 
+        sleep(2)
         if self.chan_status_bragg_break is not None:
             with gevent.Timeout(10, Exception("Timeout waiting for break set")):
                 while self.bragg_break_status != 0:
                    sleep(0.01)
         else:
             sleep(10)
+        self.emit('statusInfoChanged', "Bragg break set")
         logging.getLogger('GUI').info("Bragg brake set")
 
     def release_break_bragg(self):
         logging.getLogger('GUI').info("Releasing bragg brake...")
-        self.emit('statusInfoChanged', "Releasing bragg brake...")
+        self.emit('statusInfoChanged', "Releasing Bragg break...")
         self.cmd_release_break_bragg(1)
-        sleep(2)
+        sleep(1)
         if self.chan_status_bragg_break is not None:
             with gevent.Timeout(10, Exception("Timeout waiting for break release")):
                 while self.bragg_break_status != 1:
@@ -353,3 +311,4 @@ class EMBLEnergy(Device):
         else:
             sleep(10)
         logging.getLogger('GUI').info("Bragg brake released")
+        self.emit('statusInfoChanged', "Bragg break released")    

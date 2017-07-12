@@ -58,6 +58,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.omega_reference_motor = None
         self.centring_hwobj = None
         self.minikappa_correction_hwobj = None
+        self.detector_distance_motor_hwobj = None
 
         # Channels and commands -----------------------------------------------
         self.chan_calib_x = None
@@ -112,6 +113,7 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         self.centring_hwobj = self.getObjectByRole('centring')
         self.minikappa_correction_hwobj = self.getObjectByRole('minikappa_correction')
+        self.detector_distance_motor_hwobj = self.getObjectByRole('detector_distance_motor')
 
         self.zoom_motor_hwobj = self.getObjectByRole('zoom')
         self.connect(self.zoom_motor_hwobj,
@@ -149,13 +151,13 @@ class EMBLMiniDiff(GenericDiffractometer):
                      'positionChanged',
                      self.omega_reference_motor_moved)
 
-        self.use_sc = self.getProperty("use_sample_changer")
+        #self.use_sc = self.getProperty("use_sample_changer")
   
     def use_sample_changer(self):
         """
         Description:
         """
-        return self.use_sc
+        return not self.in_plate_mode() 
 
     def state_changed(self, state):
         self.current_state = state
@@ -273,9 +275,29 @@ class EMBLMiniDiff(GenericDiffractometer):
                                               self.pixels_per_mm_y),))
 
     def set_phase(self, phase, timeout=None):
+        """Sets diffractometer to the selected phase.
+           In the plate mode before going to or away from
+           Transfer or Beam location phase if needed then detector
+           is moved to the safe distance to avoid collision.
         """
-        Description:
-        """
+        logging.getLogger("user_level_log").info(
+            "Setting diffractometer to %s phase" % phase)
+        
+        if self.in_plate_mode() and \
+           (phase in (GenericDiffractometer.PHASE_TRANSFER,
+                      GenericDiffractometer.PHASE_BEAM) or \
+            self.current_phase in (GenericDiffractometer.PHASE_TRANSFER,
+                                   GenericDiffractometer.PHASE_BEAM)):
+            detector_distance = self.detector_distance_motor_hwobj.getPosition()
+            logging.getLogger("HWR").debug(
+                "Diffractometer current phase: %s " % self.current_phase + \
+                "selected phase: %s" % phase + \
+                "detector distance: %d mm" % detector_distance)
+            if detector_distance < 200:
+                logging.getLogger("user_level_log").info(
+                    "Moving detector to safe distance")
+                self.detector_distance_motor_hwobj.move(200, wait=True)
+
         if timeout:
             self.ready_event.clear()
             set_phase_task = gevent.spawn(self.execute_server_task,
@@ -361,6 +383,10 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict['phi'].move(dynamic_limits[0] + 0.5)
                 elif click == 1:
                     self.motor_hwobj_dict['phi'].move(dynamic_limits[1] - 0.5)
+                
+                #elif click == 2:
+                #    self.motor_hwobj_dict['phi'].move((dynamic_limits[0] + \
+                #                                       dynamic_limits[1]) / 2.)
             else:
                 if click < 2:
                     self.motor_hwobj_dict['phi'].moveRelative(90)
@@ -444,7 +470,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             logging.getLogger("HWR").debug("Move to centred position disabled in BeamLocation phase.")
 
-    def move_kappa_and_phi(self, kappa, kappa_phi, wait=False):
+    def move_kappa_and_phi(self, kappa=None, kappa_phi=None, wait=False):
         """
         Descript. :
         """
@@ -454,12 +480,18 @@ class EMBLMiniDiff(GenericDiffractometer):
             logging.exception("Could not move kappa and kappa_phi")
     
     @task
-    def move_kappa_and_phi_procedure(self, new_kappa, new_kappa_phi):
+    def move_kappa_and_phi_procedure(self, new_kappa=None, new_kappa_phi=None):
         """
         Descript. :
         """ 
         kappa = self.motor_hwobj_dict['kappa'].getPosition()
         kappa_phi = self.motor_hwobj_dict['kappa_phi'].getPosition()
+
+        if new_kappa is None:
+            new_kappa = kappa
+        if new_kappa_phi is None:
+            new_kappa_phi = kappa_phi
+
         motor_pos_dict = {}
 
         if (kappa, kappa_phi ) != (new_kappa, new_kappa_phi) \
@@ -561,7 +593,7 @@ class EMBLMiniDiff(GenericDiffractometer):
     def close_kappa_task(self):
         """Close kappa task
         """
-        self.move_kappa_and_phi_procedure(0, 0)
+        self.move_kappa_and_phi_procedure(0, None)
         self.motor_hwobj_dict['kappa'].homeMotor()
         self.wait_device_ready(30)
         #self.kappa_phi_motor_hwobj.homeMotor()
@@ -625,3 +657,6 @@ class EMBLMiniDiff(GenericDiffractometer):
 
     def zoom_out(self):
         self.zoom_motor_hwobj.zoom_out()
+
+    def save_centring_positions(self):
+        self.cmd_save_centring_positions()

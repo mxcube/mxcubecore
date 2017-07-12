@@ -29,9 +29,6 @@ __category__ = "General"
 
 class EMBLDetector(AbstractDetector, HardwareObject):
     """Detector class. Contains all information about detector
-       - states are 'OK', and 'BAD'
-       - status is busy, exposing, ready, etc.
-       - physical property is RH for pilatus, P for rayonix
     """
 
     def __init__(self, name):
@@ -205,6 +202,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def get_roi_mode(self):
         """Returns current ROI mode"""
         return self.roi_mode
+
+    def get_roi_mode_name(self):
+        return self.roi_modes[self.roi_mode]
 
     def get_roi_modes(self):
         """Returns a list with available ROI modes"""
