@@ -107,6 +107,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.beam_info_hwobj = None
         self.autoprocessing_hwobj = None
         self.graphics_manager_hwobj = None
+        self.image_tracking_hwobj = None
 
     def init(self):
         """Main init method"""
@@ -121,6 +122,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
+        self.image_tracking_hwobj = self.getObjectByRole("image_tracking")
 
         undulators = []
         try:
@@ -217,6 +219,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
             osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
+            self.image_tracking_hwobj.set_image_tracking_state(True)
             self.cmd_collect_description(comment)
             self.cmd_collect_detector(self.detector_hwobj.get_collect_name())
             self.cmd_collect_directory(str(\

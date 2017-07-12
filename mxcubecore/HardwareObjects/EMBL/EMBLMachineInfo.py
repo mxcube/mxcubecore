@@ -58,8 +58,9 @@ Example Hardware Object XML file :
              'discSizeGB': 20}</limits>
 </device>
 """
-import logging
+import os
 import time
+import logging
 from gevent import spawn
 from urllib2 import urlopen
 from datetime import datetime, timedelta
@@ -137,6 +138,14 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['title'] = "Sample changer"
         self.values_list.append(temp_dict)
 
+        temp_dict = {}
+        temp_dict['value'] = "???"
+        temp_dict['in_range'] = False
+        temp_dict['bold'] = True
+        temp_dict['align'] = "left"
+        temp_dict['title'] = "Ramdisk size"
+        self.values_list.append(temp_dict)
+      
         self.temp_hum_values = [None, None]
         self.temp_hum_in_range = [None, None]
         self.temp_hum_polling = None
@@ -148,8 +157,6 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_cryojet_in = None
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
-
-        self.set_flux(2.3e12)
 
     def init(self):
         """init"""
@@ -182,8 +189,8 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_sc_dewar_low_level_alarm is not None:
             self.chan_sc_dewar_low_level_alarm.connectSignal('update',
                self.low_level_alarm_changed)
-        else:
-            self.values_list.pop(5)
+        #else:
+        #    self.values_list.pop(5)
 
         self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
         if self.chan_sc_dewar_overflow_alarm is not None:
@@ -192,6 +199,12 @@ class EMBLMachineInfo(HardwareObject):
 
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
+
+        spawn(self.update_ramdisk_size,
+              5)
+
+        if self.getProperty("defaultFlux") is not None:
+            self.set_flux(self.getProperty("defaultFlux"))
 
         self.update_values()
 
@@ -222,6 +235,9 @@ class EMBLMachineInfo(HardwareObject):
             self.values_list[0]['value'] = value
             self.values_list[0]['value_str'] = "%.1f mA" % value
             self.values_list[0]['in_range'] = value > 60.0
+            self.emit("machineCurrentChanged",
+                      self.values_list[0]['value_str'],
+                      self.values_list[0]['in_range'])
             self.update_values()
 
     def state_text_changed(self, text):
@@ -231,7 +247,7 @@ class EMBLMachineInfo(HardwareObject):
         :type text: string
         """
         self.state_text = str(text)
-        self.values_list[1]['in_range'] = text != "Fehler"
+        self.values_list[1]['in_range'] = "Betrieb" in text
         self.update_machine_state()
 
     def mach_energy_changed(self, value):
@@ -284,7 +300,7 @@ class EMBLMachineInfo(HardwareObject):
             self.values_list[5]['in_range'] = True
         self.update_values()
 
-    def set_flux(self, value, beam_info=None):
+    def set_flux(self, value, beam_info=None, transmission=None):
         """Sets flux value"""
         if beam_info:
             if beam_info['shape'] == 'ellipse':
@@ -296,18 +312,17 @@ class EMBLMachineInfo(HardwareObject):
         self.values_list[3]['in_range'] = value > 0
         self.update_values()
 
-    def get_flux(self, beam_info=None):
+    def get_flux(self, beam_info=None, transmission=None):
         """Returns flux value"""
         if beam_info:
             if beam_info['shape'] == 'ellipse':
                 flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
             else:
                 flux_area = beam_info['size_x'] * beam_info['size_y']
-
         if self.flux_area:
             return self.values_list[3]['value'] * (flux_area / self.flux_area)
         else:
-            return self.values_list[3]['value'] 
+            return self.values_list[3]['value']
 
     def update_values(self):
         """Emits list of values"""
@@ -344,6 +359,50 @@ class EMBLMachineInfo(HardwareObject):
     def	get_message(self):
         """Returns synchrotron state text"""
         return self.state_text
+ 
+    def update_ramdisk_size(self, sleep_time):
+        while True:
+            total, free, perc = self.get_ramdisk_size()
+            txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
+                                                 self.sizeof_fmt(free),
+                                                 '{0:.0%}'.format(perc))
+            self.values_list[6]['value'] = txt
+            self.values_list[6]['in_range'] = free / 2 ** 30 > 10
+            self.update_values()
+            time.sleep(sleep_time)
+
+    def get_ramdisk_size(self):
+        data_dir = "/ramdisk"
+        p = '/' + data_dir.split('/')[1]
+        data_dir = str(p)
+        if os.path.exists(data_dir):
+            st = os.statvfs(data_dir)
+            total = st.f_blocks * st.f_frsize
+            free = st.f_bavail * st.f_frsize
+            perc = st.f_bavail / float(st.f_blocks)
+   
+            return total, free, perc
+        else:
+            return None, None, None
+
+    def sizeof_fmt(self, num):
+        """Returns disk space formated in string"""
+
+        for x in ['bytes', 'KB', 'MB', 'GB']:
+            if num < 1024.0:
+                return "%3.1f%s" % (num, x)
+            num /= 1024.0
+        return "%3.1f%s" % (num, 'TB')
+
+    def sizeof_num(self, num):
+        """Returns disk space formated in exp value"""
+
+        for x in ['m', unichr(181), 'n']:
+            if num > 0.001:
+                num *= 1000.0
+                return "%0.1f%s" % (num, x)
+            num *= 1000.0
+        return "%3.1f%s" % (num, ' n')
 
 def get_external_value(addr):
     """Extracts value from the given epics address. This is very specific

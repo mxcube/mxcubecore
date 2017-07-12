@@ -113,11 +113,10 @@ class EMBLCRL(HardwareObject):
         """If CRL's in the automatic mode then change setting accoring
            to the current energy"""
         if state == self.energy_hwobj.READY and \
-           state != self.energy_state:
-
+           state != self.energy_state and \
+           self.current_mode == "Automatic":
             self.energy_value = self.energy_hwobj.getCurrentEnergy()
-            if self.current_mode == "Automatic":
-                self.set_according_to_energy()
+            self.set_according_to_energy()
         self.energy_state = state
 
     def set_according_to_energy(self):

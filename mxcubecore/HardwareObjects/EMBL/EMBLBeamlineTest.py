@@ -171,6 +171,13 @@ class EMBLBeamlineTest(HardwareObject):
         self.vertical_motor_hwobj = self.getObjectByRole("vertical_motor")
         self.horizontal_double_mode_motor_hwobj = self.getObjectByRole("horizontal_double_mode_motor")
         self.vertical_double_mode_motor_hwobj = self.getObjectByRole("vertical_double_mode_motor")
+      
+        self.chan_horizontal_pos = self.getChannelObject("chanHorPos")
+        self.chan_vertical_pos = self.getChannelObject("chanVerPos")
+        self.chan_pitch_second = self.getChannelObject("chanPitchSecond")
+
+        self.cmd_set_horizontal_pos = self.getCommandObject("cmdSetHorPos")
+        self.cmd_set_vertical_pos = self.getCommandObject("cmdSetVerPos")
 
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
@@ -254,6 +261,8 @@ class EMBLBeamlineTest(HardwareObject):
             self.getCommandObject('setIntensAcqTime')
         self.cmd_set_intens_range = \
             self.getCommandObject('setIntensRange')
+
+        self.cmd_set_qbmp_range = self.getCommandObject("cmdQBPMRangeSet")
 
     def start_test_queue(self, test_list, create_report=True):
         """Runs a list of tests
@@ -438,7 +447,7 @@ class EMBLBeamlineTest(HardwareObject):
         :param text: error message
         :type text: str
         """
-        self.emit('ppuStatusChanged', (is_error, text))
+        self.emit('ppuStatusChanged', is_error, text)
 
     def ppu_restart_all(self):
         """Restart ppu processes"""
@@ -897,18 +906,36 @@ class EMBLBeamlineTest(HardwareObject):
             unload_failed = log_arr[(log_arr[:,4] == "unload") & \
                                     (log_arr[:,7] == "Error") & \
                                     (log_arr[:,3] == user)].size / 8
-      
 
-            table_cells.append((user,
-                                str(load_total),
-                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
-                                load_failed, float(load_failed) / load_total * 100.0),
-                                str(unload_total),
-                                "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+            if load_total == 0:
+                info_row = [user,
+                            "0",
+                            "bgcolor=#FFCCCC>%d (%.1f %%)" % (0, 0)]
+            else:
+               info_row = [user,
+                           str(load_total),
+                           "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
+                            load_failed, float(load_failed) / load_total * 100.0)]
+            if unload_total == 0:
+                info_row.extend(("0",
+                                 "bgcolor=#FFCCCC>%d (%.1f %%)" % (0, 0)))
+            else:
+                info_row.extend((str(unload_total),
+                                 "bgcolor=#FFCCCC>%d (%.1f %%)" % (\
                                 unload_failed, float(unload_failed) / unload_total * 100.0)))
+
+            first_action = np.where(log_arr[:,3] == user)[0][0]
+            last_action = np.where(log_arr[:,3] == user)[0][-1]
+
+            info_row.append(log_arr[first_action][0])
+            info_row.append(log_arr[last_action][1])
+          
+            table_cells.append(info_row)
+
         result["result_details"].extend(SimpleHTML.create_table(\
              ["User", "Mounts", "bgcolor=#FFCCCC>Failed mounts",
-              "Unmounts", "bgcolor=#FFCCCC>Failed unmounts"],
+              "Unmounts", "bgcolor=#FFCCCC>Failed unmounts",
+              "Fist action", "Last action"], 
              table_cells))
 
         hour_arr = np.array([])
@@ -1052,6 +1079,7 @@ class EMBLBeamlineTest(HardwareObject):
         """
         aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj
         slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj
+        energy_value = self.bl_hwobj._get_energy()
 
         log = logging.getLogger("HWR")
         msg = "Starting beam centring"
@@ -1100,10 +1128,23 @@ class EMBLBeamlineTest(HardwareObject):
         # 2.3/6 Setting zoom 4 if unfocused and zoom 8 for focused mode
 
         if active_mode == "Collimated":
-            msg = "2.1/6 : Setting transmission to 100%"
+            msg = "2.1/6 : Adjusting transmission to energy"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (2, progress_info))
+
+            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                self.bl_hwobj.transmission_hwobj.setTransmission(25)
+                self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OFF")
+            else:
+                if energy_value < 6.9:
+                    new_transmission = 100
+                else:
+                    energy_transm = interp1d([6.9, 8., 12.7, 18.],
+                                             [100., 60., 15., 10])
+                    new_transmission = round(energy_transm(energy_value), 2)
+                
+                self.bl_hwobj.transmission_hwobj.setTransmission(new_transmission)
 
             if slits_hwobj:
                 msg = "2.2/6 : Opening slits to 1 x 1 mm"
@@ -1116,11 +1157,6 @@ class EMBLBeamlineTest(HardwareObject):
                 slits_hwobj.set_gap('Ver', 1)
             self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
 
-            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
-                self.bl_hwobj.transmission_hwobj.setTransmission(25)
-                self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OFF")
-            else:
-                self.bl_hwobj.transmission_hwobj.setTransmission(100)
         else:
             if self.bl_hwobj.session_hwobj.beamline_name == "P14":
                 msg = "2.3/6 : Setting transmission to 10%"
@@ -1163,7 +1199,9 @@ class EMBLBeamlineTest(HardwareObject):
 
         # 3.1/6 If energy < 10: set all lenses in ----------------------------
         crl_used = False
-        if self.bl_hwobj._get_energy() < 10 and self.crl_hwobj:
+        energy_value = self.bl_hwobj._get_energy()
+
+        if energy_value < 10 and self.crl_hwobj:
             msg = "3.1/6 : Energy under 10keV. Setting all CRL lenses in"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
@@ -1173,25 +1211,41 @@ class EMBLBeamlineTest(HardwareObject):
             self.crl_hwobj.set_crl_value([1, 1, 1, 1, 1, 1], timeout=10)
 
         # 3.2/6 Pitch scan ---------------------------------------------------
-        if self.cmd_start_pitch_scan:
+        if self.cmd_start_pitch_scan is not None:
             msg = "3/6 : Starting pitch scan"
             progress_info["progress_msg"] = msg
             log.debug("BeamlineTest: %s" % msg)
             self.emit("testProgress", (3, progress_info))
+
+ 
+            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                if energy_value <= 8.75: 
+                    self.cmd_set_qbmp_range(0)
+                else:
+                    self.cmd_set_qbmp_range(1)
+                gevent.sleep(0.5)
+                
+ 
             self.cmd_set_pitch_position(0)
             self.cmd_set_pitch(1)
             gevent.sleep(0.1)
 
-            self.cmd_start_pitch_scan(1)
-            gevent.sleep(1.0)
+            for index in range(3):
+                self.cmd_start_pitch_scan(1)
+                gevent.sleep(2.0)
 
-            with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
-                 while self.scan_status != 0:
-                     gevent.sleep(0.01)
+                with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
+                    while self.chan_pitch_scan_status.getValue() != 0:
+                         gevent.sleep(0.1)
+                self.cmd_set_vmax_pitch(1)
 
-            gevent.sleep(0.5)
-            self.cmd_set_vmax_pitch(1)
-            gevent.sleep(1)
+                gevent.sleep(3.0)
+                pitch_second_value = [-404.0] # self.chan_pitch_second.getValue() 
+                if pitch_second_value[0] < -1.66:
+                    break
+                if index == 2:
+                    log.error("BeamlineTest: Pitch scan failed all 3 times")
+                    return
 
         """
         if self.chan_encoder_ar and self.chan_pitch_position_ar:
@@ -1247,45 +1301,65 @@ class EMBLBeamlineTest(HardwareObject):
             with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
                 beam_pos_displacement = [None, None]
                 while None in beam_pos_displacement:
-                    beam_pos_displacement = self.graphics_manager_hwobj.\
-                        get_beam_displacement()
+                    if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                        beam_pos_displacement = self.graphics_manager_hwobj.\
+                            get_beam_displacement(reference="beam")
+                    else:
+                        beam_pos_displacement = self.graphics_manager_hwobj.\
+                            get_beam_displacement(reference="screen")
                     gevent.sleep(0.1)
-                if None or 0 in beam_pos_displacement:
-                    log.debug("No beam detected")
-                    continue
+
+            if None or 0 in beam_pos_displacement:
+                log.debug("No beam detected")
+                return
 
             delta_hor = beam_pos_displacement[0] * self.scale_hor
             delta_ver = beam_pos_displacement[1] * self.scale_ver
+ 
+            if delta_hor > 0.05:
+                delta_hor = 0.05
+            if delta_hor < -0.05:
+                delta_hor = -0.05
+
+            if delta_ver > 0.05:
+                delta_ver = 0.05
+            if delta_ver < -0.05:
+                delta_ver = -0.05
+           
             log.info("Applying %.4f mm horizontal " % delta_hor + \
                       "and %.4f mm vertical correction" % delta_ver)
 
             active_mode, beam_size = self.get_focus_mode()
-            if active_mode == "Collimated":
-                if self.bl_hwobj.session_hwobj.beamline_name == "P13":
-                    log.info("Enabling vertical and horizontal motors")
-                    self.vertical_motor_hwobj.enable_motor()
-                    self.horizontal_motor_hwobj.enable_motor()
 
-                if abs(delta_hor) > 0.001:
-                    log.info("Moving horizontal by %.4f" % delta_hor)
-                    self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
-                if abs(delta_ver) > 0.001:
-                    log.info("Moving vertical by %.4f" % delta_ver)
-                    self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
-                sleep(2)
-            elif active_mode == "Double":
-                if abs(delta_hor) > 0.001:
-                    log.info("Moving horizontal by %.4f" % delta_hor)
-                    self.horizontal_double_mode_motor_hwobj.moveRelative(delta_hor, wait=True)
-                if abs(delta_ver) > 0.001:
-                    log.info("Moving vertical by %.4f" % delta_ver)
-                    self.vertical_double_mode_motor_hwobj.moveRelative(delta_ver, wait=True)
-                sleep(2)
+            if abs(delta_hor) > 0.001:
+                log.info("Moving horizontal by %.4f" % delta_hor)
+            if abs(delta_ver) > 0.001:
+                log.info("Moving vertical by %.4f" % delta_ver)
 
-        if self.bl_hwobj.session_hwobj.beamline_name == "P13":
-            log.debug("Disabling vertical and horizontal motors")
-            self.vertical_motor_hwobj.disable_motor()
-            self.horizontal_motor_hwobj.disable_motor()
+            if self.bl_hwobj.session_hwobj.beamline_name == "P13":
+                if abs(delta_hor) > 0.001:
+                    print "Go to hor: ", self.chan_horizontal_pos.getValue() + delta_hor
+                    self.cmd_set_horizontal_pos(self.chan_horizontal_pos.getValue() + delta_hor)
+                    sleep(4)
+                if abs(delta_ver) > 0.001:
+                    print "Go to ver: ", self.chan_vertical_pos.getValue() + delta_ver
+                    self.cmd_set_vertical_pos(self.chan_vertical_pos.getValue() + delta_ver)
+                    sleep(4)
+            else:
+                if active_mode == "Collimated":
+                    if abs(delta_hor) > 0.001:
+                        self.horizontal_motor_hwobj.moveRelative(delta_hor, wait=True)
+                        sleep(2)
+                    if abs(delta_ver) > 0.001:
+                        self.vertical_motor_hwobj.moveRelative(delta_ver, wait=True)
+                        sleep(2)
+                elif active_mode == "Double":
+                    if abs(delta_hor) > 0.001:
+                        self.horizontal_double_mode_motor_hwobj.moveRelative(delta_hor, wait=True) 
+                        sleep(2)
+                    if abs(delta_ver) > 0.001:
+                        self.vertical_double_mode_motor_hwobj.moveRelative(delta_ver, wait=True)
+                        sleep(2)
 
     def pitch_scan_status_changed(self, status):
         """Store pitch scan status"""
@@ -1416,7 +1490,7 @@ class EMBLBeamlineTest(HardwareObject):
 
         # 1. close guillotine and fast shutter -------------------------------
         self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
-        self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+        #self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
         gevent.sleep(0.1)
 
         #2. move back light in, check beamstop position ----------------------
@@ -1494,7 +1568,9 @@ class EMBLBeamlineTest(HardwareObject):
                flux / beam_size[0] / beam_size[1]
 
         self.bl_hwobj.collect_hwobj.machine_info_hwobj.\
-           set_flux(flux, self.bl_hwobj.beam_info_hwobj.get_beam_info())
+           set_flux(flux,
+                    self.bl_hwobj.beam_info_hwobj.get_beam_info(),
+                    transmission)
 
         msg = "Intensity = %1.1e A" % self.intensity_value
         result["result_details"].append(msg + "<br>")
@@ -1513,12 +1589,12 @@ class EMBLBeamlineTest(HardwareObject):
         logging.getLogger("user_level_log").info(msg)
         meas_item.append("%1.1e" % dose_rate)
 
-        msg = "Time to reach 20 MGy = %d s = %d frames " % \
-              (20000. / dose_rate, int(25 * 20000. / dose_rate))
+        msg = "Time to reach 20 MGy = %d s = %d 16M frames " % \
+              (20000. / dose_rate, int(130 * 20000. / dose_rate))
         result["result_details"].append(msg + "<br><br>")
         logging.getLogger("user_level_log").info(msg)
         meas_item.append("%d, %d frames" % \
-              (20000. / dose_rate, int(25 * 20000. / dose_rate)))
+              (20000. / dose_rate, int(130 * 20000. / dose_rate)))
 
         self.intensity_measurements.insert(0, meas_item)
         result["result_details"].extend(SimpleHTML.create_table(\
@@ -1616,3 +1692,6 @@ class EMBLBeamlineTest(HardwareObject):
         html_filename = os.path.join(self.test_directory, self.test_filename) + ".html"
         if os.path.exists(html_filename):
             return html_filename
+
+    def update_values(self):
+        self.bl_hwobj.ppu_control_hwobj.update_values()
