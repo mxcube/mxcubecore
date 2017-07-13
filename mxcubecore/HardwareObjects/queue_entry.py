@@ -493,6 +493,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
  
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(\
               self.interleave_items, ref_num_images, interleave_num_images)
+        self._queue_controller.emit("queue_interleaved_started")
         for item_index, item in enumerate(self.interleave_sw_list):
             if not self.interleave_stoped:
                 self.get_view().setText(1, "Interleaving subwedge %d (total: %d)" \
@@ -527,8 +528,17 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                               item["collect_index"] + 1, 
                               item["sw_index"] + 1))
 
+                sig_data = {"current_idx": item_index,
+                            "item": item,
+                            "nitems": len(self.interleave_sw_list),
+                            "sw_size": interleave_num_images }
+
+                self._queue_controller.emit("queue_interleaved_sw_done",
+                                            (sig_data,))
+
         if not self.interleave_stoped:
             logging.getLogger("queue_exec").info("Interleaved task finished")
+            self._queue_controller.emit("queue_interleaved_finished")
 
         """
         for interleave_item in self.interleave_items:
@@ -555,7 +565,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         BaseQueueEntry.stop(self)
         if self.interleave_task:
             self.interleave_stoped = True
-            self.interleave_task.kill()       
+            self.interleave_task.kill()
         self.get_view().setText(1, "Interleave stoped")
 
 class SampleQueueEntry(BaseQueueEntry):
