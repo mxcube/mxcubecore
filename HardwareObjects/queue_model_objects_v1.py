@@ -27,6 +27,7 @@ class TaskNode(object):
         self._enabled = True
         self._node_id = None
         self._requires_centring = True
+        self._origin = None
 
     def is_enabled(self):
         """
@@ -72,6 +73,24 @@ class TaskNode(object):
         else:
             self._name = str(name)
 
+    def set_origin(self, node_id):
+        """
+        Sets the origin of this node, the node id of the node, if any,
+        that somehow generated this node.
+
+        :param name: node_id
+        :type name: The node id that is the origin of this node
+
+        :returns: none
+        """
+        self._origin = node_id
+
+    def get_origin(self):
+        """
+        :returns: The node id that is the origin of this node.
+        :rtype: int
+        """
+        return self._origin
     def set_number(self, number):
         """
         Sets the number of this node. The number can be used
