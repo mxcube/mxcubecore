@@ -75,13 +75,13 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
     def beam_position_changed(self,value):
         self.get_beam_position()
         self.emit("beamPosChanged", (self.beam_position, ))
-        print "beam position changed", self.beam_position
+        print "xxxxxxxxxxxxxxxxxbeam position changed", self.beam_position
 
     def beam_info_changed(self,value):
 	self.evaluate_beam_info()
 	self.emit("beamInfoChanged", (self.beam_info_dict, ))
-
-        print "beam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
+        print "ddddddddddddddddddddddddddddd", self.beam_info_dict
+        print "xxxxxxxxxxxxxxxxxxxxxxxxxxbeam x %s and y %s " % (self.chan_beam_pos_x.getValue(),self.chan_beam_pos_y.getValue())
         """
 
         if self.chan_beam_pos_x is not None and self.chan_beam_pos_y is not None:
@@ -110,9 +110,9 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         Arguments :
         Return    :
         """
-        self.beam_position[0] = 687 * self.chan_ImageZoom.getValue()
-        self.beam_position[1] = 519 * self.chan_ImageZoom.getValue()
-        return self.beam_position
+        #self.beam_position[0] = 687 * self.chan_ImageZoom.getValue()
+        #self.beam_position[1] = 519 * self.chan_ImageZoom.getValue()
+        #return self.beam_position
 	if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
