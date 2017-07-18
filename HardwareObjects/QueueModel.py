@@ -51,6 +51,7 @@ class QueueModel(HardwareObject):
         You should normaly not need to call this method.
         """
         self.queue_hwobj = self.getObjectByRole("queue")
+        self.queue_hwobj.queue_model_hwobj = self
 
     def select_model(self, name):
         """
