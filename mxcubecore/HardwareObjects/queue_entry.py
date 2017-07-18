@@ -1057,6 +1057,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 new_dcg_model.set_enabled(False)
                 new_dcg_model.set_name(new_dcg_name)
                 new_dcg_model.set_number(new_dcg_num)
+                new_dcg_model.set_origin(char._node_id)
                 self.queue_model_hwobj.add_child(sample_data_model,
                                                  new_dcg_model)
 
