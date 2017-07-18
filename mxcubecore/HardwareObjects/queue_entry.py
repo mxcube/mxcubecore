@@ -1105,7 +1105,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.data_analysis_hwobj = self.beamline_setup.data_analysis_hwobj
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         #should be an other way how to get queue_model_hwobj:
-        self.queue_model_hwobj = self.get_view().listView().parent().queue_model_hwobj
+        self.queue_model_hwobj = self._queue_controller.queue_model_hwobj
         self.session_hwobj = self.beamline_setup.session_hwobj
 
     def post_execute(self):
