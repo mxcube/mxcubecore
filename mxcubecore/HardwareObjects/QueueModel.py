@@ -89,6 +89,7 @@ class QueueModel(HardwareObject):
             self.getProperty("load_on_start_enabled")
         self._load_on_start_filename = \
             self.getProperty("load_on_start_filename")
+        self.queue_hwobj.queue_model_hwobj = self
 
     def select_model(self, name):
         """
