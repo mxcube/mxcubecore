@@ -65,7 +65,6 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
-        self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
@@ -85,6 +84,7 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
+        self.getObjectByRole("controller").detcover.set_out()
         diffr = self.getObjectByRole("diffractometer")
         #send again the command as MD2 software only handles one
         #centered position!!
