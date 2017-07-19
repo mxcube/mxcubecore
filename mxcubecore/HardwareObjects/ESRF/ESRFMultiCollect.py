@@ -147,6 +147,7 @@ class PixelDetector:
         self.oscillation_task = None
         self.shutterless_exptime = None
         self.shutterless_range = None
+        self._mesh_steps = None
 
     def init(self, config, collect_obj):
         self.collect_obj = collect_obj
@@ -279,6 +280,17 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         self._tunable_bl = tunable_bl
         self._centring_status = None
         self._metadataClient = None
+        self.__mesh_steps = None
+        self._mesh_range = None
+
+    @property
+    def _mesh_steps(self):
+        return self.__mesh_steps
+ 
+    @_mesh_steps.setter
+    def _mesh_steps(self, steps):
+        self.__mesh_steps = steps
+        self._detector._mesh_steps = steps
 
     def execute_command(self, command_name, *args, **kwargs): 
       wait = kwargs.get("wait", True)
@@ -819,3 +831,12 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         pt = PathTemplate()
         pt.directory = directory
         return pt.get_archive_directory()
+
+
+    def setMeshScanParameters(self, mesh_steps, mesh_range):
+        """
+        Descript. : 
+        """
+        self._mesh_steps = mesh_steps
+        self._mesh_range = mesh_range
+
