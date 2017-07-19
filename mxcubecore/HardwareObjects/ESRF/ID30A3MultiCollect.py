@@ -198,15 +198,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
        else:
           albula_socket.sendall(pickle.dumps({ "type":"newimage", "path": image_filename }))
 
-    @task
-    def write_image(self, last_frame):
-        ESRFMultiCollect.write_image(self, last_frame)
-        if last_frame:
-            gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
-        else:
-            if self._notify_greenlet is None or self._notify_greenlet.ready():
-                self._notify_greenlet = gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
-
 #    def trigger_auto_processing(self, *args, **kw):
 #        return
 
