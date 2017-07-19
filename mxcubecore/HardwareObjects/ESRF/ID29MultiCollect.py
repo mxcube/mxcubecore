@@ -11,8 +11,10 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_hook(self, data_collect_parameters):
-      self._detector.shutterless = data_collect_parameters["shutterless"]
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
 
+      self._detector.shutterless = data_collect_parameters["shutterless"]
+        
     @task
     def data_collection_cleanup(self):
         self.getObjectByRole("diffractometer")._wait_ready(10)
@@ -63,7 +65,7 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
-        cover_task = self.getObjectByRole("controller").detcover.set_out()
+        self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
