@@ -21,7 +21,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def data_collection_hook(self, data_collect_parameters):
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
-        self._reset_detector_task = None
 
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         exp_time = oscillation_parameters['exposure_time']
@@ -148,24 +147,14 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         self.getObjectByRole("fastshut").actuatorOut()
 
     def stop_oscillation(self):
-        #self.getObjectByRole("diffractometer").controller.omega.stop()
-        #self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
         pass
-
-    def reset_detector(self):
-        self.stop_oscillation()
-        self._reset_detector_task = ESRFMultiCollect.reset_detector(self, wait=False)
 
     @task
     def data_collection_cleanup(self):
-        #self.stop_oscillation()
         self.getObjectByRole("diffractometer")._wait_ready(10)
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
         if state != "out":
             self.close_fast_shutter()
-
-        if self._reset_detector_task is not None:
-            self._reset_detector_task.get()
 
     def set_helical(self, helical_on):
         self.helical = helical_on
