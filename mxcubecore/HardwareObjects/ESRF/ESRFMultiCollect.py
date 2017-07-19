@@ -60,19 +60,19 @@ class CcdDetector:
           self._detector.getChannelObject = self.getChannelObject
           self._detector.getCommandObject = self.getCommandObject
           self._detector.init(config, collect_obj)
-
+    
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, gate = False):
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
         if osc_range < 1E-4:
-            still = True
+            trigger_mode = 'INTERNAL_TRIGGER'
         else:
-            still = False
-        
+            trigger_mode = 'EXTERNAL_TRIGGER'
+       
         if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still, gate)
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode)
         else:
             self.getChannelObject("take_dark").setValue(take_dark)
-            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
+            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment, energy, trigger_mode)
 
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -164,20 +164,25 @@ class PixelDetector:
         return self._detector.get_deadtime()
 
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, gate = False):
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
         self.new_acquisition = True
         if osc_range < 1E-4:
-            still = True
+            trigger_mode = 'INTERNAL_TRIGGER'
         else:
-            still = False
+            trigger_mode = 'EXTERNAL_TRIGGER'
+        if self._mesh_steps > 1:
+            trigger_mode = 'EXTERNAL_TRIGGER_MULTI'
+            # reset mesh steps
+            self._mesh_steps = 1
         take_dark = 0
+
         if self.shutterless:
             self.shutterless_range = osc_range*number_of_images
             self.shutterless_exptime = (exptime + self._detector.get_deadtime())*number_of_images
         if self._detector:
-            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still, gate)
+            self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode)
         else:
-            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment)
+            self.execute_command("prepare_acquisition", take_dark, start, osc_range, exptime, npass, comment, energy, trigger_mode)
         
     @task
     def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
@@ -344,6 +349,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     @task
     def data_collection_end_hook(self, data_collect_parameters):
         self._metadataClient.end(data_collect_parameters)
+
 
     def do_prepare_oscillation(self, start, end, exptime, npass):
         return self.execute_command("prepare_oscillation", start, end, exptime, npass)
