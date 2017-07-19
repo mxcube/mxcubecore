@@ -235,20 +235,8 @@ class Microdiff(MiniDiff.MiniDiff):
                 "sampx": float(self.sampleXMotor.getPosition()),
                 "sampy": float(self.sampleYMotor.getPosition()),
                 "zoom": float(self.zoomMotor.getPosition()),
-                "kappa":  float(self.sampleYMotor.getPosition()) if self.in_kappa_mode() else None,
-                "kappa_phi": float(self.zoomMotor.getPosition()) if self.in_kappa_mode() else None,
-        }
-        if self.in_kappa_mode() == True:
-            try:
-                kappa = float(self.kappaMotor.getPosition())
-            except:
-                kappa = 0.
-            try:
-                kappa_phi = float(self.kappaPhiMotor.getPosition())
-            except:
-                kappa_phi = 0.
-            pos.update({"kappa": kappa, "kappa_phi": kappa_phi})
-
+                "kappa": float(self.kappaMotor.getPosition()) if self.in_kappa_mode() else None,
+                "kappa_phi": float(self.kappaPhiMotor.getPosition()) if self.in_kappa_mode() else None}
         return pos
 
     def moveMotors(self, roles_positions_dict):
