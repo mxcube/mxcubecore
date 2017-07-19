@@ -78,10 +78,13 @@ class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
 
         try:
             ttheta = 2*math.asin(current_wavelength / (2*res))
-            return self.det_radius / math.tan(ttheta)
-            dx = (self.det_width - bx)/(math.tan(ttheta)+ax)
-            dy = (self.det_width - by)/(math.tan(ttheta)+ay)
-            return min(dx, dy)
+
+            dist_1 = bx / (math.tan(ttheta) - ax)
+            dist_2 = by / (math.tan(ttheta) - ay)
+            dist_3 = (self.det_width - bx) / (math.tan(ttheta) + ax)
+            dist_4 = (self.det_height - by) / (math.tan(ttheta) + ay)
+
+            return min(dist_1, dist_2, dist_3, dist_4)
         except:
             return None
 
