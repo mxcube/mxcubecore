@@ -2,16 +2,19 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository
 import gevent
 import sys
+import random
 
 CRYO_STATUS = ['OFF', 'SATURATED', 'READY', 'WARNING', 'FROZEN' , 'UNKNOWN']
 PHASE_ACTION = {'RAMP':'ramp', 'COOL':'set', 'HOLD':'hold', 'PLAT':'plat', 'PURGE':'purge', 'END':'end'}
 
-class Oxford700(HardwareObject):
+class Oxford700Mockup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
+        self.n2level = None
         self.temp = None
         self.temp_error = None
+        self.ii = 0
 
     def _do_polling(self):
         while True: 
@@ -22,61 +25,71 @@ class Oxford700(HardwareObject):
             gevent.sleep(self.interval)
 
     def init(self):
-        controller = HardwareRepository.HardwareRepository().getHardwareObject(self.getProperty('controller'))
-        cryostat = self.getProperty('cryostat')
+        controller = self.getProperty('controller')
         self.interval = self.getProperty('interval') or 10
-        self.ctrl = getattr(controller,cryostat)
+        cryostat = self.getProperty('cryostat')
+        self.ctrl = OxfordDummy()
         if self.ctrl is not None:
-            self.get_params()
             gevent.spawn(self._do_polling)
-            
+
     def value_changed(self):
         self.emit('temperatureChanged', (self.get_temperature(),))
         self.emit('stateChanged', (self.get_state(),))
 
     def get_temperature(self):
+        self.temp = self.ctrl.get_temperature()
         return self.temp
-
-    def rampstate(self):
-        return self.ctrl.rampstate()
 
     def start_action(self, phase='RAMP', target=None, rate=None):
         if phase in PHASE_ACTION:
             action = getattr(self.ctrl, PHASE_ACTION[phase])
             if rate:
-                action(target, rate=rate)
+                action(target, rate)
             elif target:
                 action(target)
             else:
                 action()
 
+    """
     def update_params(self):
-        self.ctrl.controller._oxford.update_cmd()
+        self.ctrl.update_cmd()
+    """
 
-    def stop_action(self, phase='HOLD'):
+    def stop_action(self, phase='RAMP'):
         if phase in PHASE_ACTION:
-            action = getattr(self.ctrl, PHASE_ACTION[phase])
-
-    def pause(self, execute=True):
-        self.ctrl.pause(execute)
+            action = PHASE_ACTION[phase]
+            print action
 
     def get_state(self):
-        _,_,_,run_mode = self.get_params()
-        try:
-            self.cryo_state = run_mode.upper()
-        except TypeError:
-            self.cryo_state = 'UNKNOWN'
+        STATE = ['UNKNOWN', 'IDLE', 'RUNNING', 'HOLD']
+        self.cryo_state = 'HOLD' #STATE[random.randint(0,2)]
         return self.cryo_state
 
-    def get_static_parameters(self):
-        return ['oxford', 'K', 'hour']
-    
     def get_params(self):
-        self.update_params()
-        target =  self.ctrl.controller._oxford.statusPacket.target_temp
-        rate = self.ctrl.controller._oxford.statusPacket.ramp_rate
-        phase = self.ctrl.controller._oxford.statusPacket.phase
-        run_mode = self.ctrl.controller._oxford.statusPacket.run_mode
-        self.temp = self.ctrl.controller._oxford.statusPacket.gas_temp
-        return [target, rate, phase.upper(), run_mode]
+        if (self.ii%2):
+            state = 'Ramp'
+        else:
+            state = 'Hold'
+        self.ii += 1
+        return [98.34, 2.5, state.upper(), state]
+
+class OxfordDummy:
+    def __init__(self):
+        self.temp = None
+
+    def get_temperature(self):
+        self.temp = random.uniform(0,100)
+        print self.temp
+        return self.temp
+
+    def ramp(self, temp, rate):
+        print 'ramp ', temp
+        print rate
+
+    def set(self, temp):
+        print 'set ', temp
+
+    def hold(self):
+        print  'hold called'
+
 
