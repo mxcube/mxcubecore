@@ -14,14 +14,9 @@ class ID232MultiCollect(ESRFMultiCollect):
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
         self._detector.shutterless = data_collect_parameters["shutterless"]
 
-    def reset_detector(self):
-        try:
-            ESRFMultiCollect.reset_detector(self)
-        finally:
-            self.getObjectByRole("diffractometer").abort()    
-
     def stop_oscillation(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
+        self.getObjectByRole("diffractometer").abort()
+        self.getObjectByRole("diffractometer")._wait_ready(20)
 
     def close_fast_shutter(self):
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
