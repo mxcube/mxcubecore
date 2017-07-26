@@ -568,8 +568,8 @@ class SampleQueueEntry(BaseQueueEntry):
                         log.error(msg)
                         if isinstance(e, QueueSkippEntryException):
                             raise
-                        else: 
-                            raise QueueExecutionException(e.message, self)
+                        else:
+                            raise QueueExecutionException(str(e), self)
                 else:
                     log.info("Sample already mounted")
             else:
@@ -878,7 +878,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
                 print (traceback.print_exc())
-                raise QueueExecutionException(ex.message, self)
+                raise QueueExecutionException(str(ex), self)
         else:
             log.error("Could not call the data collection routine," +\
                       " check the beamline configuration")
