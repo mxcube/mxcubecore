@@ -202,6 +202,47 @@ class AbstractCollect(object):
         self.emit("collectOscillationFailed", (owner, False, failed_msg, 
            self.current_dc_parameters.get('collection_id'), 1))
 
+    def collection_failed(self, failed_msg=None):
+        """Collection failed method"""
+
+        if not failed_msg:
+            failed_msg = "Data collection failed!"
+        self.current_dc_parameters["status"] = "Failed"
+        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
+        self.emit("collectOscillationFailed", (self.owner, False,
+             failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
+        self.emit("progressStop", ())
+        self._collecting = None
+        self.update_data_collection_in_lims()
+        self.ready_event.set()
+
+    def collection_finished(self):
+        """Collection finished beahviour"""
+
+        success_msg = "Data collection successful"
+        self.current_dc_parameters["status"] = success_msg
+
+        if self.current_dc_parameters['experiment_type'] != \
+           "Collect - Multiwedge":
+            self.update_data_collection_in_lims()
+
+            last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+            if last_frame > 1:
+                self.store_image_in_lims_by_frame_num(last_frame)
+            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
+                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
+                last_frame > 19):
+                self.trigger_auto_processing("after",
+                                             self.current_dc_parameters,
+                                             0)
+
+        self.emit("collectOscillationFinished", (self.owner, True,
+              success_msg, self.current_dc_parameters.get('collection_id'),
+              self.osc_id, self.current_dc_parameters))
+        self.emit("progressStop", ())
+        self._collecting = None
+        self.ready_event.set()
+
     def stop_collect(self, owner="MXCuBE"):
         """
         Stops data collection

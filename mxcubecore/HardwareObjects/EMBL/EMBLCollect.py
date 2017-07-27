@@ -162,7 +162,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
         self.chan_guillotine_state = self.getChannelObject('guillotineState')
-        self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
+        if self.chan_guillotine_state is not None:
+            self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
 
         #Commands to set collection parameters
         self.cmd_collect_description = self.getCommandObject('collectDescription')
@@ -207,12 +208,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         """Main collection hook"""
 
         if self.aborted_by_user:
-            self.emit_collection_failed("Aborted by user")
+            self.collection_failed("Aborted by user")
             self.aborted_by_user = False
             return
 
         if self._actual_collect_status in ["ready", "unknown", "error"]:
-            self.emit("progressInit", ("Data collection", 100))
+            self.emit("progressInit", ("Collection", 100))
             comment = 'Comment: %s' % str(self.current_dc_parameters.get('comments', ""))
             self._error_msg = ""
             self._collecting = True
@@ -268,7 +269,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters['experiment_type'], 'OSC'))
             self.cmd_collect_start()
         else:
-            self.emit_collection_failed("Detector server in unknown state")
+            self.collection_failed("Detector server in unknown state")
 
     def collect_status_update(self, status):
         """Status event that controls execution
@@ -281,21 +282,21 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self._actual_collect_status = status
         if self._collecting:
             if self._actual_collect_status == "error":
-                self.emit_collection_failed()
+                self.collection_failed()
             elif self._actual_collect_status == "collecting":
                 self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
-                    logging.info("Preparing collecting...")
+                    logging.info("Collection: preparing ...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
                     self.emit("collectStarted", (self.owner, 1))
             elif self._previous_collect_status == 'collecting':
                 if self._actual_collect_status == "ready":
-                    self.emit_collection_finished()
+                    self.collection_finished()
                 elif self._actual_collect_status == "aborting":
-                    logging.info("Aborting...")
-                    self.emit_collection_failed()
+                    logging.info("Collection: aborting...")
+                    self.collection_failed()
 
     def collect_error_update(self, error_msg):
         """Collect error behaviour
@@ -307,23 +308,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         if (self._collecting and
             len(error_msg) > 0):
             self._error_msg = error_msg
-            logging.getLogger("GUI").error(error_msg)
-
-    def emit_collection_failed(self, failed_msg=None):
-        """Collection failed method"""
-
-        if not failed_msg:
-            failed_msg = "Data collection failed!"
-        self.current_dc_parameters["status"] = "Failed"
-        self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
-        #self.emit("collectOscillationFailed", (self.owner, False,
-        #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
-        self.emit("collectEnded", self.owner, failed_msg)
-        self.emit("collectReady", (True, ))
-        self.emit("progressStop", ())
-        self._collecting = None
-        self.update_data_collection_in_lims()
-        self.ready_event.set()
+            logging.getLogger("GUI").error("Collection: %s" % error_msg)
 
     def guillotine_state_changed(self, state):
         """Updates guillotine state"
@@ -339,35 +324,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.guillotine_state = "closing"
         elif state[1] == 3:
             self.guillotine_state = "opening"
-
-    def emit_collection_finished(self):
-        """Collection finished beahviour"""
-
-        success_msg = "Data collection successful"
-        self.current_dc_parameters["status"] = success_msg
-
-        if self.current_dc_parameters['experiment_type'] != \
-           "Collect - Multiwedge":
-            self.update_data_collection_in_lims()
-
-            last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-            if last_frame > 1:
-                self.store_image_in_lims_by_frame_num(last_frame)
-            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
-                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
-                last_frame > 19):
-                self.trigger_auto_processing("after",
-                                             self.current_dc_parameters,
-                                             0)
-
-        self.emit("collectOscillationFinished", (self.owner, True,
-              success_msg, self.current_dc_parameters.get('collection_id'),
-              self.osc_id, self.current_dc_parameters))
-        self.emit("collectEnded", self.owner, success_msg)
-        self.emit("collectReady", (True, ))
-        self.emit("progressStop", ())
-        self._collecting = None
-        self.ready_event.set()
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
         """Updates collection with information about workflow
@@ -423,7 +379,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         self.aborted_by_user = True
         self.cmd_collect_abort()
-        self.emit_collection_failed("Aborted by user")
+        self.collection_failed("Aborted by user")
         #self.ready_event.set()
 
     def set_helical_pos(self, arg):
