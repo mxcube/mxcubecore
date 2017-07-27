@@ -291,9 +291,32 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             logging.getLogger("HWR").error("Unexpected error:", sys.exc_info()[0])
             raise Exception("data collection hook failed... ", sys.exc_info()[0])
 
+    def get_mesh_num_lines(self):
+        return self.mesh_num_lines
+
+    def get_mesh_total_nb_frames(self):
+        return self.mesh_total_nb_frames
+
     def oscil(self, start, end, exptime, npass, wait=True):
+        oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
+        msg = "[BIOMAXCOLLECT] Oscillation requested oscillation_parameters: %s" % oscillation_parameters
+        # msg += " || dc parameters: %s" % self.current_dc_parameters
+        logging.getLogger("HWR").info(msg)
+
         if self.helical:
             self.diffractometer_hwobj.osc_scan_4d(start, end, exptime, self.helical_pos, wait=True)
+        elif self.current_dc_parameters['experiment_type'] == 'Mesh':
+            mesh_range = oscillation_parameters['mesh_range']
+            # self.diffractometer_hwobj.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
+            self.diffractometer_hwobj.raster_scan(start,
+                                                  end,
+                                                  exptime * self.get_mesh_num_lines(),
+                                                  mesh_range[1] / 1000,  # vertical_range in mm,
+                                                  mesh_range[0] / 1000,  # horizontal_range in mm,
+                                                  self.get_mesh_num_lines(),
+                                                  self.get_mesh_total_nb_frames(),  # nframes,
+                                                  invert_direction=1,
+                                                  wait=True)
         else:
             self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
 
@@ -350,7 +373,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         # Dont save mesh first and last images
         # Mesh images (best positions) are stored after data analysis
-        logging.getLogger("HWR").INFO("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
+        logging.getLogger("HWR").info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
         return
     # if self.current_dc_parameters['experiment_type'] in ('Mesh') and motor_position_id is None:
     #     return
