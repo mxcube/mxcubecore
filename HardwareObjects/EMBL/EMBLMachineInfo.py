@@ -47,7 +47,6 @@ information). Value limits are included
 
 
 [Included Hardware Objects]
-- ICShutter
 
 Example Hardware Object XML file :
 ==================================
@@ -200,13 +199,16 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
-        spawn(self.update_ramdisk_size,
-              5)
+        self.update_task = spawn(self.update_ramdisk_size, 5)
 
         if self.getProperty("defaultFlux") is not None:
             self.set_flux(self.getProperty("defaultFlux"))
 
         self.update_values()
+
+    def clear_gevent(self):
+        self.self.temp_hum_polling.kill()
+        self.update_task.kill()
 
     def cryojet_in_changed(self, value):
         """Cryojet in/out value changed"""
@@ -336,8 +338,8 @@ class EMBLMachineInfo(HardwareObject):
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
         while True:
-            temp = get_external_value(self.hutch_temp_addr)
-            hum = get_external_value(self.hutch_hum_addr)
+            temp = self.get_external_value(self.hutch_temp_addr)
+            hum = self.get_external_value(self.hutch_hum_addr)
             if not None in (temp, hum):
                 if (abs(float(temp) - self.hutch_temp) > 0.1 \
                     or abs(float(hum) != self.hutch_hum > 1)):
@@ -363,12 +365,13 @@ class EMBLMachineInfo(HardwareObject):
     def update_ramdisk_size(self, sleep_time):
         while True:
             total, free, perc = self.get_ramdisk_size()
-            txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
-                                                 self.sizeof_fmt(free),
-                                                 '{0:.0%}'.format(perc))
-            self.values_list[6]['value'] = txt
-            self.values_list[6]['in_range'] = free / 2 ** 30 > 10
-            self.update_values()
+            if free is not None:
+                txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
+                                                     self.sizeof_fmt(free),
+                                                     '{0:.0%}'.format(perc))
+                self.values_list[6]['value'] = txt
+                self.values_list[6]['in_range'] = free / 2 ** 30 > 10
+                self.update_values()
             time.sleep(sleep_time)
 
     def get_ramdisk_size(self):
@@ -404,53 +407,53 @@ class EMBLMachineInfo(HardwareObject):
             num *= 1000.0
         return "%3.1f%s" % (num, ' n')
 
-def get_external_value(addr):
-    """Extracts value from the given epics address. This is very specific
-       implementation how to get a value from epics web tool. At first
-       web address string is formed and then web page by urllib2
-       extracted. Page contains column with records.
-       Then the last value is choosen as the last active value.
+    def get_external_value(self, addr):
+        """Extracts value from the given epics address. This is very specific
+           implementation how to get a value from epics web tool. At first
+           web address string is formed and then web page by urllib2
+           extracted. Page contains column with records.
+           Then the last value is choosen as the last active value.
 
-    :param addr: epics address
-    :type addr: str
-    :returns : float
-    """
-    url_prefix = "http://cssweb.desy.de:8084/ArchiveViewer/archive" + \
-                 "reader.jsp?DIRECTORY=%2Fdata7%2FChannelArchiver%" + \
-                 "2FchannelReference2.kryo&PATTERN=&"
-    end = datetime.now()
-    start = end - timedelta(hours=24)
-    url_date = "=on&STARTMONTH=%d&STARTDAY=%d&STARTYEAR=%d" % \
-               (start.month, start.day, start.year) + \
-               "&STARTHOUR=%d&STARTMINUTE=%d&STARTSECOND=0" % \
-               (start.hour, start.minute)
-    url_date = url_date + ("&ENDMONTH=%d&ENDDAY=%d&ENDYEAR=%d" % \
-               (end.month, end.day, end.year) + \
-               "&ENDHOUR=%d&ENDMINUTE=%d&ENDSECOND=0" % \
-               (end.hour, (end.minute - 10)))
-    url_date = url_date + "&COMMAND=GET&Y0=0&Y1=0&FORMAT=SPREADSHEET&" + \
-               "INTERPOL=0&NUMOFPOINTS=10"
-    url_file = None
-    last_value = None
-    try:
-        addr = addr.split(':')
-        url_device = "NAMES=" + addr[0] + "%3A" + addr[1] + "%3A" + \
-                     addr[2] + "%3A" + addr[3]
-        url_device = url_device + "&FRAME2=1" + addr[0] + "%3A" + \
-                     addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
-        url_device = url_device + "&NAMES2=&" + addr[0] + "%3A" + \
-                     addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
-        final_url = url_prefix + url_device + url_date
-        url_file = urlopen(final_url)
-        for line in url_file:
-            line_el = line.split()
-            if line_el:
-                if line_el[-1].isdigit:
-                    last_value = line_el[-1]
-        last_value = float(last_value)
-    except:
-        logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
-    finally:
-        if url_file:
-            url_file.close()
-    return last_value
+        :param addr: epics address
+        :type addr: str
+        :returns : float
+        """
+        url_prefix = "http://cssweb.desy.de:8084/ArchiveViewer/archive" + \
+                     "reader.jsp?DIRECTORY=%2Fdata7%2FChannelArchiver%" + \
+                     "2FchannelReference2.kryo&PATTERN=&"
+        end = datetime.now()
+        start = end - timedelta(hours=24)
+        url_date = "=on&STARTMONTH=%d&STARTDAY=%d&STARTYEAR=%d" % \
+                   (start.month, start.day, start.year) + \
+                   "&STARTHOUR=%d&STARTMINUTE=%d&STARTSECOND=0" % \
+                   (start.hour, start.minute)
+        url_date = url_date + ("&ENDMONTH=%d&ENDDAY=%d&ENDYEAR=%d" % \
+                   (end.month, end.day, end.year) + \
+                   "&ENDHOUR=%d&ENDMINUTE=%d&ENDSECOND=0" % \
+                   (end.hour, (end.minute - 10)))
+        url_date = url_date + "&COMMAND=GET&Y0=0&Y1=0&FORMAT=SPREADSHEET&" + \
+                   "INTERPOL=0&NUMOFPOINTS=10"
+        url_file = None
+        last_value = None
+        try:
+            addr = addr.split(':')
+            url_device = "NAMES=" + addr[0] + "%3A" + addr[1] + "%3A" + \
+                         addr[2] + "%3A" + addr[3]
+            url_device = url_device + "&FRAME2=1" + addr[0] + "%3A" + \
+                         addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
+            url_device = url_device + "&NAMES2=&" + addr[0] + "%3A" + \
+                         addr[1] + "%3A" + addr[2] + "%3A" + addr[3]
+            final_url = url_prefix + url_device + url_date
+            url_file = urlopen(final_url)
+            for line in url_file:
+                line_el = line.split()
+                if line_el:
+                    if line_el[-1].isdigit:
+                        last_value = line_el[-1]
+            last_value = float(last_value)
+        except:
+            logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
+        finally:
+            if url_file:
+                url_file.close()
+        return last_value

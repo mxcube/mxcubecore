@@ -21,6 +21,7 @@ import os
 import time
 import gevent
 import logging
+import subprocess
 import PyChooch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -49,9 +50,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.ready_event = None
         self.scanning = False
         self.energy_motor = None
-        self.archive_prefix = None
         self.th_edge = None
+        self.scan_directory = None
         self.scan_data = None
+        self.scan_prefix = None
         self.num_points = None
         self.scan_info = None
 
@@ -63,35 +65,30 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_start = None
         self.chan_scan_status = None
         self.cmd_scan_abort = None
+        self.cmd_enable_max_transmission = False
+        self.cmd_set_max_transmission = False
 
     def init(self):
         self.ready_event = gevent.event.Event()
         self.scan_info = {}
 
         self.energy_hwobj = self.getObjectByRole("energy")
-
         self.db_connection_hwobj = self.getObjectByRole("dbserver")
-        if self.db_connection_hwobj is None:
-            logging.getLogger("HWR").warning(\
-                'EMBLEnergyScan: Database hwobj not defined')
-
         self.transmission_hwobj = self.getObjectByRole("transmission")
-        if self.transmission_hwobj is None:
-            logging.getLogger("HWR").warning(\
-                'EMBLEnergyScan: Transmission hwobj not defined')
-
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        if self.beam_info_hwobj is None:
-            logging.getLogger("HWR").warning(\
-                'EMBLEnergyScan: Beam info hwobj not defined')
 
         self.chan_scan_start = self.getChannelObject('energyScanStart')
         self.chan_scan_start.connectSignal('update', self.scan_start_update)
         self.chan_scan_status = self.getChannelObject('energyScanStatus')
         self.chan_scan_status.connectSignal('update', self.scan_status_update)
+        self.chan_scan_error = self.getChannelObject('energyScanError')
+        
         self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
+        self.cmd_enable_max_transmission = self.getCommandObject('cmdEnableMaxTransmission')
+        self.cmd_set_max_transmission = self.getCommandObject('cmdSetMaxTransmission')
 
-        self.num_points = self.getProperty("numPoints")
+        self.num_points = self.getProperty("numPoints", 60)
+        self.chooch_cmd = self.getProperty("chooch_command")
 
     def scan_start_update(self, values):
         if self.scanning:
@@ -100,18 +97,18 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def scan_status_update(self, status):
         if self.scanning:
             if status == 'scanning':
-                logging.getLogger("HWR").info('Executing energy scan...')
+                logging.getLogger("GUI").info('Energy scan: Executing...')
             elif status == 'ready':
                 if self.scanning is True:
+                    logging.getLogger("GUI").info('Energy scan: Finished')
                     self.scanCommandFinished()
-                    logging.getLogger("HWR").info('Energy scan finished')
             elif status == 'aborting':
                 if self.scanning is True:
                     self.scanCommandAborted()
-                    logging.getLogger("HWR").info('Energy scan aborted')
+                    logging.getLogger("GUI").info('Energy scan: Aborted')
             elif status == 'error':
+                logging.getLogger("GUI").error('Energy scan: Failed')
                 self.scanCommandFailed()
-                logging.getLogger("HWR").error('Energy scan failed')
 
     def emit_new_data_point(self, values):
         if len(values) > 0:
@@ -144,6 +141,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info = {"sessionId": session_id, "blSampleId": blsample_id,
                          "element": element, "edgeEnergy" : edge}
         self.scan_data = []
+        self.scan_directory = directory
+        self.scan_prefix = prefix
+
         if not os.path.isdir(directory):
             log.debug("EnergyScan: creating directory %s" % directory)
             try:
@@ -155,7 +155,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 return False
 
         if self.chan_scan_status.getValue() in ['ready', 'unknown', 'error']:
-            self.energy_hwobj.release_break_bragg()
+            if hasattr(self.energy_hwobj, "release_break_bragg" ):
+                self.energy_hwobj.release_break_bragg()
 
             if self.transmission_hwobj is not None:
                 self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
@@ -164,7 +165,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scan_info['exposureTime'] = exptime
             self.scan_info['startEnergy'] = 0
             self.scan_info['endEnergy'] = 0
-            self.scan_info['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.scan_info['startTime'] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
             size_hor = None
             size_ver = None
             if self.beam_info_hwobj is not None:
@@ -207,34 +208,43 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                       'title' : title}
         self.scanning = True
         self.emit('energyScanStarted', graph_info)
-        self.emit("progressInit", ("Energy scan", self.num_points))
+        self.emit("progressInit", "Energy scan", self.num_points)
 
     def scanCommandFailed(self, *args):
-        self.scan_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.scanning = False
-        self.store_energy_scan()
-        self.emit('energyScanFailed', ())
-        self.emit("progressStop", ())
-        self.energy_hwobj.set_break_bragg()
-        self.ready_event.set()
+        with cleanup(self.ready_event.set):
+            error_msg = self.chan_scan_error.getValue()
+            logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
+            self.scan_info['endTime'] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
+            if self.scan_data:
+                self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.
+                self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.
+            self.scanning = False
+            self.emit('energyScanFailed', ())
+            self.emit("progressStop", ())
+
+            if hasattr(self.energy_hwobj, "set_break_bragg"):
+                self.energy_hwobj.set_break_bragg()
+            self.ready_event.set()
 
     def scanCommandAborted(self, *args):
         self.scanning = False
         self.emit('energyScanFailed', ())
         self.emit("progressStop", ())
-        self.energy_hwobj.set_break_bragg()
+        if hasattr(self.energy_hwobj, "set_break_bragg"):
+            self.energy_hwobj.set_break_bragg()
         self.ready_event.set()
 
     def scanCommandFinished(self, *args):
         with cleanup(self.ready_event.set):
             self.scan_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug("EMBLEnergyScan: energy scan finished")
+            logging.getLogger("HWR").debug("Energy scan: finished")
             self.scanning = False
             self.scan_info["startEnergy"] = self.scan_data[-1][0]
             self.scan_info["endEnergy"] = self.scan_data[-1][1]
             self.emit('energyScanFinished', (self.scan_info,))
             self.emit("progressStop", ())
-            self.energy_hwobj.set_break_bragg()
+            if hasattr(self.energy_hwobj, "set_break_bragg"):
+                self.energy_hwobj.set_break_bragg()
 
     def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
         symbol = "_".join((elt, edge))
@@ -295,9 +305,23 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             archive_file_raw.close()
             self.scan_info["scanFileFullPath"] = str(scan_file_raw_filename)
 
-        pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = \
-             PyChooch.calc(scanData, elt, edge, scan_file_efs_filename)
+        try:
+            p = subprocess.Popen([self.chooch_cmd,
+                                  scan_file_raw_filename,
+                                  elt,
+                                  edge], 
+                                 stdout=subprocess.PIPE)
 
+            chooch_results_list = p.communicate()[0].split("\n")
+            chooch_results_list.remove("")
+            pk, fppPeak, fpPeak, ip, fppInfl, fpInfl = \
+                map(float, chooch_results_list[-2].split(" "))
+            chooch_graph_data = eval(chooch_results_list[-1])
+        except:
+            self.store_energy_scan()
+            logging.getLogger("GUI").error("Energy scan: Chooch failed")
+            return
+          
         rm = (pk + 30) / 1000.0
         pk = pk / 1000.0
         savpk = pk
@@ -306,9 +330,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         #IK TODO clear this
         self.scan_info['edgeEnergy'] = 0.1
         self.th_edge = self.scan_info['edgeEnergy']
-        logging.getLogger("HWR").info(\
-              "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % \
-              (self.th_edge, pk, ip, rm))
+        logging.getLogger("GUI").info(\
+              "Energy Scan: Chooch results are pk=%f, ip=%f, rm=%f" % \
+              (pk, ip, rm))
 
         #should be better, but OK for time being
         """
@@ -331,9 +355,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             fi = open(scan_file_efs_filename)
             fo = open(archive_file_efs_filename, "w")
         except:
-            self.store_energy_scan()
-            self.emit("energyScanFailed", ())
-            return
+            pass
+            #self.store_energy_scan()
+            #self.emit("energyScanFailed", ())
+            #return
         else:
             fo.write(fi.read())
             fi.close()
@@ -392,7 +417,6 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         self.store_energy_scan()
 
-        logging.getLogger("HWR").info("<chooch> returning")
         self.emit('choochFinished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,
                  rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, \
@@ -432,3 +456,22 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
     def store_energy_scan(self):
         if self.db_connection_hwobj:
             db_status = self.db_connection_hwobj.storeEnergyScan(self.scan_info)
+
+    def enable_max_transmission(self, state):
+        """
+        Enables/disables usage of maximal transmission set
+        during the energy scan
+        """ 
+        self.cmd_enable_max_transmission(state)
+
+    def set_max_transmission(self, value):
+        """
+        Sets maximal transmission used during the energy scan
+        """
+        self.cmd_set_max_transmission(value)
+
+    def get_max_transmission_state(self):
+        return self.cmd_enable_max_transmission.get()
+
+    def get_max_transmission_value(self):
+        return self.cmd_set_max_transmission.get()
