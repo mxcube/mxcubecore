@@ -64,7 +64,7 @@ class TangoCommand(CommandObject):
     def abort(self):
         pass
 
-    def setTimeout(self, timeout):
+    def setDeviceTimeout(self, timeout):
         if self.device is None:
             self.init_device()
             self.device.set_timeout_millis(timeout)
