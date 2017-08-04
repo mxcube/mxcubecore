@@ -144,26 +144,28 @@ class _Poller:
            
             if self.stop_event.is_set():
                 break
- 
-            if self.compare and res == self.old_res:
+
+            if isinstance(res, numpy.ndarray): # for arrays
+                comparison = res == self.old_res
+                if type(comparison) == bool:
+                    is_equal = comparison
+                else:
+                    is_equal = all(comparison)
+            else:
+                is_equal = res == self.old_res
+
+            if self.compare and is_equal:
                 # do nothing: previous value is the same as "new" value
                 pass
             else:
                 new_value = True
                 if self.compare:
-                  if isinstance(res, numpy.ndarray):
-                      comparison = res == self.old_res
-                      if type(comparison) == bool:
-                          new_value = not comparison
-                      else:
-                          new_value = not all(comparison)
-                  else:
-                      new_value = res != self.old_res
-
+                    new_value = not is_equal
+    
                 if new_value:
-                  self.old_res = res
-                  self.queue.put(res)
-                  self.async_watcher.send()
+                    self.old_res = res
+                    self.queue.put(res)
+                    self.async_watcher.send()
 
             sleep(self.polling_period / 1000.0)
 

@@ -37,8 +37,12 @@ import time
 import logging
 import gevent
 import numpy as np
+<<<<<<< HEAD
 
 from QtImport import *
+=======
+from PIL import Image
+>>>>>>> temp
 
 try:
     import cv2
@@ -52,6 +56,10 @@ class GenericVideoDevice(Device):
     default_cam_encoding = "yuv422p"
     default_poll_interval = 50
     default_cam_type = "basler"
+<<<<<<< HEAD
+=======
+    default_scale_factor = 1.0
+>>>>>>> temp
 
     def __init__(self, name):
         Device.__init__(self,name)
@@ -75,6 +83,18 @@ class GenericVideoDevice(Device):
         
 
         # Read values from XML
+<<<<<<< HEAD
+=======
+           # set useqt in  xml to False if you do not want to use in qt app
+        self.for_qt = self.getProperty("useqt")
+
+        if self.for_qt in [False,"No", "no"]:
+            self.for_qt = False
+        else:
+            self.for_qt = True
+            from QtImport import QImage, QPixmap
+
+>>>>>>> temp
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
         except:
@@ -85,6 +105,21 @@ class GenericVideoDevice(Device):
         except:
             pass
 
+<<<<<<< HEAD
+=======
+        scale =  self.getProperty("scale")
+        if scale is None:
+            self.cam_scale_factor = self.default_scale_factor
+        else:
+            try:
+                self.cam_scale_factor = eval(scale)
+            except:
+                logging.getLogger().warning('%s: failed to interpret scale factor for camera.'
+                                            'Using default.', self.name())
+                self.cam_scale_factor = self.default_scale_factor
+  
+
+>>>>>>> temp
         try:
             self.poll_interval = self.getProperty("interval")
         except:
@@ -116,7 +151,11 @@ class GenericVideoDevice(Device):
             self.cam_exposure = self.poll_interval/1000.0
 
         if self.cam_type is None:
+<<<<<<< HEAD
             self.cam_exposure = self.default_cam_type
+=======
+            self.cam_type = self.default_cam_type
+>>>>>>> temp
 
         # Apply values	
 
@@ -133,11 +172,27 @@ class GenericVideoDevice(Device):
             self.set_video_live(True)
             self.change_owner()
 
+<<<<<<< HEAD
             self.image_polling = gevent.spawn(self.do_image_polling,
                                               self.poll_interval/1000.0)
 
         self.setIsReady(True)
 
+=======
+            logging.getLogger("HWR").info('Starting polling for camera')
+            self.image_polling = gevent.spawn(self.do_image_polling,
+                                              self.poll_interval/1000.0)
+            self.image_polling.link_exception(self.polling_ended_exc)
+            self.image_polling.link(self.polling_ended)
+
+        self.setIsReady(True)
+
+    def polling_ended(self, gl=None):
+        logging.getLogger("HWR").info('Polling ended for qt4 camera')
+    def polling_ended_exc(self, gl=None):
+        logging.getLogger("HWR").info('Polling ended exception for qt4 camera')
+
+>>>>>>> temp
     """ Generic methods """
     def get_new_image(self):
         """
@@ -145,7 +200,11 @@ class GenericVideoDevice(Device):
         """
         raw_buffer, width, height = self.get_image()
 
+<<<<<<< HEAD
         if raw_buffer:
+=======
+        if raw_buffer is not None and raw_buffer.any():
+>>>>>>> temp
             if self.cam_type == "basler":
                 raw_buffer = self.decoder(raw_buffer)
                 qimage = QImage(raw_buffer, width, height,
@@ -162,6 +221,28 @@ class GenericVideoDevice(Device):
             self.emit("imageReceived", qpixmap)
             return qimage
 
+<<<<<<< HEAD
+=======
+    def get_jpg_image(self):
+        """ for now this function allows to deal with prosilica or any RGB encoded video data"""
+        """
+           the signal imageReceived is as expected by mxcube3 
+        """
+        raw_buffer, width, height = self.get_image()
+
+        if raw_buffer is not None and raw_buffer.any():
+            image = Image.frombytes("RGB", (width, height), raw_buffer)
+            from cStringIO import StringIO
+            strbuf = StringIO()
+            image.save(strbuf, "JPEG")
+            jpgimg_str = strbuf.getvalue()
+            if jpgimg_str is not None:
+                self.emit("imageReceived", jpgimg_str, width, height)
+            return jpgimg_str
+        else:
+            return None
+
+>>>>>>> temp
     def get_cam_type(self):
         return self.cam_type
 
@@ -176,10 +257,25 @@ class GenericVideoDevice(Device):
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
 
     def save_snapshot(self, filename, image_type='PNG'):
+<<<<<<< HEAD
         qimage = self.get_new_image() 
         qimage.save(filename, image_type) 
 
     def get_snapshot(self, bw=None, return_as_array=True):
+=======
+        if self.useqt:
+            qimage = self.get_new_image() 
+            qimage.save(filename, image_type) 
+        else:
+            jpgstr = self.get_jpg_image()
+            open(filename,"w").write(jpgstr)
+
+    def get_snapshot(self, bw=None, return_as_array=True):
+        if not self.useqt:
+            print "get snapshot not implemented yet for non-qt mode"
+            return None
+
+>>>>>>> temp
         qimage = self.get_new_image()
         if return_as_array:
             qimage = qimage.convertToFormat(4)
@@ -205,6 +301,11 @@ class GenericVideoDevice(Device):
         """ 
         return self.cam_scale_factor
 
+<<<<<<< HEAD
+=======
+    get_image_zoom = get_scaling_factor 
+
+>>>>>>> temp
     def imageType(self):
         """
         Descript. : returns image type (not used)
@@ -254,7 +355,14 @@ class GenericVideoDevice(Device):
         Descript. :
         """
         while self.get_video_live() == True:
+<<<<<<< HEAD
             self.get_new_image()
+=======
+            if self.useqt:
+                self.get_new_image()
+            else:
+                self.get_jpg_image()
+>>>>>>> temp
             time.sleep(sleep_time)
 
     def connectNotify(self, signal):
