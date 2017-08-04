@@ -97,11 +97,11 @@ class SardanaMotor(AbstractMotor, Device):
         self.state_channel.connectSignal("update", self.motor_state_changed)
         self.limits = (self.position_channel.getInfo().minval,
                 self.position_channel.getInfo().maxval)
-        (self.limit_lower, self.limit_upper) = self.limits
-        if self.limit_lower is None:
-            self.limit_lower = self.static_limits[0]
-        if self.limit_upper is None:
-            self.limit_upper = self.static_limits[1]
+
+        try:
+            self.limit_lower, self.limit_upper = map(float, self.limits)
+        except:
+            self.limit_lower, self.limit_upper = self.static_limits
 
     def updateState(self):
         """
@@ -155,7 +155,11 @@ class SardanaMotor(AbstractMotor, Device):
         Descript. : returns motor limits. If no limits channel defined then
                     static_limits is returned
         """
-        return (self.limit_lower, self.limit_upper)
+        try:
+            #return (float(self.limit_lower), float(self.limit_upper))
+            return (self.limit_lower, self.limit_upper)
+        except:
+            return (None,None)
 
     def getPosition(self):
         """
@@ -218,3 +222,6 @@ class SardanaMotor(AbstractMotor, Device):
             time.sleep(0.1)
             while self.is_moving():
                 time.sleep(0.1)
+
+def test_hwo(hwo):
+    print hwo.getLimits() 
