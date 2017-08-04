@@ -4,6 +4,7 @@ import weakref
 import new
 import time
 import types
+import numpy
 import gevent
 import gevent.event
 
@@ -228,8 +229,9 @@ class TangoChannel(ChannelObject):
 
  
     def update(self, value = Poller.NotInitializedValue):
-        if value == Poller.NotInitializedValue:
+        if not isinstance(value, numpy.ndarray)and value == Poller.NotInitializedValue:
             value = self.getValue()
+
         if type(value) == types.TupleType:
           value = list(value)
 
