@@ -76,6 +76,7 @@ class SampleChanger(Container,Equipment):
     LOADED_SAMPLE_CHANGED_EVENT="loadedSampleChanged"
     SELECTION_CHANGED_EVENT="selectionChanged"    
     TASK_FINISHED_EVENT="taskFinished"
+    CONTENTS_UPDATED_EVENT="contentsUpdated"
     
                 
     def __init__(self,type,scannable, *args, **kwargs):
@@ -534,6 +535,7 @@ class SampleChanger(Container,Equipment):
         if cur != component:
             Container._setSelectedComponent(self,component)  
             self._triggerSelectionChangedEvent()      
+
 #########################           PRIVATE           #########################
 
     def _triggerStateChangedEvent(self,former):
@@ -554,3 +556,5 @@ class SampleChanger(Container,Equipment):
     def _triggerTaskFinishedEvent(self,task,ret,exception):
         self.emit(self.TASK_FINISHED_EVENT, (task, ret, exception))
                 
+    def _triggerContentsUpdatedEvent(self):
+        self.emit(self.CONTENTS_UPDATED_EVENT)
