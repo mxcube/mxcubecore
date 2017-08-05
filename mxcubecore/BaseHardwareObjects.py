@@ -299,11 +299,14 @@ class HardwareObjectNode:
         """
         return
 
+    def clear_gevent(self):
+        pass
+
 class HardwareObject(HardwareObjectNode, CommandContainer):
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
         CommandContainer.__init__(self)
- 
+        self.connect_dict = {} 
 
     def _init(self):
         #'protected' post-initialization method
@@ -370,6 +373,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         signal = str(signal)
             
         dispatcher.connect(slot, signal, sender)
+
+        self.connect_dict[sender] = {"signal": signal,
+                                     "slot": slot}
  
         if hasattr(sender, "connectNotify"):
             sender.connectNotify(signal)
