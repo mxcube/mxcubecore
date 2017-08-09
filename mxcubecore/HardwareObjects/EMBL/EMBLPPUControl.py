@@ -76,32 +76,15 @@ class EMBLPPUControl(Device):
         self.cmd_all_status("")
 
     def update_status(self):
-        """ 
-        if self.update_counter <= 2: #self.at_startup:
-            #print 'BBBBBBBBBB at startup'
-            #print self.all_status 
-            self.at_startup = False
-            return
-
-        
-
-        if self.execution_state in self.all_status:
-	    #print 'AAAA', self.at_startup, self.all_status
-            return
-
-        #print 'CCCCCCC'
-        #print self.all_status
-        #print self.execution_state
-        """
         self.is_error = self.all_status.startswith(self.error_state)
 
         if self.is_error:
             msg_list = self.all_status.split("\n")
-            logging.getLogger("user_level_log").error("PPU control is in Error state!")
+            logging.getLogger("GUI").error("PPU control is in Error state!")
             if len(msg_list) > 1:
                 for msg_line in msg_list:
                     if msg_line:
-                        logging.getLogger("user_level_log").error("PPU control: %s" % msg_line)
+                        logging.getLogger("GUI").error("PPU control: %s" % msg_line)
         else:
             logging.getLogger("HWR").debug("PPUControl: %s" % \
                    self.all_status)
