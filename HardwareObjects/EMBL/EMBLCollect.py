@@ -511,21 +511,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         else:
             return {}
 
-    def get_beam_size(self):
-        """Returns beam size as a list with two floats"""
-        if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_beam_size()
-
-    def get_slit_gaps(self):
-        """Returns slits sizes as a list with two floats"""
-        if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_slits_gap()
-
-    def get_beam_shape(self):
-        """Returns beam shape: rectangle or ellipse"""
-        if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_beam_shape()
-
     def get_measured_intensity(self):
         """Returns flux"""
         flux = None
