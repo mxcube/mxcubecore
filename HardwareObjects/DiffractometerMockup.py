@@ -275,6 +275,21 @@ class DiffractometerMockup(GenericDiffractometer):
         return
 
     def get_osc_dynamic_limits(self):
+        """Returns dynamic limits of oscillation axis"""
+        return (0, 20)
+
+    def get_scan_limits(self, num_images, exp_time):
+        motor_acc_const = 5
+        motor_acc_time = num_images / exp_time / motor_acc_const
+        min_acc_time = 0.0015
+        acc_time = max(motor_acc_time, min_acc_time)
+
+        shutter_time = 3.7 / 1000.
+        max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
+
+        return (0, max_limit)
+
+    def get_scan_dynamic_limits(self, speed=None):
         return (0, 20)
 
     def move_omega_relative(self, relative_angle):
