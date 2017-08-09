@@ -62,7 +62,7 @@ class MotorMockup(Device):
         self.motorState = MotorMockup.READY
         self.emit('stateChanged', (self.motorState, ))           
 
-    def move(self, position):
+    def move(self, position, wait=False):
         self.motorState = MotorMockup.MOVING
         self._move_task = gevent.spawn(self._move, position)
         self._move_task.link(self._set_ready) 

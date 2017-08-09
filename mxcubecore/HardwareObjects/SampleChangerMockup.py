@@ -13,11 +13,11 @@ class SampleChangerMockup(SampleChanger):
         super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
 
     def init(self):
-        self._selected_sample = 1
-        self._selected_basket = 1
+        self._selected_sample = 2
+        self._selected_basket = 9
         self._scIsCharging = None
 
-        for i in range(5):
+        for i in range(SampleChangerMockup.NO_OF_BASKETS):
             basket = Basket(self,i+1)
             self._addComponent(basket)
 
@@ -34,33 +34,34 @@ class SampleChangerMockup(SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
-        try:
-            self._setState(SampleChangerState.Loading)
-            if isinstance(sample, tuple):
-                basket, sample = sample
-            else:
-                basket, sample = sample.split(":")
+        self._setState(SampleChangerState.Loading)
+        self._resetLoadedSample()
+        if isinstance(sample, tuple):
+            basket, sample = sample
+        else:
+            basket, sample = sample.split(":")
 
-            msg = "Loading sample %d:%d" %(\
-               int(basket), int(sample))
-            logging.getLogger("user_level_log").info(msg + ". Please wait...")
+        self._selected_basket = basket
+        self._selected_sample = sample
 
-            self.emit("progressInit", (msg, 100))
-            time.sleep(7)
+        msg = "Loading sample %d:%d" %(int(basket), int(sample))
+        logging.getLogger("user_level_log").info(\
+            "Sample changer: %s. Please wait..." % msg)
 
-            mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
-            mounted_sample._setLoaded(True, False)
-            self._setState(SampleChangerState.Ready)
-            self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
-            logging.getLogger("user_level_log").info("Sample loaded")
-        except:
-            basket, sample = (None, None)
-            self._setState(SampleChangerState.Error)
-            logging.getLogger("user_level_log").error("Failed to load sample")
-        finally:
-            self._selected_basket = int(basket)
-            self._selected_sample = int(sample)
-            self.emit("progressStop", ())
+        self.emit("progressInit", (msg, 100))
+        for step in range(3 * 100):
+            self.emit("progressStep", int(step / 5.))
+            if step > 200:
+                raise Exception ("Test exc")
+            time.sleep(0.01)
+
+        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
+        mounted_sample._setLoaded(True, False)
+        #self._setState(SampleChangerState.Ready)
+        self._setLoadedSample(mounted_sample)
+        self.updateInfo()
+        logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
+        self.emit("progressStop", ())
 
         return self.getLoadedSample()
 
@@ -115,7 +116,7 @@ class SampleChangerMockup(SampleChanger):
         """
         basket_list= [('', 4)] * 5
 
-        for basket_index in range(5):
+        for basket_index in range(SampleChangerMockup.NO_OF_BASKETS):
             basket=self.getComponents()[basket_index]
             datamatrix = None
             present = True
@@ -123,7 +124,7 @@ class SampleChangerMockup(SampleChanger):
             basket._setInfo(present, datamatrix, scanned)
 
         sample_list=[]
-        for basket_index in range(5):
+        for basket_index in range(SampleChangerMockup.NO_OF_BASKETS):
             for sample_index in range(10):
                 sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
         for spl in sample_list:

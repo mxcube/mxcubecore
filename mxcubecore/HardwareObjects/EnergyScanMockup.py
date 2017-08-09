@@ -199,8 +199,6 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        #logging.getLogger("HWR").info("EMBLEnergyScan: Saving png" )
-        # prepare to save png files
         title = "%s  %s  %s\n%.4f  %.2f  %.2f\n%.4f  %.2f  %.2f" % \
               ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl)
         fig = Figure(figsize = (15, 11))
@@ -288,7 +286,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         with cleanup(self.ready_event.set):
             self.scan_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
-            logging.getLogger("HWR").debug("EMBLEnergyScan: energy scan finished")
+            logging.getLogger("HWR").debug("Energy Scan: finished")
             self.scanning = False
             self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.
             self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.
