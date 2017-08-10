@@ -57,12 +57,14 @@ class EMBLSafetyShutter(Device):
 
     def init(self):
         self.chan_collection_state = self.getChannelObject('chanCollectStatus')
-        self.chan_collection_state.connectSignal('update',
-             self.data_collection_state_changed)
+        if self.chan_collection_state is not None:
+            self.chan_collection_state.connectSignal('update',
+                 self.data_collection_state_changed)
 
         self.chan_state_open = self.getChannelObject('chanStateOpen')
-        self.chan_state_open.connectSignal('update',
-             self.state_open_changed)
+        if self.chan_state_open is not None:
+            self.chan_state_open.connectSignal('update',
+                 self.state_open_changed)
 
         self.state_open_changed(self.chan_state_open.getValue())
 

@@ -76,7 +76,7 @@ class EMBLCRL(HardwareObject):
                      self.focusing_mode_requested)
 
         focus_modes = self.beam_focusing_hwobj.get_available_lens_modes()
-        if focus_modes is not None:
+        if focus_modes:
             self.set_mode(focus_modes[0])
 
     def convert_value(self, value):
