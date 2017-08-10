@@ -20,7 +20,16 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
     def init(self): 
         # this is ugly : I added it to make the centring procedure happy
         self.motorState = MicrodiffMotorMockup.READY
-        self.motorPosition = 10.124
+
+        try:
+            self.motorPosition = int(self.getProperty("start_position"))
+        except:
+            self.motorPosition = 10.124
+ 
+        try:
+            self.limits = eval(self.getProperty("limits"))
+        except:
+            self.limits = self.static_limits
 
     def isReady(self):
         return True 
@@ -49,7 +58,7 @@ class MicrodiffMotorMockup(AbstractMotor, Device):
         self.emit('limitsChanged', (self.getLimits(), ))
                      
     def getLimits(self):
-        return (-1E4,1E4)
+        return self.limits
  
     def getPosition(self):
         return self.motorPosition
