@@ -35,19 +35,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         AbstractDetector.__init__(self)
         HardwareObject.__init__(self, name)
 
-        self.temperature = 0
-        self.humidity = 0
-        self.tolerance = 0.1
-        self.roi_mode = None
-        self.roi_modes = []
         self.collect_name = None
         self.shutter_name = None
         self.temp_treshold = None
         self.hum_treshold = None
-        self.exp_time_limits = None
-        self.pixel_min = None
-        self.pixel_max = None
-        self.actual_frame_rate = None
 
         self.chan_beam_xy = None
         self.chan_temperature = None
@@ -56,8 +47,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_roi_mode = None
         self.chan_frame_rate = None
         self.chan_actual_frame_rate = None
-
-        self.distance_motor_hwobj = None
 
     def init(self):
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
@@ -111,7 +100,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = self.getProperty("humidityThreshold")
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
-        self.roi_modes = eval(self.getProperty("roiModes"))
+        self.roi_modes_list = eval(self.getProperty("roiModes"))
 
     def get_distance(self):
         """Returns detector distance in mm"""
@@ -138,14 +127,16 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def temperature_changed(self, value):
         """Updates temperatur value"""
-        if abs(self.temperature - value) > self.tolerance:
+        if self.temperature is None or \
+           abs(self.temperature - value) > self.tolerance:
             self.temperature = value
             self.emit('temperatureChanged', (value, value < self.temp_treshold))
             self.status_changed('dummy')
 
     def humidity_changed(self, value):
         """Update humidity value"""
-        if abs(self.humidity - value) > self.tolerance:
+        if self.humidity is None or \
+           abs(self.humidity - value) > self.tolerance:
             self.humidity = value
             self.emit('humidityChanged', (value, value < self.hum_treshold))
             self.status_changed('dummy')
@@ -178,14 +169,14 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
-        self.roi_mode = self.roi_modes.index(mode)
+        self.roi_mode = self.roi_modes_list.index(mode)
         self.emit('detectorModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
         """Updates frame rate"""
         if frame_rate is not None:
-            self.exp_time_limits = (1 / float(frame_rate), 6000)
-        self.emit('expTimeLimitsChanged', (self.exp_time_limits, ))
+            self.exposure_time_limits = (1 / float(frame_rate), 6000)
+        self.emit('expTimeLimitsChanged', (self.exposure_time_limits, ))
 
     def actual_frame_rate_changed(self, value):
         self.actual_frame_rate = value
@@ -197,22 +188,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :param mode: roi mode
         :type mode: str
         """
-        self.chan_roi_mode.setValue(self.roi_modes[mode])
-
-    def get_roi_mode(self):
-        """Returns current ROI mode"""
-        return self.roi_mode
-
-    def get_roi_mode_name(self):
-        return self.roi_modes[self.roi_mode]
-
-    def get_roi_modes(self):
-        """Returns a list with available ROI modes"""
-        return self.roi_modes
-
-    def get_exposure_time_limits(self):
-        """Returns exposure time limits as list with two floats"""
-        return self.exp_time_limits
+        self.chan_roi_mode.setValue(self.roi_modes_list[mode])
 
     def get_beam_centre(self):
         """Returns beam center coordinates"""
@@ -232,5 +208,5 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         hum = self.chan_humidity.getValue()
         self.emit('humidityChanged', (hum, hum < self.hum_treshold))
         self.status_changed("")
-        self.emit('expTimeLimitsChanged', (self.exp_time_limits, ))
+        self.emit('expTimeLimitsChanged', (self.exposure_time_limits, ))
         self.emit('frameRateChanged', self.actual_frame_rate)

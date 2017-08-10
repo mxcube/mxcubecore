@@ -158,6 +158,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         Description:
         """
         return not self.in_plate_mode() 
+    
+    def beam_position_changed(self, value):
+        self.beam_position = value
 
     def state_changed(self, state):
         self.current_state = state
@@ -270,18 +273,19 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         if self.chan_calib_x:
             self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue() 
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
             self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, 
                                               self.pixels_per_mm_y),))
 
-    def set_phase(self, phase, timeout=None):
+    def set_phase(self, phase, timeout=60):
         """Sets diffractometer to the selected phase.
            In the plate mode before going to or away from
            Transfer or Beam location phase if needed then detector
            is moved to the safe distance to avoid collision.
         """
-        logging.getLogger("user_level_log").info(
-            "Setting diffractometer to %s phase" % phase)
+        self.wait_device_ready(10)
+        logging.getLogger("GUI").warning(
+            "Diffractometer: Setting %s phase. Please wait..." % phase)
         
         if self.in_plate_mode() and \
            (phase in (GenericDiffractometer.PHASE_TRANSFER,
@@ -294,7 +298,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 "selected phase: %s" % phase + \
                 "detector distance: %d mm" % detector_distance)
             if detector_distance < 200:
-                logging.getLogger("user_level_log").info(
+                logging.getLogger("GUI").info(
                     "Moving detector to safe distance")
                 self.detector_distance_motor_hwobj.move(200, wait=True)
 
@@ -397,22 +401,26 @@ class EMBLMiniDiff(GenericDiffractometer):
         """Automatic centring procedure. Rotates n times and executes
            centring algorithm. Optimal scan position is detected.
         """
-    
+        self.wait_device_ready(20) 
         surface_score_list = []
-        self.zoom_motor_hwobj.moveToPosition("Zoom 3")
+        self.zoom_motor_hwobj.moveToPosition("Zoom 1")
         self.centring_hwobj.initCentringProcedure()
         for image in range(EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES):
             x, y, score = self.find_loop()
-            if x > -1 and y > -1:
+            if x > 0 and y > 0:
                 self.centring_hwobj.appendCentringDataPoint(
                     {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
                      "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
             surface_score_list.append(score)
             self.motor_hwobj_dict['phi'].moveRelative(\
                  360.0 / EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES)
-            self.wait_device_ready(5)
+            gevent.sleep(0.01)
+            self.wait_device_ready(10)
         self.omega_reference_add_constraint()
-        return self.centring_hwobj.centeredPosition(return_by_name=False)
+        centred_pos_dir = self.centring_hwobj.centeredPosition(return_by_name=False)
+        #self.emit("newAutomaticCentringPoint", centred_pos_dir)
+
+        return centred_pos_dir
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
@@ -575,15 +583,6 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
 
-    def get_scan_limits(self, speed=None):
-        """
-        Gets scan limits. Necessary for example in the plate mode
-        where osc range is limited
-        """
-        if speed == None:
-            speed = 0
-        return self.cmd_get_omega_scan_limits(speed)
-
     def close_kappa(self):
         """
         Descript. :
@@ -627,12 +626,22 @@ class EMBLMiniDiff(GenericDiffractometer):
         motor_acc_const = 5
         motor_acc_time = num_images / exp_time / motor_acc_const
         min_acc_time = 0.0015
-        acc_time = min(motor_acc_time, min_acc_time)
+        acc_time = max(motor_acc_time, min_acc_time)
 
         shutter_time = 3.7 / 1000.
         max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
 
         return [0, max_limit]
+
+    def get_scan_limits(self, speed=None):
+        """
+        Gets scan limits. Necessary for example in the plate mode
+        where osc range is limited
+        """
+        if speed == None:
+            speed = 0
+        return self.cmd_get_omega_scan_limits(speed)
+
 
     def get_scintillator_position(self):
         return self.chan_scintillator_position.getValue()

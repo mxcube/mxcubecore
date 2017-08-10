@@ -193,11 +193,11 @@ class TINEMotor(Device):
             self.emit('stateChanged', (self.motorState, ))
             return self.motorState
 
-        if self.chan_state is not None: 
+        if self.chan_state is not None:
             actualState = self.chan_state.getValue()
         else:
-            actualState = 'ready'
-
+            actualState = "ready"
+ 
         if type(actualState) in (list, tuple):
             actualState = actualState[0]
 
@@ -250,7 +250,10 @@ class TINEMotor(Device):
             self.cmd_set_position(target)
 
         if wait:
-            self._waitDeviceReady(30)  
+            self._waitDeviceReady(30)
+        if self.chan_state is None:
+            self.motor_state_changed("not used state")
+            
 
     def __changeMotorState(self, state):
         """
@@ -263,8 +266,8 @@ class TINEMotor(Device):
         """
         Descript. :
         """
-        state = self.getState()
-        self.emit('stateChanged', (state, ))
+        self.motorState = self.getState()
+        self.emit('stateChanged', (self.motorState, ))
         
     def motor_position_changed(self, dummy_argument):
         """
@@ -314,6 +317,7 @@ class TINEMotor(Device):
     def update_values(self):    
         self.emit('limitsChanged', self.limits)
         self.emit('positionChanged', (self.current_position, ))
+        self.emit('stateChanged', (self.motorState, ))
 
     def _isDeviceReady(self):
         return self.motorState == self.getState()
