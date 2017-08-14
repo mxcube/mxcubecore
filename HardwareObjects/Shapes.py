@@ -221,7 +221,12 @@ class Shapes(HardwareObject):
         pass
 
     def set_grid_data(self, key, result_data):
-        pass
+        shape = self.get_shape(key)
+        shape.set_result(result_data)
+
+    def get_grid_data(self, key):
+        shape = self.get_shape(key)
+        return shape.get_result()
 
 
 class Shape(object):
@@ -357,13 +362,32 @@ class Grid(Shape):
         self.num_cols = -1
         self.num_rows = -1
         self.selected = False
+        self.result = []
 
     def get_centred_position(self):
-        return self.cp_list[0]
+        return self.cp_list[1]
+
+    def get_grid_range(self):
+        return (float(self.cell_width * (self.num_cols - 1)), \
+                float(self.cell_height * (self.num_rows - 1)))
+
+    def get_num_lines(self):
+        if self.cell_count_fun == "zig-zag":
+            return self.num_rows
+        elif self.cell_count_fun == "inverse-zig-zag":
+            return self.num_cols
+        else:
+            return self.num_rows
 
     def set_id(self, id_num):
         Shape.set_id(self, id_num)
         self.cp_list[0].index = self.id
+
+    def set_result(self, result_data):
+        self.result = result_data
+
+    def get_result(self):
+        return self.result
 
     def as_dict(self):
         d = Shape.as_dict(self)
