@@ -105,7 +105,8 @@ class SampleChangerMockup(SampleChanger):
         for basket_index in range(5):
             basket=self.getComponents()[basket_index]
             datamatrix = None
-            present = scanned = False
+            scanned = False
+            present = True
             basket._setInfo(present, datamatrix, scanned)
 
         sample_list=[]
@@ -115,7 +116,8 @@ class SampleChangerMockup(SampleChanger):
         for spl in sample_list:
             sample = self.getComponentByAddress(Pin.getSampleAddress(spl[1], spl[2]))
             datamatrix = "matr%d_%d" %(spl[1], spl[2])
-            present = scanned = loaded = has_been_loaded = False
+            scanned = loaded = has_been_loaded = False
+            present = True
             sample._setInfo(present, datamatrix, scanned)
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
