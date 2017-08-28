@@ -15,7 +15,6 @@ MICRODIFF = None
 
 class Microdiff(MiniDiff.MiniDiff):
     def init(self):
-        
         global MICRODIFF
         MICRODIFF = self
         self.timeout = 3
@@ -44,6 +43,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.scan_detector_gate_pulse_enabled = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"detector_gate_pulse_enabled" }, "DetectorGatePulseEnabled")
         self.scan_detector_gate_pulse_readout_time = self.addChannel({"type":"exporter", "exporter_address": self.exporter_addr, "name":"detector_gate_pulse_readout_time" }, "DetectorGatePulseReadoutTime")
 
+        self.abort_cmd = self.addCommand({ "type": "exporter", "exporter_address": self.exporter_addr, "name": "abort" }, "abort") 
 
         MiniDiff.MiniDiff.init(self)
         self.centringPhiy.direction = -1
@@ -58,12 +58,11 @@ class Microdiff(MiniDiff.MiniDiff):
         self.beam_info = self.getObjectByRole('beam_info')
 
     def getMotorToExporterNames(self):
-        #only temporary. Get the names from the xml files
-        MOTOR_TO_EXPORTER_NAME = {"focus":"AlignmentX", "kappa":"Kappa",
-                                  "kappa_phi":"Phi", "phi": "Omega",
-                                  "phiy":"AlignmentY", "phiz":"AlignmentZ",
-                                  "sampx":"CentringX", "sampy":"CentringY",
-                                  "zoom":"Zoom"}
+        MOTOR_TO_EXPORTER_NAME = {"focus":self.focusMotor.getProperty('motor_name'), "kappa":self.kappaMotor.getProperty('motor_name'),
+                                  "kappa_phi":self.kappaPhiMotor.getProperty('motor_name'), "phi": self.phiMotor.getProperty('motor_name'),
+                                  "phiy":self.phiyMotor.getProperty('motor_name'), "phiz":self.phizMotor.getProperty('motor_name'),
+                                  "sampx":self.sampleXMotor.getProperty('motor_name'), "sampy":self.sampleYMotor.getProperty('motor_name'),
+                                  "zoom":'Zoom' }
         return MOTOR_TO_EXPORTER_NAME
 
     def getCalibrationData(self, offset):
@@ -113,13 +112,18 @@ class Microdiff(MiniDiff.MiniDiff):
         return self.readPhase.getValue()
 
     def moveSyncMotors(self, motors_dict, wait=False, timeout=None):
+        in_kappa_mode = self.in_kappa_mode()
         argin = ""
         #print "start moving motors =============", time.time()
+        if wait:
+            self._wait_ready()
         for motor in motors_dict.keys():
             position = motors_dict[motor]
             if position is None:
                 continue
-            name=self.MOTOR_TO_EXPORTER_NAME[motor]
+            name = self.MOTOR_TO_EXPORTER_NAME[motor]
+            if not in_kappa_mode and motor in ('kappa','kappa_phi'):
+              continue
             argin += "%s=%0.3f;" % (name, position)
         if not argin:
             return
@@ -127,8 +131,8 @@ class Microdiff(MiniDiff.MiniDiff):
         move_sync_motors(argin)
 
         if wait:
-            while not self._ready():
-                time.sleep(0.5)
+            time.sleep(0.1)
+            self._wait_ready()
         #print "end moving motors =============", time.time()
             
     def oscilScan(self, start, end, exptime, wait=False):
@@ -144,7 +148,7 @@ class Microdiff(MiniDiff.MiniDiff):
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
         scan(scan_params)
-        print "scan started at ----------->", time.time()
+        print "oscil scan started at ----------->", time.time()
         if wait:
             self._wait_ready(300) #timeout of 5 min
             print "finished at ---------->", time.time()
@@ -170,7 +174,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan4d" }, "startScan4DEx")
         scan(scan_params)
-        print "scan started at ----------->", time.time()
+        print "helical scan started at ----------->", time.time()
         if wait:
             self._wait_ready(900) #timeout of 15 min
             print "finished at ---------->", time.time()
@@ -199,11 +203,19 @@ class Microdiff(MiniDiff.MiniDiff):
 
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_raster_scan" }, "startRasterScan")
         scan(scan_params)
-        print "scan started at ----------->", time.time()
+        print "mesh scan started at ----------->", time.time()
         if wait:
             self._wait_ready(1800) #timeout of 30 min
             print "finished at ---------->", time.time()
 
+    def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
+        scan_params = "%0.6f\t%0.6f\t%d"% (pulse_duration, pulse_period, pulse_nb)
+        scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startStillScan")
+        scan(scan_params)
+        print "still scan started at ----------->", time.time()
+        if wait:
+            self._wait_ready(1800) #timeout of 30 min
+            print "finished at ---------->", time.time()
 
     def in_plate_mode(self):
         try:
@@ -244,7 +256,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def moveToBeam(self, x, y):
         if not self.in_plate_mode():  
-            super(Microdiff,this).moveToBeam(x,y)
+            super(Microdiff,self).moveToBeam(x,y)
         else:          
             try:
                 beam_xc = self.getBeamPosX()
