@@ -121,9 +121,9 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
-        diffr.getObjectByRole("flight").move(0.8)
+        diffr.getObjectByRole("FrontLight").move(0.8)
         #take the back light out
-        diffr.getObjectByRole("lightInOut").actuatorOut()
+        diffr.getObjectByRole("BackLightSwitch").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
