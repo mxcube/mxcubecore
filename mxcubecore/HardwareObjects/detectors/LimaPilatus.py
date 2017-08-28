@@ -168,7 +168,7 @@ class Pilatus:
           header = "\n%s\n" % self.config.getProperty("serial")
           header += "# %s\n" % time.strftime("%Y/%b/%d %T")
           header += "# Pixel_size 172e-6 m x 172e-6 m\n"
-          header += "# Silicon sensor, thickness 0.001 m\n"
+          header += "# Silicon sensor, thickness 0.000320 m\n"  
           self.header["Start_angle"]=start_angle
           for key, value in self.header.iteritems():
               header += "# %s %s\n" % (key, value)
