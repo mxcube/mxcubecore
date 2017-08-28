@@ -165,17 +165,19 @@ class PixelDetector:
         return self._detector.get_deadtime()
 
     @task
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None):
-        self.new_acquisition = True
-        if osc_range < 1E-4:
-            trigger_mode = 'INTERNAL_TRIGGER'
-        else:
-            trigger_mode = 'EXTERNAL_TRIGGER'
-        if self._mesh_steps > 1:
-            trigger_mode = 'EXTERNAL_TRIGGER_MULTI'
-            # reset mesh steps
-            self._mesh_steps = 1
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment="", energy=None, trigger_mode=None):
         take_dark = 0
+        self.new_acquisition = True
+
+        if trigger_mode is None:
+            if osc_range < 1E-4:
+                trigger_mode = 'INTERNAL_TRIGGER'
+            else:
+                trigger_mode = 'EXTERNAL_TRIGGER'
+            if self._mesh_steps > 1:
+                trigger_mode = 'EXTERNAL_TRIGGER_MULTI'
+                # reset mesh steps
+                self._mesh_steps = 1
 
         if self.shutterless:
             self.shutterless_range = osc_range*number_of_images
