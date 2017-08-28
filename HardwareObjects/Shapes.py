@@ -254,7 +254,7 @@ class Shape(object):
         :returns: The centred position(s) associated with the shape.
         :rtype: List of CentredPosition objects.
         """
-        return self.cpos_list
+        return self.cp_list
 
     def select(self):
         self.selected = True
