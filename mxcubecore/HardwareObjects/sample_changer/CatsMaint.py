@@ -71,7 +71,7 @@ class CatsMaint(Equipment):
         except:
             self.cats_model = "CATS"
 
-        if self.is_isara:
+        if self.is_isara():
             self.nb_of_lids = 1
         else:
             self.nb_of_lids = 3
