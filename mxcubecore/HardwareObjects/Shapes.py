@@ -220,9 +220,14 @@ class Shapes(HardwareObject):
     def get_grid(self):
         pass
 
-    def set_grid_data(self, key, result_data):
-        shape = self.get_shape(key)
-        shape.set_result(result_data)
+    def set_grid_data(self, sid, result_data):
+        shape = self.get_shape(sid)
+
+        if shape:
+            shape.set_result(result_data)
+        else:
+            msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
+            raise AttributeError(msg)
 
     def get_grid_data(self, key):
         shape = self.get_shape(key)
