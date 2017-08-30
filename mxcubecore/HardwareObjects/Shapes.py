@@ -57,13 +57,13 @@ class Shapes(HardwareObject):
         :returns: All lines currently handled
         :rtype: Line
         """
-        current_points = []
+        lines = []
 
         for shape in self.get_shapes():
             if isinstance(shape, Line):
-                current_points.append(shape)
+                lines.append(shape)
 
-        return current_points
+        return lines
 
     def get_grids(self):
         """
@@ -72,13 +72,13 @@ class Shapes(HardwareObject):
         :returns: All Grids currently handled
         :rtype: Grid
         """
-        current_points = []
+        grid = []
 
         for shape in self.get_shapes():
             if isinstance(shape, Grid):
-                current_points.append(shape)
+                grid.append(shape)
 
-        return current_points
+        return grid
 
     def get_shape(self, sid):
         """
@@ -217,8 +217,25 @@ class Shapes(HardwareObject):
     def select_shape_with_cpos(self, cpos):
         return
 
+    # For backwards compatability with old ShapeHisotry object
+    # returns first of selected grids
     def get_grid(self):
-        pass
+        """
+        Get the first of the selected grids, (the one that was selected first in
+        a sequence of select operations)
+        
+        :returns: The first selected grid as a dictionary
+        :rtype: dict
+        """
+        grid = None
+
+        for shape in self.get_shapes():
+            if isinstance(shape, Grid):
+                grid = shape.as_dict()
+                break;
+
+        return grid
+
 
     def set_grid_data(self, sid, result_data):
         shape = self.get_shape(sid)
@@ -269,7 +286,7 @@ class Shape(object):
 
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
-        self.screen_coord = reduce((lambda x, y: x + y), spos_list, ())
+        self.screen_coord = spos_list[0]
 
     def add_cp_from_mp(self, mpos_list):
         for mp in mpos_list:
@@ -354,8 +371,6 @@ class Grid(Shape):
         self.t = "G"
         self.set_id(Grid.SHAPE_COUNT)
 
-        self.top = -1
-        self.left = -1
         self.width = -1
         self.height = -1
         self.cell_count_fun = "zig-zag"
@@ -368,6 +383,8 @@ class Grid(Shape):
         self.num_rows = -1
         self.selected = False
         self.result = []
+        self.pixels_per_mm = [1, 1]
+        self.beam_pos = [1, 1]
 
     def get_centred_position(self):
         return self.cp_list[1]
@@ -398,4 +415,15 @@ class Grid(Shape):
         d = Shape.as_dict(self)
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()
-        return d
+
+        # MXCuBE - 2 WF compatability
+        d["x1"] = (self.beam_pos[0] - d["screen_coord"][0]) / self.pixels_per_mm[0]
+        d["y1"] = (self.beam_pos[1] - d["screen_coord"][1]) / self.pixels_per_mm[1]
+        d["steps_x"] = d["num_cols"]
+        d["steps_y"] = d["num_rows"]
+        d["dx_mm"] = d["width"] / self.pixels_per_mm[0]
+        d["dy_mm"] = d["height"] / self.pixels_per_mm[1]
+        d["beam_width"] = d["cell_width"]
+        d["beam_height"] = d["cell_height"]
+        d["angle"] = 0
+        return d    
