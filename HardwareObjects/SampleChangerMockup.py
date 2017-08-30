@@ -28,6 +28,10 @@ class SampleChangerMockup(SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
+        current = self.getLoadedSample()
+        if current != None:
+            self.unload(None, wait=True)
+
         try:
             self._setState(SampleChangerState.Loading)
             if isinstance(sample, tuple):
@@ -46,13 +50,22 @@ class SampleChangerMockup(SampleChanger):
             self._selected_basket = int(basket)
             self._selected_sample = int(sample)
 
-        return self.getLoadedSample()
+        loaded_sample = self.getLoadedSample()
+        loaded_sample._setLoaded(True)
+        return loaded_sample
 
     def unload(self, sample_slot, wait):
+        logging.getLogger('HWR').info('Unloading sample %s' %sample_slot)
+        self._setState(SampleChangerState.Unloading)
+        current = self.getLoadedSample()
+        current._setLoaded(False)
+
         self._selected_basket = None
         self._selected_sample = None
-        self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
- 
+        time.sleep(2)
+        self._triggerLoadedSampleChangedEvent(None)
+        self._setState(SampleChangerState.Ready)
+
     def getBasketList(self):
         basket_list = []
         for basket in self.components:
@@ -61,7 +74,10 @@ class SampleChangerMockup(SampleChanger):
         return basket_list
 
     def getLoadedSample(self):
-        return self.getComponentByAddress(Pin.getSampleAddress(self._selected_basket, self._selected_sample))
+        if self._selected_basket != None and self._selected_sample != None:
+            return self.getComponentByAddress(Pin.getSampleAddress(self._selected_basket, self._selected_sample))
+        else:
+            return None
 
     def is_mounted_sample(self, sample):
         if isinstance(sample, tuple):
@@ -117,7 +133,6 @@ class SampleChangerMockup(SampleChanger):
             sample = self.getComponentByAddress(Pin.getSampleAddress(spl[1], spl[2]))
             datamatrix = "matr%d_%d" %(spl[1], spl[2])
             scanned = loaded = has_been_loaded = False
-            present = True
             sample._setInfo(present, datamatrix, scanned)
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
