@@ -53,8 +53,9 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringVertical = self.getDeviceByRole('centringVertical')
         self.centringFocus = self.getDeviceByRole('centringFocus')   
         
-        self.frontLight = self.getDeviceByRole('flight')
-        self.backLight = self.getDeviceByRole('light')  
+        self.frontLight = self.getDeviceByRole('FrontLight')
+        self.backLight = self.getDeviceByRole('BackLight')  
+
         self.beam_info = self.getObjectByRole('beam_info')
 
     def getMotorToExporterNames(self):
@@ -320,7 +321,7 @@ class Microdiff(MiniDiff.MiniDiff):
         return self.backLight.move(level)
 
 def set_light_in(light, light_motor, zoom):
-    MICRODIFF.getDeviceByRole("flight").move(0)
-    MICRODIFF.getDeviceByRole("lightInOut").actuatorIn()
+    MICRODIFF.getDeviceByRole("FrontLight").move(0)
+    MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
 
 MiniDiff.set_light_in = set_light_in
