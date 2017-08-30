@@ -69,12 +69,8 @@ class Session(HardwareObject):
 
         archive_base_directory = self['file_info'].getProperty('archive_base_directory')
         if archive_base_directory:
-            if self.synchrotron_name.lower() == 'esrf':
-                archive_folder = os.path.join(self['file_info'].getProperty('archive_folder'), time.strftime('%Y'))
-                queue_model_objects.PathTemplate.set_archive_path(archive_base_directory, archive_folder)
-            else:
-                queue_model_objects.PathTemplate.set_archive_path(archive_base_directory,
-                                                                  self['file_info'].getProperty('archive_folder'))
+            queue_model_objects.PathTemplate.set_archive_path(archive_base_directory,
+                                                              self['file_info'].getProperty('archive_folder'))
 
         queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)
         queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
