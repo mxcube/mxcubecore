@@ -351,11 +351,18 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def save_snapshot(self, imgpath, showScale=True):
-        if showScale:
-            self.diffractometer_hwobj.save_snapshot(imgpath)
-        else:
-            self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
-        return True
+        res = True
+
+        try:
+            if showScale:
+                self.diffractometer_hwobj.save_snapshot(imgpath)
+            else:
+                self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
+        except Exception as ex:
+          logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
+          res = false
+
+        return res
 
     def save_current_pos(self):
         """
