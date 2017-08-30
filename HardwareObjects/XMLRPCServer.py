@@ -258,12 +258,12 @@ class XMLRPCServer(HardwareObject):
         :type node_id: int
         """
         try:
-            model = self.queue_model_hwobj.get_node(node_id)
-            entry = self.queue_hwobj.get_entry_with_model(model)
+           model = self.queue_model_hwobj.get_node(node_id)
+           entry = self.queue_hwobj.get_entry_with_model(model)
 
-            if entry:
-                self.current_entry_task = self.queue_hwobj.\
-                                          execute_entry(entry)
+           if entry:
+              self.current_entry_task = self.queue_hwobj.\
+                                        execute_entry(entry)
 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))

@@ -66,7 +66,6 @@ class Energy(Equipment):
         return True
 
     def getCurrentEnergy(self):
-        logging.getLogger('user_level_log').debug("Get current energy")
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition()
