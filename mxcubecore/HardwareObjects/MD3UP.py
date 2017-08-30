@@ -51,10 +51,8 @@ class MD3UP(Microdiff.Microdiff):
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1"% (start, (end-start), exptime)
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan" }, "startScanEx")
         scan(scan_params)
-        print "scan started at ----------->", time.time()
         if wait:
             self._wait_ready(300) #timeout of 5 min
-            print "finished at ---------->", time.time()
 
     def oscilScan4d(self, start, end, exptime,  motors_pos, wait=False):
         if self.in_plate_mode():
@@ -79,34 +77,17 @@ class MD3UP(Microdiff.Microdiff):
 
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_scan4d" }, "startScan4DEx")
         scan(scan_params)
-        print "scan started at ----------->", time.time()
         if wait:
             self._wait_ready(900) #timeout of 15 min
-            print "finished at ---------->", time.time()
 
 
     def oscilScanMesh(self,start, end, exptime, dead_time, mesh_num_lines, mesh_total_nb_frames, mesh_center, mesh_range, wait=False):
-        #import pdb; pdb.set_trace()
-        #self.scan_range.setValue(end-start)
-        #self.scan_exposure_time.setValue(exptime/mesh_num_lines)
-        #self.scan_start_angle.setValue(start)
         self.scan_detector_gate_pulse_enabled.setValue(True)
         servo_time = 0.110 # adding the servo time to the readout time to avoid any servo cycle jitter 
         self.scan_detector_gate_pulse_readout_time.setValue(dead_time*1000 +servo_time)  # TODO
 
         # Prepositionning at the center of the grid
-                
         self.moveMotors(mesh_center.as_dict())
-        
-        #self.centringVertical.syncMoveRelative((mesh_range['horizontal_range'])/2)
-        #self.centringPhiy.syncMoveRelative(-(mesh_range['vertical_range'])/2)
-        #scan_params = "%0.3f\t" % mesh_range['horizontal_range']
-        #scan_params += "%0.3f\t" % -mesh_range['vertical_range']
-        #scan_params += "%d\t" % mesh_num_lines
-        #scan_params += "%d\t" % (mesh_total_nb_frames/mesh_num_lines)
-        #scan_params += "%r" % True   # TODO
-        #scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_raster_scan" }, "startRasterScan")
-        #import pdb; pdb.set_trace()
         
         positions = self.getPositions()
 
@@ -125,14 +106,11 @@ class MD3UP(Microdiff.Microdiff):
         scan_params += "%r\t" % True
         scan_params += "%r\t" % True
 
-
         scan = self.addCommand({"type":"exporter", "exporter_address":self.exporter_addr, "name":"start_raster_scan" }, "startRasterScanEx")
 
         scan(scan_params)
-        print "scan started at ----------->", time.time()
         if wait:
             self._wait_ready(1800) #timeout of 30 min
-            print "finished at ---------->", time.time()
 
 
 
