@@ -56,7 +56,7 @@ class MD2Motor(AbstractMotor, Device):
         if signal == 'positionChanged':
                 self.emit('positionChanged', (self.getPosition(), ))
         elif signal == 'stateChanged':
-                self.motorStateChanged(self.getState())
+                self.updateMotorState(self.motors_state_attr.getValue())
         elif signal == 'limitsChanged':
                 self.motorLimitsChanged()
 
@@ -69,19 +69,14 @@ class MD2Motor(AbstractMotor, Device):
         if self.motorState == new_motor_state:
           return
         self.motorState = new_motor_state
-        self.motorStateChanged(self.motorState)
+        self.updateState()
+        self.motorStateChanged(new_motor_state)
 
     def motorStateChanged(self, state):
         logging.getLogger().debug("%s: in motorStateChanged: motor state changed to %s", self.name(), state)
-        self.updateState()
-        self.emit('stateChanged', (self.motorState, ))
+        self.emit('stateChanged', (state, ))
 
     def getState(self):
-        if self.motorState == MD2Motor.NOTINITIALIZED:
-          try:
-            self.updateMotorState(self.motors_state_attr.getValue())
-          except:
-            return MD2Motor.NOTINITIALIZED
         return self.motorState
 
     def motorLimitsChanged(self):
@@ -113,8 +108,10 @@ class MD2Motor(AbstractMotor, Device):
         self.emit('positionChanged', (absolutePosition, ))
 
     def getPosition(self):
-        if self.getState() != MD2Motor.NOTINITIALIZED:
-            return self.position_attr.getValue()
+        ret = self.position_attr.getValue()
+        if ret is None:
+            raise RuntimeError("%s: motor position is None" % self.name())
+        return ret
 
     def getDialPosition(self):
         return self.getPosition()

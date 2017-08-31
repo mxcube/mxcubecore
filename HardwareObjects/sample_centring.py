@@ -273,19 +273,12 @@ def centre_plate(phi, phiy, phiz,
   phi_pos = math.radians(phi.direction*phi.getPosition())
   phiRotMatrix = numpy.matrix([[math.cos(phi_pos), -math.sin(phi_pos)],
                                [math.sin(phi_pos), math.cos(phi_pos)]])
-  vertical_move = phiRotMatrix*numpy.matrix([[0],d_vertical])
   
   centred_pos = SAVED_INITIAL_POSITIONS.copy()
-  if phiz.reference_position is None:
-      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
-                           sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
-                           phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]),
-                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
-  else:
-      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
-                           sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
-                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
-
+  centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
+                       sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
+                       phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]) if phiz.__dict__.get('reference_position') is None else phiz.reference_position,
+                       phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) if phiy.__dict__.get('reference_position') is None else phiy.reference_position })
   
   move_motors(centred_pos)
   plate_vertical()
@@ -378,18 +371,12 @@ def center(phi, phiy, phiz,
   phi_pos = math.radians(phi.direction*phi.getPosition())
   phiRotMatrix = numpy.matrix([[math.cos(phi_pos), -math.sin(phi_pos)],
                                [math.sin(phi_pos), math.cos(phi_pos)]])
-  vertical_move = phiRotMatrix*numpy.matrix([[0],d_vertical])
   
   centred_pos = SAVED_INITIAL_POSITIONS.copy()
-  if phiz.reference_position is None:
-      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
-                           sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
-                           phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]),
-                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
-  else:
-      centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
-                           sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
-                           phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
+  centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*dx),
+                       sampy.motor: float(sampy.getPosition() + sampy.direction*dy),
+                       phiz.motor: float(phiz.getPosition() + phiz.direction*d_vertical[0,0]) if phiz.__dict__.get('reference_position') is None else phiz.reference_position,
+                       phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) if phiy.__dict__.get('reference_position') is None else phiy.reference_position })
 
   return centred_pos
 
