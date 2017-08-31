@@ -651,13 +651,14 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = None
         self.shape_history = None
 
-    def __getstate__(self):
-        d = dict(self.__dict__)
-        return d
- 
     def __setstate__(self, d):
         self.__dict__.update(d)
 
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d["move_kappa_phi_task"] = None
+        return d
+ 
     def execute(self):
         BaseQueueEntry.execute(self)
 
@@ -735,15 +736,18 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.enable_store_in_lims = True
         self.in_queue = False 
 
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def __getstate__(self):
         d = dict(self.__dict__)
         d["collect_task"] = None
         d["centring_task"] = None
+        d["shape_history"] = self.shape_history.name() if self.shape_history else None
+        d["session"] = self.session.name() if self.session else None
+        d["lims_client_hwobj"] = self.lims_client_hwobj.name() if self.lims_client_hwobj else None
         return d
  
-    def __setstate__(self, d):
-        self.__dict__.update(d)
-
     def execute(self):
         BaseQueueEntry.execute(self)
         data_collection = self.get_data_model()
@@ -1007,6 +1011,24 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.session_hwobj = None
         self.edna_result = None
 
+    def __getstate__(self):
+        d = BaseQueueEntry.__getstate__(self)
+
+        d["data_analysis_hwobj"] = self.data_analysis_hwobj.name() if self.data_analysis_hwobj else None
+        d["diffractometer_hwobj"] = self.diffractometer_hwobj.name() if self.diffractometer_hwobj else None
+        d["queue_model_hwobj"] = self.queue_model_hwobj.name() if self.queue_model_hwobj else None
+        d["session_hwobj"] = self.session_hwobj.name() if self.session_hwobj else None
+
+        return d
+ 
+    def __setstate__(self, d):
+        BaseQueueEntry.__setstate__(self, d)
+
+        self.data_analysis_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["data_analysis_hwobj"]) if d["data_analysis_hwobj"] else None
+        self.diffractometer_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["diffractometer_hwobj"]) if d["diffractometer_hwobj"] else None
+        self.queue_model_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["queue_model_hwobj"]) if  d["queue_model_hwobj"]  else None
+        self.session_hwobj = HardwareRepository.HardwareRepository().getHardwareObject(d["session_hwobj"]) if d["session_hwobj"] else None
+        
     def execute(self):
         BaseQueueEntry.execute(self)
         log = logging.getLogger("user_level_log")
