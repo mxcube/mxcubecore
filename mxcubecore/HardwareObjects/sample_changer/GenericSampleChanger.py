@@ -465,13 +465,13 @@ class SampleChanger(Container,Equipment):
     def _run(self,task,method,*args):
         """
         method(self,*arguments)
-        exeption=None
+        exception=None
         try:
             while !_isTaskFinished(state):
               time.sleep(0.1)
-            exeption=_getTaskException(state)
+            exception=_getTaskException(state)
         finally:
-            _triggerTaskFinishedEvent(state,exeption)
+            _triggerTaskFinishedEvent(state,exception)
             self._setState(SampleChangerState.Ready)            
         """
         exception=None

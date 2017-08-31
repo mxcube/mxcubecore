@@ -263,10 +263,8 @@ class Sample(TaskNode):
         self.loc_str = ":".join(map(str,sc_sample[-1]))
         self.location = sc_sample[-1]
         self.set_name(self.loc_str)
-        if sc_sample[3] != "":
-            self.set_name(sc_sample[3])
-        else:
-            self.set_name(self.loc_str)
+        #  if sc_sample[3] != "":
+        #    self.set_name(sc_sample[3])
 
 
     def init_from_plate_sample(self, plate_sample):
