@@ -283,7 +283,7 @@ class Microdiff(MiniDiff.MiniDiff):
                                                                    "sampy": self.centringSampley,
                                                                    "phiz": self.centringPhiz }, 
                                                                   self.pixelsPerMmY, self.pixelsPerMmZ, 
-                                                                  self.getBeamPosX(), self.getBeamPosY())
+                                                                  self.getBeamPosX(), self.getBeamPosY(), chi_angle=self.chiAngle)
 
         self.currentCentringProcedure.link(self.manualCentringDone)
 
