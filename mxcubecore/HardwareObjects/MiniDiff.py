@@ -393,8 +393,13 @@ class MiniDiff(Equipment):
         try:
             beam_xc = self.getBeamPosX()
             beam_yc = self.getBeamPosY()
-            self.centringPhiz.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
-            self.centringPhiy.moveRelative((x-beam_xc)/float(self.pixelsPerMmY))
+            chi_angle = math.radians(self.chiAngle)
+            chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle), math.sin(chi_angle), math.cos(chi_angle)])
+            chiRot.shape = (2,2)
+            dx, dy = numpy.dot(numpy.array([x-beam_xc, y-beam_yc]), numpy.array(chiRot))
+           
+            self.centringPhiz.moveRelative(self.centringPhiz.direction*dy/float(self.pixelsPerMmZ))
+            self.centringPhiy.moveRelative(-self.centringPhiy.direction*dx/float(self.pixelsPerMmY))
         except:
             logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
