@@ -129,6 +129,7 @@ class MiniDiff(Equipment):
         self.centredTime = 0
         self.user_confirms_centring = True
         self.do_centring = True
+        self.chiAngle = 0
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -143,6 +144,11 @@ class MiniDiff(Equipment):
         self.currentCentringMethod = None
 
         self.centringStatus={"valid":False}
+        
+        try:
+          self.chiAngle = self.getProperty("chi")
+        except: 
+          self.chiAngle = 0
 
         try:
           phiz_ref = self["centringReferencePosition"].getProperty("phiz")
@@ -468,7 +474,8 @@ class MiniDiff(Equipment):
                                                                "sampy": self.centringSampley,
                                                                "phiz": self.centringPhiz }, 
                                                               self.pixelsPerMmY, self.pixelsPerMmZ, 
-                                                              self.getBeamPosX(), self.getBeamPosY())
+                                                              self.getBeamPosX(), self.getBeamPosY(),
+                                                              chi_angle=self.chiAngle)
                                                                          
         self.currentCentringProcedure.link(self.manualCentringDone)
 
@@ -485,12 +492,16 @@ class MiniDiff(Equipment):
         rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle), math.sin(phi_angle), math.cos(phi_angle)])
         rotMatrix.shape = (2, 2)
         invRotMatrix = numpy.array(rotMatrix.I)
-        dx, dy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)*self.pixelsPerMmY
+        dsx, dsy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)*self.pixelsPerMmY
+        chi_angle = math.radians(self.chiAngle)
+        chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle), math.sin(chi_angle), math.cos(chi_angle)])
+        chiRot.shape = (2,2)
+        sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot)) #.I))
         beam_pos_x = self.getBeamPosX()
         beam_pos_y = self.getBeamPosY()
 
-        x = (phiy * self.pixelsPerMmY) + beam_pos_x
-        y = dy + (phiz * self.pixelsPerMmZ) + beam_pos_y
+        x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
+        y = sy + (phiz * self.pixelsPerMmZ) + beam_pos_y
 
         return x, y
  
@@ -545,6 +556,7 @@ class MiniDiff(Equipment):
                                                                     "phiz": self.centringPhiz },
                                                                    self.pixelsPerMmY, self.pixelsPerMmZ, 
                                                                    self.getBeamPosX(), self.getBeamPosY(), 
+                                                                   chi_angle=self.chiAngle,
                                                                    msg_cb=self.emitProgressMessage,
                                                                    new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
        
