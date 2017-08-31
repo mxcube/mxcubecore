@@ -75,7 +75,7 @@ class GenericVideoDevice(Device):
         
 
         # Read values from XML
-           # set useqt in  xml to False if you do not want to use in qt app
+        #    set useqt in  xml to False if you do not want to use in qt app
         self.for_qt = self.getProperty("useqt")
 
         if self.for_qt in [False,"No", "no"]:
