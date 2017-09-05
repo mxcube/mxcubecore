@@ -16,7 +16,7 @@ when enter (1) or interlock (0) the hutch.
       detecto to a safe position, set MD2 to sample Transfer.
 """
 
-class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
+class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
         BaseHardwareObjects.HardwareObject.__init__(self, name)
 
@@ -92,7 +92,7 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         else:
             old["dtox"] = dtox.getPosition()
             ctrl_obj.detcover.set_in()
-            dtox.move(700)
+            dtox.move(815)
             udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
 
     def poll(self):

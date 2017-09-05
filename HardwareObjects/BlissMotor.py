@@ -5,7 +5,7 @@ import logging
 import time
 import gevent
 import types
-from bliss.config.motors import get_axis, set_backend
+from bliss.config import static
 import os
 
 class BlissMotor(Device):      
@@ -17,10 +17,9 @@ class BlissMotor(Device):
     def init(self): 
         self.motorState = BlissMotor.NOTINITIALIZED
         self.username = self.motor_name
-
-        set_backend("beacon")
-
-        self.motor = get_axis(self.motor_name)
+       
+        cfg = static.get_config()
+        self.motor = cfg.get(self.motor_name)
         self.connect(self.motor, "position", self.positionChanged)
         self.connect(self.motor, "state", self.updateState)
         self.connect(self.motor, "move_done", self._move_done)

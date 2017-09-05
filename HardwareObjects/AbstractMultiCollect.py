@@ -767,56 +767,57 @@ class AbstractMultiCollect(object):
                           self.stop_acquisition()
                           self.write_image(j == 1)
                                      
-                          # Store image in lims
-                          if self.bl_control.lims:
-                            if self.store_image_in_lims(frame, j == wedge_size, j == 1):
-                              lims_image={'dataCollectionId': self.collection_id,
-                                          'fileName': filename,
-                                          'fileLocation': file_location,
-                                          'imageNumber': frame,
-                                          'measuredIntensity': self.get_measured_intensity(),
-                                          'synchrotronCurrent': self.get_machine_current(),
-                                          'machineMessage': self.get_machine_message(),
-                                          'temperature': self.get_cryo_temperature()}
+                      # Store image in lims
+                      if self.bl_control.lims:
+                        if self.store_image_in_lims(frame, j == wedge_size, j == 1):
+                          lims_image={'dataCollectionId': self.collection_id,
+                                      'fileName': filename,
+                                      'fileLocation': file_location,
+                                      'imageNumber': frame,
+                                      'measuredIntensity': self.get_measured_intensity(),
+                                      'synchrotronCurrent': self.get_machine_current(),
+                                      'machineMessage': self.get_machine_message(),
+                                      'temperature': self.get_cryo_temperature()}
 
-                              if archive_directory:
-                                lims_image['jpegFileFullPath'] = jpeg_full_path
-                                lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
+                      if archive_directory:
+                          lims_image['jpegFileFullPath'] = jpeg_full_path
+                          lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
 
-                              try:
-                                  self.bl_control.lims.store_image(lims_image)
-                              except:
-                                  logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                      try:
+                          self.bl_control.lims.store_image(lims_image)
+                      except:
+                          logging.getLogger("HWR").exception("Could not store store image in LIMS")
                           
-                              self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
-                          if data_collect_parameters.get("processing", False)=="True":
-                            self.trigger_auto_processing("image",
-                                                         self.xds_directory, 
-                                                         data_collect_parameters["EDNA_files_dir"],
-                                                         data_collect_parameters["anomalous"],
-                                                         data_collect_parameters["residues"],
-                                                         data_collect_parameters["do_inducedraddam"],
-                                                         data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
-                                                         data_collect_parameters.get("sample_reference", {}).get("cell", ""))
+                      self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
+                
+                      if data_collect_parameters.get("processing", False)=="True":
+                        self.trigger_auto_processing("image",
+                                                     self.xds_directory, 
+                                                     data_collect_parameters["EDNA_files_dir"],
+                                                     data_collect_parameters["anomalous"],
+                                                     data_collect_parameters["residues"],
+                                                     data_collect_parameters["do_inducedraddam"],
+                                                     data_collect_parameters.get("sample_reference", {}).get("spacegroup", ""),
+                                                     data_collect_parameters.get("sample_reference", {}).get("cell", ""))
 
-                          if data_collect_parameters.get("shutterless"):
-                              with gevent.Timeout(self.first_image_timeout, RuntimeError("Timeout waiting for detector trigger, no image taken")):
-                                 while self.last_image_saved() == 0:
-                                      time.sleep(exptime)
-                          
+                      if data_collect_parameters.get("shutterless"):
+                          with gevent.Timeout(self.first_image_timeout, RuntimeError("Timeout waiting for detector trigger, no image taken")):
+   			      while self.last_image_saved() == 0:
+                                  time.sleep(exptime)
+ 
+                          last_image_saved = self.last_image_saved()
+                          if last_image_saved < wedge_size:
+                              time.sleep(exptime*wedge_size/100.0)
                               last_image_saved = self.last_image_saved()
-                              if last_image_saved < wedge_size:
-                                  time.sleep(exptime*wedge_size/100.0)
-                                  last_image_saved = self.last_image_saved()
-                              frame = max(start_image_number+1, start_image_number+last_image_saved-1)
-                              self.emit("collectImageTaken", frame)
-                              j = wedge_size - last_image_saved
-                          else:
-                              j -= 1
-                              self.emit("collectImageTaken", frame)
-                              frame += 1
-                              if j == 0:
-                                break
+                          frame = max(start_image_number+1, start_image_number+last_image_saved-1)
+                          self.emit("collectImageTaken", frame)
+                          j = wedge_size - last_image_saved
+                      else:
+                          j -= 1
+                          self.emit("collectImageTaken", frame)
+                          frame += 1
+                          if j == 0:
+                            break
 
         # data collection done
         self.data_collection_end_hook(data_collect_parameters)
