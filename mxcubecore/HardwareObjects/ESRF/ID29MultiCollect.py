@@ -11,8 +11,10 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def data_collection_hook(self, data_collect_parameters):
-      self._detector.shutterless = data_collect_parameters["shutterless"]
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
 
+      self._detector.shutterless = data_collect_parameters["shutterless"]
+        
     @task
     def data_collection_cleanup(self):
         self.getObjectByRole("diffractometer")._wait_ready(10)
@@ -63,7 +65,6 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
-        cover_task = self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
@@ -83,6 +84,7 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
+        self.getObjectByRole("controller").detcover.set_out()
         diffr = self.getObjectByRole("diffractometer")
         #send again the command as MD2 software only handles one
         #centered position!!
@@ -93,7 +95,7 @@ class ID29MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
-        diffr.getObjectByRole("flight").move(2)
+        diffr.getObjectByRole("FrontLight").move(2)
 
     @task
     def oscil(self, start, end, exptime, npass):
