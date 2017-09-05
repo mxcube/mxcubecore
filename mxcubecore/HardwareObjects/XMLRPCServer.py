@@ -258,12 +258,12 @@ class XMLRPCServer(HardwareObject):
         :type node_id: int
         """
         try:
-            model = self.queue_model_hwobj.get_node(node_id)
-            entry = self.queue_hwobj.get_entry_with_model(model)
+           model = self.queue_model_hwobj.get_node(node_id)
+           entry = self.queue_hwobj.get_entry_with_model(model)
 
-            if entry:
-                self.current_entry_task = self.queue_hwobj.\
-                                          execute_entry(entry)
+           if entry:
+              self.current_entry_task = self.queue_hwobj.\
+                                        execute_entry(entry)
 
         except Exception as ex:
             logging.getLogger('HWR').exception(str(ex))
@@ -351,11 +351,18 @@ class XMLRPCServer(HardwareObject):
         return True
 
     def save_snapshot(self, imgpath, showScale=True):
-        if showScale:
-            self.diffractometer_hwobj.save_snapshot(imgpath)
-        else:
-            self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
-        return True
+        res = True
+
+        try:
+            if showScale:
+                self.diffractometer_hwobj.save_snapshot(imgpath)
+            else:
+                self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
+        except Exception as ex:
+          logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
+          res = false
+
+        return res
 
     def save_current_pos(self):
         """
