@@ -393,4 +393,16 @@ class Grid(Shape):
         d = Shape.as_dict(self)
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()
-        return d
+
+        # MXCuBE - 2 WF compatability
+        d["x1"] = -float((self.beam_pos[0] - d["screen_coord"][0]) / self.pixels_per_mm[0])
+        d["y1"] = -float((self.beam_pos[1] - d["screen_coord"][1]) / self.pixels_per_mm[1])
+        d["steps_x"] = d["num_cols"]
+        d["steps_y"] = d["num_rows"]
+        d["dx_mm"] = d["width"] / self.pixels_per_mm[0]
+        d["dy_mm"] = d["height"] / self.pixels_per_mm[1]
+        d["beam_width"] = d["cell_width"]
+        d["beam_height"] = d["cell_height"]
+        d["angle"] = 0
+
+        return d    
