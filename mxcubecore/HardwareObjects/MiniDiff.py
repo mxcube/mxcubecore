@@ -129,7 +129,7 @@ class MiniDiff(Equipment):
         self.centredTime = 0
         self.user_confirms_centring = True
         self.do_centring = True
-        self.chiAngle = 0
+        self.chiAngle = 0.0
 
         self.connect(self, 'equipmentReady', self.equipmentReady)
         self.connect(self, 'equipmentNotReady', self.equipmentNotReady)     
@@ -146,9 +146,9 @@ class MiniDiff(Equipment):
         self.centringStatus={"valid":False}
         
         try:
-          self.chiAngle = self.getProperty("chi")
+          self.chiAngle = 0.0 #self.getProperty("chi")
         except: 
-          self.chiAngle = 0
+          self.chiAngle = 0.0
 
         try:
           phiz_ref = self["centringReferencePosition"].getProperty("phiz")
@@ -399,7 +399,7 @@ class MiniDiff(Equipment):
             dx, dy = numpy.dot(numpy.array([x-beam_xc, y-beam_yc]), numpy.array(chiRot))
            
             self.centringPhiz.moveRelative(self.centringPhiz.direction*dy/float(self.pixelsPerMmZ))
-            self.centringPhiy.moveRelative(-self.centringPhiy.direction*dx/float(self.pixelsPerMmY))
+            self.centringPhiy.moveRelative(self.centringPhiy.direction*dx/float(self.pixelsPerMmY))
         except:
             logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
@@ -508,7 +508,47 @@ class MiniDiff(Equipment):
         x = sx + (phiy * self.pixelsPerMmY) + beam_pos_x
         y = sy + (phiz * self.pixelsPerMmZ) + beam_pos_y
 
-        return x, y
+        return float(x), float(y)
+
+
+    def get_centred_point_from_coord(self, x, y, return_by_names=None):
+        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
+        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
+
+        if None in (self.pixelsPerMmY,self.pixelsPerMmZ):
+            return 0,0
+
+        phi_angle = math.radians(self.centringPhi.getPosition()) 
+        sampx = self.centringSamplex.getPosition()
+        sampy = self.centringSampley.getPosition()
+        phiy = self.centringPhiy.getPosition()
+        phiz = self.centringPhiz.getPosition()
+
+        rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle),
+                                  math.sin(phi_angle), math.cos(phi_angle)])
+        rotMatrix.shape = (2, 2)
+        invRotMatrix = numpy.array(rotMatrix.I)
+
+        dsampx, dsampy = numpy.dot(numpy.array([0, dy]), invRotMatrix)
+        sampx = sampx + dsampx
+        sampy = sampy + dsampy
+        phiy = phiy - dx
+        
+#        chi_angle = math.radians(self.chiAngle)
+#        chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle),
+#                               math.sin(chi_angle), math.cos(chi_angle)])
+#        chiRot.shape = (2,2)
+#        sx, sy = numpy.dot(numpy.array([0, dsy]),
+#                           numpy.array(chiRot)) ))
+
+
+        return {"phi": float(phi_angle),
+                "phiz": float(phiz),
+                "phiy": float(phiy),
+                "sampx": float(sampx),
+                "sampy": float(sampy)}
  
     def manualCentringDone(self, manual_centring_procedure):
         try:
@@ -561,7 +601,7 @@ class MiniDiff(Equipment):
                                                                     "phiz": self.centringPhiz },
                                                                    self.pixelsPerMmY, self.pixelsPerMmZ, 
                                                                    self.getBeamPosX(), self.getBeamPosY(), 
-                                                                   chi_angle=self.chiAngle,
+                                                                   chi_angle=float(self.chiAngle),
                                                                    msg_cb=self.emitProgressMessage,
                                                                    new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
        
