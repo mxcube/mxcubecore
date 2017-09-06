@@ -360,7 +360,7 @@ class XMLRPCServer(HardwareObject):
                 self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
         except Exception as ex:
           logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
-          res = false
+          res = False
 
         return res
 

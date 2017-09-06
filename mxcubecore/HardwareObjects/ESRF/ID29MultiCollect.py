@@ -14,10 +14,13 @@ class ID29MultiCollect(ESRFMultiCollect):
       ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
 
       self._detector.shutterless = data_collect_parameters["shutterless"]
-        
-    @task
-    def data_collection_cleanup(self):
-        self.getObjectByRole("diffractometer")._wait_ready(10)
+
+    def stop_oscillation(self):
+        self.getObjectByRole("diffractometer").abort()
+        self.getObjectByRole("diffractometer")._wait_ready(20)
+
+
+    def close_fast_shutter(self):
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
         if state != "out":
             self.close_fast_shutter()
