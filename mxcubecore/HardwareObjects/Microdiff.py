@@ -244,14 +244,14 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def moveToBeam(self, x, y):
         if not self.in_plate_mode():  
-            super(Microdiff,this).moveToBeam(x,y)
+            MiniDiff.MiniDiff.moveToBeam(self, x, y)
         else:          
             try:
                 beam_xc = self.getBeamPosX()
                 beam_yc = self.getBeamPosY()
 
-                self.centringVertical.moveRelative((y-beam_yc)/float(self.pixelsPerMmZ))
-                self.centringPhiy.moveRelative(-(x-beam_xc)/float(self.pixelsPerMmY))
+                self.centringVertical.moveRelative(self.centringPhiz.direction*(y-beam_yc)/float(self.pixelsPerMmZ))
+                self.centringPhiy.moveRelative(self.centringPhiy.direction*(x-beam_xc)/float(self.pixelsPerMmY))
 
             except:
                 logging.getLogger("user_level_log").exception("Microdiff: could not move to beam, aborting")
