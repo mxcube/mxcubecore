@@ -65,10 +65,9 @@ class EMBLCRL(HardwareObject):
 
         self.energy_hwobj = self.getObjectByRole("energy")
         self.energy_value = self.energy_hwobj.getCurrentEnergy()
-        if self.energy_hwobj:
-            self.connect(self.energy_hwobj,
-                         "energyStateChanged",
-                         self.energy_state_changed)
+        self.connect(self.energy_hwobj,
+                     "stateChanged",
+                     self.energy_state_changed)
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         self.connect(self.beam_focusing_hwobj,
@@ -112,7 +111,7 @@ class EMBLCRL(HardwareObject):
     def energy_state_changed(self, state):
         """If CRL's in the automatic mode then change setting accoring
            to the current energy"""
-        if state == self.energy_hwobj.READY and \
+        if state == "ready" and \
            state != self.energy_state and \
            self.current_mode == "Automatic":
             self.energy_value = self.energy_hwobj.getCurrentEnergy()
