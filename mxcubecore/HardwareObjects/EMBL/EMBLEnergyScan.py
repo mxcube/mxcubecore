@@ -22,7 +22,7 @@ import time
 import gevent
 import logging
 import subprocess
-import PyChooch
+#import PyChooch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
@@ -47,6 +47,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         HardwareObject.__init__(self, name)
         self._tunable_bl = True
 
+        self.startup_done = False
         self.ready_event = None
         self.scanning = False
         self.energy_motor = None
@@ -82,7 +83,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_status = self.getChannelObject('energyScanStatus')
         self.chan_scan_status.connectSignal('update', self.scan_status_update)
         self.chan_scan_error = self.getChannelObject('energyScanError')
-        
+        self.chan_scan_error.connectSignal('update', self.scan_error_update)
+
         self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
         self.cmd_enable_max_transmission = self.getCommandObject('cmdEnableMaxTransmission')
         self.cmd_set_max_transmission = self.getCommandObject('cmdSetMaxTransmission')
@@ -107,8 +109,12 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     self.scanCommandAborted()
                     logging.getLogger("GUI").info('Energy scan: Aborted')
             elif status == 'error':
-                logging.getLogger("GUI").error('Energy scan: Failed')
+                #logging.getLogger("GUI").error('Energy scan: Failed')
                 self.scanCommandFailed()
+
+    def scan_error_update(self, error_msg):
+        if len(error_msg) > 0 and self.startup_done:
+            logging.getLogger("GUI").error("Energy scan: %s" % error_msg) 
 
     def emit_new_data_point(self, values):
         if len(values) > 0:
@@ -143,6 +149,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_data = []
         self.scan_directory = directory
         self.scan_prefix = prefix
+        self.startup_done = True
 
         if not os.path.isdir(directory):
             log.debug("EnergyScan: creating directory %s" % directory)
@@ -212,26 +219,27 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def scanCommandFailed(self, *args):
         with cleanup(self.ready_event.set):
-            error_msg = self.chan_scan_error.getValue()
-            logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
+            #error_msg = self.chan_scan_error.getValue()
+            #print error_msg
+            #logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
             self.scan_info['endTime'] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
             if self.scan_data:
                 self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.
                 self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.
-            self.scanning = False
             self.emit('energyScanFailed', ())
             self.emit("progressStop", ())
 
             if hasattr(self.energy_hwobj, "set_break_bragg"):
                 self.energy_hwobj.set_break_bragg()
+            self.scanning = False
             self.ready_event.set()
 
     def scanCommandAborted(self, *args):
-        self.scanning = False
         self.emit('energyScanFailed', ())
         self.emit("progressStop", ())
         if hasattr(self.energy_hwobj, "set_break_bragg"):
             self.energy_hwobj.set_break_bragg()
+        self.scanning = False
         self.ready_event.set()
 
     def scanCommandFinished(self, *args):
@@ -310,8 +318,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                                   scan_file_raw_filename,
                                   elt,
                                   edge], 
-                                 stdout=subprocess.PIPE)
-
+                                  stdout=subprocess.PIPE)
+            
             chooch_results_list = p.communicate()[0].split("\n")
             chooch_results_list.remove("")
             pk, fppPeak, fpPeak, ip, fppInfl, fpInfl = \
@@ -319,8 +327,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             chooch_graph_data = eval(chooch_results_list[-1])
         except:
             self.store_energy_scan()
+            
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
-            return
+            return None, None, None, None, None, None, None, [], [], None
+
           
         rm = (pk + 30) / 1000.0
         pk = pk / 1000.0

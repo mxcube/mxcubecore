@@ -56,17 +56,16 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.collect_frame = None
         self.ready_event = None
         self.use_still = None
+        self.break_bragg_released = False
 
         self.exp_type_dict = None
         self.aborted_by_user = None
         self.run_autoprocessing = None
-        self.guillotine_state = None
 
         self.chan_collect_status = None
         self.chan_collect_frame = None
         self.chan_collect_error = None
         self.chan_undulator_gap = None
-        self.chan_guillotine_state = None
 
         self.cmd_collect_description = None
         self.cmd_collect_detector = None
@@ -93,13 +92,12 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_start = None
         self.cmd_collect_abort = None
         self.cmd_collect_xds_data_range = None
-
-        self.cmd_close_guillotine = None
         self.cmd_set_calibration_name = None
 
         self.diffractometer_hwobj = None
         self.lims_client_hwobj = None
         self.machine_info_hwobj = None
+        self.flux_hwobj = None
         self.energy_hwobj = None
         self.resolution_hwobj = None
         self.transmission_hwobj = None
@@ -116,6 +114,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.lims_client_hwobj = self.getObjectByRole("lims_client")
         self.machine_info_hwobj = self.getObjectByRole("machine_info")
         self.energy_hwobj = self.getObjectByRole("energy")
+        self.flux_hwobj = self.getObjectByRole("flux")
         self.resolution_hwobj = self.getObjectByRole("resolution")
         self.transmission_hwobj = self.getObjectByRole("transmission")
         self.detector_hwobj = self.getObjectByRole("detector")
@@ -159,11 +158,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.chan_collect_frame.connectSignal('update', self.collect_frame_update)
         self.chan_collect_error = self.getChannelObject('collectError')
         self.chan_collect_error.connectSignal('update', self.collect_error_update)
-
         self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
-        self.chan_guillotine_state = self.getChannelObject('guillotineState')
-        if self.chan_guillotine_state is not None:
-            self.chan_guillotine_state.connectSignal('update', self.guillotine_state_changed)
 
         #Commands to set collection parameters
         self.cmd_collect_description = self.getCommandObject('collectDescription')
@@ -195,7 +190,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_abort = self.getCommandObject('collectAbort')
 
         #Other commands
-        self.cmd_close_guillotine = self.getCommandObject('cmdCloseGuillotine')
         self.cmd_set_calibration_name = self.getCommandObject('cmdSetCallibrationName')
 
         #Properties
@@ -220,13 +214,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
             osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
-            self.image_tracking_hwobj.set_image_tracking_state(True)
+            if self.image_tracking_hwobj is not None:
+                self.image_tracking_hwobj.set_image_tracking_state(True)
             self.cmd_collect_description(comment)
             self.cmd_collect_detector(self.detector_hwobj.get_collect_name())
             self.cmd_collect_directory(str(\
                  self.current_dc_parameters["fileinfo"]["directory"]))
             self.cmd_collect_exposure_time(osc_seq['exposure_time'])
-            self.cmd_collect_in_queue(self.current_dc_parameters['in_queue'])
+            self.cmd_collect_in_queue(self.current_dc_parameters['in_queue'] != False)
             self.cmd_collect_overlap(osc_seq['overlap'])
             shutter_name = self.detector_hwobj.get_shutter_name()
             if shutter_name is not None:
@@ -287,7 +282,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
-                    logging.info("Collection: preparing ...")
+                    logging.info("Collection: Preparing ...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
                     self.emit("collectStarted", (self.owner, 1))
@@ -295,7 +290,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                 if self._actual_collect_status == "ready":
                     self.collection_finished()
                 elif self._actual_collect_status == "aborting":
-                    logging.info("Collection: aborting...")
+                    logging.info("Collection: Aborting...")
                     self.collection_failed()
 
     def collect_error_update(self, error_msg):
@@ -308,22 +303,14 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         if (self._collecting and
             len(error_msg) > 0):
             self._error_msg = error_msg
-            logging.getLogger("GUI").error("Collection: %s" % error_msg)
+            logging.getLogger("GUI").error("Collection: Error from detector server: %s" % error_msg)
 
-    def guillotine_state_changed(self, state):
-        """Updates guillotine state"
-
-        :param state: guillotine state (close, opened, ..)
-        :type state: str
-        """
-        if state[1] == 0:
-            self.guillotine_state = "closed"
-        elif state[1] == 1:
-            self.guillotine_state = "opened"
-        elif state[1] == 2:
-            self.guillotine_state = "closing"
-        elif state[1] == 3:
-            self.guillotine_state = "opening"
+    def collection_finished(self):
+        AbstractCollect.collection_finished(self)
+        if self.current_dc_parameters['in_queue'] is False and \
+            self.break_bragg_released:
+            self.break_bragg_released = False
+            self.energy_hwobj.set_break_bragg() 
 
     def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
         """Updates collection with information about workflow
@@ -417,8 +404,11 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
     def set_energy(self, value):
         """Sets energy"""
-        if abs(value - self.get_energy()) > 0.001:
+        if abs(value - self.get_energy()) > 0.001 and not \
+           self.break_bragg_released:
+            self.break_bragg_released = True
             self.energy_hwobj.release_break_bragg()
+            
         self.cmd_collect_energy(value * 1000.0)
 
     def get_energy(self):
@@ -513,32 +503,11 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
     def get_measured_intensity(self):
         """Returns flux"""
-        flux = None
-        if self.lims_client_hwobj:
-            flux = self.machine_info_hwobj.get_flux(self.beam_info_hwobj.get_beam_info())
-            if flux is None or flux < 0:
-                if self.lims_client_hwobj.beamline_name == "P13":
-                    flux = 0.333333e12
-                else:
-                    fullflux = 3.5e12
-                    fullsize_hor = 1.200
-                    fullsize_ver = 0.700
-                    foc = self.beam_info_hwobj.get_focus_mode()
-                    if foc == 'unfocused':
-                        flux = fullflux * self.get_beam_size()[0] * \
-                               self.get_beam_size()[1] / fullsize_hor / fullsize_ver
-                    elif foc == 'horizontal':
-                        flux = fullflux * self.get_beam_size()[1] / fullsize_ver
-                    elif foc == 'vertical':
-                        flux = fullflux * self.get_beam_size()[0] / fullsize_hor
-                    elif foc == 'double':
-                        flux = fullflux
-                    else:
-                        flux = None
-        return float("%.3e" % flux)
+        return float("%.3e" % self.flux_hwobj.get_flux())
 
     def get_machine_current(self):
         """Returns flux"""
+         
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_current()
         else:
@@ -570,12 +539,3 @@ class EMBLCollect(AbstractCollect, HardwareObject):
     def set_run_autoprocessing(self, status):
         """Enables or disables autoprocessing after a collection"""
         self.run_autoprocessing = status
-
-    def close_guillotine(self, wait=True):
-        """Closes guillotine"""
-        if self.guillotine_state != "closed":
-            self.cmd_close_guillotine()
-            if wait:
-                with gevent.Timeout(10, Exception("Timeout waiting for close")):
-                    while self.guillotine_state != "closed":
-                          gevent.sleep(0.1) 
