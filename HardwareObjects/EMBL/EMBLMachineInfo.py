@@ -124,6 +124,7 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value_str'] = "Remeasure flux!"
         temp_dict['in_range'] = False
         temp_dict['title'] = "Flux"
+        temp_dict['align'] = "left"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -136,6 +137,12 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value'] = "Dewar level in range"
         temp_dict['in_range'] = True
         temp_dict['title'] = "Sample changer"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = "- - -"
+        temp_dict['in_range'] = True
+        temp_dict['title'] = "Files copied - pending - failed"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -157,6 +164,9 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_cryojet_in = None
         self.chan_sc_dewar_low_level_alarm = None
         self.chan_sc_dewar_overflow_alarm = None
+
+        self.flux_hwobj = None
+        self.ppu_control_hwobj = None
 
     def init(self):
         """init"""
@@ -189,22 +199,29 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_sc_dewar_low_level_alarm is not None:
             self.chan_sc_dewar_low_level_alarm.connectSignal('update',
                self.low_level_alarm_changed)
-        #else:
-        #    self.values_list.pop(5)
 
         self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
         if self.chan_sc_dewar_overflow_alarm is not None:
             self.chan_sc_dewar_overflow_alarm.connectSignal('update',
                self.overflow_alarm_changed)
 
+        self.ppu_control_hwobj = self.getObjectByRole("ppu_control")
+        self.connect(self.ppu_control_hwobj, 
+                     'fileTranferStatusChanged',
+                     self.file_transfer_status_changed)
+
+        self.flux_hwobj = self.getObjectByRole("flux")
+        self.connect(self.flux_hwobj,
+                     'fluxChanged',
+                     self.flux_changed)
+ 
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
         if os.path.exists("/ramdisk"):
             self.update_task = spawn(self.update_ramdisk_size, 5)
-
-        if self.getProperty("defaultFlux") is not None:
-            self.set_flux(self.getProperty("defaultFlux"))
+        else:
+            self.values_list.pop(-1)
 
         self.update_values()
 
@@ -282,6 +299,14 @@ class EMBLMachineInfo(HardwareObject):
         self.overflow_alarm = value
         self.update_sc_alarm()
 
+    def file_transfer_status_changed(self, total, pending, failed):
+        self.values_list[6]['value'] = "%d  -  %d  -  %d" % \
+               (total, pending, failed)
+        self.values_list[6]['in_range'] = failed == 0
+
+        if failed > 0:
+            logging.getLogger("GUI").error("Error in file transfer (%d files failed to copy)." % failed)
+ 
     def update_sc_alarm(self):
         """Sample changer alarm"""
         if self.low_level_alarm == 1:
@@ -289,7 +314,7 @@ class EMBLMachineInfo(HardwareObject):
             self.values_list[5]['in_range'] = False
             self.values_list[5]['bold'] = True
             logging.getLogger("GUI").error("Liquid nitrogen " + \
-                    " level in sample changer dewar is to low!")
+                    " level in sample changer dewar is too low!")
 
         elif self.overflow_alarm:
             self.values_list[5]['value'] = "Overflow alarm!"
@@ -302,21 +327,20 @@ class EMBLMachineInfo(HardwareObject):
             self.values_list[5]['in_range'] = True
         self.update_values()
 
-    def set_flux(self, value, beam_info=None, transmission=None):
+    def flux_changed(self, value, beam_info, transmission):
         """Sets flux value"""
-        if beam_info:
-            if beam_info['shape'] == 'ellipse':
-                self.flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
-            else:
-                self.flux_area = beam_info['size_x'] * beam_info['size_y']
-        self.last_transmission = transmission
         self.values_list[3]['value'] = value
-        self.values_list[3]['value_str'] = "%.2e ph/s" % value
-        self.values_list[3]['in_range'] = value > 0
+        msg_str = "Flux: %.2E ph/s" % value
+        msg_str += "\n@ %d transmission, %d x %d beam" % (\
+                   transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
+        self.values_list[3]['value_str'] = msg_str
+        self.values_list[3]['in_range'] = value > 1e+6
         self.update_values()
 
     def get_flux(self, beam_info=None, transmission=None):
         """Returns flux value"""
+
+        """
         if beam_info:
             if beam_info['shape'] == 'ellipse':
                 flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
@@ -333,7 +357,7 @@ class EMBLMachineInfo(HardwareObject):
         self.values_list[3]['value_str'] = "%.2e ph/s" % new_flux_value
         self.values_list[3]['in_range'] = new_flux_value > 0
         self.update_values()
-
+        """
         return self.values_list[3]['value']
 
     def update_values(self):
@@ -426,7 +450,7 @@ class EMBLMachineInfo(HardwareObject):
     def update_ramdisk_size(self, sleep_time):
         while True:
             total, free, perc = self.get_ramdisk_size()
-            txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
+            txt = ' Total: %s\n Free:  %s (%s)' % (self.sizeof_fmt(total),
                                                  self.sizeof_fmt(free),
                                                  '{0:.0%}'.format(perc))
             self.values_list[6]['value'] = txt

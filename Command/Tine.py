@@ -35,8 +35,8 @@ class TineCommand(CommandObject):
 	   ret = tine.set(self.tineName, self.commandName, commandArgument, self.timeout) 
 	   self.emit('commandReplyArrived', (ret, str(self.name())))
 	except IOError as strerror:
-           logging.getLogger("HWR").error("%s" %strerror)
-           self.emit('commandFailed', ("hallo", self.name()))
+           logging.getLogger("HWR").error("%s" % strerror)
+           self.emit('commandFailed', (strerror))
 
     def get(self):
         result = None

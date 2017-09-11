@@ -18,8 +18,10 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import logging
 import gevent
+import logging
+
+from math import sqrt
 
 try:
     import lucid2 as lucid
@@ -163,6 +165,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.beam_position = value
 
     def state_changed(self, state):
+        #logging.getLogger("HWR").debug("State changed: %s" %str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
         self.emit("minidiffStatusChanged", (self.current_state))
@@ -283,7 +286,7 @@ class EMBLMiniDiff(GenericDiffractometer):
            Transfer or Beam location phase if needed then detector
            is moved to the safe distance to avoid collision.
         """
-        self.wait_device_ready(10)
+        #self.wait_device_ready(2)
         logging.getLogger("GUI").warning(
             "Diffractometer: Setting %s phase. Please wait..." % phase)
         
@@ -297,22 +300,27 @@ class EMBLMiniDiff(GenericDiffractometer):
                 "Diffractometer current phase: %s " % self.current_phase + \
                 "selected phase: %s" % phase + \
                 "detector distance: %d mm" % detector_distance)
-            if detector_distance < 200:
+            if detector_distance < 350:
                 logging.getLogger("GUI").info(
                     "Moving detector to safe distance")
-                self.detector_distance_motor_hwobj.move(200, wait=True)
+                self.detector_distance_motor_hwobj.move(350, wait=True)
 
-        if timeout:
-            self.ready_event.clear()
-            set_phase_task = gevent.spawn(self.execute_server_task,
-                                          self.cmd_start_set_phase,
-                                          timeout,
-                                          phase)
-            self.ready_event.wait()
-            self.ready_event.clear()
+        if timeout is not None:
+            # gevent.spawn(self.execute_server_task,
+            #              self.cmd_start_set_phase,
+            #              timeout,
+            #              phase).join()
+            self.current_state = "Busy"
+            self.cmd_start_set_phase(phase)
+            time.sleep(1)
+            self.wait_device_ready(timeout)
+
+            #self.ready_event.wait()
+            #self.ready_event.clear()
+            #self.wait_device_ready(30)
         else:
             self.cmd_start_set_phase(phase)
-
+   
     def start_auto_focus(self, timeout=None):
         """
         Descript. :
@@ -382,7 +390,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                   "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
             if self.in_plate_mode():
                 #dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
-                dynamic_limits = self.get_osc_dynamic_limits()
+                dynamic_limits = self.get_osc_limits()
                 if click == 0:
                     self.motor_hwobj_dict['phi'].move(dynamic_limits[0] + 0.5)
                 elif click == 1:
@@ -592,9 +600,14 @@ class EMBLMiniDiff(GenericDiffractometer):
     def close_kappa_task(self):
         """Close kappa task
         """
+        logging.getLogger("HWR").debug("Started closing Kappa")
         self.move_kappa_and_phi_procedure(0, None)
+        self.wait_device_ready(60)
         self.motor_hwobj_dict['kappa'].homeMotor()
-        self.wait_device_ready(30)
+        self.wait_device_ready(60)
+        self.move_kappa_and_phi_procedure(0, None)
+        self.wait_device_ready(60)
+        logging.getLogger("HWR").debug("Done closing Kappa")
         #self.kappa_phi_motor_hwobj.homeMotor()
 
     def set_zoom(self, position): 
@@ -619,29 +632,62 @@ class EMBLMiniDiff(GenericDiffractometer):
             new_point[motor] = new_motor_pos
         return new_point
 
-    def get_osc_dynamic_limits(self):
+    def get_osc_limits(self):
         return self.motor_hwobj_dict['phi'].getDynamicLimits()
 
-    def get_osc_range_limits(self, num_images, exp_time):
-        motor_acc_const = 5
-        motor_acc_time = num_images / exp_time / motor_acc_const
-        min_acc_time = 0.0015
-        acc_time = max(motor_acc_time, min_acc_time)
+    def get_osc_max_speed(self):
+        return self.motor_hwobj_dict['phi'].getMaxSpeed()
 
-        shutter_time = 3.7 / 1000.
-        max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
 
-        return [0, max_limit]
-
-    def get_scan_limits(self, speed=None):
+    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
         """
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
-        if speed == None:
-            speed = 0
-        return self.cmd_get_omega_scan_limits(speed)
+        if speed is not None:
+            return self.cmd_get_omega_scan_limits(speed), None
+        total_exposure_time = num_images * exp_time
+        tmp = self.cmd_get_omega_scan_limits(0)
+        max_speed = self.get_osc_max_speed()
+        w0 = tmp[0]
+        w1 = tmp[1]
+        x1 = 10
+        x2 = 100
+        
+        c1 = self.cmd_get_omega_scan_limits(x1)[0] - w0
+        c2 = self.cmd_get_omega_scan_limits(x2)[0] - w0
 
+        a = -(c2 * x1 - c1 * x2)/(x1 * x2 * (x1 -x2))
+        b = -(-c2 * pow(x1, 2) + c1 * pow(x2, 2))/(x1 *x2 * (x1 - x2))
+
+        result_speed = (-2*b-total_exposure_time+sqrt((2*b+total_exposure_time)**2-8*a*(w0-w1))) /4/a
+        if result_speed < 0:
+            return (None, None), None
+        elif result_speed > max_speed:
+            delta = a * max_speed**2 + b * max_speed
+            #total_exposure_time = total_exposure_time * result_speed / max_speed
+            total_exposure_time = (w1-w0-2*delta) / (max_speed - 0.1)
+        else: 
+            delta = a * result_speed**2 + b * result_speed
+
+        return (w0 + delta, w1 - delta), total_exposure_time / num_images
+
+        """
+        if speed is not None:
+            return self.cmd_get_omega_scan_limits(speed)
+        elif speed == 0: 
+            return self.get_osc_limits()
+        else:
+            motor_acc_const = 5
+            motor_acc_time = num_images / exp_time / motor_acc_const
+            min_acc_time = 0.0015
+            acc_time = max(motor_acc_time, min_acc_time)
+
+            shutter_time = 3.7 / 1000.
+            max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
+
+            return [0, max_limit]
+        """
 
     def get_scintillator_position(self):
         return self.chan_scintillator_position.getValue()

@@ -216,7 +216,7 @@ class TINEMotor(Device):
             self.motorState = READY
         elif actualState == 'moving':
             self.motorState2 = actualState
-            self.motorState = MOVING
+            self.motorState = MOVING 
         return self.motorState 
         
     def getPosition(self):
@@ -237,10 +237,11 @@ class TINEMotor(Device):
         """
         self.cmd_stop_axis()
     
-    def move(self, target, wait=False):
+    def move(self, target, timeout=None):
         """
         Descript. :
         """
+        #logging.getLogger("HWR").debug("Start moving to %s, wait=%s" % (str(target), str(wait)))
         self.__changeMotorState(MOVING)
         if self.chan_state is not None:
             self.chan_state.setOldValue('moving')
@@ -249,11 +250,13 @@ class TINEMotor(Device):
         else:
             self.cmd_set_position(target)
 
-        if wait:
-            self._waitDeviceReady(30)
+        if timeout is not None:
+            gevent.sleep(2)
+            self._waitDeviceReady(timeout)
+            self._waitDeviceReady(10)
         if self.chan_state is None:
             self.motor_state_changed("not used state")
-            
+        #logging.getLogger("HWR").debug("Move done")    
 
     def __changeMotorState(self, state):
         """
@@ -320,8 +323,8 @@ class TINEMotor(Device):
         self.emit('stateChanged', (self.motorState, ))
 
     def _isDeviceReady(self):
-        return self.motorState == self.getState()
-        #return self.motorState == READY
+        self.getState()
+        return self.motorState == READY
 
     def _waitDeviceReady(self,timeout=None):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
@@ -338,5 +341,5 @@ class TINEMotor(Device):
             self.cmd_set_online(0)
             gevent.sleep(2)
 
-    def moveRelative(self, relativePosition, wait=False, enable=False):
-        self.move(self.getPosition() + relativePosition, wait=wait)
+    def moveRelative(self, relativePosition, timeout=False, enable=False):
+        self.move(self.getPosition() + relativePosition, timeout=timeout)
