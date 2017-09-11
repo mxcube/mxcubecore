@@ -88,7 +88,7 @@ class Bliss(HardwareObject):
       scan_id = scan_info["scan_nb"]
       new_data = numpy.column_stack([data[name] for name in scan_info["labels"]])
       self.__scan_data[scan_id].append(new_data)
-      self.emit("plot_data", { "id": scan_id, "data": new_data.tolist() })
+      self.emit("plot_data", { "id": scan_id, "data": numpy.concatenate(self.__scan_data[scan_id]).tolist() })
 
   def __on_scan_end(self, scan_info):
       scan_id = scan_info["scan_nb"]
