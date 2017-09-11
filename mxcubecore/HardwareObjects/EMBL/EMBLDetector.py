@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import gevent
 import logging
 from AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -41,6 +42,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.hum_treshold = None
 
         self.chan_beam_xy = None
+        self.chan_cover_state = None
         self.chan_temperature = None
         self.chan_humidity = None
         self.chan_status = None
@@ -48,50 +50,32 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_frame_rate = None
         self.chan_actual_frame_rate = None
 
+        self.cmd_close_cover = None
+
     def init(self):
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
+        self.chan_cover_state = self.getChannelObject('chanCoverState')
+        if self.chan_cover_state is not None:
+            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
         self.chan_temperature = self.getChannelObject('chanTemperature')
-        if self.chan_temperature is not None:
-            self.chan_temperature.connectSignal(\
-                "update", self.temperature_changed)
-        else:
-            logging.getLogger().error(\
-                "Detector: Temperature channel not defined")
-
+        self.chan_temperature.connectSignal("update", self.temperature_changed)
         self.chan_humidity = self.getChannelObject('chanHumidity')
-        if self.chan_humidity is not None:
-            self.chan_humidity.connectSignal(\
-                "update", self.humidity_changed)
-        else:
-            logging.getLogger().error(\
-                "Detector: Humidity channel not defined")
-
+        self.chan_humidity.connectSignal("update", self.humidity_changed)
         self.chan_status = self.getChannelObject('chanStatus')
-        if self.chan_status is not None:
-            self.chan_status.connectSignal(\
-                'update', self.status_changed)
-        else:
-            logging.getLogger().error("Detector: Status channel not defined")
-
+        self.chan_status.connectSignal('update', self.status_changed)
         self.chan_roi_mode = self.getChannelObject('chanRoiMode')
-        if self.chan_roi_mode is not None:
-            self.chan_roi_mode.connectSignal('update', self.roi_mode_changed)
-        else:
-            logging.getLogger().error("Detector: ROI mode channel not defined")
-
+        self.chan_roi_mode.connectSignal('update', self.roi_mode_changed)
         self.chan_frame_rate = self.getChannelObject('chanFrameRate')
-        if self.chan_frame_rate is not None:
-            self.chan_frame_rate.connectSignal('update', \
-                 self.frame_rate_changed)
-        else:
-            logging.getLogger().error("Detector: Frame rate channel not defined")
+        self.chan_frame_rate.connectSignal('update', self.frame_rate_changed)
 
         self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate')
         if self.chan_actual_frame_rate is not None:
             self.chan_actual_frame_rate.connectSignal('update', self.actual_frame_rate_changed)
 
         self.chan_beam_xy = self.getChannelObject('chanBeamXY')
+
+        self.cmd_close_cover = self.getCommandObject('cmdCloseCover')
 
         self.collect_name = self.getProperty("collectName")
         self.shutter_name = self.getProperty("shutterName")
@@ -105,6 +89,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def get_distance(self):
         """Returns detector distance in mm"""
         return self.distance_motor_hwobj.getPosition()
+
+    def set_distance(self, position, timeout):
+        return self.distance_motor_hwobj.move(position, timeout)
+        
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
@@ -199,6 +187,33 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             beam_x = value[0]
             beam_y = value[1]
         return beam_x, beam_y
+
+    def cover_state_changed(self, state):
+        """Updates guillotine state"
+
+        :param state: guillotine state (close, opened, ..)
+        :type state: str
+        """
+        if state[1] == 0:
+            self.cover_state = "closed"
+        elif state[1] == 1:
+            self.cover_state = "opened"
+        elif state[1] == 2:
+            self.cover_state = "closing"
+        elif state[1] == 3:
+            self.cover_state = "opening"
+        return self.cover_state
+
+    def get_cover_state(self):
+        return self.cover_state_changed(self.chan_cover_state.getValue())
+
+    def close_cover(self, wait=True):
+        if self.get_cover_state() != "closed":
+            self.cmd_close_cover()
+            if wait:
+                with gevent.Timeout(15, Exception("Timeout waiting for close")):
+                    while self.get_cover_state() != "closed":
+                          gevent.sleep(0.1)
 
     def update_values(self):
         """Reemits signals"""

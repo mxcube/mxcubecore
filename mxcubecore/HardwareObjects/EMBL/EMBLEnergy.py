@@ -19,7 +19,6 @@
 
 import gevent
 import logging
-from time import sleep
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -212,7 +211,7 @@ class EMBLEnergy(Device):
         current_en = self.getCurrentEnergy()
         pos = abs(current_en - energy)
         if pos < 0.001:
-            self.emit('energyStateChanged', ('ready', ))
+            self.emit('stateChanged', ('ready', ))
         else:
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
@@ -223,11 +222,11 @@ class EMBLEnergy(Device):
 
             self.moving = True
             self.release_break_bragg()
-            sleep(2)
+            gevent.sleep(2)
 
             if self.cmd_set_energy:
-                logging.getLogger('GUI').info("Moving energy to %.3f", energy)
-                self.emit('statusInfoChanged', "Moving energy to %.2f keV" % energy)
+                logging.getLogger('GUI').info("Moving to %.2f keV", energy)
+                self.emit('statusInfoChanged', "Moving to %.2f keV" % energy)
                 self.cmd_set_energy(energy)
             else:
                 #Mockup mode
@@ -289,13 +288,13 @@ class EMBLEnergy(Device):
         logging.getLogger('GUI').info("Setting bragg brake...")
         self.emit('statusInfoChanged', "Setting Bragg break...")
         self.cmd_set_break_bragg(1)
-        sleep(2)
+        gevent.sleep(2)
         if self.chan_status_bragg_break is not None:
-            with gevent.Timeout(10, Exception("Timeout waiting for break set")):
-                while self.bragg_break_status != 0:
-                   sleep(0.01)
+            with gevent.Timeout(20, Exception("Timeout waiting for break set")):
+                while self.chan_status_bragg_break.getValue() != 0:
+                   gevent.sleep(0.1)
         else:
-            sleep(10)
+            gevent.sleep(10)
         self.emit('statusInfoChanged', "Bragg break set")
         logging.getLogger('GUI').info("Bragg brake set")
 
@@ -303,12 +302,12 @@ class EMBLEnergy(Device):
         logging.getLogger('GUI').info("Releasing bragg brake...")
         self.emit('statusInfoChanged', "Releasing Bragg break...")
         self.cmd_release_break_bragg(1)
-        sleep(1)
+        gevent.sleep(2)
         if self.chan_status_bragg_break is not None:
-            with gevent.Timeout(10, Exception("Timeout waiting for break release")):
-                while self.bragg_break_status != 1:
-                   sleep(0.01)
+            with gevent.Timeout(20, Exception("Timeout waiting for break release")):
+                while self.chan_status_bragg_break.getValue() != 1:
+                   gevent.sleep(0.1)
         else:
-            sleep(10)
+            gevent.sleep(10)
         logging.getLogger('GUI').info("Bragg brake released")
         self.emit('statusInfoChanged', "Bragg break released")    

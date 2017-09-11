@@ -21,6 +21,7 @@ import numpy
 import gevent
 import logging
 
+from copy import copy
 from scipy.interpolate import interp1d
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -36,14 +37,18 @@ class EMBLFlux(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.ready_event = None
         self.flux_value = None
+        self.beam_info = None
+        self.transmission = None
+        self.ready_event = None
         self.intensity_measurements = []
         self.ampl_chan_index = None
         self.intensity_ranges = []
         self.intensity_value = None
 
-        self.bl_hwobj = None
+        self.origin_flux_value = None
+        self.origin_beam_info = None
+        self.origin_transmission = None
 
         self.chan_intens_range = None
         self.chan_intens_mean = None
@@ -78,8 +83,6 @@ class EMBLFlux(HardwareObject):
         self.intensity_ranges = []
         self.intensity_measurements = []
 
-        self.bl_hwobj = self.getObjectByRole("beamline_setup")
-
         try:
             for intens_range in self['intensity']['ranges']:
                 temp_intens_range = {}
@@ -103,18 +106,62 @@ class EMBLFlux(HardwareObject):
         self.cmd_set_intens_range = \
             self.getCommandObject('setIntensRange')
 
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        self.connect(self.beam_info_hwobj,
+                     "beamInfoChanged",
+                     self.beam_info_changed)
+        self.beam_info_changed(self.beam_info_hwobj.get_beam_info())
+
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+        self.connect(self.transmission_hwobj,
+                     "attFactorChanged",
+                     self.transmission_changed)
+        self.transmission_changed(self.transmission_hwobj.getAttFactor())
+
+        if self.getProperty("defaultFlux") is not None:
+            self.set_flux(self.getProperty("defaultFlux"))
+
+    def beam_info_changed(self, beam_info):
+        self.beam_info = beam_info
+        self.update_flux_value()
+
+    def transmission_changed(self, transmission):
+        self.transmission = transmission
+        self.update_flux_value()
+
+    def set_flux(self, flux_value):
+        self.flux_value = flux_value
+        self.origin_flux_value = copy(flux_value)
+        self.origin_beam_info = copy(self.beam_info)
+        self.origin_transmission = copy(self.transmission)
+        self.update_flux_value()
+
     def get_flux(self):
-        print "TODO: implement this"
-        self.flux_value = 5e11
-        self.bl_hwobj.collect_hwobj.machine_info_hwobj.set_flux(\
-             self.flux_value,
-             self.bl_hwobj.beam_info_hwobj.get_beam_info())
         return self.flux_value
+
+    def update_flux_value(self):
+        if self.flux_value is not None:
+            if self.origin_transmission != self.transmission:
+                self.flux_value = self.origin_flux_value * self.transmission / \
+                                  self.origin_transmission
+            if self.origin_beam_info != self.beam_info:
+                if self.origin_beam_info['shape'] == 'ellipse':
+                    original_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
+                else:     
+                    original_area = self.original_beam_info['size_x'] * \
+                                    self.original_beam_info['size_y']
+
+                if self.beam_info['shape'] == 'ellipse':
+                    current_area = 3.141592 * pow(self.beam_info['size_x'] / 2, 2)
+                else:
+                    current_area = self.beam_info['size_x'] * \
+                                   self.beam_info['size_y']
+                self.flux_value = self.origin_flux_value * current_area / \
+                                  original_area   
+            self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
 
     def measure_intensity(self):
         """Measures intesity"""
-
-        current_phase = self.bl_hwobj.diffractometer_hwobj.current_phase
 
         # 1. close guillotine and fast shutter -------------------------------
         self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
