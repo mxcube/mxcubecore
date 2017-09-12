@@ -38,9 +38,9 @@ class MaxIVSession(Session):
         # missing industrial users and visit info
         # now it is a new visit everyday
         directory = os.path.join(self.base_directory,
-                                 'staff',#'visitors', #'staff',#user_category,
+                                 user_category,  #'staff','visitors'
                                  self.beamline_name,
-                                 'commissioning',#'20170034',#'commissioning',#self.get_proposal(),
+                                 self.get_proposal(),
                                  start_time)
 
         return directory
