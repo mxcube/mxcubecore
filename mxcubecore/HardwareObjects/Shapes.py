@@ -296,6 +296,13 @@ class Shape(object):
         self.id = self.t + "%s" % id_num
         self.name = self.id
 
+    def move_to_mpos(self, mpos_list, screen_coord=[]):
+        self.cp_list = []
+        self.add_cp_from_mp(mpos_list)
+
+        if screen_coord:
+            self.screen_coord = screen_coord
+
     def update_from_dict(self, shape_dict):
         # We dont allow id updates
         shape_dict.pop("id", None)
