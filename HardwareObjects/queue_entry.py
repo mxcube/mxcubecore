@@ -1930,7 +1930,7 @@ def mount_sample(beamline_setup_hwobj,
 
     if hasattr(sample_mount_device, '__TYPE__'):
         if sample_mount_device.__TYPE__ in ['Marvin','CATS']:
-            element = '%d:%02d' % loc
+            element = '%d:%02d' % tuple(loc)
             sample_mount_device.load(sample=element, wait=True)
         elif sample_mount_device.__TYPE__ == "PlateManipulator": 
             sample_mount_device.load_sample(sample_location=loc)
