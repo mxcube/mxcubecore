@@ -2,6 +2,8 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
+import gevent
+import time
 
 class ALBABackLight(Device):
 
@@ -18,6 +20,7 @@ class ALBABackLight(Device):
 
     def init(self):
 
+        self.ln2cover_channel = self.getChannelObject("ln2cover")
         self.level_channel = self.getChannelObject("light_level")
         self.actuator_channel = self.getChannelObject("actuator")
         self.state_channel = self.getChannelObject("state")
@@ -66,11 +69,9 @@ class ALBABackLight(Device):
 
         if self.actuator_status:
             state = "off" 
-        else: 
-            if self.register_state == "on":
-                state = "on"
-            else:
-                state = "fault" 
+        else:
+            state = "on" 
+
         return state
             
     def getLimits(self):
@@ -93,9 +94,47 @@ class ALBABackLight(Device):
         self.level_channel.setValue(float(level))
 
     def setOn(self):
+        self.on_task = gevent.spawn(self._setOn)
+        self.on_task.link(self._task_finished)
+        self.on_task.link_exception(self._task_failed)
+
+    def _setOn(self):
+        if self.ln2cover_channel.getValue() is False: 
+            self.open_ln2cover()
+            wait_ok = self.wait_ln2cover_open()
+            if not wait_ok:
+                print "could not open ln2cover"
+                return
+
         self.actuator_channel.setValue(False)
         if self.memorized_level:
+            logging.getLogger("HWR").debug("setting level to memorized value: %s" % self.memorized_level)
             self.setLevel(self.memorized_level)
+
+    def open_ln2cover(self):
+        self.ln2cover_channel.setValue(True)
+
+    def wait_ln2cover_open(self, timeout=10):
+        t0 = time.time()
+        elapsed = 0 
+        while elapsed < timeout:
+             opened = self.ln2cover_channel.getValue() 
+             if opened:
+                 return True
+             gevent.sleep(0.1)
+             elapsed = time.time()-t0
+             logging.getLogger("HWR").debug("waiting for ln2cover open. elapsed %s . is %s" % (elapsed,opened))
+
+        logging.getLogger("HWR").debug("Timeout waiting for ln2cover open")
+        return False
+         
+    def _task_finished(self,g):
+        logging.getLogger("HWR").debug("Backlight task finished")
+        self._task = None
+
+    def _task_failed(self,g):
+        logging.getLogger("HWR").debug("Backlight task failed")
+        self._task = None
 
     def setOff(self):
         self.actuator_channel.setValue(True)
@@ -107,4 +146,10 @@ def test_hwo(hwo):
     print "\nLight control for \"%s\"\n" % hwo.getUserName()
     print "   Level limits are:",  hwo.getLimits()
     print "   Current level is:",  hwo.getLevel()
+    print "   Current state is:",  hwo.getState()
+    print "   Setting backlight on" 
+    hwo.setOn()
+    while gevent.wait(timeout=0.1):
+        print "Waiting" 
+        gevent.sleep(0.1)
     print "   Current state is:",  hwo.getState()

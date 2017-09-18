@@ -122,23 +122,24 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         else:
             return "Unknown"
 
+    def open(self):
+        self.cmdIn()
+    def close(self):
+        self.cmdOut()
+
     def cmdIn(self):
         self.actuator_channel.setValue(1)
 
     def cmdOut(self):
         self.actuator_channel.setValue(0)
 
-def test():
-    import os
-    hwr_directory = os.environ["XML_FILES_PATH"]
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-    hwr.connect()
+def test_hwo(hwo):
+    print "Name is: ",hwo.getUserName()
+    print "Shutter state is: ",hwo.getState()
+    print "Shutter status is: ",hwo.getStatus()
 
-    shut = hwr.getHardwareObject("/photonshut")
-    print "Name is: ",shut.getUserName()
-    print "Photon Shutter state is: ",shut.getState()
-    print "Photon Shutter status is: ",shut.getStatus()
-
-if __name__ == '__main__':
-    test()
+    #print "Opening it"
+    #print hwo.open()
+    #print "Closing it"
+    #print hwo.close()
 

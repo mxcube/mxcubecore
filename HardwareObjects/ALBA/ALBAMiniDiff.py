@@ -45,7 +45,7 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 """
 
 import logging, time, math, numpy
-from GenericDiffractometer import GenericDiffractometer
+from GenericDiffractometer import GenericDiffractometer, DiffractometerState
 from gevent.event import AsyncResult
 import gevent
 import PyTango
@@ -67,12 +67,20 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.centring_hwobj = None
         
     def init(self):
+
         self.calibration = self.getObjectByRole("calibration")
+
         self.centring_hwobj = self.getObjectByRole('centring')
+        self.bl_super_hwobj = self.getObjectByRole('beamline_supervisor')
+
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug('ALBAMinidiff: Centring math is not defined')
 
+        self.state_channel = self.getChannelObject("State")
+        self.connect(self.state_channel,"update", self.state_changed)
+
         self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+
 
         self.phi_motor_hwobj = self.getObjectByRole('phi')
         self.phiz_motor_hwobj = self.getObjectByRole('phiz')
@@ -124,6 +132,11 @@ class ALBAMiniDiff(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
+    def state_changed(self, state):
+        if str(state) == "ON":
+            state = DiffractometerState.tostring(DiffractometerState.Ready)
+        GenericDiffractometer.state_changed(self, state)
+
     def getCalibrationData(self, offset=None):
         calibx, caliby = self.calibration.getCalibration()
         return 1000.0/caliby, 1000.0/caliby 
@@ -140,6 +153,30 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         self.pixels_per_mm_x,  self.pixels_per_mm_y = self.getCalibrationData()
         self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
+
+    def motor_positions_to_screen(self, centred_positions_dict):
+        """
+        Descript. :
+        """
+        c = centred_positions_dict
+
+        #if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
+            #kappa = self.motor_hwobj_dict["kappa"]
+            # phi = self.motor_hwobj_dict["kappa_phi"]
+
+        xy = self.centring_hwobj.centringToScreen(c)
+        
+        x = xy['X']  * self.pixels_per_mm_x + \
+              self.zoom_centre['x']
+       
+        y = xy['Y']  * self.pixels_per_mm_y + \
+              self.zoom_centre['y']
+
+        logging.getLogger("HWR").debug("  motor_positions_to_screen ")
+        logging.getLogger("HWR").debug(" positions = %s " % str(centred_positions_dict)) 
+        logging.getLogger("HWR").debug(" x,y = %s, %s " % (x,y)) 
+
+        return x,y
 
     def get_centred_point_from_coord(self, x,y, return_by_names=None):
         """
@@ -179,8 +216,10 @@ class ALBAMiniDiff(GenericDiffractometer):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.centring_hwobj.appendCentringDataPoint(
-                 {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
-                  "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
+                 {"X": (x - self.zoom_centre['x'])/ self.pixels_per_mm_x,
+                  "Y": (y - self.zoom_centre['y'])/ self.pixels_per_mm_y})
+                 #{"X": (x - self.beam_position[0]/2.0)/ self.pixels_per_mm_x,
+                 # "Y": (y - self.beam_position[1]/2.0)/ self.pixels_per_mm_y})
 
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
@@ -300,4 +339,17 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def start_auto_focus(self):
 	self.cmd_start_auto_focus()
+
+    def move_omega(self, pos, velocity=None):
+        # turn it on
+        if velocity is not None:
+            self.phi_motor_hwobj.set_velocity(velocity)
+        self.phi_motor_hwobj.move(pos)
+        time.sleep(0.2)
+        # it should wait here
+
+    def move_omega_relative(self, relpos):
+        self.wait_device_ready()
+        self.phi_motor_hwobj.moveRelative(relpos)
+        time.sleep(0.2)
 
