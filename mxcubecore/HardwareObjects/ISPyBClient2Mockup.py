@@ -10,7 +10,7 @@ import time
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-# to simulate wrong loginID, use "wrong" for loginID
+# to simulate wrong loginID, use anything else than idtest
 # to simulate wrong psd, use "wrong" for password
 # to simulate ispybDown, but ldap login succeeds, use "ispybDown" for password
 # to simulate no session scheduled, use "nosession" for password
@@ -70,7 +70,7 @@ class ISPyBClient2Mockup(HardwareObject):
     def login (self,loginID, psd, ldap_connection=None):
 
         # to simulate wrong loginID
-        if loginID == "wrong":
+        if loginID != "idtest000":
             return {'status':{ "code": "error", "msg": "loginID 'wrong' does not exist!" }, 'Proposal': None, 'Session': None} 
         # to simulate wrong psd
         if psd == "wrong":
