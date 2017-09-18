@@ -146,7 +146,7 @@ class ISPyBClient2(HardwareObject):
         self.ws_username = self.getProperty('ws_username')
         if not self.ws_username:
             self.ws_username = _WS_USERNAME
-        self.ws_password = self.getProperty('ws_password')
+        self.ws_password = str(self.getProperty('ws_password'))
         if not self.ws_password:
             self.ws_password = _WS_PASSWORD
 
