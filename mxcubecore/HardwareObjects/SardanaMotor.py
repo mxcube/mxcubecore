@@ -20,6 +20,8 @@ class SardanaMotor(AbstractMotor):
     suffix_position = "Position"
     suffix_state = "State"
     suffix_stop = "Stop"
+    suffix_velocity = "Velocity"
+    suffix_acceleration = "Acceleration"
 
     state_map = {
         "ON": AbstractMotor.READY,
@@ -98,6 +100,19 @@ class SardanaMotor(AbstractMotor):
                     "taurusname": self.taurusname, "polling": self.polling,
                 }, "State")
 
+        self.velocity_channel = self.addChannel({
+                    "type": "sardana",
+                    "name": self.motor_name + SardanaMotor.suffix_velocity,
+                    "taurusname": self.taurusname, 
+                }, "Velocity")
+
+        self.acceleration_channel = self.addChannel({
+                    "type": "sardana",
+                    "name": self.motor_name + SardanaMotor.suffix_acceleration,
+                    "taurusname": self.taurusname, 
+                }, "Acceleration")
+
+
         self.position_channel.connectSignal("update", self.motor_position_changed)
         self.state_channel.connectSignal("update", self.motor_state_changed)
 
@@ -172,12 +187,18 @@ class SardanaMotor(AbstractMotor):
 
         return (self.limit_lower, self.limit_upper)
 
+    def get_limits(self):
+        return self.getLimits()
+
     def getPosition(self):
         """
         Descript. : returns the current position
         """
         self.motor_position = self.position_channel.getValue()
         return self.motor_position
+
+    def get_position(self):
+        return self.getPosition()
 
     def update_values(self):
         self.emit('limitsChanged', (self.getLimits(), ))
@@ -238,6 +259,24 @@ class SardanaMotor(AbstractMotor):
             while self.is_moving():
                 time.sleep(0.1)
 
+    def get_velocity(self):
+        try:
+            return self.velocity_channel.getValue()            
+        except:
+            return None
+
+    def set_velocity(self, value):
+        self.velocity_channel.setValue(value)            
+
+    def get_acceleration(self):
+        try:
+            return self.acceleration_channel.getValue()            
+        except:
+            return None
+
+
 def test_hwo(hwo):
     print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
+    print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
+    print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))
 
