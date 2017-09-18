@@ -23,7 +23,14 @@ class ALBAEnergy(Device):
         return True
 
     def get_energy(self):
+        if self.energy_position is None:
+            self.energy_position = self.energy_hwobj.getPosition()
         return self.energy_position
+
+    def get_wavelength(self):
+        if self.wavelength_position is None:
+            self.wavelength_position = self.wavelength_hwobj.getPosition()
+        return self.wavelength_position
 
     def update_values(self):
         self.energy_hwobj.update_values()
@@ -46,20 +53,19 @@ class ALBAEnergy(Device):
 
     def get_energy_limits(self):
         return self.energy_hwobj.getLimits()
+
+    def getEnergyLimits(self):
+        return self.get_energy_limits()
  
     def get_wavelength_limits(self):
         return self.wavelength_hwobj.getLimits()
  
-def test():
-    import os
-    hwr_directory = os.environ["XML_FILES_PATH"]
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-    hwr.connect()
+def test_hwo(hwo):
 
-    energy = hwr.getHardwareObject("/energy")
-    print "Energy is: ",energy.get_energy()
-    print "Energy limits are: ",energy.get_energy_limits()
-    print "Wavelength limits are: ",energy.get_wavelength_limits()
+    print "Energy is: ",hwo.get_energy()
+    print "Wavelength is: ",hwo.get_wavelength()
+    print "Energy limits are: ",hwo.get_energy_limits()
+    print "Wavelength limits are: ",hwo.get_wavelength_limits()
 
 if __name__ == '__main__':
     test()

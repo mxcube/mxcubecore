@@ -171,6 +171,12 @@ class ALBAMachineInfo(Equipment):
         return self.chan_mach_current.getValue()
         #return self.values_dict['mach_current']
  
+    def get_current(self):
+        return self.get_mach_current()
+
+    def get_message(self):
+        return "Machinfo status: %s" % self.get_mach_status()
+
 #    def get_current_value(self):
 #        """
 #        Descript. :
@@ -184,3 +190,6 @@ class ALBAMachineInfo(Equipment):
     def get_topup_remaining(self):
         return self.chan_topup_remaining.getValue()
 #        return self.values_dict['remaining']
+
+def test_hwo(hwo):
+    print "Current is", hwo.get_current()
