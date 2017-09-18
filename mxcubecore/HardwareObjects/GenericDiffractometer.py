@@ -164,6 +164,9 @@ class GenericDiffractometer(HardwareObject):
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
 
+        self.delay_state_polling = None # time to delay for state polling for controllers
+                                        # not updating state inmediately after cmd started
+
         # Internal values -----------------------------------------------------
         self.ready_event = None
         self.head_type = GenericDiffractometer.HEAD_TYPE_MINIKAPPA
@@ -333,6 +336,11 @@ class GenericDiffractometer(HardwareObject):
                       self.motor_hwobj_dict['sampy'])
         except:
            pass # used the default value
+
+	try:
+            self.delay_state_polling = self.getProperty("delay_state_polling")
+        except:
+            pass
 
         # Other parameters ---------------------------------------------------
         try:
@@ -835,6 +843,12 @@ class GenericDiffractometer(HardwareObject):
                     continue
                 motor_positions[motor] = position
             motor.move(position)
+
+        if self.delay_state_polling is not None and self.delay_state_polling > 0:    
+            # delay polling for state in the
+            # case of controller not reporting MOVING inmediately after cmd
+            gevent.sleep(self.delay_state_polling)
+
         self.wait_device_ready(timeout)
 
     def move_motors_done(self, move_motors_procedure):
