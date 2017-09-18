@@ -83,6 +83,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
         self.positionChannel = self.getChannelObject("position")
         self.stateChannel = self.getChannelObject("state")
         self.labelsChannel = self.getChannelObject("labels")
+        self.currentposition = 0
 
         self.positionChannel.connectSignal("update", self.positionChanged)
         self.stateChannel.connectSignal("update", self.stateChanged)
@@ -139,7 +140,10 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
         return state
     
     def getPosition(self):
-        return self.positionChannel.getValue()
+        try:
+            return self.positionChannel.getValue()
+        except:
+            return self.currentposition
     
     def getCurrentPositionName(self):
         n = int(self.positionChannel.getValue())
@@ -152,25 +156,17 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
         self.emit('stateChanged', (self.getState(), ))
 
     def positionChanged(self, currentposition):
-        currentposition = self.getCurrentPositionName()
-        logging.getLogger("HWR").debug("predefinedPositionChanged emitted: %s" % currentposition)
+        self.currentposition = self.getCurrentPositionName()
+        logging.getLogger("HWR").debug("predefinedPositionChanged emitted: %s" % self.currentposition)
         #self.emit('predefinedPositionChanged', (currentposition, currentposition))
-        self.emit('predefinedPositionChanged', (currentposition, 0))
+        self.emit('predefinedPositionChanged', (self.currentposition, 0))
 
     def isReady(self):
         state = self.getState()
         return state == ALBAZoomMotor.READY
 
 
-def test():
-  hwr_directory = os.environ["XML_FILES_PATH"]
-
-  print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-  hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-  hwr.connect()
-
-  zoom = hwr.getHardwareObject("/zoom")
-  zoom = hwr.getHardwareObject("/blight")
+def test_hwo(zoom):
 
   print type(zoom.getState() )
 

@@ -3,6 +3,7 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
 from sample_changer.CatsMaint import CatsMaint
+import logging
 
 class ALBACatsMaint(CatsMaint):
 
@@ -14,6 +15,7 @@ class ALBACatsMaint(CatsMaint):
 
         # load ALBA attributes and commands from XML
         self._chnAtHome = self.getChannelObject("_chnAtHome")
+        logging.getLogger("HWR").debug(" BARCODE is: %s" % self._chnBarcode.getValue())
 
         # channel to ask diffractometer for mounting position
         self.shifts_channel = self.getChannelObject("shifts")
