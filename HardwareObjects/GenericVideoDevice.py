@@ -73,7 +73,7 @@ class GenericVideoDevice(Device):
         self.default_poll_interval = None
 
     def init(self):
-        modulenames = ['PyQt', 'PyQt5', 'PyQt4']
+        modulenames = ['qt', 'PyQt5', 'PyQt4']
 
         if any(mod in sys.modules for mod in modulenames):
             self.for_qt = True
