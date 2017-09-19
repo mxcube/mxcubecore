@@ -516,12 +516,14 @@ class SampleChanger(Container,Equipment):
         self._triggerLoadedSampleChangedEvent(None)
 
     def _setLoadedSample(self, sample):
+        former_loaded = self.getLoadedSample()
         for s in self.getSampleList():
             if s != sample:
                 s._setLoaded(False)
             else:
                 s._setLoaded(True)
-        self._triggerLoadedSampleChangedEvent(sample)
+        if sample != former_loaded:
+            self._triggerLoadedSampleChangedEvent(sample)
                         
     def _setSelectedSample(self,sample):
         cur = self.getSelectedSample()
