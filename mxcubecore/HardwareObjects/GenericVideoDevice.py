@@ -33,6 +33,7 @@ the base class for classes providing access to Video in MXCuBE
 import abc
 
 import os
+import sys
 import time
 import logging
 import gevent
@@ -72,17 +73,13 @@ class GenericVideoDevice(Device):
         self.default_poll_interval = None
 
     def init(self):
-        
+        modulenames = ['PyQt', 'PyQt5', 'PyQt4']
 
-        # Read values from XML
-        #    set useqt in  xml to False if you do not want to use in qt app
-        self.for_qt = self.getProperty("useqt")
-
-        if self.for_qt in [False,"No", "no"]:
-            self.for_qt = False
-        else:
+        if any(mod in sys.modules for mod in modulenames):
             self.for_qt = True
             from QtImport import QImage, QPixmap
+        else:
+            self.for_qt = False
 
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
