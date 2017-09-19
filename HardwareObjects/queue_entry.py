@@ -881,7 +881,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
-                print (traceback.print_exc())
                 raise QueueExecutionException(str(ex), self)
         else:
             log.error("Could not call the data collection routine," +\
@@ -986,10 +985,12 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
                 char_qe = CharacterisationQueueEntry(self.get_view(), char,
                                                  view_set_queue_entry=False)
             except Exception as ex:
-                print ex
-            char_qe.set_enabled(True)
-            self.enqueue(char_qe)
-            self.char_qe = char_qe
+                logging.getLogger("HWR").exception("Could not create CharacterisationQueueEntry")
+                self.char_qe = None
+            else:
+                char_qe.set_enabled(True)
+                self.enqueue(char_qe)
+                self.char_qe = char_qe
 
     def post_execute(self):
         if self.char_qe: 
