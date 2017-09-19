@@ -881,7 +881,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
-                print (traceback.print_exc())
                 raise QueueExecutionException(str(ex), self)
         else:
             log.error("Could not call the data collection routine," +\
@@ -981,13 +980,17 @@ class CharacterisationGroupQueueEntry(BaseQueueEntry):
         dc_qe.in_queue = self.in_queue
         self.enqueue(dc_qe)
         self.dc_qe = dc_qe
-
         if char.run_characterisation:
-            char_qe = CharacterisationQueueEntry(self.get_view(), char,
+            try:
+                char_qe = CharacterisationQueueEntry(self.get_view(), char,
                                                  view_set_queue_entry=False)
-            char_qe.set_enabled(True)
-            self.enqueue(char_qe)
-            self.char_qe = char_qe
+            except Exception as ex:
+                logging.getLogger("HWR").exception("Could not create CharacterisationQueueEntry")
+                self.char_qe = None
+            else:
+                char_qe.set_enabled(True)
+                self.enqueue(char_qe)
+                self.char_qe = char_qe
 
     def post_execute(self):
         if self.char_qe: 
@@ -1010,6 +1013,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         self.queue_model_hwobj = None
         self.session_hwobj = None
         self.edna_result = None
+        self.auto_add_diff_plan = True
 
     def __getstate__(self):
         d = BaseQueueEntry.__getstate__(self)
@@ -1068,37 +1072,22 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 collection_plan = None
 
             if collection_plan:
-                dcg_model = char.get_parent()
-                sample_data_model = dcg_model.get_parent()
-
-                new_dcg_name = 'Diffraction plan'
-                new_dcg_num = dcg_model.get_parent().\
-                              get_next_number_for_name(new_dcg_name)
-
-                new_dcg_model = queue_model_objects.TaskGroup()
-                new_dcg_model.set_enabled(False)
-                new_dcg_model.set_name(new_dcg_name)
-                new_dcg_model.set_number(new_dcg_num)
-                new_dcg_model.set_origin(char._node_id)
-                self.queue_model_hwobj.add_child(sample_data_model,
-                                                 new_dcg_model)
-
-                edna_collections = queue_model_objects.\
-                                   dc_from_edna_output(self.edna_result,
-                                                       reference_image_collection,
-                                                       new_dcg_model,
-                                                       sample_data_model,
-                                                       self.beamline_setup)
-
-                for edna_dc in edna_collections:
-                    path_template = edna_dc.acquisitions[0].path_template
-                    run_number = self.queue_model_hwobj.get_next_run_number(path_template)
-                    path_template.run_number = run_number
-
-                    edna_dc.set_enabled(False)
-                    edna_dc.set_name(path_template.get_prefix())
-                    edna_dc.set_number(path_template.run_number)
-                    self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
+                if char.auto_add_diff_plan:
+                    # default action
+                    self.handle_diffraction_plan(self.edna_result, None)
+                else:
+                    collections = queue_model_objects.\
+                                       dc_from_edna_output(self.edna_result,
+                                                           char.reference_image_collection,
+                                                           None,  # new_dcg_model
+                                                           None,  # sample_data_model
+                                                           self.beamline_setup)
+                    char.diffraction_plan.append(collections)
+                    self.queue_model_hwobj.emit('diff_plan_available',
+                                                (char,
+                                                 char.diffraction_plan.index(collections),
+                                                 collections)
+                                                )
 
                 self.get_view().setText(1, "Done")
             else:
@@ -1119,6 +1108,46 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
         char.set_executed(True)
         self.get_view().setHighlighted(True)
+
+    def handle_diffraction_plan(self, edna_result, edna_collections):
+        char = self.get_data_model()
+        reference_image_collection = char.reference_image_collection
+
+        dcg_model = char.get_parent()
+        sample_data_model = dcg_model.get_parent()
+
+        new_dcg_name = 'Diffraction plan'
+        new_dcg_num = dcg_model.get_parent().\
+                      get_next_number_for_name(new_dcg_name)
+
+        new_dcg_model = queue_model_objects.TaskGroup()
+        new_dcg_model.set_enabled(False)
+        new_dcg_model.set_name(new_dcg_name)
+        new_dcg_model.set_number(new_dcg_num)
+        new_dcg_model.set_origin(char._node_id)
+
+        self.queue_model_hwobj.add_child(sample_data_model,
+                                         new_dcg_model)
+        if edna_collections is None:
+            edna_collections = queue_model_objects.\
+                           dc_from_edna_output(edna_result,
+                                               reference_image_collection,
+                                               new_dcg_model,
+                                               sample_data_model,
+                                               self.beamline_setup)
+
+        for edna_dc in edna_collections:
+            path_template = edna_dc.acquisitions[0].path_template
+            run_number = self.queue_model_hwobj.get_next_run_number(path_template)
+            path_template.run_number = run_number
+
+            edna_dc.set_enabled(False)
+            edna_dc.set_name(path_template.get_prefix())
+            edna_dc.set_number(path_template.run_number)
+
+            self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
+
+        return edna_collections
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)

@@ -648,6 +648,9 @@ class Characterisation(TaskNode):
         self.run_characterisation = True
         self.characterisation_software = None
 
+        self.auto_add_diff_plan = True
+        self.diffraction_plan = []
+
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
 
