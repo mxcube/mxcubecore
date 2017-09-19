@@ -370,6 +370,6 @@ class FlexHCD(SampleChanger):
             #self._setSelectedSample(s)
             return
 
-        self._resetLoadedSample()
+        for s in self.getSampleList():
+            s._setLoaded(False)
         self._setSelectedSample(None)
- 
