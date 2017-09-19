@@ -350,7 +350,7 @@ class XMLRPCServer(HardwareObject):
         self.diffractometer_hwobj.moveMotors(roles_positions_dict)
         return True
 
-    def save_snapshot(self, imgpath, showScale=True):
+    def save_snapshot(self, imgpath, showScale=False):
         res = True
 
         try:

@@ -9,6 +9,7 @@ class Pin(Sample):
     def __init__(self,basket,cell_no,basket_no,sample_no):
         super(Pin, self).__init__(basket, Pin.getSampleAddress(cell_no,basket_no,sample_no), True)
         self._setHolderLength(22.0)
+        self.present = True
 
     def getBasketNo(self):
         return self.getContainer().getIndex()+1
@@ -34,6 +35,7 @@ class Basket(Container):
         for i in range(16 if unipuck else 10):
             slot = Pin(self,cell_no,basket_no,i+1)
             self._addComponent(slot)
+        self.present = True
                             
     @staticmethod
     def getBasketAddress(cell_number,basket_number):
@@ -54,6 +56,7 @@ class Cell(Container):
     __TYPE__ = "Cell"
     def __init__(self, container, number, sc3_pucks=True):
       super(Cell, self).__init__(self.__TYPE__,container,Cell.getCellAddress(number),True)
+      self.present = True
       if sc3_pucks:
         for i in range(3):
           self._addComponent(Basket(self,number,i+1, unipuck=1-(number%2)))
@@ -367,6 +370,6 @@ class FlexHCD(SampleChanger):
             #self._setSelectedSample(s)
             return
 
-        self._resetLoadedSample()
+        for s in self.getSampleList():
+            s._setLoaded(False)
         self._setSelectedSample(None)
- 
