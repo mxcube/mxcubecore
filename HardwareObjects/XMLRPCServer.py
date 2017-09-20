@@ -37,9 +37,12 @@ __status__ = "Draft"
 
 
 class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
-    """Secure XML-RPC request handler class.
+    """
+    Secure XML-RPC request handler class.
 
-    It it very similar to SimpleXMLRPCRequestHandler but it uses HTTPS for transporting XML data.
+    It it very similar to SimpleXMLRPCRequestHandler but it checks for a
+    "Token" entry in the header. If this token doesn't correspond to a
+    reference token the server sends a "401" (Unauthorized) reply. 
     """
     __referenceToken = None
     
@@ -47,16 +50,17 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
     def setReferenceToken(token):
         SecureXMLRpcRequestHandler.__referenceToken = token
         
-    
     def setup(self):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
         
+    
     def do_POST(self):
-        """Handles the HTTPS POST request.
+        """
+        Handles the HTTPS POST request.
 
-        It was copied out from SimpleXMLRPCServer.py and modified to shutdown the socket cleanly.
+        It was copied out from SimpleXMLRPCServer.py and modified to check for "Token" in the headers.
         """
         # Check that the path is legal
         if not self.is_rpc_path_valid():
@@ -112,8 +116,8 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                 self.wfile.flush()
                 self.connection.shutdown(1)
         else:
-            #Unrecognized token - access forbidden
-            self.send_response(403)
+            #Unrecognized token - access unauthorized
+            self.send_response(401)
             self.end_headers()
 
 
@@ -127,7 +131,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
-        self.doEnforceUseOfToken = False        
+        self.doEnforceUseOfToken = False
 
         atexit.register(self.close)
       
@@ -147,6 +151,8 @@ class XMLRPCServer(HardwareObject):
        
         self.host = host    
 
+        # Check if communication should be "secure". If self.doEnforceUseOfToken is set to True
+        # all incoming http requests must have the correct token in the headers.
         if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
             self.doEnforceUseOfToken = True
 
@@ -158,18 +164,18 @@ class XMLRPCServer(HardwareObject):
 
     def close(self):
         try:
-          self.xmlrpc_server_task.kill()
-          self._server.server_close()
-          del self._server
+            self.xmlrpc_server_task.kill()
+            self._server.server_close()
+            del self._server
         except AttributeError:
-          pass
+            pass
         logging.getLogger("HWR").info('XML-RPC server closed')
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
         if hasattr(self, "_server" ):
-          return
+            return
         self.xmlrpc_prefixes = set()
         if self.doEnforceUseOfToken:
             self._server = SimpleXMLRPCServer((self.host, int(self.port)), requestHandler=SecureXMLRpcRequestHandler, 
@@ -244,9 +250,8 @@ class XMLRPCServer(HardwareObject):
             raise
         else:
             return True
-    	
-	
-	
+
+
     def _add_to_queue(self, task, set_on = True):
         """
         Adds the TaskNode objects contained in the
@@ -464,8 +469,8 @@ class XMLRPCServer(HardwareObject):
             else:
                 self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
         except Exception as ex:
-          logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
-          res = False
+            logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
+            res = False
 
         return res
 
@@ -491,7 +496,7 @@ class XMLRPCServer(HardwareObject):
         while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == 'MOVING':
             time.sleep(0.1)
             if time.time()-t0 > timeout:
-                 raise RuntimeError("Timeout waiting for aperture to move")
+                raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
@@ -547,12 +552,6 @@ class XMLRPCServer(HardwareObject):
         Returns the avaliable pre-defined zoom levels.
         """
         return self.diffractometer_hwobj.zoomMotor.getPredefinedPositionsList()
-
-    def set_zoom_level(self, zoom_level):
-        """
-        Sets the zoom to a pre-defined level.
-        """
-        self.diffractometer_hwobj.zoomMotor.moveToPosition(zoom_level)
 
     def set_front_light_level(self, level):
         """
