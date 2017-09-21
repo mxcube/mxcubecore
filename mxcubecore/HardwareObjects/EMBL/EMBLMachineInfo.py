@@ -143,7 +143,7 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value'] = "- - -"
         temp_dict['in_range'] = True
         temp_dict['title'] = "Files copied - pending - failed"
-        self.values_list.append(temp_dict)
+        #self.values_list.append(temp_dict)
 
         temp_dict = {}
         temp_dict['value'] = "???"
@@ -218,7 +218,7 @@ class EMBLMachineInfo(HardwareObject):
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
              self.getProperty("updateIntervalS"))
 
-        if os.path.exists("/ramdisk"):
+        if os.path.exists("/ramdisk/dataInt"):
             self.update_task = spawn(self.update_ramdisk_size, 5)
         else:
             self.values_list.pop(-1)
@@ -459,15 +459,15 @@ class EMBLMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_ramdisk_size(self):
-        data_dir = "/ramdisk"
-        p = '/' + data_dir.split('/')[1]
-        data_dir = str(p)
+        data_dir = "/ramdisk/"
+        #p = '/' + data_dir.split('/')[1]
+        #data_dir = str(p)
         if os.path.exists(data_dir):
             st = os.statvfs(data_dir)
+            
             total = st.f_blocks * st.f_frsize
             free = st.f_bavail * st.f_frsize
             perc = st.f_bavail / float(st.f_blocks)
-
             return total, free, perc
         else:
             return None, None, None

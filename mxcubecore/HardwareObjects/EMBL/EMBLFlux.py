@@ -80,6 +80,7 @@ class EMBLFlux(HardwareObject):
         """
         self.ready_event = gevent.event.Event()
 
+        self.flux_value = 1
         self.intensity_ranges = []
         self.intensity_measurements = []
 
@@ -141,23 +142,27 @@ class EMBLFlux(HardwareObject):
 
     def update_flux_value(self):
         if self.flux_value is not None:
-            if self.origin_transmission != self.transmission:
-                self.flux_value = self.origin_flux_value * self.transmission / \
-                                  self.origin_transmission
-            if self.origin_beam_info != self.beam_info:
-                if self.origin_beam_info['shape'] == 'ellipse':
-                    original_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
-                else:     
-                    original_area = self.original_beam_info['size_x'] * \
-                                    self.original_beam_info['size_y']
-
-                if self.beam_info['shape'] == 'ellipse':
-                    current_area = 3.141592 * pow(self.beam_info['size_x'] / 2, 2)
+            if self.origin_transmission is not None:
+                if self.origin_transmission != self.transmission:
+                    self.flux_value = self.origin_flux_value * self.transmission / \
+                                      self.origin_transmission
                 else:
-                    current_area = self.beam_info['size_x'] * \
-                                   self.beam_info['size_y']
-                self.flux_value = self.origin_flux_value * current_area / \
-                                  original_area   
+                    self.flux_value = self.origin_flux_value
+            if self.origin_beam_info is not None:
+                if self.origin_beam_info != self.beam_info:
+                    if self.origin_beam_info['shape'] == 'ellipse':
+                        original_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
+                    else:     
+                        original_area = self.original_beam_info['size_x'] * \
+                                        self.original_beam_info['size_y']
+
+                    if self.beam_info['shape'] == 'ellipse':
+                        current_area = 3.141592 * pow(self.beam_info['size_x'] / 2, 2)
+                    else:
+                        current_area = self.beam_info['size_x'] * \
+                                       self.beam_info['size_y']
+                    self.flux_value = self.flux_value * current_area / \
+                                      original_area   
             self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
 
     def measure_intensity(self):
