@@ -52,12 +52,17 @@ class EdnaProcessingThread(threading.Thread):
         subprocess.call("%s %s %s %s" % args, shell=True)
         self.edna_processing_watcher.send()
 
+    def stop(self):
+        self.edna_processing_watcher.stop()
+        self.edna_processing_done.set() 
+
 
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.collect_obj = None
         self.result = None
+        self.edna_processing_thread = None
         self.processing_done_event = gevent.event.Event()
 
     def init(self):
@@ -232,6 +237,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
                 firstImage = imageFile.path.value
                 break
 
+        self.edna_processing_thread = None
         listImageName = os.path.basename(firstImage).split("_")
         prefix = "_".join(listImageName[:-2])
         run_number = listImageName[-2]
@@ -253,15 +259,21 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         msg = "Starting EDNA using xml file %r", edna_input_file
         logging.getLogger("queue_exec").info(msg)
 
-        edna_processing_thread = \
+        self.edna_processing_thread = \
           EdnaProcessingThread(self.start_edna_command, edna_input_file,
                                edna_results_file, edna_directory)
 
-        self.processing_done_event = edna_processing_thread.start()
+        self.processing_done_event = self.edna_processing_thread.start()
         self.processing_done_event.wait()
-        self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
-
+        self.result = None
+        if os.path.exists(edna_results_file):
+            self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
+    
         return self.result
 
     def is_running(self):
         return not self.processing_done_event.is_set()
+
+    def stop(self):
+        if self.edna_processing_thread is not None:
+            self.edna_processing_thread.stop()
