@@ -206,7 +206,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.aborted_by_user = False
             return
 
-        if self._actual_collect_status in ["ready", "unknown", "error"]:
+        if self._actual_collect_status in ["ready", "unknown", "error", "not available"]:
             self.emit("progressInit", ("Collection", 100))
             comment = 'Comment: %s' % str(self.current_dc_parameters.get('comments', ""))
             self._error_msg = ""
@@ -264,7 +264,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     self.current_dc_parameters['experiment_type'], 'OSC'))
             self.cmd_collect_start()
         else:
-            self.collection_failed("Detector server in unknown state")
+            self.collection_failed(\
+                 "Unable to start collection. " + \
+                 "Detector server is in %s state" % \
+                 self._actual_collect_status)
 
     def collect_status_update(self, status):
         """Status event that controls execution

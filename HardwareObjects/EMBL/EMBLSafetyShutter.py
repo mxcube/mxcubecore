@@ -18,7 +18,6 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import gevent
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -51,20 +50,19 @@ class EMBLSafetyShutter(Device):
         self.chan_collection_state = None
         self.chan_state_open = None
         self.chan_state_open_permission = None
+        self.chan_error = None
 
         self.cmd_open = None
         self.cmd_close = None
 
     def init(self):
         self.chan_collection_state = self.getChannelObject('chanCollectStatus')
-        if self.chan_collection_state is not None:
-            self.chan_collection_state.connectSignal('update',
-                 self.data_collection_state_changed)
+        self.chan_collection_state.connectSignal('update',
+             self.data_collection_state_changed)
 
         self.chan_state_open = self.getChannelObject('chanStateOpen')
-        if self.chan_state_open is not None:
-            self.chan_state_open.connectSignal('update',
-                 self.state_open_changed)
+        self.chan_state_open.connectSignal('update',
+             self.state_open_changed)
 
         self.state_open_changed(self.chan_state_open.getValue())
 
@@ -72,8 +70,11 @@ class EMBLSafetyShutter(Device):
         self.chan_state_open_permission.connectSignal('update',
              self.state_open_permission_changed)
         self.state_open_permission_changed(self.chan_state_open_permission.getValue())
-         
 
+        self.chan_error = self.getChannelObject('chanError')
+        if self.chan_error is not None:
+            self.chan_error.connectSignal('update', self.error_msg_changed)
+         
         self.cmd_open = self.getCommandObject('cmdOpen')
         self.cmd_close = self.getCommandObject('cmdClose')
 
@@ -101,6 +102,10 @@ class EMBLSafetyShutter(Device):
         self.shutter_can_open = state
         self.getShutterState()
 
+    def error_msg_changed(self, error_msg):
+        if len(error_msg) > 0:
+            logging.getLogger("GUI").error("Safety shutter: Error %s" % error_msg)
+
     def getShutterState(self):
         if self.shutter_state_open:
             self.shutter_state = "opened"
@@ -118,7 +123,7 @@ class EMBLSafetyShutter(Device):
     # set the shutter open command to any TEXT value of size 1 to open it
     def openShutter(self):
         if not self.use_shutter:
-            logging.getLogger().info('Safety shutter is disabled')
+            logging.getLogger('HWR').info('Safety shutter is disabled')
             return
         self.control_shutter(True)
 
@@ -128,32 +133,25 @@ class EMBLSafetyShutter(Device):
 
     def control_shutter(self, open_state):
         if open_state:
-            gevent.spawn(self.open_shutter_thread)
+            if self.shutter_state == 'closed':
+                self.open_shutter()
         else:
-            gevent.spawn(self.close_shutter_thread)
+            if self.shutter_state == 'opened':
+                self.close_shutter()
 
-    def close_shutter_thread(self):
-        logging.getLogger().info('Safety shutter: Closing beam shutter...')
-        #self.emit('shutter_state_listChanged', (self.shutterState[0])) #closed
-        gevent.sleep(2)
+    def close_shutter(self):
+        logging.getLogger('HWR').info('Safety shutter: Closing beam shutter...')
         try:
             self.cmd_close()
         except:
-            logging.getLogger().error('Safety shutter: unable to close shutter')
+            logging.getLogger('GUI').error('Safety shutter: unable to close shutter')
 
-    def open_shutter_thread(self):
-        logging.getLogger().info('Safety shutter: Openning beam shutter...')
-        #self.emit('shutter_state_listChanged', (self.shutterState[1])) #opened
-        gevent.sleep(2)
+    def open_shutter(self):
+        logging.getLogger('HWR').info('Safety shutter: Openning beam shutter...')
         try:
             self.cmd_open()
-            """
-            gevent.sleep(6)
-            if self.getShutterState() != "opened":
-                self.cmd_open()
-            """
         except:
-            logging.getLogger().error('Safety shutter: unable to open shutter')
+            logging.getLogger('GUI').error('Safety shutter: unable to open shutter')
 
     def update_values(self):
         self.getShutterState()

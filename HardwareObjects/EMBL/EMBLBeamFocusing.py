@@ -65,13 +65,11 @@ class EMBLBeamFocusing(HardwareObject):
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
 
-        #TODO
         self.motors_groups = [self.getObjectByRole("P14ExpTbl"),
                               self.getObjectByRole("P14KB"),
                               self.getObjectByRole("P14DetTrans"),
                               self.getObjectByRole("P14BCU"),
                               self.getObjectByRole("slitsMotors")]
-        
 
         if len(self.motors_groups) > 0:
             for motors_group in self.motors_groups:
@@ -146,13 +144,14 @@ class EMBLBeamFocusing(HardwareObject):
                                 current focusing mode is used
         :type focus_mode_name: str
         """
-        lens_modes = []
+        lens_modes = ["Manual"]
 
         if focus_mode_name == None:
             focus_mode_name = self.active_focus_mode
         for focus_mode in self.focus_modes:
             if focus_mode['modeName'] == focus_mode_name:
                 lens_modes = focus_mode['lensModes']
+        
         return lens_modes
 
     def get_lens_combination(self, focus_mode_name=None):
@@ -216,6 +215,7 @@ class EMBLBeamFocusing(HardwareObject):
         """
         gevent.spawn(self.focus_mode_task,
                      focus_mode)
+        logging.getLogger("HWR").info('Focusing: %s mode requested' % focus_mode)    
         self.emit('focusingModeRequested', focus_mode)
 
     def focus_mode_task(self, focus_mode):

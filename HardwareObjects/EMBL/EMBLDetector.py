@@ -40,6 +40,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.shutter_name = None
         self.temp_treshold = None
         self.hum_treshold = None
+        self.cover_state = None
 
         self.chan_beam_xy = None
         self.chan_cover_state = None
@@ -53,6 +54,8 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.cmd_close_cover = None
 
     def init(self):
+
+        self.cover_state = 'unknown'
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject('chanCoverState')
@@ -76,6 +79,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_beam_xy = self.getChannelObject('chanBeamXY')
 
         self.cmd_close_cover = self.getCommandObject('cmdCloseCover')
+        self.cmd_restart_daq = self.getCommandObject('cmdRestartDaq')
 
         self.collect_name = self.getProperty("collectName")
         self.shutter_name = self.getProperty("shutterName")
@@ -85,6 +89,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.pixel_min = self.getProperty("px_min")
         self.pixel_max = self.getProperty("px_max")
         self.roi_modes_list = eval(self.getProperty("roiModes"))
+
 
     def get_distance(self):
         """Returns detector distance in mm"""
@@ -214,6 +219,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
                 with gevent.Timeout(15, Exception("Timeout waiting for close")):
                     while self.get_cover_state() != "closed":
                           gevent.sleep(0.1)
+
+    def restart_daq(self):
+        self.cmd_restart_daq(0)
 
     def update_values(self):
         """Reemits signals"""

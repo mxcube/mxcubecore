@@ -129,32 +129,29 @@ class EMBLDoorInterlock(Device):
         if self.diffractometer_hwobj is not None: 
             if self.diffractometer_hwobj.in_plate_mode():
                 if self.detector_distance_hwobj.getPosition() < 340:
-                    self.detector_distance_hwobj.move(500, timeout=45)
-                    gevent.sleep(1)
+                    self.detector_distance_hwobj.move(500)
+                    gevent.sleep(5)
             else: 
                 if self.detector_distance_hwobj.getPosition() < 1199:
-                    self.detector_distance_hwobj.move(1200, timeout=45)
+                    self.detector_distance_hwobj.move(1200)
                     gevent.sleep(1)
+            self.diffractometer_hwobj.set_phase(self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None)
              
         if not self.use_door_interlock:
             logging.getLogger().info('Door interlock is disabled')
             return
 
         if self.door_interlock_state:
-            gevent.spawn(self.unlock_doors_thread)
+            if self.door_interlock_breakabled:
+                if self.cmd_break_interlock is None:
+                    self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock')
+                self.cmd_break_interlock()
+            else:
+                msg = "Door Interlock cannot be broken at the moment " + \
+                      "please check its status and try again."
+                logging.getLogger("GUI").error(msg)
         else:
-            logging.getLogger().info('Door is Interlocked')
-
-    def unlock_doors_thread(self):
-        """Gevent method to unlock the doors"""
-        if self.door_interlock_breakabled:
-            if self.cmd_break_interlock is None:
-                self.cmd_break_interlock = self.getCommandObject('cmdBreakInterlock')
-            self.cmd_break_interlock()
-        else:
-            msg = "Door Interlock cannot be broken at the moment " + \
-                  "please check its status and try again."
-            logging.getLogger("user_level_log").error(msg)
+            logging.getLogger('HWR').info('Door is Interlocked')
 
     def update_values(self):
         self.get_state()
