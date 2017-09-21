@@ -1368,7 +1368,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
 
             sample_model = self.get_data_model().\
                            get_parent().get_parent()
-
+            node_id = xrf_spectrum._node_id
             sample_lims_id = sample_model.lims_id
             # No sample id, pass None to startEnergySpectrum
             if sample_lims_id == -1:
@@ -1381,7 +1381,7 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
                              "%s_%d" % (xrf_spectrum.path_template.get_prefix(),
                                         xrf_spectrum.path_template.run_number),
                              self.session_hwobj.session_id,
-                             sample_lims_id)
+                             node_id)
             self.xrf_spectrum_hwobj.ready_event.wait()
             self.xrf_spectrum_hwobj.ready_event.clear()
         else:
