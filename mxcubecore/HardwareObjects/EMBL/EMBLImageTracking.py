@@ -17,14 +17,8 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 
 class EMBLImageTracking(Device):
-    """
-    Description:
-    """  	
 
     def __init__(self, *args):
-        """
-        Descrip. :
-        """
         Device.__init__(self, *args)
 
         self.target_ip = None
@@ -39,9 +33,6 @@ class EMBLImageTracking(Device):
         
 
     def init(self):
-        """
-        Descript. : 
-        """
         self.chan_enable_image_tracking = self.getChannelObject("chanEnableImageTracking")
         self.chan_enable_image_tracking.connectSignal("update", self.enable_image_tracking_changed)
         
@@ -68,7 +59,7 @@ class EMBLImageTracking(Device):
             self.chan_enable_image_tracking.setValue(state)  
 
     def load_image(self, image_name):
-        if self.image_tracking_enabled:
+        if self.is_tracking_enabled():
             self.set_image_tracking_state(False)
         self.cmd_load_image(str(image_name))
 
