@@ -152,6 +152,9 @@ class Shapes(HardwareObject):
         Clear the shapes, remove all contents.
         """
         self.shapes = {}
+        Grid.SHAPE_COUNT = 0
+        Line.SHAPE_COUNT = 0
+        Point.SHAPE_COUNT =0
 
     def get_selected_shapes(self):
         """
