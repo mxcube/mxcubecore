@@ -84,6 +84,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
         self.video = None 
 
     def init(self):
+        self.useqt = True
         self.cam_address = self.getProperty("address")
         self.cam_type = self.getProperty("type").lower()
 

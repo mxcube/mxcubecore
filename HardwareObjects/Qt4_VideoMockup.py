@@ -43,6 +43,7 @@ class Qt4_VideoMockup(GenericVideoDevice):
         """
         Descript. :
         """ 
+        self.useqt = True
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-1])
         image_path = "/" + current_path + "/tests/fakeimg.jpg"

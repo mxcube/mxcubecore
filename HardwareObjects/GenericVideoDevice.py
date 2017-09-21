@@ -57,6 +57,7 @@ class GenericVideoDevice(Device):
     def __init__(self, name):
         Device.__init__(self,name)
 
+        self.useq = None
         self.cam_mirror = None
         self.cam_encoding = None
         self.cam_gain = None
