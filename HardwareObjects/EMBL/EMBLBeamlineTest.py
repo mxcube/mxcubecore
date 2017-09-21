@@ -1102,9 +1102,10 @@ class EMBLBeamlineTest(HardwareObject):
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             self.bl_hwobj.transmission_hwobj.setTransmission(new_transmission, timeout=45)
             self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
-            #capillary_position = self.bl_hwobj.diffractometer_hwobj.get_capillary_position()
-            #self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OUT")
+            capillary_position = self.bl_hwobj.diffractometer_hwobj.get_capillary_position()
+            self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OFF")
 
+            gevent.sleep(1)
             self.center_beam_task()
 
             #self.bl_hwobj.diffractometer_hwobj.set_capillary_position(capillary_position)
@@ -1151,7 +1152,7 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("testProgress", (6, progress_info))
             self.graphics_manager_hwobj.move_beam_mark_auto()
 
-            self.bl_hwobj.transmission_hwobj.setTransmission(current_transmission)
+        self.bl_hwobj.transmission_hwobj.setTransmission(current_transmission)
 
         self.graphics_manager_hwobj.save_scene_snapshot(\
              os.path.join(self.test_directory,
@@ -1161,6 +1162,7 @@ class EMBLBeamlineTest(HardwareObject):
                           "beam_profile_after.png"))
 
         self.graphics_manager_hwobj.graphics_beam_item.set_detected_beam_position(None, None)
+
         msg = "Done"
         progress_info["progress_msg"] = msg
         log.info("Beam centering: %s" % msg)
@@ -1182,6 +1184,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.graphics_manager_hwobj.save_beam_profile(\
              os.path.join(self.test_directory,
                           "beam_profile_before.png"))
+        gevent.sleep(1)
 
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             #Beam centering procedure for P13 ---------------------------------
@@ -1543,13 +1546,14 @@ class EMBLBeamlineTest(HardwareObject):
         logging.getLogger("GUI").info(msg)
         meas_item.append("%1.1e" % dose_rate)
 
-        #TODO Pilatus: 25, Eiger 130
+        max_frame_rate = 1 / self.bl_hwobj.detector_hwobj.get_exposure_time_limits()[0]
+
         msg = "Time to reach 20 MGy = %d s = %d frames " % \
-              (20000. / dose_rate, int(130 * 20000. / dose_rate))
+              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate))
         result["result_details"].append(msg + "<br><br>")
         logging.getLogger("GUI").info(msg)
         meas_item.append("%d, %d frames" % \
-              (20000. / dose_rate, int(130 * 20000. / dose_rate)))
+              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate)))
 
         self.intensity_measurements.insert(0, meas_item)
 

@@ -599,13 +599,14 @@ class Marvin(SampleChanger):
         for arg in args:
             arg_arr.append(arg)
 
-        logging.getLogger("HWR").debug("Sample changer: Sending command: %s, %s..." %(str(method), str(arg_arr)))
+        logging.getLogger("HWR").debug("Sample changer: Sending cmd with arguments: %s..." %  str(arg_arr))
+        
         method(arg_arr)
         logging.getLogger("HWR").debug("Sample changer: Waiting ready...")
         gevent.sleep(15)
         self._action_started = True
         self.waitReady(60.0)
-        self.waitReady(60.0)
+        self.waitReady(120.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
