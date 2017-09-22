@@ -68,7 +68,7 @@ class Pilatus:
       return float(self.config.getProperty("deadtime"))
 
   @task
-  def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still):
+  def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode):
       diffractometer_positions = self.collect_obj.bl_control.diffractometer.getPositions()
       self.start_angles = list()
       for i in range(number_of_images):
@@ -112,10 +112,7 @@ class Pilatus:
 
       self.set_energy_threshold(energy)
 
-      if still:
-          self.getChannelObject("acq_trigger_mode").setValue("INTERNAL_TRIGGER")
-      else:
-          self.getChannelObject("acq_trigger_mode").setValue("EXTERNAL_TRIGGER")
+      self.getChannelObject("acq_trigger_mode").setValue(trigger_mode)
 
       self.getChannelObject("saving_mode").setValue("AUTO_FRAME")
       self.getChannelObject("acq_nb_frames").setValue(number_of_images)
