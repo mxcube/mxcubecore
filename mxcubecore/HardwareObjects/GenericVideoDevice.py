@@ -76,10 +76,10 @@ class GenericVideoDevice(Device):
         modulenames = ['qt', 'PyQt5', 'PyQt4']
 
         if any(mod in sys.modules for mod in modulenames):
-            self.for_qt = True
+            self.useqt = True
             from QtImport import QImage, QPixmap
         else:
-            self.for_qt = False
+            self.useqt = False
 
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
