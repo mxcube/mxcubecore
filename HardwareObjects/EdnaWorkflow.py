@@ -6,9 +6,11 @@ import gevent
 import pprint
 import httplib
 import logging
+import binascii
 #import threading
 from lxml import etree
 import types
+from XMLRPCServer import SecureXMLRpcRequestHandler
 
 class State(object):
     """
@@ -64,6 +66,7 @@ class EdnaWorkflow(HardwareObject):
         self._gevent_event = None
         self._bes_host = None
         self._bes_port = None
+        self._token = None
         
     def _init(self):
         pass
@@ -151,6 +154,7 @@ class EdnaWorkflow(HardwareObject):
         return workflow_list
 
     def abort(self):
+        self.generateNewToken()
         logging.getLogger("HWR").info('Aborting current workflow')
         # If necessary unblock dialog
         if not self._gevent_event.is_set():
@@ -167,8 +171,16 @@ class EdnaWorkflow(HardwareObject):
                 logging.info("BES {0}: {1}".format(self._besWorkflowId, workflowStatus))
         self.state.value = "ON"
 
+    def generateNewToken(self):
+        # See: https://wyattbaldwin.com/2014/01/09/generating-random-tokens-in-python/
+        self._token = binascii.hexlify(os.urandom(5))
+        SecureXMLRpcRequestHandler.setReferenceToken(self._token)
+    
+    def getToken(self):
+        return self._token
         
     def start(self, listArguments):
+        self.generateNewToken()
         # If necessary unblock dialog
         if not self._gevent_event.is_set():
             self._gevent_event.set()
@@ -210,10 +222,12 @@ class EdnaWorkflow(HardwareObject):
         startWorkflowURL = os.path.join("/BES", "bridge", "rest", "processes", self.workflowName, "RUN")
         isFirstParameter = True
         self.dictParameters["initiator"] = self._session_object.endstation_name
+        self.dictParameters["sessionId"] = self._session_object.session_id
         self.dictParameters["externalRef"] = self._session_object.get_proposal()
+        self.dictParameters["token"] = self._token
         # Build the URL
         for key in self.dictParameters:
-            urlParameter = "%s=%s" % (key, self.dictParameters[key].replace(" ", "_"))
+            urlParameter = "%s=%s" % (key, str(self.dictParameters[key]).replace(" ", "_"))
             if isFirstParameter:
                 startWorkflowURL += "?%s" % urlParameter
             else:
