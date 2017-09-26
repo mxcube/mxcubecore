@@ -14,8 +14,10 @@ import gevent
 import socket
 import time
 import json
+import traceback
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 
@@ -29,6 +31,91 @@ __email__ = "marcus.oscarsson@esrf.fr"
 __status__ = "Draft"
 
 
+class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
+    """
+    Secure XML-RPC request handler class.
+
+    It it very similar to SimpleXMLRPCRequestHandler but it checks for a
+    "Token" entry in the header. If this token doesn't correspond to a
+    reference token the server sends a "401" (Unauthorized) reply. 
+    """
+    __referenceToken = None
+    
+    @staticmethod
+    def setReferenceToken(token):
+        SecureXMLRpcRequestHandler.__referenceToken = token
+        
+    def setup(self):
+        self.connection = self.request
+        self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
+        self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
+        
+    
+    def do_POST(self):
+        """
+        Handles the HTTPS POST request.
+
+        It was copied out from SimpleXMLRPCServer.py and modified to check for "Token" in the headers.
+        """
+        # Check that the path is legal
+        if not self.is_rpc_path_valid():
+            self.report_404()
+            return
+
+        referenceToken = SecureXMLRpcRequestHandler.__referenceToken
+        if referenceToken is not None and "Token" in self.headers and referenceToken == self.headers["Token"]:
+            try:
+                # Get arguments by reading body of request.
+                # We read this in chunks to avoid straining
+                # socket.read(); around the 10 or 15Mb mark, some platforms
+                # begin to have problems (bug #792570).
+                max_chunk_size = 10*1024*1024
+                size_remaining = int(self.headers["content-length"])
+                L = []
+                while size_remaining:
+                    chunk_size = min(size_remaining, max_chunk_size)
+                    chunk = self.rfile.read(chunk_size)
+                    if not chunk:
+                        break
+                    L.append(chunk)
+                    size_remaining -= len(L[-1])
+                data = ''.join(L)
+                # In previous versions of SimpleXMLRPCServer, _dispatch
+                # could be overridden in this class, instead of in
+                # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
+                # check to see if a subclass implements _dispatch and dispatch
+                # using that method if present.
+                response = self.server._marshaled_dispatch(
+                        data, getattr(self, '_dispatch', None)
+                    )
+            except Exception, e: # This should only happen if the module is buggy
+                # internal error, report as HTTP server error
+                self.send_response(500)
+    
+                # Send information about the exception if requested
+                if hasattr(self.server, '_send_traceback_header') and \
+                        self.server._send_traceback_header:
+                    self.send_header("X-exception", str(e))
+                    self.send_header("X-traceback", traceback.format_exc())
+    
+                self.end_headers()
+            else:
+                # got a valid XML RPC response
+                self.send_response(200)
+                self.send_header("Content-type", "text/xml")
+                self.send_header("Content-length", str(len(response)))
+                self.end_headers()
+                self.wfile.write(response)
+    
+                # shut down the connection
+                self.wfile.flush()
+                self.connection.shutdown(1)
+        else:
+            #Unrecognized token - access unauthorized
+            self.send_response(401)
+            self.end_headers()
+
+
 class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -39,6 +126,7 @@ class XMLRPCServer(HardwareObject):
         self.xmlrpc_prefixes = set()
         self.current_entry_task = None
         self.host = None
+        self.doEnforceUseOfToken = False
       
     def init(self):
         """
@@ -47,12 +135,15 @@ class XMLRPCServer(HardwareObject):
 
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if hasattr(self, "all_interfaces") and self.all_interfaces:
+        if hasattr(self, "all_interfaces") and self.all_interfaces.strip().lower() == "true":
             host = ''
         else:
             host = socket.gethostname()
 
         self.host = host    
+
+        if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
+            self.doEnforceUseOfToken = True
 
         try:
             self.open()
@@ -62,21 +153,24 @@ class XMLRPCServer(HardwareObject):
 
     def close(self):
         try:
-          self.xmlrpc_server_task.kill()
-          self._server.server_close()
-          del self._server
+            self.xmlrpc_server_task.kill()
+            self._server.server_close()
+            del self._server
         except AttributeError:
-          pass
+            pass
         logging.getLogger("HWR").info('XML-RPC server closed')
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
         if hasattr(self, "_server" ):
-          return
+            return
         self.xmlrpc_prefixes = set()
-        self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
-
+        if self.doEnforceUseOfToken:
+            self._server = SimpleXMLRPCServer((self.host, int(self.port)), requestHandler=SecureXMLRpcRequestHandler, 
+                                              logRequests = False, allow_none = True)
+        else:
+            self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
@@ -126,7 +220,7 @@ class XMLRPCServer(HardwareObject):
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
         self.workflow_hwobj = self.getObjectByRole("workflow")
-
+               
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
@@ -136,9 +230,8 @@ class XMLRPCServer(HardwareObject):
             raise
         else:
             return True
-    	
-	
-	
+
+
     def _add_to_queue(self, task, set_on = True):
         """
         Adds the TaskNode objects contained in the
@@ -376,7 +469,7 @@ class XMLRPCServer(HardwareObject):
         while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == 'MOVING':
             time.sleep(0.1)
             if time.time()-t0 > timeout:
-                 raise RuntimeError("Timeout waiting for aperture to move")
+                raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
@@ -419,12 +512,6 @@ class XMLRPCServer(HardwareObject):
         Returns the avaliable pre-defined zoom levels.
         """
         return self.diffractometer_hwobj.zoomMotor.getPredefinedPositionsList()
-
-    def set_zoom_level(self, zoom_level):
-        """
-        Sets the zoom to a pre-defined level.
-        """
-        self.diffractometer_hwobj.zoomMotor.moveToPosition(zoom_level)
 
     def set_front_light_level(self, level):
         """
@@ -495,3 +582,5 @@ class XMLRPCServer(HardwareObject):
                 except StopIteration:
                     pass
 
+    def setToken(self, token):
+        SecureXMLRpcRequestHandler.setReferenceToken(token)
