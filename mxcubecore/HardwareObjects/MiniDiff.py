@@ -145,10 +145,7 @@ class MiniDiff(Equipment):
 
         self.centringStatus={"valid":False}
         
-        try:
-          self.chiAngle = 0.0 #self.getProperty("chi")
-        except: 
-          self.chiAngle = 0.0
+        self.chiAngle = self.getProperty("chi", 0)
 
         try:
           phiz_ref = self["centringReferencePosition"].getProperty("phiz")
