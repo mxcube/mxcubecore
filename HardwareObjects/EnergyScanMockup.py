@@ -243,7 +243,8 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         elements=[]
         try:
             for el in self["elements"]:
-                elements.append({"symbol":el.symbol, "energy":el.energy})
+                elements.append({"symbol":el.getProperty('symbol'),
+                                 "energy":el.getProperty('energy')})
         except IndexError:
             pass
         return elements

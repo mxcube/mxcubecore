@@ -13,6 +13,10 @@ import queue_model_objects_v1 as queue_model_objects
 class Session(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+
+        self.synchrotron_name = None
+        self.beamline_name = None
+
         self.session_id = None
         self.proposal_code = None
         self.proposal_number = None
@@ -34,6 +38,7 @@ class Session(HardwareObject):
     # by the framework after the object has been initialized.
     def init(self):
         self.synchrotron_name = self.getProperty('synchrotron_name')
+        self.beamline_name = self.getProperty('beamline_name')
         self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.template = self["file_info"].getProperty('file_template')
@@ -66,9 +71,9 @@ class Session(HardwareObject):
            self['file_info'].getProperty('archive_base_directory'),
            self['file_info'].getProperty('archive_folder'))
 
-        precision = "04"
+        precision = self.default_precision
         try:
-            precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
+            precision = eval(self.session_hwobj["file_info"].getProperty('precision', self.default_precision))
         except:
             pass
 
@@ -86,8 +91,12 @@ class Session(HardwareObject):
         user_category = ''
         directory = ''
 
-        if self.synchrotron_name == "EMBL-HH":
+        if self.session_start_date:
+            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+        else:
             start_time = time.strftime("%Y%m%d")
+
+        if self.synchrotron_name == "EMBL-HH":
             if os.getenv("SUDO_USER"):
                 user = os.getenv("SUDO_USER")
             else:
@@ -95,11 +104,6 @@ class Session(HardwareObject):
             directory = os.path.join(self.base_directory, str(os.getuid()) + '_'\
                                      + str(os.getgid()), user, start_time)
         else: 
-            if self.session_start_date:
-                start_time = self.session_start_date.split(' ')[0].replace('-', '')
-            else:
-                start_time = time.strftime("%Y%m%d")
-
             if self.is_inhouse():
                 user_category = 'inhouse'
                 directory = os.path.join(self.base_directory, self.endstation_name,

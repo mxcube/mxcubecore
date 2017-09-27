@@ -282,8 +282,11 @@ class Sample(TaskNode):
         return display_name
 
     def init_from_sc_sample(self, sc_sample):
-        self.loc_str = ":".join(map(str,sc_sample[-1]))
-        self.location = sc_sample[-1]
+        #self.loc_str = ":".join(map(str,sc_sample[-1]))
+        #self.location = sc_sample[-1]
+        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
+        self.location = (sc_sample[1], sc_sample[2])
+
         self.set_name(self.loc_str)
         if sc_sample[3] != "":
             self.set_name(sc_sample[3])
