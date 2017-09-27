@@ -753,6 +753,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         data_collection = self.get_data_model()
 
         if data_collection:
+            acq_params = data_collection.acquisitions[0].acquisition_parameters
+            cpos = acq_params.centred_position
+
+            empty_cpos = all(mpos==None for mpos in cpos.as_dict().values())
+
+            if empty_cpos and data_collection.center_before_collect:
+                center_before_collect(self.get_view(), self.diffractometer_hwobj,
+                    self.get_queue_controller(), self.shape_history)
+
             self.collect_dc(data_collection, self.get_view())
 
         if self.shape_history:
@@ -1761,7 +1770,31 @@ def store_sample_info_in_lims(beamline_setup_hwobj, sample_info):
         log = logging.getLogger("user_level_log")
         log.info("Storing sample info in LIMS")
         beamline_setup_hwobj.lims_hwobj.update_bl_sample(sample_info)
-        
+
+def center_before_collect(view, dm, queue, shapes):
+    view.setText(1, 'Waiting for input')
+    log = logging.getLogger("user_level_log")
+
+    log.info("Please select, or center on a new position and press continue.")
+
+    queue.pause(True)
+    pos, shape = None, None
+
+    if len(shapes.get_selected_shapes()):
+        shape = shapes.get_selected_shapes()[0]
+        pos = shape.mpos()
+    else:
+        msg = "No centred position selected, using current position."
+        log.info(msg)
+
+        # Create a centred postions of the current postion
+        pos = dm.getPositions()
+        shape = shapes.add_shape_from_mpos([pos], (0,0), 'P')
+
+    view(1, 'Centring completed')
+    log.info("Centring completed")
+
+    return pos, shape
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
