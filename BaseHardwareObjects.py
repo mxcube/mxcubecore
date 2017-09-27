@@ -46,7 +46,8 @@ class PropertySet(dict):
 class HardwareObjectNode:
     def __init__(self, nodeName):
         """Constructor"""
-        self.__dict__['_propertySet'] = PropertySet()
+        #self.__dict__['__propertySet'] = PropertySet()
+        self.__propertySet = PropertySet()
         self.__objectsNames = []
         self.__objects = []
         self._objectsByRole = {}
@@ -94,14 +95,14 @@ class HardwareObjectNode:
             raise AttributeError(attr)
 
         try:
-            return self.__dict__['_propertySet'][attr]
+            return self.__dict__['__propertySet'][attr]
         except KeyError:
             raise AttributeError(attr)
 
 
     def __setattr__(self, attr, value):
         try:
-            if not attr in self.__dict__ and attr in self._propertySet:
+            if not attr in self.__dict__ and attr in self.__propertySet:
                 self.setProperty(attr, value)
             else:
                 self.__dict__[attr] = value
@@ -275,15 +276,15 @@ class HardwareObjectNode:
                   elif value == 'False':
                       value = False
 
-        self._propertySet[name] = value
-        self._propertySet.setPropertyPath(name, self._path+'/'+str(name))
+        self.__propertySet[name] = value
+        self.__propertySet.setPropertyPath(name, self._path+'/'+str(name))
         
 
     def getProperty(self, name, default_value=None):
-        return self._propertySet.get(str(name), default_value)
+        return self.__propertySet.get(str(name), default_value)
 
     def getProperties(self):
-        return self._propertySet
+        return self.__propertySet
             
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values
@@ -415,7 +416,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def commitChanges(self):
         """Commit last changes"""
         def getChanges(node):
-          updates = list(node._propertySet.getChanges())
+          updates = list(node.__propertySet.getChanges())
           if len(node) > 0:
             for n in node:
               updates+=getChanges(n)

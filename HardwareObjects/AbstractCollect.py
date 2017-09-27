@@ -393,7 +393,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_shape()
+            return self.beam_info_hwobj.get_beam_shape()
 
     def get_machine_current(self):
         """

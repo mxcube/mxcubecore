@@ -124,6 +124,12 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
 class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+
+        self.host = None
+        self.port = None
+        self.all_interfaces = None
+        self.doEnforceUseOfToken = None
+
         self.queue_model_hwobj = None
         self.queue_hwobj = None
         self.beamline_setup_hwobj = None
@@ -140,9 +146,13 @@ class XMLRPCServer(HardwareObject):
         Method inherited from HardwareObject, called by framework-2. 
         """
 
+        self.port = self.getProperty("port")
+        self.all_interfaces = self.getProperty("all_interfaces")
+        self.enforceUseOfToken = self.getProperty("enforceUseOfToken")
+
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if hasattr(self, "all_interfaces") and self.all_interfaces.strip().lower() == "true":
+        if self.all_interfaces:
             host = ''
         else:
             host = socket.gethostname()
@@ -153,7 +163,7 @@ class XMLRPCServer(HardwareObject):
 
         # Check if communication should be "secure". If self.doEnforceUseOfToken is set to True
         # all incoming http requests must have the correct token in the headers.
-        if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
+        if self.enforceUseOfToken:
             self.doEnforceUseOfToken = True
 
         #try:
@@ -226,7 +236,7 @@ class XMLRPCServer(HardwareObject):
                 if recurse is None:
                     recurse = True
 
-                self._register_module_functions(api.module, recurse=recurse)
+                self._register_module_functions(api.getProperty('module'), recurse=recurse)
 
         self.queue_hwobj = self.getObjectByRole("queue")
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
