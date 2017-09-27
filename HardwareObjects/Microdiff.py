@@ -58,6 +58,8 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.beam_info = self.getObjectByRole('beam_info')
 
+        self.wait_ready = self._wait_ready
+
     def getMotorToExporterNames(self):
         MOTOR_TO_EXPORTER_NAME = {"focus":self.focusMotor.getProperty('motor_name'), "kappa":self.kappaMotor.getProperty('motor_name'),
                                   "kappa_phi":self.kappaPhiMotor.getProperty('motor_name'), "phi": self.phiMotor.getProperty('motor_name'),
@@ -89,13 +91,12 @@ class Microdiff(MiniDiff.MiniDiff):
         return False
 
     def _wait_ready(self, timeout=None):
-        if timeout <= 0:
+        # None means infinite timeout
+        # <=0 means default timeout
+        if timeout is not None and timeout <= 0:
             timeout = self.timeout
-        tt1 = time.time()
-        while time.time() - tt1 < timeout:
-             if self._ready():
-                 break
-             else:
+        with gevent.Timeout(timeout, RuntimeError("Timeout waiting for diffractometer to be ready")):
+             while not self._ready():
                  time.sleep(0.5)
 
     def moveToPhase(self, phase, wait=False, timeout=None):

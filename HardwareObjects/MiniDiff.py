@@ -744,3 +744,7 @@ class MiniDiff(Equipment):
 
     def simulateAutoCentring(self,sample_info=None):
         pass
+
+    def wait_ready(self, timeout=None):
+        pass
+
