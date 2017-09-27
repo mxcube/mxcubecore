@@ -287,6 +287,9 @@ class Shape(object):
     def de_select(self):
         self.selected = False
 
+    def is_selected(self):
+        return self.selected
+
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
         self.screen_coord = spos_list[0]
