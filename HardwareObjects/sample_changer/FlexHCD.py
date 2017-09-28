@@ -264,8 +264,6 @@ class FlexHCD(SampleChanger):
         self._execute_cmd("defreezeGripper")
 
     def _doLoad(self, sample=None):
-        self._doSelect(sample.getCell())
-
         load_task = gevent.spawn(self._execute_cmd, 'loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         gevent.sleep(5)
         while not load_task.ready():
