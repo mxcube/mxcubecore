@@ -165,8 +165,8 @@ class GenericDiffractometer(HardwareObject):
         self.command_dict = {}
         self.used_commands_list = GenericDiffractometer.COMMANDS_NAME
 
-	# flag for using sample_centring hwobj or not
-	self.use_sample_centring = None 
+        # flag for using sample_centring hwobj or not
+        self.use_sample_centring = None
 
         # Internal values -----------------------------------------------------
         self.ready_event = None

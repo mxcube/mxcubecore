@@ -613,6 +613,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 nkey = key[:-9]
                 all_gaps[nkey] = _gaps[key]
             else:
+                # TODO FIXME ERROR this cannot possibly be right:
                 all_gaps = _gaps
         return all_gaps
 

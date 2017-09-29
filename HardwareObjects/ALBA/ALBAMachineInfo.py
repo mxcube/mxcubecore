@@ -94,24 +94,24 @@ class ALBAMachineInfo(Equipment):
 #        self.values_in_range_dict = {}
         self.chan_mach_current = None
         self.chan_mach_status = None
-	self.chan_topup_remaining = None
+        self.chan_topup_remaining = None
 	
     def init(self):
         """
         Descript. : Inits channels from xml configuration. 
         """
-	try:
-	    self.chan_mach_current = self.getChannelObject('MachCurrent')
-	    if self.chan_mach_current is not None: 
-	        self.chan_mach_current.connectSignal('update', self.mach_current_changed)
+        try:
+            self.chan_mach_current = self.getChannelObject('MachCurrent')
+            if self.chan_mach_current is not None:
+                self.chan_mach_current.connectSignal('update', self.mach_current_changed)
 
-	    self.chan_mach_status = self.getChannelObject('MachStatus')
-	    if self.chan_mach_status is not None:
-	        self.chan_mach_status.connectSignal('update', self.mach_status_changed)
+            self.chan_mach_status = self.getChannelObject('MachStatus')
+            if self.chan_mach_status is not None:
+                self.chan_mach_status.connectSignal('update', self.mach_status_changed)
 
-	    self.chan_topup_remaining = self.getChannelObject('TopUpRemaining')
-	    if self.chan_topup_remaining is not None:
-	        self.chan_topup_remaining.connectSignal('update', self.topup_remaining_changed)
+            self.chan_topup_remaining = self.getChannelObject('TopUpRemaining')
+            if self.chan_topup_remaining is not None:
+                self.chan_topup_remaining.connectSignal('update', self.topup_remaining_changed)
         except KeyError:
             self.logger.warning('%s: cannot read machine info', self.name())
 

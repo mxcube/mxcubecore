@@ -59,7 +59,7 @@ class EMBLBeamFocusing(HardwareObject):
                   'diverg': eval(focus_mode.divergence)})
         self.focus_motors_dict = {}
 
-        focus_motors = []
+        # focus_motors = []
         focus_motors = eval(self.getProperty('focusMotors'))
 
         for focus_motor in focus_motors:

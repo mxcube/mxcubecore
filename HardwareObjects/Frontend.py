@@ -39,7 +39,7 @@ class Frontend(BaseHardwareObjects.Device):
 
         self.shutterStateValue = 13
         self.automaticModeTimeLeft = None
-        self.undulatorGaps = {}       
+        self._undulatorGaps = {}
  
     def init(self):
         try:
@@ -74,7 +74,7 @@ class Frontend(BaseHardwareObjects.Device):
         self.getCommandObject("Close")()
 
     def getUndulatorGaps(self):
-        if len(self.undulatorGaps) == 0:
+        if len(self._undulatorGaps) == 0:
           tangoname = self.getChannelObject('State').\
               deviceName.replace("fe", "id")
 
@@ -86,17 +86,17 @@ class Frontend(BaseHardwareObjects.Device):
           for name in movable_names:
               if "GAP" in name:
                   key = name + '_Position'
-                  self.undulatorGaps[key] = -1
+                  self._undulatorGaps[key] = -1
                   self.addChannel({ 'type': 'tango', 'name': key,
                                     'tangoname': tangoname}, key)
 
-        for key in list(self.undulatorGaps.keys()):
+        for key in list(self._undulatorGaps.keys()):
             gap = self.getChannelObject(key).getValue()
             if gap is None or math.isnan(gap):
               gap = -1
-            self.undulatorGaps[key] = gap
+            self._undulatorGaps[key] = gap
 
-        return self.undulatorGaps
+        return self._undulatorGaps.copy()
 
     def getUndulatorGap(self, name):
         undulator_gaps = self.getUndulatorGaps()

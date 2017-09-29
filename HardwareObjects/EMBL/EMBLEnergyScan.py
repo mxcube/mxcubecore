@@ -461,7 +461,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """Returns energy scan data.
            List contains tuples of (energy, counts)
         """
-        return self.scan_data
+        if self.scan_data is None:
+            return None
+        else:
+            return list(self.scan_data)
 
     def store_energy_scan(self):
         if self.db_connection_hwobj:

@@ -48,9 +48,9 @@ class TaskNode(object):
     def get_children(self):
         """
         :returns: The children of this node.
-        :rtype: List of TaskNode objects.
+        :rtype: Tuple of TaskNode objects.
         """
-        return self._children
+        return tuple(self._children)
 
     def get_parent(self):
         """
