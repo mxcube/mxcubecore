@@ -352,12 +352,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self._collecting = None
         self.ready_event.set()
         self.update_data_collection_in_lims()
-        logging.getLogger("HWR").info("[TODO] Store image in lims with correct frame!")
-        self.store_image_in_lims(1)
-        last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-        if last_frame > 1:
-            print "TODO: fix store_image_in_lims_by_frame_num method for nimages >1"
-            # self.store_image_in_lims_by_frame_num(last_frame)
 
         # generate XDS.INP only in raw/process
         data_path = os.path.join("../../", os.path.basename(self.current_dc_parameters['fileinfo']['filename']))
@@ -369,8 +363,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.NIMAGES_TRIGGER_AUTO_PROC):
             self.trigger_auto_processing("after", self.current_dc_parameters, 0)
 
-        logging.getLogger("HWR").info("[TODO] Generate thumbnails with correct frame!")
+        # we store the first and the last images, TODO: every 45 degree
+        logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
+        self.store_image_in_lims(1)
         self.generate_and_copy_thumbnails(data_path, 1)
+        last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+        if last_frame > 1:
+            logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
+            self.store_image_in_lims_by_frame_num(last_frame)
+            self.generate_and_copy_thumbnails(data_path, last_frame)
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
@@ -401,7 +402,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             from EigerDataSet import EigerDataSet
             input_file = data_path
             binfactor = 1
-            nimages = 5
+            nimages = 1
             first_image = 0
             rootname, ext = os.path.splitext(input_file)
             rings = [0.25, 0.50, 0.75, 1.00, 1.25]
