@@ -186,7 +186,7 @@ class TangoChannel(ChannelObject):
           #logging.getLogger("HWR").debug("%s, receiving good event", self.name())
         ev = E(event)
         TangoChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
-	TangoChannel._tangoEventsQueue.put(ev)
+        TangoChannel._tangoEventsQueue.put(ev)
         TangoChannel._tangoEventsProcessingTimer.send()
        
  

@@ -131,10 +131,10 @@ class SOLEILISPyBClient(ISPyBClient2.ISPyBClient2):
         for i in range(4):
             try: 
                 prop = 'xtalSnapshotFullPath%d' % (i+1)
-	        path = mx_collect_dict[prop] 
+                path = mx_collect_dict[prop]
                 ispyb_path = self.session_hwobj.path_to_ispyb( path )
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
-	        mx_collect_dict[prop] = ispyb_path
+                mx_collect_dict[prop] = ispyb_path
             except:
                 pass
 

@@ -60,7 +60,7 @@ class Basket(Container):
         return str(basket_number)
 
     def clearInfo(self):
-	self.getContainer()._reset_basket_info(self.getIndex()+1)
+        self.getContainer()._reset_basket_info(self.getIndex()+1)
         self.getContainer()._triggerInfoChangedEvent()
 
 #identique a Cats90

@@ -16,7 +16,7 @@ class MAXLABBeamInfo(BeamInfo.BeamInfo):
         self.get_beam_size()
 #        self.beam_size_aperture=self.aperture_hwobj.getApertureSize()
         self.aperture_pos_changed(self.aperture_hwobj.getApertureSize())
-	self.emit("beamInfoChanged", (self.beam_info_dict, ))
+        self.emit("beamInfoChanged", (self.beam_info_dict, ))
         self.emit("beamPosChanged", (self.beam_position, ))
 
     def get_beam_position(self):

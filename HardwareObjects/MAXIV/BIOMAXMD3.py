@@ -70,10 +70,10 @@ class BIOMAXMD3(GenericDiffractometer):
         except:
             logging.getLogger("HWR").warning('Cannot initialize CentringTableVerticalPosition')
 
-	try:
-	    use_sc = self.getProperty("use_sc")
-	    self.set_use_sc(use_sc)
-	except:
+        try:
+            use_sc = self.getProperty("use_sc")
+            self.set_use_sc(use_sc)
+        except:
             logging.getLogger("HWR").debug('Cannot set sc mode, use_sc: ', str(use_sc))
 
         try:
@@ -156,7 +156,7 @@ class BIOMAXMD3(GenericDiffractometer):
             surface_score_list.append(score)
             self.phi_motor_hwobj.moveRelative(\
                  360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES)
-	    #gevent.sleep(2)
+            #gevent.sleep(2)
             self.wait_device_ready(5)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
@@ -373,9 +373,9 @@ class BIOMAXMD3(GenericDiffractometer):
             return
         self.wait_device_ready(2000)
         self.command_dict["startSimultaneousMoveMotors"](argin)
-	#task_info = self.command_dict["getTaskInfo"](task_id)
+        #task_info = self.command_dict["getTaskInfo"](task_id)
         if wait:
-	    self.wait_device_ready(timeout)
+            self.wait_device_ready(timeout)
 
 
     def moveToBeam(self, x, y):

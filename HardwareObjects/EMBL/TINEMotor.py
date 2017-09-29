@@ -35,10 +35,10 @@ def energyConverter(wavelength):
     """
     Descript. :
     """
-    if wavelength != 0:	
+    if wavelength != 0:
         energy = float(12.398425 / wavelength)
     else:
-        energy = 0	
+        energy = 0
     return energy
 
 class TINEMotor(Device):    
@@ -52,7 +52,7 @@ class TINEMotor(Device):
         """
         Descript. :
         """
-        Device.__init__(self, name)	
+        Device.__init__(self, name)
         self.objName = name  
         self.motorState = READY
         self.motorState2 = 'noninit'
@@ -74,7 +74,7 @@ class TINEMotor(Device):
         self.maxMotorPosition = None
         self.moveConditions = None
         #self.moveHOSignals = None
-	
+
     def init(self):
         """
         Descript. :

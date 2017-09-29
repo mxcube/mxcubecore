@@ -95,7 +95,7 @@ class ALBAMachineInfo(Equipment):
         self.chan_mach_current = None
         self.chan_mach_status = None
         self.chan_topup_remaining = None
-	
+
     def init(self):
         """
         Descript. : Inits channels from xml configuration. 

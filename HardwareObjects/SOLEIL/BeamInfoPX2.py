@@ -143,7 +143,7 @@ class BeamInfoPX2(Equipment):
         
     def get_beam_position(self):
         #logging.getLogger().warning('returning beam positions. It is %s ' % str(self.beam_position))
-        return self.beam_position	
+        return self.beam_position
 
     def get_beam_size(self):
         """

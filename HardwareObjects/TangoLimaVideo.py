@@ -64,7 +64,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
     def _do_polling(self, sleep_time):
         while True:
             qimage = self._get_last_image()
-   	    self.emit("imageReceived", qimage, qimage.width(), qimage.height(), False)
+            self.emit("imageReceived", qimage, qimage.width(), qimage.height(), False)
 
             time.sleep(sleep_time)
 

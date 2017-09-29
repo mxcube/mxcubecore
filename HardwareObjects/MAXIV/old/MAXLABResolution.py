@@ -20,8 +20,8 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
         self.dtox = self.getDeviceByRole("dtox")
         self.wavelength = self.getDeviceByRole("wavelength")
         self.energy = self.getDeviceByRole("energy")
-	self.getradius = self.getCommandObject("detector_radius")
-   	self.detector_diameter_chan = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"detector_radius"}, "MXBCM_PARS/detector_radius")
+        self.getradius = self.getCommandObject("detector_radius")
+        self.detector_diameter_chan = self.addChannel({"type":"spec", "version": self.getradius.specVersion, "name":"detector_radius"}, "MXBCM_PARS/detector_radius")
         # some value has to be read, otherwise subsequent calls will fail due to some variables inside the buffer?????
          
         self.detector_diameter = 0
@@ -160,7 +160,7 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
             return (self.dist2res(low), self.dist2res(high))
 
     def move(self, pos, wait=True):
-	logging.getLogger().info("move Resolution to %s", pos)
+        logging.getLogger().info("move Resolution to %s", pos)
         if wait:
             self.newDistance(self.res2dist(pos)) 
         else:

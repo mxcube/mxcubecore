@@ -287,4 +287,4 @@ class ElementAnalysis(Procedure):
         self.safeEmit("processEnergiesUpdated",(data,))
     def energyChanged(self,value):
         self.energy_value=self.energy.getValue() 
-	self.emit("energyUpdated")
+        self.emit("energyUpdated")

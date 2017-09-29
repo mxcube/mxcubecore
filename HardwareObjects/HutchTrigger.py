@@ -113,7 +113,7 @@ class TacoHutchTrigger(TacoDevice.TacoDevice):
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
 
-	self.initialized = True
+        self.initialized = True
 
 
 class TangoHutchTrigger(BaseHardwareObjects.Device):
@@ -127,7 +127,7 @@ class TangoHutchTrigger(BaseHardwareObjects.Device):
         except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
-	    self.device = None
+            self.device = None
             self.device.imported = False
         else:
             self.device.imported = True
@@ -237,7 +237,7 @@ class TangoHutchTrigger(BaseHardwareObjects.Device):
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
 
-	self.initialized = True
+        self.initialized = True
 
 
 class HutchTrigger(BaseHardwareObjects.Device):

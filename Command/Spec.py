@@ -59,7 +59,7 @@ class SpecCommand(CommandObject, SpecCommandA):
             self.emit('commandFailed', (-1, str(self.name())))
             
         self.emit('disconnected', ())
-	self.statusChanged(ready=False)
+        self.statusChanged(ready=False)
 
     
     def statusChanged(self, ready):

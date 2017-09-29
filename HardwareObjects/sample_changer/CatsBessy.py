@@ -35,7 +35,7 @@ class Basket(Container):
         return str(basket_number)
 
     def clearInfo(self):
-	self.getContainer()._reset_basket_info(self.getIndex()+1)
+        self.getContainer()._reset_basket_info(self.getIndex()+1)
         self.getContainer()._triggerInfoChangedEvent()
 
 
@@ -180,7 +180,7 @@ class CatsBessy(SampleChanger):
         self._executeServerTask(self._reset)
 
     def clearBasketInfo(self, basket):
-	self._reset_basket_info(basket)
+        self._reset_basket_info(basket)
 
     #########################           PRIVATE           #########################        
     def _updateOperationMode(self, value):

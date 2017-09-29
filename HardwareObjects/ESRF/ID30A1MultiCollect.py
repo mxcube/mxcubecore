@@ -102,7 +102,7 @@ class ID30A1MultiCollect(ESRFMultiCollect):
         self.helical_pos = helical_oscil_pos
 
     def set_transmission(self, transmission):
-    	self.getObjectByRole("transmission").set_value(transmission)
+        self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
         return self.getObjectByRole("transmission").get_value()

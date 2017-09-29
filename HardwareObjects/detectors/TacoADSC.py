@@ -158,7 +158,7 @@ class ADSC:
         return -1
 
     def set_transmission(self, transmission_percent):
-    	pass
+        pass
 
     def get_transmission(self):
         return 100

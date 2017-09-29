@@ -314,7 +314,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                                       beam_divergence_vertical = self.bl_control.beam_info.getProperty('beam_divergence_vertical'),
                                       beam_divergence_horizontal = self.bl_control.beam_info.getProperty('beam_divergence_horizontal'),     
                                       polarisation = self.getProperty('polarisation'),
-			              input_files_server = self.getProperty("input_files_server"))
+                                      input_files_server = self.getProperty("input_files_server"))
   
         self._detector.addCommand = self.addCommand
         self._detector.addChannel = self.addChannel
@@ -409,7 +409,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
     @task
     def open_safety_shutter(self):
-	return
+        return
         #self.bl_control.safety_shutter.openShutter()
         #while self.bl_control.safety_shutter.getShutterState() == 'closed':
         #  time.sleep(0.1)
@@ -578,7 +578,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_file_template = "%(prefix)s_%(run_number)s_###.%(suffix)s" % finfo
 
         for input_file_dir, file_prefix in ((self.raw_data_input_file_dir, "../.."), (self.xds_directory, "../links")): 
-	  xds_input_file = os.path.join(input_file_dir, "XDS.INP")
+          xds_input_file = os.path.join(input_file_dir, "XDS.INP")
 
           xds_file = open(xds_input_file, "w")
 
@@ -645,7 +645,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
           os.chmod(xds_input_file, 0666)
 
         for input_file_dir, file_prefix in ((self.mosflm_raw_data_input_file_dir, "../.."), (self.mosflm_directory, "../links")): 
-	  mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
+          mosflm_input_file = os.path.join(input_file_dir, "mosflm.inp")
 
           mosflm_file = open(mosflm_input_file, "w")
 
@@ -710,7 +710,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
           valdict = {
                   "omfilename":       om_filename,
-                  "omtype":	      om_type,
+                  "omtype":           om_type,
                   "omega":            omega,
                   "kappa":            kappa,
                   "sampx":            sampx,
@@ -786,7 +786,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_machine_message(self):
-	return ""
+        return ""
         if  self.bl_control.machine_current:
             return self.bl_control.machine_current.getMessage()
         else:
@@ -794,7 +794,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
 
     def get_machine_fill_mode(self):
-	return ""
+        return ""
 
         if self.bl_control.machine_current:
             return self.bl_control.machine_current.getFillMode()
@@ -862,7 +862,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                 return True
 
     def get_flux(self):
-	return 0
+        return 0
 #        return self.bl_control.flux.getCurrentFlux()
 
     @task
@@ -1152,7 +1152,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         if nframes == 0:
             return
 
-	# data collection
+        # data collection
         self.data_collection_hook(data_collect_parameters)
 
         if 'transmission' in data_collect_parameters:
@@ -1314,7 +1314,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
                           if data_collect_parameters.get("shutterless"):
                               with gevent.Timeout(10, RuntimeError("Timeout waiting for detector trigger, no image taken")):
-   			          while self.last_image_saved() == 0:
+                                  while self.last_image_saved() == 0:
                                       time.sleep(exptime)
                           
                               last_image_saved = self.last_image_saved()

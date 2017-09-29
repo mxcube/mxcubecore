@@ -51,7 +51,7 @@ class RobodiffMotorWPositions(RobodiffMotor):
             
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y]))) 
+        self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
         
     def updateState(self, state=None, emit=False):
        RobodiffMotor.updateState(self, state)
@@ -73,11 +73,11 @@ class RobodiffMotorWPositions(RobodiffMotor):
         try:
             self.move(self.predefinedPositions[positionName])
         except:
-	    logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName())) 
+            logging.getLogger("HWR").exception('Cannot move motor %s: invalid position name.', str(self.userName()))
 
     def getCurrentPositionName(self):
         if not self.motorIsMoving(): #self.isReady() and self.getState() == self.READY:
-	    for positionName in self.predefinedPositions:
+            for positionName in self.predefinedPositions:
                 if self.predefinedPositions[positionName] >= self.getPosition()-self.delta and self.predefinedPositions[positionName] <= self.getPosition()+self.delta:
                    return positionName 
         return ''

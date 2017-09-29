@@ -76,9 +76,9 @@ class ShapeHistoryMockup(HardwareObject):
         :returns: The snapshot
         :rtype: QImage
         """
-	cwd = os.getcwd()
+        cwd = os.getcwd()
         path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
-	qimg_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
+        qimg_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
         qimg = open (qimg_path,'rb').read()
 
         return qimg
@@ -201,13 +201,13 @@ class ShapeHistoryMockup(HardwareObject):
         """
         Clear the shape history, remove all contents.
         """
-	return
+        return
 
     def de_select_all(self):
         return
 
     def select_shape_with_cpos(self, cpos):
-	return
+        return
 
 
 
@@ -316,10 +316,10 @@ class Line(Shape):
         self.qub_line.moveSecondPoint(new_positions[1][0], new_positions[1][1])
 
     def highlight(self):
-	return
+        return
 
     def unhighlight(self):
-	return
+        return
 
     def get_hit(self, x, y):
         return None
@@ -373,14 +373,14 @@ class Point(Shape):
         return
 
     def hide(self):
-	return
+        return
 
     def move(self, new_positions):
-	return
+        return
 
     def highlight(self):
-	return
+        return
 
     def unhighlight(self):
-	return
+        return
 

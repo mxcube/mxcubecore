@@ -49,7 +49,7 @@ __category__ = "General"
 class EMBLBeamInfo(Equipment):
     """
     Description:
-    """  	
+    """
 
     def __init__(self, *args):
         """
@@ -165,8 +165,8 @@ class EMBLBeamInfo(Equipment):
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
             self.beam_position = [self.chan_beam_position_hor.getValue(), \
-	                          self.chan_beam_position_ver.getValue()]
-        return self.beam_position	
+                                  self.chan_beam_position_ver.getValue()]
+        return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
         """
@@ -233,7 +233,7 @@ class EMBLBeamInfo(Equipment):
         """
         self.evaluate_beam_info()
         return (self.beam_info_dict["size_x"], \
-	        self.beam_info_dict["size_y"])
+                self.beam_info_dict["size_y"])
 
     def get_beam_shape(self):
         """
@@ -254,7 +254,7 @@ class EMBLBeamInfo(Equipment):
         if self.beam_size_slits == [9999, 9999]:
             return [None, None]
         else: 
-            return self.beam_size_slits	
+            return self.beam_size_slits
 
     def set_slits_gap(self, width_microns, height_microns):
         if self.slits_hwobj:
@@ -267,17 +267,17 @@ class EMBLBeamInfo(Equipment):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
         size_x = min(self.beam_size_aperture[0],
-	   	     self.beam_size_slits[0],
-		     self.beam_size_focusing[0]) 
+                     self.beam_size_slits[0],
+                     self.beam_size_focusing[0])
         size_y = min(self.beam_size_aperture[1],
-  		     self.beam_size_slits[1], 
-		     self.beam_size_focusing[1]) 
+                     self.beam_size_slits[1],
+                     self.beam_size_focusing[1])
 
         if size_x == 9999 or size_y == 9999:
             #fix this
             return
         if (abs(size_x - self.beam_info_dict.get("size_x", 0)) > 1e-3 or
-            abs(size_y - self.beam_info_dict.get("size_y", 0)) > 1e-3):	
+            abs(size_y - self.beam_info_dict.get("size_y", 0)) > 1e-3):
             self.beam_info_dict["size_x"] = size_x
             self.beam_info_dict["size_y"] = size_y
 
@@ -292,7 +292,7 @@ class EMBLBeamInfo(Equipment):
             if self.chan_beam_shape_ellipse:
                 self.chan_beam_shape_ellipse.setValue(self.beam_info_dict["shape"] == "ellipse")
 
-        return self.beam_info_dict	
+        return self.beam_info_dict
 
     def emit_beam_info_change(self): 
         """
@@ -301,7 +301,7 @@ class EMBLBeamInfo(Equipment):
         Return    :
         """
         if (self.beam_info_dict["size_x"] != 9999 and \
-            self.beam_info_dict["size_y"] != 9999):		
+            self.beam_info_dict["size_y"] != 9999):
             self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"] * 1000, \
                                            self.beam_info_dict["size_y"] * 1000), ))
             self.emit("beamInfoChanged", (self.beam_info_dict, ))

@@ -194,7 +194,7 @@ class EnergyScanPX2(Equipment):
 
  
 #        return self.doEnergyScan is not None
-	
+
     def startEnergyScan(self, 
                         element, 
                         edge, 
@@ -670,7 +670,7 @@ class EnergyScanPX2(Equipment):
         return filenameIn
     
     def doEnergyScan(self, element, edge, directory, filename):
-        logging.getLogger("HWR").info('EnergyScan: Element:%s Edge:%s' %(element,edge))    	
+        logging.getLogger("HWR").info('EnergyScan: Element:%s Edge:%s' %(element,edge))
 
         e_edge, roi_center = self.getEdgefromXabs(element, edge)
         self.thEdge = e_edge

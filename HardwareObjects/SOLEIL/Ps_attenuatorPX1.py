@@ -29,10 +29,10 @@ class Ps_attenuatorPX1(Device):
                        
         if self.deviceOk:
             self.connected()
-	    
+
             self.chanAttState = self.getChannelObject('State')
             self.chanAttState.connectSignal('update', self.attStateChanged)
-	    
+
             self.chanAttFactor = self.getChannelObject('TrueTrans_FP')
             self.chanAttFactor.connectSignal('update', self.attFactorChanged)
                          
@@ -93,7 +93,7 @@ class Ps_attenuatorPX1(Device):
 #        print "Dans attToggleChanged  channelValue = %s" %channelValue
 #        logging.getLogger().debug("HOS Attenuator: passe dans attToggleChanged")
         try:
-  	        value = int(channelValue)
+            value = int(channelValue)
         except:
             logging.getLogger("HWR").error('%s attToggleChanged : received value on channel is not a float value', str(self.name()))
         else:
@@ -118,4 +118,4 @@ class Ps_attenuatorPX1(Device):
         logging.getLogger().error("Check Instance of Device server %s" % db.DbGetDeviceInfo(device)[1][3])
         self.sDisconnected()
 
-  	      
+

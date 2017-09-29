@@ -38,8 +38,8 @@ class BeamInfoPX1(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 
-	self.beam_position = [None, None]
-	self.beam_size     = [None, None]
+        self.beam_position = [None, None]
+        self.beam_size     = [None, None]
         self.shape         = 'rectangular'
 
         self.beam_info_dict  = {'size_x': None, 'size_y': None, 'shape': self.shape}

@@ -17,7 +17,7 @@ class RobodiffLight(Device):
     def init(self):
         controller = self.getObjectByRole("controller")
 
-	self._state = None
+        self._state = None
         self.username = self.name()
         self.wago_controller = getattr(controller, self.wago)
         self.command_key = self.getProperty("cmd")

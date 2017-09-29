@@ -54,7 +54,7 @@ class VaporyVideo(BaseHardwareObjects.Device):
         self.simulated_loop.set_position(0, 0, 0)
 
         self.force_update = False
-        self.image_dimensions = [600, 400]	
+        self.image_dimensions = [600, 400]
         self.image_type = JpegType()
         self.setIsReady(True)
         self.generate_image()
@@ -193,7 +193,7 @@ class VaporyVideo(BaseHardwareObjects.Device):
         Descript. :
         """
         return self.image_dimensions[0]
-	
+
     def getHeight(self):
         """
         Descript. :

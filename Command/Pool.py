@@ -161,12 +161,12 @@ class PoolChannel(ChannelObject):
 
     def push_event(self, event):
         PoolChannel._eventReceivers[id(event)] = BoundMethodWeakref(self.update)
-	PoolChannel._tangoEventsQueue.put(event)
+        PoolChannel._tangoEventsQueue.put(event)
        
  
     def poll(self):
         try:
-	   value = self.device.read_attribute(self.attributeName).value
+           value = self.device.read_attribute(self.attributeName).value
         except:
            logging.getLogger("HWR").exception("%s: could not poll attribute %s", str(self.name()), self.attributeName)
 

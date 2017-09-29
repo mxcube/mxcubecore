@@ -8,7 +8,7 @@ class ControllerCommand(CommandObject):
     def __init__(self, name, cmd):
         CommandObject.__init__(self, name)
         self._cmd = cmd
-	self._cmd_execution = None
+        self._cmd_execution = None
 
     def isConnected(self):
         return True

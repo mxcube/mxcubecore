@@ -35,7 +35,7 @@ class SlitsMockup(HardwareObject):
         HardwareObject.__init__(self, *args)
         self.hor_gap = False
         self.ver_gap = False
-	
+
     def init(self):
         self.gaps_dict = {}
         self.gaps_dict['Hor'] = self['gapH'].getProperties()
@@ -63,7 +63,7 @@ class SlitsMockup(HardwareObject):
         Return    : min gap values (list of two values)
         """
         return [self.gaps_dict['Hor']['minGap'], 
-                self.gaps_dict['Ver']['minGap']]		
+                self.gaps_dict['Ver']['minGap']]
 
     def get_max_gaps(self):
         """
@@ -72,7 +72,7 @@ class SlitsMockup(HardwareObject):
         Return    : max gap values (list of two values)
 	"""
         return [self.gaps_dict['Hor']['maxGap'], 
-                self.gaps_dict['Ver']['maxGap']] 	
+                self.gaps_dict['Ver']['maxGap']]
 
     def get_gap_limits(self, gap_name):
         """
@@ -104,7 +104,7 @@ class SlitsMockup(HardwareObject):
         Descript.
         """
         return self.get_gap_hor(), self.get_gap_ver()
-	
+
     def set_gap(self, gap_name, new_gap):
         """Sets new gap value
         Arguments : gap name(string), gap value(float)                                        
@@ -131,7 +131,7 @@ class SlitsMockup(HardwareObject):
         """
         if new_gaps_limits is not None:
             self.gaps_dict['Hor']['maxGap'] = min(self.init_max_gaps[0], new_gaps_limits[0])
-            self.gaps_dict['Ver']['maxGap'] = min(self.init_max_gaps[1], new_gaps_limits[1])	
+            self.gaps_dict['Ver']['maxGap'] = min(self.init_max_gaps[1], new_gaps_limits[1])
             self.emit('gapLimitsChanged', [self.gaps_dict['Hor']['maxGap'], 
                                            self.gaps_dict['Ver']['maxGap']])
 

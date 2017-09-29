@@ -30,7 +30,7 @@ __category__ = "General"
 class EMBLExporterClient(HardwareObject):
     """
     Description:
-    """  	
+    """
 
     def __init__(self, *args):
         """

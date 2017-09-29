@@ -33,9 +33,9 @@ class WagoCounter(TacoDevice.TacoDevice):
     def getGain(self):
         try:
            gain = self.device.DevReadDigi( self.gainid ) 
-	   
-	   try:
-	     gn = gain.index(1)+1
+
+           try:
+             gn = gain.index(1)+1
            except ValueError:
              gn = -1 
         except: 
@@ -51,15 +51,15 @@ class WagoCounter(TacoDevice.TacoDevice):
         gn = self.getGain()
 
         if gn < 0:
-	  # invalid gain
-	  value = None
-	else:
+          # invalid gain
+          value = None
+        else:
           gain = math.pow(self.gainfactor, gn)
           value = gain * value
 
         #print self.device.devname," --> ", gain, "x", value, " = " ,gain*value
-	
-	self.emit('valueChanged', (value,) )
+
+        self.emit('valueChanged', (value,) )
         return value
 
     def getValue(self):
@@ -75,7 +75,7 @@ class WagoCounter(TacoDevice.TacoDevice):
         if gn < 0:
             # invalid gain
             value = -9999
-	else:
+        else:
             gain = math.pow(self.gainfactor, gn)
             value = gain * value
         return value

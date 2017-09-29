@@ -30,24 +30,24 @@ class SpecMotorWSpecPositions(SpecMotor.SpecMotor):
                
 
     def disconnected(self):
-	self.predefinedPositions = {}
+        self.predefinedPositions = {}
         self.predefinedPositionsNamesList = []
-	self.emit('newPredefinedPositions', (self.predefinedPositionsNamesList, ))
+        self.emit('newPredefinedPositions', (self.predefinedPositionsNamesList, ))
 
     
     def positionsArrayChanged(self, positionsArray):
         self.predefinedPositions = positionsArray
         
-	for pos in self.predefinedPositions:
-   	    self.predefinedPositions[pos] = float(self.predefinedPositions[pos])
+        for pos in self.predefinedPositions:
+               self.predefinedPositions[pos] = float(self.predefinedPositions[pos])
 
-	self.sortPredefinedPositionsList()
+        self.sortPredefinedPositionsList()
         self.emit('newPredefinedPositions', (self.predefinedPositionsNamesList, ))
        
         
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = list(self.predefinedPositions.keys())
-	self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
+        self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
 
 
     def motorPositionChanged(self, channelValue):

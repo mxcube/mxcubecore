@@ -319,7 +319,7 @@ class DrawingEvent(QubDrawingEvent):
         self.selection_cb = None
         self.deletion_cb = None
         self.move_to_centred_position_cb = None
-	self.move_to_screen_position_cb = None
+        self.move_to_screen_position_cb = None
 
     def rawKeyPressed(self, keyevent):
         """

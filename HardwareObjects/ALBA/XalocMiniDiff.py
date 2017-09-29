@@ -16,7 +16,7 @@ class XalocMiniDiff(GenericDiffractometer):
         if self.centring_hwobj is None:
             logging.getLogger("HWR").debug('EMBLMinidiff: Centring math is not defined')
 
-	self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+        self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
 
         self.phi_motor_hwobj = self.getObjectByRole('phi')
         self.phiz_motor_hwobj = self.getObjectByRole('phiz')
@@ -75,7 +75,7 @@ class XalocMiniDiff(GenericDiffractometer):
 
     def get_pixels_per_mm(self):
         px_x, px_y = self.getCalibrationData()
-	return (px_x,px_y)
+        return (px_x,px_y)
             
 
     def update_pixels_per_mm(self, *args):
@@ -240,5 +240,5 @@ class XalocMiniDiff(GenericDiffractometer):
         self.current_motor_positions["focus"] = pos
 
     def start_auto_focus(self):
-	self.cmd_start_auto_focus()
+        self.cmd_start_auto_focus()
 

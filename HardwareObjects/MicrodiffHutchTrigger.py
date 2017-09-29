@@ -108,5 +108,5 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
             self.emit('hutchTrigger', (0, ))
 
         self.hutch_opened = 1-value
-	self.initialized = True
+        self.initialized = True
 

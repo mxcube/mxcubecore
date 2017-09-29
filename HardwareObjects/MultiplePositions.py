@@ -191,11 +191,11 @@ class MultiplePositions(Equipment):
             self.connect(mot, "positionChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
-	
+
     def getState(self):
         if not self.isReady():
             return ""
-			
+
         state = "READY"
         for mot in self.motors.values():
             if mot.getState() == mot.MOVING:
@@ -273,7 +273,7 @@ class MultiplePositions(Equipment):
         if position is None:
             self.checkPosition()
             return
-                	
+
         for role, pos in list(newPositions.items()):
             self.positions[name][role] = pos
             position.setProperty(role, pos)

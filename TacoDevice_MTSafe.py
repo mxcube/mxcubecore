@@ -53,7 +53,7 @@ Dev_Exception = RuntimeError
 #			     }
 #		  }
 # .....
-			   
+
 Tab_dev = {}
 
 #--------------------------------------------------------------
@@ -75,38 +75,38 @@ Tab_dev = {}
 #			     }
 #		  }
 # .....
-			   
+
 # Dictionnary for the correspondance between type number (in ascii
 # representation) and a string for user
 Tab_dev_type= { '0' :'void                         ',
-		'1' :'boolean                      ',
-		'70':'unsigned short               ',
-		'2' :'short                        ',
-		'71':'unsigned long                ',
-		'3' :'long                         ',
-		'4' :'float                        ',
-		'5' :'double                       ',
-		'6' :'string                       ',
-		'27':'(long,float)                 ',
-		'7' :'(float,float)                ',
-		'8' :'(short,float,float           ',
-		'22':'(long,long)                  ',
-		'23':'(double,double)              ',
-		'9' :'list of char                 ',
-		'24':'list of string               ',
-		'72':'list of unsigned short       ',
-		'10':'list of short                ',
-		'69':'list of unsigned long        ',
-		'11':'list of long                 ',
-		'12':'list of float                ',
-		'68':'list of double               ',
-		'25':'list of (float,float)        ',
-		'73':'list of (short,float,float)  ',
-		'45':'list of ((long,long)         ',
-		'47':'opaque                       ',
-		'46':'((8 long),(8 float),(8 long))',
-		'54':'(long,long)                  ',
-		'55':'(long,float)                 '
+                '1' :'boolean                      ',
+                '70':'unsigned short               ',
+                '2' :'short                        ',
+                '71':'unsigned long                ',
+                '3' :'long                         ',
+                '4' :'float                        ',
+                '5' :'double                       ',
+                '6' :'string                       ',
+                '27':'(long,float)                 ',
+                '7' :'(float,float)                ',
+                '8' :'(short,float,float           ',
+                '22':'(long,long)                  ',
+                '23':'(double,double)              ',
+                '9' :'list of char                 ',
+                '24':'list of string               ',
+                '72':'list of unsigned short       ',
+                '10':'list of short                ',
+                '69':'list of unsigned long        ',
+                '11':'list of long                 ',
+                '12':'list of float                ',
+                '68':'list of double               ',
+                '25':'list of (float,float)        ',
+                '73':'list of (short,float,float)  ',
+                '45':'list of ((long,long)         ',
+                '47':'opaque                       ',
+                '46':'((8 long),(8 float),(8 long))',
+                '54':'(long,long)                  ',
+                '55':'(long,float)                 '
 }
 
 Tab_dev_type_unk =   '<unknown>                    '
@@ -272,12 +272,12 @@ def dev_tcpudp(mdevname,mode):
          print(loc_c_pt)
       if (mode != "tcp") and (mode != "udp"):
          print('usage: dev_tcpudp(<device_name>,udp|tcp)')
-	 return 0
+         return 0
       try:
          ret = esrf_tcpudp(loc_c_pt,mode)
       except:
          raise Dev_Exception("dev_tcpudp: error on esrf_tcpudp for device %s" % mdevname)
-	 return 0
+         return 0
    else:
       print("dev_tcpudp: no device %s defined" % mdevname)
       return 0
@@ -302,22 +302,22 @@ def dev_timeout(mdevname,*mtime):
          print(loc_c_pt)
       if (mtime == ()):
          print('dev_timeout readmode ')
-	 try:
-	    ret = esrf_timeout(loc_c_pt)
-	 except:
+         try:
+            ret = esrf_timeout(loc_c_pt)
+         except:
             raise Dev_Exception('error on esrf_timeout for device ' + mdevname)
-	    return 0
-	 return ret
+            return 0
+         return ret
       else:
          itime = mtime[0]
-	 if type(itime) == int or type(itime) == float:
+         if type(itime) == int or type(itime) == float:
             print('dev_timeout set mode %f' % itime)
-	    try:
-	       ret = esrf_timeout(loc_c_pt,itime)
-	    except:
+            try:
+               ret = esrf_timeout(loc_c_pt,itime)
+            except:
                raise Dev_Exception('error on esrf_timeout for device ' + mdevname)
-	       return 0	    
-	    return ret
+               return 0
+            return ret
    else:
       print("dev_timeout: no device %s defined" % mdevname)
       return 0
@@ -413,20 +413,20 @@ def dev_io(mdevname,mdevcommand,*parin,**kw):
          raise AttributeError("dev_io: no command %s for device %s" % (mdevcommand,mdevname))
       else:
          if len(parin) == 1:
-	    if type(parin[0]) == tuple:
-	       parin = parin[0]
-	    elif type(parin[0]) == list:
-	       parin = tuple(parin[0])
+            if type(parin[0]) == tuple:
+               parin = parin[0]
+            elif type(parin[0]) == list:
+               parin = tuple(parin[0])
 
          if Dev_deb[0] == 1:
-	    print('esrf_io arg:')
+            print('esrf_io arg:')
             print((Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0) + (parin, ))
-	    print('esrf_io dict:')
-	    print(kw)
+            print('esrf_io dict:')
+            print(kw)
 
-	 try:
+         try:
             ret = esrf_io(Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,0, parin, **kw)
-	 except:
+         except:
             raise Dev_Exception("Cannot execute esrf_io %s,%s"%(mdevname, mdevcommand))
          else:
             return ret
@@ -458,28 +458,28 @@ def dev_ioC(mdevname,mdevcommand,**kw):
 #  first check that command exists:
       if mdevcommand in Tab_dev[mdevname]['cmd']:
          io_cmd = Tab_dev[mdevname]['cmd'][mdevcommand][0]
-         io_in  = 0	# void
+         io_in  = 0 # void
          io_out = Tab_dev[mdevname]['cmd'][mdevcommand][1]
          parin2 = (Tab_dev[mdevname]['cobj'],mdevcommand,io_cmd,io_in,io_out,1) + ((),)
          if Dev_deb[0] == 1:
-	    print('esrf_io arg:')
-	    print(parin2)
-	    print('esrf_io dict:')
-	    print(kw)
-	 ret = None
-	 try:
+            print('esrf_io arg:')
+            print(parin2)
+            print('esrf_io dict:')
+            print(kw)
+         ret = None
+         try:
 #	    kw={'out':2}
 #	    kw = {}
             ret = esrf_io(*parin2, **kw)
-	    
+
             if Dev_deb[0] == 1:
-	    	print('returned from esrf_io: %s' % ret)	    
-	 except:
+                print('returned from esrf_io: %s' % ret)
+         except:
             raise Dev_Exception("esrf_ioC: error on device %s" % mdevname)
-	 return ret
+         return ret
       else:
          print("dev_ioC: no command %s for device %s" % (mdevcommand,mdevname))
-	 
+
    else:
       print("dev_ioC: no device %s defined" % mdevname)
 
@@ -574,7 +574,7 @@ class _TacoDevice(object):
             self._monitor_lockObj.release()
             
 
-   def __str__(self):			# for print
+   def __str__(self):    # for print
       print('ds device:         ' + self.devname)
       print(" imported: %d" % self.imported)
       print(" device object : ") 
@@ -592,43 +592,43 @@ class _TacoDevice(object):
 
       if len(locdict) > 0:
          for mykey in list(locdict.keys()):
-	    my_stringtype_in = "%d" % locdict[mykey][1]
-	    my_stringtype_out = "%d" % locdict[mykey][2]
-	    if my_stringtype_in in Tab_dev_type:
-	       myin = Tab_dev_type[my_stringtype_in]
-	    else:
-	       myin = Tab_dev_type_unk
-	    if my_stringtype_out in Tab_dev_type:
-	       myout = Tab_dev_type[my_stringtype_out]
-	    else:
-	       myout = Tab_dev_type_unk	     
-	    print("%s %s %s" % (myin,myout,mykey))
+            my_stringtype_in = "%d" % locdict[mykey][1]
+            my_stringtype_out = "%d" % locdict[mykey][2]
+            if my_stringtype_in in Tab_dev_type:
+               myin = Tab_dev_type[my_stringtype_in]
+            else:
+               myin = Tab_dev_type_unk
+            if my_stringtype_out in Tab_dev_type:
+               myout = Tab_dev_type[my_stringtype_out]
+            else:
+               myout = Tab_dev_type_unk
+            print("%s %s %s" % (myin,myout,mykey))
 
 
    def tcp(self):
       if self.imported == 1:
          ret = dev_tcpudp(self.devname,"tcp")
-	 if ret ==0:
-	    print('error setting tcp on object' + self.devname)
+         if ret ==0:
+            print('error setting tcp on object' + self.devname)
 
 
    def udp(self):
       if self.imported == 1:
          ret = dev_tcpudp(self.devname,"udp")
-	 if ret ==0:
-	    print('error setting udp on object' + self.devname)
+         if ret ==0:
+            print('error setting udp on object' + self.devname)
 
       
    def timeout(self,*mtime):
       if self.imported == 1:
          if mtime == ():
-	    ret = dev_timeout(self.devname)
-	    if Dev_deb[0] == 1:
-	       print('timeout: %f' % ret)
-	    return ret
-	 else:
-	    ret = dev_timeout(self.devname,mtime[0])
-	    return ret
+            ret = dev_timeout(self.devname)
+            if Dev_deb[0] == 1:
+               print('timeout: %f' % ret)
+            return ret
+         else:
+            ret = dev_timeout(self.devname,mtime[0])
+            return ret
 
 
    def __getattr__(self, name):
@@ -650,4 +650,4 @@ class _TacoDevice(object):
                  self.__dict__[name] = newTacoCall
                  return newTacoCall 
          finally:
-	     self._monitor_lockObj.release()
+             self._monitor_lockObj.release()

@@ -28,6 +28,7 @@ from AbstractCollect import AbstractCollect
 
 from eiger import detector, goniometer
 import eiger
+import time
 
 __author__ = "laurent gadea"
 __credits__ = ["MXCuBE colaboration"]
@@ -154,6 +155,8 @@ class PX2Collect(AbstractCollect, HardwareObject):
 #              polarisation = self.getProperty('polarisation'),
 #              input_files_server = self.getProperty("input_files_server"))
 #==============================================================================
+
+        # TODO FIXME ERROR
                                       detector_type = bcm_pars["detector"].getProperty("type"),
                                       detector_mode = spec_pars["detector"].getProperty("binning"),####### >>> ISPYBCLIENT queue_model_object
                                       detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer"),
@@ -567,6 +570,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """
         Descript. : 
         """
+        # TODO FIXME ERROR
         if self.energy_hwobj is not None:
             self.energy_obj.startMoveEnergy(energy)
             logging.info("energy_obj.getState() %s " % energy_obj.getState())
@@ -676,7 +680,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
 #==============================================================================
 #         #a tester 
 #==============================================================================
-        if self.detectordistance_hwobj is not None:	
+        if self.detectordistance_hwobj is not None:
             return self.detectordistance_hwobj.getPosition()
     #OK !!!!!!!!!!!!!!!!!!
     def get_detector_distance_limits(self):

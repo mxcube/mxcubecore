@@ -123,7 +123,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 y = values[-1][1]
                 if not (x == 0 and y == 0):
                     # if x is in keV, transform into eV otherwise let it like it is
-	            # if point larger than previous point (for chooch)
+                    # if point larger than previous point (for chooch)
                     if len(self.scan_data) > 0:
                         if x > self.scan_data[-1][0]:
                             self.scan_data.append([(x < 1000 and x*1000.0 or x), y])

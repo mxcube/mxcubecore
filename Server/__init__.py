@@ -191,9 +191,9 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                 for i in range(len(ret)):
                     dict = {}
                     dict.update(ret[i])
-	 	    	
+
                     tmp = ''
-		    if '__children__' in dict:
+                    if '__children__' in dict:
                       for childpath, childname in list(dict['__children__'].items()):
                         tmp += childname + ':' + childpath + ' '
                       tmp.strip()

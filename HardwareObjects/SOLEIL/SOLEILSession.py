@@ -66,7 +66,7 @@ class SOLEILSession(Session.Session):
             #directory = os.path.join(self.base_directory, self.endstation_name,
             #                         self.get_user_category(), self.get_proposal(),
             #                         start_time)
-            directory = os.path.join(self.base_directory, start_time, self.proposal_number, self.get_proposal_number())	    
+            directory = os.path.join(self.base_directory, start_time, self.proposal_number, self.get_proposal_number())
         else:
             #directory = os.path.join(self.base_directory, self.get_user_category(),
             #                         self.get_proposal(), self.endstation_name,

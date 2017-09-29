@@ -136,7 +136,7 @@ class Container(Component):
     def clearInfo(self):
         Component._resetDirty(self)
         for c in self.getComponents():
-            c.clearInfo()  	
+            c.clearInfo()
     
     #########################           PROTECTED           #########################
     

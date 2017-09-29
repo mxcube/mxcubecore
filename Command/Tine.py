@@ -24,17 +24,17 @@ class TineCommand(CommandObject):
         self.commandName = command_name
         self.tineName = tinename
         self.timeout = int(timeout)
-	
+
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
         if ( len(args) == 0):
            commandArgument = []     
         else:
-	   commandArgument = args[0]
-	try :
-	   ret = tine.set(self.tineName, self.commandName, commandArgument, self.timeout) 
-	   self.emit('commandReplyArrived', (ret, str(self.name())))
-	except IOError as strerror:
+           commandArgument = args[0]
+        try :
+           ret = tine.set(self.tineName, self.commandName, commandArgument, self.timeout)
+           self.emit('commandReplyArrived', (ret, str(self.name())))
+        except IOError as strerror:
            logging.getLogger("HWR").error("%s" % strerror)
            self.emit('commandFailed', (strerror))
 
@@ -94,7 +94,7 @@ class TineChannel(ChannelObject):
         self.tineName = tinename
         self.timeout = int(timeout)
         self.value = None
-	self.oldvalue = None
+        self.oldvalue = None
  
         self.callback_fail_counter = 0
        
@@ -134,19 +134,19 @@ class TineChannel(ChannelObject):
        
     def tineEventCallback(self, id, cc, data_list):
         if cc == 0:
-	    self.callback_fail_counter = 0
+            self.callback_fail_counter = 0
             self.update(data_list)
         else:
             self.callback_fail_counter = self.callback_fail_counter + 1
             logging.getLogger("HWR").error("Tine event callback error %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
-	    if self.callback_fail_counter >= 3:
-	       logging.getLogger("HWR").error("Repeated tine event callback errors %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
+            if self.callback_fail_counter >= 3:
+               logging.getLogger("HWR").error("Repeated tine event callback errors %s, Channel: %s, Server: %s/%s" %(str(cc),self.name(),self.tineName,self.attributeName))
           
     def update(self, value = None):
         if value is None:
             value = self.getValue()
         self.value = value
-	if value != self.oldvalue:
+        if value != self.oldvalue:
             TineChannel.updates.put((weakref.ref(self), value))
             self.oldvalue = value
 

@@ -24,7 +24,7 @@ class ControllerCommand(CommandObject):
     def __init__(self, name, cmd, username=None, klass=SimulatedAction):
         CommandObject.__init__(self, name, username)
         self._cmd = klass()
-	self._cmd_execution = None
+        self._cmd_execution = None
 
         if self.name() == 'Anneal':
             self.addArgument("Time [s]", "float")

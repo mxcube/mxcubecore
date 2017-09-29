@@ -211,7 +211,7 @@ class EnergyScanPX1(Equipment):
 
  
 #        return self.doEnergyScan is not None
-	
+
     def startEnergyScan(self, 
                         element, 
                         edge, 
@@ -493,7 +493,7 @@ class EnergyScanPX1(Equipment):
         return filenameIn
     
     def doEnergyScan(self, element, edge, directory, filename):
-        logging.getLogger("HWR").info('EnergyScan: Element:%s Edge:%s' %(element,edge))    	
+        logging.getLogger("HWR").info('EnergyScan: Element:%s Edge:%s' %(element,edge))
 
         e_edge, roi_center = self.getEdgefromXabs(element, edge)
         self.thEdge = e_edge
@@ -850,7 +850,7 @@ class EnergyScanThread(QThread):
             intensity = 0
             eventsInRun = 0
             eventsInRun_upToROI = 0
-	    eventsInRun_diffusion = 0
+            eventsInRun_diffusion = 0
             for mS in range(self.miniSteps):
                 measurement += 1
                 self.parent.fluodetdevice.Start()
@@ -872,7 +872,7 @@ class EnergyScanThread(QThread):
                 #print 5*'\n'
 #                eventsInRun_upToROI += sum(self.parent.fluodetdevice.channel00[ :channel_end + 1])
                 eventsInRun_upToROI += sum(self.parent.fluodetdevice.channel02[ :channel_end + 1])
-		eventsInRun_diffusion += sum(self.parent.fluodetdevice.channel02[ channel_end + 50 :])
+                eventsInRun_diffusion += sum(self.parent.fluodetdevice.channel02[ channel_end + 50 :])
                 #collectRecord['DataPoints'][measurement] = {}
                 #collectRecord['DataPoints'][measurement]['MonoEnergy'] = pos_i
                 #collectRecord['DataPoints'][measurement]['ROICounts']  = self.parent.fluodetdevice.roi00_01
