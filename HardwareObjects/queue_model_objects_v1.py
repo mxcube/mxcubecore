@@ -467,6 +467,7 @@ class DataCollection(TaskNode):
         self.html_report = str()
         self.id = int()
         self.lims_group_id = None
+        self.center_before_collect = False
 
     def as_dict(self):
 

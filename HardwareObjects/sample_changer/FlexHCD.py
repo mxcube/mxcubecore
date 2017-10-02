@@ -264,7 +264,7 @@ class FlexHCD(SampleChanger):
         self._execute_cmd("defreezeGripper")
 
     def _doLoad(self, sample=None):
-        self._doSelect(sample.getCell())
+        self._updateState()
 
         load_task = gevent.spawn(self._execute_cmd, 'loadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         gevent.sleep(5)
@@ -315,7 +315,7 @@ class FlexHCD(SampleChanger):
           state = self._readState()
         except:
           state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
+        if state == SampleChangerState.Moving and self._isDeviceBusy(state):
             return          
         self._setState(state)
       
