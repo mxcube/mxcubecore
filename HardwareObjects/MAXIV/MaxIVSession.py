@@ -6,6 +6,7 @@ Adapting from original Session.py to adapt the names of data directories
 import os
 import time
 import logging
+import storage
 
 from Session import Session
 
@@ -32,12 +33,8 @@ class MaxIVSession(Session):
         # /data/visitor/biomax/prop/visit/
         # /data/(user-type)/(beamline)/(proposal)/(visit)/raw
 
-        if self.is_inhouse():
-            user_category = 'staff'
-        else:
-            user_category = 'visitors'
-        # missing industrial users and visit info
-        # now it is a new visit everyday
+        user_category = self.get_user_category()
+
         directory = os.path.join(self.base_directory,
                                  user_category,  #'staff','visitors'
                                  self.beamline_name,
@@ -46,3 +43,42 @@ class MaxIVSession(Session):
 
         logging.getLogger("HWR").info("[MAX IV Session] Data directory for proposal %s: %s" % (self.get_proposal(), directory))
         return directory
+
+    def prepare_directories(self, proposal_info):
+        self.login = proposal_info['Person']['login']
+        start_time = proposal_info['Session']['startDate']
+        if start_time:
+            start_date = start_time.split(' ')[0].replace('-', '')
+        else:
+            start_date = time.strftime("%Y%m%d")
+        self.set_session_start_date(start_date)
+        # this checks that the beamline data path has been properly created
+        # e.g. /data/visitor/biomax
+        self.storage = storage.Storage(self.get_user_category(self.login), self.endstation_name)
+        # this creates the path for the data and ensures proper permissions.
+        # e.g. /data/visitor/biomax/<proposal>/<visit>/{raw, process}
+        self.storage.create_path(self, self.proposal_code.lower(),
+                                 storage.get_proposal_group(),
+                                 self.get_session_start_date(),
+                                 self.login)
+
+    def is_inhouse(self, user):
+        """
+        Determines if a given user is considered to be inhouse.
+        :param login: username
+        :type login: str
+        :returns: True if the user is inhouse, otherwise False.
+        :rtype: bool
+        """
+        if user in self.in_house_users:
+            return True
+        else:
+            return False
+
+    def get_user_category(self):
+        # missing industrial users
+        if self.is_inhouse():
+            user_category = 'staff'
+        else:
+            user_category = 'visitor'
+        return user_category
