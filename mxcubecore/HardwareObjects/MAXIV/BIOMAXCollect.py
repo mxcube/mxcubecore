@@ -352,11 +352,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self._collecting = None
         self.ready_event.set()
         self.update_data_collection_in_lims()
-        last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-        if last_frame > 1:
-            print "TODO: fix store_image_in_lims_by_frame_num method for nimages >1"
-            # self.store_image_in_lims_by_frame_num(last_frame)
-        
+
         # generate XDS.INP only in raw/process
         data_path = os.path.join("../../", os.path.basename(self.current_dc_parameters['fileinfo']['filename']))
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
@@ -366,6 +362,16 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
                 self.NIMAGES_TRIGGER_AUTO_PROC):
             self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+
+        # we store the first and the last images, TODO: every 45 degree
+        logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
+        self.store_image_in_lims(1)
+        self.generate_and_copy_thumbnails(data_path, 1)
+        last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+        if last_frame > 1:
+            logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
+            self.store_image_in_lims_by_frame_num(last_frame)
+            self.generate_and_copy_thumbnails(data_path, last_frame)
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
@@ -383,6 +389,42 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     # self.trigger_auto_processing("image", self.current_dc_parameters, frame)
     # image_id = self.store_image_in_lims(frame)
     # return image_id
+
+    def generate_and_copy_thumbnails(self, data_path, frame_number):
+        try:
+            #  generare diffraction thumbnails
+            image_file_template = self.current_dc_parameters['fileinfo']['template']
+            archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
+            thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
+            jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
+            jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
+
+            from EigerDataSet import EigerDataSet
+            input_file = data_path
+            binfactor = 1
+            nimages = 1
+            first_image = 0
+            rootname, ext = os.path.splitext(input_file)
+            rings = [0.25, 0.50, 0.75, 1.00, 1.25]
+            logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" %jpeg_thumbnail_full_path)
+
+            dataset = EigerDataSet(data_path)
+            dataset.save_thumbnail(binfactor, \
+                                   output_file=jpeg_thumbnail_full_path, \
+                                   start_image=first_image, \
+                                   nb_images=nimages, \
+                                   rings=rings)
+
+            # now copy to ispyb folder
+            import shutil
+            # import glob
+            # files = glob.iglob(os.path.join(data_path, "*.jpg"))
+            # for file in files:
+            if os.path.isfile(jpeg_thumbnail_full_path):
+                shutil.copy(jpeg_thumbnail_full_path, archive_directory)
+
+        except Exception as ex:
+            logging.getLogger("HWR").error("Could not generate thumbnails, %s" %str(ex))
 
     def take_crystal_snapshots(self):
         """
