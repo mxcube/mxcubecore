@@ -80,5 +80,5 @@ class MaxIVSession(Session):
         if self.is_inhouse():
             user_category = 'staff'
         else:
-            user_category = 'visitor'
+            user_category = 'visitors'
         return user_category
