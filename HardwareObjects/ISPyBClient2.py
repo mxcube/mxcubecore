@@ -618,10 +618,10 @@ class ISPyBClient2(HardwareObject):
 
         logging.getLogger('HWR').debug('LOGGED IN and todays session: ' + str(todays_session))
         return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
-        'session': todays_session,
+        'Session': todays_session,
         "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
-        "person": prop['Person'],
-        "laboratory": prop['Laboratory']}
+        "Person": prop['Person'],
+        "Laboratory": prop['Laboratory']}
 
     def get_todays_session(self, prop):
         try:
