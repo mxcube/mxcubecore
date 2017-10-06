@@ -747,12 +747,9 @@ class ISPyBClient2(HardwareObject):
                 if detector:
                     detector_id = detector.detectorId
                     data_collection.detectorId = detector_id
-	    logging.getLogger('ispyb_client').info("ISPYB NOT WORKING>>> mx_collection: %s" %mx_collection)
-#	    logging.getLogger('ispyb_client').info("ISPYB NOT WORKING>>> data_collection: %s" %data_collection)
             collection_id = self.__collection.service.\
                             storeOrUpdateDataCollection(data_collection)
 
-	    logging.getLogger('ispyb_client').info("ISPYB NOT WORKING>>> collection_id: %s" %collection_id)
             return (collection_id, detector_id)
         else:
             logging.getLogger("ispyb_client").\
