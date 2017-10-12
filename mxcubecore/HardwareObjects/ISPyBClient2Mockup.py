@@ -84,10 +84,10 @@ class ISPyBClient2Mockup(HardwareObject):
 	    new_session=True
         prop=self.get_proposal(loginID,"")
 	return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
-                 'session': {"session": prop['Session'],"new_session_flag":new_session, "is_inhouse": False},
+                 'Session': {"session": prop['Session'],"new_session_flag":new_session, "is_inhouse": False},
                  'local_contact': "BL Scientist",
-                 'person': prop['Person'],
-                 'laboratory': prop['Laboratory']}
+                 'Person': prop['Person'],
+                 'Laboratory': prop['Laboratory']}
 
     def get_todays_session(self, prop):
         try:

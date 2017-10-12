@@ -145,6 +145,13 @@ class ISPyBClient2(HardwareObject):
         if not self.ws_password:
             self.ws_password = _WS_PASSWORD
 
+        self.proxy_address = self.getProperty("proxy_address")
+        if self.proxy_address:
+            self.proxy = {'http': self.proxy_address, 'https': self.proxy_address}
+        else:
+            self.proxy = {}
+
+	logging.getLogger("HWR").debug('[ISPYB] Proxy address: %s' %self.proxy)
         try:
             # ws_root is a property in the configuration xml file
             if self.ws_root:
@@ -166,32 +173,39 @@ class ISPyBClient2(HardwareObject):
                     'ToolsForAutoprocessingWebService?wsdl'
 
                 t1 = HttpAuthenticated(username = self.ws_username, 
-                                      password = self.ws_password)
+                                      password = self.ws_password,
+			              proxy=self.proxy)
                 
                 t2 = HttpAuthenticated(username = self.ws_username, 
-                                      password = self.ws_password)
+                                      password = self.ws_password,
+				      proxy=self.proxy)
                 
                 t3 = HttpAuthenticated(username = self.ws_username, 
-                                      password = self.ws_password)
+                                      password = self.ws_password,
+				      proxy=self.proxy)
 
                 t4 = HttpAuthenticated(username = self.ws_username,
-                                       password = self.ws_password)
-                
+                                       password = self.ws_password,
+				       proxy=self.proxy)
                 try: 
                     self.__shipping = Client(_WS_SHIPPING_URL, timeout = 3,
-                                             transport = t1, cache = None)
+                                             transport = t1, cache=None,
+					     proxy=self.proxy)
                     self.__collection = Client(_WS_COLLECTION_URL, timeout = 3,
-                                               transport = t2, cache = None)
+                                               transport = t2, cache = None,
+					     proxy=self.proxy)
                     self.__tools_ws = Client(_WS_BL_SAMPLE_URL, timeout = 3,
-                                             transport = t3, cache = None)
+                                             transport = t3, cache = None,
+					     proxy=self.proxy)
                     self.__autoproc_ws = Client(_WS_AUTOPROC_URL, timeout = 3,
-                                             transport = t4, cache = None)
+                                             transport = t4, cache = None,
+					     proxy=self.proxy)
                 
                     # ensure that suds do not create those files in tmp 
-                    self.__shipping.set_options(cache=None)
-                    self.__collection.set_options(cache=None)
-                    self.__tools_ws.set_options(cache=None)
-                    self.__autoproc_ws.set_options(cache=None)
+                    self.__shipping.set_options(cache=None, location=_WS_SHIPPING_URL)
+                    self.__collection.set_options(cache=None, location=_WS_COLLECTION_URL)
+                    self.__tools_ws.set_options(cache=None, location=_WS_BL_SAMPLE_URL)
+                    self.__autoproc_ws.set_options(cache=None, location=_WS_AUTOPROC_URL)
                 except URLError:
                     logging.getLogger("ispyb_client")\
                         .exception(_CONNECTION_ERROR_MSG)
@@ -199,7 +213,8 @@ class ISPyBClient2(HardwareObject):
         except:
             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
             return
-
+	#logging.getLogger('suds.client').setLevel(logging.DEBUG)
+	
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
         try:
@@ -601,12 +616,12 @@ class ISPyBClient2(HardwareObject):
         proposal=prop['Proposal']
         todays_session=self.get_todays_session(prop)
 
-#        logging.getLogger('HWR').debug(todays_session)
+        logging.getLogger('HWR').debug('LOGGED IN and todays session: ' + str(todays_session))
         return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
-        'session': todays_session,
+        'Session': todays_session,
         "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
-        "person": prop['Person'],
-        "laboratory": prop['Laboratory']}
+        "Person": prop['Person'],
+        "Laboratory": prop['Laboratory']}
 
     def get_todays_session(self, prop):
         try:
@@ -711,6 +726,7 @@ class ISPyBClient2(HardwareObject):
             data_collection = ISPyBValueFactory().\
                 from_data_collect_parameters(self.__collection, mx_collection)
 
+            detector_id = 0
             if beamline_setup:
                 lims_beamline_setup = ISPyBValueFactory.\
                     from_bl_config(self.__collection, beamline_setup)
@@ -731,7 +747,6 @@ class ISPyBClient2(HardwareObject):
                 if detector:
                     detector_id = detector.detectorId
                     data_collection.detectorId = detector_id
-
             collection_id = self.__collection.service.\
                             storeOrUpdateDataCollection(data_collection)
 
@@ -1157,6 +1172,8 @@ class ISPyBClient2(HardwareObject):
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
+            logging.getLogger("ispyb_client").info('[ISPYB] Session goona be created: session_dict %s' %session_dict)
+            logging.getLogger("ispyb_client").info('[ISPYB] Session created: %s' %session)
             return session
         else:
             logging.getLogger("ispyb_client").\
