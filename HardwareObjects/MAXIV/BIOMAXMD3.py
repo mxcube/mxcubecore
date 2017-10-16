@@ -448,6 +448,12 @@ class BIOMAXMD3(GenericDiffractometer):
     # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
+	try:
+	    motors_dict.pop('kappa')
+	    motors_dict.pop('kappa_phi')
+            logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
+	except Exception as ex:
+	    print ex
         logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
         for motor in motors_dict.keys():
             position = motors_dict[motor]
