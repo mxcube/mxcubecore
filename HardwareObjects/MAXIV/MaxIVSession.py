@@ -15,6 +15,23 @@ class MaxIVSession(Session):
     def __init__(self, name):
         Session.__init__(self, name)
         self.default_precision = "03"
+    
+    def get_proposal(self):
+        """
+        :returns: The proposal, 'local-user' if no proposal is
+                  available
+        :rtype: str
+        """
+        proposal = 'local-user'
+
+        if self.proposal_code and self.proposal_number:
+            if self.proposal_code == 'ifx':
+                self.proposal_code = 'fx'
+
+            proposal = "%s%s" % (self.proposal_code,
+                                 self.proposal_number)
+
+        return proposal
 
     def get_base_data_directory(self):
         """
@@ -33,7 +50,7 @@ class MaxIVSession(Session):
         # /data/visitor/biomax/prop/visit/
         # /data/(user-type)/(beamline)/(proposal)/(visit)/raw
 
-        user_category = self.get_user_category()
+        user_category = self.get_user_category(self.get_proposal())
 
         directory = os.path.join(self.base_directory,
                                  user_category,  #'staff','visitors'
@@ -62,7 +79,7 @@ class MaxIVSession(Session):
                                  self.get_session_start_date(),
                                  self.login)
 
-    def is_inhouse(self, user):
+    def is_inhouse(self, user, code=None):
         """
         Determines if a given user is considered to be inhouse.
         :param login: username
@@ -75,9 +92,9 @@ class MaxIVSession(Session):
         else:
             return False
 
-    def get_user_category(self):
+    def get_user_category(self, user):
         # missing industrial users
-        if self.is_inhouse():
+        if self.is_inhouse(user):
             user_category = 'staff'
         else:
             user_category = 'visitors'
