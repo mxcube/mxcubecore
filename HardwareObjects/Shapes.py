@@ -132,7 +132,7 @@ class Shapes(HardwareObject):
         """
         mpos = [self.get_shape(refid).mpos() for refid in refs]
         spos_list = [self.get_shape(refid).screen_coord for refid in refs]
-        spos = reduce((lambda x, y: x + y), spos_list, ())
+        spos = reduce((lambda x, y: tuple(x) + tuple(y)), spos_list, ())
         shape = self.add_shape_from_mpos(mpos, spos, t)
         shape.refs = refs
 
