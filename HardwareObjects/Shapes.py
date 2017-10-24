@@ -292,7 +292,8 @@ class Shape(object):
 
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
-        self.screen_coord = spos_list[0]
+        spos_list = tuple([pos for l in spos_list for pos in l])
+        self.screen_coord = spos_list
 
     def add_cp_from_mp(self, mpos_list):
         for mp in mpos_list:
