@@ -98,7 +98,6 @@ class Storage(object):
         :return: It returns an string with the final path that has been generated.
         """
         proposal_path = '{0}/{1}'.format(self.beamline_path, proposal)
-
         self.fix_path(proposal_path, 02750)
         self.fix_ownership(proposal_path, self.service_account, proposal_group)
         logging.getLogger("HWR").info('[SDM] Proposal path created: %s' %proposal_path)
@@ -129,8 +128,8 @@ class Storage(object):
         """
         if not os.path.exists(path):
             os.makedirs(path, mode)
-
         if self.check_user_ownership(path, getpass.getuser()):
+            os.chmod(path, mode)
             os.chmod(path, mode)
         else:
             raise StorageException("The program does not want to change the file mode if not owner by itself. Please contact the owner or a system administrator")
