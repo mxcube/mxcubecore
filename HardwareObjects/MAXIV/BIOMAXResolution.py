@@ -16,14 +16,19 @@ class BIOMAXResolution(Resolution.Resolution):
         self.dtox = self.getObjectByRole("dtox")
         self.energy = self.getObjectByRole("energy")
         self.detector = self.getObjectByRole("detector")
-        
+ 
         if self.detector:
-            self.det_width = self.detector.get_x_pixels_in_detector()
-            self.det_height = self.detector.get_y_pixels_in_detector()
+	    try:
+                self.det_width = self.detector.get_x_pixels_in_detector()
+                self.det_height = self.detector.get_y_pixels_in_detector()
+	    except:
+                self.det_width = 4150
+                self.det_height = 4371
+
         else:
             self.valid = False
             logging.getLogger().exception('Cannot get detector size')
-            raise AttributeError("Cannot get detector ")
+#            raise AttributeError("Cannot get detector ")
 
         self.update_beam_centre(self.dtox.getPosition()) 
         self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)

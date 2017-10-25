@@ -87,17 +87,33 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             pass
 
         self.exp_type_dict = {'Mesh': 'Mesh', 'Helical': 'Helical'}
+	try:
+             min_exp = self.detector_hwobj.get_minimum_exposure_time()
+	except:
+	     logging.getLogger("HWR").error("[HWR] *** Detector min exposure not available, set to 0.1")
+	     min_exp = 0.1
+	try:
+             pix_x = self.detector_hwobj.get_pixel_size_x()
+	except:
+	     logging.getLogger("HWR").error("[HWR] *** Detector X pixel size not available, set to 7-5e5")
+	     pix_x = 7.5e-5
+	try:
+             pix_y = self.detector_hwobj.get_pixel_size_y()
+	except:
+	     logging.getLogger("HWR").error("[HWR] *** Detector Y pixel size not available, set to 7-5e5")
+	     pix_y = 7.5e-5
+
         self.set_beamline_configuration(
              synchrotron_name="MAXIV",
              directory_prefix=self.getProperty("directory_prefix"),
              default_exposure_time=self.getProperty("default_exposure_time"),
-             minimum_exposure_time=self.detector_hwobj.get_minimum_exposure_time(),
+             minimum_exposure_time=min_exp,
              detector_fileext=self.detector_hwobj.getProperty("file_suffix"),
              detector_type=self.detector_hwobj.getProperty("type"),
              detector_manufacturer=self.detector_hwobj.getProperty("manufacturer"),
              detector_model=self.detector_hwobj.getProperty("model"),
-             detector_px=self.detector_hwobj.get_pixel_size_x(),
-             detector_py=self.detector_hwobj.get_pixel_size_y(),
+             detector_px=pix_x,
+             detector_py=pix_y,
              undulators=undulators,
              focusing_optic=self.getProperty('focusing_optic'),
              monochromator_type=self.getProperty('monochromator'),
@@ -173,11 +189,10 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
             self.data_collection_hook()
             self.emit_collection_finished()
-        except:
+        except Exception as ex:
+            logging.getLogger("HWR").error("[COLLECT] Data collection failed: %s" % ex)
             self.emit_collection_failed()
-            # ----------------------------------------------------------------
             self.close_fast_shutter()
-            #self.close_safety_shutter()
             self.close_detector_cover()
 
     def prepare_acquisition(self):
@@ -199,33 +214,59 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         elif "energy" in self.current_dc_parameters:
             log.info("Collection: Setting energy to %.3f",
                      self.current_dc_parameters["energy"])
-            self.set_energy(self.current_dc_parameters["energy"])
+	    try:
+                self.set_energy(self.current_dc_parameters["energy"])
+	    except Exception as ex:
+		log.error('Collection: cannot set beamline energy.')
+                logging.getLogger("HWR").error("[COLLECT] Error setting energy: %s" % ex)
+		raise Exception("[COLLECT] Error setting energy: %s" % ex)
 
         if "detroi" in self.current_dc_parameters:
-            log.info("Collection: Setting detector to %s",
+	    try:
+                log.info("Collection: Setting detector to %s",
                      self.current_dc_parameters["detroi"])
-            self.set_detector_roi(self.current_dc_parameters["detroi"])
+                self.set_detector_roi(self.current_dc_parameters["detroi"])
+	    except Exception as ex:
+		log.error('Collection: cannot set detector roi.')
+                logging.getLogger("HWR").error("[COLLECT] Error setting detector roi: %s" % ex)
+		raise Exception("[COLLECT] Error setting detector roi: %s" % ex)
 
         if "resolution" in self.current_dc_parameters:
-            resolution = self.current_dc_parameters["resolution"]["upper"]
-            log.info("Collection: Setting resolution to %.3f", resolution)
-            self.set_resolution(resolution)
+	    try:
+                resolution = self.current_dc_parameters["resolution"]["upper"]
+                log.info("Collection: Setting resolution to %.3f", resolution)
+                self.set_resolution(resolution)
+	    except Exception as ex:
+		log.error('Collection: cannot set resolution.')
+                logging.getLogger("HWR").error("[COLLECT] Error setting resolution: %s" % ex)
+		raise Exception("[COLLECT] Error setting resolution: %s" % ex)
 
         elif 'detdistance' in self.current_dc_parameters:
-            log.info("Collection: Moving detector to %f",
+	    try:
+                log.info("Collection: Moving detector to %f",
                      self.current_dc_parameters["detdistance"])
-            self.move_detector(self.current_dc_parameters["detdistance"])
-
+            	self.move_detector(self.current_dc_parameters["detdistance"])
+	    except Exception as ex:
+		log.error('Collection: cannot set detector distance.')
+                logging.getLogger("HWR").error("[COLLECT] Error setting detector distance: %s" % ex)
+		raise Exception("[COLLECT] Error setting detector distance: %s" % ex)
+	
         self.triggers_to_collect = self.prepare_triggers_to_collect()
 
         log.info("Collection: Updating data collection in LIMS")
         self.update_data_collection_in_lims()
-        self.prepare_detector()
-
-        # move MD3 to DataCollection phase if it's not
+	try:
+            self.prepare_detector()
+	except Exception as ex:
+	    log.error('Collection: cannot set prepare detector.')
+            logging.getLogger("HWR").error("[COLLECT] Error preparing detector: %s" % ex)
+	    raise Exception("[COLLECT] Error preparing detector: %s" % ex)
+        
+	# move MD3 to DataCollection phase if it's not
         if self.diffractometer_hwobj.get_current_phase() != "DataCollection":
             log.info("Moving Diffractometer to Data Collection")
             self.diffractometer_hwobj.set_phase("DataCollection", wait=True, timeout=200)
+
         self.move_to_centered_position()
 
     # -------------------------------------------------------------------------------
@@ -264,12 +305,21 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
             time.sleep(2)
-            self.detector_hwobj.wait_config_done()
-            self.detector_hwobj.start_acquisition()
-            self.detector_hwobj.wait_ready()
-            # call after start_acquisition (detector is armed), when all the config parameters are definitely
+	    try:
+                self.detector_hwobj.wait_config_done()
+                self.detector_hwobj.start_acquisition()
+                self.detector_hwobj.wait_ready()
+	    except Exception as ex:
+            	logging.getLogger("HWR").error("[COLLECT] Detector Error: %s" % ex)
+            
+	    # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
-            shutterless_exptime = self.detector_hwobj.get_acquisition_time()
+	    try:
+                shutterless_exptime = self.detector_hwobj.get_acquisition_time()
+	    except Exception as ex:
+            	logging.getLogger("HWR").error("[COLLECT] Detector error getting acquisition time: %s" % ex)
+		shutterless_exptime = 0.01
+
             # wait until detector is ready (will raise timeout RuntimeError), sometimes arm command
             # is accepted by the detector but without any effect at all... sad...
             # self.detector_hwobj.wait_ready()
@@ -277,9 +327,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 osc_end = osc_start + osc_range * nframes_per_trigger 
                 self.display_task = gevent.spawn(self._update_image_to_display)
                 self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
-            
-            self.detector_hwobj.stop_acquisition()
-
+            try: 
+                self.detector_hwobj.stop_acquisition()
+	    except Exception as ex:
+		logging.getLogger("HWR").error("[COLLECT] Detector error stopping acquisition: %s" % ex)
+	
             #self.close_safety_shutter()
             self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
@@ -353,29 +405,93 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.ready_event.set()
         self.update_data_collection_in_lims()
 
-        # generate XDS.INP only in raw/process
-        data_path = os.path.join("../../", os.path.basename(self.current_dc_parameters['fileinfo']['filename']))
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
-            % (self.current_dc_parameters["xds_dir"],data_path))
-        if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
-            self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
-            self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
-                self.NIMAGES_TRIGGER_AUTO_PROC):
-            self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+        try:
+	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] Going to generate XDS input files")
+            # generate XDS.INP only in raw/process
+            data_path = os.path.join("../../", os.path.basename(self.current_dc_parameters['fileinfo']['filename']))
+            os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
+                % (self.current_dc_parameters["xds_dir"],data_path))
+            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
+                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
+                self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
+                    self.NIMAGES_TRIGGER_AUTO_PROC):
+                self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+	except Exception as ex:
+	    print ex	
 
-        # we store the first and the last images, TODO: every 45 degree
+	# we store the first and the last images, TODO: every 45 degree
         logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
-        self.store_image_in_lims(1)
-        self.generate_and_copy_thumbnails(data_path, 1)
-        last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-        if last_frame > 1:
-            logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
-            self.store_image_in_lims_by_frame_num(last_frame)
-            self.generate_and_copy_thumbnails(data_path, last_frame)
+	try:
+	    self.store_image_in_lims(1)
+	    self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], 1)
+	except Exception as ex:
+	    print ex
+	
+	last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']         
+	if last_frame > 1:             
+	    logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
+	    try:
+	    	self.store_image_in_lims(last_frame) 
+	        self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], last_frame)
+	    except Exception as ex:
+		print ex
+	
+    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
+	"""
+	Descript. :
+	"""
+	# Dont save mesh first and last images
+	# Mesh images (best positions) are stored after data analysis
+	logging.getLogger("HWR").info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
+	return
 
+    def generate_and_copy_thumbnails(self, data_path, frame_number):
+	#  generare diffraction thumbnails
+	image_file_template = self.current_dc_parameters['fileinfo']['template']
+	archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
+	thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
+	jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
+	jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
+
+	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" % jpeg_thumbnail_full_path)
+	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, data path: %s" % data_path)
+	
+	from EigerDataSet import EigerDataSet
+	input_file = data_path
+	binfactor = 1
+	nimages = 1
+	first_image = 0
+	rootname, ext = os.path.splitext(input_file)
+	rings = [0.25, 0.50, 0.75, 1.00, 1.25]
+	# master file is need but also data files
+	# 100 frames per data file, so adapt accordingly for the file name in case not the first frame
+	# TODO: get num_images_per_file as variable
+	if frame_number > 1:
+	    frame_number = frame_number / 100 
+	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
+	    while not os.path.exists(data_path):
+	    	gevent.sleep(0.05)
+	
+	data_file = data_path.replace('master', 'data_{:06d}'.format(frame_number))
+	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
+	    while not os.path.exists(data_file):
+	    	gevent.sleep(0.05)
+	
+	if not os.path.exists(os.path.dirname(jpeg_thumbnail_full_path)):
+	    os.makedirs(os.path.dirname(jpeg_thumbnail_full_path))
+	try:
+	    dataset = EigerDataSet(data_path)
+	    dataset.save_thumbnail(binfactor, \
+            output_file=jpeg_thumbnail_full_path, \
+	    start_image=first_image, \
+	    nb_images=nimages, \
+	    rings=rings)
+	except Exception as ex:
+	    print ex
+	
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
-        Descript. :
+       # Descript. :
         """
         # Dont save mesh first and last images
         # Mesh images (best positions) are stored after data analysis
@@ -390,41 +506,42 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     # image_id = self.store_image_in_lims(frame)
     # return image_id
 
-    def generate_and_copy_thumbnails(self, data_path, frame_number):
-        try:
-            #  generare diffraction thumbnails
+    def store_image_in_lims(self, frame_number, motor_position_id=None):
+        """
+        Descript. :
+        """
+        if self.lims_client_hwobj:
+            file_location = self.current_dc_parameters["fileinfo"]["directory"]
             image_file_template = self.current_dc_parameters['fileinfo']['template']
+            filename = image_file_template % frame_number
+            lims_image = {'dataCollectionId': self.current_dc_parameters["collection_id"],
+                          'fileName': filename,
+                          'fileLocation': file_location,
+                          'imageNumber': frame_number,
+                          'measuredIntensity': self.get_measured_intensity(),
+                          'synchrotronCurrent': self.get_machine_current(),
+                          'machineMessage': self.get_machine_message(),
+                          'temperature': self.get_cryo_temperature()}
             archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
-            thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
-            jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
-            jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
-
-            from EigerDataSet import EigerDataSet
-            input_file = data_path
-            binfactor = 1
-            nimages = 1
-            first_image = 0
-            rootname, ext = os.path.splitext(input_file)
-            rings = [0.25, 0.50, 0.75, 1.00, 1.25]
-            logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" %jpeg_thumbnail_full_path)
-
-            dataset = EigerDataSet(data_path)
-            dataset.save_thumbnail(binfactor, \
-                                   output_file=jpeg_thumbnail_full_path, \
-                                   start_image=first_image, \
-                                   nb_images=nimages, \
-                                   rings=rings)
-
-            # now copy to ispyb folder
-            import shutil
-            # import glob
-            # files = glob.iglob(os.path.join(data_path, "*.jpg"))
-            # for file in files:
-            if os.path.isfile(jpeg_thumbnail_full_path):
-                shutil.copy(jpeg_thumbnail_full_path, archive_directory)
-
-        except Exception as ex:
-            logging.getLogger("HWR").error("Could not generate thumbnails, %s" %str(ex))
+	    
+            if archive_directory:
+                jpeg_filename = "%s.jpeg" % os.path.splitext(image_file_template)[0]
+                thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
+                jpeg_file_template = os.path.join(archive_directory, jpeg_filename)
+                jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
+                jpeg_full_path = jpeg_file_template % frame_number
+                jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
+                lims_image['jpegFileFullPath'] = jpeg_full_path
+                lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
+                lims_image['fileLocation'] = os.path.dirname(jpeg_thumbnail_full_path)
+            if motor_position_id:
+                lims_image['motorPositionId'] = motor_position_id
+            logging.getLogger("HWR").info("LIMS IMAGE: %s, %s, %s, %s" %(jpeg_filename, thumb_filename, jpeg_full_path, jpeg_thumbnail_full_path))
+            try:
+                image_id = self.lims_client_hwobj.store_image(lims_image)
+            except Exception as ex:
+                print ex
+            return image_id
 
     def take_crystal_snapshots(self):
         """
@@ -754,13 +871,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         file_parameters["suffix"] = self.bl_config.detector_fileext
         image_file_template = "%(prefix)s_%(run_number)s" % file_parameters
         name_pattern = os.path.join(file_parameters["directory"], image_file_template)
-        file_parameters["template"] = image_file_template
+    #    file_parameters["template"] = image_file_template
         file_parameters["filename"] = "%s_master.h5" % name_pattern
         self.display["file_name1"] = file_parameters["filename"]
         self.display["file_name2"] = re.sub("^/mxn/biomax-eiger-dc-1", "/localdata", file_parameters["filename"])
 
         #os.path.join(file_parameters["directory"], image_file_template)
-        config['FilenamePattern'] = re.sub("^/mxn/biomax-eiger-dc-1", "", name_pattern)  # remove "/data in the beginning"
+        config['FilenamePattern'] = re.sub("^/data", "", name_pattern)  # remove "/data in the beginning"
         return self.detector_hwobj.prepare_acquisition(config)
 
     def stop_collect(self, owner):
