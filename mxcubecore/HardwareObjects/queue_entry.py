@@ -759,8 +759,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             empty_cpos = all(mpos==None for mpos in cpos.as_dict().values())
 
             if empty_cpos and data_collection.center_before_collect:
-                center_before_collect(self.get_view(), self.diffractometer_hwobj,
-                    self.get_queue_controller(), self.shape_history)
+                _p, _s = center_before_collect(self.get_view(), self.diffractometer_hwobj,
+                                               self.get_queue_controller(), self.shape_history)
+
+                acq_params.centred_position = _p
+
 
             self.collect_dc(data_collection, self.get_view())
 
@@ -1794,7 +1797,7 @@ def center_before_collect(view, dm, queue, shapes):
     view(1, 'Centring completed')
     log.info("Centring completed")
 
-    return pos, shape
+    return queue_model_objects.CentredPosition(pos), shape
 
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
