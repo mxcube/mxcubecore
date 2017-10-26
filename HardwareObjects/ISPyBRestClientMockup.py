@@ -95,6 +95,20 @@ class ISPyBRestClientMockup(HardwareObject):
         self.__update_rest_token()
         return urljoin(self.__rest_root, "samples?token=%s" % self.__rest_token)
 
+    def dc_link(self, did):
+        """
+        Get the LIMS link the data collection with id <id>.
+
+        :param str did: Data collection ID
+        :returns: The link to the data collection
+        """
+        path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
+        path = path.format(pcode = self.session_hwobj.proposal_code,
+                           pnumber = self.session_hwobj.proposal_number,
+                           did = did)
+
+        return urljoin(self.__rest_root, path)
+
     def get_dc_list(self):
         """
         Get the list of data collections for the current session belonging to
