@@ -455,7 +455,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
 	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" % jpeg_thumbnail_full_path)
 	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, data path: %s" % data_path)
-	
 	from EigerDataSet import EigerDataSet
 	input_file = data_path
 	binfactor = 1
@@ -466,17 +465,20 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	# master file is need but also data files
 	# 100 frames per data file, so adapt accordingly for the file name in case not the first frame
 	# TODO: get num_images_per_file as variable
+	time.sleep(2)
 	if frame_number > 1:
 	    frame_number = frame_number / 100 
 	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
 	    while not os.path.exists(data_path):
-	    	gevent.sleep(0.05)
+	    	gevent.sleep(0.1)
 	
+ 	time.sleep(2)	
 	data_file = data_path.replace('master', 'data_{:06d}'.format(frame_number))
 	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
 	    while not os.path.exists(data_file):
-	    	gevent.sleep(0.05)
+	    	gevent.sleep(0.1)
 	
+ 	time.sleep(22)	
 	if not os.path.exists(os.path.dirname(jpeg_thumbnail_full_path)):
 	    os.makedirs(os.path.dirname(jpeg_thumbnail_full_path))
 	try:
@@ -489,6 +491,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	except Exception as ex:
 	    print ex
 	
+	try:
+	    os.chmod(os.path.dirname(jpeg_thumbnail_full_path), 0777) 
+	    os.chmod(jpeg_thumbnail_full_path, 0777) 
+	except Exception as ex:
+	    print ex
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
        # Descript. :
@@ -525,7 +532,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
 	    
             if archive_directory:
-                jpeg_filename = "%s.jpeg" % os.path.splitext(image_file_template)[0]
+                jpeg_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
                 thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
                 jpeg_file_template = os.path.join(archive_directory, jpeg_filename)
                 jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
