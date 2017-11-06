@@ -21,6 +21,8 @@ from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 
+from EigerDataSet import EigerDataSet
+
 
 class BIOMAXCollect(AbstractCollect, HardwareObject):
     """
@@ -416,102 +418,94 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
                     self.NIMAGES_TRIGGER_AUTO_PROC):
                 self.trigger_auto_processing("after", self.current_dc_parameters, 0)
-	except Exception as ex:
-	    print ex	
+        except Exception as ex:
+        print ex	
 
-	# we store the first and the last images, TODO: every 45 degree
-        logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
-	try:
-	    self.store_image_in_lims(1)
-	    self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], 1)
-	except Exception as ex:
-	    print ex
-	
-	last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']         
-	if last_frame > 1:             
-	    logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
-	    try:
-	    	self.store_image_in_lims(last_frame) 
-	        self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], last_frame)
-	    except Exception as ex:
-		print ex
-	
-    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
-	"""
-	Descript. :
-	"""
-	# Dont save mesh first and last images
-	# Mesh images (best positions) are stored after data analysis
-	logging.getLogger("HWR").info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
-	return
+    	# we store the first and the last images, TODO: every 45 degree
+            logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
+    	try:
+    	    self.store_image_in_lims(1)
+    	    self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], 1)
+    	except Exception as ex:
+    	    print ex
+    	
+    	last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']         
+    	if last_frame > 1:             
+    	    logging.getLogger("HWR").info("Storing images in lims, frame number: %d" %last_frame)
+    	    try:
+    	    	self.store_image_in_lims(last_frame) 
+    	        self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], last_frame)
+    	    except Exception as ex:
+    		print ex
 
-    def generate_and_copy_thumbnails(self, data_path, frame_number):
-	#  generare diffraction thumbnails
-	image_file_template = self.current_dc_parameters['fileinfo']['template']
-	archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
-	thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
-	jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
-	jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
-
-	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" % jpeg_thumbnail_full_path)
-	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, data path: %s" % data_path)
-	from EigerDataSet import EigerDataSet
-	input_file = data_path
-	binfactor = 1
-	nimages = 1
-	first_image = 0
-	rootname, ext = os.path.splitext(input_file)
-	rings = [0.25, 0.50, 0.75, 1.00, 1.25]
-	# master file is need but also data files
-	# 100 frames per data file, so adapt accordingly for the file name in case not the first frame
-	# TODO: get num_images_per_file as variable
-	time.sleep(2)
-	if frame_number > 1:
-	    frame_number = frame_number / 100 
-	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
-	    while not os.path.exists(data_path):
-	    	gevent.sleep(0.1)
-	
- 	time.sleep(2)	
-	data_file = data_path.replace('master', 'data_{:06d}'.format(frame_number))
-	with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
-	    while not os.path.exists(data_file):
-	    	gevent.sleep(0.1)
-	
- 	time.sleep(22)	
-	if not os.path.exists(os.path.dirname(jpeg_thumbnail_full_path)):
-	    os.makedirs(os.path.dirname(jpeg_thumbnail_full_path))
-	try:
-	    dataset = EigerDataSet(data_path)
-	    dataset.save_thumbnail(binfactor, \
-            output_file=jpeg_thumbnail_full_path, \
-	    start_image=first_image, \
-	    nb_images=nimages, \
-	    rings=rings)
-	except Exception as ex:
-	    print ex
-	
-	try:
-	    os.chmod(os.path.dirname(jpeg_thumbnail_full_path), 0777) 
-	    os.chmod(jpeg_thumbnail_full_path, 0777) 
-	except Exception as ex:
-	    print ex
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
-       # Descript. :
+        Descript. :
         """
         # Dont save mesh first and last images
         # Mesh images (best positions) are stored after data analysis
         logging.getLogger("HWR").info("TODO: fix store_image_in_lims_by_frame_num method for nimages>1")
         return
-    # if self.current_dc_parameters['experiment_type'] in ('Mesh') and motor_position_id is None:
-    #     return
-    # image_id = None
 
-    # # todo
-    # self.trigger_auto_processing("image", self.current_dc_parameters, frame)
-    # image_id = self.store_image_in_lims(frame)
-    # return image_id
+    def generate_and_copy_thumbnails(self, data_path, frame_number):
+    	#  generare diffraction thumbnails
+    	image_file_template = self.current_dc_parameters['fileinfo']['template']
+    	archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
+    	thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
+    	jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
+    	jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
+
+    	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, output filename: %s" % jpeg_thumbnail_full_path)
+    	logging.getLogger("HWR").info("[COLLECT] Generating thumbnails, data path: %s" % data_path)
+    	input_file = data_path
+    	binfactor = 1
+    	nimages = 1
+    	first_image = 0
+    	rootname, ext = os.path.splitext(input_file)
+    	rings = [0.25, 0.50, 0.75, 1.00, 1.25]
+    	# master file is need but also data files
+    	# 100 frames per data file, so adapt accordingly for the file name in case not the first frame
+    	# TODO: get num_images_per_file as variable
+    	time.sleep(2)
+    	if frame_number > 1:
+    	    frame_number = frame_number / 100
+
+        self.wait_for_file_copied(data_path) # master file
+
+    	data_file = data_path.replace('master', 'data_{:06d}'.format(frame_number))
+
+        self.wait_for_file_copied(data_path) # data file
+
+    	if not os.path.exists(os.path.dirname(jpeg_thumbnail_full_path)):
+    	    os.makedirs(os.path.dirname(jpeg_thumbnail_full_path))
+    	try:
+    	    dataset = EigerDataSet(data_path)
+    	    dataset.save_thumbnail(binfactor, \
+                                   output_file=jpeg_thumbnail_full_path, \
+                        	       start_image=first_image, \
+                        	       nb_images=nimages, \
+                        	       rings=rings)
+    	except Exception as ex:
+    	    print ex
+    	
+    	try:
+    	    os.chmod(os.path.dirname(jpeg_thumbnail_full_path), 0777) 
+    	    os.chmod(jpeg_thumbnail_full_path, 0777) 
+    	except Exception as ex:
+    	    print ex
+
+    def wait_for_file_copied(self, full_file_path):
+        # first wait for the file being created
+        with gevent.Timeout(30, Exception("Timeout waiting for the data file available.")):
+            while not os.path.exists(full_file_path):
+                gevent.sleep(0.1)
+
+        # then wait to finish the copy
+        size1 = -1
+        with gevent.Timeout(300, Exception("Timeout waiting for the data to be copied available.")):
+            while size1 != os.path.getsize(full_file_path):
+                size1 = os.path.getsize(full_file_path)
+                gevent.sleep(1)
 
     def store_image_in_lims(self, frame_number, motor_position_id=None):
         """
@@ -592,7 +586,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
                     time.sleep(1) # needed, otherwise will get the same images
-                    
+
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
