@@ -181,9 +181,21 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             # which makes sure it move motors to the correct positions and move back
             # if there is a phase change
             log.debug("Collection: going to take snapshots...")
-            #self.take_crystal_snapshots()
+            self.take_crystal_snapshots()
             log.debug("Collection: snapshots taken")
+            # to fix permission issues
+            snapshots_files = []
 
+            for key, value in self.current_dc_parameters.iteritems():
+                if key.startswith('xtalSnapshotFullPath'):
+                    snapshots_files.append(value)
+            try:
+                archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
+                os.chmod(archive_directory, 0777)
+                for file in snapshots_files:
+                    os.chmod(file, 0777)
+            except Exception as ex:
+                print ex
             # prepare beamline for data acquisiion
             self.prepare_acquisition()
             self.emit("collectOscillationStarted", (owner, None,
@@ -569,7 +581,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             if self.diffractometer_hwobj.get_current_phase() != "Centring":
                 logging.getLogger("user_level_log").info("Moving Diffractometer to CentringPhase")
                 self.diffractometer_hwobj.set_phase("Centring", wait=True, timeout=200)
-            self.move_to_centered_position()
+                self.move_to_centered_position()
 
             for snapshot_index in range(number_of_snapshots):
                 snapshot_filename = os.path.join(\
