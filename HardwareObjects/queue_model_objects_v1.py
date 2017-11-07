@@ -1151,6 +1151,24 @@ class PathTemplate(object):
     def set_precision(precision):
         PathTemplate.precision = precision
 
+    @staticmethod
+    def interpret_path(path):
+        try:
+            dirname, fname = os.path.split(path)
+            fname, ext = os.path.splitext(fname)
+            fname_parts = fname.split("_")
+
+            # Get run number and image number from path
+            run_number, img_number = map(try_parse_int, fname_parts[-2:])
+
+            # Get the prefix and filename part
+            prefix = "_".join(fname_parts[:-2])
+            prefix_path = os.path.join(dirname, prefix)
+        except IndexError:
+            prefix_path, run_number, img_number = ["", -1, -1]
+
+        return prefix_path, run_number, img_number
+
     def __init__(self):
         object.__init__(self)
 
@@ -1803,4 +1821,10 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
                                   "sw_osc_range" : sw_osc_range})
         sw_first_image += sw_actual_size 
     return subwedges
-            
+
+
+def try_parse_int(n):
+    try:
+        return int(n)
+    except ValueError:
+        return -1
