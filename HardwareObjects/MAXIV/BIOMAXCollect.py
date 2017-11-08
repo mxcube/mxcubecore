@@ -605,17 +605,17 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # todo
-        fast_dp_dir = os.path.join(params_dict["auto_dir"],"fast_dp")
-        biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
-        autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
-        self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
-            % (fast_dp_dir, params_dict['fileinfo']['filename']))
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
-            % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/autoPROC.sh %s &"  \
-            % (autoPROC_dir, params_dict['fileinfo']['filename']))
-        return
+        # fast_dp_dir = os.path.join(params_dict["auto_dir"],"fast_dp")
+        # biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
+        # autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
+        # self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
+        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
+        #     % (fast_dp_dir, params_dict['fileinfo']['filename']))
+        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
+        #     % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
+        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/autoPROC.sh %s &"  \
+        #     % (autoPROC_dir, params_dict['fileinfo']['filename']))
+        # return
 
         if self.autoprocessing_hwobj is not None:
             self.autoprocessing_hwobj.execute_autoprocessing(process_event,
