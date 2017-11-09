@@ -237,6 +237,13 @@ class Marvin(SampleChanger):
             self._updateLoadedSample()
             self.updateInfo()
 
+    def is_sample_on_gonio(self):
+        gevent.sleep(1)
+        first_try = self.chan_sample_is_loaded.getValue()
+        gevent.sleep(1)
+        second_try = self.chan_sample_is_loaded.getValue()
+        return first_try or second_try
+
     def mounted_sample_puck_changed(self, mounted_sample_puck):
         """Updates mounted puck index"""
         mounted_sample = mounted_sample_puck[0] - 1
@@ -351,7 +358,9 @@ class Marvin(SampleChanger):
         """
         self._setState(SampleChangerState.Ready)
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
-            raise Exception("Focusing mode is undefined state. Sample loading is disabled")
+            error_msg = "Focusing mode is undefined. Sample loading is disabled"
+            log.error(error_msg)
+            raise Exception(error_msg)
 
         log = logging.getLogger("GUI")
         start_time = datetime.now()
@@ -374,7 +383,7 @@ class Marvin(SampleChanger):
         # because if mount is requested and on gonio is sample then
         # first sample is dismounted
         if self._focusing_mode == "P13mode":
-            if self.hasLoadedSample():
+            if self.is_sample_on_gonio():
                 if selected==self.getLoadedSample():
                     msq = "The sample " + \
                           str(self.getLoadedSample().getAddress()) + \
@@ -449,7 +458,7 @@ class Marvin(SampleChanger):
                      "load",
                      self._mounted_puck,
                      self._mounted_sample)
-           if not self.hasLoadedSample():
+           if not self.is_sample_on_gonio():
                log_msg += ",Error\n"
            else:
                log_msg += ",Success\n"
@@ -458,9 +467,12 @@ class Marvin(SampleChanger):
         except:
            pass
 
-        if self.hasLoadedSample():
+        if self.is_sample_on_gonio():
             log.info("Sample changer: Sample %d:%d loaded" % \
                      (int(basket_index), int(sample_index)))
+            if self._focusing_mode == "P13mode":
+                self.diffractometer_hwobj.set_phase(\
+                    self.diffractometer_hwobj.PHASE_CENTRING, 60.0)
         else:
             log.error("Sample changer: Failed to load sample %d:%d" % \
                       (int(basket_index), int(sample_index)))
@@ -478,10 +490,14 @@ class Marvin(SampleChanger):
 
     def _doUnload(self, sample_slot=None):
         """Unloads a sample from the diffractometer"""
+        log = logging.getLogger("GUI")
+ 
         self._setState(SampleChangerState.Ready)
         self._setState(SampleChangerState.Ready)
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
-            raise Exception("Focusing mode is undefined state. Sample loading is disabled")
+            error_msg = "Focusing mode is undefined. Sample loading is disabled"
+            log.error(error_msg)
+            raise Exception(error_msg)
 
         if self._focusing_mode == "P13mode": 
             sample_index = self._mounted_sample
@@ -490,7 +506,6 @@ class Marvin(SampleChanger):
             sample_index = self._mounted_sample + 1
             basket_index = self._mounted_puck + 1
 
-        log = logging.getLogger("GUI")
         msg = "Sample changer: Unloading sample %d:%d" %(\
                basket_index, sample_index)
         log.warning(msg + ". Please wait...")
@@ -552,7 +567,7 @@ class Marvin(SampleChanger):
                       "unload",
                       self._mounted_puck,
                       self._mounted_sample)
-           if self.hasLoadedSample():
+           if self.is_sample_on_gonio():
                log_msg += ",Error\n"
            else:
                log_msg += ",Success\n"
@@ -561,7 +576,7 @@ class Marvin(SampleChanger):
         except:
            pass
 
-        if self.hasLoadedSample():
+        if self.is_sample_on_gonio():
             log.error("Sample changer: Failed to unload sample %d:%d" % \
                      (basket_index, sample_index))
             raise Exception ("Sample not unloaded!")
@@ -605,8 +620,8 @@ class Marvin(SampleChanger):
         logging.getLogger("HWR").debug("Sample changer: Waiting ready...")
         gevent.sleep(15)
         self._action_started = True
-        self.waitReady(60.0)
         self.waitReady(120.0)
+        self.waitReady(60.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
@@ -819,7 +834,8 @@ class Marvin(SampleChanger):
                 if self._state_string != prop_value and \
                    prop_value in ("Idl", "Bsy", "Err") and self._action_started:
                     self._state_string = prop_value
-                    logging.getLogger("HWR").debug("---- status : %s", self._state_string)
+                    logging.getLogger("HWR").debug("Sample changer: status changed: %s" % \
+                                                   self._state_string)
                     self._updateState()
             elif prop_name == "Prgs":
                 try:
@@ -827,7 +843,6 @@ class Marvin(SampleChanger):
                        self._progress = int(prop_value)
                        self.emit("progressStep", self._progress)
                        self._info_dict["progress"] = self._progress
-                       logging.getLogger("HWR").debug("---- progress: %d" % self._progress)
                 except:
                    pass
             elif prop_name == "CPuck":
