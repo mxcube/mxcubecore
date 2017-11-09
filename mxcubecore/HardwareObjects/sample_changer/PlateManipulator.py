@@ -223,23 +223,19 @@ class PlateManipulator(SampleChanger):
 
         self.chan_current_phase = self.getChannelObject("CurrentPhase")
         self.chan_plate_location = self.getChannelObject("PlateLocation")
-        if self.chan_plate_location:
+        if self.chan_plate_location is not None:
             self.chan_plate_location.connectSignal("update", self.plate_location_changed)
         
         self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
             self.chan_state.connectSignal("update", self._onStateChanged)
        
-        self.log_filename = self.getProperty("log_filename")
-        if self.log_filename is None:
-            self.log_filename = os.path.join(tempfile.gettempdir(), 
-                                             "mxcube",
-                                             "plate_manipulator.log")
-
         SampleChanger.init(self)
 
     def plate_location_changed(self, plate_location):
         self.plate_location = plate_location
+        self._updateLoadedSample()
+        self.updateInfo()
 
     def _onStateChanged(self, state):
         """
@@ -269,7 +265,12 @@ class PlateManipulator(SampleChanger):
         for row in range(self.num_rows):
             #row is like a basket
             basket = Basket(self, row + 1,samples_num=0, name="Row")
+            present = True
+            datamatrix = ""
+            scanned = False
+            basket._setInfo(present, datamatrix, scanned)
             self._addComponent(basket)
+
             for col in range(self.num_cols):
                 cell = Cell(basket, chr(65 + row), col + 1, self.num_drops)
                 basket._addComponent(cell)
@@ -306,12 +307,14 @@ class PlateManipulator(SampleChanger):
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
+        gevent.spawn(self.load_sample_task,
+                     sample_location)
+
+    def load_sample_task(self, sample_location):
         row =  sample_location[0] - 1 
         col =  (sample_location[1] - 1)/ self.num_drops
         drop = sample_location[1] - self.num_drops * col
         pos_y = float(drop) / (self.num_drops + 1)
-
-        gevent.sleep(5)
 
         if self.cmd_move_to_location:
             self.cmd_move_to_location(row, col, self.reference_pos_x, pos_y)
@@ -321,8 +324,8 @@ class PlateManipulator(SampleChanger):
             self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup
-            col += 1
             self.plate_location = [row, col, self.reference_pos_x, pos_y]
+            col += 1
             cell = self.getComponentByAddress("%s%d" %(chr(65 + row), col))
             drop = cell.getComponentByAddress("%s%d:%d" %(chr(65 + row), col, drop))
             new_sample = drop.getSample()
@@ -334,18 +337,6 @@ class PlateManipulator(SampleChanger):
                 if new_sample is not None:
                     new_sample._setLoaded(True, True)
 
-        log_file = open(self.log_filename, "a")   
-        log_file.write("%s,%s,%s,%d,%d,%s\n" % ( 
-                       datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                       os.environ["USER"],
-                       "load",
-                       col,
-                       row,
-                       str(self.hasLoadedSample()))) 
-        log_file.close()
-        
-            #new_sample._setLoaded(True, True)
-        
     def _doUnload(self,sample_slot=None):
         """
         Descript. :
@@ -460,16 +451,14 @@ class PlateManipulator(SampleChanger):
         return state
 
     def _updateLoadedSample(self):
-        """
-        Descript. : function to update plate location. It is called by 1 sec
-                    timer. 
-        """
-        plate_location = None
-        if self.chan_plate_location is not None:
-            plate_location = self.chan_plate_location.getValue()
+        """Updates plate location"""
+        old_sample = self.getLoadedSample()
+        #plate_location = None
+        #if self.chan_plate_location is not None:
+        #    plate_location = self.chan_plate_location.getValue()
 
-        if plate_location is not None:
-            new_sample = self.get_sample(plate_location)
+        if self.plate_location is not None:
+            new_sample = self.get_sample(self.plate_location)
 
             if old_sample != new_sample:
                 if old_sample is not None:
@@ -545,8 +534,8 @@ class PlateManipulator(SampleChanger):
         return plate_info_dict
 
     def get_plate_location(self):
-        if self.chan_plate_location is not None:
-            self.plate_location = self.chan_plate_location.getValue()
+        #if self.chan_plate_location is not None:
+        #    self.plate_location = self.chan_plate_location.getValue()
         return self.plate_location 
 
     def sync_with_crims(self, barcode):

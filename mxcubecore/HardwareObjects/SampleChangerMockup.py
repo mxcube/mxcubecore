@@ -13,8 +13,8 @@ class SampleChangerMockup(SampleChanger):
         super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
 
     def init(self):
-        self._selected_sample = 2
-        self._selected_basket = 9
+        self._selected_sample = -1
+        self._selected_basket = -1
         self._scIsCharging = None
 
         for i in range(SampleChangerMockup.NO_OF_BASKETS):
@@ -34,6 +34,7 @@ class SampleChangerMockup(SampleChanger):
         self.load(sample_location, wait)
 
     def load(self, sample, wait=False):
+        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
         self._setState(SampleChangerState.Loading)
         self._resetLoadedSample()
         if isinstance(sample, tuple):
@@ -49,19 +50,21 @@ class SampleChangerMockup(SampleChanger):
             "Sample changer: %s. Please wait..." % msg)
 
         self.emit("progressInit", (msg, 100))
-        for step in range(3 * 100):
-            self.emit("progressStep", int(step / 5.))
-            if step > 200:
-                raise Exception ("Test exc")
+        for step in range(2 * 100):
+            self.emit("progressStep", int(step / 2.))
             time.sleep(0.01)
 
         mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
         mounted_sample._setLoaded(True, False)
-        #self._setState(SampleChangerState.Ready)
+        self._setState(SampleChangerState.Ready)
+
         self._setLoadedSample(mounted_sample)
         self.updateInfo()
         logging.getLogger("user_level_log").info("Sample changer: Sample loaded")
         self.emit("progressStop", ())
+
+        self.emit("fsmConditionChanged", "sample_is_loaded", True)
+        self.emit("fsmConditionChanged", "sample_mounting_sample_changer", False)
 
         return self.getLoadedSample()
 
@@ -72,16 +75,16 @@ class SampleChangerMockup(SampleChanger):
         self._selected_basket = -1
         self._selected_sample = -1
         self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+        self.emit("fsmConditionChanged", "sample_is_loaded", False)
  
     def getLoadedSample(self):
         return self.getComponentByAddress(Pin.getSampleAddress(\
              self._selected_basket, self._selected_sample))
 
     def is_mounted_sample(self, sample):
-        if isinstance(sample, tuple):
-            sample = "%s:%s" % sample
-        
-        return sample == self.getLoadedSample()
+        return self.getComponentByAddress(\
+                  Pin.getSampleAddress(sample[0], sample[1]))== \
+                  self.getLoadedSample()
 
     def _doAbort(self):
         return
@@ -114,8 +117,6 @@ class SampleChangerMockup(SampleChanger):
         :returns: None
         :rtype: None
         """
-        basket_list= [('', 4)] * 5
-
         for basket_index in range(SampleChangerMockup.NO_OF_BASKETS):
             basket=self.getComponents()[basket_index]
             datamatrix = None
@@ -135,6 +136,6 @@ class SampleChangerMockup(SampleChanger):
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
 
-        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1,1))
-        mounted_sample._setLoaded(True, False)  
+        #mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1,1))
+        #mounted_sample._setLoaded(True, False)  
         self._setState(SampleChangerState.Ready)
