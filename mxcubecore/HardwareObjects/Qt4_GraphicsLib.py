@@ -212,12 +212,15 @@ class GraphicsItem(QGraphicsItem):
     def set_pixels_per_mm(self, pixels_per_mm):
         """Sets pixels per mm and updates item
         """
-        self.pixels_per_mm = pixels_per_mm
-        self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
-             self.pixels_per_mm[0])
-        self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
-             self.pixels_per_mm[1])
-        self.update_item()
+        try:
+            self.pixels_per_mm = pixels_per_mm
+            self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
+                 self.pixels_per_mm[0])
+            self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
+                 self.pixels_per_mm[1])
+            self.update_item()
+        except:
+            pass
 
     def set_tool_tip(self, tooltip=None):
         if tooltip:
@@ -610,7 +613,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.beam_size_pix[1] = self.beam_size_mm[1] * self.pixels_per_mm[1]
 
         if 0 in spacing_mm:
-            spacing_mm = self.beam_size_mm
+            spacing_mm = (beam_info.get("size_x"), beam_info["size_y"])
         self.__spacing_mm = spacing_mm
         self.__spacing_pix = [self.__spacing_mm[0] * self.pixels_per_mm[0],
                               self.__spacing_mm[1] * self.pixels_per_mm[1]]
@@ -644,17 +647,24 @@ class GraphicsItemGrid(GraphicsItem):
         self.__osc_range = 0
         self.__overlay_pixmap = None
 
+        self.base_color = QColor(70, 70, 165, self.__fill_alpha)
+
     @staticmethod
     def set_grid_direction(grid_direction):
         """Sets grids direction.
         """
         GraphicsItemGrid.grid_direction = grid_direction
 
+    @staticmethod
+    def set_auto_grid_size(auto_grid_size):
+        GraphicsItemGrid.auto_grid_size = auto_grid_size
+
     def get_display_name(self):
         if self.__automatic:
-            return "Automatic mesh"
+            return "Automatic mesh: %d x %d" % \
+                   (self.__num_cols, self.__num_rows)
         else:
-            return "Mesh %d" % (self.index + 1)
+            return "Mesh %d: %d x %d" % ((self.index + 1), self.__num_cols, self.__num_rows)
 
     def get_full_name(self):
         return "Mesh %d (hor. spacing: %.1f, ver. spacing: %.1f)" % \
@@ -683,12 +693,12 @@ class GraphicsItemGrid(GraphicsItem):
         self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
         self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
 
-        """
-        self.__center_coord.setX(self.__frame_polygon.point(0).x() + \
-                                 self.__grid_size_pix[0] / 2.0)
-        self.__center_coord.setY(self.__frame_polygon.point(0).y() + \
-                                 self.__grid_size_pix[1] / 2.0)
-        """
+        self.update_grid_draw_parameters()
+
+    def set_beam_info(self, beam_info):
+        GraphicsItem.set_beam_info(self, beam_info)
+        if self.__automatic:
+            self.update_auto_grid(beam_info)
 
     def set_osc_range(self, osc_range):
         self.__osc_range = osc_range
@@ -747,8 +757,8 @@ class GraphicsItemGrid(GraphicsItem):
                                           self.start_coord[0],
                                           self.start_coord[1] + self.__grid_size_pix[1])
 
-        self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
-        self.__num_rows = int(self.__grid_size_pix[1] / self.__spacing_pix[1])
+            #self.__num_cols = int(self.__grid_size_pix[0] / self.__spacing_pix[0])
+            #self.__num_rows = int(self.__grid_size_pix[1] / self.__spacing_pix[1])
 
         self.__grid_range_pix["fast"] = \
             abs(self.grid_direction['fast'][0] * (self.__grid_size_pix[0] - \
@@ -797,7 +807,8 @@ class GraphicsItemGrid(GraphicsItem):
         self.__overlay_pixmap.setPos(self.__frame_polygon.point(0).x(),
                                      self.__frame_polygon.point(0).y()) 
         self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
-        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 10)
+        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 10 and \
+                                         self.__display_overlay)
 
     def set_center_coord(self, center_coord):
         self.__center_coord.setX(center_coord[0])
@@ -840,25 +851,21 @@ class GraphicsItemGrid(GraphicsItem):
                 "num_images_per_line": self.__num_images_per_line,
                 "first_image_num": self.__first_image_num}
 
-    def update_auto_grid(self, grid_size):
+    def update_auto_grid(self, beam_info):
         """
         """
-        self.__num_cols = int(grid_size[0] / self.__spacing_pix[0])
-        self.__num_rows = int(grid_size[1] / self.__spacing_pix[1])
+        self.__spacing_mm = (beam_info["size_x"], beam_info["size_y"])
+        self.__spacing_pix = [self.__spacing_mm[0] * self.pixels_per_mm[0],
+                              self.__spacing_mm[1] * self.pixels_per_mm[1]]
+
+        self.__num_cols = int(self.auto_grid_size[0] / self.__spacing_mm[0])
+        self.__num_rows = int(self.auto_grid_size[1] / self.__spacing_mm[1])
+
+        self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
+        self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
 
         self.set_center_coord(self.beam_position)
 
-        self.update_item()
-        self.__num_lines =  \
-             abs(self.grid_direction['fast'][1] * \
-                 self.__num_cols) + \
-             abs(self.grid_direction['slow'][1] * \
-                 self.__num_rows)
-        self.__num_images_per_line = \
-            abs(self.grid_direction['fast'][0] * \
-                self.__num_cols) + \
-            abs(self.grid_direction['slow'][0] * \
-                self.__num_rows)
         self.update_grid_draw_parameters()
 
         self.__automatic = True
@@ -870,9 +877,10 @@ class GraphicsItemGrid(GraphicsItem):
         self.__motor_pos_corner.append(\
              self.get_motor_pos_from_col_row(self.__num_cols, self.__num_rows))
         self.__motor_pos_corner.append(\
-             self.get_motor_pos_from_col_row(0, 0))
-        self.__motor_pos_corner.append(\
              self.get_motor_pos_from_col_row(self.__num_cols, 0))
+        self.__motor_pos_corner.append(\
+             self.get_motor_pos_from_col_row(0, 0))
+        self.update_item()
 
     def get_center_coord(self):
         return self.__center_coord.x(), self.__center_coord.y()
@@ -909,9 +917,13 @@ class GraphicsItemGrid(GraphicsItem):
         self.__fill_alpha = value
         if self.__overlay_pixmap:  
             self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
+        self.base_color.setAlpha(self.__fill_alpha)
 
     def set_display_overlay(self, state):
         self.__display_overlay = state
+        if self.__overlay_pixmap:
+            self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 10 and \
+                                             self.__display_overlay)
 
     def paint(self, painter, option, widget):
         self.custom_pen.setColor(Qt.darkGray)
@@ -923,8 +935,8 @@ class GraphicsItemGrid(GraphicsItem):
             self.custom_pen.setColor(SELECTED_COLOR)
 
         painter.setPen(self.custom_pen)
-        brush_color = QColor(70, 70, 165, self.__fill_alpha)
-        self.custom_brush.setColor(brush_color)
+        #brush_color = QColor(70, 70, 165, self.__fill_alpha)
+        self.custom_brush.setColor(self.base_color)
         painter.setBrush(self.custom_brush)
 
         if self.__draw_projection:
@@ -1133,6 +1145,7 @@ class GraphicsItemGrid(GraphicsItem):
               self.grid_direction['fast'][1] * ref_fast + \
               (self.__num_lines - 1) * \
               self.grid_direction['slow'][1] * ref_slow
+
         return int(col), int(row)
 
     def get_motor_pos_from_col_row(self, col, row, as_cpos=False):
