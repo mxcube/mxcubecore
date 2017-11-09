@@ -232,7 +232,7 @@ class CommandContainer:
               from Command.Exporter import ExporterChannel
               newChannel = ExporterChannel(channelName, channel, **attributesDict)
             except:
-              logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
+              logging.getLogger().exception('%s: cannot add exporter channel %s (hint: check attributes)', self.name(), channelName)
         elif channelType.lower() == "epics":
             try:
               from Command.Epics import EpicsChannel
@@ -250,7 +250,7 @@ class CommandContainer:
                 from Command.Tine import TineChannel
                 newChannel = TineChannel(channelName, channel, **attributesDict)
             except:
-                logging.getLogger().exception('%s: cannot add channel %s (hint: check attributes)', self.name(), channelName)
+                logging.getLogger("GUI").exception('%s: cannot add TINE channel %s (hint: check attributes)', self.name(), channelName)
 
             
         elif channelType.lower() == "sardana":
