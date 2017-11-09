@@ -140,17 +140,9 @@ class EMBLMachineInfo(HardwareObject):
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = "- - -"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Files copied - pending - failed"
-        #self.values_list.append(temp_dict)
-
-        temp_dict = {}
-        temp_dict['value'] = "???"
+        temp_dict['value'] = ""
         temp_dict['in_range'] = False
-        temp_dict['bold'] = True
-        temp_dict['align'] = "left"
-        temp_dict['title'] = "Ramdisk size"
+        temp_dict['title'] = ""
         self.values_list.append(temp_dict)
 
         self.temp_hum_values = [None, None]
@@ -206,9 +198,14 @@ class EMBLMachineInfo(HardwareObject):
                self.overflow_alarm_changed)
 
         self.ppu_control_hwobj = self.getObjectByRole("ppu_control")
-        self.connect(self.ppu_control_hwobj, 
-                     'fileTranferStatusChanged',
-                     self.file_transfer_status_changed)
+        if self.ppu_control_hwobj is not None:
+            temp_dict = {}
+            self.values_list[-1]["value"] = "- - -"
+            self.values_list[-1]["title"] = "Files copied - pending - failed"
+
+            self.connect(self.ppu_control_hwobj, 
+                         'fileTranferStatusChanged',
+                          self.file_transfer_status_changed)
 
         self.flux_hwobj = self.getObjectByRole("flux")
         self.connect(self.flux_hwobj,
@@ -219,9 +216,11 @@ class EMBLMachineInfo(HardwareObject):
              self.getProperty("updateIntervalS"))
 
         if os.path.exists("/ramdisk/dataInt"):
+            temp_dict = {}
+            self.values_list[-1]['bold'] = True
+            self.values_list[-1]['align'] = "left"
+            self.values_list[-1]['title'] = "Ramdisk size"
             self.update_task = spawn(self.update_ramdisk_size, 5)
-        else:
-            self.values_list.pop(-1)
 
         self.update_values()
 
@@ -300,9 +299,9 @@ class EMBLMachineInfo(HardwareObject):
         self.update_sc_alarm()
 
     def file_transfer_status_changed(self, total, pending, failed):
-        self.values_list[6]['value'] = "%d  -  %d  -  %d" % \
+        self.values_list[-1]['value'] = "%d  -  %d  -  %d" % \
                (total, pending, failed)
-        self.values_list[6]['in_range'] = failed == 0
+        self.values_list[-1]['in_range'] = failed == 0
 
         if failed > 0:
             logging.getLogger("GUI").error("Error in file transfer (%d files failed to copy)." % failed)
@@ -331,7 +330,7 @@ class EMBLMachineInfo(HardwareObject):
         """Sets flux value"""
         self.values_list[3]['value'] = value
         msg_str = "Flux: %.2E ph/s" % value
-        msg_str += "\n@ %d transmission, %d x %d beam" % (\
+        msg_str += "\n@ %.1f transmission , %d x %d beam" % (\
                    transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
         self.values_list[3]['value_str'] = msg_str
         self.values_list[3]['in_range'] = value > 1e+6
@@ -453,8 +452,8 @@ class EMBLMachineInfo(HardwareObject):
             txt = ' Total: %s\n Free:  %s (%s)' % (self.sizeof_fmt(total),
                                                  self.sizeof_fmt(free),
                                                  '{0:.0%}'.format(perc))
-            self.values_list[6]['value'] = txt
-            self.values_list[6]['in_range'] = free / 2 ** 30 > 10
+            self.values_list[-1]['value'] = txt
+            self.values_list[-1]['in_range'] = free / 2 ** 30 > 10
             self.update_values()
             time.sleep(sleep_time)
 

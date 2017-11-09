@@ -66,7 +66,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_start = None
         self.chan_scan_status = None
         self.cmd_scan_abort = None
-        self.cmd_enable_max_transmission = False
+        self.cmd_adjust_transmission = False
         self.cmd_set_max_transmission = False
 
     def init(self):
@@ -86,7 +86,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_error.connectSignal('update', self.scan_error_update)
 
         self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
-        self.cmd_enable_max_transmission = self.getCommandObject('cmdEnableMaxTransmission')
+        self.cmd_adjust_transmission = self.getCommandObject('cmdAdjustTransmission')
         self.cmd_set_max_transmission = self.getCommandObject('cmdSetMaxTransmission')
 
         self.num_points = self.getProperty("numPoints", 60)
@@ -442,8 +442,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         elements = []
         try:
             for el in self["elements"]:
-                elements.append({"symbol" : el.symbol,
-                                 "energy" : el.energy})
+                elements.append({"symbol" : el.getProperty('symbol'),
+                                 "energy" : el.getProperty('energy')})
         except IndexError:
             pass
         return elements
@@ -467,12 +467,12 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.db_connection_hwobj:
             db_status = self.db_connection_hwobj.storeEnergyScan(self.scan_info)
 
-    def enable_max_transmission(self, state):
+    def adjust_transmission(self, state):
         """
         Enables/disables usage of maximal transmission set
         during the energy scan
         """ 
-        self.cmd_enable_max_transmission(state)
+        self.cmd_adjust_transmission(state)
 
     def set_max_transmission(self, value):
         """
@@ -480,8 +480,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         self.cmd_set_max_transmission(value)
 
-    def get_max_transmission_state(self):
-        return self.cmd_enable_max_transmission.get()
+    def get_adjust_transmission_state(self):
+        return self.cmd_adjust_transmission.get()
 
     def get_max_transmission_value(self):
         return self.cmd_set_max_transmission.get()

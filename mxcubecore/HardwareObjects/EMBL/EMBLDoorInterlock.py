@@ -56,6 +56,8 @@ class EMBLDoorInterlock(Device):
         self.chan_state_locked = None
         self.chan_state_breakable = None
         self.cmd_break_interlock = None
+  
+        self.ics_enabled = None
 
     def init(self):
         self.door_interlock_state = "unknown"
@@ -81,14 +83,32 @@ class EMBLDoorInterlock(Device):
         self.chan_state_breakable = self.getChannelObject('chanStateBreakable')
         self.chan_state_breakable.connectSignal('update', self.state_breakable_changed)
 
+        self.chan_ics_error = self.getChannelObject('chanIcsErrorOne')
+        self.chan_ics_error.connectSignal('update', self.ics_error_msg_changed)
+
+        self.chan_cmd_break_error = self.getChannelObject('chanCmdBreakError')
+        if self.chan_cmd_break_error is not None:
+            self.chan_cmd_break_error.connectSignal('update', self.cmd_break_error_msg_changed)
+
         self.cmd_break_interlock = self.getCommandObject('cmdBreak')
 
         self.getState = self.get_state
 
+    def cmd_break_error_msg_changed(self, error_msg ):
+        if len(error_msg) > 0:
+           logging.getLogger("GUI").error("Break ICS door interlock: Error %s" % error_msg)
+   
+    def ics_error_msg_changed(self, error_msg):
+        if len(error_msg) > 0:
+           self.ics_enabled = False
+        else:
+           self.ics_enabled = True
+        self.get_state()
+
     def connected(self):
         """Sets is ready"""
         self.setIsReady(True)
-
+      
     def disconnected(self):
         self.setIsReady(False)
 
@@ -114,6 +134,10 @@ class EMBLDoorInterlock(Device):
             self.door_interlock_final_state = 'unlocked'
             msg = "Unlocked"
 
+        if not self.ics_enabled:
+           self.door_interlock_final_state = 'error'
+           msg = "Desy ICS error"
+
         if not self.use_door_interlock:
             self.door_interlock_final_state = 'locked_active'
             msg = "Locked (unlock enabled)"
@@ -128,9 +152,11 @@ class EMBLDoorInterlock(Device):
         """
         if self.diffractometer_hwobj is not None: 
             if self.diffractometer_hwobj.in_plate_mode():
-                if self.detector_distance_hwobj.getPosition() < 340:
-                    self.detector_distance_hwobj.move(500)
-                    gevent.sleep(5)
+                if self.detector_distance_hwobj.getPosition() < 780:
+                    self.detector_distance_hwobj.move(800, timeout=None)
+                    while self.detector_distance_hwobj.getPosition() < 360:
+                        gevent.sleep(0.01)
+                    gevent.sleep(2)
             else: 
                 if self.detector_distance_hwobj.getPosition() < 1199:
                     self.detector_distance_hwobj.move(1200)
