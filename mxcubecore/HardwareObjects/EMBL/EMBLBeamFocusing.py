@@ -35,6 +35,7 @@ class EMBLBeamFocusing(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
+        self.aperture_hwobj = None
         self.active_focus_mode = None
         self.size = [9999, 9999]
         self.focus_modes = None
@@ -53,6 +54,7 @@ class EMBLBeamFocusing(HardwareObject):
             self.focus_modes.append(\
                  {'modeName': focus_mode.modeName,
                   'lensCombination': eval(focus_mode.lensCombination),
+                  'aperture': focus_mode.aperture,
                   'lensModes': eval(focus_mode.lensModes),
                   'size': eval(focus_mode.size),
                   'message': eval(focus_mode.message),
@@ -88,6 +90,8 @@ class EMBLBeamFocusing(HardwareObject):
             self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
         except:
             pass
+
+        self.aperture_hwobj = self.getObjectByRole("aperture")
 
     def get_focus_motors(self):
         """Returns a list with all focusing motors"""
@@ -168,6 +172,14 @@ class EMBLBeamFocusing(HardwareObject):
             if focus_mode['modeName'] == focus_mode_name:
                 return focus_mode['lensCombination']
 
+    def get_focus_mode_aperture(self, focus_mode_name=None):
+        if focus_mode_name == None:
+            focus_mode_name, beam_size = self.get_active_focus_mode()
+
+        for focus_mode in self.focus_modes:
+            if focus_mode['modeName'] == focus_mode_name:
+                return focus_mode['aperture']
+
     def get_active_focus_mode(self):
         """Evaluates and returns active focusing mode"""
         if len(self.focus_motors_dict) > 0:
@@ -231,6 +243,7 @@ class EMBLBeamFocusing(HardwareObject):
             if self.motors_groups:
                 for motors_group in self.motors_groups:
                     motors_group.set_motor_group_focus_mode(focus_mode)
+            self.aperture_hwobj.set_diameter(self.get_focus_mode_aperture(focus_mode))
         else:
             #No motors defined
             self.active_focus_mode = focus_mode

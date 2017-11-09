@@ -252,7 +252,7 @@ class EMBLEnergy(Device):
         self.emit('energyLimitsChanged', (limits,))
 
     def energy_state_changed(self, state):
-        logging.getLogger('HWR').info("Energy: State changed to %s" % str(state))
+        #logging.getLogger('HWR').info("Energy: State changed to %s" % str(state))
         self.energy_server_check_for_errors(state)
         state = int(state[0])
         if state == 0:
@@ -272,17 +272,18 @@ class EMBLEnergy(Device):
             while self.chan_status.getValue()[0] != 0:
                gevent.sleep(0.1) 
     
-    def energy_server_check_for_errors(self,state):
+    def energy_server_check_for_errors(self, state):
         if state[0] == 1.0 or state[1] == 63:
            return
         elems = ['hdm1','hdm2','roll','undulator','bragg','perp']
-        message = "ERROR: setting energy failed on motors: "
+        message = "Error: setting energy failed on motors: "
         bits =  [int(state[1]) >> i & 1 for i in range(5,-1,-1)]
         #logging.getLogger('GUI').error("%s"%bits)
         for i in range(6):
             if bits[i] == 0:
-               message = "%s %s"%(message,elems[i])
+               message = "%s %s" % (message, elems[i])
         logging.getLogger('GUI').error(message)  
+        self.emit('statusInfoChanged', message)
 
     def bragg_break_status_changed(self, status):
         self.bragg_break_status = status
