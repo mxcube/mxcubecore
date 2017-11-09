@@ -122,6 +122,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
         self.image_tracking_hwobj = self.getObjectByRole("image_tracking")
+        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
+        self.plate_manipulator_hwobj = self.getObjectByRole("plate_manipulator")
 
         undulators = []
         try:
@@ -282,7 +284,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             if self._actual_collect_status == "error":
                 self.collection_failed()
             elif self._actual_collect_status == "collecting":
-                self.store_image_in_lims_by_frame_num(1)
+                if self.current_dc_parameters['experiment_type'] != 'Mesh':
+                    self.store_image_in_lims_by_frame_num(1)
             if self._previous_collect_status is None:
                 if self._actual_collect_status == 'busy':
                     logging.info("Collection: Preparing ...")

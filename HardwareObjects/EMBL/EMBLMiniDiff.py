@@ -165,7 +165,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.beam_position = value
 
     def state_changed(self, state):
-        #logging.getLogger("HWR").debug("State changed: %s" %str(state))
+        #logging.getLogger("HWR").debug("State changed: %s" % str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
         self.emit("minidiffStatusChanged", (self.current_state))
@@ -303,21 +303,14 @@ class EMBLMiniDiff(GenericDiffractometer):
             if detector_distance < 350:
                 logging.getLogger("GUI").info(
                     "Moving detector to safe distance")
-                self.detector_distance_motor_hwobj.move(350, wait=True)
+                self.detector_distance_motor_hwobj.move(350, timeout=20)
 
         if timeout is not None:
-            # gevent.spawn(self.execute_server_task,
-            #              self.cmd_start_set_phase,
-            #              timeout,
-            #              phase).join()
-            self.current_state = "Busy"
             self.cmd_start_set_phase(phase)
             time.sleep(1)
-            self.wait_device_ready(timeout)
-
-            #self.ready_event.wait()
-            #self.ready_event.clear()
-            #self.wait_device_ready(30)
+            with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
+                while phase != self.chan_current_phase.getValue():
+                    gevent.sleep(0.01)
         else:
             self.cmd_start_set_phase(phase)
    
@@ -366,9 +359,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         return pos
 
     def move_to_beam(self, x, y, omega=None):
-        """
-        Descript. : function to create a centring point based on all motors
-                    positions.
+        """Creates a new centring point based on all motors positions
         """  
         if self.current_phase != "BeamLocation":
             GenericDiffractometer.move_to_beam(self, x, y, omega) 

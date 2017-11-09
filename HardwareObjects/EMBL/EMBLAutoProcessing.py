@@ -112,14 +112,12 @@ class EMBLAutoProcessing(HardwareObject):
                     if process_event == "after":
                         end_of_line_to_execute = " " + params_dict["xds_dir"]
                     elif process_event == 'image':
-                        if frame_number == 1 or frame_number == \
-                            params_dict['oscillation_sequence'][0]['number_of_images']:
-                            end_of_line_to_execute = " %s %s/%s_%d_%05d.cbf" % \
-                               (params_dict["fileinfo"]["directory"],
-                                params_dict["fileinfo"]["directory"],
-                                params_dict["fileinfo"]["prefix"],
-                                params_dict["fileinfo"]["run_number"],
-                                frame_number)
+                        end_of_line_to_execute = " %s %s/%s_%d_%05d.cbf" % \
+                           (params_dict["fileinfo"]["directory"],
+                            params_dict["fileinfo"]["directory"],
+                            params_dict["fileinfo"]["prefix"],
+                            params_dict["fileinfo"]["run_number"],
+                            frame_number)
                     if will_execute:
                         subprocess.Popen(str(executable + end_of_line_to_execute),
                                          shell=True, stdin=None, stdout=None,

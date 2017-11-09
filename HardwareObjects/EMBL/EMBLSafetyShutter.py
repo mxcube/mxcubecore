@@ -45,6 +45,7 @@ class EMBLSafetyShutter(Device):
         self.shutter_can_open = None
         self.shutter_state = None
         self.shutter_state_open = None
+        self.shutter_state_closed = None
         self.shutter_can_open = None
 
         self.chan_collection_state = None
@@ -55,6 +56,8 @@ class EMBLSafetyShutter(Device):
         self.cmd_open = None
         self.cmd_close = None
 
+        self.ics_enabled = None
+
     def init(self):
         self.chan_collection_state = self.getChannelObject('chanCollectStatus')
         self.chan_collection_state.connectSignal('update',
@@ -63,6 +66,9 @@ class EMBLSafetyShutter(Device):
         self.chan_state_open = self.getChannelObject('chanStateOpen')
         self.chan_state_open.connectSignal('update',
              self.state_open_changed)
+        self.chan_state_closed = self.getChannelObject('chanStateClosed')
+        self.chan_state_closed.connectSignal('update',
+             self.state_closed_changed)
 
         self.state_open_changed(self.chan_state_open.getValue())
 
@@ -71,12 +77,20 @@ class EMBLSafetyShutter(Device):
              self.state_open_permission_changed)
         self.state_open_permission_changed(self.chan_state_open_permission.getValue())
 
-        self.chan_error = self.getChannelObject('chanError')
-        if self.chan_error is not None:
-            self.chan_error.connectSignal('update', self.error_msg_changed)
+        self.chan_ics_error = self.getChannelObject('chanIcsError')
+        self.chan_ics_error.connectSignal('update', self.ics_error_msg_changed)
+
+        self.chan_cmd_close_error = self.getChannelObject('chanCmdCloseError')
+        if self.chan_cmd_close_error is not None:
+            self.chan_cmd_close_error.connectSignal('update', self.cmd_error_msg_changed)
+
+        self.chan_cmd_open_error = self.getChannelObject('chanCmdOpenError')
+        if self.chan_cmd_open_error is not None:
+            self.chan_cmd_open_error.connectSignal('update', self.cmd_error_msg_changed)
          
         self.cmd_open = self.getCommandObject('cmdOpen')
         self.cmd_close = self.getCommandObject('cmdClose')
+
 
         self.use_shutter = self.getProperty('useShutter')
         if self.use_shutter is None:
@@ -98,26 +112,51 @@ class EMBLSafetyShutter(Device):
         self.shutter_state_open = state
         self.getShutterState()
 
+    def state_closed_changed(self, state):
+        self.shutter_state_closed = state
+        self.getShutterState()
+
     def state_open_permission_changed(self, state):
         self.shutter_can_open = state
         self.getShutterState()
 
-    def error_msg_changed(self, error_msg):
+    def cmd_error_msg_changed(self, error_msg):
         if len(error_msg) > 0:
             logging.getLogger("GUI").error("Safety shutter: Error %s" % error_msg)
 
+
+    def ics_error_msg_changed(self, error_msg):
+        if len(error_msg) > 0:
+            logging.getLogger("GUI").error("DESY ICS Connection: Error %s" % error_msg)
+            self.ics_enabled = False
+        else:
+            self.ics_enabled = True
+        self.getShutterState()
+
     def getShutterState(self):
+        msg = ""
+
         if self.shutter_state_open:
             self.shutter_state = "opened"
+        elif self.shutter_state_closed:
+            self.shutter_state = "closed"
         elif self.data_collection_state == "collecting" or not self.shutter_can_open:
             self.shutter_state = "disabled"
         else:
-            self.shutter_state = "closed"
+            self.shutter_state = "unknown"
+
+        if self.shutter_state_closed and not self.shutter_can_open:
+            self.shutter_state = "noperm"
+            msg = "No permission"
+      
+        if not self.ics_enabled:
+            self.shutter_state = 'disabled'
+            msg = "Ics broke"
 
         if not self.use_shutter:
             self.shutter_state = self.shutter_state_list[0]
 
-        self.emit('shutterStateChanged', (self.shutter_state,))
+        self.emit('shutterStateChanged', (self.shutter_state, msg))
         return self.shutter_state
 
     # set the shutter open command to any TEXT value of size 1 to open it
