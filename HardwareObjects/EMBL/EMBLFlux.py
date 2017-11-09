@@ -124,23 +124,26 @@ class EMBLFlux(HardwareObject):
 
     def beam_info_changed(self, beam_info):
         self.beam_info = beam_info
-        self.update_flux_value()
+        #self.update_flux_value()
 
     def transmission_changed(self, transmission):
         self.transmission = transmission
-        self.update_flux_value()
+        #self.update_flux_value()
 
     def set_flux(self, flux_value):
         self.flux_value = flux_value
-        self.origin_flux_value = copy(flux_value)
-        self.origin_beam_info = copy(self.beam_info)
-        self.origin_transmission = copy(self.transmission)
+        #self.origin_flux_value = copy(flux_value)
+        #self.origin_beam_info = copy(self.beam_info)
+        #self.origin_transmission = copy(self.transmission)
         self.update_flux_value()
 
     def get_flux(self):
         return self.flux_value
 
     def update_flux_value(self):
+        self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
+
+        """
         if self.flux_value is not None:
             if self.origin_transmission is not None:
                 if self.origin_transmission != self.transmission:
@@ -151,10 +154,10 @@ class EMBLFlux(HardwareObject):
             if self.origin_beam_info is not None:
                 if self.origin_beam_info != self.beam_info:
                     if self.origin_beam_info['shape'] == 'ellipse':
-                        original_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
+                        origin_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
                     else:     
-                        original_area = self.original_beam_info['size_x'] * \
-                                        self.original_beam_info['size_y']
+                        origin_area = self.origin_beam_info['size_x'] * \
+                                      self.origin_beam_info['size_y']
 
                     if self.beam_info['shape'] == 'ellipse':
                         current_area = 3.141592 * pow(self.beam_info['size_x'] / 2, 2)
@@ -162,8 +165,9 @@ class EMBLFlux(HardwareObject):
                         current_area = self.beam_info['size_x'] * \
                                        self.beam_info['size_y']
                     self.flux_value = self.flux_value * current_area / \
-                                      original_area   
+                                      origin_area   
             self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
+        """
 
     def measure_intensity(self):
         """Measures intesity"""
@@ -254,11 +258,11 @@ class EMBLFlux(HardwareObject):
         logging.getLogger("user_level_log").info(msg)
         meas_item.append("%1.1e" % dose_rate)
 
-        msg = "Time to reach 20 MGy = %d s = %d frames " % \
-              (20000. / dose_rate, int(25 * 20000. / dose_rate))
+        msg = "Time to reach 20 MGy =  %.1f = %d 16M frames " % \
+              (20000. / dose_rate, int(130 * 20000. / dose_rate))
         logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%d, %d frames" % \
-              (20000. / dose_rate, int(25 * 20000. / dose_rate)))
+        meas_item.append("%.1f, %d 16M frames" % \
+              (20000. / dose_rate, int(130 * 20000. / dose_rate)))
 
         self.intensity_measurements.insert(0, meas_item)
         self.flux_value = flux

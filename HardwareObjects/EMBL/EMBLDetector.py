@@ -214,11 +214,11 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def close_cover(self, wait=True):
         if self.get_cover_state() != "closed":
-            self.cmd_close_cover()
+            self.cmd_close_cover([0,0])
             if wait:
-                with gevent.Timeout(15, Exception("Timeout waiting for close")):
-                    while self.get_cover_state() != "closed":
-                          gevent.sleep(0.1)
+                #with gevent.Timeout(15, Exception("Timeout waiting for detector cover to close")):
+                while self.get_cover_state() != "closed":
+                   gevent.sleep(0.05)
 
     def restart_daq(self):
         self.cmd_restart_daq(0)

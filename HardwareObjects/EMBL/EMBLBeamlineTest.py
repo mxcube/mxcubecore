@@ -26,6 +26,7 @@ import tempfile
 
 import numpy as np
 
+
 from csv import reader
 from time import sleep
 from datetime import datetime
@@ -70,6 +71,7 @@ class EMBLBeamlineTest(HardwareObject):
         HardwareObject.__init__(self, name)
 
         self.ready_event = None
+        self.user_clicked_event = None
         self.devices_list = None
         self.csv_file = None
         self.csv_file_name = None
@@ -83,6 +85,8 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.scale_hor = None
         self.scale_ver = None
+        self.scale_double_hor = None
+        self.scale_double_ver = None
         self.scan_status = None
 
         self.available_tests_dict = {}
@@ -96,7 +100,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.intensity_value = None
 
         self.chan_encoder_ar = None
-        self.chan_qbpm_ar = None
+        #self.chan_qbpm_ar = None
         self.chan_pitch_position_ar = None
         self.chan_pitch_scan_status = None
         self.chan_intens_range = None
@@ -145,6 +149,8 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.scale_hor = self.getProperty("scale_hor")
         self.scale_ver = self.getProperty("scale_ver")
+        self.scale_double_hor = self.getProperty("scale_double_hor")
+        self.scale_double_ver = self.getProperty("scale_double_ver")
         self.chan_pitch_scan_status = self.getChannelObject("chanPitchScanStatus")
         self.connect(self.chan_pitch_scan_status,
                      "update",
@@ -155,7 +161,7 @@ class EMBLBeamlineTest(HardwareObject):
         #             "update",
         #             self.encoder_ar_changed)
 
-        self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
+        #self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
 
         self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
         #self.connect(self.chan_pitch_position_ar,
@@ -177,6 +183,9 @@ class EMBLBeamlineTest(HardwareObject):
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
         self.graphics_manager_hwobj = self.bl_hwobj.shape_history_hwobj
+        self.connect(self.graphics_manager_hwobj,
+                     "imageDoubleClicked",
+                     self.image_double_clicked)
 
         try:
             self.beam_focusing_hwobj = \
@@ -366,6 +375,10 @@ class EMBLBeamlineTest(HardwareObject):
         """Returns list of devices"""
         return self.devices_list
 
+    def image_double_clicked(self, x, y):
+        if self.user_clicked_event is not None:
+            self.user_clicked_event.set((x, y)) 
+
     def focusing_mode_changed(self, focusing_mode, beam_size):
         """Reemits focusing changed signal
 
@@ -456,9 +469,6 @@ class EMBLBeamlineTest(HardwareObject):
             while self.chan_pitch_scan_status.getValue() != 0:
                    gevent.sleep(0.1)
         self.cmd_set_vmax_pitch(1)
-
-    def restart_detector_daq(self):
-        print "restart detector daq"
 
     def test_sc_stats(self):
         result = {}
@@ -1017,6 +1027,14 @@ class EMBLBeamlineTest(HardwareObject):
         self.ready_event.set()
         return result
 
+    def start_center_beam_manual(self):
+        gevent.spawn(self.center_beam_manual_procedure)
+
+    def center_beam_manual_procedure(self): 
+        self.user_clicked_event = gevent.event.AsyncResult()
+        x, y = self.user_clicked_event.get()
+        self.user_clicked_event = None
+
     def center_beam_report(self):
         self.start_test_queue(["centerbeam"])
 
@@ -1117,7 +1135,8 @@ class EMBLBeamlineTest(HardwareObject):
                 self.bl_hwobj.transmission_hwobj.setTransmission(new_transmission, timeout=45)
                 self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
             else:
-                self.bl_hwobj.transmission_hwobj.setTransmission(10, timeout=45)
+                # 2% transmission for beam centering in double foucused mode
+                self.bl_hwobj.transmission_hwobj.setTransmission(2, timeout=45)
                 self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 8")
 
             msg = "3/6 : Opening slits to 1 x 1 mm"
@@ -1127,7 +1146,6 @@ class EMBLBeamlineTest(HardwareObject):
 
             slits_hwobj.set_gap('Hor', 1)
             slits_hwobj.set_gap('Ver', 1)
-            self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
 
             #self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
@@ -1288,8 +1306,12 @@ class EMBLBeamlineTest(HardwareObject):
                         log.debug("No beam detected")
                         return
 
-                    delta_hor = beam_pos_displacement[0] * self.scale_hor
-                    delta_ver = beam_pos_displacement[1] * self.scale_ver
+                    if active_mode == "Collimated":
+                       delta_hor = beam_pos_displacement[0] * self.scale_hor
+                       delta_ver = beam_pos_displacement[1] * self.scale_ver
+                    else:
+                       delta_hor = beam_pos_displacement[0] * self.scale_double_hor
+                       delta_ver = beam_pos_displacement[1] * self.scale_double_ver
 
                     log.info("Measured beam displacement: Horizontal " + \
                              "%.4f mm, Vertical %.4f mm"%beam_pos_displacement)
@@ -1310,7 +1332,7 @@ class EMBLBeamlineTest(HardwareObject):
                             self.vertical_motor_hwobj.moveRelative(delta_ver, timeout=5)
                             sleep(2)
                     elif active_mode == "Double":
-                        if abs(delta_hor) > 0.001:
+                        if abs(delta_hor) > 0.0001:
                             log.info("Moving horizontal by %.4f" % delta_hor)
                             self.horizontal_double_mode_motor_hwobj.moveRelative(delta_hor, timeout=5) 
                             sleep(2)
@@ -1548,8 +1570,8 @@ class EMBLBeamlineTest(HardwareObject):
 
         max_frame_rate = 1 / self.bl_hwobj.detector_hwobj.get_exposure_time_limits()[0]
 
-        msg = "Time to reach 20 MGy = %d s = %d frames " % \
-              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate))
+        msg = "Time to reach 20 MGy = %.1f s = %d frames @ %s Hz " % \
+              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate),max_frame_rate)
         result["result_details"].append(msg + "<br><br>")
         logging.getLogger("GUI").info(msg)
         meas_item.append("%d, %d frames" % \
