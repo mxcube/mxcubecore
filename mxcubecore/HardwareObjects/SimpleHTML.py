@@ -39,9 +39,9 @@ def create_html_start(title=""):
 def create_html_end():
     return HTML_END
 
-def create_table(table_header=None, table_cells=None):
+def create_table(table_header=None, table_cells=None, border_size=1):
     string_list = []
-    string_list.append("<table border='1'>")
+    string_list.append("<table border='%d'>" % border_size)
     if table_header:
         string_list.append("<tr>") 
         header_str = ""
@@ -98,8 +98,42 @@ def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename
        html_file.write(HTML_START % "Mesh scan results")  
        html_file.write('<div align="CENTER">\n')
        html_file.write(create_text("Mesh scan results", heading = 1))
-       html_file.write(create_image("parallel_processing_result.png", height=600))
+       html_file.write(create_image("parallel_processing_result.png"))
        html_file.write("</br>")
+       html_file.write(create_text("Scan parameters", heading = 1))
+       osc_range_per_line = mesh_scan_params["osc_range"] * \
+                            (mesh_scan_params['images_per_line'] - 1)
+
+       table_cells = (("Number of lines", str(mesh_scan_params['lines_num'])),
+                      ("Frames per line", str(mesh_scan_params['images_per_line'])),
+                      ("Grid size", "%d x %d microns" %\
+                       ((mesh_scan_params["steps_x"] * \
+                         mesh_scan_params["xOffset"] * \
+                         1000),
+                        (mesh_scan_params["steps_y"] * \
+                         mesh_scan_params["yOffset"] * \
+                         1000))),
+                      ("Scan area", "%d x %d microns" % \
+                       ((mesh_scan_params['dx_mm'] * 1000),
+                        (mesh_scan_params['dy_mm'] * 1000))),
+                      ("Horizontal distance between frames",
+                       "%d microns" % (mesh_scan_params['xOffset'] * 1000)),
+                      ("Vertical distance between frames",
+                       "%d microns" % (mesh_scan_params['xOffset'] * 1000)),
+                      ("Osciallation middle",
+                       "%.1f" % mesh_scan_params["osc_midle"]),
+                      ("Osciallation range per frame",
+                       "%.2f" % mesh_scan_params["osc_range"]),
+                      ("Osciallation range per line",
+                       "%.2f (from %.2f to %2.f)" % \
+                       (osc_range_per_line,
+                        (mesh_scan_params["osc_midle"] - osc_range_per_line / 2),
+                        (mesh_scan_params["osc_midle"] + osc_range_per_line / 2))))
+       table_rec = create_table(table_cells=table_cells, border_size=0)
+       for row in table_rec:
+           html_file.write(row)
+       html_file.write("</br>")
+
 
        positions = mesh_scan_results.get("best_positions", [])
        if len(positions) > 0:
@@ -108,16 +142,16 @@ def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename
 
            html_file.write('<font size="2">')
            table_cells = [["%d" % positions[0]["index"],
-                           "%.3f" % positions[0]["score"],
-                           "%.3f" % positions[0]["spots_num"],
-                           "%.3f" % positions[0]["spots_int_aver"],
-                           "%.3f" % positions[0]["spots_resolution"],
+                           "<b>%.2f<b>" % positions[0]["score"],
+                           "<b>%d</b>" % positions[0]["spots_num"],
+                           "%.1f" % positions[0]["spots_int_aver"],
+                           "%.1f" % positions[0]["spots_resolution"],
                            positions[0]["filename"],
-                           positions[0]["col"],
-                           positions[0]["row"]]]
+                           "%d" % (positions[0]["col"] + 0.5),
+                           "%d" % (positions[0]["row"] + 0.5)]]
            table_rec = create_table(\
-                ["Index", "Score", "Number of spots", "Int aver.",
-                 "Resolution", "Image file", "Column", "Row"],
+                ["Index", "<b>Score</b>", "<b>Number of spots</b>", "Int aver.",
+                 "Resolution", "File name", "Column", "Row"],
                 table_cells)
            for row in table_rec:
                html_file.write(row)
@@ -129,16 +163,16 @@ def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename
                table_cells = []
                for position in positions[1:]:
                    table_cells.append((position["index"],
-                                       "%.3f" % position["score"],
-                                       "%.3f" % position["spots_num"],
-                                       "%.3f" % position["spots_int_aver"],
-                                       "%.3f" % position["spots_resolution"],
+                                       "<b>%.2f</b>" % position["score"],
+                                       "<b>%d</b>" % position["spots_num"],
+                                       "%.1f" % position["spots_int_aver"],
+                                       "%.1f" % position["spots_resolution"],
                                        position["filename"],
-                                       position["col"],
-                                       position["row"]))
+                                       "%d" % (position["col"] + 0.5),
+                                       "%d" % (position["row"] + 0.5)))
                table_rec = create_table(\
-                   ["Index", "Score", "Number of spots", "Int aver.",
-                    "Resolution", "Image file", "Column", "Row"],
+                   ["Index", "<b>Score</b>", "<b>Number of spots</b>", "Int aver.",
+                    "Resolution", "File name", "Column", "Row"],
                    table_cells)
                for row in table_rec:
                    html_file.write(row)
