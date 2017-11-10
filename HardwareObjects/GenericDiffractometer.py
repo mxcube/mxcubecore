@@ -145,6 +145,7 @@ class GenericDiffractometer(HardwareObject):
     PHASE_CENTRING = "Centring"
     PHASE_COLLECTION = "DataCollection"
     PHASE_BEAM = "BeamLocation"
+    PHASE_UNKNOWN = "Unknown"
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -405,7 +406,7 @@ class GenericDiffractometer(HardwareObject):
         return self.current_state == DiffractometerState.tostring(\
                     DiffractometerState.Ready)
 
-    def wait_device_ready(self, timeout=10):
+    def wait_device_ready(self, timeout=30):
         """ Waits when diffractometer status is ready:
 
         :param timeout: timeout in second
@@ -413,7 +414,7 @@ class GenericDiffractometer(HardwareObject):
         """
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
-                gevent.sleep(0.01)
+                time.sleep(0.01)
 
     def execute_server_task(self, method, timeout=30, *args):
         """Method is used to execute commands and wait till
@@ -424,10 +425,11 @@ class GenericDiffractometer(HardwareObject):
         :param timeout: timeout in seconds
         :type timeout: seconds 
         """
-        self.ready_event.clear()
-        self.current_state = DiffractometerState.tostring(\
-            DiffractometerState.Busy)
-        task_id = method(*args)
+        #self.ready_event.clear()
+        self.current_state = DiffractometerState.tostring(DiffractometerState.Busy)
+        method(*args)
+        time.sleep(5) 
+        #gevent.sleep(2)
         self.wait_device_ready(timeout)
         self.ready_event.set()
 
@@ -450,7 +452,7 @@ class GenericDiffractometer(HardwareObject):
 
         :returns: boolean
         """
-        return False
+        return self.use_sc
 
     def set_use_sc(self, flag):
         """Sets use_sc flag, that indicates if sample changer is used
@@ -572,11 +574,6 @@ class GenericDiffractometer(HardwareObject):
         :returns: list with str
         """
         return self.phase_list
-
-    def set_phase(self, phase_name, timeout=None):
-        """
-        """
-        raise NotImplementedError
 
     def start_centring_method(self, method, sample_info=None, wait=False):
         """
@@ -734,6 +731,9 @@ class GenericDiffractometer(HardwareObject):
                 #if 3 click centring move -180
                 if not self.in_plate_mode():
                     self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+
+            if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO:
+                self.emit("newAutomaticCentringPoint", motor_pos)
             self.centring_time = time.time()
             self.emit_centring_successful()
             self.emit_progress_message("")
@@ -810,13 +810,15 @@ class GenericDiffractometer(HardwareObject):
         """
         self.move_motors(centred_position)
 
-    def move_to_motors_positions(self, motors_positions, wait = False):
+    def move_to_motors_positions(self, motors_positions, wait=False):
         """
         """
         self.emit_progress_message("Moving to motors positions...")
         self.move_to_motors_positions_procedure = gevent.spawn(\
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
+        if wait:
+            self.wait_device_ready(10)
   
     def move_motors(self, motor_positions, timeout=15):
         """
@@ -875,7 +877,11 @@ class GenericDiffractometer(HardwareObject):
         """
         self.centring_status["valid"] = True
         self.centring_status["accepted"] = True
-        self.emit('centringAccepted', (True, self.get_centring_status()))
+        centring_status = self.get_centring_status()
+        if "motors" not in centring_status:
+            centring_status['motors'] = self.get_positions()
+        self.emit('centringAccepted', (True, centring_status))
+        self.emit("fsmConditionChanged", "centering_position_accepted", True)
 
     def reject_centring(self):
         """
@@ -886,6 +892,7 @@ class GenericDiffractometer(HardwareObject):
         self.centring_status = {"valid":False}
         self.emit_progress_message("")
         self.emit('centringAccepted', (False, self.get_centring_status()))
+        self.emit("fsmConditionChanged", "centering_position_accepted", False)
 
     def emit_centring_started(self, method):
         """
@@ -994,7 +1001,14 @@ class GenericDiffractometer(HardwareObject):
         """
         return
 
-    def get_scan_limits(self, speed=None):
+    def get_osc_limits(self):
+        """Returns osc limits"""
+        return
+
+    def get_osc_max_speed(self):
+        return
+
+    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
         """
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
@@ -1051,11 +1065,12 @@ class GenericDiffractometer(HardwareObject):
         """
         self.emit('minidiffNotReady', ())
 
+    """
     def state_changed(self, state):
-        """ 
-        """
+        logging.getLogger("HWR").debug("State changed %s" % str(state))  
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
+    """
 
     def motor_state_changed(self, state):
         """
@@ -1068,7 +1083,8 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         self.current_phase = current_phase
-        #logging.getLogger("HWR").info("Current_phase_changed to %s" % current_phase)
+        if current_phase != GenericDiffractometer.PHASE_UNKNOWN:
+            logging.getLogger("GUI").info("Diffractometer: Current phase changed to %s" % current_phase)
         self.emit('minidiffPhaseChanged', (current_phase, ))
 
     def sample_is_loaded_changed(self, sample_is_loaded):
@@ -1111,9 +1127,6 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         return
-
-    def get_osc_dynamic_limits(self):
-        return (-10000, 10000)
 
     def zoom_in(self):
         return

@@ -1,3 +1,4 @@
+import gevent
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -29,7 +30,10 @@ class Attenuators(Device):
         self.chan_att_limits.connectSignal('update', self.att_limits_changed)
         
         self.connected()     
-        self.getAtteConfig()
+        try:
+            self.getAtteConfig()
+        except:
+            pass
     
     def getAtteConfig(self):
         """
@@ -130,11 +134,15 @@ class Attenuators(Device):
         """
         return self.getAttFactor()
 
-    def setTransmission(self, value):
+    def setTransmission(self, value, timeout=None):
         """
         Descript. :
         """
         self.chan_att_value.setValue(value)
+        if timeout is not None:
+            with gevent.Timeout(timeout, Exception("Timeout waiting for state ready")):
+                while self.att_state != "ready":
+                      gevent.sleep(0.1)
 
     def update_values(self):
         self.att_value = self.getAttFactor()
