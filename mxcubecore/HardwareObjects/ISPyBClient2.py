@@ -1927,22 +1927,6 @@ class ISPyBValueFactory():
                     directory = mx_collect_dict['fileinfo']['directory']
                 except:
                     directory = ''
-                else:
-                    if 'mesh' in directory:
-                        mesh_used = True
-                    else:
-                        mesh_used = False
-
-                    if mesh_used:
-                        mx_collect_dict['experiment_type'] = 'Mesh'
-                        comment = mx_collect_dict.get("comment", "")
-                        if not comment:
-                            try:
-                                mx_collect_dict['comment'] = \
-                                    'Mesh: phiz:' +  str(mx_collect_dict['motors'].values()[0]) + \
-                                    ', phiy' + str(mx_collect_dict['motors'].values()[1])
-                            except:
-                                mx_collect_dict['comment'] = 'Mesh: Unknown motor positions'
 
                 group.experimentType = mx_collect_dict['experiment_type']
             except KeyError,diag:
