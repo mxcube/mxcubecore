@@ -8,6 +8,8 @@
 
   <!-- MD2 -->
   <!-- <gridDirection>{"fast": (1, 0), "slow": (0, -1)}</gridDirection>  -->
+
+  <!-- use sample_changer or plate to test different sample mounting modes -->
   <sample_mount_mode>sample_changer</sample_mount_mode>
   <!-- MD3 -->
   <grid_direction>{"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}</grid_direction>

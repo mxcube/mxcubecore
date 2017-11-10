@@ -18,23 +18,6 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] BeamlineTools
-
-[Description]
-
-[Channels]
-
-[Commands]
-
-[Emited signals]
-
-[Functions]
- 
-[Included Hardware Objects]
------------------------------------------------------------------------
-| name                 | signals        | functions
------------------------------------------------------------------------
------------------------------------------------------------------------
 """
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -45,26 +28,26 @@ __version__ = "2.2."
 
 
 class BeamlineTools(HardwareObject):
-    """
-    Description:
-    """
 
     def __init__(self, name):
-        """
-        Descrip. :
-        """
         HardwareObject.__init__(self, name)
         self.tools_list = []
 
     def init(self):
-        """
-        Descrip. :
-        """
         for tool in self['tools']:
-            self.tools_list.append({'hwobj': self.getObjectByRole(tool.hwobj),
-                                    'display': tool.display,
-                                    'method': tool.method,
-                                    'icon': tool.icon})
+            if tool.getProperty('separator'):
+                self.tools_list.append("separator")
+            else:
+                tool_dict = {'hwobj': self.getObjectByRole(tool.getProperty('hwobj')),
+                             'display': tool.getProperty('display'),
+                             'method': tool.getProperty('method')}
+                if tool.getProperty("icon"):
+                    tool_dict['icon'] = tool.getProperty('icon')
+                if tool.getProperty("confirmation"):
+                    tool_dict['confirmation'] = tool.getProperty('confirmation')
+                if tool.getProperty("expertMode"):
+                    tool_dict['expertMode'] = tool.getProperty('expertMode')
+                self.tools_list.append(tool_dict)
 
     def get_tools_list(self):
         return self.tools_list

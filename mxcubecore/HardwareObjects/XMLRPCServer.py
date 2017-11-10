@@ -17,6 +17,8 @@ import json
 import atexit
 import traceback
 
+import queue_model_objects_v1 as queue_model_objects
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCRequestHandler
@@ -124,6 +126,12 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
 class XMLRPCServer(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+
+        self.host = None
+        self.port = None
+        self.all_interfaces = None
+        self.enforceUseOfToken = None
+
         self.queue_model_hwobj = None
         self.queue_hwobj = None
         self.beamline_setup_hwobj = None
@@ -140,20 +148,22 @@ class XMLRPCServer(HardwareObject):
         Method inherited from HardwareObject, called by framework-2. 
         """
 
+        
+        self.all_interfaces = self.getProperty('all_interfaces')
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if hasattr(self, "all_interfaces") and self.all_interfaces.strip().lower() == "true":
+        if self.all_interfaces:
             host = ''
         else:
             host = socket.gethostname()
 
-        #host = "riga.embl-hamburg.de"
-       
         self.host = host    
+        self.port = self.getProperty('port')
 
         # Check if communication should be "secure". If self.doEnforceUseOfToken is set to True
         # all incoming http requests must have the correct token in the headers.
-        if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
+        self.enforceUseOfToken = self.getProperty('enforceUseOfToken')
+        if self.enforceUseOfToken:
             self.doEnforceUseOfToken = True
 
         #try:
@@ -208,6 +218,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.workflow_end) 
         self._server.register_function(self.dozor_batch_processed)
         self._server.register_function(self.dozor_status_changed)
+        self._server.register_function(self.add_processing_message)
         self.image_num = 0
         self._server.register_function(self.get_image_num, "get_image_num")
         self._server.register_function(self.set_zoom_level) 
@@ -226,7 +237,7 @@ class XMLRPCServer(HardwareObject):
                 if recurse is None:
                     recurse = True
 
-                self._register_module_functions(api.module, recurse=recurse)
+                self._register_module_functions(api.getProperty('module'), recurse=recurse)
 
         self.queue_hwobj = self.getObjectByRole("queue")
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
@@ -513,6 +524,7 @@ class XMLRPCServer(HardwareObject):
         return_map = {}
         if self.workflow_hwobj is not None:
             return_map = self.workflow_hwobj.open_dialog(dict_dialog)
+        self.emit("open_dialog", dict_dialog)
         return return_map
 
     def workflow_end(self):
@@ -528,6 +540,12 @@ class XMLRPCServer(HardwareObject):
     def dozor_status_changed(self, status):
         self.beamline_setup_hwobj.parallel_processing_hwobj.\
             set_processing_status(status)
+
+    def add_processing_message(self, collection_id, msg):
+        for queue_entry in self.queue_model_hwobj.get_all_dc_queue_entries():
+            if queue_entry.get_data_model().id == collection_id:
+                queue_entry.get_data_model().processing_msg_list.append(\
+                   "%s: %s" % (str(time.strftime("%Y-%m-%d %H:%M:%S")), msg))
 
     def image_taken(self, image_num):
         self.image_num = image_num

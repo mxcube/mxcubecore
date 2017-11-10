@@ -39,8 +39,7 @@ class MicrodiffMotor(AbstractMotor, Device):
         self.motor_pos_attr_suffix = "Position"
 
     def init(self): 
-        self.position = -1e3
-        self.old_position = -1e3
+        self.position = None
         #assign value to motor_name
         self.motor_name = self.getProperty("motor_name")
  
@@ -67,7 +66,10 @@ class MicrodiffMotor(AbstractMotor, Device):
                                                          "name": "get%sDynamicLimits" % self.motor_name},
                                                          "getMotorDynamicLimits")
           self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
+          self.get_max_speed_cmd = self.addCommand( { "type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed")
           self.home_cmd = self.addCommand( {"type":"exporter", "name":"homing" }, "startHomingMotor")
+
+        self.motorPositionChanged(self.position_attr.getValue())
 
     def connectNotify(self, signal):
         if signal == 'positionChanged':
@@ -131,20 +133,21 @@ class MicrodiffMotor(AbstractMotor, Device):
         except:
           return (-1E4, 1E4)
 
+    def getMaxSpeed(self):
+        return self.get_max_speed_cmd(self.motor_name)
+
     def motorPositionChanged(self, absolute_position, private={}):
-        if None in (absolute_position, self.old_position):
-            return
-        if abs(absolute_position - self.old_position) <= self.motor_resolution:
-            return
-        self.old_position = self.position
+        if not None in (absolute_position, self.position):
+            if abs(absolute_position - self.position) <= self.motor_resolution:
+                return
         self.position = absolute_position
-        self.emit('positionChanged', (absolute_position, ))
+        self.emit('positionChanged', (self.position, ))
 
     def getPosition(self):
         #if self.getState() != MicrodiffMotor.NOTINITIALIZED:
         #  print "MicrodiffMotor.NOTINITIALIZED:"
-        if self.position_attr is not None:   
-            self.position = self.position_attr.getValue()
+        #if self.position_attr is not None:   
+        #    self.position = self.position_attr.getValue()
         return self.position
 
     def getDialPosition(self):
