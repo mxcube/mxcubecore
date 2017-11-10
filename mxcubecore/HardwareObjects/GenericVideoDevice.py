@@ -38,12 +38,20 @@ import time
 import logging
 import gevent
 import numpy as np
-from PIL import Image
 
 try:
     import cv2
 except:
     pass
+
+modulenames = ['qt', 'PyQt5', 'PyQt4']
+
+if any(mod in sys.modules for mod in modulenames):
+    USEQT = True
+    from QtImport import QImage, QPixmap
+else:
+    USEQT = False
+    from PIL import Image
 
 from HardwareRepository.BaseHardwareObjects import Device
 
@@ -73,14 +81,6 @@ class GenericVideoDevice(Device):
         self.default_poll_interval = None
 
     def init(self):
-        modulenames = ['qt', 'PyQt5', 'PyQt4']
-
-        if any(mod in sys.modules for mod in modulenames):
-            self.useqt = True
-            from QtImport import QImage, QPixmap
-        else:
-            self.useqt = False
-
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
         except:
@@ -171,7 +171,7 @@ class GenericVideoDevice(Device):
         """
         raw_buffer, width, height = self.get_image()
 
-        if raw_buffer is not None and raw_buffer.any():
+        if raw_buffer is not None:
             if self.cam_type == "basler":
                 raw_buffer = self.decoder(raw_buffer)
                 qimage = QImage(raw_buffer, width, height,
@@ -221,7 +221,7 @@ class GenericVideoDevice(Device):
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
 
     def save_snapshot(self, filename, image_type='PNG'):
-        if self.useqt:
+        if USEQT:
             qimage = self.get_new_image() 
             qimage.save(filename, image_type) 
         else:
@@ -229,7 +229,7 @@ class GenericVideoDevice(Device):
             open(filename,"w").write(jpgstr)
 
     def get_snapshot(self, bw=None, return_as_array=True):
-        if not self.useqt:
+        if not USEQT:
             print "get snapshot not implemented yet for non-qt mode"
             return None
 
@@ -309,7 +309,7 @@ class GenericVideoDevice(Device):
         Descript. :
         """
         while self.get_video_live() == True:
-            if self.useqt:
+            if USEQT:
                 self.get_new_image()
             else:
                 self.get_jpg_image()

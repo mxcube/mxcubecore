@@ -274,23 +274,27 @@ class DiffractometerMockup(GenericDiffractometer):
     def move_kappa_and_phi(self, kappa, kappa_phi):
         return
 
+    def get_osc_max_speed(self):
+        return 66
+
+    def get_osc_limits(self):
+        if self.in_plate_mode:
+            return (170, 190)
+        else:
+            return (-360, 360)
+ 
+    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
+        if self.in_plate_mode:
+            return (170, 190), 0.04
+        else: 
+            return (-360, 360), 0.04
+ 
     def get_osc_dynamic_limits(self):
         """Returns dynamic limits of oscillation axis"""
         return (0, 20)
 
-    def get_scan_limits(self, num_images, exp_time):
-        motor_acc_const = 5
-        motor_acc_time = num_images / exp_time / motor_acc_const
-        min_acc_time = 0.0015
-        acc_time = max(motor_acc_time, min_acc_time)
-
-        shutter_time = 3.7 / 1000.
-        max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
-
-        return (0, max_limit)
-
     def get_scan_dynamic_limits(self, speed=None):
-        return (0, 20)
+        return (-360, 360)
 
     def move_omega_relative(self, relative_angle):
         self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
