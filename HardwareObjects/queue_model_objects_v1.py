@@ -213,6 +213,7 @@ class TaskGroup(TaskNode):
         TaskNode.__init__(self)
         self.lims_group_id = None
         self.interleave_num_images = None
+        self.inverse_beam_num_images = None
 
     def set_name_from_task(self, task):
         if isinstance(task, DataCollection):
@@ -235,7 +236,6 @@ class Sample(TaskNode):
 
         # A pair <basket_number, sample_number>
         self.location = (None, None)
-        #self.location_plate = (None, None, None)
         self.lims_location = (None, None)
 
         # Crystal information
@@ -282,25 +282,16 @@ class Sample(TaskNode):
         return display_name
 
     def init_from_sc_sample(self, sc_sample):
-        self.loc_str = ":".join(map(str,sc_sample[-1]))
-        self.location = sc_sample[-1]
+        #self.loc_str = ":".join(map(str,sc_sample[-1]))
+        #self.location = sc_sample[-1]
+        self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
+        self.location = (sc_sample[1], sc_sample[2])
+
         self.set_name(self.loc_str)
         if sc_sample[3] != "":
             self.set_name(sc_sample[3])
         else:
             self.set_name(self.loc_str)
-
-
-    def init_from_plate_sample(self, plate_sample):
-        """
-        location : col, row, index
-        """
-        self.loc_str = "%s:%s:%s" %(chr(65 + int(plate_sample[1])),
-                                    str(plate_sample[2]),
-                                    str(plate_sample[3]))
-        self.location = (int(plate_sample[1]), int(plate_sample[2]), int(plate_sample[3]))
-        self.location_plate = plate_sample[5]
-        self.set_name(self.loc_str)
 
     def init_from_lims_object(self, lims_sample):
         if hasattr(lims_sample, 'cellA'):
@@ -394,6 +385,9 @@ class Sample(TaskNode):
         processing_params.protein_acronym = self.crystals[0].protein_acronym
 
         return processing_params
+
+    def get_snapshot_filename(self, prefix):
+        return prefix 
 
 
 class Basket(TaskNode):
@@ -497,8 +491,8 @@ class DataCollection(TaskNode):
         self.run_processing_after = None
         self.run_processing_parallel = None
         self.grid = None
-
         self.parallel_processing_result = None        
+        self.processing_msg_list = []
 
     def as_dict(self):
 
@@ -632,12 +626,8 @@ class DataCollection(TaskNode):
             else:
                 display_name = self.get_name()
         elif self.is_mesh():
-            #display_name = "%s (%s)" %(self.get_name(), self.grid_id)
-            col, row = self.grid.get_col_row_num()
-            display_name = "%s (Mesh %d: %d x %d)" %(self.get_name(),
-                                                     self.grid.index + 1,
-                                                     col,
-                                                     row)
+            display_name = "%s (%s)" %(self.get_name(),
+                                       self.grid.get_display_name()) 
         else:
             index = self.get_point_index()
             if index:
@@ -1031,12 +1021,7 @@ class XrayCentering(TaskNode):
         self.html_report = None
 
     def get_display_name(self):
-        path_template = self.get_path_template()
-        if self.reference_image_collection.grid is not None:
-            grid_info = "Mesh %d" % (self.reference_image_collection.grid.index + 1)
-        else:
-            grid_info = "Autogrid"
-        return "Xray centring (%s)" % grid_info
+        return "Xray centring"
 
     def get_path_template(self):
         return self.reference_image_collection.acquisitions[0].path_template
@@ -1181,9 +1166,11 @@ class PathTemplate(object):
         self.wedge_prefix = str()
         self.run_number = int()
         self.suffix = str()
-        #self.precision = str()
         self.start_num = int()
         self.num_files = int()
+
+        if not hasattr(self, "precision"):
+            self.precision = str()
 
     def as_dict(self):
         return {"directory" : self.directory,
@@ -1208,7 +1195,7 @@ class PathTemplate(object):
         prefix = self.base_prefix
 
         if self.mad_prefix:
-            prefix = self.base_prefix  + '-' + self.mad_prefix
+            prefix = str(self.base_prefix)  + '-' + str(self.mad_prefix)
 
         if self.reference_image_prefix:
             prefix = self.reference_image_prefix + '-' + prefix
@@ -1364,6 +1351,36 @@ class AcquisitionParameters(object):
                     self.centred_position.set_from_dict(item[1])     
                 else:
                      setattr(self, item[0], item[1])
+
+    def as_dict(self):
+        return {"first_image": self.first_image,
+                "num_images": self.num_images,
+                "osc_start": self.osc_start,
+                "osc_range": self.osc_range,
+                "osc_total_range": self.osc_total_range,
+                "overlap": self.overlap,
+                "kappa": self.kappa,
+                "kappa_phi": self.kappa_phi,
+                "exp_time": self.exp_time,
+                "num_passes": self.num_passes,
+                "num_lines": self.num_lines,
+                "energy": self.energy,
+                #"centred_position": self.centred_position,
+                "resolution": self.resolution,
+                "transmission": self.transmission,
+                "inverse_beam": self.inverse_beam,
+                "shutterless": self.shutterless,
+                "take_snapshots": self.take_snapshots,
+                "take_video": self.take_video,
+                "take_dark_current": self.take_dark_current,
+                "skip_existing_images": self.skip_existing_images,
+                "detector_mode": self.detector_mode,
+                "induce_burn": self.induce_burn,
+                "mesh_range": self.mesh_range,
+                "mesh_snapshot": self.mesh_snapshot,
+                "comments": self.comments,
+                "in_queue": self.in_queue,
+                "in_interleave": self.in_interleave}
 
     def copy(self):
         return copy.deepcopy(self)
@@ -1821,7 +1838,6 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
                                   "sw_osc_range" : sw_osc_range})
         sw_first_image += sw_actual_size 
     return subwedges
-
 
 def try_parse_int(n):
     try:
