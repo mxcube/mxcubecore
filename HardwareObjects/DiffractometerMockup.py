@@ -36,9 +36,6 @@ from GenericDiffractometer import GenericDiffractometer
 from gevent.event import AsyncResult
 
 
-last_centred_position = [200, 200]
-
-
 class DiffractometerMockup(GenericDiffractometer):
     """
     Descript. :
@@ -57,6 +54,7 @@ class DiffractometerMockup(GenericDiffractometer):
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
         self.y_calib = 0.000446
+        self.last_centred_position = [200, 200]
          
         self.pixels_per_mm_x = 1.0 / self.x_calib
         self.pixels_per_mm_y = 1.0 / self.y_calib
@@ -108,8 +106,8 @@ class DiffractometerMockup(GenericDiffractometer):
         for click in range(3):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
-        last_centred_position[0] = x
-        last_centred_position[1] = y
+        self.last_centred_position[0] = x
+        self.last_centred_position[1] = y
         random_num = random.random()
         centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
@@ -126,6 +124,12 @@ class DiffractometerMockup(GenericDiffractometer):
                          'kappa_phi': 22.0}
         self.emit("newAutomaticCentringPoint", centred_pos_dir)
         return centred_pos_dir
+
+    def centring_done(self, centring_procedure):
+        self.centring_time = time.time()
+        self.emit_centring_successful()
+        self.emit_progress_message("")
+        self.ready_event.set()
 
     def is_ready(self):
         """
@@ -194,12 +198,13 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """ 
-        return last_centred_position[0], last_centred_position[1]
+        return self.last_centred_position[0], self.last_centred_position[1]
 
     def moveToCentredPosition(self, centred_position, wait = False):
         """
         Descript. :
         """
+        return
         try:
             return self.move_to_centred_position(centred_position, wait = wait)
         except:
@@ -258,6 +263,8 @@ class DiffractometerMockup(GenericDiffractometer):
         motors = self.get_positions()
         motors["beam_x"] = 0.1
         motors["beam_y"] = 0.1
+        self.last_centred_position[0] = coord_x
+        self.last_centred_position[1] = coord_y
         self.centring_status["motors"] = motors
         self.centring_status["valid"] = True
         self.centring_status["angleLimit"] = False
