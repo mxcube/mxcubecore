@@ -105,8 +105,8 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             get_data_collection_list(qe)
 
         if len(self.entry_list) > 1:
-            for entry in self.entry_list[:-1]:
-                entry.in_queue = True
+            for index, entry in enumerate(self.entry_list[:-1]):
+                entry.in_queue = index + 1
 
         #msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
         #for entry in self.entry_list:
@@ -171,7 +171,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._current_queue_entries.append(entry)
 
         logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
-        logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
+        #logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
             logging.getLogger('user_level_log').info('Queue paused, waiting ...')
@@ -188,14 +188,17 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
             for child in entry._queue_entry_list:
                 self.__execute_entry(child)
-            self.emit('queue_entry_execute_finished', (entry, "Successful"))
+            # This part should not be here
+            # But somehow exception from collect_failed is not catched here
+            if entry._execution_failed:
+                self.emit('queue_entry_execute_finished', (entry, "Failed"))
+            else:
+                self.emit('queue_entry_execute_finished', (entry, "Successful"))
         except queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
             self.emit('queue_entry_execute_finished', (entry, "Skipped"))
-            pass
-        except (queue_entry.QueueExecutionException, Exception) as ex:
-            self.emit('queue_entry_execute_finished', (entry, "Failed"))
-            pass
+        #except (queue_entry.QueueExecutionException, Exception) as ex:
+        #    self.emit('queue_entry_execute_finished', (entry, "Failed"))
         except (queue_entry.QueueAbortedException, Exception) as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:

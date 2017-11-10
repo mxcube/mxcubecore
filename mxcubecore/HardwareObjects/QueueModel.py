@@ -27,7 +27,6 @@ handle several models by using register_model and select_model.
 """
 
 import os
-import atexit
 import logging
 import jsonpickle
 
@@ -41,10 +40,6 @@ class QueueModel(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self._autosave_enabled = None
-        self._load_on_start_enabled = None
-        self._load_on_start_filename = None
-
         self._ispyb_model = queue_model_objects.RootNode()
         self._ispyb_model._node_id = 0
         self._free_pin_model = queue_model_objects.RootNode()
@@ -57,8 +52,6 @@ class QueueModel(HardwareObject):
                         'plate': self._plate_model}
 
         self._selected_model = self._ispyb_model
-
-        atexit.register(self.save_on_exit)
 
     def __getstate__(self):
         d = dict(self.__dict__)
@@ -85,10 +78,6 @@ class QueueModel(HardwareObject):
         """
         self.queue_hwobj = self.getObjectByRole("queue")
        
-        self._load_on_start_enabled = \
-            self.getProperty("load_on_start_enabled")
-        self._load_on_start_filename = \
-            self.getProperty("load_on_start_filename")
         self.queue_hwobj.queue_model_hwobj = self
 
     def select_model(self, name):
@@ -174,7 +163,6 @@ class QueueModel(HardwareObject):
         else:
             raise TypeError("Expected type TaskNode, got %s "\
                             % str(type(child)))
-
 
     def add_child_at_id(self, _id, child):
         """
@@ -293,6 +281,7 @@ class QueueModel(HardwareObject):
         elif not isinstance(task_model, queue_model_objects.Basket):
         #else:
             view_item.parent().get_queue_entry().enqueue(qe)
+        view_item.update_tool_tip()
 
     def get_next_run_number(self, new_path_template, exclude_current = True):
         """
@@ -391,6 +380,39 @@ class QueueModel(HardwareObject):
 
         return new_node
 
+    def get_nodes(self):
+        node_list = []
+        def get_nodes_list(entry):
+            for child in entry._children:
+                node_list.append(child)
+                get_nodes_list(child)
+
+        for qe in self._selected_model._children:
+            get_nodes_list(qe)
+
+        return node_list
+
+    def get_all_queue_entries(self):
+        node_list = []
+        def get_nodes_list(entry):
+            for child in entry._queue_entry_list:
+                node_list.append(child)
+                get_nodes_list(child)
+
+        for qe in self.queue_hwobj._queue_entry_list:
+            get_nodes_list(qe)
+
+        return node_list  
+
+    def get_all_dc_queue_entries(self):
+        result = []
+ 
+        for queue_entry in self.get_all_queue_entries():
+            if isinstance(queue_entry, queue_entry.DataCollectionQueueEntry):
+                result.append(queue_entry)
+
+        return result
+
     def save_queue(self, filename=None):
         """Saves queue in the file. Current selected model is saved as a list
            of dictionaries. Information about samples and baskets is not saved
@@ -425,7 +447,52 @@ class QueueModel(HardwareObject):
             if save_file:
                 save_file.close()
 
-    def load_queue(self, filename, snapshot=None):
+    def get_queue_as_json_list(self):
+        items_to_save = []
+
+        selected_model = ""
+        for key in self._models:
+            if self._selected_model == self._models[key]:
+                selected_model = key
+
+        queue_entry_list = self.queue_hwobj.get_queue_entry_list()
+        for item in queue_entry_list:
+            #On the top level is Sample or Basket
+            if isinstance(item, queue_entry.SampleQueueEntry):
+                for task_item in item.get_queue_entry_list():
+                    task_item_dict = {"sample_location" : item.get_data_model().location,
+                                      "task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
+                                      #"task_group_entry" : json.dumps(task_item.get_data_model())}
+                    items_to_save.append(task_item_dict)
+
+        return selected_model, items_to_save
+
+    def load_queue_from_json_list(self, queue_list, snapshot):
+        # Prepare list of samplesL
+        sample_dict = {}
+        for item in self.queue_hwobj.get_queue_entry_list():
+            if isinstance(item, queue_entry.SampleQueueEntry):
+                sample_data_model = item.get_data_model()
+                sample_dict[sample_data_model.location] = sample_data_model
+            elif isinstance(item, queue_entry.BasketQueueEntry):
+                for sample_item in item.get_queue_entry_list():
+                    sample_data_model = sample_item.get_data_model()
+                    sample_dict[sample_data_model.location] = sample_data_model
+        if len(queue_list) > 0:
+            try:
+                for task_group_item in queue_list:
+                    task_group_entry = jsonpickle.decode(\
+                         task_group_item["task_group_entry"])
+                    self.add_child(sample_dict[task_group_item["sample_location"]],
+                                   task_group_entry)
+                    for child in task_group_entry.get_children():
+                        child.set_snapshot(snapshot)
+                logging.getLogger("HWR").info("Queue loading done")
+            except:
+                logging.getLogger("HWR").exception("Unable to load queue")
+
+
+    def load_queue_from_file(self, filename, snapshot=None):
         """Loads queue from file. The problem is snapshots that are 
            not stored in the file, so we have to add new ones in 
            the loading process
@@ -469,13 +536,3 @@ class QueueModel(HardwareObject):
                 "from file %s", filename)
             if load_file:
                 load_file.close()
-
-    def save_on_exit(self):
-        if self._load_on_start_filename is not None:
-            logging.getLogger().debug("Saving queue in file %s" % \
-                self._load_on_start_filename)
-            self.save_queue(self._load_on_start_filename)
-
-    def load_on_start(self):
-        if self._load_on_start_filename is not None:
-            self.load_queue(self._load_on_start_filename)

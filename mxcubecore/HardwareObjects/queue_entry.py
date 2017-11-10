@@ -29,8 +29,9 @@ import os
 import autoprocessing
 
 import edna_test_data
-from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE, XSDataResultMXCuBE
 
+from copy import copy
 from collections import namedtuple
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
@@ -411,12 +412,18 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         elif len(self._queue_entry_list) > 0:
             if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
                 do_new_dc_group = False
-                
+               
+        init_ref_images = False 
         if do_new_dc_group:
             # Creating a collection group with the current session id
             # and a dummy exepriment type OSC. The experiment type
             # will be updated when the collections are stored.
             if task_model.interleave_num_images:
+                init_ref_images = task_model.interleave_num_images 
+                group_data = {'sessionId': self.session_hwobj.session_id,
+                              'experimentType': 'Collect - Multiwedge'}
+            elif task_model.inverse_beam_num_images:
+                init_ref_images = task_model.inverse_beam_num_images
                 group_data = {'sessionId': self.session_hwobj.session_id,
                               'experimentType': 'Collect - Multiwedge'}
             else:
@@ -441,7 +448,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 raise QueueExecutionException(msg, self)
 
         self.interleave_items = []
-        if task_model.interleave_num_images:
+        if init_ref_images:
             # At first all children are gathered together and
             # checked if interleave is set. For this implementation
             # interleave is just possible for discreet data collections
@@ -450,9 +457,13 @@ class TaskGroupQueueEntry(BaseQueueEntry):
 
             for child_data_model in children_data_model_list: 
                 if isinstance(child_data_model, queue_model_objects.DataCollection):
+                    if task_model.inverse_beam_num_images is not None:
+                        child_data_model.acquisitions[0].\
+                           acquisition_parameters.num_images /= 2 
                     num_images = child_data_model.acquisitions[0].\
                         acquisition_parameters.num_images
-                    if num_images > task_model.interleave_num_images:
+
+                    if num_images > init_ref_images:
                         if num_images > ref_num_images:
                             ref_num_images = num_images
                         interleave_item = {}
@@ -465,16 +476,34 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                                 interleave_item["tree_item"] = queue_entry.get_view()
                         self.interleave_items.append(interleave_item)
 
+                        if task_model.inverse_beam_num_images is not None:
+                            inverse_beam_item = copy(interleave_item)
+                            inverse_beam_item["data_model"] = interleave_item["data_model"].copy()
+                            inverse_beam_item["data_model"].acquisitions[0].\
+                                acquisition_parameters.osc_start += 180
+                            inverse_beam_item["data_model"].acquisitions[0].\
+                                acquisition_parameters.first_image = \
+                                interleave_item["data_model"].acquisitions[0].\
+                                   acquisition_parameters.first_image + \
+                                interleave_item["data_model"].acquisitions[0].\
+                                   acquisition_parameters.num_images
+                            self.interleave_items.append(inverse_beam_item)
         if len(self.interleave_items) > 1:
             interleave_num_images = task_model.interleave_num_images
             self.interleave_task = gevent.spawn(self.execute_interleaved,
                                                 ref_num_images,
-                                                interleave_num_images)
-            self.interleave_task.get()
+                                                init_ref_images)
+            self.interleave_task.join()
 
     def execute_interleaved(self, ref_num_images, interleave_num_images):
-        self.get_view().setText(1, "Interleaving...") 
-        logging.getLogger("queue_exec").info("Preparing interleaved data collection")
+        task_model = self.get_data_model()
+
+        if task_model.interleave_num_images:
+            method_type = "interleave"
+        elif task_model.inverse_beam_num_images:
+            method_type = "inverse beam"
+
+        logging.getLogger("queue_exec").info("Preparing %s data collection" % method_type)
 
         for interleave_item in self.interleave_items:
             interleave_item["queue_entry"].set_enabled(False)
@@ -493,11 +522,12 @@ class TaskGroupQueueEntry(BaseQueueEntry):
  
         self.interleave_sw_list = queue_model_objects.create_interleave_sw(\
               self.interleave_items, ref_num_images, interleave_num_images)
+
         self._queue_controller.emit("queue_interleaved_started")
         for item_index, item in enumerate(self.interleave_sw_list):
             if not self.interleave_stoped:
-                self.get_view().setText(1, "Interleaving subwedge %d (total: %d)" \
-                     % (item["collect_index"] + 1, item["sw_index"] + 1))
+                self.get_view().setText(1, "Subwedge %d:%d)" \
+                     % ((item_index + 1), len(self.interleave_sw_list)))
                 acq_par = self.interleave_items[item["collect_index"]]["data_model"].\
                    acquisitions[0].acquisition_parameters
                 acq_first_image = acq_par.first_image
@@ -509,8 +539,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 self.interleave_items[item["collect_index"]]["queue_entry"].in_queue = \
                      item_index < (len(self.interleave_sw_list) - 1)
 
-                msg = "Executing interleaved collection (subwedge %d:%d, " % \
-                    (item["collect_index"] + 1, item["sw_index"] + 1)
+                msg = "Executing %s collection (subwedge %d:%d, " % \
+                    (method_type, (item_index + 1), len(self.interleave_sw_list))
                 msg += "from %d to %d, " % (acq_par.first_image, 
                     acq_par.first_image + acq_par.num_images - 1) 
                 msg += "osc start: %.2f, osc total range: %.2f)" % \
@@ -537,17 +567,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                                             (sig_data,))
 
         if not self.interleave_stoped:
-            logging.getLogger("queue_exec").info("Interleaved task finished")
+            logging.getLogger("queue_exec").info("%s collection finished" % method_type.title())
             self._queue_controller.emit("queue_interleaved_finished")
-
-        """
-        for interleave_item in self.interleave_items:
-            sample = interleave_item["data_model"].get_parent().get_parent()
-            param_list = queue_model_objects.to_collect_dict(
-                 interleave_item["data_model"], self.session_hwobj,
-                 sample)
-            self.collect_hwobj.finalize_interleave(param_list)
-        """
 
         self.interleave_task = None
 
@@ -613,6 +634,7 @@ class SampleQueueEntry(BaseQueueEntry):
                         msg = "Error loading sample, please check" +\
                               " sample changer: " + str(e)
                         log.error(msg)
+                        self.status = QUEUE_ENTRY_STATUS.FAILED
                         if isinstance(e, QueueSkippEntryException):
                             raise
                         else: 
@@ -624,6 +646,7 @@ class SampleQueueEntry(BaseQueueEntry):
                       "sample changer hardware object, cannot " +\
                       "mount sample"
                 log.info(msg)
+            self.get_view().setText(1, "")
 
     def centring_done(self, success, centring_info):
         if not success:
@@ -907,16 +930,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     acq_1, acq_2 = (dc.acquisitions[0], dc.acquisitions[1])
                     self.collect_hwobj.set_helical(True)
                     self.collect_hwobj.set_mesh(False)
-
                     start_cpos = acq_1.acquisition_parameters.centred_position
                     end_cpos = acq_2.acquisition_parameters.centred_position
-
                     helical_oscil_pos = {'1': start_cpos.as_dict(), '2': end_cpos.as_dict() }
                     self.collect_hwobj.set_helical_pos(helical_oscil_pos)
                     #msg = "Helical data collection, moving to start position"
                     #log.info(msg)
                     #list_item.setText(1, "Moving sample")
-
                 elif dc.experiment_type is EXPERIMENT_TYPE.MESH:
                     mesh_nb_lines = acq_1.acquisition_parameters.num_lines
                     mesh_total_nb_frames = acq_1.acquisition_parameters.num_images
@@ -972,7 +992,6 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 list_item.setText(1, 'Stopped')
                 raise QueueAbortedException('queue stopped by user', self)
             except Exception as ex:
-                #print (traceback.print_exc())
                 raise QueueExecutionException(ex.message, self)
         else:
             log.error("Could not call the data collection routine," +\
@@ -983,7 +1002,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             raise QueueExecutionException(msg, self)
 
     def collect_started(self, owner, num_oscillations):
-        logging.getLogger("user_level_log").info('Collection started')
+        logging.getLogger("user_level_log").info('Collection: started')
         self.get_view().setText(1, "Collecting")
 
     def collect_number_of_frames(self, number_of_images=0, exposure_time=0):
@@ -1014,11 +1033,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_finished(self, owner, state, message, *args):
         # this is to work around the remote access problem
-
-        if self.processing_task:
+        if self.processing_task is not None:
             self.get_view().setText(1, "Processing")
-            self.parallel_processing_hwobj.processing_done_event.wait()
-            self.parallel_processing_hwobj.processing_done_event.clear()
+            logging.getLogger("user_level_log").info('Processing: Please wait...')
+            self.parallel_processing_hwobj.done_event.wait()
+            self.parallel_processing_hwobj.done_event.clear()
 
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
@@ -1029,9 +1048,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         try:
             self.collect_hwobj.stopCollect('mxCuBE')
-            if self.processing_task:
+            if self.processing_task is not None:
                 self.parallel_processing_hwobj.stop_processing()
-            if self.centring_task:
+                logging.getLogger('user_level_log').error('Processing: Stoppend')
+            if self.centring_task is not None:
                 self.centring_task.kill(block=False)
         except gevent.GreenletExit:
             raise
@@ -1146,14 +1166,15 @@ class CharacterisationQueueEntry(BaseQueueEntry):
             edna_input = self.data_analysis_hwobj.\
                          from_params(reference_image_collection,
                                      characterisation_parameters)
+
             #Un-comment to use the test input files
             #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
             #edna_input.process_directory = reference_image_collection.acquisitions[0].\
             #                                path_template.process_directory
-
+            #self.edna_result = XSDataResultMXCuBE.parseString(edna_test_data.EDNA_RESULT_DATA)
             self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
-        if self.edna_result:
+        if self.edna_result is not None:
             log.info("Characterisation completed.")
 
             char.html_report = self.data_analysis_hwobj.\
@@ -1239,6 +1260,10 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def get_type_str(self):
         return "Characterisation"
+
+    def stop(self):
+        BaseQueueEntry.stop(self)
+        self.data_analysis_hwobj.stop()
 
 class EnergyScanQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
@@ -1332,7 +1357,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Energy scan started.")
         self.get_view().setText(1, "In progress")
 
-    def energy_scan_finished(self, scan_info):
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+
         energy_scan = self.get_data_model()
         #fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
         #scan_file_path = os.path.join(energy_scan.path_template.directory,
@@ -1382,19 +1409,22 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         except:
             pass
 
-        logging.getLogger("user_level_log").\
-            info("Energy scan, result: peak: %.4f, inflection: %.4f" %
-                 (sample.crystals[0].energy_scan_result.peak,
-                  sample.crystals[0].energy_scan_result.inflection))
+        if sample.crystals[0].energy_scan_result.peak and \
+           sample.crystals[0].energy_scan_result.inflection:
+            logging.getLogger("user_level_log").\
+                info("Energy scan, result: peak: %.4f, inflection: %.4f" %
+                     (sample.crystals[0].energy_scan_result.peak,
+                      sample.crystals[0].energy_scan_result.inflection))
 
+    def energy_scan_finished(self, scan_info):
         self.get_view().setText(1, "Done")
 
     def energy_scan_failed(self):
         self._failed = True
         self.get_view().setText(1, "Failed")
         self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("user_level_log").error("Energy scan failed.")
-        raise QueueExecutionException("Energy scan failed", self)
+        logging.getLogger("user_level_log").error("Energy scan: failed")
+        #raise QueueExecutionException("Energy scan failed", self)
 
     def stop(self):
         BaseQueueEntry.stop(self)
@@ -1631,30 +1661,55 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
-        mesh = self.get_data_model()
-        reference_image_collection = mesh.reference_image_collection
+        xray_centering = self.get_data_model()
+        reference_image_collection = xray_centering.reference_image_collection
 
         # Trick to make sure that the reference collection has a sample.
-        reference_image_collection._parent = mesh.get_parent()
+        reference_image_collection._parent = xray_centering.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid
 
-        # Enqueue the reference collection and the characterisation routine.
+        # Enqueue the reference mesh scan collection
         mesh_qe = DataCollectionQueueEntry(self.get_view(),
-                                         reference_image_collection,
-                                         view_set_queue_entry=False)
+                                           reference_image_collection,
+                                           view_set_queue_entry=False)
         mesh_qe.set_enabled(True)
         mesh_qe.in_queue = self.in_queue
-        self.enqueue(mesh_qe)
         self.mesh_qe = mesh_qe
 
-        #if char.run_characterisation:
-        #    char_qe = CharacterisationQueueEntry(self.get_view(), char,
-        #                                         view_set_queue_entry=False)
-        #    char_qe.set_enabled(True)
-        #    self.enqueue(char_qe)
-        #    self.char_qe = char_qe
+        # Creat e a helical data collection based on the first collection
+        helical_qe = DataCollectionQueueEntry(self.get_view(),
+                                              reference_image_collection,
+                                              view_set_queue_entry=False)
+
+        helical_model = helical_qe.get_data_model().copy()
+        helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
+        helical_model.grid = None
+
+        acq_two = queue_model_objects.Acquisition()
+        helical_model.acquisitions.append(acq_two)
+        helical_model.acquisitions[0].acquisition_parameters.num_images = 100
+        helical_model.acquisitions[0].acquisition_parameters.num_lines = 1
+        helical_acq_path_template = helical_model.acquisitions[0].path_template
+        helical_acq_path_template.base_prefix = "line_" + \
+               helical_acq_path_template.base_prefix
+        helical_qe._data_model = helical_model
+
+        helical_qe.set_enabled(True)
+        helical_qe.in_queue = self.in_queue
+        self.helical_qe = helical_qe
+
+        advanced_connector_qe = AdvancedConnectorQueueEntry(self.get_view(),
+                                                            reference_image_collection,
+                                                            view_set_queue_entry=False)
+        advanced_connector_qe.first_qe = mesh_qe
+        advanced_connector_qe.second_qe = helical_qe
+        advanced_connector_qe.set_enabled(True)
+
+        self.enqueue(mesh_qe)
+        self.enqueue(advanced_connector_qe)
+        self.enqueue(helical_qe)
 
     def post_execute(self):
         if self.helical_qe:
@@ -1662,6 +1717,58 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         else:
             self.status = self.mesh_qe
         BaseQueueEntry.post_execute(self)
+
+class AdvancedConnectorQueueEntry(BaseQueueEntry):
+    """Controls different steps
+    """
+    def __init__(self, view=None, data_model=None,
+                 view_set_queue_entry=True):
+
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+        self.first_qe = None
+        self.second_qe = None
+        self.diffractometer_hwobj = None
+        self.shape_history_hwobj = None
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+        self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
+        self.shape_history_hwobj = self.beamline_setup.shape_history_hwobj
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+        firt_qe_data_model = self.first_qe.get_data_model()
+
+        if firt_qe_data_model.run_processing_parallel == "XrayCentering":
+            best_positions = firt_qe_data_model.parallel_processing_result.\
+                   get("best_positions", [])
+
+            if len(best_positions) > 0:
+                best_cpos = best_positions[0]["cpos"]
+                helical_model = self.second_qe.get_data_model()
+
+                #logging.getLogger("user_level_log").info(\
+                #    "Moving to the best position")
+                #self.diffractometer_hwobj.move_motors(best_cpos)
+                #gevent.sleep(2)
+
+                logging.getLogger("user_level_log").info(\
+                    "Rotating 90 degrees")
+                self.diffractometer_hwobj.move_omega_relative(90)
+                logging.getLogger("user_level_log").info(\
+                    "Creating a helical line")
+
+                gevent.sleep(2)
+                auto_line, cpos_one, cpos_two = self.shape_history_hwobj.create_auto_line()
+                helical_model.acquisitions[0].acquisition_parameters.osc_start = cpos_one.phi
+                helical_model.acquisitions[0].acquisition_parameters.centred_position = cpos_one
+                helical_model.acquisitions[1].acquisition_parameters.centred_position = cpos_two
+
+                self.second_qe.set_enabled(True)
+            else:
+                logging.getLogger("user_level_log").warning(\
+                    "No diffraction found. Cancelling Xray centering")
+                self.second_qe.set_enabled(False)
 
 class OpticalCentringQueueEntry(BaseQueueEntry):
     """
@@ -1676,7 +1783,8 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj.automatic_centring_try_count = \
              self.get_data_model().try_count
  
-        self.diffractometer_hwobj.start_automatic_centring(wait_result=True)
+        self.diffractometer_hwobj.start_centring_method(\
+             self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=True)
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
@@ -1698,6 +1806,22 @@ def mount_sample(beamline_setup_hwobj,
 
     loc = data_model.location
     holder_length = data_model.holder_length
+
+    snapshot_before_filename = "/tmp/test_before.png"
+    snapshot_after_filename = "/tmp/test_after.png"
+
+    robot_action_dict = {"actionType": "LOAD",
+                         "containerLocation": loc[1],
+                         "dewarLocation": loc[0],
+                         "sampleBarcode": data_model.code,
+                         "sampleId": data_model.lims_id,
+                         "sessionId": beamline_setup_hwobj.session_hwobj.session_id,
+                         "startTime": time.strftime("%Y-%m-%d %H:%M:%S"),
+                         "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
+                         "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
+
+    #beamline_setup_hwobj.shape_history_hwobj.save_scene_snapshot(snapshot_before_filename)
+    
 
     # This is a possible solution how to deal with two devices that
     # can move sample on beam (sample changer, plate holder, in future 
@@ -1721,6 +1845,16 @@ def mount_sample(beamline_setup_hwobj,
                 # if sample could not be loaded, but no exception is raised, let's skip the sample
                 raise QueueSkippEntryException("Sample changer could not load sample", "")
 
+    robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    if sample_mount_device.hasLoadedSample():
+        robot_action_dict['status'] = "SUCCESS"
+    else:
+        robot_action_dict['message'] = "Sample was not loaded"
+        robot_action_dict['status'] = "ERROR"
+
+    beamline_setup_hwobj.lims_client_hwobj.store_robot_action(robot_action_dict)
+    #beamline_setup_hwobj.shape_history_hwobj.save_scene_snapshot(snapshot_after_filename)
+
     if not sample_mount_device.hasLoadedSample():
         #Disables all related collections
         view.setOn(False)
@@ -1728,25 +1862,30 @@ def mount_sample(beamline_setup_hwobj,
         raise QueueSkippEntryException("Sample not loaded", "")
     else:
         view.setText(1, "Sample loaded")
-        dm = beamline_setup_hwobj.diffractometer_hwobj 
+
+        dm = beamline_setup_hwobj.diffractometer_hwobj
         if dm is not None:
+            if hasattr(sample_mount_device, '__TYPE__'):
+                if sample_mount_device.__TYPE__  in ('Marvin', 'PlateManipulator'):
+                    return
             try:
                 dm.connect("centringAccepted", centring_done_cb)
-                centring_method = view.listView().parent().\
+                #TODO store current centring method in minidiff
+                centring_method = view.listView().parent().parent().\
                                   centring_method
                 if centring_method == CENTRING_METHOD.MANUAL:
                     log.warning("Manual centring used, waiting for" +\
                                 " user to center sample")
-                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
+                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
                 elif centring_method == CENTRING_METHOD.LOOP:
-                    dm.startCentringMethod(dm.C3D_MODE)
+                    dm.start_centring_method(dm.C3D_MODE)
                     log.warning("Centring in progress. Please save" +\
                                 " the suggested centring or re-center")
                 elif centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                     log.info("Centring sample, please wait.")
-                    dm.startCentringMethod(dm.C3D_MODE)
+                    dm.start_centring_method(dm.C3D_MODE)
                 else:
-                    dm.startCentringMethod(dm.MANUAL3CLICK_MODE)
+                    dm.start_centring_method(dm.MANUAL3CLICK_MODE)
 
                 view.setText(1, "Centring !")
                 centring_result = async_result.get()
@@ -1758,8 +1897,8 @@ def mount_sample(beamline_setup_hwobj,
                         raise QueueSkippEntryException("Could not center sample, skipping", "")
                     else:
                         raise RuntimeError("Could not center sample")
-            except:
-                pass
+            except Exception as ex:
+                log.exception('Could not center sample: ' + str(ex))
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
 
