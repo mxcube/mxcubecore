@@ -202,6 +202,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_front_light_level) 
         self._server.register_function(self.set_back_light_level) 
         self._server.register_function(self.get_back_light_level) 
+        self._server.register_function(self.centre_beam)
 
         # Register functions from modules specified in <apis> element
         if self.hasObject("apis"):
@@ -220,6 +221,7 @@ class XMLRPCServer(HardwareObject):
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
         self.workflow_hwobj = self.getObjectByRole("workflow")
+        self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
                
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
@@ -536,6 +538,14 @@ class XMLRPCServer(HardwareObject):
         Gets the level of the back light
         """
         return self.diffractometer_hwobj.getBackLightLevel()
+
+        def centre_beam(self):
+        """
+        Centers the beam using the beamcmds hardware object.
+        """
+        self.beamcmds_hwobj.centrebeam()
+        while self.beamcmds_hwobj.centrebeam._cmd_execution and not self.beamcmds_hwobj.centrebeam._cmd_execution.ready():
+            time.sleep(1)
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
