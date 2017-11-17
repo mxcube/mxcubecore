@@ -355,6 +355,27 @@ class Sample(TaskNode):
 
         self.set_name(name)
 
+
+    def set_from_dict(self, p):
+        self.code = p.get('code', '')
+        self.lims_code = p.get('limsCode', '')
+        self.holder_length = p.get('holderLength', 22.0)
+        self.lims_id = p.get('limsID', -1)
+        self.lims_sample_location = p.get('sampleLocation', -1)
+        self.lims_container_location = p.get('containerSampleChangerLocation',-1)
+        self.free_pin_mode = p.get('freePinMode', False)
+        self.loc_str = p.get('locStr', '')
+
+        self.crystals[0].space_group = p.get('spaceGroup', '')
+        self.crystals[0].cell_a = p.get('cellA', '')
+        self.crystals[0].cell_alpha = p.get('cellAlpha', '')
+        self.crystals[0].cell_b = p.get('cellB', '')
+        self.crystals[0].cell_beta = p.get('cellBeta', '')
+        self.crystals[0].cell_c = p.get('cellC', '')
+        self.crystals[0].cell_gamma = p.get('cellGamma', '')
+        self.crystals[0].protein_acronym = p.get('proteinAcronym', '')
+
+
     def get_processing_parameters(self):
         processing_params = ProcessingParameters()
         processing_params.space_group = self.crystals[0].space_group
@@ -407,7 +428,7 @@ class Basket(TaskNode):
         return self.name
 
     def get_location(self):
-        return self.location 
+        return self.location
 
     def get_is_present(self):
         return self._basket_object.present
@@ -1294,6 +1315,7 @@ class AcquisitionParameters(object):
     def copy(self):
         return copy.deepcopy(self)
 
+
 class Crystal(object):
     def __init__(self):
         object.__init__(self)
@@ -1308,6 +1330,12 @@ class Crystal(object):
 
         # MAD energies
         self.energy_scan_result = EnergyScanResult()
+
+
+    def set_from_dict(self, params_dict):
+        for dict_item in params_dict.items():
+            if hasattr(self, dict_item[0]):
+                setattr(self, dict_item[0], dict_item[1])
 
 
 class CentredPosition(object):
