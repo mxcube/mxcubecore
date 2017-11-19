@@ -120,6 +120,7 @@ class ISPyBClient2(HardwareObject):
         self.loginType = None
         self.loginTranslate = None
 
+        self.ws_root = None
         self.ws_username = None
         self.ws_password = None
 
@@ -139,6 +140,7 @@ class ISPyBClient2(HardwareObject):
         self.session_hwobj = self.getObjectByRole('session')
         self.beamline_name = self.session_hwobj.beamline_name
 
+        self.ws_root = self.getProperty('ws_root')
         self.ws_username = self.getProperty('ws_username')
         if not self.ws_username:
             self.ws_username = _WS_USERNAME
@@ -244,6 +246,10 @@ class ISPyBClient2(HardwareObject):
 
     def send_email(self):
         raise NotImplementedException("Depricated ?")
+
+    def get_dc_display_link(self):
+        ws_root_base = ":".join(self.ws_root.split(":")[:2])
+        return ws_root_base + "/ispyb/user/viewResults.do?reqCode=display&dataCollectionId="
 
     @trace
     def get_proposal_by_username(self, username):
@@ -1478,10 +1484,12 @@ class ISPyBClient2(HardwareObject):
                proposal_list = []
                logging.getLogger("ispyb_client").exception(e.message)
 
+            proposal_list = newlist = sorted(proposal_list,
+                key=lambda k: int(k['proposalId'])) 
+
             res_proposal = []
             if len(proposal_list) > 0:
                 for proposal in proposal_list:
-
                     proposal_code = proposal['code']
                     proposal_number = proposal['number']
 
@@ -1686,18 +1694,34 @@ class ISPyBClient2(HardwareObject):
             msg = 'Could not set image quality indicators in lims: %s' % ex.message
             logging.getLogger("ispyb_client").exception(msg)
 
-    def store_robot_action(self, sample_id, session_id, robot_action_dict):
+    def store_robot_action(self, robot_action_dict):
         """Stores robot action"""
-        try:
-            ws_client = Client(_WS_COLLECTION_URL,
-                               cache = None)
-            robot_action_vo = ws_client.factory.create('robotActionWS3VO')
-            robot_action_vo.sessionId = session_id
-            robot_action_vo.blSampleId = sample_id
+
+        action_id = None
+        if True:
+        #try:
+            robot_action_vo = self.__collection.factory.create('robotActionWS3VO')
+
+            robot_action_vo.actionType = robot_action_dict.get("actionType")
+            robot_action_vo.containerLocation = robot_action_dict.get("containerLocation")
+            robot_action_vo.dewarLocation = robot_action_dict.get("dewarLocation")
+
+            #robot_action_vo.endTime = robot_action_dict.get("endTime")
+            robot_action_vo.message = robot_action_dict.get("message")
+            robot_action_vo.sampleBarcode = robot_action_dict.get("sampleBarcode")
+            robot_action_vo.sessionId = robot_action_dict.get("sessionId")
+            robot_action_vo.blSampleId = robot_action_dict.get("sampleId")
+            robot_action_vo.startTime = datetime.strptime(robot_action_dict.get("startTime"), "%Y-%m-%d %H:%M:%S")
+            robot_action_vo.endTime = datetime.strptime(robot_action_dict.get("endTime"), "%Y-%m-%d %H:%M:%S")
+            robot_action_vo.status = robot_action_dict.get("status")
+            robot_action_vo.xtalSnapshotAfter = robot_action_dict.get("xtalSnapshotAfter")
+            robot_action_vo.xtalSnapshotBefore = robot_action_dict.get("xtalSnapshotBefore")
             action_id = self.__collection.service.storeRobotAction(robot_action_vo)
-        except ex:
-            msg = 'Could not store robot action in lims: %s' % ex.message
-            logging.getLogger("ispyb_client").exception(msg)
+        #except:
+        #    msg = 'Could not store robot action in lims:'
+        #    logging.getLogger("ispyb_client").exception(msg)
+
+        return action_id
     
 
     # Bindings to methods called from older bricks.
@@ -1903,14 +1927,6 @@ class ISPyBValueFactory():
                     directory = mx_collect_dict['fileinfo']['directory']
                 except:
                     directory = ''
-                else:
-                    if 'mesh' in directory:
-                        mesh_used = True
-                    else:
-                        mesh_used = False
-
-                    if mesh_used:
-                        mx_collect_dict['experiment_type'] = 'Mesh'
 
                 group.experimentType = mx_collect_dict['experiment_type']
             except KeyError,diag:
