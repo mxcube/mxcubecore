@@ -88,6 +88,8 @@ class StateMachine(HardwareObject):
                 transition["conditions_true"] = []
             if not transition.has_key("conditions_false"):
                 transition["conditions_false"] = []
+            if not transition.has_key("conditions_false_or"):
+                transition["conditions_false_or"] = []
 
             for condition_name in transition["conditions_true"]:
                 if not self.get_condition_by_name(condition_name):
@@ -96,6 +98,12 @@ class StateMachine(HardwareObject):
                       "has a none existing condition: %s" % \
                       condition_name)
             for condition_name in transition["conditions_false"]:
+                if not self.get_condition_by_name(condition_name):
+                    logging.getLogger("HWR").error(\
+                      "Transition %s " % str(transition) + \
+                      "has a none existing condition: %s" % \
+                      condition_name)
+            for condition_name in transition["conditions_false_or"]:
                 if not self.get_condition_by_name(condition_name):
                     logging.getLogger("HWR").error(\
                       "Transition %s " % str(transition) + \
@@ -135,7 +143,7 @@ class StateMachine(HardwareObject):
      
             if condition["value"] != value:
                 condition["value"] = value
-                self.emit("conditionChanged", condition_name, value)
+                self.emit("conditionChanged", self.condition_list)
                 self.update_fsm_state()
         else:
             logging.getLogger("HWR").debug(\
@@ -159,6 +167,12 @@ class StateMachine(HardwareObject):
                     cond = self.get_condition_by_name(cond_name)
                     if cond["value"] == True:
                         allow_transition = False
+                for cond_name in transition["conditions_false_or"]:
+                    cond = self.get_condition_by_name(cond_name)
+                    if cond["value"] == False:
+                        allow_transition = True
+ 
+
                 if allow_transition:
                     self.current_state = transition["dest"]
                     break
