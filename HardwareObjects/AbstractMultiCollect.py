@@ -639,7 +639,7 @@ class AbstractMultiCollect(object):
         if nframes == 0:
             return
 
-	# data collection
+        # data collection
         self.first_image_timeout = 30+oscillation_parameters["exposure_time"]
         self.data_collection_hook(data_collect_parameters)
 

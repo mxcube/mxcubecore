@@ -68,7 +68,7 @@ class LimaVideo(Device):
         if self.cam_type == 'prosilica':
             from Lima import Prosilica
             self.camera = Prosilica.Camera(self.cam_address)
-            self.interface = Prosilica.Interface(self.camera)	
+            self.interface = Prosilica.Interface(self.camera)
         if self.cam_type == 'ueye':
             from Lima import Ueye
             self.camera = Ueye.Camera(self.cam_address)
@@ -101,7 +101,7 @@ class LimaVideo(Device):
             self.image_format = BayerType(image_format.split(":")[1])
             if image_format.lower() == "bayer:8":
                 self.scaling_type = pixmaptools.LUT.Scaling.BAYER_RG8
-            elif image_format.lower() == "bayer:16":  	
+            elif image_format.lower() == "bayer:16":
                 self.scaling_type = pixmaptools.LUT.Scaling.BAYER_RG16
         elif image_format.lower().startswith("y:"):
             self.image_format = BayerType(image_format.split(":")[1])
@@ -183,7 +183,7 @@ class LimaVideo(Device):
         Descript. :
         """
         return
-	#self.video.setGain(gain)
+        #self.video.setGain(gain)
 
     def getGain(self):
         """
@@ -250,7 +250,7 @@ class LimaVideo(Device):
         Descript. :
         """
         return self.image_dimensions[0]
-	
+
     def getHeight(self):
         """
         Descript. :
@@ -265,7 +265,7 @@ class LimaVideo(Device):
         while self.video.getLive():
             self.get_new_image()
             time.sleep(sleep_time)
-	     	
+
     def connectNotify(self, signal):
         """
         Descript. :
@@ -287,7 +287,7 @@ class LimaVideo(Device):
         """
         image = self.video.getLastImage()
         if image.frameNumber() > -1:
-            raw_buffer = image.buffer()	
+            raw_buffer = image.buffer()
             if self.do_scaling:
                 self.scaling.autoscale_min_max(raw_buffer,
                      image.width(), image.height(), self.scaling_type)

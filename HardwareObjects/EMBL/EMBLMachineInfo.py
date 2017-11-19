@@ -94,7 +94,7 @@ class EMBLMachineInfo(HardwareObject):
         self.flux_area = None
         self.last_transmission = None
 
-	#Intensity current ranges
+        #Intensity current ranges
         self.values_list = []
         temp_dict = {}
         temp_dict['value'] = 0
@@ -391,7 +391,7 @@ class EMBLMachineInfo(HardwareObject):
         """Returns current"""
         return self.values_list[0]['value']
 
-    def	get_message(self):
+    def get_message(self):
         """Returns synchrotron state text"""
         return self.state_text
 

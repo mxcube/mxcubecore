@@ -123,7 +123,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 y = values[-1][1]
                 if not (x == 0 and y == 0):
                     # if x is in keV, transform into eV otherwise let it like it is
-	            # if point larger than previous point (for chooch)
+                    # if point larger than previous point (for chooch)
                     if len(self.scan_data) > 0:
                         if x > self.scan_data[-1][0]:
                             self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
@@ -461,7 +461,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """Returns energy scan data.
            List contains tuples of (energy, counts)
         """
-        return self.scan_data
+        if self.scan_data is None:
+            return None
+        else:
+            return list(self.scan_data)
 
     def store_energy_scan(self):
         if self.db_connection_hwobj:

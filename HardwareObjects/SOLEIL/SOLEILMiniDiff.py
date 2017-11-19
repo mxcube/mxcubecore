@@ -123,7 +123,7 @@ class SOLEILMiniDiff(MiniDiff.MiniDiff):
         return self.cmd_get_motor_state(motor_name).name
         
     def get_phase_list(self):
-        return self.phase_list
+        return list(self.phase_list)
 
     def start_set_phase(self, name):
         """

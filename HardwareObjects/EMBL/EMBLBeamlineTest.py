@@ -1598,7 +1598,7 @@ class EMBLBeamlineTest(HardwareObject):
 
     def get_available_tests(self):
         """Returns a list with available tests"""
-        return self.available_tests_dict
+        return self.available_tests_dict.copy()
 
     def get_startup_test_list(self):
         """Returns a list with tests defined at startup"""

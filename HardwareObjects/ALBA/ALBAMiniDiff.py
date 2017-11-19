@@ -299,5 +299,5 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.current_motor_positions["focus"] = pos
 
     def start_auto_focus(self):
-	self.cmd_start_auto_focus()
+        self.cmd_start_auto_focus()
 

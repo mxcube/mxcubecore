@@ -308,7 +308,7 @@ class Cats90(SampleChanger):
             while self._chnCurrentPhase.getValue() != 'Centring':
                 if timeout > 60:
                     logging.info("waited for too long, change to centring mode manually")
-		    return
+                    return
                 time.sleep(1)
                 timeout+=1
                 logging.info("current phase is " + self._chnCurrentPhase.getValue())

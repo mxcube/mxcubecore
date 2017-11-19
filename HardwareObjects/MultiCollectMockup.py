@@ -53,7 +53,7 @@ class MultiCollectMockup(AbstractMultiCollect, HardwareObject):
         for data_collect_parameters in data_collect_parameters_list:
             logging.debug("collect parameters = %r", data_collect_parameters)
             failed = False
-       	    data_collect_parameters["status"]='Data collection successful'
+            data_collect_parameters["status"]='Data collection successful'
             osc_id, sample_id, sample_code, sample_location = self.update_oscillations_history(data_collect_parameters)
             self.emit('collectOscillationStarted', (owner, sample_id, sample_code, sample_location, data_collect_parameters, osc_id))
 

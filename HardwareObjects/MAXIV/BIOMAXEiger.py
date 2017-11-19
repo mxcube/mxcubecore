@@ -75,8 +75,8 @@ class BIOMAXEiger(Equipment):
                     'BeamCenterX','BeamCenterY','DetectorDistance','OmegaIncrement','OmegaStart',
                     'Compression','RoiMode', 'State',"Status",'XPixelsDetector','YPixelsDetector')
 
-	fw_list = ('FilenamePattern','ImagesPerFile','BufferFree',# 'CompressionEnabled'
-		  'FileWriterState', 'ImageNbStart', 'Mode')
+        fw_list = ('FilenamePattern','ImagesPerFile','BufferFree',# 'CompressionEnabled'
+                  'FileWriterState', 'ImageNbStart', 'Mode')
 
         # config needed to be set up for data collection
         # if values are None, use the one from the system
@@ -367,9 +367,9 @@ class BIOMAXEiger(Equipment):
                 if self.set_photon_energy( new_egy ) is False:
                     raise Exception("Could not program energy in detector")
 
-	if "CountTime" in self._config_vals.keys():
-	    self.set_value("CountTime",  self._config_vals["CountTime"])
-	    self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
+        if "CountTime" in self._config_vals.keys():
+            self.set_value("CountTime",  self._config_vals["CountTime"])
+            self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
 
         for cfg_name, cfg_value in self._config_vals.items():
             t0 = time.time()   

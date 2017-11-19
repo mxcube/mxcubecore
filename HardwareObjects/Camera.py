@@ -416,8 +416,8 @@ class Camera(BaseHardwareObjects.Device):
                 def setBpm(self, bpmOn):
                     """tango"""
                     if self.bpmDevice is not None:
-                    	if bpmOn: self.bpmDevice.executeCommand('on')
-                    	else: self.bpmDevice.executeCommand('off')
+                            if bpmOn: self.bpmDevice.executeCommand('on')
+                            else: self.bpmDevice.executeCommand('off')
 
                 def getBpmState(self):
                     """tango"""
@@ -812,7 +812,7 @@ class Camera(BaseHardwareObjects.Device):
                             self.setLive(True)
 
             self.__class__ = TacoCamera
-	    self._TacoDevice__dc= False
+            self._TacoDevice__dc= False
             self._init()
 
 

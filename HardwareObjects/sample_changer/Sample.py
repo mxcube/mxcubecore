@@ -42,7 +42,7 @@ class Sample(Component):
         Returns a dictionary with sample changer specific sample properties 
         :rtype: dictionary
         """        
-        return self.properties
+        return self.properties.copy()
     
     def hasProperty(self, name):
         """

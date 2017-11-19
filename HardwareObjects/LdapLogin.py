@@ -33,7 +33,7 @@ class LdapLogin(Procedure):
         ldaphost = self.getProperty('ldaphost')
         ldapport = self.getProperty('ldapport')
         domain   = self.getProperty('ldapdomain')
-	ldapou   = self.getProperty('ldapou')
+        ldapou   = self.getProperty('ldapou')
 
         if ldaphost is None:
             logging.getLogger("HWR").error("LdapLogin: you must specify the LDAP hostname")
@@ -108,7 +108,7 @@ class LdapLogin(Procedure):
             return self.cleanup(msg="invalid password for %s" % username)
 
         logging.getLogger("HWR").debug("LdapLogin: validating %s" % username)
-	try:
+        try:
             bind_str = "uid=%s, ou=%s, %s" % (username,self.ldapou, self.domstr)
         except AttributeError as attr:
             bind_str = "uid=%s,%s" % (username, self.domstr)

@@ -91,7 +91,7 @@ class Attenuators(Device):
         Descript. :
         """
         try:
-  	    self.att_value = float(value)
+            self.att_value = float(value)
         except:
             pass
         else:
@@ -115,7 +115,7 @@ class Attenuators(Device):
         if self.chan_att_limits is not None:
             self.att_limits = self.chan_att_limits.getValue()
         return self.att_limits    
-  	      
+
     def is_in(self, attenuator_index):
         """
         Descript. :

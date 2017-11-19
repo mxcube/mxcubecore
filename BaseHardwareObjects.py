@@ -283,7 +283,7 @@ class HardwareObjectNode:
         return self._propertySet.get(str(name), default_value)
 
     def getProperties(self):
-        return self._propertySet
+        return self._propertySet.copy()
             
     def update_values(self):
         """Method called from Qt bricks to ensure that bricks have values

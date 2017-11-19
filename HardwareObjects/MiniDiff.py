@@ -323,11 +323,11 @@ class MiniDiff(Equipment):
         return (None, None)
 
     def get_pixels_per_mm(self):
-	return (self.pixelsPerMmY, self.pixelsPerMmZ)
+        return (self.pixelsPerMmY, self.pixelsPerMmZ)
 
     def getBeamInfo(self, callback=None):
-	beam_info = self.beam_info.get_beam_info() 
-	if callable(callback):
+        beam_info = self.beam_info.get_beam_info()
+        if callable(callback):
           callback(beam_info)
         return beam_info
 
@@ -607,7 +607,7 @@ class MiniDiff(Equipment):
        
         self.currentCentringProcedure.link(self.autoCentringDone)
 
-	self.emitProgressMessage("Starting automatic centring procedure...")
+        self.emitProgressMessage("Starting automatic centring procedure...")
        
     @task 
     def moveToCentredPosition(self, centred_position):
@@ -653,7 +653,7 @@ class MiniDiff(Equipment):
               try:
                 self.centringStatus["motors"][role] = centred_pos[motor]
               except KeyError:
-		continue
+                continue
 
             self.centringStatus["method"]=self.currentCentringMethod
             self.centringStatus["valid"]=True

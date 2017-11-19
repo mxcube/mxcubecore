@@ -945,7 +945,7 @@ class MiniDiffPX2(Equipment):
               try:
                 self.centringStatus["motors"][role] = centred_pos[motor]
               except KeyError:
-		continue
+                continue
             self.centringStatus["method"]=self.currentCentringMethod
             self.centringStatus["valid"]=True
             

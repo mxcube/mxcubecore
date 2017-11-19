@@ -172,7 +172,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return
 
-    def get_omega_axis_position(self):	
+    def get_omega_axis_position(self):
         """
         Descript. :
         """

@@ -446,9 +446,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
             # checked if interleave is set. For this implementation
             # interleave is just possible for discreet data collections
             ref_num_images = 0
-            children_data_model_list =  self._data_model.get_children()
 
-            for child_data_model in children_data_model_list: 
+            for child_data_model in self._data_model.get_children():
                 if isinstance(child_data_model, queue_model_objects.DataCollection):
                     num_images = child_data_model.acquisitions[0].\
                         acquisition_parameters.num_images

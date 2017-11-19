@@ -35,7 +35,7 @@ def start(programs, processEvent, paramsDict):
             allowed_events = program.getProperty("event").split(" ")
             if processEvent in allowed_events:
                 executable = program.getProperty('executable')
-		
+
                 if os.path.isfile(executable):
                     if processEvent == "end_multicollect":
                         endOfLineToExecute = grouped_processing("end_multicollect", paramsDict)
@@ -56,12 +56,12 @@ def start(programs, processEvent, paramsDict):
                             cell_opt = ''
 
                         endOfLineToExecute = ' -path ' + paramsDict["xds_dir"] +\
-					     ' -mode ' + processEvent +\
-					     ' -datacollectionID ' + str(dataCollectionId) +\
-					     ' -residues ' + str(residues) +\
-					     ' -anomalous ' + str(anomalous) +\
-					     sg_opt + cell_opt #+\
-					     #(paramsDict["inverse_beam"] and ' -inverse' or '')
+                                             ' -mode ' + processEvent +\
+                                             ' -datacollectionID ' + str(dataCollectionId) +\
+                                             ' -residues ' + str(residues) +\
+                                             ' -anomalous ' + str(anomalous) +\
+                                             sg_opt + cell_opt #+\
+                                             #(paramsDict["inverse_beam"] and ' -inverse' or '')
                     lineToExecute = executable + endOfLineToExecute + ' 2>&1 > /dev/null &'
                     logging.info("Process event %s, executing %s" % (processEvent,str(lineToExecute)))
 

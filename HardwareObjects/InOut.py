@@ -18,7 +18,7 @@ class InOut(Device):
         self.set_in.connectSignal("disconnected", self._setReady)
         self.set_out = self.getCommandObject("set_out")
         self._setReady()
-	self.offset = self.getProperty("offset")
+        self.offset = self.getProperty("offset")
         if self.offset > 0:
            self.states = {self.offset:"out", self.offset-1:"in",}
         else:

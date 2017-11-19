@@ -31,7 +31,7 @@ __version__ = "2.2."
 class ApertureMockup(Device):
     """
     Description:	
-    """	
+    """
     POSITIONS = ("BEAM", "OFF", "PARK")
 
     def __init__(self, name):
@@ -83,7 +83,7 @@ class ApertureMockup(Device):
 
     def is_out(self):
         return self.position != "BEAM"
-	   	
+
     def get_diameter_list(self):
         return self.diameter_list
 

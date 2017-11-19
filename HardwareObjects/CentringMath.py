@@ -17,7 +17,7 @@ class CentringMath(Procedure):
         self.gonioAxes = []
         for axis in self['gonioAxes']:
           self.gonioAxes.append({'type':axis.type,'direction':eval(axis.direction),\
-	      		         'motor_name':axis.motorname,'motor_HO':
+                                       'motor_name':axis.motorname,'motor_HO':
                                   HardwareRepository.HardwareRepository().getHardwareObject(axis.motorHO) })      
         
 
@@ -205,7 +205,7 @@ class CentringMath(Procedure):
         # finds a projection of camera vector {"X":x,"Y":y} onto a motor axis of a motor_HO
         for axis in self.gonioAxes:
             if axis['type'] == "translation" and motor_HO is axis['motor_HO']:
-	       res = 0.0
+               res = 0.0
                for camaxis in self.cameraAxes:
                    res = res + numpy.dot(axis['direction'],camaxis['direction'])*camxy[camaxis['axis_name']]
                return res

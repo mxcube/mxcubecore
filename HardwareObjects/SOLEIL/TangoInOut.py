@@ -17,9 +17,9 @@ class TangoInOut(Device):
         self._setReady()
 
         try:
-	   self.inversed = self.getProperty("inversed")
+           self.inversed = self.getProperty("inversed")
         except:
-	   self.inversed = False
+           self.inversed = False
 
         if self.inversed:
            self.states = ["in", "out"]

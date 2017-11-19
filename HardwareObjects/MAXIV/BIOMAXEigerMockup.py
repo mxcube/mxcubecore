@@ -106,7 +106,7 @@ class BIOMAXEigerMockup(Equipment):
         return self.roi_mode
 
     def set_roi_mode(self, value):
-	self.roi_mode = value
+        self.roi_mode = value
 
     def get_pixel_size_x(self):
         """

@@ -44,7 +44,7 @@ __category__ = "General"
 class EMBLMiniDiff(GenericDiffractometer):
     """
     Description:
-    """	
+    """
 
     AUTOMATIC_CENTRING_IMAGES = 6
 

@@ -47,8 +47,8 @@ class MDBeamInfo(BeamInfo.BeamInfo):
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
             self.beam_position = [self.chan_beam_position_hor.getValue(), \
-	                          self.chan_beam_position_ver.getValue()]
-        return self.beam_position	
+                                  self.chan_beam_position_ver.getValue()]
+        return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
         """

@@ -296,7 +296,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        return self.scan_data
+        return list(self.scan_data)
 
     def store_energy_scan(self):
         """

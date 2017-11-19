@@ -99,11 +99,11 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
        #print "reading the image"
 
        try:
-	  img=None
+          img=None
           img=self.device.getImageJPG()
           # JN, 20140807,adapt the MD2 screen (768x576) to mxCuBE2 
 #          logging.getLogger('HWR').info("Img_chr dimension %s",img.shape)
-	  if img is not None:
+          if img is not None:
                 f = open("/tmp/mxcube_tmp.jpg","w")
                 f.write("".join(map(chr, img)))
                 f.close()

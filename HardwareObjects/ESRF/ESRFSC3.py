@@ -64,7 +64,7 @@ class ESRFSC3(SC3.SC3):
         loaded = False
 
         with error_cleanup(functools.partial(self.emit, "stateChanged", SC3.SampleChangerState.Alarm), failureCallback):
-	  with cleanup(functools.partial(self.emit, "stateChanged", SC3.SampleChangerState.Ready)):
+          with cleanup(functools.partial(self.emit, "stateChanged", SC3.SampleChangerState.Ready)):
             with cleanup(self.unlockMinidiffMotors, wait=True, timeout=3):
                 loaded = self.__loadSample(holderLength, sample_id, sample_location)
         

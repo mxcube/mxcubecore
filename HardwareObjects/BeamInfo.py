@@ -25,7 +25,7 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 class BeamInfo(Equipment):
     """
     Description:
-    """  	
+    """
 
     def __init__(self, *args):
         """
@@ -170,7 +170,7 @@ class BeamInfo(Equipment):
         """
         self.evaluate_beam_info()
         return self.beam_info_dict["size_x"], \
-	       self.beam_info_dict["size_y"]
+               self.beam_info_dict["size_y"]
 
     def get_beam_shape(self):
         """
@@ -188,7 +188,7 @@ class BeamInfo(Equipment):
         Return    :
         """
         self.evaluate_beam_info()
-        return self.beam_size_slits	
+        return self.beam_size_slits
 
     def evaluate_beam_info(self):
         """
@@ -196,22 +196,22 @@ class BeamInfo(Equipment):
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
         size_x = min(self.beam_size_aperture[0],
-	   	     self.beam_size_slits[0],
-		     self.beam_size_definer[0]) 
+                     self.beam_size_slits[0],
+                     self.beam_size_definer[0])
         size_y = min(self.beam_size_aperture[1],
-  		     self.beam_size_slits[1], 
-		     self.beam_size_definer[1]) 
-	
+                     self.beam_size_slits[1],
+                     self.beam_size_definer[1])
+
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
 
         # be careful with comparisons!!! both have to be the same type (=tuple)
         if tuple(self.beam_size_aperture) < tuple(self.beam_size_slits):
-	    self.beam_info_dict["shape"] = "ellipse"
-	else:
-	    self.beam_info_dict["shape"] = "rectangular"
-	
-	return self.beam_info_dict	
+            self.beam_info_dict["shape"] = "ellipse"
+        else:
+            self.beam_info_dict["shape"] = "rectangular"
+
+        return self.beam_info_dict
 
     def emit_beam_info_change(self): 
         """
@@ -220,12 +220,12 @@ class BeamInfo(Equipment):
         Return    :
         """
         if self.beam_info_dict["size_x"] != 9999 and \
-           self.beam_info_dict["size_y"] != 9999:		
+           self.beam_info_dict["size_y"] != 9999:
             self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"], \
                  self.beam_info_dict["size_y"]), ))
             self.emit("beamInfoChanged", (self.beam_info_dict, ))
             if self.chan_beam_size_microns:
                 self.chan_beam_size_microns.setValue((self.beam_info_dict["size_x"] * 1000, \
-                     self.beam_info_dict["size_y"] * 1000))	
+                     self.beam_info_dict["size_y"] * 1000))
             if self.chan_beam_shape_ellipse:
                 self.chan_beam_shape_ellipse.setValue(self.beam_info_dict["shape"] == "ellipse") 

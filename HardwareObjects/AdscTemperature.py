@@ -13,4 +13,4 @@ class AdscTemperature(TacoDevice.TacoDevice):
                 
 
     def valueChanged(self, deviceName, value):
-	self.emit('valueChanged', (value,) )
+        self.emit('valueChanged', (value,) )

@@ -38,8 +38,8 @@ class BeamInfoPX1(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 
-	self.beam_position = [None, None]
-	self.beam_size     = [None, None]
+        self.beam_position = [None, None]
+        self.beam_size     = [None, None]
         self.shape         = 'rectangular'
 
         self.beam_info_dict  = {'size_x': None, 'size_y': None, 'shape': self.shape}
@@ -153,7 +153,7 @@ class BeamInfoPX1(Equipment):
         self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
     def positionUpdated(self):
-	self.emit("beamPosChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position, ))
         self.sizeUpdated()
 
     def get_beam_info(self):
@@ -162,5 +162,5 @@ class BeamInfoPX1(Equipment):
         
     def get_beam_position(self):
         logging.getLogger().warning('returning beam positions. It is %s ' % str(self.beam_position))
-	return self.beam_position	
+        return self.beam_position
 

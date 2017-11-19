@@ -171,4 +171,4 @@ class Ps_attenuatorPX2(Device):
         logging.getLogger().error("Check Instance of Device server %s" % db.DbGetDeviceInfo(device)[1][3])
         self.sDisconnected()
 
-  	      
+

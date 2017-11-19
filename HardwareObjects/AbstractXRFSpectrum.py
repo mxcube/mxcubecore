@@ -18,7 +18,7 @@ import gevent
 import gevent.event
 import numpy
 import abc
-from HardwareRepository.TaskUtils import cleanup	
+from HardwareRepository.TaskUtils import cleanup
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 

@@ -34,13 +34,13 @@ class BIOMAXMD3Camera(Device):
 
         self.image_attr = self.addChannel({"type":"exporter", "name":"image"  }, 'ImageJPG')
 
-	# new attrs for the MD3 with extra camera options
+        # new attrs for the MD3 with extra camera options
         self.width = 680
-	self.height = 512
-	self.chan_zoom = self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
-	self.roi_x = self.addChannel({"type":"exporter", "name":"RoiX"  }, 'RoiX')
-	self.roi_y = self.addChannel({"type":"exporter", "name":"RoiY"  }, 'RoiY')
-	self.roi_width = self.addChannel({"type":"exporter", "name":"RoiWidth"  }, 'RoiWidth')
+        self.height = 512
+        self.chan_zoom = self.addChannel({"type":"exporter", "name":"ImageZoom"  }, 'ImageZoom')
+        self.roi_x = self.addChannel({"type":"exporter", "name":"RoiX"  }, 'RoiX')
+        self.roi_y = self.addChannel({"type":"exporter", "name":"RoiY"  }, 'RoiY')
+        self.roi_width = self.addChannel({"type":"exporter", "name":"RoiWidth"  }, 'RoiWidth')
         self.roi_height = self.addChannel({"type":"exporter", "name":"RoiHeight"  }, 'RoiHeight')
         self.set_camera_roi = self.addCommand({"type":"exporter", "name":"setCameraROI"  }, 'setCameraROI')
   
@@ -56,9 +56,9 @@ class BIOMAXMD3Camera(Device):
             self.chan_zoom.setValue(self.zoom)
             self.width=self.roi_width.getValue()*self.zoom
             self.height = self.roi_height.getValue()*self.zoom
-	except:
+        except:
             logging.getLogger("HWR").info( "cannot set image zoom level")
-	thread = Thread(target=self.poll)
+        thread = Thread(target=self.poll)
         thread.daemon = True
         thread.start()
 
@@ -88,55 +88,55 @@ class BIOMAXMD3Camera(Device):
                 self.image_attr = self.addChannel({"type":"exporter", "name":"image"  }, 'ImageJPG')
 
     def stopPolling(self):
-	self.stopper = True
+        self.stopper = True
     def startPolling(self):
-	# assuming that it is already stop, more advances features with threading.Event, Event.is_set...
-	self.stopper = False
-	thread.stop()
+        # assuming that it is already stop, more advances features with threading.Event, Event.is_set...
+        self.stopper = False
+        thread.stop()
         thread = Thread(target=self.poll)
-	thread.daemon = True
-	thread.start()
+        thread.daemon = True
+        thread.start()
 
     def setCameraRoi(self, x1, y1, x2, y2):
- 	"""
-	Configure the camera Region Of Interest.
-	X1 (int): abscissa of top left corner
-	Y1 (int): ordinate of top left corner
+        """
+	    Configure the camera Region Of Interest.
+	    X1 (int): abscissa of top left corner
+	    Y1 (int): ordinate of top left corner
         X2 (int): abscissa of bottom right corner
-	Y2 (int): ordinate of bottom right corner
-	"""
-	try:
-	    self.set_camera_roi(x1, y1, x1, y2)
-	    self.width = x2 - x1
-	    self.height = y1 - y2
-	    return True
+	    Y2 (int): ordinate of bottom right corner
+	    """
+        try:
+            self.set_camera_roi(x1, y1, x1, y2)
+            self.width = x2 - x1
+            self.height = y1 - y2
+            return True
         except:
-	    logging.getLogger("HWR").exception("Could not set image roi")
-	    return False
+            logging.getLogger("HWR").exception("Could not set image roi")
+            return False
 
     def getCameraRoi(self):
-	"""
-	Retrieve camera roi settings
-	"""
-	try:
-	    return [self.roi_x.getValue(), self.roi_y.getValue(), self.roi_width.getValue(), self.roi_height.getValue()]
-	except:
-	    logging.getLogger("HWR").exception("Could not retrieve image roi settings")
-	    return False
+        """
+	    Retrieve camera roi settings
+	    """
+        try:
+            return [self.roi_x.getValue(), self.roi_y.getValue(), self.roi_width.getValue(), self.roi_height.getValue()]
+        except:
+            logging.getLogger("HWR").exception("Could not retrieve image roi settings")
+            return False
 
     def getImageZoom(self):
         try:
-	    return self.zoom.getValue()
-	except Exception, e:
-	    logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
-	    return False
+            return self.zoom.getValue()
+        except Exception, e:
+            logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
+            return False
 
     def setImageZoom(self, new_zoom):
-	try:
-	    return self.zoom.setValue(new_zoom)
-	except Exception, e:
-	    logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
-	    return False
+        try:
+            return self.zoom.setValue(new_zoom)
+        except Exception, e:
+            logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
+            return False
 
     def imageUpdated(self, value):
        print "<HW> got new image"
@@ -155,7 +155,7 @@ class BIOMAXMD3Camera(Device):
         return self.width
     def getHeight(self):
         #return self.roi_height.getValue()
-	return self.height
+        return self.height
     def setLive(self, state):
         self.liveState = state
         return True

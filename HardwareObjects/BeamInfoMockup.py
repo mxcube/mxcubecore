@@ -81,7 +81,7 @@ class BeamInfoMockup(Equipment):
 
     def get_slits_gap(self):
         self.evaluate_beam_info()
-        return self.beam_size_slits	
+        return self.beam_size_slits
 
     def set_slits_gap(self, width_microns, height_microns):
         if self.slits_hwobj:
@@ -99,7 +99,7 @@ class BeamInfoMockup(Equipment):
         size_y = min(self.beam_size_aperture[1],
                      self.beam_size_slits[1], 
                      self.beam_size_definer[1]) 
-	
+
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
 
@@ -107,11 +107,11 @@ class BeamInfoMockup(Equipment):
             self.beam_info_dict["shape"] = "ellipse"
         else:
             self.beam_info_dict["shape"] = "rectangular"
-        return self.beam_info_dict	
+        return self.beam_info_dict
 
     def emit_beam_info_change(self): 
         if self.beam_info_dict["size_x"] != 9999 and \
-            self.beam_info_dict["size_y"] != 9999:		
+            self.beam_info_dict["size_y"] != 9999:
             self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"],\
                       self.beam_info_dict["size_y"]), ))
             self.emit("beamInfoChanged", (self.beam_info_dict, ))

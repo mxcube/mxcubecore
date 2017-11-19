@@ -110,5 +110,5 @@ class ID30HutchTrigger(BaseHardwareObjects.HardwareObject):
         elif value == 1 and self.initialized:
             self.emit('hutchTrigger', (0, ))
         self.hutch_opened = 1-value
-	self.initialized = True
+        self.initialized = True
 

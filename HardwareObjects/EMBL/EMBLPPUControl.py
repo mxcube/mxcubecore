@@ -11,7 +11,7 @@ __category__ = "General"
 class EMBLPPUControl(Device):    
 
     def __init__(self, name):
-        Device.__init__(self, name)	
+        Device.__init__(self, name)
 
         self.all_status = None
         self.status_result = None
@@ -29,7 +29,7 @@ class EMBLPPUControl(Device):
       
         self.status_running = None
         self.restart_running = None
-	
+
     def init(self):
         self.all_status = ""
         self.status_result = ""

@@ -70,8 +70,8 @@ class Mar225:
         self.header["dataset_comments"] = comment
         self.header["file_comments"] = ""
         self.current_filename = ""
-	self.current_thumbnail2 = ""
-	self.current_thumbnail1 = ""
+        self.current_thumbnail2 = ""
+        self.current_thumbnail1 = ""
 
         self.stop()
 
