@@ -83,6 +83,8 @@ class CollectMockup(AbstractCollect, HardwareObject):
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
+        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
+        self.plate_manipulator_hwobj = self.getObjectByRole("plate_manipulator")
 
         undulators = []
         try:

@@ -80,13 +80,14 @@ class AbstractCollect(object):
         self.machine_info__hwobj = None
         self.resolution_hwobj = None
         self.sample_changer_hwobj = None
+        self.plate_manipulator_hwobj = None
         self.transmission_hwobj = None
 
-        self.mesh = None
-        self.mesh_num_lines = None
-        self.mesh_total_nb_frames = None
-        self.mesh_range = None
-        self.mesh_center = None
+        #self.mesh = None
+        #self.mesh_num_lines = None
+        #self.mesh_total_nb_frames = None
+        #self.mesh_range = None
+        #self.mesh_center = None
         self.ready_event = gevent.event.Event()
 
     def set_beamline_configuration(self, **configuration_parameters):
@@ -227,7 +228,8 @@ class AbstractCollect(object):
             self.update_data_collection_in_lims()
 
             last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-            if last_frame > 1:
+            if last_frame > 1 and self.current_dc_parameters['experiment_type'] != 'Mesh':
+                #We do not store first and last frame for mesh
                 self.store_image_in_lims_by_frame_num(last_frame)
             if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
                 self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
@@ -242,6 +244,9 @@ class AbstractCollect(object):
         self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
+
+    def store_image_in_lims_by_frame_num(self, frame_number):
+        pass
 
     def stop_collect(self, owner="MXCuBE"):
         """
@@ -393,7 +398,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         if self.beam_info_hwobj is not None:
-            return self.beam_info_hwobj.get_shape()
+            return self.beam_info_hwobj.get_beam_shape()
 
     def get_machine_current(self):
         """
@@ -491,6 +496,7 @@ class AbstractCollect(object):
         """
         if self.lims_client_hwobj and not self.current_dc_parameters['in_interleave']:
             self.current_dc_parameters["flux"] = self.get_flux()
+            self.current_dc_parameters["flux_end"] = self.get_flux()
             self.current_dc_parameters["wavelength"] = self.get_wavelength()
             self.current_dc_parameters["detectorDistance"] =  self.get_detector_distance()
             self.current_dc_parameters["resolution"] = self.get_resolution()
@@ -586,7 +592,11 @@ class AbstractCollect(object):
                 sample_location = (sample_container_number, vial_number)
  
         self.current_dc_parameters['blSampleId'] = sample_id
-        if self.sample_changer_hwobj:
+
+        if self.diffractometer_hwobj.in_plate_mode():
+            plate_location = self.plate_manipulator_hwobj.get_plate_location()
+            self.current_dc_parameters["actualSampleBarcode"] = "Plate %s" % str(plate_location)
+        elif self.sample_changer_hwobj:
             try:
                 self.current_dc_parameters["actualSampleBarcode"] = \
                     self.sample_changer_hwobj.getLoadedSample().getID()
@@ -741,8 +751,10 @@ class AbstractCollect(object):
          - nb frames per line
          - invert direction (boolean)  # NOT YET DONE
          """
-        self.mesh_num_lines = num_lines
-        self.mesh_total_nb_frames = total_nb_frames
-        self.mesh_range = mesh_range_param
-        self.mesh_center = mesh_center_param
+        return
+ 
+        #self.mesh_num_lines = num_lines
+        #self.mesh_total_nb_frames = total_nb_frames
+        #self.mesh_range = mesh_range_param
+        #self.mesh_center = mesh_center_param
 

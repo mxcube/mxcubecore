@@ -8,6 +8,13 @@ class AbstractDetector(object):
         """
         Descript. : 
         """ 
+
+        self.distance = None
+        self.temperature = None
+        self.humidity = None
+        self.exposure_time_limits = []
+        self.actual_frame_rate = None
+
         self.pixel_min = None
         self.pixel_max = None
         self.default_distance = None
@@ -15,12 +22,10 @@ class AbstractDetector(object):
         self.distance_limits_static = [None, None]
         self.binding_mode = None
         self.roi_mode = None
- 
         self.roi_modes_list = []
+        self.status = None        
 
         self.distance_motor_hwobj = None
-
-        
 
     @abc.abstractmethod
     def get_distance(self):
@@ -43,11 +48,23 @@ class AbstractDetector(object):
         """
         return
 
+    def get_roi_mode(self):
+        """Returns current ROI mode"""
+        return self.roi_mode
+
+    def set_roi_mode(self, roi_mode):
+        pass
+
+    def get_roi_mode_name(self):
+        return self.roi_modes_list[self.roi_mode]
+
     def get_roi_modes(self):
-        """
-        Descript. : 
-        """
+        """Returns a list with available ROI modes"""
         return self.roi_modes_list
+
+    def get_exposure_time_limits(self):
+        """Returns exposure time limits as list with two floats"""
+        return self.exposure_time_limits
 
     def get_pixel_min(self):
         """
