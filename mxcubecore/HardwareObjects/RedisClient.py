@@ -88,9 +88,12 @@ class RedisClient(HardwareObject):
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.bl_setup_hwobj = self.getObjectByRole("beamline_setup")
 
-        self.connect(self.bl_setup_hwobj.flux_hwobj,
-                     'fluxChanged',
-                     self.flux_changed)
+        try:
+            self.connect(self.bl_setup_hwobj.flux_hwobj,
+                         'fluxChanged',
+                         self.flux_changed)
+        except:
+            pass
 
         self.proposal_id = self.bl_setup_hwobj.session_hwobj.get_proposal()
         self.beamline_name = self.bl_setup_hwobj.session_hwobj.beamline_name
