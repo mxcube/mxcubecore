@@ -550,7 +550,7 @@ class XMLRPCServer(HardwareObject):
         """
         return self.diffractometer_hwobj.getBackLightLevel()
 
-        def centre_beam(self):
+    def centre_beam(self):
         """
         Centers the beam using the beamcmds hardware object.
         """
