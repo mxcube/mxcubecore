@@ -196,8 +196,11 @@ class AbstractEnergyScan(object):
         Sets maximal transmission used during the energy scan
         """
 
-    def get_max_transmission_state(self):
+    def adjust_transmission(self, value):
         pass
+
+    def get_adjust_transmission_state(self):
+        return
 
     def get_max_transmission_value(self):
         pass
