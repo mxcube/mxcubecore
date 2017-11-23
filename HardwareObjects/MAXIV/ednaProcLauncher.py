@@ -14,7 +14,7 @@ import subprocess
 
 # XDS.INP creation is now asynchronous in mxcube, so it may not be here yet
 # when we're started
-WAIT_XDS_TIMEOUT = 300
+WAIT_XDS_TIMEOUT = 100
 HPC_HOST = "b-picard07-clu0-fe-0.maxiv.lu.se"
 
 INPUT_TEMPLATE = """<?xml version="1.0"?>
@@ -40,59 +40,59 @@ INPUT_TEMPLATE = """<?xml version="1.0"?>
 
 SCRIPT_TEMPLATE = """#!/usr/bin/env python
 
-    import os
-    import sys
-    import time
-    import socket
-    import traceback
+import os
+import sys
+import time
+import socket
+import traceback
 
-    sys.path.insert(0, "/mxn/groups/biomax/cmxsoft/edna-mx/kernel/src")
+sys.path.insert(0, "/mxn/groups/biomax/cmxsoft/edna-mx/kernel/src")
 
-    from EDVerbose import EDVerbose
-    from EDFactoryPluginStatic import EDFactoryPluginStatic
+from EDVerbose import EDVerbose
+from EDFactoryPluginStatic import EDFactoryPluginStatic
 
-    beamline = "$beamline"
-    proposal = "$proposal"
-    dataCollectionId = $dataCollectionId
-    ednaProcDirectory = "$ednaProcDirectory"
-    inputFile = "$inputFile"
+beamline = "$beamline"
+proposal = "$proposal"
+dataCollectionId = $dataCollectionId
+ednaProcDirectory = "$ednaProcDirectory"
+inputFile = "$inputFile"
 
-    pluginName = "EDPluginControlEDNAprocv1_0"
-    os.environ["EDNA_SITE"] = "MAXIV_BIOMAX"
-    os.environ["ISPyB_user"]=""
-    os.environ["ISPyB_pass"]=""
+pluginName = "EDPluginControlEDNAprocv1_0"
+os.environ["EDNA_SITE"] = "MAXIV_BIOMAX"
+os.environ["ISPyB_user"]=""
+os.environ["ISPyB_pass"]=""
 
-    EDVerbose.screen("Executing EDNA plugin %s" % pluginName)
-    EDVerbose.screen("EDNA_SITE %s" % os.environ["EDNA_SITE"])
+EDVerbose.screen("Executing EDNA plugin %s" % pluginName)
+EDVerbose.screen("EDNA_SITE %s" % os.environ["EDNA_SITE"])
 
-    hostname = socket.gethostname()
-    dateString  = time.strftime("%Y%m%d", time.localtime(time.time()))
-    timeString = time.strftime("%H%M%S", time.localtime(time.time()))
-    #strPluginBaseDir = os.path.join("/tmp", beamline, dateString)
-    #if not os.path.exists(strPluginBaseDir):
-    #    os.makedirs(strPluginBaseDir, 0o755)
+hostname = socket.gethostname()
+dateString  = time.strftime("%Y%m%d", time.localtime(time.time()))
+timeString = time.strftime("%H%M%S", time.localtime(time.time()))
+#strPluginBaseDir = os.path.join("/tmp", beamline, dateString)
+#if not os.path.exists(strPluginBaseDir):
+#    os.makedirs(strPluginBaseDir, 0o755)
 
-    baseName = "{hostname}_{date}-{time}".format(hostname=hostname,
-                                                 date=dateString,
-                                                 time=timeString)
-    baseDir = os.path.join(ednaProcDirectory, baseName)
-    if not os.path.exists(baseDir):
-        os.makedirs(baseDir, 0o755)
-    EDVerbose.screen("EDNA plugin working directory: %s" % baseDir)
+baseName = "{hostname}_{date}-{time}".format(hostname=hostname,
+				 	     date=dateString,
+					     time=timeString)
+baseDir = os.path.join(ednaProcDirectory, baseName)
+if not os.path.exists(baseDir):
+    os.makedirs(baseDir, 0o755)
+EDVerbose.screen("EDNA plugin working directory: %s" % baseDir)
 
-    ednaLogName = "EDNA_proc_{0}-{1}.log".format(dateString, timeString)
-    EDVerbose.setLogFileName(os.path.join(ednaProcDirectory, ednaLogName))
-    EDVerbose.setVerboseOn()
+ednaLogName = "EDNA_proc_{0}-{1}.log".format(dateString, timeString)
+EDVerbose.setLogFileName(os.path.join(ednaProcDirectory, ednaLogName))
+EDVerbose.setVerboseOn()
 
-    edPlugin = EDFactoryPluginStatic.loadPlugin(pluginName)
-    edPlugin.setDataInput(open(inputFile).read())
-    edPlugin.setBaseDirectory(ednaProcDirectory)
-    edPlugin.setBaseName(baseName)
+edPlugin = EDFactoryPluginStatic.loadPlugin(pluginName)
+edPlugin.setDataInput(open(inputFile).read())
+edPlugin.setBaseDirectory(ednaProcDirectory)
+edPlugin.setBaseName(baseName)
 
-    EDVerbose.screen("Start of execution of EDNA plugin %s" % pluginName)
-    os.chdir(baseDir)
-    edPlugin.executeSynchronous()   
-    """
+EDVerbose.screen("Start of execution of EDNA plugin %s" % pluginName)
+os.chdir(baseDir)
+edPlugin.executeSynchronous()   
+"""
 
 class EdnaProcLauncher:
 
@@ -116,17 +116,21 @@ class EdnaProcLauncher:
         # parse the input file to find the first image
         self.xdsAppeared = False
         self.waitXdsStart = time.time()
-        logging.info("EDNA_proc launcher: waiting for XDS.INP file")
+        logging.getLogger('HWR').info("EDNA_proc launcher: waiting for XDS.INP file: %s" %self.xdsInputFile)
         while not self.xdsAppeared and (time.time() - self.waitXdsStart < WAIT_XDS_TIMEOUT):
             time.sleep(1)
+	    print 111111111111111
             if os.path.exists(self.xdsInputFile) and os.stat(self.xdsInputFile).st_size > 0:
                 time.sleep(1)
-                xdsAppeared = True
-                logging.info("EDNA_proc launcher: XDS.INP file is there, size={0}".format(os.stat(xdsInputFile).st_size))
-        if not xdsAppeared:
-            logging.error("XDS.INP file ({0}) failed to appear after {1} seconds".format(xdsInputFile, WAIT_XDS_TIMEOUT))
+                self.xdsAppeared = True
+		print 222222222222
+                logging.getLogger('HWR').info("EDNA_proc launcher: XDS.INP file is there, size=%s" % os.stat(self.xdsInputFile).st_size)
+		print 44444444444444444444
+        if not self.xdsAppeared:
+	    print 55555555555
+            logging.getLogger('HWR').error("XDS.INP file ({0}) failed to appear after {1} seconds".format(self.xdsInputFile, WAIT_XDS_TIMEOUT))
             sys.exit(1)
-
+	print 666666666666
         self.ednaOutputFileName = "EDNA_proc_ispyb.xml"
         self.ednaOutputFilePath = os.path.join(self.ednaProcPath, self.ednaOutputFileName)
         if os.path.exists(self.ednaOutputFilePath):
@@ -181,10 +185,10 @@ class EdnaProcLauncher:
                                                         dir=self.ednaProcPath,
                                                         delete=False)
             ednaInputFilePath = os.path.join(self.ednaProcPath, ednaInputFile.name)
-            ednaInputFile.file.write(inputXml)
+            ednaInputFile.file.write(self.inputXml)
             ednaInputFile.close()
         else:
-            open(ednaInputFilePath, "w").write(inputXml)
+            open(ednaInputFilePath, "w").write(self.inputXml)
         os.chmod(ednaInputFilePath, 0o755)
         
 
@@ -199,7 +203,7 @@ class EdnaProcLauncher:
         template = string.Template(SCRIPT_TEMPLATE)
         self.script = template.substitute(beamline=beamline,
                                      proposal=proposal,
-                                     ednaProcDirectory=autoprocessingPathednaProcPath,
+                                     ednaProcDirectory=self.ednaProcPath,
                                      dataCollectionId=self.dataCollectionId,
                                      inputFile=ednaInputFilePath)
 
@@ -220,18 +224,19 @@ class EdnaProcLauncher:
         os.chmod(self.ednaScriptFilePath, 0o755)
 
     def execute(self):
-        cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s" % (self.ednaProcPath, self.ednaScriptFilePath, HPC_HOST)
+        cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.ednaProcPath, self.ednaScriptFilePath, HPC_HOST)
 
         # for test
         #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
         #print cmd
-
+	print 4*'###########################\n'
+	print 'Command: ', cmd
         p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
     def parse_and_execute(self):
         self.parse_input_file()
-        sef.execute()
+        self.execute()
 
 if __name__ == "__main__":
     args = sys.argv[1:]

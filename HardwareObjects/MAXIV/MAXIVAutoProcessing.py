@@ -90,26 +90,30 @@ class MAXIVAutoProcessing(HardwareObject):
                         - arg1 : image base dir (place where thumb will be generated)
                         - arg2 : file name
         """
-	    for program in self.autoproc_programs:
+	for program in self.autoproc_programs:
             if process_event == program.getProperty("event"):
-                module = program.getProperty("module")
+                module = program.getProperty("module").lower()
+	      	print 2*'###########'
                 if process_event == "after":
                     input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
                     path = params_dict["fileinfo"]["directory"]
                     mode = 'after'
-                    dataCollectionID =  str(params_dict['collection_id'])
+                    dataCollectionId =  str(params_dict['collection_id'])
                     residues = 200
                     anomalous = False
                     cell = "0,0,0,0,0,0"
+		    print 'Module: ', module, '>> Will execute: ', will_execute
+		    print 'input_filename   ', input_filename
+		    try:
+                        if module == 'ednaproc' and will_execute:
+                            from ednaProcLauncher import EdnaProcLauncher
+                            mod =  EdnaProcLauncher(path, mode, dataCollectionId, residues, anomalous, cell, None)
 
-                    if module == 'ednaProc':
-                        from ednaProcLauncher import EdnaProcLauncher
-                        mod =  EdnaProcLauncher(path, mode, dataCollectionId, residues, anomalous, cell, None)
-
-                    elif module == 'autoProc':
-                        from autoProcLauncher import autoProcLauncher
-                        mod = AutoProcLauncher(path, mode, dataCollectionId, residues, anomalous, cell, None)
-
+                        elif module == 'autoproc' and will_execute:
+                            from autoProcLauncher import AutoProcLauncher
+                            mod = AutoProcLauncher(path, mode, dataCollectionId, residues, anomalous, cell, None)
+		    except Exception as ex:
+			print ex
                 if process_event == 'image':
                     if frame_number == 1 or frame_number == params_dict['oscillation_sequence'][0]['number_of_images']:
                         endOfLineToExecute = " %s %s/%s_%d_%05d.cbf" % (params_dict["fileinfo"]["directory"],
@@ -119,15 +123,19 @@ class MAXIVAutoProcessing(HardwareObject):
                            frame_number)
                         will_execute = True 	
                 if will_execute:
-                    logging.getLogger("HWR").info("Process event %s, executing %s" % (process_event, module))
-                    mod.parse_and_execute()
+                    logging.getLogger("HWR").info("[MAXIVAutoprocessing] Executing module: %s" % module)
+		    try:
+                        mod.parse_and_execute()
+		    except Exception as ex:
+                        logging.getLogger("HWR").error("[MAXIVAutoprocessing] Module %s  execution error." % module)
+			print module, ex
 
     def autoproc_done(self, current_autoproc):
         """
         Descript. :
         """
         self.current_autoproc_procedure = None
-        logging.getLogger("HWR").info("Process event %s, executed %s" % (process_event, module))
+        logging.getLogger("HWR").info("Autoprocessing executed.")
 
     def create_autoproc_input(self, event, params):
         """
@@ -172,7 +180,7 @@ class MAXIVAutoProcessing(HardwareObject):
         #Maybe we have to check if directory is there. Maybe create dir with mxcube
         xds_appeared = False
         wait_xds_start = time.time()
-        logging.debug('MAXIVAutoprocessing: Waiting for XDS.INP file: %s' % autoproc_xds_filename)
+        logging.info('MAXIVAutoprocessing: Waiting for XDS.INP file: %s' % autoproc_xds_filename)
         while not xds_appeared and time.time() - wait_xds_start < WAIT_XDS_TIMEOUT:
             if os.path.exists(autoproc_xds_filename) and os.stat(autoproc_xds_filename).st_size > 0:
                 xds_appeared = True

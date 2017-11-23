@@ -142,7 +142,7 @@ class AutoProcLauncher:
         os.chmod(self.ednaInputFilePath, 0o755)
 
 
-        directories = autoprocessingPath.split(os.path.sep)
+        directories = self.autoprocessingPath.split(os.path.sep)
         try:
             beamline = directories[3]
             proposal = directories[4]
@@ -178,12 +178,13 @@ class AutoProcLauncher:
 
     def execute(self):
 
-        cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s" % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
+        cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s; source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
 
         # for test
         #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
         #print cmd
-
+	print 4*'&&&&&&&&&&&&\n'
+	print 'COMMAND AYUTPROC ', cmd
         p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
