@@ -315,7 +315,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             self.open_detector_cover()
             self.open_safety_shutter()
-            # make sure detector configuration is finished
+
             # TODO: investigate gevent.timeout exception handing, this wait is to ensure
             # that conf is done before arming
             time.sleep(2)
@@ -346,7 +346,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	    except Exception as ex:
 		logging.getLogger("HWR").error("[COLLECT] Detector error stopping acquisition: %s" % ex)
 	
-            #self.close_safety_shutter()
+            self.close_safety_shutter()
             self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
         except RuntimeError as ex:
@@ -434,7 +434,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         print ex	
 
     	# we store the first and the last images, TODO: every 45 degree
-            logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
+        logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
     	try:
     	    self.store_image_in_lims(1)
     	    self.generate_and_copy_thumbnails(self.current_dc_parameters['fileinfo']['filename'], 1)
@@ -605,22 +605,27 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # todo
-        # fast_dp_dir = os.path.join(params_dict["auto_dir"],"fast_dp")
-        # biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
-        # autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
-        # self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
-        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
-        #     % (fast_dp_dir, params_dict['fileinfo']['filename']))
-        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
-        #     % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
-        # os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/autoPROC.sh %s &"  \
-        #     % (autoPROC_dir, params_dict['fileinfo']['filename']))
-        # return
+        fast_dp_dir = os.path.join(params_dict["auto_dir"],"fast_dp")
+        biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
+        #autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
+        
+	self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
+        
+	logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
+        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
+            % (fast_dp_dir, params_dict['fileinfo']['filename']))
+        
+	logging.getLogger("HWR").info("[COLLECT] Launching biomax_pipeline")
+        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
+            % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
+        #os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/autoPROC.sh %s &"  \
+        #    % (autoPROC_dir, params_dict['fileinfo']['filename']))
+        return
 
-        if self.autoprocessing_hwobj is not None:
-            self.autoprocessing_hwobj.execute_autoprocessing(process_event,
-                                                             self.current_dc_parameters,
-                                                             frame_number)
+        #if self.autoprocessing_hwobj is not None:
+        #    self.autoprocessing_hwobj.execute_autoprocessing(process_event,
+        #                                                     self.current_dc_parameters,
+        #                                                     frame_number)
 
     def get_beam_centre(self):
         """
@@ -643,6 +648,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
+            logging.getLogger("HWR").info("Openning the detector cover.")
             self.detector_cover_hwobj.openShutter()
             time.sleep(1) # make sure the cover is up before the data collection stars
         except:
@@ -654,6 +660,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         try:
+            logging.getLogger("HWR").info("Closing the detector cover")
             self.detector_cover_hwobj.closeShutter()
         except:
             logging.getLogger("HWR").exception("Could not close the detector cover")
@@ -669,6 +676,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             return 
         timeout = 3
         count_time=0
+        logging.getLogger("HWR").info("Opening the safety shutter.") 
         self.safety_shutter_hwobj.openShutter()
         while self.safety_shutter_hwobj.getShutterState() == 'closed' and count_time < timeout:
             time.sleep(0.1)
@@ -682,6 +690,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         Descript. :
         """
         # todo, add timeout, same as open
+        logging.getLogger("HWR").info("Closing the safety shutter.") 
         self.safety_shutter_hwobj.closeShutter()
         while self.safety_shutter_hwobj.getShutterState() == 'opened':
             time.sleep(0.1)
