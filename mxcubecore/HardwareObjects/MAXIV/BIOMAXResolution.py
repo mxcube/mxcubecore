@@ -36,13 +36,23 @@ class BIOMAXResolution(Resolution.Resolution):
         self.connect(self.energy, "valueChanged", self.energyChanged)
         self.connect(self.detector, "roiChanged", self.det_roi_changed)
         
+    def res2dist(self, res=None):
+        current_wavelength = self.getWavelength()
+
+        if res is None:
+            res = self.currentResolution
+
+        try:
+            ttheta = 2*math.asin(current_wavelength / (2*res))
+	    return self.det_radius / math.tan(ttheta)
+        except:
+            return None
 
     def det_roi_changed(self):
         self.det_width = self.detector.get_x_pixels_in_detector()
         self.det_height = self.detector.get_y_pixels_in_detector()
         self.update_beam_centre(self.dtox.getPosition())
         self.recalculateResolution()
-
 
     def update_beam_centre(self, dtox):
         beam_x, beam_y = self.get_beam_centre(dtox)
