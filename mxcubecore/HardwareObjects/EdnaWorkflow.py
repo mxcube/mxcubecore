@@ -148,7 +148,8 @@ class EdnaWorkflow(HardwareObject):
             dict_workflow = dict()
             dict_workflow["name"] = str(wf.title)
             dict_workflow["path"] = str(wf.path)
-            dict_workflow["requires"] = wf.getProperty('requires')
+            req = [r.strip() for r in wf.getProperty('requires').split(',')]
+            dict_workflow["requires"] = req
             dict_workflow["doc"] = ""
             workflow_list.append(dict_workflow)
         return workflow_list
