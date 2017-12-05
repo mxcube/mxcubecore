@@ -1330,6 +1330,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
                   sample.crystals[0].energy_scan_result.inflection))
 
         self.get_view().setText(1, "Done")
+        self._queue_controller.emit("energy_scan_finished", (pk, ip, rm, sample))
 
     def energy_scan_failed(self):
         self._failed = True
