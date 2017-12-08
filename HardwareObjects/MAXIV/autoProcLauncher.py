@@ -178,7 +178,7 @@ class AutoProcLauncher:
 
     def execute(self):
 
-        cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s; source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
+        cmd = "echo 'cd %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s; source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
 
         # for test
         #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)

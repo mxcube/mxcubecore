@@ -1,15 +1,14 @@
 import logging
 from HardwareRepository import HardwareRepository
 import Resolution
-#import gevent
-#import time
-#import copy
+import math
+
+
 class BIOMAXResolution(Resolution.Resolution):
     def __init__(self, *args, **kwargs):
         Resolution.Resolution.__init__(self, *args, **kwargs)
 
     def init(self): 
-        #Resolution.Resolution.init(self)
         self.currentResolution = None
         self.energy = None
 
@@ -28,7 +27,6 @@ class BIOMAXResolution(Resolution.Resolution):
         else:
             self.valid = False
             logging.getLogger().exception('Cannot get detector size')
-#            raise AttributeError("Cannot get detector ")
 
         self.update_beam_centre(self.dtox.getPosition()) 
         self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
@@ -45,8 +43,15 @@ class BIOMAXResolution(Resolution.Resolution):
         try:
             ttheta = 2*math.asin(current_wavelength / (2*res))
 	    return self.det_radius / math.tan(ttheta)
-        except:
+        except Exception as ex:
+	    print ex
             return None
+
+    def dist2res(self, dist=None):
+        if dist is None:
+            dist = self.dtox.getPosition()
+
+        return "%.3f" % self._calc_res(self.det_radius, dist)
 
     def det_roi_changed(self):
         self.det_width = self.detector.get_x_pixels_in_detector()
