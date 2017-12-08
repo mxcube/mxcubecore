@@ -312,6 +312,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
 
         try:
+	    self._collecting = True
             oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
             self.open_detector_cover()
             self.open_safety_shutter()
@@ -340,13 +341,16 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             for (osc_start, trigger_num, nframes_per_trigger, osc_range) in self.triggers_to_collect:
                 osc_end = osc_start + osc_range * nframes_per_trigger 
                 self.display_task = gevent.spawn(self._update_image_to_display)
+                self.progress_task = gevent.spawn(self._update_task_progress)
                 self.oscillation_task = self.oscil(osc_start, osc_end, shutterless_exptime, 1, wait=True)
             try: 
                 self.detector_hwobj.stop_acquisition()
 	    except Exception as ex:
-		logging.getLogger("HWR").error("[COLLECT] Detector error stopping acquisition: %s" % ex)
-	
-            self.close_safety_shutter()
+		Logging.getLogger("HWR").error("[COLLECT] Detector error stopping acquisition: %s" % ex)
+
+	    # not closing the safety shutter here, but in prepare_beamline
+	    # to avoid extra open/closes
+            # self.close_safety_shutter()
             self.close_detector_cover()
             self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
         except RuntimeError as ex:
@@ -386,6 +390,21 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         else:
             self.diffractometer_hwobj.osc_scan(start, end, exptime, wait=True)
 
+
+    def _update_task_progress(self):
+	logging.getLogger("HWR").info("[BIOMAXCOLLECT] update task progress launched")
+	num_images = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+	step_size = int(num_images / 10) # arbitrary, 10 progress steps or messages
+	exp_time = self.current_dc_parameters['oscillation_sequence'][0]['exposure_time']
+	step_count = 0
+	current_frame = 0
+	while step_count < 10:
+	    time.sleep(exp_time * step_size)
+	    current_frame += step_size
+	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] collectImageTaken %s (%s, %s, %s)" %(current_frame, num_images, step_size, step_count))
+            self.emit("collectImageTaken", current_frame)
+	    step_count += 1
+
     def emit_collection_failed(self):
         """
         Descrip. :
@@ -395,11 +414,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
         self.emit("collectOscillationFailed", (self.owner, False,
                   failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
-        self.emit("collectEnded", self.owner, failed_msg)
+        self.emit("collectEnded", self.owner, False, failed_msg)
         self.emit("collectReady", (True, ))
         self._collecting = None
         self.ready_event.set()
 
+	logging.getLogger("HWR").error("[COLLECT] COLLECTION FAILED, self.current_dc_parameters: %s" % self.current_dc_parameters)
         self.update_data_collection_in_lims()
 
     def emit_collection_finished(self):
@@ -412,13 +432,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                   success_msg, self.current_dc_parameters.get('collection_id'),
                   self.osc_id, self.current_dc_parameters)
                   )
-        self.emit("collectEnded", self.owner, success_msg)
+        self.emit("collectEnded", self.owner, True, success_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ())
         self._collecting = None
         self.ready_event.set()
         self.update_data_collection_in_lims()
 
+	logging.getLogger("HWR").debug("[COLLECT] COLLECTION FINISHED, self.current_dc_parameters: %s" % self.current_dc_parameters)
         try:
 	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] Going to generate XDS input files")
             # generate XDS.INP only in raw/process
@@ -577,7 +598,6 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 number_of_snapshots = 4 #4 take only one image for the moment
             logging.getLogger("user_level_log").info(\
                  "Collection: Taking %d sample snapshot(s)" % number_of_snapshots)
-
             if self.diffractometer_hwobj.get_current_phase() != "Centring":
                 logging.getLogger("user_level_log").info("Moving Diffractometer to CentringPhase")
                 self.diffractometer_hwobj.set_phase("Centring", wait=True, timeout=200)
@@ -609,8 +629,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
         #autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
         
-	self.create_directories(fast_dp_dir, biomax_pipeline_dir, autoPROC_dir)
+	self.create_directories(fast_dp_dir, biomax_pipeline_dir)#, autoPROC_dir)
         
+	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, parameters: %s" %params_dict)
+	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, self.current_dc_parameters: %s" % self.current_dc_parameters)
+
 	logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
             % (fast_dp_dir, params_dict['fileinfo']['filename']))
@@ -919,15 +942,16 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        # todo
-        return 100
+        return self.transmission_hwobj.get_value()
 
     def set_transmission(self, value):
         """
         Descript. :
         """
-        # todo
-        pass
+	try:
+            self.transmission_hwobj.set_value(float(value), True)
+	except Exception as ex:
+	    raise Exception('cannot set transmission', ex)
 
     def get_undulators_gaps(self):
         """
@@ -968,15 +992,14 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript.: prepare beamline for a new sample,
         """   
+	logging.getLogger("HWR").info("[HWR] Preparing beamline for a new sample.")
         if manual_mode:
             if self.detector_cover_hwobj is not None:
                self.close_detector_cover()
             self.diffractometer_hwobj.set_phase("Transfer", wait=False)             
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
-            if self.dtox_hwobj is not None:
-                self.dtox_hwobj.syncMove(800, timeout = 30)
-           # self.diffractometer_hwobj.set_phase("Transfer", wait=True, timeout=200)
+	    self.move_detector(800)
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"
@@ -990,8 +1013,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             #if self.stop_display:
             #    break
             #time.sleep(frequency)
-            os.system("echo %s, %s > %s" % (self.display["file_name1"],i,fname1))
-            os.system("echo %s, %s > %s" % (self.display["file_name2"],i,fname2))
+	    try:
+                os.system("echo %s, %s > %s" % (self.display["file_name1"],i,fname1))
+                os.system("echo %s, %s > %s" % (self.display["file_name2"],i,fname2))
+	    except Exception as ex:
+		print ex
             if self.stop_display:
                 break
             time.sleep(frequency)
