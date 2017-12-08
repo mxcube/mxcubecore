@@ -163,8 +163,8 @@ class MaxIVSession(Session):
         try:
             self.storage.create_path(self.proposal_number,
                                       group,
-                                      self.get_session_start_date(),
-                                      self.login)
+                                      self.get_session_start_date())
+
             proposal_path = '{0}/{1}'.format(self.storage.beamline_path, self.proposal_number)
             logging.getLogger("HWR").info("[MAX IV Session] SDM Data directory created: %s" % proposal_path)
         except Exception as ex:
