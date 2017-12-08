@@ -54,6 +54,7 @@ class BIOMAXMD3(GenericDiffractometer):
         # to make it comaptible
         self.camera = self.camera_hwobj
         self.acceptCentring = self.accept_centring
+        self.startCentringMethod = self.start_centring_method
         self.image_width = self.camera.getWidth()
         self.image_height = self.camera.getHeight()
 
@@ -430,8 +431,10 @@ class BIOMAXMD3(GenericDiffractometer):
         motors_dict = {}
         if keep_position:
             for motor in motors:
-                current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
-                
+		try:
+                    current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
+                except:
+		    pass
         if self.is_ready():
             self.command_dict["startSetPhase"](phase)
             if keep_position:
@@ -542,7 +545,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Descript. :
         """
-        self.phi_motor_hwobj.moveRelative(relative_angle)
+        self.phi_motor_hwobj.syncMoveRelative(relative_angle, 10)
 
     def is_ready(self):
         """

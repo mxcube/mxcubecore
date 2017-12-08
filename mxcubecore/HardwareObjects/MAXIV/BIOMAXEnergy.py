@@ -54,7 +54,6 @@ class BIOMAXEnergy(Energy.Energy):
         return self.default_en
 
     def getEnergyLimits(self):
-        logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
             return None
 
