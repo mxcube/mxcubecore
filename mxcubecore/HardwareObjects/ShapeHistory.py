@@ -301,7 +301,7 @@ class ShapeHistory(HardwareObject):
         return shape in self.selected_shapes
 
     def get_selected_shapes(self):
-        return list(self.selected_shapes.itervalues())
+        return self.selected_shapes.values()
 
 
 class DrawingEvent(QubDrawingEvent):
