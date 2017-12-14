@@ -1096,10 +1096,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                                                            self.beamline_setup)
                     char.diffraction_plan.append(collections)
                     self.queue_model_hwobj.emit('diff_plan_available',
-                                                (char,
-                                                 char.diffraction_plan.index(collections),
-                                                 collections)
-                                                )
+                                                (char, collections) )
 
                 self.get_view().setText(1, "Done")
             else:
