@@ -2,21 +2,14 @@
 A client for Biomax Kafka services.
 """
 import logging
-import gevent
-import os
 import time
 import json
 import uuid
 import re
-
-from kafka import KafkaConsumer, KafkaProducer
-
-
+import requests
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from datetime import datetime
 
-
-class BiomaxKafka(HardwareObject):
+class BIOMAXKafka(HardwareObject):
     """
     Web-service client for Kafka services.
     Example xml file:
@@ -31,7 +24,7 @@ class BiomaxKafka(HardwareObject):
         HardwareObject.__init__(self, name)
         self.kafka_server = None
         self.session_hwobj = None
-        self.topicsna    = ''
+        self.topic    = ''
 
     def init(self):
         """
@@ -41,9 +34,9 @@ class BiomaxKafka(HardwareObject):
         self.topic = self.getProperty('topic')
         self.session_hwobj = self.getObjectByRole('session')
         self.beamline_name = self.session_hwobj.beamline_name
+	self.file = open('/tmp/kafka_errors.txt', 'a')
+        self.url = self.kafka_server + '/kafka'
 
-        self.producer = KafkaProducer(bootstrap_servers=self.kafka_server)
-        
         logging.getLogger("HWR").info('KAFKA link initialized.')
 
     def key_is_snake_case(sel, k):
@@ -51,28 +44,34 @@ class BiomaxKafka(HardwareObject):
 
     def snake_to_camel(self, text):
         return re.sub('_([a-zA-Z0-9])', lambda m: m.group(1).upper(), text)
-    
-    # def convert(self, name):
-    #     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    #     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
     def send_data_collection(self, collection_data):
         d = dict()
 
-        d.update('uuid': str(uuid.uuid4()),
+        d.update({
+		 'uuid': str(uuid.uuid4()),
                  'beamline': self.beamline_name,
                  'proposal': self.session_hwobj.get_proposal(),  # e.g. MX20170251
                  'session': self.session_hwobj.get_session_start_date(),  # 20171206
-                 'userCategory': self.session_hwobj.get_user_category()  #staff or visitors
-                )
+                 'userCategory': 'visitors',# self.session_hwobj.get_user_category()  #staff or visitors
+		 '_v': '0'
+                })
 
         collection_data.update(d)
 
         for k in collection_data.keys():
             if self.key_is_snake_case(k):
                 collection_data[self.snake_to_camel(k)] = collection_data.pop(k)
+
+	data = json.dumps(collection_data)
+
         try:
-            producer.send(self.topic, json.dumps(collection_data))
+	    requests.post(self.url, data=data)
+            logging.getLogger("HWR").info('Pushed data collection info to KAFKA, UUID: %s' % collection_data['uuid'])
         except Exception as ex:
-            logging.getLogger("HWR").error('KAFKA link error. %s' % str(ex))
+	    self.file.write(time.strftime("%d %b %Y %H:%M:%S", time.gmtime()) + '\n')
+	    self.file.write(data + '\n')
+	    self.file.write(50*'#'+'\n')
+	    self.file.flush()
+            logging.getLogger("HWR").error('KAFKA link error. %s; data saved to /tmp/kafka_errors.txt' % str(ex))
 
