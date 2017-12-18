@@ -26,6 +26,7 @@ class ISPyBClient2Mockup(HardwareObject):
         self.__disabled = False
         self.__test_proposal = None
         self.loginType = None
+        self.base_result_url = None
 
     def init(self):
         """
@@ -41,6 +42,11 @@ class ISPyBClient2Mockup(HardwareObject):
         self.loginType = self.getProperty("loginType") or "proposal"
         self.session_hwobj = self.getObjectByRole('session')
         self.beamline_name = self.session_hwobj.beamline_name
+
+        try:
+            self.base_result_url = self.getProperty("base_result_url").strip()
+        except AttributeError:
+            pass
 
         self.__test_proposal = {'status': {'code': 'ok'},
                 'Person': {'personId': 1,
@@ -559,6 +565,18 @@ class ISPyBClient2Mockup(HardwareObject):
     def get_data_collection_id(self, dc_dict):
         pass
 
+    def dc_link(self, cid):
+        """
+        Get the LIMS link the data collection with id <id>.
+
+        :param str did: Data collection ID
+        :returns: The link to the data collection
+        """
+        dc_url = 'ispyb/user/viewResults.do?reqCode=display&dataCollectionId=%s' % cid
+        url = None
+        if self.base_result_url is not None:
+           url = urljoin(self.base_result_url, dc_url)
+        return url
     
     def get_session(self, session_id):
         pass

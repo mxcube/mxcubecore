@@ -30,6 +30,7 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_username = None
         self.__rest_token = None
         self.__rest_token_timestamp = None 
+        self.base_result_url = None
 
     def init(self):
         self.session_hwobj = self.getObjectByRole('session')
@@ -45,6 +46,11 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_username = self.getProperty('restUserName').strip()
         self.__rest_password = self.getProperty('restPass').strip()
         self.__site = self.getProperty('site').strip()
+        
+        try:
+            self.base_result_url = self.getProperty("base_result_url").strip()
+        except AttributeError:
+            pass
 
         self.__update_rest_token()
 
@@ -110,12 +116,17 @@ class ISPyBRestClient(HardwareObject):
         :param str did: Data collection ID
         :returns: The link to the data collection
         """
-        path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
-        path = path.format(pcode = self.session_hwobj.proposal_code,
-                           pnumber = self.session_hwobj.proposal_number,
-                           did = did)
+        url = None
 
-        return urljoin(self.__rest_root, path)
+        if self.base_result_url is not None:
+            path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
+            path = path.format(pcode = self.session_hwobj.proposal_code,
+                               pnumber = self.session_hwobj.proposal_number,
+                               did = did)
+
+            url = urljoin(self.base_result_url, path)
+
+        return url
 
     def get_dc_list(self):
         """
