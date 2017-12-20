@@ -14,6 +14,7 @@ from suds.client import Client
 from suds import WebFault
 from suds.sudsobject import asdict
 from urllib2 import URLError
+from urlparse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from datetime import datetime
 from collections import namedtuple
