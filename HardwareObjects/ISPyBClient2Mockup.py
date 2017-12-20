@@ -10,6 +10,8 @@ import time
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+from urlparse import urljoin
+
 # to simulate wrong loginID, use anything else than idtest
 # to simulate wrong psd, use "wrong" for password
 # to simulate ispybDown, but ldap login succeeds, use "ispybDown" for password
