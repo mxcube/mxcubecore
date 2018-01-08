@@ -475,49 +475,17 @@ class BIOMAXMD3(GenericDiffractometer):
     def moveToBeam(self, x, y):
         try:
             self.emit_progress_message("Move to beam...")
-            self.centring_time = time.time()
-            curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
-            self.centring_status = {"valid": True,
-                                    "startTime": curr_time,
-                                    "endTime": curr_time}
-
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue()-(x-beam_xc)/float(self.pixelsPerMmY)
             self.emit_progress_message("")
 
-            motors = {}
-            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
-            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
-            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
-            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
-            print "positions before ", motors
-
             self.phiy_motor_hwobj.moveRelative(-1*(y-beam_yc)/float(self.pixelsPerMmZ))
             self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
             self.wait_device_ready(5)
-
-            # motors = {}
-            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
-            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
-            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
-            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
-            print "positions after ", motors
-
-            self.centring_status["motors"] = motors
-            self.centring_status["valid"] = True
-            self.centring_status["angleLimit"] = True
-            self.centring_status["accepted"] = True
-
-            self.emit('centringAccepted', (True, self.get_centring_status()))
-            self.emit('centringSuccessful', (self.CENTRING_METHOD_MOVE_TO_BEAM, self.get_centring_status()))
-            self.emit_progress_message("")
-            self.ready_event.set()
-            self.current_centring_method = None
-            self.current_centring_procedure = None
         except:
-            logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
+            logging.getLogger("HWR").exception("MD3: could not move to beam.")
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
