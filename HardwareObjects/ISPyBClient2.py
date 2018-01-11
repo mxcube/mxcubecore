@@ -1,3 +1,4 @@
+
 """
 A client for ISPyB Webservices.
 """
@@ -10,7 +11,6 @@ import itertools
 import time
 import json
 
-from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 from suds import WebFault
 from suds.sudsobject import asdict
@@ -167,6 +167,11 @@ class ISPyBClient2(HardwareObject):
                     'ToolsForCollectionWebService?wsdl'
                 _WS_AUTOPROC_URL = _WSDL_ROOT + \
                     'ToolsForAutoprocessingWebService?wsdl'
+
+                if self.ws_root.strip().startswith("https://"):
+                    from suds.transport.https import HttpAuthenticated
+                else:
+                    from suds.transport.http import HttpAuthenticated
 
                 t1 = HttpAuthenticated(username = self.ws_username, 
                                       password = self.ws_password)
