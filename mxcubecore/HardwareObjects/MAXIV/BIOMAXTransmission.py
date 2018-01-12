@@ -20,7 +20,6 @@ class BIOMAXTransmission(Equipment):
             self.transmission_motor =  self.getObjectByRole("transmission_motor")
         except KeyError:
             logging.getLogger("HWR").warning('Error initializing transmission motor')
-	print self.transmission_motor
         if self.transmission_motor is not None:
             self.transmission_motor.connect('positionChanged', self.transmissionPositionChanged)
 
@@ -59,9 +58,7 @@ class BIOMAXTransmission(Equipment):
         self.emit("attStateChanged", self.getAttState())
 
     def transmissionPositionChanged(self, *args):
-	print 'transmissionPositionChanged, ',args
 	pos = self.get_value()
-	print pos
         self.emit('valueChanged', (pos, ))
    
     def stop(self):
