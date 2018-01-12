@@ -286,7 +286,7 @@ class GphlWorkflow(HardwareObject, object):
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         # There should be a better way, but apparently there isn't
-        qmo = self._queue_entry.get_view().listView().parent().queue_model_hwobj
+        qmo = HardwareRepository().getHardwareObject('/queue-model')
         qmo.add_child(parent_model_obj, child_model_obj)
 
 
