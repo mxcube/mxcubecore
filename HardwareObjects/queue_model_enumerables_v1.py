@@ -65,3 +65,8 @@ ORIG_EDNA_SPACEGROUPS = {'I4132': '214', 'P21212': '18', 'P432': '207',
                          'P4212': '90', 'P2221 ': '17', 'P622': '177',
                          'P43': '78', 'P4222 ': '93', 'P3121 ': '152',
                          'P4232': '208', 'P4332': '212'}
+
+# TODO replace this with a complete, authoritative list
+# This is required because the EDNA data contain e.g. 'I432 '
+SPACEGROUP_NUMBERS = dict((name.strip(), int(value))
+                          for name, value in ORIG_EDNA_SPACEGROUPS.items())
