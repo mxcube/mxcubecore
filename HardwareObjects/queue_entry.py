@@ -430,7 +430,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 group_data = {'sessionId': self.session_hwobj.session_id,
                               'experimentType': 'OSC'}
 
-            sample_model = task_model.get_parent()
+            sample_model = task_model.get_sample_node()
+            # task_model.get_parent()
             if sample_model.lims_container_location > -1:
                 group_data['actualContainerSlotInSC'] = \
                    sample_model.lims_container_location
