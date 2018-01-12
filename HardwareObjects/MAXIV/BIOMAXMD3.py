@@ -101,6 +101,13 @@ class BIOMAXMD3(GenericDiffractometer):
                 logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
         #self.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
       
+    def current_phase_changed(self, current_phase):
+        """
+        Descript. :
+        """
+        self.current_phase = current_phase
+        logging.getLogger("HWR").info("MD3 phase changed to %s" % current_phase)
+        self.emit('phaseChanged', (current_phase, ))
  
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
