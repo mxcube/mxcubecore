@@ -1,0 +1,17 @@
+ &SIMCAL_CRYSTAL_LIST
+! SG No. 230
+ SG_NAME = "Ia-3d",
+ ! Crystal data from file:///home/claus/Projects/Diamond/I23/RC/20161003/Results/do-23/01/summary.html
+ ! referred to on http://confluence.globalphasing.com/display/SDCP/Do-23+series
+ 
+ CELL_A_AXIS = 41.824 28.330 -8.619
+ CELL_B_AXIS = -29.345 41.652 -5.486
+ CELL_C_AXIS = 3.973 9.413 50.217 !
+ U_MAT_ANG_DEG   = 3*0.000000000000000E+000  ,
+ ! Take mosaicity value from CORRECT
+ U_MAT_SD_DEG    = 3*0.2  ,
+ ! Don't know what to put here.
+ CELL_DIM_SD     =  7.000000000000001E-002,  0.110000000000000     ,  7.000000000000001E-002,
+ RES_LIMIT_DEF   =   0.8
+ /
+ 
