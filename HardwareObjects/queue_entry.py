@@ -740,8 +740,22 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         kappa = self._data_model.get_kappa()
         phi = self._data_model.get_kappa_phi()
 
+
+        # kappa and kappa_phi settings are applied first, and assume that the
+        # beamline does have axes with exactly these names
+        #
+        # Other motor_positions are applied afterwards, but in random order.
+        # motor_positions override kappa and kappa_phi if both are set
+        #
+        # Since setting one motor can change the position of another
+        # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
+        # the order is important.
         if hasattr(self.diffractometer_hwobj, "in_kappa_mode") and self.diffractometer_hwobj.in_kappa_mode():
             self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+
+        motor_positions = self.get_data_model().get_other_motor_positions()
+        if motor_positions:
+            self.diffractometer_hwobj.moveMotors(motor_positions)
 
         #TODO agree on correct message
         log.warning("Please center a new point, and press continue.")
@@ -750,31 +764,19 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        if len(self.shape_history.get_selected_shapes()):
-            pos = self.shape_history.get_selected_shapes()[0]
+        shapes = list(self.shape_history.get_selected_shapes())
+        if shapes:
+            pos = shapes[0]
+            cpos = pos.get_centred_positions()[0]
         else:
             msg = "No centred position selected, using current position."
             log.info(msg)
 
-            # Create a centred postions of the current postion
+            # Create a centred positions of the current position
             pos_dict = self.diffractometer_hwobj.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
             #pos = shape_history.Point(None, cpos, None) #, True)
-
-        # Get tasks associated with this centring
-        tasks = self.get_data_model().get_tasks()
-
-        """for task in tasks:
-            cpos = pos.get_centred_positions()[0]
-
-            if pos.qub_point is not None:
-                snapshot = self.shape_history.\
-                           get_snapshot([pos.qub_point])
-            else:
-                snapshot = self.shape_history.get_snapshot([])
-
-            cpos.snapshot_image = snapshot 
-            task.set_centred_positions(cpos)"""
+        self._data_model.set_centring_result(cpos)
 
         self.get_view().setText(1, 'Input accepted')
 
