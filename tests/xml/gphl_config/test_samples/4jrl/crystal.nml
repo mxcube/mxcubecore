@@ -1,0 +1,13 @@
+ &SIMCAL_CRYSTAL_LIST
+ ! Taken from simcal input at
+ ! https://wwi/members/dev/kwiki/index.cgi?ClemensAutoProcSimcalExamples
+ SG_NAME = "R32",
+ CELL_A_AXIS     = -85.239838    -29.128540    -99.011017
+ CELL_B_AXIS     =   9.312113    125.527946     45.535633
+ CELL_C_AXIS     =  91.193390     24.308718    -85.661034
+ U_MAT_ANG_DEG   = 3*0.0
+ U_MAT_SD_DEG    = 3*0.103  
+ CELL_DIM_SD     =  0.133856        0.133856     0.127456
+ RES_LIMIT_DEF   =  1.479
+ /
+ 
