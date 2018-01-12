@@ -75,14 +75,14 @@ class MaxIVSession(Session):
                                                          'title': 'Commissioning Proposal',
                                                          'type': 'MX'},
                                             'Session': [{'is_inhouse': True,
-                                                         'session': {'beamlineName': 'BioMAX',
-                                                                     'comments': 'Fake session for commissioning',
-                                                                     'endDate': '2027-12-31 23:59:59',
-                                                                     'nbShifts': 100,
-                                                                     'proposalId': '0',
-                                                                     'scheduled': 0,
-                                                                     'sessionId': 0,
-                                                                     'startDate': '2016-01-01 00:00:00'}}
+                                                         'beamlineName': 'BioMAX',
+                                                         'comments': 'Fake session for commissioning',
+                                                         'endDate': '2027-12-31 23:59:59',
+                                                         'nbShifts': 100,
+                                                         'proposalId': '0',
+                                                         'scheduled': 0,
+                                                         'sessionId': 0,
+                                                         'startDate': '2016-01-01 00:00:00'}
                                                         ]
                                             }
 
