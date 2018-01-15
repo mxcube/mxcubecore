@@ -1,10 +1,10 @@
 import os
 import subprocess
 import logging
-import math
+import re
 import f90nml
 import General
-from MultiCollectMockup import MultiCollectMockup
+from CollectMockup import CollectMockup
 from HardwareRepository.HardwareRepository import HardwareRepository
 from TaskUtils import task
 try:
@@ -13,35 +13,38 @@ except ImportError:
     from ordereddict import OrderedDict
 
 
-class MultiCollectEmulator(MultiCollectMockup):
+class CollectEmulator(CollectMockup):
     def __init__(self, name):
-        MultiCollectMockup.__init__(self, name)
-        self._running_process = None
+        CollectMockup.__init__(self, name)
         self.gphl_connection_hwobj = None
         self.gphl_workflow_hwobj = None
 
-        # TODO get appropriate value
-        # We must have a value for functions to work
-        # This ought to eb OK for a Pilatus 6M (See TangoResolution object)
-        self.det_radius = 212.
+        # # TODO get appropriate value
+        # # We must have a value for functions to work
+        # # This ought to eb OK for a Pilatus 6M (See TangoResolution object)
+        # self.det_radius = 212.
 
-        self._detector_distance = 300.
-        self._wavelength = 1.0
+        # self._detector_distance = 300.
+        # self._wavelength = 1.0
 
         self._counter = 1
 
-    def make_image_file_template(self, data_collect_parameters, suffix=None):
-
-        file_parameters = data_collect_parameters["fileinfo"]
-        suffix = suffix or file_parameters.get('suffix')
-        prefix = file_parameters.get('prefix')
-        run_number = file_parameters.get('run_number')
-
-        image_file_template = ("%s_%s_????.%s" % (prefix, run_number, suffix))
-        file_parameters["template"] = image_file_template
+    # def make_image_file_template(self, data_collect_parameters, suffix=None):
+    #
+    #     file_parameters = data_collect_parameters["fileinfo"]
+    #     suffix = suffix or file_parameters.get('suffix')
+    #     prefix = file_parameters.get('prefix')
+    #     run_number = file_parameters.get('run_number')
+    #
+    #     image_file_template = ("%s_%s_????.%s" % (prefix, run_number, suffix))
+    #     file_parameters["template"] = image_file_template
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
+
+        print ('@~@~ data_collect_parameters')
+        for tt in sorted(data_collect_parameters.items()):
+            print('---> %s: %s' % tt)
 
         # Set up and add crystal data
         result = OrderedDict()
@@ -140,6 +143,7 @@ class MultiCollectEmulator(MultiCollectMockup):
         for osc in data_collect_parameters['oscillation_sequence']:
             motors = data_collect_parameters['motors']
             # get resolution limit and detector distance
+            print ('@~@~ resolution', data_collect_parameters['resolution'])
             resolution = data_collect_parameters['resolution']['upper']
             self.set_resolution(resolution)
             sweep = OrderedDict()
@@ -153,17 +157,33 @@ class MultiCollectEmulator(MultiCollectMockup):
             # NBNB hardwired for omega scan TODO
             sweep['axis_no'] = 3
             sweep['omega_deg'] = osc['start']
-            sweep['kappa_deg'] = motors['kappa']
-            sweep['phi_deg'] = motors['kappa_phi']
+            # NB kappa and phi are overwritten from the motors dict, if set there
+            sweep['kappa_deg'] = osc['kappaStart']
+            sweep['phi_deg'] = osc['phiStart']
             sweep['step_deg'] = osc['range']
             sweep['n_frames'] = osc['number_of_images']
             sweep['image_no'] = osc['start_image_number']
-            self.make_image_file_template(data_collect_parameters, suffix='cbf')
+            # self.make_image_file_template(data_collect_parameters, suffix='cbf')
+
+            # Extract format statement from template,
+            # and convert to fortran format
+            template = data_collect_parameters['fileinfo']['template']
+            ss = str(re.search('(%[0-9]+d)', template).group(0))
+            print('@~@~', template, ss)
+            template = template.replace(ss, '?' * int(ss[1:-1]))
             name_template = os.path.join(
-                data_collect_parameters['fileinfo']['directory'],
-                data_collect_parameters['fileinfo']['template']
+                data_collect_parameters['fileinfo']['directory'], template
+                # data_collect_parameters['fileinfo']['template']
             )
             sweep['name_template'] = General.to_ascii(name_template)
+
+            # Overwrite kappa and phi from motors - if set
+            val = motors.get('kappa')
+            if val is not None:
+                sweep['kappa_deg'] = val
+            val = motors.get('kappa_phi')
+            if val is not None:
+                sweep['phi_deg'] = val
 
             # Skipped: spindle_deg=0.0, two_theta_deg=0.0, mu_air=-1, mu_sensor=-1
 
@@ -179,9 +199,24 @@ class MultiCollectEmulator(MultiCollectMockup):
         return result
 
     @task
-    def data_collection_hook(self, data_collect_parameters):
+    def data_collection_hook(self):
+        """Spawns data emulation using gphl simcal"""
 
-        # Done here as there as what-happens-first conflicts
+        data_collect_parameters = self.current_dc_parameters
+
+        logging.getLogger('HWR').debug("Emulator: nominal position "
+            + ', '.join('%s=%s' % (tt[0].name, tt[1])
+                        for tt in sorted(data_collect_parameters['motors'].items())
+                        if tt[1] is not None)
+        )
+
+        logging.getLogger('HWR').debug("Emulator:  actual position "
+             + ', '.join('%s=%s' % tt
+                         for tt in sorted(self.diffractometer_hwobj.get_positions().items())
+                         if tt[1] is not None)
+        )
+
+        # Done here as there are what-happens-first conflicts
         # if you put it in init
         if self.gphl_workflow_hwobj is None:
             self.gphl_workflow_hwobj = HardwareRepository().getHardwareObject(
@@ -226,7 +261,7 @@ class MultiCollectEmulator(MultiCollectMockup):
                                             crystal_data)
 
         # NB outfile is the echo output of the input file;
-        # image files templates ar set in the input file
+        # image files templates are set in the input file
         file_info = data_collect_parameters['fileinfo']
         if not os.path.exists(file_info['process_directory']):
             os.makedirs(file_info['process_directory'])
@@ -248,22 +283,21 @@ class MultiCollectEmulator(MultiCollectMockup):
         logging.getLogger('HWR').info("Executing command: %s" % command_list)
 
         try:
-            self._running_process = subprocess.Popen(command_list, stdout=None,
+            running_process = subprocess.Popen(command_list, stdout=None,
                                                      stderr=None, env=envs)
         except:
             logging.getLogger('HWR').error('Error in spawning workflow application')
             raise
-        #
-        return
 
-    @task
-    def data_collection_end_hook(self, data_collect_parameters):
+        # This does waiting, so we want to collect the result afterwards
+        super(CollectEmulator, self).data_collection_hook()
+
         logging.getLogger('HWR').info(
             'Waiting for simcal collection emulation.'
         )
         # NBNB TODO put in time-out, somehow
-        if self._running_process is not None:
-            return_code = self._running_process.wait()
+        if running_process is not None:
+            return_code = running_process.wait()
             if return_code:
                 raise RuntimeError("simcal process terminated with return code %s"
                                    % return_code)
@@ -274,54 +308,19 @@ class MultiCollectEmulator(MultiCollectMockup):
 
         return
 
-    @task
-    def set_resolution(self, new_resolution):
-        self._detector_distance = self.res2dist(new_resolution)
-
-    @task
-    def move_detector(self, detector_distance):
-        self._detector_distance = detector_distance
-
+    # TODO move these functions to CollectMockup
     def set_wavelength(self, wavelength):
-        self._wavelength = wavelength
+        self.energy_hwobj.move_wavelength(wavelength)
 
     def set_energy(self, energy):
-        self.set_wavelength(General.h_over_e/energy)
+        self.energy_hwobj.start_move_energy(energy)
 
-    def get_wavelength(self):
-        return self._wavelength
+    def set_resolution(self, new_resolution):
+        self.resolution_hwobj.move(new_resolution)
 
-    def get_detector_distance(self):
-        return self._detector_distance
+    def move_detector(self, detector_distance):
+        self.resolution_hwobj.dtox.move(detector_distance)
 
-    def get_resolution(self):
-        return self.dist2res()
+    def move_motors(self, motor_position_dict):
+        self.diffractometer_hwobj.move_motors(motor_position_dict)
 
-
-    def res2dist(self, res=None):
-        current_wavelength = self._wavelength
-
-        if res is None:
-            res = self._resolution
-
-        try:
-            ttheta = 2*math.asin(current_wavelength / (2*res))
-            return self.det_radius / math.tan(ttheta)
-        except:
-            return None
-
-    def dist2res(self, dist=None):
-        current_wavelength = self._wavelength
-        if dist is None:
-            dist = self._detector_distance
-
-        try:
-            ttheta = math.atan(self.det_radius / dist)
-
-            if ttheta:
-                return current_wavelength / (2*math.sin(ttheta/2))
-            else:
-                return None
-        except Exception:
-            logging.getLogger().exception("error while calculating resolution")
-            return None
