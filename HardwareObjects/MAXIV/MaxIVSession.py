@@ -142,7 +142,9 @@ class MaxIVSession(Session):
 
     def prepare_directories(self, proposal_info):
         self.login = proposal_info['Person']['login']
-        start_time = proposal_info.get('Session')[0].get('session').get('startDate')
+        start_time = proposal_info.get('Session')[0].get('startDate')
+        
+        logging.getLogger("HWR").info("[MAX IV Session] Preparing Data directory for proposal %s" % proposal_info)
         if start_time:
             start_date = start_time.split(' ')[0].replace('-', '')
         else:
