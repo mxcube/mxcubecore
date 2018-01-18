@@ -160,10 +160,10 @@ class BIOMAXEiger(Equipment):
         return self.status_chan.getValue().split('\n')[0]
 
     def is_idle(self):
-        return self.get_status() == "idle"
+        return self.get_status()[:4] == "idle"
 
     def is_ready(self):
-        return self.get_status() == "ready"
+        return self.get_status()[:5] == "ready"
 
     def is_acquire(self):
         return self.get_status() == "acquire"
