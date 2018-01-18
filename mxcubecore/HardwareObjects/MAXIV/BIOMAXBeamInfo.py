@@ -53,6 +53,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         Return    :
         """
 
+        return self.beam_position
 	if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
@@ -60,6 +61,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         else:
             self.beam_position[0] = self.camera.getWidth() / 2
             self.beam_position[1] = self.camera.getHeight() / 2
+	
         return self.beam_position
 
 
