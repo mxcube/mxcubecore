@@ -87,10 +87,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
-            if self.camera.zoom is not None:
-                self.zoom_centre['x'] = self.zoom_centre['x'] * self.camera.zoom
-                self.zoom_centre['y'] = self.zoom_centre['y'] * self.camera.zoom
+	    zoom = self.camera_hwobj.get_image_zoom()
+            if zoom is not None:
+                self.zoom_centre['x'] = self.zoom_centre['x'] * zoom
+                self.zoom_centre['y'] = self.zoom_centre['y'] * zoom
             self.beam_position = [self.zoom_centre['x'], self.zoom_centre['y']]
+	    self.beam_info_hwobj.beam_position = self.beam_position
         except:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {'x': self.image_width / 2, 'y': self.image_height / 2}
@@ -99,7 +101,6 @@ class BIOMAXMD3(GenericDiffractometer):
                        'not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
                 logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
-        #self.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
       
     def current_phase_changed(self, current_phase):
         """
