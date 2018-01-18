@@ -326,7 +326,8 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 self.detector_hwobj.wait_ready()
 	    except Exception as ex:
             	logging.getLogger("HWR").error("[COLLECT] Detector Error: %s" % ex)
-            
+		raise RuntimeError("[COLLECT] Detector error while arming.")
+
 	    # call after start_acquisition (detector is armed), when all the config parameters are definitely
             # implemented
 	    try:
@@ -355,6 +356,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.emit("collectImageTaken", oscillation_parameters['number_of_images'])
         except RuntimeError as ex:
             self.data_collection_cleanup()
+            logging.getLogger("HWR").error("[COLLECT] Runtime Error: %s" % ex)
             raise Exception("data collection hook failed... ", str(ex))
         except:
             self.data_collection_cleanup()
@@ -634,9 +636,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, parameters: %s" %params_dict)
 	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, self.current_dc_parameters: %s" % self.current_dc_parameters)
 
-	logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
-            % (fast_dp_dir, params_dict['fileinfo']['filename']))
+	#logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
+        #os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
+        #    % (fast_dp_dir, params_dict['fileinfo']['filename']))
         
 	logging.getLogger("HWR").info("[COLLECT] Launching biomax_pipeline")
         os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
