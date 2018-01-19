@@ -9,6 +9,8 @@ class SampleChangerMockup(SampleChanger):
 
     __TYPE__ = "Mockup"
     NO_OF_BASKETS = 17
+    NO_OF_SAMPLES_IN_BASKET = 10
+    
     def __init__(self, *args, **kwargs):
         super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
 
@@ -16,9 +18,16 @@ class SampleChangerMockup(SampleChanger):
         self._selected_sample = -1
         self._selected_basket = -1
         self._scIsCharging = None
+        
+        try:
+            self.no_of_baskets = self.getProperty('no_of_baskets')
 
-        for i in range(SampleChangerMockup.NO_OF_BASKETS):
-            basket = Basket(self,i+1)
+            self.no_of_samples_in_basket = self.getProperty('no_of_samples_in_basket')
+        except:
+            self.no_of_samples_in_basket = SampleChangerMockup.NO_OF_SAMPLES_IN_BASKETu
+        
+        for i in range(self.no_of_baskets):
+            basket = Basket(self, i+1, samples_num=self.no_of_samples_in_basket)
             self._addComponent(basket)
 
         self._initSCContents()
@@ -122,7 +131,7 @@ class SampleChangerMockup(SampleChanger):
             for tag, val in self['test_sample_names'].getProperties().items():
                 named_samples[val] = tag
 
-        for basket_index in range(SampleChangerMockup.NO_OF_BASKETS):
+        for basket_index in range(self.no_of_baskets):
             basket=self.getComponents()[basket_index]
             datamatrix = None
             present = True
@@ -130,8 +139,8 @@ class SampleChangerMockup(SampleChanger):
             basket._setInfo(present, datamatrix, scanned)
 
         sample_list=[]
-        for basket_index in range(SampleChangerMockup.NO_OF_BASKETS):
-            for sample_index in range(10):
+        for basket_index in range(self.no_of_baskets):
+            for sample_index in range(self.no_of_samples_in_basket):
                 sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
         for spl in sample_list:
             address = Pin.getSampleAddress(spl[1], spl[2])
