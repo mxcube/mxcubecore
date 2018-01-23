@@ -78,6 +78,10 @@ class DiffractometerMockup(GenericDiffractometer):
 
         self.equipment_ready()
 
+        # TODO FFS get this cleared up - one function, one name
+        self.getPositions = self.get_positions
+        self.moveMotors = self.move_motors
+
     def getStatus(self):
         """
         Descript. :
@@ -179,11 +183,11 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return
 
-    def get_omega_axis_position(self):	
+    def get_omega_axis_position(self):
         """
         Descript. :
         """
-        return self.current_positions_dict.get("phi")     
+        return self.current_positions_dict.get("phi")
 
     def beam_position_changed(self, value):
         """
@@ -217,10 +221,46 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
+        # Modified to get values close to pre-set, and within limits
         random_num = random.random()
-        return {"phi": random_num * 10, "focus": random_num * 20,
-                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-                "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
+        #     return {"phi": random_num * 10, "focus": random_num * 20,
+        #             "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
+        #             "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
+        # Random variation range and limits in mm
+        # TODO get better values, from config
+        transl_var = 0.08
+        transl_limit = 2.0
+        result = self.current_positions_dict.copy()
+        var = (random_num - 0.5) * transl_var
+        for tag in ('phiy', 'phiz', 'sampx', 'sampy'):
+            val = result[tag]
+            if val is not None:
+                val += var
+                if abs(val) > transl_limit:
+                    val *= (1 - transl_var/transl_limit)
+                result[tag] = val
+        #
+        return result
+
+    def move_motors(self, motor_positions, timeout=15):
+        """
+        Moves diffractometer motors to the requested positions
+
+        :param motors_dict: dictionary with motor names or hwobj
+                            and target values. In Mockup only names accepted
+        :type motors_dict: dict
+        """
+        current_positions_dict = self.current_positions_dict
+        for tag, val in motor_positions.items():
+            if val is None:
+                logging.getLogger('HWR').warning("Cannot set motor %s to None"
+                                                 % tag)
+            elif tag in current_positions_dict:
+                current_positions_dict[tag] = val
+            else:
+                logging.getLogger('HWR').warning("No motor named %s"
+                                                 % tag)
+        self.wait_device_ready(timeout)
 
     def refresh_video(self):
         """
