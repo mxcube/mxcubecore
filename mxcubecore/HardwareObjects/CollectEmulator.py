@@ -42,10 +42,6 @@ class CollectEmulator(CollectMockup):
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
 
-        print ('@~@~ data_collect_parameters')
-        for tt in sorted(data_collect_parameters.items()):
-            print('---> %s: %s' % tt)
-
         # Set up and add crystal data
         result = OrderedDict()
         setup_data = result['setup_list'] = crystal_data
@@ -76,10 +72,11 @@ class CollectEmulator(CollectMockup):
                 instrument_data[tag.lower()] = val
 
         # Setting parameters in order (may not be necessary, but ...)
-        # Misssing: *sensor* *mu*
+        # Misssing: *mu*
         remap = {'beam':'nominal_beam_dir', 'det_coord_def':'det_org_dist',
                  'cone_s_height':'cone_height'}
         tags = ('lambda_sd', 'beam', 'beam_sd_deg', 'pol_plane_n', 'pol_frac',
+                'd_sensor',
                 'min_zeta', 'det_name', 'det_x_axis', 'det_y_axis', 'det_qx',
                 'det_qy', 'det_nx', 'det_ny', 'det_org_x', 'det_org_y',
                 'det_coord_def'
@@ -143,7 +140,6 @@ class CollectEmulator(CollectMockup):
         for osc in data_collect_parameters['oscillation_sequence']:
             motors = data_collect_parameters['motors']
             # get resolution limit and detector distance
-            print ('@~@~ resolution', data_collect_parameters['resolution'])
             resolution = data_collect_parameters['resolution']['upper']
             self.set_resolution(resolution)
             sweep = OrderedDict()
@@ -169,7 +165,6 @@ class CollectEmulator(CollectMockup):
             # and convert to fortran format
             template = data_collect_parameters['fileinfo']['template']
             ss = str(re.search('(%[0-9]+d)', template).group(0))
-            print('@~@~', template, ss)
             template = template.replace(ss, '?' * int(ss[1:-1]))
             name_template = os.path.join(
                 data_collect_parameters['fileinfo']['directory'], template
@@ -205,7 +200,7 @@ class CollectEmulator(CollectMockup):
         data_collect_parameters = self.current_dc_parameters
 
         logging.getLogger('HWR').debug("Emulator: nominal position "
-            + ', '.join('%s=%s' % (tt[0].name, tt[1])
+            + ', '.join('%s=%s' % (tt)
                         for tt in sorted(data_collect_parameters['motors'].items())
                         if tt[1] is not None)
         )
@@ -319,8 +314,10 @@ class CollectEmulator(CollectMockup):
         self.resolution_hwobj.move(new_resolution)
 
     def move_detector(self, detector_distance):
-        self.resolution_hwobj.dtox.move(detector_distance)
+        self.detector_hwobj.set_distance(detector_distance)
 
     def move_motors(self, motor_position_dict):
-        self.diffractometer_hwobj.move_motors(motor_position_dict)
+        # TODO We copy as dictionary is reset in move_motors. CLEAR UP!!
+        # TODO clear up this confusion between move_motors and moveMotors
+        self.diffractometer_hwobj.move_motors(motor_position_dict.copy())
 
