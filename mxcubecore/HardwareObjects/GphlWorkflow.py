@@ -973,8 +973,6 @@ class GphlWorkflow(HardwareObject, object):
                 if val is not None:
                     dd[tag] = val
 
-        print ('@~@~ to centre at', sorted(dd.items()))
-
         centring_model = queue_model_objects.SampleCentring(motor_positions=dd)
         self._add_to_queue(self._queue_entry.get_data_model(), centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
@@ -990,8 +988,6 @@ class GphlWorkflow(HardwareObject, object):
         centring_result = centring_entry.get_data_model().get_centring_result()
         if centring_result:
             positionsDict = centring_result.as_dict()
-            print ('@~@~ centring_result',
-                   sorted(tt for tt in positionsDict.items()))
             dd = dict((x, positionsDict[x])
                       for x in self.translation_axis_roles)
             return self.GphlMessages.GoniostatTranslation(
