@@ -543,11 +543,11 @@ class GenericDiffractometer(HardwareObject):
              self.zoom_centre['y'] )/self.pixels_per_mm_x
         return self.current_motor_positions
 
-    def get_omega_position(self):
-        """
-        Descript. :
-        """
-        return self.current_positions_dict.get("phi")
+    # def get_omega_position(self):
+    #     """
+    #     Descript. :
+    #     """
+    #     return self.current_positions_dict.get("phi")
 
     def get_snapshot(self):
         if self.camera_hwobj:
