@@ -737,8 +737,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, 'Waiting for input')
         log = logging.getLogger("user_level_log")
 
-        kappa = self._data_model.get_kappa()
-        phi = self._data_model.get_kappa_phi()
+        data_model = self.get_data_model()
+
+        kappa = data_model.get_kappa()
+        phi = data_model.get_kappa_phi()
 
 
         # kappa and kappa_phi settings are applied first, and assume that the
@@ -750,12 +752,21 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         # Since setting one motor can change the position of another
         # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
         # the order is important.
-        if hasattr(self.diffractometer_hwobj, "in_kappa_mode") and self.diffractometer_hwobj.in_kappa_mode():
-            self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+        dd = {}
+        if kappa is not None:
+            dd["kappa"] = kappa
+        if phi is not None:
+            dd["kappa_phi"] = phi
+        if dd:
+            if (not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
+                or self.diffractometer_hwobj.in_kappa_mode()):
+                self.diffractometer_hwobj.move_motors(dd)
 
-        motor_positions = self.get_data_model().get_other_motor_positions()
+        motor_positions = data_model.get_other_motor_positions()
+        dd = dict(tt for tt in data_model.get_other_motor_positions().items()
+                  if tt[1] is not None)
         if motor_positions:
-            self.diffractometer_hwobj.moveMotors(motor_positions)
+            self.diffractometer_hwobj.move_motors(dd)
 
         #TODO agree on correct message
         log.warning("Please center a new point, and press continue.")
