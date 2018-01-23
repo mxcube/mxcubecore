@@ -50,7 +50,7 @@ class MotorMockup(Device):
         else:
           d = -1
         t0 = time.time()
-        self.emit('stateChanged', (self.motorState, ))           
+        self.emit('stateChanged', (self.motorState, ))
         while (time.time() - t0) < (delta / float(self.velocity)):
           self.motorPosition = start_pos + d*self.velocity*(time.time() - t0)
           self.emit('positionChanged', (self.motorPosition, ))
@@ -64,8 +64,12 @@ class MotorMockup(Device):
 
     def move(self, position, wait=False):
         self.motorState = MotorMockup.MOVING
-        self._move_task = gevent.spawn(self._move, position)
-        self._move_task.link(self._set_ready) 
+        if wait:
+            self._move(position)
+            self._set_ready(None)
+        else:
+            self._move_task = gevent.spawn(self._move, position)
+            self._move_task.link(self._set_ready)
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
