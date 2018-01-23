@@ -96,7 +96,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def move(self, pos, wait=True):
-        self.dtox.move(self.res2dist(pos))
+        self.dtox.move(self.res2dist(pos), wait=wait)
 
     def motorIsMoving(self):
         return self.dtox.motorIsMoving() or self.energy.moving
