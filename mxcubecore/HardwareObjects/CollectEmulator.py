@@ -14,6 +14,8 @@ except ImportError:
 
 
 class CollectEmulator(CollectMockup):
+
+    TEST_SAMPLE_PREFIX = 'emulate-'
     def __init__(self, name):
         CollectMockup.__init__(self, name)
         self.gphl_connection_hwobj = None
@@ -242,10 +244,17 @@ class CollectEmulator(CollectMockup):
             envs[str(tag)] = str(val)
 
         # get crystal data
+        sample_name = self.getProperty('default_sample_name')
+        sample = self.sample_changer_hwobj.getLoadedSample()
+        if sample:
+            ss = sample.getName()
+            if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
+                sample_name  = ss[len(self.TEST_SAMPLE_PREFIX):]
+
         sample_dir = os.path.join(
             HardwareRepository().getHardwareRepositoryPath(),
             self.gphl_workflow_hwobj.getProperty('gphl_samples_subdir'),
-            self.getProperty('sample_name')
+            sample_name
         )
         # in spite of the simcal_crystal_list name this returns an OrderdDict
         crystal_data = f90nml.read(
