@@ -96,7 +96,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """Returns detector distance in mm"""
         return self.distance_motor_hwobj.getPosition()
 
-    def set_distance(self, position, timeout):
+    def set_distance(self, position, timeout=None):
         return self.distance_motor_hwobj.move(position, timeout)
         
 
