@@ -205,17 +205,14 @@ class BIOMAXEiger(Equipment):
 
     def wait_config_done(self):
         logging.getLogger("HWR").info("Waiting to configure the detector.")
-	print self.config_state 
         with gevent.Timeout(30, RuntimeError("Detector configuration error")):
             while self.is_preparing():
-		print self.config_state 
                 gevent.sleep(0.1)
         logging.getLogger("HWR").info("Detector configuration finished.")
     
     def wait_attribute_applied(self, att, new_val):
 	with gevent.Timeout(10, RuntimeError("Timeout setting attr: %s to value %s, type: %s" %(att, new_val, type(new_val)))):
 	    # format numbers to remove the precission comparison, 3 decimal enough?
-	    print att, new_val, type(new_val)
 	    #if type(new_val)== 'str' or type(new_val) == 'unicode':
 	    #	while self.get_value(att) != new_val:
             #	    gevent.sleep(0.1)
@@ -411,7 +408,6 @@ class BIOMAXEiger(Equipment):
         self.wait_idle()
 	
 	logging.getLogger("HWR").info("Ok. detector is idle. Continuing with configuration")
-        print("Ok. detector is idle. Continuing with configuration")
         logging.getLogger("HWR").info(self._config_vals)	
         if "PhotonEnergy" in self._config_vals.keys():
             new_egy = self._config_vals["PhotonEnergy"]
@@ -442,7 +438,6 @@ class BIOMAXEiger(Equipment):
                 else:
                     logging.getLogger("HWR").error("Could not config value %s for detector. Not such channel" % cfg_name)
 		logging.getLogger("HWR").info("Detector parameter configuration took %s seconds" % (time.time() - t0))
-                print(" took %s seconds" % (time.time() - t0))
 
     @task
     def start_acquisition(self):
@@ -471,7 +466,6 @@ class BIOMAXEiger(Equipment):
         not be released and not available in WebDAV.
         """
 
-        print("Stop acquisition. waiting")
         logging.getLogger("HWR").info("[DETECTOR] Stop acquisition, waiting...")
         self.wait_ready_or_idle()
 
