@@ -70,3 +70,5 @@ ORIG_EDNA_SPACEGROUPS = {'I4132': '214', 'P21212': '18', 'P432': '207',
 # This is required because the EDNA data contain e.g. 'I432 '
 SPACEGROUP_NUMBERS = dict((name.strip(), int(value))
                           for name, value in ORIG_EDNA_SPACEGROUPS.items())
+# For Germanate (test case):
+SPACEGROUP_NUMBERS['Ia-3d'] = '230'
