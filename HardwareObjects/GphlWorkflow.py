@@ -352,6 +352,8 @@ class GphlWorkflow(HardwareObject, object):
 
         # NBNB
 
+        axis_names = self.rotation_axis_roles
+
         orientations = OrderedDict()
         strategy_length = 0
         detectorSetting = None
@@ -384,7 +386,6 @@ class GphlWorkflow(HardwareObject, object):
                          % (General.h_over_e/beamSetting.wavelength))
             lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
 
-        axis_names = self.rotation_axis_roles
 
         for rotation_id, sweeps in sorted(orientations.items()):
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -756,7 +757,7 @@ class GphlWorkflow(HardwareObject, object):
             colours = [None] * len(dd['solutions'])
             for ii, line in enumerate(dd['solutions']):
                 if any(x in line for x in colour_check):
-                    colours[ii] = 'green'
+                    colours[ii] = 'LIGHT_GREEN'
             field_list[0]['colours'] = colours
 
         self._return_parameters = gevent.event.AsyncResult()
