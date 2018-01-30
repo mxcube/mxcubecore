@@ -1,4 +1,3 @@
-#from qt import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
@@ -8,7 +7,11 @@ import types
 import gevent.event
 import gevent
 
+
 class XRFSpectrum(Equipment):
+    def __init__(self, *args, **kwargs):
+        Equipment.__init__(self, *args, **kwargs)
+
     def init(self):
         self.scanning = None
         self.ready_event = gevent.event.Event()
@@ -83,7 +86,8 @@ class XRFSpectrum(Equipment):
             return False
         return self.doSpectrum is not None
 
-    def startXrfSpectrum(self,ct,directory,prefix,session_id=None,blsample_id=None):
+    def startXrfSpectrum(self, ct, directory, archive_directory, prefix,
+                         session_id=None, blsample_id=None):
         self.spectrumInfo = {"sessionId": session_id, "blSampleId": blsample_id}
         self.spectrumCommandStarted()
         if not os.path.isdir(directory):
@@ -105,18 +109,20 @@ class XRFSpectrum(Equipment):
             curr["escan_dir"]=directory
             curr["escan_prefix"]=prefix
 
-        a = directory.split(os.path.sep)
-        suffix_path=os.path.join(*a[4:])
-        if 'inhouse' in a :
-            a_dir = os.path.join(self.archive_path, a[2], suffix_path)
-        else:
-            a_dir = os.path.join(self.archive_path,a[4],a[3],*a[5:])
-        if not os.path.exists(a_dir):
+        if not archive_directory:
+            a = directory.split(os.path.sep)
+            suffix_path=os.path.join(*a[4:])
+            if 'inhouse' in a :
+                archive_directory = os.path.join(self.archive_path, a[2], suffix_path)
+            else:
+                archive_directory = os.path.join(self.archive_path,a[4],a[3],*a[5:])
+
+        if not os.path.exists(archive_directory):
             try:
-                logging.getLogger('user_level_log').debug("XRFSpectrum: creating %s", a_dir)
-                os.makedirs(a_dir)
+                logging.getLogger('user_level_log').debug("XRFSpectrum: creating %s", archive_directory)
+                os.makedirs(archive_directory)
             except OSError,diag:
-                logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (a_dir,str(diag)))
+                logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (archive_directory,str(diag)))
                 self.spectrumStatusChanged("Error creating directory")
                 return False 
         
@@ -134,7 +140,7 @@ class XRFSpectrum(Equipment):
             fileprefix = _pattern % i
             i=i+1
 
-        archive_path = os.path.join(a_dir, fileprefix)
+        archive_path = os.path.join(archive_directory, fileprefix)
         self.spectrumInfo["filename"] = filename
         self.spectrumInfo["scanFileFullPath"] = os.path.extsep.join((archive_path, "dat"))
         self.spectrumInfo["jpegScanFileFullPath"] = os.path.extsep.join((archive_path, "png"))
