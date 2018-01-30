@@ -179,8 +179,7 @@ class Energy(Equipment):
             if pos > 0.02:
                 try:
                     if self.ctrl:
-                        self.ctrl.moveEnergy(energy)
-                        self.ctrl.quick_realign()
+                        self.ctrl.change_energy(energy)
                     else:
                         self.executeCommand("moveEnergy", energy, wait=True)
                 except RuntimeError as AttributeError:
