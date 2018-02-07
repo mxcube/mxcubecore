@@ -4,6 +4,8 @@ from gevent.event import AsyncResult
 import logging
 import time
 import os
+import os.path
+import shutil
 import httplib
 import math
 import PyChooch
@@ -28,7 +30,7 @@ class TunableEnergy:
     def move_energy(self, energy):
         return self._tunable_bl.energy_obj.startMoveEnergy(energy, wait=True)
 
-    
+
 class GetStaticParameters:
     def __init__(self, config_file, element, edge):
         self.element = element
@@ -37,76 +39,65 @@ class GetStaticParameters:
         self.STATICPARS_DICT = self._readParamsFromFile(config_file)
 
     def _readParamsFromFile(self, config_file):
-        static_pars = {}
-
-        try:
-            f = open(config_file)
+        with open(config_file, 'r') as f:
             array = []
             for line in f:
-                if not line.startswith('#'):
-                    array.append(line.split())
-                else:
-                    pass
-        except:
-            return {}
-        else:
-            larr = []
-            for k in range(len(array)):
-                if self.element == array[k][1] and self.edge[0] == array[k][2]:
-                    larr = map(float,array[k][3:13])
-                    larr.append(float(array[k][17]))
-                    static_pars["atomic_nb"] = int(array[k][0])
-            if self.edge == "K":
-                to_delete = [1,2,3,4,5,6,7]
-            else:
-                try:
-                    if int(self.edge[1]) == 1:
-                        to_delete = [0,1,2,4,5,6,7]
-                    elif int(self.edge[1]) == 2:
-                        to_delete = [0,1,2,3,5,6,7]
-                    else:
-                        to_delete = [0,1,2,3,4,6,7]
-                except:
-                    to_delete = [0,1,2,3,4,6,7]
-            for ii in sorted(to_delete, reverse=True):
-                del larr[ii]
+                if not line.startswith('#') and self.element in line:
+                    array = line.split()
+                    break
 
-            larr[0] /= 1000
-            static_pars["edgeEnergy"] = larr[0]
-            static_pars["startEnergy"] = larr[0] - 0.05
-            static_pars["endEnergy"] = larr[0] + 0.05
-            static_pars["findattEnergy"] = larr[0] + 0.03
-            static_pars["remoteEnergy"] = larr[0] + 1
-            static_pars["eroi_min"] = larr[1]
-            static_pars["eroi_max"] = larr[2]
-            
-            return static_pars
-        
+            try:
+                static_pars = {}
+                static_pars['atomic_nb'] = int(array[0])
+                static_pars['eroi_min'] = float(array[11])/1000.
+                static_pars['eroi_max'] = float(array[12])/1000.
+
+                if 'K' in self.edge:
+                    th_energy = float(array[3])/1000.
+                else:
+                    if '1' in self.edge:
+                        # L1
+                        th_energy = float(array[6])/1000.
+                    elif '2' in self.edge:
+                        # L2
+                        th_energy = float(array[7])/1000.
+                    else:
+                        # L or L3
+                        th_energy = float(array[8])/1000.
+
+                # all the values are in keV
+                static_pars['edgeEnergy'] = th_energy
+                static_pars['startEnergy'] = th_energy - 0.05
+                static_pars['endEnergy'] = th_energy + 0.05
+                static_pars['findattEnergy'] = th_energy + 0.03
+                static_pars['remoteEnergy'] = th_energy + 1
+                return static_pars
+            except Exception as e:
+                print e
+                return {}
+
+
 class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def __init__(self, name, tunable_bl):
         AbstractEnergyScan.__init__(self)
         HardwareObject.__init__(self, name)
         self._tunable_bl = tunable_bl
-        
-    def execute_command(self, command_name, *args, **kwargs): 
-        wait = kwargs.get("wait", True)
+
+    def execute_command(self, command_name, *args, **kwargs):
+        wait = kwargs.get('wait', True)
         cmd_obj = self.getCommandObject(command_name)
         return cmd_obj(*args, wait=wait)
 
     def init(self):
-        self.energy_obj =  self.getObjectByRole("energy")
-        self.safety_shutter = self.getObjectByRole("safety_shutter")
-        #check if beamsize is a HO
-        try:
-            self.beamsize = self.getObjectByRole("beamsize")
-        except:
-            self.beamsize = None
-        self.transmission = self.getObjectByRole("transmission")
+        self.energy_obj = self.getObjectByRole('energy')
+        self.safety_shutter = self.getObjectByRole('safety_shutter')
+        self.beamsize = self.getObjectByRole('beamsize')
+        self.transmission = self.getObjectByRole('transmission')
         self.ready_event = gevent.event.Event()
-        self.dbConnection=self.getObjectByRole("dbserver")
+        self.dbConnection = self.getObjectByRole('dbserver')
         if self.dbConnection is None:
-            logging.getLogger("HWR").warning('EnergyScan: you should specify the database hardware object')
-        self.scanInfo=None
+            logging.getLogger('HWR').warning("EnergyScan: you should specify the database hardware object")
+        self.scanInfo = None
         self._tunable_bl.energy_obj = self.energy_obj
 
     def isConnected(self):
@@ -114,22 +105,15 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def get_static_parameters(self, config_file, element, edge):
         pars = GetStaticParameters(config_file, element, edge).STATICPARS_DICT
-        
-        offset_keV = self.getProperty("offset_keV")
-        pars["startEnergy"] += offset_keV
-        pars["endEnergy"] += offset_keV
-        pars["element"] = element
 
-        #next to tell spec which energy
-        try:
-            self.getChannelObject("ae_rcm").setValue(pars)
-            self.execute_command("setRcmValues")
-        except Exception:
-            pass
-        
+        offset_keV = self.getProperty('offset_keV')
+        pars['startEnergy'] += offset_keV
+        pars['endEnergy'] += offset_keV
+        pars['element'] = element
+
         return pars
 
-    def open_safety_shutter(self,timeout=None):
+    def open_safety_shutter(self, timeout=None):
         self.safety_shutter.openShutter()
         with gevent.Timeout(timeout, RuntimeError("Timeout waiting for safety shutter to open")):
             while self.safety_shutter.getShutterState() == 'closed':
@@ -141,52 +125,44 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             time.sleep(0.1)
 
     def escan_prepare(self):
-        try:
-            self.execute_command("presetScan")
-        except Exception:
-            pass
+
         if self.beamsize:
             bsX = self.beamsize.getCurrentPositionName()
-            bsY = bsX
-        else:
-            bsX = self.execute_command("get_beam_size_x") * 1000.
-            bsY = self.execute_command("get_beam_size_y") * 1000.
-        self.energy_scan_parameters["beamSizeHorizontal"] = bsX
-        self.energy_scan_parameters["beamSizeVertical"] = bsY
+            self.energy_scan_parameters['beamSizeHorizontal'] = bsX
+            self.energy_scan_parameters['beamSizeVertical'] = bsX
 
     def escan_postscan(self):
-        self.execute_command("cleanScan")
-        
+        self.execute_command('cleanScan')
+
     def escan_cleanup(self):
         self.close_fast_shutter()
         self.close_safety_shutter()
         try:
-            self.execute_command("cleanScan")
+            self.execute_command('cleanScan')
         except Exception:
             pass
-        self.emit("energyScanFailed", ())
+        self.emit('energyScanFailed', ())
         self.ready_event.set()
 
     def close_fast_shutter(self):
-        self.execute_command("close_fast_shutter")
-
+        self.execute_command('close_fast_shutter')
 
     def open_fast_shutter(self):
-        self.execute_command("open_fast_shutter")
+        self.execute_command('open_fast_shutter')
 
     def move_energy(self, energy):
         try:
             self._tunable_bl.energy_obj.move_energy(energy)
         except:
-            self.emit("energyScanFailed", ())
+            self.emit('energyScanFailed', ())
             raise RuntimeError("Cannot move energy")
 
     # Elements commands
     def getElements(self):
-        elements=[]
+        elements = []
         try:
-            for el in self["elements"]:
-                elements.append({"symbol":el.symbol, "energy":el.energy})
+            for el in self['elements']:
+                elements.append({'symbol': el.symbol, 'energy': el.energy})
         except IndexError:
             pass
 
@@ -196,11 +172,11 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.dbConnection is None:
             return
         try:
-            session_id=int(self.energy_scan_parameters['sessionId'])
+            session_id = int(self.energy_scan_parameters['sessionId'])
         except Exception:
             return
 
-        #remove unnecessary for ISPyB fields:
+        # remove unnecessary for ISPyB fields:
         self.energy_scan_parameters.pop('prefix')
         self.energy_scan_parameters.pop('eroi_min')
         self.energy_scan_parameters.pop('eroi_max')
@@ -209,159 +185,166 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         self.energy_scan_parameters.pop('directory')
         self.energy_scan_parameters.pop('atomic_nb')
 
-        gevent.spawn(StoreEnergyScanThread, self.dbConnection,self.energy_scan_parameters)
+        gevent.spawn(StoreEnergyScanThread, self.dbConnection,
+                     self.energy_scan_parameters)
 
-    def doChooch(self, elt, edge, scanArchiveFilePrefix, scanFilePrefix):
-        self.energy_scan_parameters['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+    def doChooch(self, elt, edge, directory, archive_directory, prefix):
+        self.energy_scan_parameters['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        raw_data_file = os.path.join(directory, 'data.raw')
 
         symbol = "_".join((elt, edge))
-        scanArchiveFilePrefix = "_".join((scanArchiveFilePrefix, symbol))
+        archive_prefix = "_".join((prefix, symbol))
+        raw_scan_file = os.path.join(directory, (archive_prefix + '.raw'))
+        efs_scan_file = raw_scan_file.replace('.raw', '.efs')
+        raw_arch_file = os.path.join(archive_directory,
+                                        (archive_prefix + '1' + '.raw'))
+        i = 0
+        while os.path.isfile(raw_arch_file):
+            i += 1
+            raw_arch_file = os.path.join(archive_directory,
+                                            (archive_prefix + str(i) + '.raw'))
 
-        i = 1
-        while os.path.isfile(os.path.extsep.join((scanArchiveFilePrefix + str(i), "raw"))):
-            i = i + 1
-
-        scanArchiveFilePrefix = scanArchiveFilePrefix + str(i) 
-        archiveRawScanFile=os.path.extsep.join((scanArchiveFilePrefix, "raw"))
-        rawScanFile=os.path.extsep.join((scanFilePrefix, "raw"))
-        scanFile=os.path.extsep.join((scanFilePrefix, "efs"))
-
-        if not os.path.exists(os.path.dirname(scanArchiveFilePrefix)):
-            os.makedirs(os.path.dirname(scanArchiveFilePrefix))
-        
+        if not os.path.exists(archive_directory):
+            os.makedirs(archive_directory)
         try:
-            f=open(rawScanFile, "w")
-            pyarch_f=open(archiveRawScanFile, "w")
-        except:
-            logging.getLogger("HWR").exception("could not create raw scan files")
+            f = open(raw_scan_file, 'w')
+        except IOError:
             self.storeEnergyScan()
-            self.emit("energyScanFailed", ())
+            self.emit('energyScanFailed', ())
             return
         else:
-            scanData = []
-            
-            raw_data_file = os.path.join(os.path.dirname(scanFilePrefix), 'data.raw')
-
+            scan_data = []
             try:
-                raw_file = open(raw_data_file, 'r')
-            except:
+                with open(raw_data_file, 'r') as raw_file:
+                    for line in raw_file.readlines()[2:]:
+                        try:
+                            (x, y) = line.split('\t')
+                        except:
+                            (x, y) = line.split()
+                        x = float(x.strip())
+                        y = float(y.strip())
+                        scan_data.append((x, y))
+                        f.write("%f,%f\r\n" % (x, y))
+                f.close()
+            except IOError as e:
                 self.storeEnergyScan()
-                self.emit("energyScanFailed", ())
+                self.emit('energyScanFailed', ())
                 return
-            for line in raw_file.readlines()[2:]:
-                try:
-                    (x, y) = line.split('\t')
-                except:
-                    (x, y) = line.split()
-                x = float(x.strip())
-                y = float(y.strip())
-                #x = x < 1000 and x*1000.0 or x
-                scanData.append((x, y))
-                f.write("%f,%f\r\n" % (x, y))
-                pyarch_f.write("%f,%f\r\n"% (x, y))
 
-            f.close()
-            pyarch_f.close()
-            self.energy_scan_parameters["scanFileFullPath"]=str(archiveRawScanFile)
-        pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = PyChooch.calc(scanData, elt, edge, scanFile)
-        rm=(pk+30)/1000.0
-        pk=pk/1000.0
-        savpk = pk
-        ip=ip/1000.0
+        shutil.copy2(raw_scan_file, raw_arch_file)
+        self.energy_scan_parameters['scanFileFullPath'] = raw_arch_file
+
+        result = PyChooch.calc(scan_data, elt, edge, efs_scan_file)
+        # PyChooch occasionally returns an error and the result
+        # the sleep command assures that we get the result
+        time.sleep(1)
+        print result[0]
+        pk = result[0]/1000.
+        fppPeak = result[1]
+        fpPeak = result[2]
+        ip = result[3]/1000.
+        fppInfl = result[4]
+        fpInfl = result[5]
+        chooch_graph_data = result[6]
+
+        rm = pk+0.03
+
         comm = ""
-        self.thEdge = self.energy_scan_parameters['edgeEnergy']
-        logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
+        th_edge = float(self.energy_scan_parameters['edgeEnergy'])
 
-        #should be better, but OK for time being
-        self.thEdgeThreshold = 0.01
-        if math.fabs(self.thEdge - ip) > self.thEdgeThreshold:
-          pk = 0
-          ip = 0
-          rm = self.thEdge + 0.03
-          comm = 'Calculated peak (%f) is more that 10eV away from the theoretical value (%f). Please check your scan' % (savpk, self.thEdge)
-   
-          logging.getLogger("user_level_log").warning('EnergyScan: calculated peak (%f) is more that 20eV %s the theoretical value (%f). Please check your scan and choose the energies manually' % (savpk, (self.thEdge - ip) > 0.02 and "below" or "above", self.thEdge))
+        logging.getLogger('HWR').info("Chooch results: pk = %f, ip = %f, rm = %f, Theoretical edge: %f" % (pk, ip, rm, th_edge))
 
-        archiveEfsFile=os.path.extsep.join((scanArchiveFilePrefix, "efs"))
-        try:
-          fi=open(scanFile)
-          fo=open(archiveEfsFile, "w")
-        except:
-          self.storeEnergyScan()
-          self.emit("energyScanFailed", ())
-          return
+        # +- shift from the theoretical edge [eV]
+        edge_shift = 10
+        calc_shift = (th_edge - ip) * 1000
+        if math.abs(calc_shift) > edge_shift:
+            rm = th_edge + 0.03
+            comm = "%s" % "below" if (calc_shift) > edge_shift else "above"
+            comm = "Calculated peak (%f) is more than %d eV %s the theoretical value (%f)." % (pk, edge_shift, comm, th_edge)
+
+            logging.getLogger('user_level_log').warning("EnergyScan: %s Check your scan and choose the energies manually" % comm)
+            pk = 0
+            ip = 0
+
+        efs_arch_file = raw_arch_file.replace('.raw', '.efs')
+        if os.path.isfile(esf_scan_file):
+            shutil.copy2(efs_scan_file, efs_arch_file)
         else:
-          fo.write(fi.read())
-          fi.close()
-          fo.close()
+            self.storeEnergyScan()
+            self.emit('energyScanFailed', ())
+            return
 
-        self.energy_scan_parameters["filename"] = scanArchiveFilePrefix.split("/")[-1]
-        self.energy_scan_parameters["peakEnergy"]=pk
-        self.energy_scan_parameters["inflectionEnergy"]=ip
-        self.energy_scan_parameters["remoteEnergy"]=rm
-        self.energy_scan_parameters["peakFPrime"]=fpPeak
-        self.energy_scan_parameters["peakFDoublePrime"]=fppPeak
-        self.energy_scan_parameters["inflectionFPrime"]=fpInfl
-        self.energy_scan_parameters["inflectionFDoublePrime"]=fppInfl
-        self.energy_scan_parameters["comments"] = comm
+        self.energy_scan_parameters['filename'] = raw_arch_file.split('/')[-1]
+        self.energy_scan_parameters['peakEnergy'] = pk
+        self.energy_scan_parameters['inflectionEnergy'] = ip
+        self.energy_scan_parameters['remoteEnergy'] = rm
+        self.energy_scan_parameters['peakFPrime'] = fpPeak
+        self.energy_scan_parameters['peakFDoublePrime'] = fppPeak
+        self.energy_scan_parameters['inflectionFPrime'] = fpInfl
+        self.energy_scan_parameters['inflectionFDoublePrime'] = fppInfl
+        self.energy_scan_parameters['comments'] = comm
 
         chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
-        for i in range(len(chooch_graph_x)):
-          chooch_graph_x[i]=chooch_graph_x[i]/1000.0
+        chooch_graph_x = [x/1000.0 for x in chooch_graph_x]
 
-        logging.getLogger("HWR").info("<chooch> Saving png" )
+        logging.getLogger('HWR').info("Saving png")
         # prepare to save png files
-        title="%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl) 
-        fig=Figure(figsize=(15, 11))
-        ax=fig.add_subplot(211)
-        ax.set_title("%s\n%s" % (scanFile, title))
+        title = "%10s  %6s  %6s\n%10s  %6.2f  %6.2f\n%10s  %6.2f  %6.2f" % ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl)
+        fig = Figure(figsize=(15, 11))
+        ax = fig.add_subplot(211)
+        ax.set_title("%s\n%s" % (efs_scan_file, title))
         ax.grid(True)
-        ax.plot(*(zip(*scanData)), **{"color":'black'})
+        ax.plot(*(zip(*scan_data)), **{'color': 'black'})
         ax.set_xlabel("Energy")
         ax.set_ylabel("MCA counts")
-        ax2=fig.add_subplot(212)
+        ax2 = fig.add_subplot(212)
         ax2.grid(True)
         ax2.set_xlabel("Energy")
         ax2.set_ylabel("")
         handles = []
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y1, color='blue'))
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color='red'))
-        canvas=FigureCanvasAgg(fig)
+        canvas = FigureCanvasAgg(fig)
 
-        escan_png = os.path.extsep.join((scanFilePrefix, "png"))
-        escan_archivepng = os.path.extsep.join((scanArchiveFilePrefix, "png")) 
-        self.energy_scan_parameters["jpegChoochFileFullPath"]=str(escan_archivepng)
+        png_scan_file = raw_scan_file.replace('.raw', '.png')
+        png_arch_file = raw_arch_file.replace('.raw', '.png')
+        self.energy_scan_parameters['jpegChoochFileFullPath'] = str(png_arch_file)
         try:
-          logging.getLogger("HWR").info("Rendering energy scan and Chooch graphs to PNG file : %s", escan_png)
-          canvas.print_figure(escan_png, dpi=80)
+            logging.getLogger('HWR').info("Rendering energy scan and Chooch graphs to PNG file : %s", png_scan_file)
+            canvas.print_figure(png_scan_file, dpi=80)
         except:
-          logging.getLogger("HWR").exception("could not print figure")
+            logging.getLogger('HWR').exception("could not print figure")
         try:
-          logging.getLogger("HWR").info("Saving energy scan to archive directory for ISPyB : %s", escan_archivepng)
-          canvas.print_figure(escan_archivepng, dpi=80)
+            logging.getLogger('HWR').info("Saving energy scan to archive directory for ISPyB : %s", png_arch_file)
+            canvas.print_figure(png_arch_file, dpi=80)
         except:
-          logging.getLogger("HWR").exception("could not save figure")
+            logging.getLogger('HWR').exception("could not save figure")
 
         self.storeEnergyScan()
 
-        logging.getLogger("HWR").info("<chooch> returning" )
-        self.emit('chooch_finished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
+        self.emit('chooch_finished', (pk, fppPeak, fpPeak,
+                                      ip, fppInfl, fpInfl, rm,
+                                      chooch_graph_x, chooch_graph_y1,
+                                      chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title
 
-def StoreEnergyScanThread(db_conn, scan_info):
-    scanInfo = dict(scan_info)
-    dbConnection = db_conn
 
-    blsampleid = scanInfo['blSampleId']
-    scanInfo.pop('blSampleId')
-    db_status=dbConnection.storeEnergyScan(scanInfo)
-    if blsampleid is not None:
-        try:
-            energyscanid=int(db_status['energyScanId'])
-        except:
-            pass
-        else:
-            asoc={'blSampleId':blsampleid, 'energyScanId':energyscanid}
-            dbConnection.associateBLSampleAndEnergyScan(asoc)
- 
+def StoreEnergyScanThread(db_conn, scan_info):
+    scan_info = dict(scan_info)
+    blsample_id = scan_info['blSampleId']
+    scan_info.pop('blSampleId')
+
+    try:
+        db_status = db_conn.storeEnergyScan(scan_info)
+        if blsample_id is not None:
+            try:
+                escan_id = int(db_status['energyScanId'])
+            except (NameError, KeyError):
+                pass
+            else:
+                asso = {'blSampleId': blsample_id, 'energyScanId': escan_id}
+                db_conn.associateBLSampleAndEnergyScan(asso)
+    except Exception as e:
+        print e
