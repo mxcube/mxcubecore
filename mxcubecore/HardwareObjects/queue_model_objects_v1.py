@@ -829,7 +829,7 @@ class EnergyScan(TaskNode):
         if not sample:
             self.sample = Sample()
         else:
-            self.sampel = sample
+            self.sample = sample
 
         if not path_template:
             self.path_template = PathTemplate()
@@ -1016,7 +1016,6 @@ class Advanced(TaskNode):
             name += " (%s)" % self.grid_object.get_display_name()
         else:
             name += " (Static grid)"
-        print name
         return name
 
     def get_first_processing_results(self):
