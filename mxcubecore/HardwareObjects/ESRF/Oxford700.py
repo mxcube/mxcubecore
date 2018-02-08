@@ -32,10 +32,14 @@ class Oxford700(HardwareObject):
             
     def value_changed(self):
         self.emit('temperatureChanged', (self.get_temperature(),))
+        self.emit('valueChanged', (self.get_temperature(),))
         self.emit('stateChanged', (self.get_state(),))
 
     def get_temperature(self):
         return self.temp
+
+    def get_value(self):
+        return self.get_temperature()
 
     def rampstate(self):
         return self.ctrl.rampstate()
