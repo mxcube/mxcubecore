@@ -61,10 +61,12 @@ class DiffractometerMockup(GenericDiffractometer):
         self.beam_position = [200, 200]
         
         self.cancel_centring_methods = {}
-        self.current_positions_dict = {'phiy'  : 0, 'phiz' : 0, 'sampx' : 0,
-                                       'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
-                                       'focus' : 0, 'kappa': 11, 'kappa_phi': 12,
-                                       'beam_x': 0, 'beam_y': 0}
+        self.current_motor_positions = {
+            'phiy': 1.0, 'sampx': 0.0, 'sampy': -1.0,
+            'zoom': 8.53,  'focus': -0.42, 'phiz': 1.1,
+            'phi': 311.1, 'kappa': 11, 'kappa_phi': 22.0}
+        self.move_motors(self._get_random_centring_position())
+
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
@@ -81,6 +83,28 @@ class DiffractometerMockup(GenericDiffractometer):
         # TODO FFS get this cleared up - one function, one name
         self.getPositions = self.get_positions
         self.moveMotors = self.move_motors
+
+        self.connect(self.motor_hwobj_dict['phi'],
+                     "positionChanged",
+                     self.phi_motor_moved)
+        self.connect(self.motor_hwobj_dict['phiy'],
+                     "positionChanged",
+                     self.phiy_motor_moved)
+        self.connect(self.motor_hwobj_dict['phiz'],
+                     "positionChanged",
+                     self.phiz_motor_moved)
+        self.connect(self.motor_hwobj_dict['kappa'],
+                     "positionChanged",
+                     self.kappa_motor_moved)
+        self.connect(self.motor_hwobj_dict['kappa_phi'],
+                     "positionChanged",
+                     self.kappa_phi_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampx'],
+                     "positionChanged",
+                     self.sampx_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampy'],
+                     "positionChanged",
+                     self.sampy_motor_moved)
 
     def getStatus(self):
         """
@@ -115,22 +139,40 @@ class DiffractometerMockup(GenericDiffractometer):
             x, y = self.user_clicked_event.get()
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
-        random_num = random.random()
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                         'kappa_phi': 22.0}
+        centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
 
     def automatic_centring(self):
         """Automatic centring procedure"""
-        random_num = random.random()
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                         'kappa_phi': 22.0}
+        centred_pos_dir = self._get_random_centring_position()
         self.emit("newAutomaticCentringPoint", centred_pos_dir)
         return centred_pos_dir
+
+    def _get_random_centring_position(self):
+        """Get random centring result for current positions"""
+
+        # Names of motors to vary during centring
+        vary_motor_names = ('sampx', 'sampy', 'phiy')
+
+        # Range of random variation
+        var_range = 0.08
+
+        # absolute value limit for varied motors
+        var_limit = 2.0
+
+        result = self.current_motor_positions.copy()
+        for tag in vary_motor_names:
+            val = result.get(tag)
+            if val is not None:
+                random_num = random.random()
+                var = (random_num - 0.5) * var_range
+                val += var
+                if abs(val) > var_limit:
+                    val *= (1 - var_range/var_limit)
+                result[tag] = val
+        #
+        return result
+
 
     def centring_done(self, centring_procedure):
         self.centring_time = time.time()
@@ -163,11 +205,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        random_num = random.random() 
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                          'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                          'kappa_phi': 23.0}
+        centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
 
     def get_calibration_data(self, offset):
@@ -217,50 +255,98 @@ class DiffractometerMockup(GenericDiffractometer):
         except:
             logging.exception("Could not move to centred position")
 
-    def get_positions(self):
+    # def get_positions(self):
+    #     """
+    #     Descript. :
+    #     """
+    #     # # Modified to get values close to pre-set, and within limits
+    #     # random_num = random.random()
+    #     # #     return {"phi": random_num * 10, "focus": random_num * 20,
+    #     # #             "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
+    #     # #             "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
+    #     # # Random variation range and limits in mm
+    #     # # TODO get better values, from config
+    #     # transl_var = 0.08
+    #     # transl_limit = 2.0
+    #     # result = self.current_positions_dict.copy()
+    #     # var = (random_num - 0.5) * transl_var
+    #     # for tag in ('phiy', 'phiz', 'sampx', 'sampy'):
+    #     #     val = result[tag]
+    #     #     if val is not None:
+    #     #         val += var
+    #     #         if abs(val) > transl_limit:
+    #     #             val *= (1 - transl_var/transl_limit)
+    #     #         result[tag] = val
+    #     motor_hwobj_dict = self.motor_hwobj_dict
+    #     result = {}
+    #     for tag in self.centring_motors_list:
+    #         motor = motor_hwobj_dict.get(tag)
+    #         if motor is not None:
+    #             result[tag] = motor.getPosition()
+    #     #
+    #     return result
+
+    # def move_motors(self, motor_positions, timeout=15):
+    #     """
+    #     Moves diffractometer motors to the requested positions
+    #
+    #     :param motors_dict: dictionary with motor names or hwobj
+    #                         and target values. In Mockup only names accepted
+    #     :type motors_dict: dict
+    #     """
+    #     # current_positions_dict = self.current_positions_dict
+    #     motor_hwobj_dict = self.motor_hwobj_dict
+    #     for tag, val in motor_positions.items():
+    #         if val is None:
+    #             logging.getLogger('HWR').warning("Cannot set motor %s to None"
+    #                                              % tag)
+    #         else:
+    #             motor = motor_hwobj_dict.get(tag)
+    #             if motor is None:
+    #                 logging.getLogger('HWR').warning("No motor named %s"
+    #                                                  % tag)
+    #             else:
+    #                 motor.move(val)
+    #     self.wait_device_ready(timeout)
+
+    def phi_motor_moved(self, pos):
         """
         Descript. :
         """
-        # Modified to get values close to pre-set, and within limits
-        random_num = random.random()
-        #     return {"phi": random_num * 10, "focus": random_num * 20,
-        #             "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-        #             "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
-        # Random variation range and limits in mm
-        # TODO get better values, from config
-        transl_var = 0.08
-        transl_limit = 2.0
-        result = self.current_positions_dict.copy()
-        var = (random_num - 0.5) * transl_var
-        for tag in ('phiy', 'phiz', 'sampx', 'sampy'):
-            val = result[tag]
-            if val is not None:
-                val += var
-                if abs(val) > transl_limit:
-                    val *= (1 - transl_var/transl_limit)
-                result[tag] = val
-        #
-        return result
+        self.current_motor_positions["phi"] = pos
+        self.emit("phiMotorMoved", pos)
 
-    def move_motors(self, motor_positions, timeout=15):
-        """
-        Moves diffractometer motors to the requested positions
+    def phiy_motor_moved(self, pos):
+        self.current_motor_positions["phiy"] = pos
 
-        :param motors_dict: dictionary with motor names or hwobj
-                            and target values. In Mockup only names accepted
-        :type motors_dict: dict
+    def phiz_motor_moved(self, pos):
+        self.current_motor_positions["phiz"] = pos
+
+    def sampx_motor_moved(self, pos):
+        self.current_motor_positions["sampx"] = pos
+
+    def sampy_motor_moved(self, pos):
+        self.current_motor_positions["sampy"] = pos
+
+    def kappa_motor_moved(self, pos):
         """
-        current_positions_dict = self.current_positions_dict
-        for tag, val in motor_positions.items():
-            if val is None:
-                logging.getLogger('HWR').warning("Cannot set motor %s to None"
-                                                 % tag)
-            elif tag in current_positions_dict:
-                current_positions_dict[tag] = val
-            else:
-                logging.getLogger('HWR').warning("No motor named %s"
-                                                 % tag)
-        self.wait_device_ready(timeout)
+        Descript. :
+        """
+        self.current_motor_positions["kappa"] = pos
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
+        self.emit_diffractometer_moved()
+        self.emit("kappaMotorMoved", pos)
+
+    def kappa_phi_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.current_motor_positions["kappa_phi"] = pos
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
+        self.emit_diffractometer_moved()
+        self.emit("kappaPhiMotorMoved", pos)
 
     def refresh_video(self):
         """
