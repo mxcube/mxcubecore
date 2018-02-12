@@ -141,6 +141,10 @@ class GenericDiffractometer(HardwareObject):
     CENTRING_METHOD_AUTO = "Computer automatic"
     CENTRING_METHOD_MOVE_TO_BEAM = "Move to beam"
 
+    # TODO NBNB FIX THIS CONFUSION!!!
+    MANUAL3CLICK_MODE = CENTRING_METHOD_MANUAL
+    C3D_MODE = CENTRING_METHOD_AUTO
+
     PHASE_TRANSFER = "Transfer"
     PHASE_CENTRING = "Centring"
     PHASE_COLLECTION = "DataCollection"
@@ -321,18 +325,18 @@ class GenericDiffractometer(HardwareObject):
             if self.transfer_mode is None or self.transfer_mode == "SAMPLE_CHANGER":
                 self.use_sc = True
 
-	try:
-           self.use_sample_centring = self.getProperty("sample_centring")
-	   if self.use_sample_centring:
-		self.centring_phi=sample_centring.CentringMotor(\
+        try:
+            self.use_sample_centring = self.getProperty("sample_centring")
+            if self.use_sample_centring:
+                self.centring_phi=sample_centring.CentringMotor(\
                      self.motor_hwobj_dict['phi'], direction=-1)
-	        self.centring_phiz=sample_centring.CentringMotor(\
+                self.centring_phiz=sample_centring.CentringMotor(\
                      self.motor_hwobj_dict['phiz'])
-        	self.centring_phiy=sample_centring.CentringMotor(
+                self.centring_phiy=sample_centring.CentringMotor(
                      self.motor_hwobj_dict['phiy'],direction=-1)
-        	self.centring_sampx=sample_centring.CentringMotor(
+                self.centring_sampx=sample_centring.CentringMotor(
                      self.motor_hwobj_dict['sampx'])
-        	self.centring_sampy=sample_centring.CentringMotor(\
+                self.centring_sampy=sample_centring.CentringMotor(\
                       self.motor_hwobj_dict['sampy'])
         except:
            pass # used the default value
@@ -631,7 +635,7 @@ class GenericDiffractometer(HardwareObject):
         """
         """
         self.emit_progress_message("Manual 3 click centring...")
-	if self.use_sample_centring:
+        if self.use_sample_centring:
             self.current_centring_procedure = \
                  sample_centring.start({"phi": self.centring_phi,
                                         "phiy": self.centring_phiy,
@@ -642,7 +646,7 @@ class GenericDiffractometer(HardwareObject):
                                         self.pixels_per_mm_y,
                                         self.beam_position[0],
                                         self.beam_position[1])
-	else:
+        else:
             self.current_centring_procedure = gevent.spawn(self.manual_centring)
         self.current_centring_procedure.link(self.centring_done)
 
@@ -864,9 +868,9 @@ class GenericDiffractometer(HardwareObject):
         """
         Descript. :
         """
-	if self.use_sample_centring:
-   	    sample_centring.user_click(x,y)
-	else:
+        if self.use_sample_centring:
+            sample_centring.user_click(x,y)
+        else:
             self.user_clicked_event.set((x, y))
 
     def accept_centring(self):
