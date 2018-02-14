@@ -2,7 +2,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractMCA import *
 from bliss.controllers.rontec import Rontec
 
-class RontecMCA(AbstractMCA, HardwareObject):
+class BlissRontecMCA(AbstractMCA, HardwareObject):
     def __init__(self, name):
         AbstractMCA.__init__(self)
         HardwareObject.__init__(self, name)
@@ -21,7 +21,7 @@ class RontecMCA(AbstractMCA, HardwareObject):
         return self.mca.read_raw_data(chmin, chmax, save_data)
 
     @task
-    def read_roi_data(self,save_data=False):
+    def read_roi_data(self, save_data=False):
         return self.mca.read_roi_data(save_data)
 
     @task
@@ -29,8 +29,13 @@ class RontecMCA(AbstractMCA, HardwareObject):
         return self.mca.read_data(chmin, chmax, calib, save_data)
 
     @task
-    def set_calibration(self, fname=None, calib_cf=[0,1,0]):
-        return self.mca.set_calibration(fname, calib_cf)
+    def set_calibration(self, fname=None, calib_cf=None):
+        calib = None
+        if fname:
+            calib = fname
+        elif calib_cf:
+            calib = calib_cf
+        return self.mca.set_calibration(calib)
 
     @task
     def get_calibration(self):
@@ -69,8 +74,4 @@ class RontecMCA(AbstractMCA, HardwareObject):
 
     @task
     def clear_spectrum (self):
-        self.mca.clear_spectrum ()
-
-    
-        
-
+        self.mca.clear_spectrum()

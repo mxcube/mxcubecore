@@ -399,6 +399,8 @@ class Grid(Shape):
         self.result = []
         self.pixels_per_mm = [1, 1]
         self.beam_pos = [1, 1]
+        self.beam_width = 0
+        self.beam_height = 0
 
     def get_centred_position(self):
         return self.cp_list[1]
@@ -437,8 +439,8 @@ class Grid(Shape):
         d["steps_y"] = d["num_rows"]
         d["dx_mm"] = d["width"] / self.pixels_per_mm[0]
         d["dy_mm"] = d["height"] / self.pixels_per_mm[1]
-        d["beam_width"] = d["cell_width"]
-        d["beam_height"] = d["cell_height"]
+        d["beam_width"] = d["beam_width"]
+        d["beam_height"] = d["beam_height"]
         d["angle"] = 0
 
         return d    
