@@ -92,11 +92,25 @@ def utf_encode(res_d):
         if isinstance(res_d[key], dict):
             utf_encode(res_d)
 
-        if isinstance(res_d[key], suds.sax.text.Text):
+        if type(res_d[key]) in (int, float, bool, str):
+        # Ignore primitive types
+            pass
+        elif isinstance(res_d[key], suds.sax.text.Text):
+        # utf-8 encode Text data
             try:
                 res_d[key] = res_d[key].encode('utf8', 'ignore')
             except:
                 pass
+        else:
+        # If not primitive or Text data, complext type, try to convert to
+        # dict or str if the first fails
+            try:
+                res_d[key] = utf_encode(asdict(res_d[key]))
+            except:
+                try:
+                    res_d[key] = str(res_d[key]) 
+                except:
+                    res_d[key] = 'ISPyBClient: could not encode value'
 
     return res_d
 
@@ -970,8 +984,10 @@ class ISPyBClient2(HardwareObject):
         if self.__tools_ws:
             try:
                 response_samples = self.__tools_ws.service.\
-                    findSampleInfoLightForProposal(proposal_id,
-                                                   self.beamline_name)
+                   findSampleInfoLightForProposal(proposal_id, self.beamline_name)
+
+                response_samples = [utf_encode(asdict(sample)) for sample in response_samples]
+
             except WebFault as e:
                 logging.getLogger("ispyb_client").exception(str(e))
             except URLError:
