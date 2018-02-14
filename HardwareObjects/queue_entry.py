@@ -1296,10 +1296,13 @@ class EnergyScanQueueEntry(BaseQueueEntry):
 
         #scan_info = self.energy_scan_hwobj.scanInfo
 
-        # This does not always apply, update model so
-        # that its possible to access the sample directly from
-        # the EnergyScan object.
-        sample = self.get_view().parent().parent().get_model()
+        # Trying to get the sample from the EnergyScan model instead through
+        # the view. Keeping the old way fore backward compatability
+        if energy_scan.sample:
+            sample = energy_scan.sample
+        else:
+            sample = self.get_view().parent().parent().get_model()
+
         sample.crystals[0].energy_scan_result.peak = pk
         sample.crystals[0].energy_scan_result.inflection = ip
         sample.crystals[0].energy_scan_result.first_remote = rm
