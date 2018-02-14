@@ -36,7 +36,7 @@ class Basket(Container):
             slot = Pin(self,cell_no,basket_no,i+1)
             self._addComponent(slot)
         self.present = True
-                            
+
     @staticmethod
     def getBasketAddress(cell_number,basket_number):
         return str(cell_number)+":"+str(basket_number)
@@ -63,7 +63,7 @@ class Cell(Container):
       else:
         for i in range(3):
           self._addComponent(Basket(self,number,i+1, unipuck=True))
-       
+
     @staticmethod
     def getCellAddress(cell_number):
       return str(cell_number)
@@ -82,10 +82,7 @@ class FlexHCD(SampleChanger):
         super(FlexHCD, self).__init__(self.__TYPE__, True, *args, **kwargs)
 
     def init(self):
-        try:
-            sc3_pucks = self.getProperty("sc3_pucks")
-        except Exception:
-            sc3_pucks = True
+        sc3_pucks = self.getProperty("sc3_pucks", True)
 
         for i in range(8):
             cell = Cell(self, i+1, sc3_pucks)
@@ -233,11 +230,9 @@ class FlexHCD(SampleChanger):
                 logging.getLogger("HWR").error(msg)
 
     def get_gripper(self):
-        gripper_type = {1:"UNIPUCK", 3:"SPINE"}
-        tt = self._execute_cmd("get_gripper_type")
-        if tt in gripper_type:
-            return gripper_type[tt]
-        return "?"
+        gripper_type = self._execute_cmd("get_gripper_type")
+        gripper_types = { 3: "FLIPPING", 1: "UNIPUCK" }
+        return gripper_types.get(gripper_type, "?")
 
     @task
     def change_gripper(self):
@@ -289,6 +284,8 @@ class FlexHCD(SampleChanger):
         self._execute_cmd('unloadSample', sample.getCellNo(), sample.getBasketNo(), sample.getVialNo())
         if self._execute_cmd("get_loaded_sample") == (-1,-1,-1):
             self._resetLoadedSample()
+            if self.controller:
+                self.controller.prepare_flex(release_interlock=True)
             return True
         return False
 

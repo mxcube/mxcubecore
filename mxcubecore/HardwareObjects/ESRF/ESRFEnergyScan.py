@@ -258,7 +258,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         # +- shift from the theoretical edge [eV]
         edge_shift = 10
         calc_shift = (th_edge - ip) * 1000
-        if math.abs(calc_shift) > edge_shift:
+        if math.fabs(calc_shift) > edge_shift:
             rm = th_edge + 0.03
             comm = "%s" % "below" if (calc_shift) > edge_shift else "above"
             comm = "Calculated peak (%f) is more than %d eV %s the theoretical value (%f)." % (pk, edge_shift, comm, th_edge)
@@ -268,7 +268,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
             ip = 0
 
         efs_arch_file = raw_arch_file.replace('.raw', '.efs')
-        if os.path.isfile(esf_scan_file):
+        if os.path.isfile(efs_scan_file):
             shutil.copy2(efs_scan_file, efs_arch_file)
         else:
             self.storeEnergyScan()

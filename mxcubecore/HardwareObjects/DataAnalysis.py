@@ -29,7 +29,7 @@ from XSDataCommon import XSDataString
 #from edna_test_data import EDNA_DEFAULT_INPUT
 #from edna_test_data import EDNA_TEST_DATA
 
-
+"""
 class EdnaProcessingThread(threading.Thread):
     def __init__(self, edna_cmd, edna_input_file, edna_output_file, base_dir):
         threading.Thread.__init__(self)
@@ -51,7 +51,7 @@ class EdnaProcessingThread(threading.Thread):
                 self.edna_output_file, self.base_dir)
         subprocess.call("%s %s %s %s" % args, shell=True)
         self.edna_processing_watcher.send()
-
+"""
 
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
@@ -87,15 +87,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def get_beam_size(self):
         beam_info = self.getObjectByRole("beam")
         return beam_info.get_beam_size()
-
-    def modify_strategy_option(self, diff_plan, strategy_option):
-        """Method for modifying the diffraction plan 'strategyOption' entry"""
-        if diff_plan.getStrategyOption() is None:
-            new_strategy_option = strategy_option
-        else:
-            new_strategy_option = diff_plan.getStrategyOption().getValue() + ' ' + strategy_option
-        diff_plan.setStrategyOption(XSDataString(new_strategy_option))
-
 
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
@@ -184,7 +175,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         # Account for radiation damage
         if char_params.induce_burn:
-            self.modify_strategy_option(diff_plan, "-DamPar")
+            diff_plan.setStrategyOption(XSDataString("-DamPar"))
+        else:
+            diff_plan.setStrategyOption(None)
 
         # Characterisation type - SAD
         if char_params.opt_sad:
@@ -192,7 +185,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             diff_plan.setAnomalousData(XSDataBoolean(True))
           else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
-            self.modify_strategy_option(diff_plan, "-SAD yes")
+            diff_plan.setStrategyOption(XSDataString("-SAD yes"))
             diff_plan.setAimedResolution(XSDataDouble(char_params.sad_res))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
@@ -217,6 +210,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return edna_input
 
     def characterise(self, edna_input):
+        path = edna_input.process_directory
 
         # if there is no data collection id, the id will be a random number
         # this is to give a unique number to the EDNA input and result files;
@@ -227,38 +221,23 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         except:
             dc_id = id(edna_input)
 
-        for dataSet in edna_input.dataSet:
-            for imageFile in dataSet.imageFile:
-                firstImage = imageFile.path.value
-                break
-
-        listImageName = os.path.basename(firstImage).split("_")
-        prefix = "_".join(listImageName[:-2])
-        run_number = listImageName[-2]
-        i = 1
-
         if hasattr(edna_input, "process_directory"):
-            edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
-            while os.path.exists(edna_directory):
-                i += 1
-                edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
-            os.makedirs(edna_directory)
+            edna_input_file = os.path.join(path, "EDNAInput_%s.xml" % dc_id)
+            edna_input.exportToFile(edna_input_file)
+            edna_results_file = os.path.join(path, "EDNAOutput_%s.xml" % dc_id)
+
+            if not os.path.isdir(path):
+                os.makedirs(path)
         else:
             raise RuntimeError("No process directory specified in edna_input")
-
-        edna_input_file = os.path.join(edna_directory, "EDNAInput_%s.xml" % dc_id)
-        edna_input.exportToFile(edna_input_file)
-        edna_results_file = os.path.join(edna_directory, "EDNAOutput_%s.xml" % dc_id)
 
         msg = "Starting EDNA using xml file %r", edna_input_file
         logging.getLogger("queue_exec").info(msg)
 
-        edna_processing_thread = \
-          EdnaProcessingThread(self.start_edna_command, edna_input_file,
-                               edna_results_file, edna_directory)
+        args = (self.start_edna_command, edna_input_file,
+                edna_results_file, path)
+        subprocess.call("%s %s %s %s" % args, shell=True)
 
-        self.processing_done_event = edna_processing_thread.start()
-        self.processing_done_event.wait()
         self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
 
         return self.result

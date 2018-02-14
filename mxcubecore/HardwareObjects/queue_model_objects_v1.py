@@ -220,6 +220,7 @@ class Sample(TaskNode):
         # A pair <basket_number, sample_number>
         self.location = (None, None)
         self.lims_location = (None, None)
+        self.location_plate = None
 
         # Crystal information
         self.crystals = [Crystal()]
@@ -828,7 +829,7 @@ class EnergyScan(TaskNode):
         if not sample:
             self.sample = Sample()
         else:
-            self.sampel = sample
+            self.sample = sample
 
         if not path_template:
             self.path_template = PathTemplate()
@@ -1015,7 +1016,6 @@ class Advanced(TaskNode):
             name += " (%s)" % self.grid_object.get_display_name()
         else:
             name += " (Static grid)"
-        print name
         return name
 
     def get_first_processing_results(self):
@@ -1362,8 +1362,8 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            for motor_item in motor_dict.items():
-                setattr(self, motor_item[0], motor_item[1])
+            for motor_name, position in motor_dict.iteritems():
+                setattr(self, motor_name, position)
 
     def as_dict(self):
         return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,

@@ -119,7 +119,7 @@ class ISPyBRestClient(HardwareObject):
         url = None
 
         if self.base_result_url is not None:
-            path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
+            path = "mx/#/mx/proposal/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(pcode = self.session_hwobj.proposal_code,
                                pnumber = self.session_hwobj.proposal_number,
                                did = did)

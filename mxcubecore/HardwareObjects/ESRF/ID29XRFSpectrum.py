@@ -13,6 +13,7 @@ class ID29XRFSpectrum(XRFSpectrum):
         self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=fname)
 
     def choose_attenuation(self, ctime, fname=None):
+        res = True
         if not fname:
             fname = self.spectrumInfo["filename"].replace('.dat', '.raw')
 
@@ -26,7 +27,9 @@ class ID29XRFSpectrum(XRFSpectrum):
             self.spectrumInfo["beamTransmission"] = tt
         except Exception as e:
             logging.getLogger('user_level_log').exception(str(e))
-            raise e
+            res = False
+
+        return res
 
     def _findAttenuation(self, ct):
-        self.choose_attenuation(ct)
+        return self.choose_attenuation(ct)
