@@ -317,16 +317,19 @@ class CollectEmulator(CollectMockup):
         self.energy_hwobj.move_wavelength(wavelength)
 
     def set_energy(self, energy):
-        self.energy_hwobj.start_move_energy(energy)
+        self.energy_hwobj.move_energy(energy)
 
     def set_resolution(self, new_resolution):
         self.resolution_hwobj.move(new_resolution)
+
+    def set_transmission(self, transmission):
+        self.transmission_hwobj.set_value(transmission)
 
     def move_detector(self, detector_distance):
         self.detector_hwobj.set_distance(detector_distance)
 
     def move_motors(self, motor_position_dict):
-        # TODO We copy as dictionary is reset in move_motors. CLEAR UP!!
+        # TODO We copy, as dictionary is reset in move_motors. CLEAR UP!!
         # TODO clear up this confusion between move_motors and moveMotors
         self.diffractometer_hwobj.move_motors(motor_position_dict.copy())
 
