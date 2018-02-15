@@ -281,6 +281,9 @@ class Shape(object):
         """
         return self.cp_list
 
+    def get_centred_position(self):
+        return self.get_centred_positions()[0]
+
     def select(self):
         self.selected = True
 
@@ -341,9 +344,6 @@ class Point(Shape):
         Point.SHAPE_COUNT += 1
         self.t = "P"
         self.set_id(Point.SHAPE_COUNT)
-
-    def get_centred_position(self):
-        return self.cp_list[0]
 
     def mpos(self):
         return self.cp_list[0].as_dict()
