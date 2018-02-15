@@ -778,7 +778,10 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         shapes = list(self.shape_history.get_selected_shapes())
         if shapes:
             pos = shapes[0]
-            cpos = pos.get_centred_positions()[0]
+            if hasattr(pos, 'get_centred_position'):
+                cpos = pos.get_centred_position()
+            else:
+                cpos = pos.get_centred_positions()[0]
         else:
             msg = "No centred position selected, using current position."
             log.info(msg)
