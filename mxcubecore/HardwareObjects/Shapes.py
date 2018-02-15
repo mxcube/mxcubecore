@@ -268,6 +268,7 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state = "SAVED"
+        self.label = ""
         self.screen_coord = screen_coord
         self.selected = False
         self.refs = []
@@ -304,7 +305,7 @@ class Shape(object):
 
     def set_id(self, id_num):
         self.id = self.t + "%s" % id_num
-        self.name = self.id
+        self.name = self.label + "-%s" % id_num
 
     def move_to_mpos(self, mpos_list, screen_coord=[]):
         self.cp_list = []
@@ -343,6 +344,7 @@ class Point(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Point.SHAPE_COUNT += 1
         self.t = "P"
+        self.label = "Point"
         self.set_id(Point.SHAPE_COUNT)
 
     def mpos(self):
@@ -366,6 +368,7 @@ class Line(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Line.SHAPE_COUNT += 1
         self.t = "L"
+        self.label = "Line"
         self.set_id(Line.SHAPE_COUNT)
 
     def get_centred_positions(self):
@@ -401,6 +404,8 @@ class Grid(Shape):
         self.beam_pos = [1, 1]
         self.beam_width = 0
         self.beam_height = 0
+
+        self.set_id(Grid.SHAPE_COUNT)
 
     def get_centred_position(self):
         return self.cp_list[1]
