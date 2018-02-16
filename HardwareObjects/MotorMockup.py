@@ -35,6 +35,7 @@ Example of xml config file
 <device class="MotorMockup">
   <start_position>500</start_position>
   <velocity>100</velocity>
+  <static_limits>[100, 1000]</static_limits>  
 </device>
 """
 
@@ -56,6 +57,11 @@ class MotorMockup(AbstractMotor, HardwareObject):
             self.set_velocity(float(self.getProperty("velocity")))
         except:
             self.set_velocity(100)
+
+        try:
+            self.set_limits(eval(self.getProperty("static_limits")))
+        except:
+            pass
 
     def is_ready(self):
         return True
