@@ -5,126 +5,165 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Descript. : AbstractMotor represent motor.
-"""
 
 import abc
+
+class MotorStates(object):
+    """Enumeration of the motor states
+    """
+    Initializing = 0
+    On           = 1
+    Off          = 2
+    Ready        = 3
+    Busy         = 4
+    Moving       = 5
+    Standby      = 6
+    Disabled     = 7
+    Unknown      = 8
+    Alarm        = 9
+    Fault        = 10
+    Invalid      = 11
+    Offline      = 12
+    LowLimit     = 13
+    HighLimit    = 14
+
+    STATE_DESC = {Initializing: "Initializing",
+                  On: "On",
+                  Off: "Off",
+                  Ready: "Ready",
+                  Busy: "Busy",
+                  Moving: "Moving",
+                  Standby: "Standby",
+                  Disabled: "Disabled",
+                  Unknown: "Unknown",
+                  Alarm: "Alarm",
+                  Fault: "Fault",
+                  Invalid: "Invalid",
+                  Offline: "Offline",
+                  LowLimit: "LowLimit",
+                  HighLimit: "HighLimit"}
+
+    @staticmethod
+    def tostring(state):
+        return MotorStates.STATE_DESC.get(state, "Unknown")
+
+
 
 class AbstractMotor(object):
     __metaclass__ = abc.ABCMeta
 
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
-    EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
-                                "Fault": UNUSABLE,
-                                "Ready": READY,
-                                "Moving": MOVING,
-                                "Created": NOTINITIALIZED,
-                                "Initializing": NOTINITIALIZED,
-                                "Unknown": UNUSABLE,
-                                "LowLim": ONLIMIT,
-                                "HighLim": ONLIMIT,
-                                "Offline": UNUSABLE}
-
     def __init__(self):
-        """
-        Descript. :
-        """
-        self.motor_state = AbstractMotor.NOTINITIALIZED
- 
-        self.static_limits = (-1E4, 1E4)
-        self.limits = (None, None)
+        self.__state = MotorStates.Initializing
+        self.__position = None
+        self.__limits = (None, None)
+        self.__velocity = None
 
-        #generic method used by the beamline setup
-        self.get_value = self.getPosition
+    def is_ready(self):
+        """
+        Returns:
+            bool: True if ready, otherwise False
+        """
+        return self.__state == MotorStates.tostring(MotorStates.Ready)
 
-    def getMotorMnemonic(self):
-        """
-        Descript. :
-        """
-        return
+    def get_state(self):
+        """Returns motoro state
 
-    def updateState(self):
+        Returns:
+            str: Motor state.
         """
-        Descript. :
-        """
-        self.setIsReady(self.motor_state > AbstractMotor.UNUSABLE)
+        return self.__state
 
-    @abc.abstractmethod
-    def getState(self):
-        """
-        Return motor state
-        """
-        return
+    def set_state(self, state):
+        """Sets motor state
 
-    @abc.abstractmethod
-    def getLimits(self):
+        Keyword Args:
+            state (str): motor state
         """
-        Returns motor limits. If no limits channel defined then
-                    static_limits is returned
-        """
-        return
+        self.__state = state
 
-    @abc.abstractmethod
-    def getPosition(self):
-        """
-        Read the motor user position.
-        """
-        return
+    def get_position(self):
+        """Read the motor user position.
 
-    def getDialPosition(self):
+        Returns:
+            float: Motor position.
         """
-        Read the motor dial position.
+        return self.__position
+
+    def set_position(self, position):
+        """Sets the motor position.
+
+        Keyword Args:
+            state (str): motor state
         """
-        return self.getPosition()
+        self.__position = position
+
+    def get_limits(self):
+        """Returns motor limits as (float, float)
+
+        Returns:
+            list: limits as a list with two floats
+        """
+        return self.__limits
+
+    def set_limits(self, limits):
+        """Sets motor limits
+
+        Kwargs:
+            limits (list): list with two floats
+        """
+        self.__limits = limits
+
+    def get_velocity(self):
+        """Returns velocity of the motor
+
+        Returns:
+            float. velocity
+        """
+        return self.__velocity
+
+    def set_velocity(self, velocity):
+        """Sets the velocity of the motor
+
+        Kwargs:
+            velocity (float): target velocity
+        """
+        self.__velocity = velocity
 
     @abc.abstractmethod
     def move(self, position, wait=False, timeout=None):
-        """
-        Move to absolute position. Wait the move to finish (True/False)
+        """Move motor to absolute position.
+
+        Kwargs:
+            position (float): target position
+            wait (bool): optional wait till motor finishes the movement
+            timeout (float): optional seconds to wait till move finishes
         """
         return
 
-    def moveRelative(self, position, wait=False, timeout=None):
-        """
-        Move to relative position. Wait the move to finish (True/False)
-        """
-        return
+    def move_relative(self, relative_position, wait=False, timeout=None):
+        """Move to relative position. Wait the move to finish (True/False)
 
-    def syncMove(self, position, timeout=None):
+        Kwargs:
+            relative_position (float): relative position to be moved
+            wait (bool): optional wait till motor finishes the movement
+            timeout (float): optional seconds to wait till move finishes
         """
-        Deprecated method - corresponds to move until move finished.
-        """
-        self.move(position, timeout=timeout, wait=True)
-
-    def syncMoveRelative(self, position, timeout=None):
-        """
-        Deprecated method - corresponds to moveRelative until move finished.
-        """
-        self.moveRelative(position, timeout=timeout, wait=True)
+        self.move(self.get_position() + relative_position, wait, timeout)
 
     @abc.abstractmethod
     def stop(self):
-        """
-        Stop the motor
-        """
-        return
-
-    def motorIsMoving(self):
-        """
-        Return True if the motor is moving, False otherwise
+        """Stops the motor movement
         """
         return
-
