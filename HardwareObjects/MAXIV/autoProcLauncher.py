@@ -183,8 +183,8 @@ class AutoProcLauncher:
         # for test
         #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
         #print cmd
-	print 4*'&&&&&&&&&&&&\n'
-	print 'COMMAND AYUTPROC ', cmd
+        logging.getLogger('HWR').info("Autoproc launcher: command gonna be launched: %s" % cmd)
+
         p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
