@@ -16,6 +16,9 @@ import logging
 import gevent
 import time
 import math
+import requests
+import uuid
+import json
 
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -56,6 +59,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.display = {} 
         self.stop_display = False
 
+	self.datacatalog_enabled = True
+	self.datacatalog_url = None
+
     def init(self):
         """
         Descript. :
@@ -72,12 +78,19 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.transmission_hwobj = self.getObjectByRole("transmission")
         self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
+        self.session_hwobj = self.getObjectByRole("session")
+	self.datacatalog_url = self.getProperty("datacatalog_url", None)
+	self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
 
-        # todo
+	if self.datacatalog_enabled:
+	    logging.getLogger("HWR").info("[COLLECT] Datacatalog enabled, url: %s" % self.datacatalog_url)
+	else:
+	    logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
+        
         self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
-        self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
-
+        
         # todo
+	# self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
         # self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
 
         undulators = []
@@ -396,11 +409,17 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def _update_task_progress(self):
 	logging.getLogger("HWR").info("[BIOMAXCOLLECT] update task progress launched")
 	num_images = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
-	step_size = int(num_images / 10) # arbitrary, 10 progress steps or messages
+	num_steps = 10.0
+	if num_images < num_steps:
+	    step_size = 1
+	    num_steps = num_images
+	else:	
+	    step_size = float(num_images / num_steps) # arbitrary, 10 progress steps or messages
 	exp_time = self.current_dc_parameters['oscillation_sequence'][0]['exposure_time']
 	step_count = 0
 	current_frame = 0
-	while step_count < 10:
+	time.sleep(exp_time * step_size)
+	while step_count < num_steps:
 	    time.sleep(exp_time * step_size)
 	    current_frame += step_size
 	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] collectImageTaken %s (%s, %s, %s)" %(current_frame, num_images, step_size, step_count))
@@ -441,20 +460,27 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.ready_event.set()
         self.update_data_collection_in_lims()
 
-	logging.getLogger("HWR").debug("[COLLECT] COLLECTION FINISHED, self.current_dc_parameters: %s" % self.current_dc_parameters)
+        logging.getLogger("HWR").debug("[COLLECT] COLLECTION FINISHED, self.current_dc_parameters: %s" % self.current_dc_parameters)
         try:
 	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] Going to generate XDS input files")
-            # generate XDS.INP only in raw/process
-            data_path = os.path.join("../../", os.path.basename(self.current_dc_parameters['fileinfo']['filename']))
-            os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
+        # generate XDS.INP only in raw/process
+	    data_path = self.current_dc_parameters['fileinfo']['filename']
+	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] DATA file: %s" % data_path)
+	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] XDS file: %s" % self.current_dc_parameters["xds_dir"])
+	    # Wait for the master file
+	    self.wait_for_file_copied(data_path)
+        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp.sh %s &" \
                 % (self.current_dc_parameters["xds_dir"],data_path))
-            if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
-                self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
-                self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
-                    self.NIMAGES_TRIGGER_AUTO_PROC):
-                self.trigger_auto_processing("after", self.current_dc_parameters, 0)
-        except Exception as ex:
-        print ex	
+	    logging.getLogger("HWR").info("[BIOMAXCOLLECT] AUTO file: %s" % self.current_dc_parameters["auto_dir"])
+        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/generate_xds_inp_auto.sh %s &" \
+                % (self.current_dc_parameters["auto_dir"],data_path))
+        if (self.current_dc_parameters['experiment_type'] in ('OSC', 'Helical') and
+            self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
+            self.current_dc_parameters['oscillation_sequence'][0]['number_of_images'] >= \
+                self.NIMAGES_TRIGGER_AUTO_PROC):
+            self.trigger_auto_processing("after", self.current_dc_parameters, 0)
+    	except Exception as ex:
+            logging.getLogger("HWR").error("[COLLECT] Error creating XDS files, %s" %ex)
 
     	# we store the first and the last images, TODO: every 45 degree
         logging.getLogger("HWR").info("Storing images in lims, frame number: 1")
@@ -473,6 +499,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     	    except Exception as ex:
     		print ex
 
+        if self.datacatalog_enabled:
+            self.store_datacollection_datacatalog()
+		
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
         Descript. :
@@ -559,7 +588,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                           'machineMessage': self.get_machine_message(),
                           'temperature': self.get_cryo_temperature()}
             archive_directory = self.current_dc_parameters['fileinfo']['archive_directory']
-	    
+
             if archive_directory:
                 jpeg_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
                 thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
@@ -577,6 +606,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 image_id = self.lims_client_hwobj.store_image(lims_image)
             except Exception as ex:
                 print ex
+	    # temp fix for ispyb permission issues
+            try:
+                session_dir = os.path.join(archive_directory,  '../../../')
+                os.system("chmod -R 777 %s" % (session_dir))
+            except Exception as ex:
+                print ex
+
             return image_id
 
     def take_crystal_snapshots(self):
@@ -631,26 +667,27 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         biomax_pipeline_dir = os.path.join(params_dict["auto_dir"],"biomax_pipeline")
         #autoPROC_dir = os.path.join(params_dict["auto_dir"],"autoPROC")
         
-	self.create_directories(fast_dp_dir, biomax_pipeline_dir)#, autoPROC_dir)
+	self.create_directories(fast_dp_dir) #, biomax_pipeline_dir)#, autoPROC_dir)
         
 	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, parameters: %s" %params_dict)
 	logging.getLogger("HWR").info("[COLLECT] triggering auto processing, self.current_dc_parameters: %s" % self.current_dc_parameters)
 
-	#logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
-        #os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
-        #    % (fast_dp_dir, params_dict['fileinfo']['filename']))
+	logging.getLogger("HWR").info("[COLLECT] Launching fast_dp")
+        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/fast_dp.sh %s &" \
+            % (fast_dp_dir, params_dict['fileinfo']['filename']))
         
-	logging.getLogger("HWR").info("[COLLECT] Launching biomax_pipeline")
-        os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
-            % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
+	#logging.getLogger("HWR").info("[COLLECT] Launching biomax_pipeline")
+        #os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_pipeline.sh %s &" \
+        #    % (biomax_pipeline_dir, params_dict['fileinfo']['filename']))
         #os.system("cd %s;/mxn/groups/biomax/wmxsoft/scripts_mxcube/autoPROC.sh %s &"  \
         #    % (autoPROC_dir, params_dict['fileinfo']['filename']))
-        return
+        #return
 
-        #if self.autoprocessing_hwobj is not None:
-        #    self.autoprocessing_hwobj.execute_autoprocessing(process_event,
-        #                                                     self.current_dc_parameters,
-        #                                                     frame_number)
+	logging.getLogger("HWR").info("[COLLECT] Launching MAXIV Autoprocessing")
+        if self.autoprocessing_hwobj is not None:
+            self.autoprocessing_hwobj.execute_autoprocessing(process_event,
+                                                             self.current_dc_parameters,
+                                                             frame_number)
 
     def get_beam_centre(self):
         """
@@ -836,6 +873,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         auto_directory = os.path.join(\
             self.current_dc_parameters['fileinfo']['process_directory'],
             xds_input_file_dirname)
+        logging.getLogger("HWR").info("[COLLECT] Processing input file directories: XDS: %s, AUTO: %s" % (xds_directory, auto_directory))
         return xds_directory, auto_directory
 
     def move_detector(self, value):
@@ -1005,7 +1043,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"
-        fname2 = "/mxn/groups/biomax/ctrl_soft/auto_load_img/to_display"
+        fname2 = "/mxn/groups/biomax/ctrl_soft/auto_load_img_cc/to_display"
         time.sleep(self.display["delay"]+3)
         frequency = 5
         step = int(math.ceil(frequency/self.display["exp"]))
@@ -1023,3 +1061,39 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             if self.stop_display:
                 break
             time.sleep(frequency)
+
+    def enable_datacatalog(self, enable):
+	self.datacatalog_enabled = enable
+
+    def store_datacollection_datacatalog(self):
+	collection = self.current_dc_parameters
+	proposal_code = self.session_hwobj.proposal_code
+	proposal_number = self.session_hwobj.proposal_number
+	
+	proposal_info = self.lims_client_hwobj.get_proposal(proposal_code, proposal_number)
+	# session info is missing!
+	sessionId= collection.get('sessionId', None)
+	if sessionId:
+            session_info = self.lims_client_hwobj.get_session(sessionId)
+	    proposal_info['Session'] = session_info	
+        else:
+            return # JN tmp solution, with commissioning, there is no proposal ID, no session
+	collection['proposalInfo'] = proposal_info
+	collection['uuid'] = str(uuid.uuid4())	
+	logging.getLogger("HWR").info("[HWR] Sending collection info to the data catalog: %s" %collection)
+	# help with serialization
+	try:
+	    collection['proposalInfo']['Session']['lastUpdate']= collection['proposalInfo']['Session']['lastUpdate'].isoformat()
+	    collection['proposalInfo']['Session']['timeStamp']= collection['proposalInfo']['Session']['timeStamp'].isoformat()
+	except:
+	    if 'Session' in collect['proposalInfo'].keys():
+	        collection['proposalInfo']['Session']['lastUpdate'] = ''
+	        collection['proposalInfo']['Session']['timeStamp'] = ''
+
+	if self.datacatalog_url:
+       	    try:
+	        requests.post(self.datacatalog_url, data=json.dumps(collection), proxies={})
+	    except Exception as ex:
+	        logging.getLogger("HWR").error("[HWR] Error sending collection info to the data catalog: %s %s" % (self.datacatalog_url, ex))
+	else:
+	    logging.getLogger("HWR").error("[HWR] Error sending collection info to the data catalog: No datacatalog URL specified")

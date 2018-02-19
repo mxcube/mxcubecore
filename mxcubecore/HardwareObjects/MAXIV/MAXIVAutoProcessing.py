@@ -96,7 +96,7 @@ class MAXIVAutoProcessing(HardwareObject):
 	      	print 2*'###########'
                 if process_event == "after":
                     input_filename, will_execute = self.create_autoproc_input(process_event, params_dict)
-                    path = params_dict["fileinfo"]["directory"]
+                    path = params_dict["auto_dir"]
                     mode = 'after'
                     dataCollectionId =  str(params_dict['collection_id'])
                     residues = 200

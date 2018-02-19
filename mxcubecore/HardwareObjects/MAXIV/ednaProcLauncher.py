@@ -108,6 +108,8 @@ class EdnaProcLauncher:
         self.log.setLevel(logging.DEBUG)
         self.xdsAppeared = False
         self.ednaProcPath = os.path.join(self.autoprocessingPath, "EDNA_proc")
+        self.ednaOutputFileName = "EDNA_proc_ispyb.xml"
+
         if not os.path.exists(self.ednaProcPath):
             os.makedirs(self.ednaProcPath, 0o755)
         self.xdsInputFile = os.path.join(self.autoprocessingPath, "XDS.INP")
@@ -119,19 +121,12 @@ class EdnaProcLauncher:
         logging.getLogger('HWR').info("EDNA_proc launcher: waiting for XDS.INP file: %s" %self.xdsInputFile)
         while not self.xdsAppeared and (time.time() - self.waitXdsStart < WAIT_XDS_TIMEOUT):
             time.sleep(1)
-	    print 111111111111111
             if os.path.exists(self.xdsInputFile) and os.stat(self.xdsInputFile).st_size > 0:
                 time.sleep(1)
                 self.xdsAppeared = True
-		print 222222222222
                 logging.getLogger('HWR').info("EDNA_proc launcher: XDS.INP file is there, size=%s" % os.stat(self.xdsInputFile).st_size)
-		print 44444444444444444444
         if not self.xdsAppeared:
-	    print 55555555555
             logging.getLogger('HWR').error("XDS.INP file ({0}) failed to appear after {1} seconds".format(self.xdsInputFile, WAIT_XDS_TIMEOUT))
-            sys.exit(1)
-	print 666666666666
-        self.ednaOutputFileName = "EDNA_proc_ispyb.xml"
         self.ednaOutputFilePath = os.path.join(self.ednaProcPath, self.ednaOutputFileName)
         if os.path.exists(self.ednaOutputFilePath):
             self.ednaOutputFile = tempfile.NamedTemporaryFile(suffix=".xml",
@@ -229,8 +224,7 @@ class EdnaProcLauncher:
         # for test
         #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
         #print cmd
-	print 4*'###########################\n'
-	print 'Command: ', cmd
+        logging.getLogger('HWR').info("EDNA_proc launcher: command gonna be launched: %s" % cmd)
         p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
