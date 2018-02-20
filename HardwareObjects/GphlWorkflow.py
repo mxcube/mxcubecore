@@ -152,6 +152,9 @@ class GphlWorkflow(HardwareObject, object):
 
         # TODO this could be cached for speed
 
+
+        instcfgout_dir = self.getProperty('instcfgout_dir')
+
         result = OrderedDict()
         if self.hasObject('workflow_properties'):
             properties = self['workflow_properties'].getProperties()
@@ -178,6 +181,8 @@ class GphlWorkflow(HardwareObject, object):
                        'application':wf_node.getProperty('application'),
                        'documentation':wf_node.getProperty('documentation',
                                                            default_value=''),
+                       'interleaveOrder':wf_node.getProperty('interleave_order',
+                                                             default_value=''),
             }
             result[name] = wf_dict
             wf_dict['options'] = dd = options.copy()
@@ -186,9 +191,12 @@ class GphlWorkflow(HardwareObject, object):
                 relative_file_path = dd.get('file')
                 if relative_file_path is not None:
                     # Special case - this option must be modified before use
-                    dd['file'] = HardwareRepository().findInRepository(
-                        relative_file_path
-                    )
+                    dd['file'] = os.path.join(self.gphl_beamline_config,
+                                              relative_file_path)
+                instcfgout = dd.get('instcfgout')
+                if instcfgout is not None and instcfgout_dir is not None:
+                    # Special case - this option must be modified before use
+                    dd['instcfgout'] = os.path.join(instcfgout_dir, instcfgout)
             wf_dict['properties'] = dd = properties.copy()
             if wf_node.hasObject('properties'):
                 dd.update(wf_node['properties'].getProperties())
@@ -278,6 +286,7 @@ class GphlWorkflow(HardwareObject, object):
                         result_list.append((response, correlation_id))
 
         except:
+            self.workflow_end()
             logging.getLogger("HWR").error(
                 "Uncaught error during GPhL workflow execution",
                 exc_info=True
@@ -336,6 +345,8 @@ class GphlWorkflow(HardwareObject, object):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
+        data_model = self._queue_entry.get_data_model()
+
         isInterleaved = geometric_strategy.isInterleaved
         allowed_widths = geometric_strategy.allowedWidths
         if not allowed_widths:
@@ -370,10 +381,10 @@ class GphlWorkflow(HardwareObject, object):
             orientations[rotation_id] = sweeps
 
         lines = ["Geometric strategy   :"]
-        if self._queue_entry.get_data_model().lattice_selected:
+        if data_model.lattice_selected:
             # Data collection TODO: Use workflow info to distinguish
             total_width = 0
-            beam_energies = self._queue_entry.get_data_model().get_beam_energies()
+            beam_energies = data_model.get_beam_energies()
             for tag, energy in beam_energies.items():
                 # NB beam_energies is an ordered dictionary
                 lines.append("- %-18s %6.1f degrees at %s keV"
@@ -521,8 +532,7 @@ class GphlWorkflow(HardwareObject, object):
             resolution = collect_hwobj.get_resolution()
             result['resolution'] = resolution
         if isInterleaved:
-            # NBNB TODO put in config
-            result['interleaveOrder'] = 'gsb'
+            result['interleaveOrder'] = data_model.get_interleave_order()
 
         return result
 

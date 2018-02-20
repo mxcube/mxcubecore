@@ -1532,6 +1532,7 @@ class GphlWorkflow(TaskNode):
         self.processing_parameters = ProcessingParameters()
         self._name = str()
         self._type = str()
+        self._interleave_order = str()
         self._number = 0
         self._beam_energies = OrderedDict()
         self._detector_resolution = None
@@ -1555,6 +1556,14 @@ class GphlWorkflow(TaskNode):
         return self._type
     def set_type(self, value):
         self._type = value
+
+    # Workflow interleave order (string).
+    # Slowest changing first, characters 'g' (Goniostat position);
+    # 's' (Scan number), 'b' (Beam wavelength), 'd' (Detector position)
+    def get_interleave_order(self):
+        return self._interleave_order
+    def set_interleave_order(self, value):
+        self._interleave_order = value
 
     # Number of snapshots to take at start of data collection.
     def get_snapshot_count(self):
