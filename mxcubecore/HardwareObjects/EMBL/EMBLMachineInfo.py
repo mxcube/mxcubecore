@@ -449,11 +449,15 @@ class EMBLMachineInfo(HardwareObject):
     def update_ramdisk_size(self, sleep_time):
         while True:
             total, free, perc = self.get_ramdisk_size()
-            txt = ' Total: %s\n Free:  %s (%s)' % (self.sizeof_fmt(total),
-                                                 self.sizeof_fmt(free),
-                                                 '{0:.0%}'.format(perc))
+            if None in (total, free, perc):
+                txt = ' Unable to read ramdisk size!'
+                self.values_list[-1]['in_range'] = False
+            else: 
+                txt = ' Total: %s\n Free:  %s (%s)' % (self.sizeof_fmt(total),
+                                                       self.sizeof_fmt(free),
+                                                       '{0:.0%}'.format(perc))
+                self.values_list[-1]['in_range'] = free / 2 ** 30 > 10
             self.values_list[-1]['value'] = txt
-            self.values_list[-1]['in_range'] = free / 2 ** 30 > 10
             self.update_values()
             time.sleep(sleep_time)
 
@@ -474,8 +478,11 @@ class EMBLMachineInfo(HardwareObject):
     def sizeof_fmt(self, num):
         """Returns disk space formated in string"""
 
-        for x in ['bytes', 'KB', 'MB', 'GB']:
-            if num < 1024.0:
-                return "%3.1f%s" % (num, x)
-            num /= 1024.0
-        return "%3.1f%s" % (num, 'TB')
+        try:
+            for x in ['bytes', 'KB', 'MB', 'GB']:
+                if num < 1024.0:
+                    return "%3.1f%s" % (num, x)
+                num /= 1024.0
+            return "%3.1f%s" % (num, 'TB')
+        except: 
+            return "???"

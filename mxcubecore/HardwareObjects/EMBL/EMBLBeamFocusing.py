@@ -118,10 +118,12 @@ class EMBLBeamFocusing(HardwareObject):
         self.active_focus_mode, self.size = self.get_active_focus_mode()
 
         if prev_mode != self.active_focus_mode:
-            logging.getLogger("HWR").info('Focusing: %s mode detected' %\
-                                          self.active_focus_mode)
+            if self.active_focus_mode:
+                logging.getLogger("GUI").info('Focusing: %s mode detected' %\
+                                              self.active_focus_mode)
             self.emit('focusingModeChanged', self.active_focus_mode, self.size)
-            if self.cmd_set_calibration_name and self.active_focus_mode:
+            if self.active_focus_mode:
+                print "calib mode send: ", self.active_focus_mode.lower()
                 self.cmd_set_calibration_name(self.active_focus_mode.lower())
 
     def get_focus_mode_names(self):
@@ -236,14 +238,33 @@ class EMBLBeamFocusing(HardwareObject):
         :param focus_mode: requested focusing mode
         :type focus_mode: str
         """
+          
         if focus_mode and self.cmd_set_phase:
+            #TODO put a try with error handling
+            logging.getLogger("GUI").warning(\
+                 "Focusing: Setting diffractometer to BeamLocation phase...")
+
+            #Waits for diffractometer to be ready
+            self.aperture_hwobj.wait_ready()
             tinequery(self.cmd_set_phase['address'],
                       self.cmd_set_phase['property'],
                       self.cmd_set_phase['argument'])
+
+            logging.getLogger("GUI").warning(\
+                 "Focusing: Setting focusing motors...")
             if self.motors_groups:
                 for motors_group in self.motors_groups:
                     motors_group.set_motor_group_focus_mode(focus_mode)
-            self.aperture_hwobj.set_diameter(self.get_focus_mode_aperture(focus_mode))
+            logging.getLogger("GUI").info('Focusing: Focusing motors set')
+
+            aperture_diameter = self.get_focus_mode_aperture(focus_mode)
+            logging.getLogger("GUI").warning(\
+                 "Focusing: Setting aperture to %d microns..." % \
+                 aperture_diameter)
+
+            self.aperture_hwobj.wait_ready()
+            self.aperture_hwobj.set_diameter(aperture_diameter)
+            logging.getLogger("GUI").info('Focusing: Aperture set')
         else:
             #No motors defined
             self.active_focus_mode = focus_mode
