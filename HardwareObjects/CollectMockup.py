@@ -120,7 +120,6 @@ class CollectMockup(AbstractCollect, HardwareObject):
         """Main collection hook
         """
         self.emit("collectStarted", (self.owner, 1)) 
-        self.emit("progressInit", ("Data collection", 100))
         self.emit("fsmConditionChanged",
                   "data_collection_started",
                   True)
