@@ -203,7 +203,7 @@ class Marvin(SampleChanger):
 
         self._setState(SampleChangerState.Ready)
         #self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
-        #self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
+        self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
 
     def get_status_str_desc(self):
         return STATUS_STR_DESC
@@ -408,10 +408,9 @@ class Marvin(SampleChanger):
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
-        logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
-        self.detector_hwobj.close_cover()
-        logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
-
+        #logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
+        #self.detector_hwobj.close_cover()
+        #logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
         # 3. If necessary move detector to save position
         if self._focusing_mode == "P13mode":
             if self.detector_hwobj.get_distance() < 399.0:
@@ -421,6 +420,10 @@ class Marvin(SampleChanger):
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
+        else:
+            logging.getLogger("HWR").debug("Sample changer: Closing guillotine...")
+            self.detector_hwobj.close_cover()
+            logging.getLogger("HWR").debug("Sample changer: Guillotine closed")
 
         # 4. Executed command and wait till device is ready 
         if self._focusing_mode == "P13mode":
@@ -520,8 +523,7 @@ class Marvin(SampleChanger):
                           "Sample will not be mounted")
                 raise Exception("Unable to set Transfer phase")
 
-        self.detector_hwobj.close_cover()
-
+        #self.detector_hwobj.close_cover()
         if self._focusing_mode == "P13mode":  
             if self.detector_hwobj.get_distance() < 399.0:
                 log.info("Sample changer: Moving detector to save position ...")
@@ -530,6 +532,8 @@ class Marvin(SampleChanger):
                 time.sleep(1)
                 self.waitVeto(20.0)
                 log.info("Sample changer: Detector moved to save position")
+        else:
+            self.detector_hwobj.close_cover()
 
         start_time = datetime.now()
 
@@ -874,7 +878,7 @@ class Marvin(SampleChanger):
         self.emit("infoDictChanged", self._info_dict) 
 
     
-    #def update_values(self):
-    #    self.emit("statusListChanged", self._status_list)
-    #    self.emit("infoDictChanged", self._info_dict)
-    #    self._updateLoadedSample()
+    def update_values(self):
+        self.emit("statusListChanged", self._status_list)
+        self.emit("infoDictChanged", self._info_dict)
+        self._updateLoadedSample()

@@ -43,7 +43,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
 
         AbstractCollect.__init__(self)
         HardwareObject.__init__(self, name)
-        self._centring_status = None
         self._previous_collect_status = None
         self._actual_collect_status = None
         self.current_dc_parameters = None
@@ -92,7 +91,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_start = None
         self.cmd_collect_abort = None
         self.cmd_collect_xds_data_range = None
-        self.cmd_set_calibration_name = None
 
         self.diffractometer_hwobj = None
         self.lims_client_hwobj = None
@@ -192,7 +190,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_abort = self.getCommandObject('collectAbort')
 
         #Other commands
-        self.cmd_set_calibration_name = self.getCommandObject('cmdSetCallibrationName')
 
         #Properties
         self.use_still = self.getProperty("use_still")
@@ -209,7 +206,8 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             return
 
         if self._actual_collect_status in ["ready", "unknown", "error", "not available"]:
-            self.emit("progressInit", ("Collection", 100))
+            #self.emit("progressInit", ("Collection", 100, False))
+            self.diffractometer_hwobj.save_centring_positions()
             comment = 'Comment: %s' % str(self.current_dc_parameters.get('comments', ""))
             self._error_msg = ""
             self._collecting = True
@@ -228,10 +226,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             shutter_name = self.detector_hwobj.get_shutter_name()
             if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
-
-            calibration_name = self.beam_info_hwobj.get_focus_mode()
-            if calibration_name and self.cmd_set_calibration_name:
-                self.cmd_set_calibration_name(calibration_name)
 
             if osc_seq['overlap'] == 0:
                 self.cmd_collect_shutterless(1)

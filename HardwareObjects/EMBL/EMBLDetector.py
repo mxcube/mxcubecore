@@ -56,6 +56,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def init(self):
 
         self.cover_state = 'unknown'
+        self.binding_mode = 1
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject('chanCoverState')
@@ -141,12 +142,12 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             status = self.chan_status.getValue()
         status_message = ""
         if self.temperature > self.temp_treshold:
-            logging.getLogger().warning(\
+            logging.getLogger('GUI').warning(\
                 "Detector: Temperature %0.2f is greater than allowed %0.2f" %\
                 (self.temperature, self.temp_treshold))
             status_message = "Detector temperature has exceeded threshold.\n"
         if self.humidity > self.hum_treshold:
-            logging.getLogger().warning(\
+            logging.getLogger('GUI').warning(\
                 "Detector: Humidity %0.2f is greater than allowed %0.2f" %\
                 (self.humidity, self.hum_treshold))
             status_message = status_message + \
@@ -163,7 +164,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
         self.roi_mode = self.roi_modes_list.index(mode)
-        self.emit('detectorModeChanged', (self.roi_mode, ))
+        self.emit('detectorRoiModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
         """Updates frame rate"""
@@ -199,13 +200,16 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :param state: guillotine state (close, opened, ..)
         :type state: str
         """
-        if state[1] == 0:
+        if type(state) in (list, tuple):
+            state = state[1]
+
+        if state == 0:
             self.cover_state = "closed"
-        elif state[1] == 1:
+        elif state == 1:
             self.cover_state = "opened"
-        elif state[1] == 2:
+        elif state == 2:
             self.cover_state = "closing"
-        elif state[1] == 3:
+        elif state == 3:
             self.cover_state = "opening"
         return self.cover_state
 
@@ -225,7 +229,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-        self.emit('detectorModeChanged', (self.roi_mode, ))
+        self.emit('detectorRoiModeChanged', (self.roi_mode, ))
         temp = self.chan_temperature.getValue()
         self.emit('temperatureChanged', (temp, temp < self.temp_treshold))
         hum = self.chan_humidity.getValue()

@@ -100,6 +100,11 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.scanning:
             if status == 'scanning':
                 logging.getLogger("GUI").info('Energy scan: Executing...')
+ 
+                if self.transmission_hwobj is not None:
+                    self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
+                else:
+                    self.scan_info['transmissionFactor'] = None
             elif status == 'ready':
                 if self.scanning is True:
                     logging.getLogger("GUI").info('Energy scan: Finished')
@@ -118,10 +123,12 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def emit_new_data_point(self, values):
         if len(values) > 0:
-            try:
+            #try:
+            if True:
                 x = values[-1][0]
                 y = values[-1][1]
-                if not (x == 0 and y == 0):
+                #if not (x == 0 and y == 0):
+                if True:
                     # if x is in keV, transform into eV otherwise let it like it is
 	            # if point larger than previous point (for chooch)
                     if len(self.scan_data) > 0:
@@ -129,10 +136,11 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                             self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
                     else:
                         self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
+                     
                     self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
                     self.emit("progressStep", (len(self.scan_data)))
-            except:
-                pass
+            #except:
+            #    pass
 
     def isConnected(self):
         return True
@@ -165,10 +173,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if hasattr(self.energy_hwobj, "release_break_bragg" ):
                 self.energy_hwobj.release_break_bragg()
 
-            if self.transmission_hwobj is not None:
-                self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
-            else:
-                self.scan_info['transmissionFactor'] = None
+            #if self.transmission_hwobj is not None:
+            #    self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
+            #else:
+            #    self.scan_info['transmissionFactor'] = None
             self.scan_info['exposureTime'] = exptime
             self.scan_info['startEnergy'] = 0
             self.scan_info['endEnergy'] = 0
@@ -215,7 +223,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                       'title' : title}
         self.scanning = True
         self.emit('energyScanStarted', graph_info)
-        self.emit("progressInit", "Energy scan", self.num_points)
+        self.emit("progressInit", "Energy scan", self.num_points, False)
 
     def scanCommandFailed(self, *args):
         with cleanup(self.ready_event.set):
