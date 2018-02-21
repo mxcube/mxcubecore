@@ -21,8 +21,6 @@ import logging
 import gevent
 from HardwareRepository.BaseHardwareObjects import Device
 
-import _tine as tine
-
 
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3."
@@ -158,8 +156,8 @@ class EMBLDoorInterlock(Device):
                         gevent.sleep(0.01)
                     gevent.sleep(2)
             else: 
-                if self.detector_distance_hwobj.getPosition() < 1199:
-                    self.detector_distance_hwobj.move(1200)
+                if self.detector_distance_hwobj.getPosition() < 1099:
+                    self.detector_distance_hwobj.move(1100)
                     gevent.sleep(1)
             self.diffractometer_hwobj.set_phase(self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None)
              

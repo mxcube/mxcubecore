@@ -241,7 +241,6 @@ class TINEMotor(Device):
         """
         Descript. :
         """
-        #logging.getLogger("HWR").debug("Start moving to %s, wait=%s" % (str(target), str(wait)))
         self.__changeMotorState(MOVING)
         if self.chan_state is not None:
             self.chan_state.setOldValue('moving')
@@ -250,13 +249,12 @@ class TINEMotor(Device):
         else:
             self.cmd_set_position(target)
 
-        if timeout is not None:
+        if timeout:
             gevent.sleep(2)
             self._waitDeviceReady(timeout)
             self._waitDeviceReady(10)
         if self.chan_state is None:
             self.motor_state_changed("not used state")
-        #logging.getLogger("HWR").debug("Move done")    
 
     def __changeMotorState(self, state):
         """
