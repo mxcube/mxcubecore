@@ -255,59 +255,6 @@ class DiffractometerMockup(GenericDiffractometer):
         except:
             logging.exception("Could not move to centred position")
 
-    # def get_positions(self):
-    #     """
-    #     Descript. :
-    #     """
-    #     # # Modified to get values close to pre-set, and within limits
-    #     # random_num = random.random()
-    #     # #     return {"phi": random_num * 10, "focus": random_num * 20,
-    #     # #             "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-    #     # #             "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
-    #     # # Random variation range and limits in mm
-    #     # # TODO get better values, from config
-    #     # transl_var = 0.08
-    #     # transl_limit = 2.0
-    #     # result = self.current_positions_dict.copy()
-    #     # var = (random_num - 0.5) * transl_var
-    #     # for tag in ('phiy', 'phiz', 'sampx', 'sampy'):
-    #     #     val = result[tag]
-    #     #     if val is not None:
-    #     #         val += var
-    #     #         if abs(val) > transl_limit:
-    #     #             val *= (1 - transl_var/transl_limit)
-    #     #         result[tag] = val
-    #     motor_hwobj_dict = self.motor_hwobj_dict
-    #     result = {}
-    #     for tag in self.centring_motors_list:
-    #         motor = motor_hwobj_dict.get(tag)
-    #         if motor is not None:
-    #             result[tag] = motor.getPosition()
-    #     #
-    #     return result
-
-    # def move_motors(self, motor_positions, timeout=15):
-    #     """
-    #     Moves diffractometer motors to the requested positions
-    #
-    #     :param motors_dict: dictionary with motor names or hwobj
-    #                         and target values. In Mockup only names accepted
-    #     :type motors_dict: dict
-    #     """
-    #     # current_positions_dict = self.current_positions_dict
-    #     motor_hwobj_dict = self.motor_hwobj_dict
-    #     for tag, val in motor_positions.items():
-    #         if val is None:
-    #             logging.getLogger('HWR').warning("Cannot set motor %s to None"
-    #                                              % tag)
-    #         else:
-    #             motor = motor_hwobj_dict.get(tag)
-    #             if motor is None:
-    #                 logging.getLogger('HWR').warning("No motor named %s"
-    #                                                  % tag)
-    #             else:
-    #                 motor.move(val)
-    #     self.wait_device_ready(timeout)
 
     def phi_motor_moved(self, pos):
         """
