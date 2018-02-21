@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import gevent
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -44,6 +45,7 @@ class EMBLAperture(Device):
         self.chan_diameter_index = None
         self.chan_diameters = None
         self.chan_position = None
+        self.chan_state = None
 
     def init(self):
         """Initialization of channels and commands"""
@@ -70,6 +72,8 @@ class EMBLAperture(Device):
             self.position_changed(self.position)
             self.chan_position.connectSignal('update', self.position_changed)
 
+        self.chan_state = self.getChannelObject('State') 
+
     def diameter_index_changed(self, diameter_index):
         """Callback when diameter index has been changed"""
         self.current_diameter_index = diameter_index
@@ -93,14 +97,17 @@ class EMBLAperture(Device):
         """
         self.chan_diameter_index.setValue(diameter_index)
 
-    def set_diameter(self, diameter_size):
+    def set_diameter(self, diameter_size, timeout=None):
         """Sets new aperture size
 
         :param diameter_size: new size
         :type diameter_size: int
         """
-        self.chan_diameter_index.setValue(\
-             self.diameter_list.index(diameter_size))
+        diameter_index = self.diameter_list.index(diameter_size)
+        self.chan_diameter_index.setValue(diameter_index)
+        #if timeout:
+        #    while diameter_index != self.chan_diameter_index.getValue():
+        #         gevent.sleep(0.1)
 
     def set_position(self, position):
         """Sets new aperture position
@@ -117,6 +124,11 @@ class EMBLAperture(Device):
     def set_out(self):
         """Sets aperture to the OUT position"""
         self.chan_position.setValue("OFF")
+
+    def wait_ready(self, timeout=20):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
+            while self.chan_state.getValue() != "Ready":
+                   gevent.sleep(0.1)
 
     def is_out(self):
         """Returns True if aperture is on the beam"""

@@ -174,12 +174,12 @@ class EMBLCRL(HardwareObject):
         logging.getLogger("user_level_log").info(\
             "Setting CRL image plane " +\
             "distance to %.2f" % self.get_image_plane_distance(value))
+
         if timeout:
             gevent.sleep(1)
-            with gevent.Timeout(10, Exception("Timeout waiting for CRL")):
+            with gevent.Timeout(timeout, Exception("Timeout waiting for CRL")):
                 while value != self.crl_value:
-                    gevent.sleep(0.1)
-                gevent.sleep(1)
+                    gevent.sleep(0.1) 
 
     def get_crl_value(self):
         """Return crl combination"""
