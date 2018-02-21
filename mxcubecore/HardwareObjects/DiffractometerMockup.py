@@ -84,6 +84,9 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return "ready"
 
+    def execute_server_task(self, method, timeout=30, *args):
+        return
+
     def in_plate_mode(self):
         return self.mount_mode == "plate"
 
@@ -241,7 +244,6 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         
         print "moving to beam position: %d %d" % (self.beam_position[0], self.beam_position[1])
-        return
 
     def move_to_coord(self, x, y, omega=None):
         """
@@ -255,6 +257,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
+        self.last_centred_position[0] = coord_x
+        self.last_centred_position[1] = coord_y    
         self.centring_time = time.time()
         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.centring_status = {"valid": True,
@@ -305,3 +309,6 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def move_omega_relative(self, relative_angle):
         self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
+
+    def set_phase(self, phase, timeout=None):
+        pass

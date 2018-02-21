@@ -118,6 +118,7 @@ class AbstractCollect(object):
         self.emit("collectReady", (False, ))
         self.emit("collectOscillationStarted", (owner, None, \
                   None, None, self.current_dc_parameters, None))
+        self.emit("progressInit", ("Collection", 100, False))
         self.collection_id = None
 
         # ----------------------------------------------------------------
