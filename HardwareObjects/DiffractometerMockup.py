@@ -176,7 +176,8 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def centring_done(self, centring_procedure):
         self.centring_time = time.time()
-        self.emit_centring_successful()
+        if centring_procedure and self.centring_status.get('valid'):
+            self.emit_centring_successful()
         self.emit_progress_message("")
         self.ready_event.set()
 
@@ -221,11 +222,11 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return
 
-    def get_omega_axis_position(self):
-        """
-        Descript. :
-        """
-        return self.current_positions_dict.get("phi")
+    # def get_omega_axis_position(self):
+    #     """
+    #     Descript. :
+    #     """
+    #     return self.current_positions_dict.get("phi")
 
     def beam_position_changed(self, value):
         """
