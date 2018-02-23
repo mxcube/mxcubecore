@@ -13,13 +13,25 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def init(self):
         self.currentResolution = 3
         self.detmState = None
-        self.det_radius = 100
         self.state = 2
         self.dtox = self.getObjectByRole("dtox")
         self.energy = self.getObjectByRole("energy")
         self.detector = self.getObjectByRole("detector")
         self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
         self.dtox.move(self.res2dist(self.currentResolution))
+
+        # Default value detector radius - corresponds to Eiger 16M:
+        self.det_radius = 155.625
+        detector = self.detector
+        if detector is not None:
+            # Calculate detector radius
+            px = float(detector.getProperty('px', default_value=0))
+            py = float(detector.getProperty('py', default_value=0))
+            width = float(detector.getProperty('width', default_value=0))
+            height = float(detector.getProperty('height', default_value=0))
+            det_radius = 0.5 * min(px * width, py * height)
+            if det_radius > 0:
+                self.det_radius = det_radius
 
     def beam_centre_updated(self, beam_pos_dict):
         pass
@@ -96,7 +108,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return (0, 20)
 
     def move(self, pos, wait=True):
-        self.dtox.move(self.res2dist(pos))
+        self.dtox.move(self.res2dist(pos), wait=wait)
 
     def motorIsMoving(self):
         return self.dtox.motorIsMoving() or self.energy.moving

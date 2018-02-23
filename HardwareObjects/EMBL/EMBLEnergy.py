@@ -334,16 +334,17 @@ class EMBLEnergy(Device):
     def release_break_bragg(self):
         logging.getLogger('GUI').info("Releasing bragg brake...")
         self.emit('statusInfoChanged', "Releasing Bragg break...")
-        self.cmd_release_break_bragg(1)
-        gevent.sleep(2)
-        if self.chan_status_bragg_break is not None:
-            logging.getLogger('GUI').info("Start waiting for brake released") 
-            with gevent.Timeout(20, Exception("Timeout waiting for break release")):
-                while self.chan_status_bragg_break.getValue() != 1:
-                   gevent.sleep(0.1)
+        if self.chan_status_bragg_break.getValue() != 1:
+            self.cmd_release_break_bragg(1)
+            gevent.sleep(2)
+            if self.chan_status_bragg_break is not None:
+                logging.getLogger('GUI').info("Start waiting for brake released") 
+                with gevent.Timeout(20, Exception("Timeout waiting for break release")):
+                    while self.chan_status_bragg_break.getValue() != 1:
+                       gevent.sleep(0.1)
             
-        else:
-            logging.getLogger('GUI').info("Start sleeping 10 sec before brake released")
-            gevent.sleep(10)
-        logging.getLogger('GUI').info("Bragg brake released")
-        self.emit('statusInfoChanged', "Bragg break released")    
+            else:
+                logging.getLogger('GUI').info("Start sleeping 10 sec before brake released")
+                gevent.sleep(10)
+            logging.getLogger('GUI').info("Bragg brake released")
+            self.emit('statusInfoChanged', "Bragg break released")    

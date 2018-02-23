@@ -644,3 +644,7 @@ class ISPyBClient2Mockup(HardwareObject):
     storeImage = store_image
     storeEnergyScan = store_energy_scan
     storeXfeSpectrum = store_xfe_spectrum
+
+    def store_robot_action(self, robot_action_dict):
+        """Stores robot action"""
+        pass

@@ -20,7 +20,7 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         """
         Descript. :
         """
-        self.distance = 500
+        # self.distance = 500
         self.temperature = 25
         self.humidity = 60
         self.actual_frame_rate = 50
@@ -28,9 +28,13 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         self.roi_mode = 0
         self.exposure_time_limits = [0.04, 60000]
         self.status = "ready"
+        self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
     def get_distance(self):
-        return self.distance
+        return self.distance_motor_hwobj.getPosition()
+
+    def set_distance(self, position, timeout=None):
+        self.distance_motor_hwobj.move(position, wait=True)
 
     def get_distance_limits(self):
         return [100, 1000] 

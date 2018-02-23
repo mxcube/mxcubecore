@@ -430,7 +430,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 group_data = {'sessionId': self.session_hwobj.session_id,
                               'experimentType': 'OSC'}
 
-            sample_model = task_model.get_parent()
+            sample_model = task_model.get_sample_node()
+            # task_model.get_parent()
             if sample_model.lims_container_location > -1:
                 group_data['actualContainerSlotInSC'] = \
                    sample_model.lims_container_location
@@ -512,7 +513,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 interleave_item["data_model"].get_parent().lims_group_id
             cpos = interleave_item["data_model"].acquisitions[0].\
                 acquisition_parameters.centred_position
-            sample = interleave_item["data_model"].get_parent().get_parent()
+            # sample = interleave_item["data_model"].get_parent().get_parent()
+            sample = interleave_item["data_model"].get_sample_node()
             empty_cpos = queue_model_objects.CentredPosition()
             param_list = queue_model_objects.to_collect_dict(
                  interleave_item["data_model"], self.session_hwobj,
@@ -737,11 +739,36 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_view().setText(1, 'Waiting for input')
         log = logging.getLogger("user_level_log")
 
-        kappa = self._data_model.get_kappa()
-        phi = self._data_model.get_kappa_phi()
+        data_model = self.get_data_model()
 
-        if hasattr(self.diffractometer_hwobj, "in_kappa_mode") and self.diffractometer_hwobj.in_kappa_mode():
-            self.diffractometer_hwobj.moveMotors({"kappa": kappa, "kappa_phi":phi})
+        kappa = data_model.get_kappa()
+        phi = data_model.get_kappa_phi()
+
+
+        # kappa and kappa_phi settings are applied first, and assume that the
+        # beamline does have axes with exactly these names
+        #
+        # Other motor_positions are applied afterwards, but in random order.
+        # motor_positions override kappa and kappa_phi if both are set
+        #
+        # Since setting one motor can change the position of another
+        # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
+        # the order is important.
+        dd = {}
+        if kappa is not None:
+            dd["kappa"] = kappa
+        if phi is not None:
+            dd["kappa_phi"] = phi
+        if dd:
+            if (not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
+                or self.diffractometer_hwobj.in_kappa_mode()):
+                self.diffractometer_hwobj.move_motors(dd)
+
+        motor_positions = data_model.get_other_motor_positions()
+        dd = dict(tt for tt in data_model.get_other_motor_positions().items()
+                  if tt[1] is not None)
+        if motor_positions:
+            self.diffractometer_hwobj.move_motors(dd)
 
         #TODO agree on correct message
         log.warning("Please center a new point, and press continue.")
@@ -750,31 +777,22 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         self.get_queue_controller().pause(True)
         pos = None
 
-        if len(self.shape_history.get_selected_shapes()):
-            pos = self.shape_history.get_selected_shapes()[0]
+        shapes = list(self.shape_history.get_selected_shapes())
+        if shapes:
+            pos = shapes[0]
+            if hasattr(pos, 'get_centred_position'):
+                cpos = pos.get_centred_position()
+            else:
+                cpos = pos.get_centred_positions()[0]
         else:
             msg = "No centred position selected, using current position."
             log.info(msg)
 
-            # Create a centred postions of the current postion
+            # Create a centred positions of the current position
             pos_dict = self.diffractometer_hwobj.getPositions()
             cpos = queue_model_objects.CentredPosition(pos_dict)
             #pos = shape_history.Point(None, cpos, None) #, True)
-
-        # Get tasks associated with this centring
-        tasks = self.get_data_model().get_tasks()
-
-        """for task in tasks:
-            cpos = pos.get_centred_positions()[0]
-
-            if pos.qub_point is not None:
-                snapshot = self.shape_history.\
-                           get_snapshot([pos.qub_point])
-            else:
-                snapshot = self.shape_history.get_snapshot([])
-
-            cpos.snapshot_image = snapshot 
-            task.set_centred_positions(cpos)"""
+        self._data_model.set_centring_result(cpos)
 
         self.get_view().setText(1, 'Input accepted')
 
@@ -920,7 +938,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1 = dc.acquisitions[0]
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
-            sample = self.get_data_model().get_parent().get_parent()
+            # sample = self.get_data_model().get_parent().get_parent()
+            sample = self.get_data_model().get_sample_node()
             self.collect_hwobj.run_processing_after = dc.run_processing_after
             self.collect_hwobj.aborted_by_user = None
             self.processing_task = None
@@ -1289,8 +1308,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
-            sample_model = self.get_data_model().\
-                           get_parent().get_parent()
+            # sample_model = self.get_data_model().\
+            #                get_parent().get_parent()
+            sample_model = self.get_data_model().get_sample_node()
 
             sample_lims_id = sample_model.lims_id
 
@@ -1469,8 +1489,9 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             xrf_spectrum = self.get_data_model()
             self.get_view().setText(1, "Starting xrf spectrum")
 
-            sample_model = self.get_data_model().\
-                           get_parent().get_parent()
+            # sample_model = self.get_data_model().\
+            #                get_parent().get_parent()
+            sample_model = self.get_data_model().get_sample_node()
 
             sample_lims_id = sample_model.lims_id
             # No sample id, pass None to startEnergySpectrum
