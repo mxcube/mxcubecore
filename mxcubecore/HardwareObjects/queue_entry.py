@@ -430,7 +430,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 group_data = {'sessionId': self.session_hwobj.session_id,
                               'experimentType': 'OSC'}
 
-            sample_model = task_model.get_parent()
+            sample_model = task_model.get_sample_node()
+            # task_model.get_parent()
             if sample_model.lims_container_location > -1:
                 group_data['actualContainerSlotInSC'] = \
                    sample_model.lims_container_location
@@ -512,7 +513,8 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                 interleave_item["data_model"].get_parent().lims_group_id
             cpos = interleave_item["data_model"].acquisitions[0].\
                 acquisition_parameters.centred_position
-            sample = interleave_item["data_model"].get_parent().get_parent()
+            # sample = interleave_item["data_model"].get_parent().get_parent()
+            sample = interleave_item["data_model"].get_sample_node()
             empty_cpos = queue_model_objects.CentredPosition()
             param_list = queue_model_objects.to_collect_dict(
                  interleave_item["data_model"], self.session_hwobj,
@@ -920,7 +922,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_1 = dc.acquisitions[0]
             acq_1.acquisition_parameters.in_queue = self.in_queue
             cpos = acq_1.acquisition_parameters.centred_position
-            sample = self.get_data_model().get_parent().get_parent()
+            # sample = self.get_data_model().get_parent().get_parent()
+            sample = self.get_data_model().get_sample_node()
             self.collect_hwobj.run_processing_after = dc.run_processing_after
             self.collect_hwobj.aborted_by_user = None
             self.processing_task = None
@@ -1289,8 +1292,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
             energy_scan = self.get_data_model()
             self.get_view().setText(1, "Starting energy scan")
 
-            sample_model = self.get_data_model().\
-                           get_parent().get_parent()
+            # sample_model = self.get_data_model().\
+            #                get_parent().get_parent()
+            sample_model = self.get_data_model().get_sample_node()
 
             sample_lims_id = sample_model.lims_id
 
@@ -1469,8 +1473,9 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
             xrf_spectrum = self.get_data_model()
             self.get_view().setText(1, "Starting xrf spectrum")
 
-            sample_model = self.get_data_model().\
-                           get_parent().get_parent()
+            # sample_model = self.get_data_model().\
+            #                get_parent().get_parent()
+            sample_model = self.get_data_model().get_sample_node()
 
             sample_lims_id = sample_model.lims_id
             # No sample id, pass None to startEnergySpectrum
