@@ -1,8 +1,10 @@
 """
-Enumberables and oheter constants used by the queue model.
+Enumerables and other constants used by the queue model.
 """
 
 from collections import namedtuple
+
+import enum
 
 StrategyComplexity = namedtuple('StrategyComplexity', ['SINGLE','FEW','MANY'])
 STRATEGY_COMPLEXITY = StrategyComplexity('none', 'min', 'full')
@@ -65,3 +67,37 @@ ORIG_EDNA_SPACEGROUPS = {'I4132': '214', 'P21212': '18', 'P432': '207',
                          'P4212': '90', 'P2221 ': '17', 'P622': '177',
                          'P43': '78', 'P4222 ': '93', 'P3121 ': '152',
                          'P4232': '208', 'P4332': '212'}
+
+# TODO replace this with a complete, authoritative list
+# This is required because the EDNA data contain e.g. 'I432 '
+SPACEGROUP_NUMBERS = dict((name.strip(), int(value))
+                          for name, value in ORIG_EDNA_SPACEGROUPS.items())
+# For Germanate (test case):
+SPACEGROUP_NUMBERS['Ia-3d'] = '230'
+
+
+@enum.unique
+class States(enum.Enum):
+    """Standard device states, based on TangoShutter states.
+    SardanaMotor.state_map, and DiffractometerState,
+    for general use across HardwareObjects.
+
+    Limited to a common set of states.
+
+    Grammar of tags corrected ('CLOSE->CLOSED, DISABLE->DISABLED) relative
+    to Tango states, so you can echo them to the UI without misunderstanding"""
+
+    CLOSED = 0
+    OPEN = 1  # Also used for workflow 'Expecting input'
+    ON = 2  # Could be used to mean 'Connected'.
+    OFF = 3  # Could be used to mean 'Disconnected'
+    INSERT = 4
+    EXTRACT = 5
+    MOVING = 6
+    STANDBY = 7  # Could be used to mean 'Ready'
+    FAULT = 8
+    INIT = 9
+    RUNNING = 10
+    ALARM = 11
+    DISABLED = 12
+    UNKNOWN = 13
