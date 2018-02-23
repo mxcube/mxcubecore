@@ -19,11 +19,11 @@ import gevent.monkey
 import gevent.event
 from py4j import clientserver
 
-import General
+import ConvertUtils
 import GphlMessages
+from queue_model_enumerables_v1 import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-States = General.States
 try:
     # Needed for 3.6(?) onwards
     from importlib import reload
@@ -188,15 +188,15 @@ class GphlWorkflowConnection(HardwareObject, object):
         commandList = [self.getProperty('java_binary')]
 
         for keyword, value in params.get('invocation_properties',{}).items():
-            commandList.extend(General.javaProperty(keyword, value))
+            commandList.extend(ConvertUtils.java_property(keyword, value))
 
         for keyword, value in params.get('invocation_options',{}).items():
-            commandList.extend(General.commandOption(keyword, value))
+            commandList.extend(ConvertUtils.command_option(keyword, value))
 
         commandList.append(params['application'])
 
         for keyword, value in params.get('properties',{}).items():
-            commandList.extend(General.javaProperty(keyword, value))
+            commandList.extend(ConvertUtils.java_property(keyword, value))
 
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
@@ -213,7 +213,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             path_template.process_directory, workflow_hwobj.gphl_subdir
         )
         for keyword, value in workflow_options.items():
-            commandList.extend(General.commandOption(keyword, value))
+            commandList.extend(ConvertUtils.command_option(keyword, value))
         #
         wdir = workflow_options.get('wdir')
         if not os.path.isdir(wdir):

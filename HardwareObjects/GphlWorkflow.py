@@ -20,7 +20,7 @@ import gevent.event
 import gevent._threading
 from dispatcher import dispatcher
 
-import General
+import ConvertUtils
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import HardwareRepository
 
@@ -33,7 +33,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-States = General.States
+States = queue_model_enumerables.States
 
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
@@ -390,12 +390,14 @@ class GphlWorkflow(HardwareObject, object):
                 lines.append("- %-18s %6.1f degrees at %s keV"
                              % (tag, strategy_length, energy))
                 total_width += strategy_length
-            lines.append("%-18s:  %6.1f degrees" % ("Total rotation", total_width))
+            lines.append("%-18s:  %6.1f degrees" % ("Total rotation",
+                                                    total_width))
         else:
             # Charcterisation TODO: Use workflow info to distinguish
             lines.append("    - Beam Energy    : %7.1f keV"
-                         % (General.h_over_e/beamSetting.wavelength))
-            lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
+                         % (ConvertUtils.h_over_e / beamSetting.wavelength))
+            lines.append("    - Total rotation : %7.1f degrees"
+                         % strategy_length)
 
 
         for rotation_id, sweeps in sorted(orientations.items()):
@@ -634,7 +636,8 @@ class GphlWorkflow(HardwareObject, object):
             acq_parameters.exp_time = scan.exposure.time
             acq_parameters.num_passes = 1
             acq_parameters.resolution = gphl_workflow_model.get_detector_resolution()
-            acq_parameters.energy = General.h_over_e/sweep.beamSetting.wavelength
+            acq_parameters.energy = (ConvertUtils.h_over_e
+                                     / sweep.beamSetting.wavelength)
             acq_parameters.transmission = scan.exposure.transmission * 100
             # acq_parameters.shutterless = self._has_shutterless()
             # acq_parameters.detector_mode = self._get_roi_modes()
@@ -1038,7 +1041,7 @@ class GphlWorkflow(HardwareObject, object):
         beam_energies = workflow_model.get_beam_energies()
         if beam_energies:
             for role, value in beam_energies.items():
-                wavelength = General.h_over_e/value
+                wavelength = ConvertUtils.h_over_e / value
                 wavelengths.append(
                     self.GphlMessages.PhasingWavelength(wavelength=wavelength,
                                                         role=role)
