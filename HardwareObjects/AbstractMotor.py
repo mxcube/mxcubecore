@@ -23,37 +23,37 @@ import abc
 class MotorStates(object):
     """Enumeration of the motor states
     """
-    Initializing = 0
-    On           = 1
-    Off          = 2
-    Ready        = 3
-    Busy         = 4
-    Moving       = 5
-    Standby      = 6
-    Disabled     = 7
-    Unknown      = 8
-    Alarm        = 9
-    Fault        = 10
-    Invalid      = 11
-    Offline      = 12
-    LowLimit     = 13
-    HighLimit    = 14
+    INITIALIZING = 0
+    ON           = 1
+    OFF          = 2
+    READY        = 3
+    BUSY         = 4
+    MOVING       = 5
+    STANDBY      = 6
+    DISABLED     = 7
+    UNKNOWN      = 8
+    ALARM        = 9
+    FAULT        = 10
+    INVALID      = 11
+    OFFLINE      = 12
+    LOWLIMIT     = 13
+    HIGHLIMIT    = 14
 
-    STATE_DESC = {Initializing: "Initializing",
-                  On: "On",
-                  Off: "Off",
-                  Ready: "Ready",
-                  Busy: "Busy",
-                  Moving: "Moving",
-                  Standby: "Standby",
-                  Disabled: "Disabled",
-                  Unknown: "Unknown",
-                  Alarm: "Alarm",
-                  Fault: "Fault",
-                  Invalid: "Invalid",
-                  Offline: "Offline",
-                  LowLimit: "LowLimit",
-                  HighLimit: "HighLimit"}
+    STATE_DESC = {INITIALIZING: "Initializing",
+                  ON: "On",
+                  OFF "Off",
+                  READY: "Ready",
+                  BUSY: "Busy",
+                  MOVING: "Moving",
+                  STANDBY: "Standby",
+                  DISABLED: "Disabled",
+                  UNKNOWN: "Unknown",
+                  ALARM: "Alarm",
+                  FAULT: "Fault",
+                  INVALID: "Invalid",
+                  OFFLINE: "Offline",
+                  LOWLIMIT: "LowLimit",
+                  HIGHLIMIT: "HighLimit"}
 
     @staticmethod
     def tostring(state):
@@ -65,7 +65,7 @@ class AbstractMotor(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.__state = MotorStates.Initializing
+        self.__state = MotorStates.INITIALIZING
         self.__position = None
         self.__limits = (None, None)
         self.__velocity = None
@@ -75,7 +75,7 @@ class AbstractMotor(object):
         Returns:
             bool: True if ready, otherwise False
         """
-        return self.__state == MotorStates.tostring(MotorStates.Ready)
+        return self.__state == MotorStates.tostring(MotorStates.READY)
 
     def get_state(self):
         """Returns motoro state
