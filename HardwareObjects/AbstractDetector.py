@@ -78,7 +78,7 @@ class AbstractDetector(object):
         """
         return self.pixel_max
 
-    def set_distance(self, value):
+    def set_distance(self, value, timeout=None):
         """
         Descript. : 
         """
