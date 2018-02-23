@@ -3,7 +3,7 @@ import subprocess
 import logging
 import re
 import f90nml
-import General
+import ConvertUtils
 from CollectMockup import CollectMockup
 from HardwareRepository.HardwareRepository import HardwareRepository
 from TaskUtils import task
@@ -105,7 +105,7 @@ class CollectEmulator(CollectMockup):
 
 
         # Add/overwrite parameters from emulator configuration
-        conv = General.convert_string_value
+        conv = ConvertUtils.convert_string_value
         for key, val in self['simcal_parameters'].getProperties().items():
             setup_data[key] = conv(val)
 
@@ -146,7 +146,8 @@ class CollectEmulator(CollectMockup):
             self.set_resolution(resolution)
             sweep = OrderedDict()
 
-            sweep['lambda'] = General.h_over_e/data_collect_parameters['energy']
+            sweep['lambda'] = (ConvertUtils.h_over_e
+                               / data_collect_parameters['energy'])
             sweep['res_limit'] = resolution
             sweep['exposure'] = osc['exposure_time']
             ll =  self. gphl_workflow_hwobj.translation_axis_roles
@@ -172,7 +173,7 @@ class CollectEmulator(CollectMockup):
                 data_collect_parameters['fileinfo']['directory'], template
                 # data_collect_parameters['fileinfo']['template']
             )
-            sweep['name_template'] = General.to_ascii(name_template)
+            sweep['name_template'] = ConvertUtils.to_ascii(name_template)
 
             # Overwrite kappa and phi from motors - if set
             val = motors.get('kappa')
@@ -283,7 +284,8 @@ class CollectEmulator(CollectMockup):
                         '--hkl', hklfile]
 
         for tag, val in self['simcal_options'].getProperties().items():
-            command_list.extend(General.commandOption(tag, val, prefix='--'))
+            command_list.extend(ConvertUtils.command_option(tag, val,
+                                                            prefix='--'))
         logging.getLogger('HWR').info("Executing command: %s" % command_list)
 
         try:
