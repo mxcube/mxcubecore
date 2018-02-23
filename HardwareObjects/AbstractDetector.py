@@ -9,7 +9,7 @@ class AbstractDetector(object):
         Descript. : 
         """ 
 
-        self.distance = None
+        # self.distance = None
         self.temperature = None
         self.humidity = None
         self.exposure_time_limits = []
