@@ -61,10 +61,12 @@ class DiffractometerMockup(GenericDiffractometer):
         self.beam_position = [200, 200]
         
         self.cancel_centring_methods = {}
-        self.current_positions_dict = {'phiy'  : 0, 'phiz' : 0, 'sampx' : 0,
-                                       'sampy' : 0, 'zoom' : 0, 'phi' : 17.6,
-                                       'focus' : 0, 'kappa': 11, 'kappa_phi': 12,
-                                       'beam_x': 0, 'beam_y': 0}
+        self.current_motor_positions = {
+            'phiy': 1.0, 'sampx': 0.0, 'sampy': -1.0,
+            'zoom': 8.53,  'focus': -0.42, 'phiz': 1.1,
+            'phi': 311.1, 'kappa': 11, 'kappa_phi': 22.0}
+        self.move_motors(self._get_random_centring_position())
+
         self.current_state_dict = {}
         self.centring_status = {"valid": False}
         self.centring_time = 0
@@ -78,11 +80,40 @@ class DiffractometerMockup(GenericDiffractometer):
 
         self.equipment_ready()
 
+        # TODO FFS get this cleared up - one function, one name
+        self.getPositions = self.get_positions
+        self.moveMotors = self.move_motors
+
+        self.connect(self.motor_hwobj_dict['phi'],
+                     "positionChanged",
+                     self.phi_motor_moved)
+        self.connect(self.motor_hwobj_dict['phiy'],
+                     "positionChanged",
+                     self.phiy_motor_moved)
+        self.connect(self.motor_hwobj_dict['phiz'],
+                     "positionChanged",
+                     self.phiz_motor_moved)
+        self.connect(self.motor_hwobj_dict['kappa'],
+                     "positionChanged",
+                     self.kappa_motor_moved)
+        self.connect(self.motor_hwobj_dict['kappa_phi'],
+                     "positionChanged",
+                     self.kappa_phi_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampx'],
+                     "positionChanged",
+                     self.sampx_motor_moved)
+        self.connect(self.motor_hwobj_dict['sampy'],
+                     "positionChanged",
+                     self.sampy_motor_moved)
+
     def getStatus(self):
         """
         Descript. :
         """
         return "ready"
+
+    def execute_server_task(self, method, timeout=30, *args):
+        return
 
     def in_plate_mode(self):
         return self.mount_mode == "plate"
@@ -108,26 +139,45 @@ class DiffractometerMockup(GenericDiffractometer):
             x, y = self.user_clicked_event.get()
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
-        random_num = random.random()
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                         'kappa_phi': 22.0}
+        centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
 
     def automatic_centring(self):
         """Automatic centring procedure"""
-        random_num = random.random()
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                         'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                         'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                         'kappa_phi': 22.0}
+        centred_pos_dir = self._get_random_centring_position()
         self.emit("newAutomaticCentringPoint", centred_pos_dir)
         return centred_pos_dir
 
+    def _get_random_centring_position(self):
+        """Get random centring result for current positions"""
+
+        # Names of motors to vary during centring
+        vary_motor_names = ('sampx', 'sampy', 'phiy')
+
+        # Range of random variation
+        var_range = 0.08
+
+        # absolute value limit for varied motors
+        var_limit = 2.0
+
+        result = self.current_motor_positions.copy()
+        for tag in vary_motor_names:
+            val = result.get(tag)
+            if val is not None:
+                random_num = random.random()
+                var = (random_num - 0.5) * var_range
+                val += var
+                if abs(val) > var_limit:
+                    val *= (1 - var_range/var_limit)
+                result[tag] = val
+        #
+        return result
+
+
     def centring_done(self, centring_procedure):
         self.centring_time = time.time()
-        self.emit_centring_successful()
+        if centring_procedure and self.centring_status.get('valid'):
+            self.emit_centring_successful()
         self.emit_progress_message("")
         self.ready_event.set()
 
@@ -156,11 +206,7 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        random_num = random.random() 
-        centred_pos_dir = {'phiy': random_num * 10, 'phiz': random_num,
-                          'sampx': 0.0, 'sampy': 9.3, 'zoom': 8.53,
-                          'phi': 311.1, 'focus': -0.42, 'kappa': 11,
-                          'kappa_phi': 23.0}
+        centred_pos_dir = self._get_random_centring_position()
         return centred_pos_dir
 
     def get_calibration_data(self, offset):
@@ -176,11 +222,11 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return
 
-    def get_omega_axis_position(self):	
-        """
-        Descript. :
-        """
-        return self.current_positions_dict.get("phi")     
+    # def get_omega_axis_position(self):
+    #     """
+    #     Descript. :
+    #     """
+    #     return self.current_positions_dict.get("phi")
 
     def beam_position_changed(self, value):
         """
@@ -210,14 +256,45 @@ class DiffractometerMockup(GenericDiffractometer):
         except:
             logging.exception("Could not move to centred position")
 
-    def get_positions(self):
+
+    def phi_motor_moved(self, pos):
         """
         Descript. :
         """
-        random_num = random.random()
-        return {"phi": random_num * 10, "focus": random_num * 20,
-                "phiy" : -1.07, "phiz": -0.22, "sampx": 0.0, "sampy": 9.3,
-                "kappa": 45, "kappa_phi": 30, "zoom": 8.53}
+        self.current_motor_positions["phi"] = pos
+        self.emit("phiMotorMoved", pos)
+
+    def phiy_motor_moved(self, pos):
+        self.current_motor_positions["phiy"] = pos
+
+    def phiz_motor_moved(self, pos):
+        self.current_motor_positions["phiz"] = pos
+
+    def sampx_motor_moved(self, pos):
+        self.current_motor_positions["sampx"] = pos
+
+    def sampy_motor_moved(self, pos):
+        self.current_motor_positions["sampy"] = pos
+
+    def kappa_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.current_motor_positions["kappa"] = pos
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
+        self.emit_diffractometer_moved()
+        self.emit("kappaMotorMoved", pos)
+
+    def kappa_phi_motor_moved(self, pos):
+        """
+        Descript. :
+        """
+        self.current_motor_positions["kappa_phi"] = pos
+        if time.time() - self.centring_time > 1.0:
+            self.invalidate_centring()
+        self.emit_diffractometer_moved()
+        self.emit("kappaPhiMotorMoved", pos)
 
     def refresh_video(self):
         """
@@ -241,7 +318,6 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         
         print "moving to beam position: %d %d" % (self.beam_position[0], self.beam_position[1])
-        return
 
     def move_to_coord(self, x, y, omega=None):
         """
@@ -255,6 +331,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
+        self.last_centred_position[0] = coord_x
+        self.last_centred_position[1] = coord_y    
         self.centring_time = time.time()
         curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.centring_status = {"valid": True,
@@ -305,3 +383,6 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def move_omega_relative(self, relative_angle):
         self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
+
+    def set_phase(self, phase, timeout=None):
+        pass

@@ -9,7 +9,7 @@ class AbstractDetector(object):
         Descript. : 
         """ 
 
-        self.distance = None
+        # self.distance = None
         self.temperature = None
         self.humidity = None
         self.exposure_time_limits = []
@@ -78,7 +78,7 @@ class AbstractDetector(object):
         """
         return self.pixel_max
 
-    def set_distance(self, value):
+    def set_distance(self, value, timeout=None):
         """
         Descript. : 
         """

@@ -24,7 +24,8 @@ class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):
         if self.collect_hwobj:
             acq_1 = dc.acquisitions[0]
             cpos = acq_1.acquisition_parameters.centred_position
-            sample = self.get_data_model().get_parent().get_parent()
+            # sample = self.get_data_model().get_parent().get_parent()
+            sample = self.get_data_model().get_sample_node()
 
             try:
                 if dc.experiment_type is EXPERIMENT_TYPE.HELICAL:

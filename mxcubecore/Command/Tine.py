@@ -9,13 +9,19 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 import atexit
 
+import tine
 
+"""
 try:
     import _tine as tine
 except ImportError: 
-    logging.getLogger('HWR').error("TINE support is not available.")
+    try: 
+        import tine
+    except:
+        logging.getLogger('HWR').error("TINE support is not available.")
 else:
     pass
+"""
                     
 
 class TineCommand(CommandObject):
@@ -27,7 +33,7 @@ class TineCommand(CommandObject):
 	
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
-        if ( len(args) == 0):
+        if (len(args) == 0):
            commandArgument = []     
         else:
 	   commandArgument = args[0]
@@ -102,11 +108,10 @@ class TineChannel(ChannelObject):
         if kwargs.get('size'):
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](\
                  self.tineName, self.attributeName, self.tineEventCallback,
-                 tine.UNASSIGNED_CALLBACKID, self.timeout, int(kwargs['size']))
+                 self.timeout, int(kwargs['size']))
         else:
             self.linkid = TineChannel.attach[kwargs.get("attach", "timer")](\
-                 self.tineName, self.attributeName, self.tineEventCallback,
-                 tine.UNASSIGNED_CALLBACKID, self.timeout)
+                 self.tineName, self.attributeName, self.tineEventCallback, self.timeout)
         #except IOError as strerror:
         #   logging.getLogger("HWR").error("%s" %strerror)
         #except ValueError:
@@ -119,6 +124,9 @@ class TineChannel(ChannelObject):
             except AttributeError:
                 if tolerance != 0.0:
                     tine.tolerance(self.linkid, float (tolerance), 0.0)
+
+        # TODO Remove this sleep. Tine lib bug when after attach directly get is called
+        time.sleep(0.02)
 
         atexit.register(self.__del__)
 

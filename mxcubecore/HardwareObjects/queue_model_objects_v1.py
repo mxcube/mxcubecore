@@ -197,6 +197,15 @@ class TaskNode(object):
 
         return s
 
+    def get_sample_node(self):
+        """get Sample task node that this entry is executed on"""
+
+        result = self
+        while result is not None and not isinstance(result, Sample):
+            result = result._parent
+        #
+        return result
+
     def set_snapshot(self, snapshot):
         pass
 
@@ -1056,15 +1065,36 @@ class XrayCentering(TaskNode):
         pass
 
 class SampleCentring(TaskNode):
-    """Manual 3 click centering"""
+    """Manual 3 click centering
 
-    def __init__(self, name = None, kappa = None, kappa_phi = None):
+    kappa and kappa_phi settings are applied first, and assume that the
+    beamline does have axes with exactly these names
+
+    Other motor_positions are applied afterwards, but in random order.
+    motor_positions override kappa and kappa_phi if both are set
+
+    Since setting one motor can change the position of another
+    (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
+     the order is important.
+
+    """
+    def __init__(self, name=None, kappa=None, kappa_phi=None,
+                 motor_positions=None):
         TaskNode.__init__(self)
         self._tasks = []
+        self._other_motor_positions = (motor_positions.copy()
+                                       if motor_positions else {})
+        self._centring_result = None
 
         if name:
             self.set_name(name)
- 
+
+        if 'kappa' in self._other_motor_positions:
+            kappa = self._other_motor_positions.pop('kappa')
+
+        if 'kappa_phi' in self._other_motor_positions:
+            kappa_phi = self._other_motor_positions.pop('kappa_phi')
+
         self.kappa = kappa
         self.kappa_phi = kappa_phi
 
@@ -1082,6 +1112,21 @@ class SampleCentring(TaskNode):
 
     def get_kappa_phi(self):
         return self.kappa_phi
+
+    def get_other_motor_positions(self):
+        return self._other_motor_positions.copy()
+
+    def get_centring_result(self):
+        return self._centring_result
+
+    def set_centring_result(self, value):
+        if isinstance(value, (CentredPosition, None)):
+            self._centring_result = value
+        else:
+            raise TypeError(
+                "SampleCentring.centringResult must be a CentredPosition"
+                " or None, was a %s" % value.__class__.__name__
+            )
 
 class OpticalCentring(TaskNode):
     """Optical automatic centering with lucid"""

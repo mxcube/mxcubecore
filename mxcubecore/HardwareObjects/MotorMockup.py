@@ -69,11 +69,6 @@ class MotorMockup(AbstractMotor, HardwareObject):
         self.set_state(MotorStates.READY)
         self.emit('stateChanged', (self.get_state(), ))
 
-    def move(self, position, wait=False, timeout=None):
-        self.set_state(MotorStates.MOVING)
-        self.__move_task = gevent.spawn(self.move_task, position)
-        self.__move_task.link(self.set_ready)
-
     def move_task(self, position, wait=False, timeout=None):
         start_pos = self.get_position()
         if start_pos:
@@ -90,7 +85,16 @@ class MotorMockup(AbstractMotor, HardwareObject):
                 self.emit('positionChanged', (self.get_position(), ))
                 time.sleep(0.02)
         self.set_position(position)
-        self.emit('positionChanged', (self.get_position(), ))
+        self.emit('positionChanged', (self.get_position(), ))        
+
+    def move(self, position, wait=False):
+        self.motorState = MotorMockup.MOVING
+        if wait:
+            self._move(position)
+            self.set_ready(None)
+        else:
+            self._move_task = gevent.spawn(self.move_task, position)
+            self._move_task.link(self.set_ready)
 
     def stop(self):
         if self.__move_task is not None:

@@ -307,10 +307,12 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         if timeout is not None:
             self.cmd_start_set_phase(phase)
-            time.sleep(1)
+            gevent.sleep(5)
             with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
                 while phase != self.chan_current_phase.getValue():
-                    gevent.sleep(0.01)
+                    gevent.sleep(0.1)
+            self.wait_device_ready(20)
+            self.wait_device_ready(20)
         else:
             self.cmd_start_set_phase(phase)
    
