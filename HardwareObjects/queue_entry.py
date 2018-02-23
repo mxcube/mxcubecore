@@ -28,6 +28,9 @@ import queue_model_objects_v1 as queue_model_objects
 import os
 import autoprocessing
 
+import edna_test_data
+from XSDataMXCuBEv1_3 import XSDataInputMXCuBE, XSDataResultMXCuBE
+
 from copy import copy
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
