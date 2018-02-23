@@ -63,15 +63,14 @@ class MotorMockup(AbstractMotor, HardwareObject):
         except:
             pass
 
-    def is_ready(self):
-        return True
+        self.set_state(MotorStates.READY)
 
-    def set_ready(self, task):
-        self.set_state(MotorStates.Ready)
+    def set_ready(self, task=None):
+        self.set_state(MotorStates.READY)
         self.emit('stateChanged', (self.get_state(), ))
 
     def move(self, position, wait=False, timeout=None):
-        self.set_state(MotorStates.Moving)
+        self.set_state(MotorStates.MOVING)
         self.__move_task = gevent.spawn(self.move_task, position)
         self.__move_task.link(self.set_ready)
 
