@@ -631,6 +631,7 @@ class GraphicsItemGrid(GraphicsItem):
         self.__centred_point = None
         self.__draw_mode = False
         self.__draw_projection = False
+        self.__coordinate_map = []
 
         self.__osc_start = None
         self.__osc_range = 0.1
@@ -646,8 +647,8 @@ class GraphicsItemGrid(GraphicsItem):
         self.__display_overlay = True
         self.__osc_range = 0
         self.__overlay_pixmap = None
-
-        self.base_color = QColor(70, 70, 165, self.__fill_alpha)
+        self.__original_pixmap = None
+        self.base_color =  QColor(70, 70, 165, self.__fill_alpha)
 
     @staticmethod
     def set_grid_direction(grid_direction):
@@ -661,7 +662,7 @@ class GraphicsItemGrid(GraphicsItem):
 
     def get_display_name(self):
         if self.__automatic:
-            return "Automatic mesh: %d x %d" % \
+            return "Automatic mesh (%d x %d)" % \
                    (self.__num_cols, self.__num_rows)
         else:
             return "Mesh %d: %d x %d" % ((self.index + 1), self.__num_cols, self.__num_rows)
@@ -706,7 +707,8 @@ class GraphicsItemGrid(GraphicsItem):
     def set_end_position(self, pos_x, pos_y):
         """Actual drawing moment, when grid size is defined
         """
-        GraphicsItem.set_end_position(self, pos_x, pos_y) 
+        self.end_coord[0] = pos_x
+        self.end_coord[1] = pos_y
         self.update_grid_draw_parameters(in_draw=True)
 
     def update_grid_draw_parameters(self, in_draw=False, adjust_size=True):
@@ -736,8 +738,6 @@ class GraphicsItemGrid(GraphicsItem):
                                          self.__grid_size_pix[0] / 2.0)
                 self.__center_coord.setY(self.start_coord[1] + \
                                          self.__grid_size_pix[1] / 2.0)
-
-        
 
         if in_draw or adjust_size:
         #if True:
@@ -778,41 +778,56 @@ class GraphicsItemGrid(GraphicsItem):
             abs(self.grid_direction['fast'][0] * self.__num_cols) + \
             abs(self.grid_direction['slow'][0] * self.__num_rows)
 
+        self.update_coordinate_map() 
+
         self.scene().update()
 
+    def update_coordinate_map(self):
+        self.__coordinate_map = []
+        for image_index in range(self.__num_cols * self.__num_rows):
+            line, image = self.get_line_image_num(\
+                   image_index + self.__first_image_num)
+            pos_x, pos_y = self.get_coord_from_line_image(line, image)
+            self.__coordinate_map.append((line, image, pos_x, pos_y))
+
     def set_corner_coord(self, corner_coord):
-        #self.update_grid_draw_parameters()
         for index, coord in enumerate(corner_coord):
             self.__frame_polygon.setPoint(index, coord[0], coord[1])
-        #self.__draw_projection = True
 
         if self.__overlay_pixmap:
-            if min(self.__spacing_pix) < 10:
+            if min(self.__spacing_pix) < 20:
                 width = abs(corner_coord[0][0] - corner_coord[1][0])
                 height = abs(corner_coord[0][1] - corner_coord[3][1])
                 self.__overlay_pixmap.setPixmap(self.__original_pixmap.scaled(width, height))
                 self.__overlay_pixmap.setVisible(True)
                 self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
+                self.__overlay_pixmap.setPos(corner_coord[0][0],
+                                             corner_coord[0][1])
             else:
                 self.__overlay_pixmap.setVisible(False)
 
         self.__grid_size_pix[0] = self.__spacing_pix[0] * self.__num_cols
         self.__grid_size_pix[1] = self.__spacing_pix[1] * self.__num_rows
+        self.scene().update()
 
     def set_overlay_pixmap(self, filename):
-        self.__overlay_pixmap = QGraphicsPixmapItem(self)
-        self.__original_pixmap = QPixmap(filename)
+        if not self.__overlay_pixmap:
+            self.__overlay_pixmap = QGraphicsPixmapItem(self)
+            self.__original_pixmap = QPixmap(filename)
+        else: 
+            self.__original_pixmap.load(filename)  
+
         width, height = self.get_size_pix()
         self.__overlay_pixmap.setPixmap(self.__original_pixmap.scaled(width, height))
         self.__overlay_pixmap.setPos(self.__frame_polygon.point(0).x(),
                                      self.__frame_polygon.point(0).y()) 
         self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
-        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 10 and \
-                                         self.__display_overlay)
+        self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 20)
 
     def set_center_coord(self, center_coord):
         self.__center_coord.setX(center_coord[0])
         self.__center_coord.setY(center_coord[1])
+        self.update_coordinate_map()
 
     def set_spacing(self, spacing, adjust_size=False):
         self.__spacing_mm[0] = spacing[0]
@@ -917,13 +932,16 @@ class GraphicsItemGrid(GraphicsItem):
         self.__fill_alpha = value
         if self.__overlay_pixmap:  
             self.__overlay_pixmap.setOpacity(self.__fill_alpha / 255.0)
-        self.base_color.setAlpha(self.__fill_alpha)
+        else:
+            self.base_color.setAlpha(self.__fill_alpha)
 
     def set_display_overlay(self, state):
         self.__display_overlay = state
-        if self.__overlay_pixmap:
-            self.__overlay_pixmap.setVisible(min(self.__spacing_pix) < 10 and \
-                                             self.__display_overlay)
+
+    def set_base_color(self, color):
+        self.base_color = color
+        self.base_color.setAlpha(self.__fill_alpha)
+        self.scene().update()        
 
     def paint(self, painter, option, widget):
         self.custom_pen.setColor(Qt.darkGray)
@@ -935,8 +953,8 @@ class GraphicsItemGrid(GraphicsItem):
             self.custom_pen.setColor(SELECTED_COLOR)
 
         painter.setPen(self.custom_pen)
-        #brush_color = QColor(70, 70, 165, self.__fill_alpha)
-        self.custom_brush.setColor(self.base_color)
+        brush_color = self.base_color
+        self.custom_brush.setColor(brush_color)
         painter.setBrush(self.custom_brush)
 
         if self.__draw_projection:
@@ -950,9 +968,7 @@ class GraphicsItemGrid(GraphicsItem):
             else:
                 for image_index in range(self.__num_cols * self.__num_rows):
                     #Estimate area where frame number or score will be displayed
-                    line, image = self.get_line_image_num(\
-                        image_index + self.__first_image_num)
-                    pos_x, pos_y = self.get_coord_from_line_image(line, image)
+                    (line, image, pos_x, pos_y) = self.__coordinate_map[image_index]
                     paint_rect = QRect(pos_x - self.__spacing_pix[0] / 2,
                                        pos_y - self.__spacing_pix[1] / 2,
                                        self.__spacing_pix[0],
@@ -1145,7 +1161,6 @@ class GraphicsItemGrid(GraphicsItem):
               self.grid_direction['fast'][1] * ref_fast + \
               (self.__num_lines - 1) * \
               self.grid_direction['slow'][1] * ref_slow
-
         return int(col), int(row)
 
     def get_motor_pos_from_col_row(self, col, row, as_cpos=False):
