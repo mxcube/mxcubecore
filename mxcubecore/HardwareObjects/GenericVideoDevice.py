@@ -281,8 +281,8 @@ class GenericVideoDevice(Device):
             self.set_video_live(False)
     
     def change_owner(self):
-        """
-        Descript. :
+        """LIMA specific, because it has to be root at startup
+           move this to Qt4_LimaVideo
         """
         if os.getuid() == 0:
             try:
@@ -337,10 +337,8 @@ class GenericVideoDevice(Device):
         elif cam_encoding == "y8":
             self.decoder = self.y8_2_rgb
 
-    """  Methods to be implemented by the implementing class """
-    @abc.abstractmethod
     def get_image_dimensions(self):
-        pass
+        return self.image_dimensions
 
     @abc.abstractmethod
     def get_image(self):
