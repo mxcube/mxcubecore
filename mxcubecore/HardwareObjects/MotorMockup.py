@@ -20,7 +20,7 @@
 import time
 import gevent
 
-from AbstractMotor import AbstractMotor, MotorStates
+from AbstractMotor import AbstractMotor
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -35,7 +35,7 @@ Example of xml config file
 <device class="MotorMockup">
   <start_position>500</start_position>
   <velocity>100</velocity>
-  <static_limits>[100, 1000]</static_limits>  
+  <default_limits>[-360, 360]</default_limits>  
 </device>
 """
 
@@ -48,10 +48,7 @@ class MotorMockup(AbstractMotor, HardwareObject):
         self.__move_task = None
 
     def init(self):
-        try:
-            self.move(float(self.getProperty("start_position")))
-        except:
-            self.move(10.124)
+        self.move(float(self.getProperty("start_position", 10.124)))
 
         try:
             self.set_velocity(float(self.getProperty("velocity")))
@@ -59,19 +56,22 @@ class MotorMockup(AbstractMotor, HardwareObject):
             self.set_velocity(100)
 
         try:
-            self.set_limits(eval(self.getProperty("static_limits")))
+            self.default_limits = eval(self.getProperty("default_limits"))
         except:
-            pass
+            self.default_limits = (-360, 360)
+        finally:
+            self.set_limits(self.default_limits)
 
-        self.set_state(MotorStates.READY)
 
-    def set_ready(self, task=None):
-        self.set_state(MotorStates.READY)
-        self.emit('stateChanged', (self.get_state(), ))
+        self.set_state(self.motor_states.READY)
 
     def move_task(self, position, wait=False, timeout=None):
+        if position is None:
+            # TODO is there a need to set motor position to None?
+            return
+
         start_pos = self.get_position()
-        if start_pos:
+        if start_pos is not None:
             delta = abs(position - start_pos)
             if position > self.get_position():
                 direction = 1
@@ -88,10 +88,11 @@ class MotorMockup(AbstractMotor, HardwareObject):
         self.emit('positionChanged', (self.get_position(), ))        
 
     def move(self, position, wait=False):
-        self.motorState = MotorMockup.MOVING
+        self.__motor_state = self.motor_states.MOVING
         if wait:
-            self._move(position)
-            self.set_ready(None)
+            self.set_position(position)
+            self.emit('positionChanged', (self.get_position(), ))
+            self.set_ready()
         else:
             self._move_task = gevent.spawn(self.move_task, position)
             self._move_task.link(self.set_ready)
