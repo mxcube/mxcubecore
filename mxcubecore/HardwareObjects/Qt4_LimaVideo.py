@@ -82,13 +82,14 @@ class Qt4_LimaVideo(GenericVideoDevice):
         self.interface = None
         self.control = None
         self.video = None 
+        self.master_mode = True
 
     def init(self):
         self.cam_address = self.getProperty("address")
         self.cam_type = self.getProperty("type").lower()
 
         if self.cam_type == 'prosilica':
-            self.camera = Prosilica.Camera(self.cam_address)
+            self.camera = Prosilica.Camera(self.cam_address, self.master_mode, False)
             self.interface = Prosilica.Interface(self.camera) 
         elif self.cam_type == 'basler':
             logging.getLogger("HWR").info("Connecting to camera with address %s" % self.cam_address)
@@ -132,13 +133,15 @@ class Qt4_LimaVideo(GenericVideoDevice):
         return value
 
     def set_gain(self, gain_value):
-        self.video.setGain(gain_value)
+        if self.master_mode:
+            self.video.setGain(gain_value)
 
     def get_exposure_time(self):
         return self.video.getExposure()
 
     def set_exposure_time(self, exposure_time_value):
-        self.video.setExposure(exposure_time_value)
+        if self.master_mode:
+            self.video.setExposure(exposure_time_value)
 
     def get_video_live(self):
         return self.video.getLive()
