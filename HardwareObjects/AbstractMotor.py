@@ -41,7 +41,7 @@ class MotorStates(object):
 
     STATE_DESC = {INITIALIZING: "Initializing",
                   ON: "On",
-                  OFF "Off",
+                  OFF: "Off",
                   READY: "Ready",
                   BUSY: "Busy",
                   MOVING: "Moving",
