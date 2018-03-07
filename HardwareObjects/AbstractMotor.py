@@ -60,14 +60,15 @@ class MotorStates(object):
         return MotorStates.STATE_DESC.get(state, "Unknown")
 
 
-
 class AbstractMotor(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.__state = MotorStates.INITIALIZING
+        self.motor_states = MotorStates()
+        self.__state = self.motor_states.INITIALIZING
         self.__position = None
         self.__limits = (None, None)
+        self.__default_limits = (None, None)
         self.__velocity = None
 
     def is_ready(self):
@@ -75,10 +76,15 @@ class AbstractMotor(object):
         Returns:
             bool: True if ready, otherwise False
         """
-        return self.__state == MotorStates.tostring(MotorStates.READY)
+        return self.__state == self.motor_states.READY
+
+    def set_ready(self, task=None):
+        """Sets motor state to ready"""
+        self.set_state(self.motor_states.READY)
+        self.emit('stateChanged', (self.get_state(), ))
 
     def get_state(self):
-        """Returns motoro state
+        """Returns motor state
 
         Returns:
             str: Motor state.
