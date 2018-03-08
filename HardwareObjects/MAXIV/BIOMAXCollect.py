@@ -736,7 +736,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         # popup an error message
         if self.safety_shutter_hwobj.getShutterState() == 'opened':
             return 
-        timeout = 3
+        timeout = 5 
         count_time=0
         logging.getLogger("HWR").info("Opening the safety shutter.") 
         self.safety_shutter_hwobj.openShutter()
@@ -1089,10 +1089,20 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	    if 'Session' in collect['proposalInfo'].keys():
 	        collection['proposalInfo']['Session']['lastUpdate'] = ''
 	        collection['proposalInfo']['Session']['timeStamp'] = ''
+	try:
+	    num_files = int(math.ceil(collection['oscillation_sequence'][0]['number_of_images'] / 100))
+	except Exception as ex:
+            logging.getLogger("HWR").error("[HWR] Error during data catalog: %s" %ex)
 
+	collection['fileinfo']['num_files'] = num_files #num_images per files
+	proxies = {
+	    "http": None,
+	    "https": None
+	    }
+	
 	if self.datacatalog_url:
        	    try:
-	        requests.post(self.datacatalog_url, data=json.dumps(collection), proxies={})
+	        requests.post(self.datacatalog_url, data=json.dumps(collection), proxies=proxies)
 	    except Exception as ex:
 	        logging.getLogger("HWR").error("[HWR] Error sending collection info to the data catalog: %s %s" % (self.datacatalog_url, ex))
 	else:
