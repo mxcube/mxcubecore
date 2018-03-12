@@ -242,7 +242,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             log.info("Collection: Setting energy to %.3f",
                      self.current_dc_parameters["energy"])
 	    try:
-                self.set_energy(self.current_dc_parameters["energy"])
+            self.set_energy(self.current_dc_parameters["energy"])
 	    except Exception as ex:
 		log.error('Collection: cannot set beamline energy.')
                 logging.getLogger("HWR").error("[COLLECT] Error setting energy: %s" % ex)
@@ -806,13 +806,15 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.move_detector(new_distance) 
 
     def set_energy(self, value):
-        #self.energy_hwobj.set_energy(value)
-        self.detector_hwobj.set_photon_energy(value*1000)
+        logging.getLogger("HWR").info("[COLLECT] Setting beamline energy")
+        self.energy_hwobj.startMoveEnergy(value) # keV
+        logging.getLogger("HWR").info("[COLLECT] Setting detector energy")
+        self.detector_hwobj.set_photon_energy(value*1000) # ev
 
     def set_wavelength(self, value):
-        self.energy_hwobj.set_wavelength(value)
-        current_energy = self.energy_hwobj.get_energy()
-        self.detector_hwobj.set_photon_energy(value*1000)
+        self.energy_hwobj.startMoveWavelength(value)
+        current_energy = self.energy_hwobj.getCurrentEnergy()
+        self.detector_hwobj.set_photon_energy(current_energy*1000)
 
     @task
     def move_motors(self, motor_position_dict):
