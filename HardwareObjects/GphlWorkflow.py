@@ -656,9 +656,12 @@ class GphlWorkflow(HardwareObject, object):
             goniostatTranslation = goniostatRotation.translation
             dd = dict((x, goniostatRotation.axisSettings[x])
                       for x in self.rotation_axis_roles)
+            print ('@~@~ setting motors, goniostatTranslation',
+                   goniostatTranslation is not None)
             if goniostatTranslation is not None:
                 for tag in self.translation_axis_roles:
                     val = goniostatTranslation.axisSettings.get(tag)
+                    print ('@~@~ trasnslation motor', tag, val)
                     if val is not None:
                         dd[tag] = val
             dd[goniostatRotation.scanAxis] = scan.start
