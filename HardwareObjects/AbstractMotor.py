@@ -71,6 +71,26 @@ class AbstractMotor(object):
         self.__default_limits = (None, None)
         self.__velocity = None
 
+    def isReady(self):
+        #TODO remove this method
+        print ("Deprecation warning: Instead of isReady please call is_ready")
+        return self.is_ready()
+
+    def getPosition(self):
+        #TODO remove this method
+        print ("Deprecation warning: Instead of getPosition please call get_position")
+        return self.get_position()
+
+    def getState(self):
+        #TODO remove this method
+        print ("Deprecation warning: Instead of getState please call get_state")
+        return self.get_position()
+
+    def getLimits(self):
+        #TODO remove this method
+        print ("Deprecation: Instead of getLimits please call get_limits")
+        return self.get_limits()
+
     def is_ready(self):
         """
         Returns:

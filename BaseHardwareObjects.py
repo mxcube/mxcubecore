@@ -480,6 +480,8 @@ class Device(HardwareObject):
     def isReady(self):
         return self.state == Device.READY
 
+    def is_ready(self):
+        return self.isReady()
 
     def userName(self):
         uname = self.getProperty('username')
@@ -565,6 +567,9 @@ class Equipment(HardwareObject, DeviceContainer):
 
     def isReady(self):
         return self.isValid() and self.__ready
+
+    def is_ready(self):
+        return self.isReady()
 
 
     def isValid(self):
