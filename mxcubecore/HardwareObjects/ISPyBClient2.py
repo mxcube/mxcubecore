@@ -814,7 +814,6 @@ class ISPyBClient2(HardwareObject):
 
         blSetupId = None
         if self.__collection:
-
             session = {}
 
             try:
@@ -1188,7 +1187,6 @@ class ISPyBClient2(HardwareObject):
         :rtype: int
         """
         if self.__collection:
-
             try:
                 # The old API used date formated strings and the new
                 # one uses DateTime objects.
@@ -1196,6 +1194,14 @@ class ISPyBClient2(HardwareObject):
                     strptime(session_dict["startDate"] , "%Y-%m-%d %H:%M:%S")
                 session_dict["endDate"] = datetime.\
                     strptime(session_dict["endDate"], "%Y-%m-%d %H:%M:%S")
+
+                try:
+                    session_dict["lastUpdate"]  = datetime.\
+                       strptime(session_dict["lastUpdate"].split("+")[0] , "%Y-%m-%d %H:%M:%S")
+                    session_dict["timeStamp"] = datetime.\
+                       strptime(session_dict["timeStamp"].split("+")[0], "%Y-%m-%d %H:%M:%S")
+                except:
+                    pass
 
                 session = self.__collection.service.\
                     storeOrUpdateSession(session_dict)

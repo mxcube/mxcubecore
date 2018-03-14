@@ -82,8 +82,11 @@ class ID29MultiCollect(ESRFMultiCollect):
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         #diffr.moveToPhase("Centring", wait=True, timeout=200)
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
-        diffr._wait_ready(20)
+        if number_of_snapshots:
+            # put the back light in
+            diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
+            self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+            diffr._wait_ready(20)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
