@@ -1,5 +1,5 @@
 import time
-from General import h_over_e
+from ConvertUtils import h_over_e
 
 from HardwareRepository.BaseHardwareObjects import Equipment
 
