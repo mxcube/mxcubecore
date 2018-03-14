@@ -44,6 +44,8 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'beam_divergence_vertical',
                                          'beam_divergence_horizontal',
                                          'polarisation',
+                                         'maximum_phi_speed',
+                                         'minimum_phi_oscillation',
                                          'input_files_server'])
 
 
@@ -52,7 +54,7 @@ class AbstractMultiCollect(object):
 
     def __init__(self):
         self.bl_control = BeamlineControl(*[None]*14)
-        self.bl_config = BeamlineConfig(*[None]*17)
+        self.bl_config = BeamlineConfig(*[None]*19)
         self.data_collect_task = None
         self.oscillations_history = []
         self.current_lims_sample = None

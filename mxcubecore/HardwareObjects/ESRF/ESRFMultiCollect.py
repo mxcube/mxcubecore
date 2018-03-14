@@ -336,6 +336,8 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                                       beam_divergence_vertical=self.bl_control.beam_info.getProperty('beam_divergence_vertical'),
                                       beam_divergence_horizontal=self.bl_control.beam_info.getProperty('beam_divergence_horizontal'),
                                       polarisation=self.getProperty('polarisation'),
+                                      maximum_phi_speed=self.getProperty('maximum_phi_speed'),
+                                      minimum_phi_oscillation=self.getProperty('minimum_phi_oscillation'),
                                       input_files_server=self.getProperty("input_files_server"))
 
         self._detector.addCommand = self.addCommand
