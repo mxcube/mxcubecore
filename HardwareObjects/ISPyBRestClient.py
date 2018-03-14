@@ -116,9 +116,9 @@ class ISPyBRestClient(HardwareObject):
         :param str did: Data collection ID
         :returns: The link to the data collection
         """
-        url = None
+        url = "#"
 
-        if self.base_result_url is not None:
+        if self.base_result_url is not None and did:
             path = "mx/#/mx/proposal/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
             path = path.format(pcode = self.session_hwobj.proposal_code,
                                pnumber = self.session_hwobj.proposal_number,
@@ -177,6 +177,36 @@ class ISPyBRestClient(HardwareObject):
                             
                     
         return dc_dict
+
+
+    def get_quality_indicator_plot(self, collection_id):
+        """
+        Get the imagequliaty indicator plot for collection with
+        collection id <collection_id>
+
+        :param int collection_id: The collection id
+        :returns: tuple on the form (file name, base64 encoded data)
+        """
+        self.__update_rest_token()
+        fname, data = ('' ,'')
+
+        url = "{rest_root}{token}"
+        url += "/proposal/{pcode}{pnumber}/mx/datacollection/{dcid}/qualityindicatorplot"
+        url = url.format(rest_root = self.__rest_root,
+                         token = str(self.__rest_token),
+                         pcode = self.session_hwobj.proposal_code,
+                         pnumber = self.session_hwobj.proposal_number,
+                         dcid = collection_id)
+
+        try:
+            response = get(url)
+            data = response.content
+        except Exception as ex:
+            response = []
+            logging.getLogger("ispyb_client").exception(str(ex))
+
+        return data
+
 
     def get_dc_thumbnail(self, image_id):
         """
