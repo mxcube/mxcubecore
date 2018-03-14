@@ -273,3 +273,9 @@ class Session(HardwareObject):
         :rtype: str
         """
         return self.user_group
+
+    def get_archive_directory(self):
+        """
+        Returns (str): current archive directory
+        """
+        return queue_model_objects.PathTemplate.get_archive_directory()
