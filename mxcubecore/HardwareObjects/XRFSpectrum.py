@@ -239,8 +239,13 @@ class XRFSpectrum(Equipment):
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
             mcaConfig["htmldir"],_ = os.path.split(mcaConfig["legend"])
             mcaConfig["file"] = self._get_cfgfile(self.spectrumInfo["energy"])
-                        
-            #here move the png file
+
+            try:
+                self.set_data(mcaData, mcaCalib, mcaConfig)
+            except Exception:
+                self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
+
+	    #here move the png file
             pf = self.spectrumInfo["filename"].split(".")
             pngfile = os.path.extsep.join((pf[0], "png"))
             if os.path.isfile(pngfile) is True :
@@ -257,7 +262,6 @@ class XRFSpectrum(Equipment):
 
             logging.getLogger().debug("finished %r", self.spectrumInfo)
             self.storeXrfSpectrum()
-            self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
 
             #copy csv file in the raw data directory
             try:
