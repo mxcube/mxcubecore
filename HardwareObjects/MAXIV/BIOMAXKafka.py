@@ -34,7 +34,7 @@ class BIOMAXKafka(HardwareObject):
         self.topic = self.getProperty('topic')
         self.session_hwobj = self.getObjectByRole('session')
         self.beamline_name = self.session_hwobj.beamline_name
-	self.file = open('/tmp/kafka_errors.txt', 'a')
+        self.file = open('/tmp/kafka_errors.txt', 'a')
         self.url = self.kafka_server + '/kafka'
 
         logging.getLogger("HWR").info('KAFKA link initialized.')
@@ -63,15 +63,15 @@ class BIOMAXKafka(HardwareObject):
             if self.key_is_snake_case(k):
                 collection_data[self.snake_to_camel(k)] = collection_data.pop(k)
 
-	data = json.dumps(collection_data)
+        data = json.dumps(collection_data)
 
         try:
-	    requests.post(self.url, data=data)
+            requests.post(self.url, data=data)
             logging.getLogger("HWR").info('Pushed data collection info to KAFKA, UUID: %s' % collection_data['uuid'])
         except Exception as ex:
-	    self.file.write(time.strftime("%d %b %Y %H:%M:%S", time.gmtime()) + '\n')
-	    self.file.write(data + '\n')
-	    self.file.write(50*'#'+'\n')
-	    self.file.flush()
+            self.file.write(time.strftime("%d %b %Y %H:%M:%S", time.gmtime()) + '\n')
+            self.file.write(data + '\n')
+            self.file.write(50*'#'+'\n')
+            self.file.flush()
             logging.getLogger("HWR").error('KAFKA link error. %s; data saved to /tmp/kafka_errors.txt' % str(ex))
 

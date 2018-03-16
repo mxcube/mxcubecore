@@ -87,12 +87,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
-	    zoom = self.camera_hwobj.get_image_zoom()
+            zoom = self.camera_hwobj.get_image_zoom()
             if zoom is not None:
                 self.zoom_centre['x'] = self.zoom_centre['x'] * zoom
                 self.zoom_centre['y'] = self.zoom_centre['y'] * zoom
             self.beam_position = [self.zoom_centre['x'], self.zoom_centre['y']]
-	    self.beam_info_hwobj.beam_position = self.beam_position
+            self.beam_info_hwobj.beam_position = self.beam_position
         except:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {'x': self.image_width / 2, 'y': self.image_height / 2}
@@ -459,26 +459,25 @@ class BIOMAXMD3(GenericDiffractometer):
     # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
-	try:
-	    motors_dict.pop('kappa')
-	    motors_dict.pop('kappa_phi')
-            logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
-	except Exception as ex:
-	    print ex
-        logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
-            if position is None:
-                continue
-            name = self.MOTOR_TO_EXPORTER_NAME[motor]
-            argin += "%s=%0.3f;" % (name, position)
-        if not argin:
-            return
-        self.wait_device_ready(2000)
-        self.command_dict["startSimultaneousMoveMotors"](argin)
-    # task_info = self.command_dict["getTaskInfo"](task_id)
-        if wait:
-            self.wait_device_ready(timeout)
+    	try:
+    	    motors_dict.pop('kappa')
+    	    motors_dict.pop('kappa_phi')
+                logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
+    	except Exception as ex:
+    	    print ex
+            logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
+            for motor in motors_dict.keys():
+                position = motors_dict[motor]
+                if position is None:
+                    continue
+                name = self.MOTOR_TO_EXPORTER_NAME[motor]
+                argin += "%s=%0.3f;" % (name, position)
+            if not argin:
+                return
+            self.wait_device_ready(2000)
+            self.command_dict["startSimultaneousMoveMotors"](argin)
+            if wait:
+                self.wait_device_ready(timeout)
 
     def moveToBeam(self, x, y):
         try:

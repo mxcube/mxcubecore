@@ -43,8 +43,8 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         self.emit("beamPosChanged", (self.beam_position, ))
 
     def beam_info_changed(self,value):
-	self.evaluate_beam_info()
-	self.emit("beamInfoChanged", (self.beam_info_dict, ))
+        self.evaluate_beam_info()
+        self.emit("beamInfoChanged", (self.beam_info_dict, ))
 
     def get_beam_position(self):
         """
@@ -54,7 +54,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
         """
 
         return self.beam_position
-	if self.chan_ImageZoom.getValue() is not None:
+        if self.chan_ImageZoom.getValue() is not None:
             zoom = self.chan_ImageZoom.getValue()
             self.beam_position[0] = self.chan_beam_pos_x.getValue() * zoom
             self.beam_position[1] = self.chan_beam_pos_y.getValue() * zoom
@@ -63,7 +63,6 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
             self.beam_position[1] = self.camera.getHeight() / 2
 	
         return self.beam_position
-
 
     def set_beam_position(self, beam_x, beam_y):
         return
@@ -79,7 +78,7 @@ class BIOMAXBeamInfo(BeamInfo.BeamInfo):
                 self.beam_info_dict["shape"] = "ellipse"
         curpos=self.aperture_hwobj.getCurrentPositionName()
         size_x = size_y = eval(str(curpos)) / 1000.0
-	self.beam_info_dict["size_x"] = size_x
+        self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
-	self.beam_info_dict['pos'] = self.beam_position
+        self.beam_info_dict['pos'] = self.beam_position
         return self.beam_info_dict

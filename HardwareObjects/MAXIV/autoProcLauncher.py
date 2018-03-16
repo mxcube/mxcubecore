@@ -141,7 +141,6 @@ class AutoProcLauncher:
             open(self.ednaInputFilePath, "w").write(self.inputXml)
         os.chmod(self.ednaInputFilePath, 0o755)
 
-
         directories = self.autoprocessingPath.split(os.path.sep)
         try:
             beamline = directories[3]

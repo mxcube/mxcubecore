@@ -79,18 +79,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.session_hwobj = self.getObjectByRole("session")
-	self.datacatalog_url = self.getProperty("datacatalog_url", None)
-	self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
+        self.datacatalog_url = self.getProperty("datacatalog_url", None)
+        self.datacatalog_enabled = self.getProperty("datacatalog_enabled", True)
 
-	if self.datacatalog_enabled:
-	    logging.getLogger("HWR").info("[COLLECT] Datacatalog enabled, url: %s" % self.datacatalog_url)
-	else:
-	    logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
-        
-        self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
-        
+        if self.datacatalog_enabled:
+            logging.getLogger("HWR").info("[COLLECT] Datacatalog enabled, url: %s" % self.datacatalog_url)
+        else:
+            logging.getLogger("HWR").warning("[COLLECT] Datacatalog not enabled")
+            
+            self.safety_shutter_hwobj = self.getObjectByRole("safety_shutter")
+    
         # todo
-	# self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
+        # self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
         # self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
 
         undulators = []
@@ -102,23 +102,23 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             pass
 
         self.exp_type_dict = {'Mesh': 'Mesh', 'Helical': 'Helical'}
-	try:
-             min_exp = self.detector_hwobj.get_minimum_exposure_time()
-	except:
-	     logging.getLogger("HWR").error("[HWR] *** Detector min exposure not available, set to 0.1")
-	     min_exp = 0.1
-	try:
-             pix_x = self.detector_hwobj.get_pixel_size_x()
-	except:
-	     logging.getLogger("HWR").error("[HWR] *** Detector X pixel size not available, set to 7-5e5")
-	     pix_x = 7.5e-5
-	try:
-             pix_y = self.detector_hwobj.get_pixel_size_y()
-	except:
-	     logging.getLogger("HWR").error("[HWR] *** Detector Y pixel size not available, set to 7-5e5")
-	     pix_y = 7.5e-5
+        try:
+            min_exp = self.detector_hwobj.get_minimum_exposure_time()
+        except:
+            logging.getLogger("HWR").error("[HWR] *** Detector min exposure not available, set to 0.1")
+            min_exp = 0.1
+        try:
+            pix_x = self.detector_hwobj.get_pixel_size_x()
+        except:
+            logging.getLogger("HWR").error("[HWR] *** Detector X pixel size not available, set to 7-5e5")
+            pix_x = 7.5e-5
+        try:
+            pix_y = self.detector_hwobj.get_pixel_size_y()
+        except:
+            logging.getLogger("HWR").error("[HWR] *** Detector Y pixel size not available, set to 7-5e5")
+            pix_y = 7.5e-5
 
-        self.set_beamline_configuration(
+            self.set_beamline_configuration(
              synchrotron_name="MAXIV",
              directory_prefix=self.getProperty("directory_prefix"),
              default_exposure_time=self.getProperty("default_exposure_time"),
