@@ -60,7 +60,7 @@ class BIOMAXEnergy(Energy.Energy):
         if self.energy_motor is not None:
             try:
                 self.en_lims = self.energy_motor.getLimits()
-		self.en_lims = (float(self.en_lims[0])/1000, float(self.en_lims[1])/1000)
+                self.en_lims = (float(self.en_lims[0])/1000, float(self.en_lims[1])/1000)
                 return self.en_lims 
             except:
                 logging.getLogger("HWR").exception("EnergyHO: could not read energy motor limits")

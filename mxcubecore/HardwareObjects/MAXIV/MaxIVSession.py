@@ -153,13 +153,13 @@ class MaxIVSession(Session):
         self.set_session_start_date(start_date)
 
         try:
-             self.storage = storage.Storage(self.get_user_category(self.login), self.endstation_name)
+            self.storage = storage.Storage(self.get_user_category(self.login), self.endstation_name)
         except Exception as ex:
             print ex
             # this creates the path for the data and ensures proper permissions.
             # e.g. /data/visitors/biomax/<proposal>/<visit>/{raw, process}
         if self.is_commissioning:
-           group = self.beamline_name.lower()
+            group = self.beamline_name.lower()
         else:
             group = self.storage.get_proposal_group(self.proposal_number)
         try:
