@@ -31,15 +31,6 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
-    # def make_image_file_template(self, data_collect_parameters, suffix=None):
-    #
-    #     file_parameters = data_collect_parameters["fileinfo"]
-    #     suffix = suffix or file_parameters.get('suffix')
-    #     prefix = file_parameters.get('prefix')
-    #     run_number = file_parameters.get('run_number')
-    #
-    #     image_file_template = ("%s_%s_????.%s" % (prefix, run_number, suffix))
-    #     file_parameters["template"] = image_file_template
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
