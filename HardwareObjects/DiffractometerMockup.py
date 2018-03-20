@@ -137,6 +137,8 @@ class DiffractometerMockup(GenericDiffractometer):
         for click in range(3):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
+            if click < 2:
+                self.motor_hwobj_dict['phi'].move_relative(90)
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
         centred_pos_dir = self._get_random_centring_position()
@@ -173,13 +175,6 @@ class DiffractometerMockup(GenericDiffractometer):
         #
         return result
 
-
-    def centring_done(self, centring_procedure):
-        self.centring_time = time.time()
-        if centring_procedure and self.centring_status.get('valid'):
-            self.emit_centring_successful()
-        self.emit_progress_message("")
-        self.ready_event.set()
 
     def is_ready(self):
         """
