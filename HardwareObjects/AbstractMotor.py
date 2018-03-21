@@ -188,6 +188,12 @@ class AbstractMotor(object):
         """
         self.move(self.get_position() + relative_position, wait, timeout)
 
+    def syncMoveRelative(self, position, timeout=None):
+        self.move_relative(position, wait=True, timeout=timeout)
+
+    def syncMove(self, position, timeout=None):
+        self.move(position, wait=True, timeout=timeout)
+
     @abc.abstractmethod
     def stop(self):
         """Stops the motor movement

@@ -87,7 +87,7 @@ class MotorMockup(AbstractMotor, HardwareObject):
         self.set_position(position)
         self.emit('positionChanged', (self.get_position(), ))        
 
-    def move(self, position, wait=False):
+    def move(self, position, wait=False, timeout=None):
         self.__motor_state = self.motor_states.MOVING
         if wait:
             self.set_position(position)
