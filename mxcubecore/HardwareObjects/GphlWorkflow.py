@@ -656,6 +656,7 @@ class GphlWorkflow(HardwareObject, object):
             goniostatTranslation = goniostatRotation.translation
             dd = dict((x, goniostatRotation.axisSettings[x])
                       for x in self.rotation_axis_roles)
+
             if goniostatTranslation is not None:
                 for tag in self.translation_axis_roles:
                     val = goniostatTranslation.axisSettings.get(tag)

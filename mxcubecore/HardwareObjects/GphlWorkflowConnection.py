@@ -590,16 +590,21 @@ class GphlWorkflowConnection(HardwareObject, object):
             goniostatRotation=goniostatRotation
         )
 
-    def _GoniostatRotation_to_python(self, py4jGoniostatRotation):
+    def _GoniostatRotation_to_python(self, py4jGoniostatRotation,
+                                     isSweepSetting=False):
         if py4jGoniostatRotation is None:
             return None
 
         uuidString = py4jGoniostatRotation.getId().toString()
-
         axisSettings = py4jGoniostatRotation.getAxisSettings()
-        #
-        result = GphlMessages.GoniostatRotation(id=uuid.UUID(uuidString), 
-                                          **axisSettings)
+        if isSweepSetting:
+            scanAxis = py4jGoniostatRotation.getScanAxis()
+            result =  GphlMessages.GoniostatSweepSetting(
+                id=uuid.UUID(uuidString), scanAxis=scanAxis, **axisSettings
+            )
+        else:
+            result = GphlMessages.GoniostatRotation(id=uuid.UUID(uuidString),
+                                                    **axisSettings)
 
         py4jGoniostatTranslation = py4jGoniostatRotation.getTranslation()
         if py4jGoniostatTranslation:
@@ -640,14 +645,8 @@ class GphlWorkflowConnection(HardwareObject, object):
 
 
     def _GoniostatSweepSetting_to_python(self, py4jGoniostatSweepSetting):
-        if py4jGoniostatSweepSetting is None:
-            return None
-        uuidString = py4jGoniostatSweepSetting.getId().toString()
-        axisSettings = py4jGoniostatSweepSetting.getAxisSettings()
-        scanAxis = py4jGoniostatSweepSetting.getScanAxis()
-        return GphlMessages.GoniostatSweepSetting(id=uuid.UUID(uuidString),
-                                          scanAxis=scanAxis,
-                                          **axisSettings)
+        return self._GoniostatRotation_to_python(py4jGoniostatSweepSetting,
+                                                 isSweepSetting=True)
 
     def _Sweep_to_python(self, py4jSweep):
 

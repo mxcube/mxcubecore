@@ -49,7 +49,6 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         self.wavelengthChanged(12.3984 / energy)
 
     def res2dist(self, res=None):
-        self.current_wavelength = self.getWavelength()
 
         if res is None:
             res = self.currentResolution
@@ -61,6 +60,11 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             return None
 
     def dist2res(self, dist=None):
+        if dist is None:
+            logging.getLogger('HWR').error(
+                "Refusing to calculate resolution from distance 'None'"
+            )
+            return
         try:
             ttheta = math.atan(self.det_radius / dist)
             if ttheta != 0:

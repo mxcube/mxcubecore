@@ -533,6 +533,8 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: centringStarted
         """
         self.current_centring_method = centring_method
+        self.set_centring_state(True)
+        self.diffractometer_state_changed()
         self.emit("centringStarted")  
 
     def create_centring_point(self, centring_state, centring_status, emit=True):
@@ -1437,12 +1439,11 @@ class Qt4_GraphicsManager(HardwareObject):
         :type tree_click: bool
         :emits: - centringInProgress as bool
                 - infoMsg: as str
-        """ 
+        """
         self.emit("centringInProgress", True)
         if tree_click:
             self.hide_all_items()
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
-            self.set_centring_state(True) 
             self.diffractometer_hwobj.start_centring_method(\
                  self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
             self.emit("infoMsg", "3 click centring")
