@@ -54,6 +54,7 @@ class BIOMAXMD3(GenericDiffractometer):
         # to make it comaptible
         self.camera = self.camera_hwobj
         self.acceptCentring = self.accept_centring
+        self.startCentringMethod = self.start_centring_method
         self.image_width = self.camera.getWidth()
         self.image_height = self.camera.getHeight()
 
@@ -86,10 +87,12 @@ class BIOMAXMD3(GenericDiffractometer):
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
-            if self.camera.zoom is not None:
-                self.zoom_centre['x'] = self.zoom_centre['x'] * self.camera.zoom
-                self.zoom_centre['y'] = self.zoom_centre['y'] * self.camera.zoom
+            zoom = self.camera_hwobj.get_image_zoom()
+            if zoom is not None:
+                self.zoom_centre['x'] = self.zoom_centre['x'] * zoom
+                self.zoom_centre['y'] = self.zoom_centre['y'] * zoom
             self.beam_position = [self.zoom_centre['x'], self.zoom_centre['y']]
+            self.beam_info_hwobj.beam_position = self.beam_position
         except:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {'x': self.image_width / 2, 'y': self.image_height / 2}
@@ -98,8 +101,14 @@ class BIOMAXMD3(GenericDiffractometer):
                        'not defined. Continuing with the middle: %s" % self.zoom_centre)
             else:
                 logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
-        #self.raster_scan(20, 22, 10, 0.2, 0.2, 10, 10)
       
+    def current_phase_changed(self, current_phase):
+        """
+        Descript. :
+        """
+        self.current_phase = current_phase
+        logging.getLogger("HWR").info("MD3 phase changed to %s" % current_phase)
+        self.emit('phaseChanged', (current_phase, ))
  
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
@@ -430,8 +439,10 @@ class BIOMAXMD3(GenericDiffractometer):
         motors_dict = {}
         if keep_position:
             for motor in motors:
-                current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
-                
+		try:
+                    current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
+                except:
+		    pass
         if self.is_ready():
             self.command_dict["startSetPhase"](phase)
             if keep_position:
@@ -448,67 +459,40 @@ class BIOMAXMD3(GenericDiffractometer):
     # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
-        logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
-            if position is None:
-                continue
-            name = self.MOTOR_TO_EXPORTER_NAME[motor]
-            argin += "%s=%0.3f;" % (name, position)
-        if not argin:
-            return
-        self.wait_device_ready(2000)
-        self.command_dict["startSimultaneousMoveMotors"](argin)
-    # task_info = self.command_dict["getTaskInfo"](task_id)
-        if wait:
-            self.wait_device_ready(timeout)
+    	try:
+    	    motors_dict.pop('kappa')
+    	    motors_dict.pop('kappa_phi')
+                logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
+    	except Exception as ex:
+    	    print ex
+            logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
+            for motor in motors_dict.keys():
+                position = motors_dict[motor]
+                if position is None:
+                    continue
+                name = self.MOTOR_TO_EXPORTER_NAME[motor]
+                argin += "%s=%0.3f;" % (name, position)
+            if not argin:
+                return
+            self.wait_device_ready(2000)
+            self.command_dict["startSimultaneousMoveMotors"](argin)
+            if wait:
+                self.wait_device_ready(timeout)
 
     def moveToBeam(self, x, y):
         try:
             self.emit_progress_message("Move to beam...")
-            self.centring_time = time.time()
-            curr_time = time.strftime("%Y-%m-%d %H:%M:%S")
-            self.centring_status = {"valid": True,
-                                    "startTime": curr_time,
-                                    "endTime": curr_time}
-
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
             cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue()-(x-beam_xc)/float(self.pixelsPerMmY)
             self.emit_progress_message("")
 
-            motors = {}
-            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
-            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
-            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
-            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
-            print "positions before ", motors
-
             self.phiy_motor_hwobj.moveRelative(-1*(y-beam_yc)/float(self.pixelsPerMmZ))
             self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
             self.wait_device_ready(5)
-
-            # motors = {}
-            motors["sampx"] = self.sample_x_motor_hwobj.getPosition()
-            motors["sampy"] = self.sample_y_motor_hwobj.getPosition()
-            motors["phiy"] = self.phiy_motor_hwobj.getPosition()
-            motors["phiz"] = self.phiz_motor_hwobj.getPosition()
-            print "positions after ", motors
-
-            self.centring_status["motors"] = motors
-            self.centring_status["valid"] = True
-            self.centring_status["angleLimit"] = True
-            self.centring_status["accepted"] = True
-
-            self.emit('centringAccepted', (True, self.get_centring_status()))
-            self.emit('centringSuccessful', (self.CENTRING_METHOD_MOVE_TO_BEAM, self.get_centring_status()))
-            self.emit_progress_message("")
-            self.ready_event.set()
-            self.current_centring_method = None
-            self.current_centring_procedure = None
         except:
-            logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
+            logging.getLogger("HWR").exception("MD3: could not move to beam.")
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
@@ -536,7 +520,7 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Descript. :
         """
-        self.phi_motor_hwobj.moveRelative(relative_angle)
+        self.phi_motor_hwobj.syncMoveRelative(relative_angle, 10)
 
     def is_ready(self):
         """
