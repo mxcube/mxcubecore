@@ -303,14 +303,9 @@ class BeamlineSetup(HardwareObject):
 
         try:
             exp_time_limit = self[parent_key].getProperty('exposure_time')
-            if type(exp_time_limit) != int:
-                # min and max specified <>0.01,500<>
-                exp_time_limit = exp_time_limit.split(',')
-            else:
-                exp_time_limit = [0, exp_time_limit] #always min value
             if exp_time_limit is not None:
                 limits['exposure_time'] = exp_time_limit
-        except Exception as ex:
+        except:
             pass
 
         try:
