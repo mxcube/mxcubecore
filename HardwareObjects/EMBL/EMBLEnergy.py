@@ -190,7 +190,7 @@ class EMBLEnergy(Device):
         if value >= self.en_lims[0] and value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
             return True
-        logging.getLogger("GUI").info("Requested value is out of limits")
+        logging.getLogger("GUI").info("Energy: Requested value is out of limits")
         return False
 
     def start_move_wavelength(self, value, wait=True):
@@ -199,7 +199,7 @@ class EMBLEnergy(Device):
         #return self.startMoveEnergy(value, wait)
 
     def cancel_move_energy(self):
-        logging.getLogger('user_level_log').info("Cancel move")
+        logging.getLogger('user_level_log').info("Energy: Cancel move")
         #self.moveEnergy.abort()
 
     def move_energy(self, energy, wait=True):
@@ -225,7 +225,7 @@ class EMBLEnergy(Device):
             gevent.sleep(2)
 
             if self.cmd_set_energy:
-                logging.getLogger('GUI').info("Moving to %.2f keV", energy)
+                logging.getLogger('GUI').info("Energy: Moving to %.2f keV", energy)
                 self.emit('statusInfoChanged', "Moving to %.2f keV" % energy)
                 self.cmd_set_energy(energy)
             else:
@@ -268,7 +268,7 @@ class EMBLEnergy(Device):
             self.emit('stateChanged', "busy")
 
     def wait_ready(self, timeout=10):
-        with gevent.Timeout(20, Exception("Timeout waiting for energy ready")):
+        with gevent.Timeout(20, Exception("Energy: Timeout waiting for energy ready")):
             while self.chan_status.getValue()[0] != 0:
                gevent.sleep(0.1) 
     
@@ -276,7 +276,7 @@ class EMBLEnergy(Device):
         if state[0] == 1.0 or state[1] == 63:
            return
         elems = ['hdm1','hdm2','roll','undulator','bragg','perp']
-        message = "Error: setting energy failed on motors: "
+        message = "Energy: Error, setting energy failed on motors: "
         bits =  [int(state[1]) >> i & 1 for i in range(5,-1,-1)]
         #logging.getLogger('GUI').error("%s"%bits)
         for i in range(6):
@@ -307,44 +307,44 @@ class EMBLEnergy(Device):
         return self.undulator_gaps
 
     def set_break_bragg(self):
-        logging.getLogger('GUI').info("Setting bragg brake...")
+        logging.getLogger('GUI').warning("Energy: Setting bragg brake...")
         self.emit('statusInfoChanged', "Setting Bragg break...")
         gevent.sleep(3)
         self.wait_ready()
         gevent.sleep(1)
         self.wait_ready()
-        logging.getLogger('HWR').info("Set bragg break cmd send")
+        logging.getLogger('HWR').info("Energy: Set bragg break cmd send")
         self.cmd_set_break_bragg(1)
         gevent.sleep(2)
         if self.chan_status_bragg_break is not None:
-            logging.getLogger('HWR').info("Start waiting for break set 1")
-            with gevent.Timeout(20, Exception("Timeout waiting for break set")):
+            logging.getLogger('HWR').warning("Energy: Waiting for break set (first try) ...")
+            with gevent.Timeout(20, Exception("Energy: Timeout waiting for break set")):
                 while self.chan_status_bragg_break.getValue() != 0:
                    gevent.sleep(0.1)
             gevent.sleep(3)
-            logging.getLogger('HWR').info("Start waiting for break set 2")
+            logging.getLogger('HWR').warning("Waiting for break set (second try) ...")
             with gevent.Timeout(20, Exception("Timeout waiting for break set")):
                 while self.chan_status_bragg_break.getValue() != 0:
                    gevent.sleep(0.1)
         else:
             gevent.sleep(10)
         self.emit('statusInfoChanged', "Bragg break set")
-        logging.getLogger('GUI').info("Bragg brake set")
+        logging.getLogger('GUI').info("Energy: Bragg brake set")
 
     def release_break_bragg(self):
-        logging.getLogger('GUI').info("Releasing bragg brake...")
+        logging.getLogger('GUI').warning("Energy: Releasing bragg brake...")
         self.emit('statusInfoChanged', "Releasing Bragg break...")
         if self.chan_status_bragg_break.getValue() != 1:
             self.cmd_release_break_bragg(1)
             gevent.sleep(2)
             if self.chan_status_bragg_break is not None:
-                logging.getLogger('GUI').info("Start waiting for brake released") 
-                with gevent.Timeout(20, Exception("Timeout waiting for break release")):
+                logging.getLogger('GUI').warning("Energy: Waiting for brake released...") 
+                with gevent.Timeout(20, Exception("Energy: Timeout waiting for break release")):
                     while self.chan_status_bragg_break.getValue() != 1:
                        gevent.sleep(0.1)
             
             else:
-                logging.getLogger('GUI').info("Start sleeping 10 sec before brake released")
+                logging.getLogger('GUI').info("Energy: Sleep 10 sec before brake released...")
                 gevent.sleep(10)
-            logging.getLogger('GUI').info("Bragg brake released")
-            self.emit('statusInfoChanged', "Bragg break released")    
+            logging.getLogger('GUI').info("Energy: Bragg brake released")
+            self.emit('statusInfoChanged', "Bragg break released") 

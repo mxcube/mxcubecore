@@ -46,7 +46,7 @@ class EMBLPPUControl(Device):
 
         self.get_status()
 
-        self.chan_file_info = self.getChannelObject('chanFileInfo')
+        self.chan_file_info = self.getChannelObject('chanFileInfo', optional=True)
         if self.chan_file_info is not None:
             self.chan_file_info.connectSignal('update', self.file_info_changed)
    
@@ -90,6 +90,7 @@ class EMBLPPUControl(Device):
 
     def get_status(self):
         self.cmd_all_status("")
+        return self.is_error, self.all_status
 
     def update_status(self):
         self.is_error = self.all_status.startswith(self.error_state) or \
