@@ -955,9 +955,14 @@ class GphlWorkflowConnection(HardwareObject, object):
                     userProvidedInfo.lattice
                 )
             )
+        # NB The Java point groups are anenumeration: 'PG1', 'PG422' etc.
         xx = userProvidedInfo.pointGroup
         if xx:
-            builder = builder.pointGroup(xx)
+            builder = builder.pointGroup(
+                self._gateway.jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
+                    'PG%s' % xx
+                )
+            )
         xx = userProvidedInfo.spaceGroup
         if xx:
             builder = builder.spaceGroup(xx)

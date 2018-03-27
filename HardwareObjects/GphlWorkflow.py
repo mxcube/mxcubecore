@@ -1023,21 +1023,6 @@ class GphlWorkflow(HardwareObject, object):
         workflow_model = self._queue_entry.get_data_model()
         sample_model = workflow_model.get_sample_node()
 
-        cp = workflow_model.processing_parameters
-        cell_params = list(getattr(cp, x)
-                           for x in ['cell_a', 'cell_b', 'cell_c',
-                                     'cell_alpha', 'cell_beta', 'cell_gamma']
-                           )
-        if all(cell_params):
-            unitCell = self.GphlMessages.UnitCell(*cell_params)
-        else:
-            unitCell = None
-
-        obj = queue_model_enumerables.SPACEGROUP_MAP.get(cp.space_group)
-        space_group = obj.number if obj else None
-
-        point_group = None
-
         wavelengths = []
         beam_energies = workflow_model.get_beam_energies()
         if beam_energies:
@@ -1052,16 +1037,42 @@ class GphlWorkflow(HardwareObject, object):
                 self.GphlMessages.PhasingWavelength(wavelength=DUMMY_WAVELENGTH)
             )
 
+        cell_params = workflow_model.get_cell_parameters()
+        if cell_params:
+            unitCell = self.GphlMessages.UnitCell(*cell_params)
+        else:
+            unitCell = None
+
+        obj = queue_model_enumerables.SPACEGROUP_MAP.get(
+            workflow_model.get_space_group()
+        )
+        space_group = obj.number if obj else None
+
+        crystal_system = workflow_model.get_crystal_system()
+        if crystal_system:
+            crystal_system = crystal_system.upper()
+
         userProvidedInfo = self.GphlMessages.UserProvidedInfo(
             scatterers=(),
-            lattice=None,
-            pointGroup=point_group,
+            lattice=crystal_system,
+            pointGroup=workflow_model.get_point_group(),
             spaceGroup=space_group,
             cell=unitCell,
             expectedResolution=workflow_model.get_expected_resolution(),
             isAnisotropic=None,
             phasingWavelengths=wavelengths
         )
+        ll = ['PriorInformation']
+        for tag in ('expectedResolution', 'isAnisotropic', 'lattice',
+                    'pointGroup', 'scatterers', 'spaceGroup'):
+            val = getattr(userProvidedInfo, tag)
+            if val:
+                ll.append('%s=%s' % (tag, val))
+        if beam_energies:
+            ll.extend('%s=%s' % (x.role, x.wavelength) for x in wavelengths)
+        if cell_params:
+            ll.append('cell_parameters=%s' % cell_params)
+        logging.getLogger('HWR').debug(', '.join(ll))
 
         # Look for existing uuid
         for text in sample_model.lims_code, sample_model.code, sample_model.name:

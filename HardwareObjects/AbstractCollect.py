@@ -145,7 +145,7 @@ class AbstractCollect(object):
         #log.info("Collect: Storing sample info in LIMS")        
         #self.store_sample_info_in_lims()
 
-        if all(item == None for item in self.current_dc_parameters['motors'].values()):
+        if all(item is None for item in self.current_dc_parameters['motors'].values()):
             # No centring point defined
             # create point based on the current position
             current_diffractometer_position = self.diffractometer_hwobj.getPositions()
@@ -182,6 +182,15 @@ class AbstractCollect(object):
             log.info("Collection: Moving detector to %.2f",
                      self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
+
+        # Log collection position
+        # NB Making copy since positions isn an internal dictionary BAD!!
+        ss = ', '.join(
+            '%s=%s' % tt
+            for tt in sorted(self.diffractometer_hwobj.getPositions().items())
+            if tt[1] is not None
+        )
+        log.info("Collecting at : " + ss)
 
         # In order to call the hook with original parameters
         # before update_data_collection_in_lims changes them
