@@ -1574,7 +1574,6 @@ class GphlWorkflow(TaskNode):
         TaskNode.__init__(self)
         self.workflow_hwobj = workflow_hwobj
         self.path_template = PathTemplate()
-        self.processing_parameters = ProcessingParameters()
         self._name = str()
         self._type = str()
         self._interleave_order = str()
@@ -1582,6 +1581,10 @@ class GphlWorkflow(TaskNode):
         self._beam_energies = OrderedDict()
         self._detector_resolution = None
         self._expected_resolution = None
+        self._space_group = None
+        self._crystal_system = None
+        self._point_group = None
+        self._cell_parameters = None
         self._snapshot_count = None
 
         # HACK - to differentiate between characterisation and acquisition
@@ -1645,6 +1648,37 @@ class GphlWorkflow(TaskNode):
         return self._beam_energies.copy()
     def set_beam_energies(self, value):
         self._beam_energies = OrderedDict(value)
+
+    # Space Group.
+    def get_space_group(self):
+        return self._space_group
+    def set_space_group(self, value):
+        self._space_group = value
+
+    # Crystal system.
+    def get_crystal_system(self):
+        return self._crystal_system
+    def set_crystal_system(self, value):
+        self._crystal_system = value
+
+    # Point Group.
+    def get_point_group(self):
+        return self._point_group
+    def set_point_group(self, value):
+        self._point_group = value
+
+    # Cell parameters - sequence of six floats (a,b,c,alpha,beta,gamma)
+    def get_cell_parameters(self):
+        return self._cell_parameters
+    def set_cell_parameters(self, value):
+        if value:
+            if len(value) == 6:
+                self._cell_parameters = tuple(float(x) for x in value)
+            else:
+                raise ValueError("cell_parameters %s does not have length six"
+                                 % value)
+        else:
+            self._cell_parameters = None
 
     def get_path_template(self):
         return self.path_template
