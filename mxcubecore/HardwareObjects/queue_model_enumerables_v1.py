@@ -274,23 +274,6 @@ SPACEGROUP_DATA = [
 ]
 SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 
-# Map of Laue group name to crystal system
-CRYSTAL_SYSTEM_MAP = OrderedDict((
-    ('-1', 'Triclinic'),
-    ('2/m', 'Monoclinic'),
-    ('mmm', 'Orthorhombic'),
-    ('4/m', 'Tetragonal'),
-    ('4/mmm', 'Tetragonal'),
-    ('-3', 'Trigonal'),
-    ('-3m', 'Trigonal'),
-    ('6/m', 'Hexagonal'),
-    ('6/mmm', 'Hexagonal'),
-    ('m-3', 'Cubic'),
-    ('m-3m', 'Cubic'),
-))
-# NB Each Laue group matches only one non-centric point group,
-# which can be derived from the SPACEGROUP_DATA
-
 # Space group names for space groups compatible with chiral molecules,
 # i.e. that do not contain mirror planes or centres of symmetry,
 # in order of space group number
