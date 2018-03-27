@@ -1067,7 +1067,7 @@ class EMBLBeamlineTest(HardwareObject):
 
                 if abs(delta_hor) > 0.001:
                     log.info("Beam centering: Moving horizontal by %.4f" % delta_hor)
-                    self.horizontal_motor_hwobj.mov_relative(delta_hor, timeout=5)
+                    self.horizontal_motor_hwobj.move_relative(delta_hor, timeout=5)
                     sleep(1)
                 if abs(delta_ver) > 0.001:
                     log.info("Beam centering: Moving vertical by %.4f" % delta_ver)
