@@ -51,7 +51,7 @@ class EMBLBeamFocusing(HardwareObject):
         """
 
         self.cmd_set_calibration_name = self.getCommandObject(\
-            'cmdSetCallibrationName')
+            'cmdSetCalibrationName')
         self.focus_modes = []
         for focus_mode in self['focusModes']:
             self.focus_modes.append(\
