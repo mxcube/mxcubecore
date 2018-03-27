@@ -79,7 +79,7 @@ class MDFastShutter(Device):
                      gevent.sleep(0.1)
 
     def is_opened(self):
-        return self.state == "opened"
+        return self.chan_shutter_state.getValue()
 
     def closeShutter(self, wait=True):
         self.shutter_state_changed(self.chan_shutter_state.getValue())

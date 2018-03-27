@@ -156,7 +156,7 @@ class EMBLBeamlineTest(HardwareObject):
                      "update",
                      self.pitch_scan_status_changed)
 
-        self.chan_encoder_ar = self.getChannelObject("chanEncoderAr")
+        #self.chan_encoder_ar = self.getChannelObject("chanEncoderAr")
         #self.connect(self.chan_encoder_ar,
         #             "update",
         #             self.encoder_ar_changed)
@@ -178,7 +178,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.horizontal_double_mode_motor_hwobj = self.getObjectByRole("horizontal_double_mode_motor")
         self.vertical_double_mode_motor_hwobj = self.getObjectByRole("vertical_double_mode_motor")
       
-        self.chan_pitch_second = self.getChannelObject("chanPitchSecond")
+        #self.chan_pitch_second = self.getChannelObject("chanPitchSecond")
 
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
         self.crl_hwobj = self.getObjectByRole("crl")
@@ -187,14 +187,13 @@ class EMBLBeamlineTest(HardwareObject):
                      "imageDoubleClicked",
                      self.image_double_clicked)
 
-        try:
-            self.beam_focusing_hwobj = \
-               self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
+        if hasattr(self.bl_hwobj.beam_info_hwobj, "beam_focusing_hwobj"):
+            self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
             self.connect(self.beam_focusing_hwobj,
                          "focusingModeChanged",
                          self.focusing_mode_changed)
-        except:
-            logging.getLogger("HWR").warning(\
+        else:
+            logging.getLogger("HWR").debug(\
                "BeamlineTest: Beam focusing hwobj is not defined")
 
         if hasattr(self.bl_hwobj, "ppu_control_hwobj"):
@@ -207,7 +206,8 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name
         self.csv_file_name = self.getProperty("device_list")
-        self.init_device_list()
+        if self.csv_file_name:
+            self.init_device_list()
 
         self.test_directory = self.getProperty("results_directory")
         if self.test_directory is None:
@@ -228,18 +228,15 @@ class EMBLBeamlineTest(HardwareObject):
         if self.available_tests_dict is None:
             self.available_tests_dict = TEST_DICT
 
-        try:
+        if self.getProperty("startup_tests"):
             self.startup_test_list = eval(self.getProperty("startup_tests"))
-        except:
-            logging.getLogger("HWR").debug(\
-                "BeamlineTest: No startup tests defined.")
 
         if self.getProperty("run_tests_at_startup") == True:
             self.start_test_queue(self.startup_test_list)
 
         self.intensity_ranges = []
         self.intensity_measurements = []
-        try:
+        if self.getProperty("intensity"):
             for intens_range in self['intensity']['ranges']:
                 temp_intens_range = {}
                 temp_intens_range['max'] = intens_range.CurMax
@@ -248,9 +245,6 @@ class EMBLBeamlineTest(HardwareObject):
                 self.intensity_ranges.append(temp_intens_range)
             self.intensity_ranges = sorted(self.intensity_ranges,
                                            key=lambda item: item['max'])
-        except:
-            logging.getLogger("HWR").error(\
-               "BeamlineTest: No intensity ranges defined")
 
         self.chan_intens_mean = self.getChannelObject('intensMean')
         self.chan_intens_range = self.getChannelObject('intensRange')
@@ -337,6 +331,7 @@ class EMBLBeamlineTest(HardwareObject):
                             "<h3>Detailed results:</h3>")
                         self.results_html_list.extend(\
                             test_result.get("result_details", []))
+                    self.emit("progressStop", ())
             else:
                 msg = "<h2><font color=%s>Execution method %s " + \
                       "for the test %s does not exist</font></h3>"
@@ -359,7 +354,7 @@ class EMBLBeamlineTest(HardwareObject):
     def init_device_list(self):
         """Initializes a list of device from a csv file"""
         self.devices_list = []
-        if self.csv_file_name and os.path.exists(self.csv_file_name):
+        if os.path.exists(self.csv_file_name):
             with open(self.csv_file_name, 'rb') as csv_file:
                 csv_reader = reader(csv_file, delimiter=',')
                 for row in csv_reader:
@@ -473,8 +468,19 @@ class EMBLBeamlineTest(HardwareObject):
     def test_sc_stats(self):
         result = {}
 
-        self.emit("progressInit", ("Executing test", 5, True))
+        self.emit("progressInit", ("Executing test: sample changer statistics.", 5, True))
         log_filename = self.bl_hwobj.sample_changer_hwobj.get_log_filename()
+
+        if not os.path.exists(log_filename):
+            result["result_details"] = []
+            result["result_short"] = \
+                "Test failed: Sample changer log file: %s " % str(log_filename) + \
+                "do not exist."
+            result["result_bit"] = False
+            self.ready_event.set()
+            self.emit("progressStop", ())
+            return result
+
         min_datetime = None
         log_arr = np.array([])
         log_file = open(log_filename, "r")
@@ -681,13 +687,17 @@ class EMBLBeamlineTest(HardwareObject):
 
     def test_com(self):
         """Test communication (ping) with beamline devices"""
+        self.emit("progressInit", ("Executing test: ping beamline devices.",
+                                   len(self.devices_list),
+                                   True))
+
         result = {}
         table_header = ["Replied", "DNS name", "IP address", "Location",
                         "MAC address", "Details"]
         table_cells = []
         failed_count = 0
         for row, device in enumerate(self.devices_list):
-            msg = "Pinging %s at %s" % (device[0], device[1])
+            msg = "Pinging device %s (%d/%d) at %s" % (device[0], row, len(self.devices_list), device[1])
             logging.getLogger("HWR").debug("BeamlineTest: %s" % msg)
             device_result = ["bgcolor=#FFCCCC", "False"] + device
             try:
@@ -703,7 +713,8 @@ class EMBLBeamlineTest(HardwareObject):
                 failed_count += 1
             progress_info = {"progress_total": len(self.devices_list),
                              "progress_msg": msg}
-            self.emit("testProgress", (row, progress_info))
+            self.emit("progressStep", (row, msg))
+            
 
         result["result_details"] = \
             SimpleHTML.create_table(table_header, table_cells)
@@ -725,6 +736,7 @@ class EMBLBeamlineTest(HardwareObject):
         """Test ppu"""
         result = {}
         if self.bl_hwobj.ppu_control_hwobj is not None:
+            print self.bl_hwobj.ppu_control_hwobj.get_status()
             is_error, msg = self.bl_hwobj.ppu_control_hwobj.get_status()
             result["result_bit"] = not is_error
             if result["result_bit"]:
@@ -1055,11 +1067,11 @@ class EMBLBeamlineTest(HardwareObject):
 
                 if abs(delta_hor) > 0.001:
                     log.info("Beam centering: Moving horizontal by %.4f" % delta_hor)
-                    self.horizontal_motor_hwobj.moveRelative(delta_hor, timeout=5)
+                    self.horizontal_motor_hwobj.mov_relative(delta_hor, timeout=5)
                     sleep(1)
                 if abs(delta_ver) > 0.001:
                     log.info("Beam centering: Moving vertical by %.4f" % delta_ver)
-                    self.vertical_motor_hwobj.moveRelative(delta_ver, timeout=5)
+                    self.vertical_motor_hwobj.move_relative(delta_ver, timeout=5)
                     sleep(1)
 
         else:
@@ -1133,20 +1145,20 @@ class EMBLBeamlineTest(HardwareObject):
                     if active_mode == "Collimated":
                         if abs(delta_hor) > 0.0001:
                             log.info("Moving horizontal by %.4f" % delta_hor)
-                            self.horizontal_motor_hwobj.moveRelative(delta_hor, timeout=5)
+                            self.horizontal_motor_hwobj.move_relative(delta_hor, timeout=5)
                             sleep(4)
                         if abs(delta_ver) > 0.001:
                             log.info("Moving vertical by %.4f" % delta_ver)
-                            self.vertical_motor_hwobj.moveRelative(delta_ver, timeout=5)
+                            self.vertical_motor_hwobj.move_relative(delta_ver, timeout=5)
                             sleep(4)
                     elif active_mode == "Double":
                         if abs(delta_hor) > 0.0001:
                             log.info("Moving horizontal by %.4f" % delta_hor)
-                            self.horizontal_double_mode_motor_hwobj.moveRelative(delta_hor, timeout=5) 
+                            self.horizontal_double_mode_motor_hwobj.move_relative(delta_hor, timeout=5) 
                             sleep(2)
                         if abs(delta_ver) > 0.001:
                             log.info("Moving vertical by %.4f" % delta_ver)
-                            self.vertical_double_mode_motor_hwobj.moveRelative(delta_ver, timeout=5)
+                            self.vertical_double_mode_motor_hwobj.move_relative(delta_ver, timeout=5)
                             sleep(2)
 
     def pitch_scan_status_changed(self, status):
@@ -1266,28 +1278,41 @@ class EMBLBeamlineTest(HardwareObject):
 
     def measure_intensity(self):
         """Measures intesity"""
-        self.start_test_queue(["measure_intensity"])
+        #self.start_test_queue(["measure_intensity"])
+        gevent.spawn(self.test_measure_intensity)
 
     def test_measure_intensity(self):
         """Measures intensity and generates report"""
         result = {}
-        result["result_bit"] = True
+        result["result_bit"] = False
         result["result_details"] = []
 
+        self.emit("progressInit", ("Measuring intensity...", 8, True))
         try:
             intens_value = 0
             current_phase = self.bl_hwobj.diffractometer_hwobj.current_phase
 
             # 1. close guillotine and fast shutter -------------------------------
-            self.bl_hwobj.detector_hwobj.close_cover(wait=True)
+            if not self.bl_hwobj.detector_hwobj.is_cover_closed():
+                logging.getLogger("GUI").error("Unable to measure flux!" + \
+                     "Close the detecor cover to continue")
+                result["result_short"] = "Measure intensity failed. " + \
+                     "Detector cover was open."
+                self.ready_event.set()
+                return result
+
+            #self.bl_hwobj.detector_hwobj.close_cover(wait=True)
             self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
             gevent.sleep(0.1)
 
             #2. move back light in, check beamstop position ----------------------
+            logging.getLogger("GUI").info("Measure flux: Moving backlight in")
+            self.emit("progressStep", 1, "Moving backlight in")
             self.bl_hwobj.back_light_hwobj.move_in()
 
             beamstop_position = self.bl_hwobj.beamstop_hwobj.get_position()
             if beamstop_position == "BEAM":
+                self.emit("progressStep", 2, "Moving beamstop OFF")
                 self.bl_hwobj.beamstop_hwobj.set_position("OFF")
                 self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)
 
@@ -1296,6 +1321,7 @@ class EMBLBeamlineTest(HardwareObject):
                 diffractometer_hwobj.get_scintillator_position()
             if scintillator_position == "SCINTILLATOR":
                 #TODO add state change when scintillator position changed
+                self.emit("progressStep", 3, "Setting the photodiode")
                 self.bl_hwobj.diffractometer_hwobj.\
                      set_scintillator_position("PHOTODIODE")
                 gevent.sleep(1)
@@ -1305,13 +1331,15 @@ class EMBLBeamlineTest(HardwareObject):
             #TODO move in the apeture for P13
 
             #5. open the fast shutter --------------------------------------------
-            gevent.sleep(1) 
+            gevent.sleep(1)
+            self.emit("progressStep", 4, "Opening the fast shutter") 
             self.bl_hwobj.fast_shutter_hwobj.openShutter(wait=True)
             gevent.sleep(0.3)
 
             #6. measure mean intensity
             self.ampl_chan_index = 0
 
+            self.emit("progressStep", 5, "Measuring the intensity")
             intens_value = self.chan_intens_mean.getValue()
             intens_range_now = self.chan_intens_range.getValue()
             for intens_range in self.intensity_ranges:
@@ -1322,14 +1350,18 @@ class EMBLBeamlineTest(HardwareObject):
 
         except:
             logging.getLogger("GUI").error("Unable to measure flux!") 
-        finally:
-            #7. close the fast shutter -------------------------------------------
-            self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+        #finally:
 
-            # 7/7 set back original phase ----------------------------------------
-            self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
+        self.emit("progressStep", 6, "Closing fast shutter")
+        #7. close the fast shutter -------------------------------------------
+        self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+
+        # 7/7 set back original phase ----------------------------------------
+        self.emit("progressStep", 7, "Restoring diffractometer to %s phase" % current_phase)
+        self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
 
         #8. Calculate --------------------------------------------------------
+        self.emit("progressStep", 8, "Calculating flux")
         energy = self.bl_hwobj._get_energy()
         detector_distance = self.bl_hwobj.detector_hwobj.get_distance()
         beam_size = self.bl_hwobj.beam_info_hwobj.get_beam_size()
@@ -1392,6 +1424,7 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.intensity_measurements.insert(0, meas_item)
 
+        result["result_bit"] = True
         result["result_details"].extend(SimpleHTML.create_table(\
              ["Time", "Energy (keV)", "Detector distance (mm)",
               "Beam size (mm)", "Transmission (%%)", "Intensity (A)",
@@ -1400,7 +1433,7 @@ class EMBLBeamlineTest(HardwareObject):
              self.intensity_measurements))
 
         self.ready_event.set()
-
+        self.emit("progressStop", ())
         return result
 
     def stop_comm_process(self):

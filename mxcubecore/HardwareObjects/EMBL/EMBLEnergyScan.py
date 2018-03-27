@@ -123,24 +123,22 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def emit_new_data_point(self, values):
         if len(values) > 0:
-            #try:
-            if True:
+            print values
+            if type(values) in (tuple, list):
+                if type(values[-1]) not in (tuple, list):
+                    values = [values]
                 x = values[-1][0]
                 y = values[-1][1]
-                #if not (x == 0 and y == 0):
-                if True:
-                    # if x is in keV, transform into eV otherwise let it like it is
-	            # if point larger than previous point (for chooch)
-                    if len(self.scan_data) > 0:
-                        if x > self.scan_data[-1][0]:
-                            self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
-                    else:
+                # if x is in keV, transform into eV otherwise let it like it is
+	        # if point larger than previous point (for chooch)
+                if len(self.scan_data) > 0:
+                    if x > self.scan_data[-1][0]:
                         self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
+                else:
+                    self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
                      
-                    self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
-                    self.emit("progressStep", (len(self.scan_data)))
-            #except:
-            #    pass
+                self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
+                self.emit("progressStep", (len(self.scan_data)))
 
     def isConnected(self):
         return True
@@ -337,7 +335,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.store_energy_scan()
             
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
-            return None, None, None, None, None, None, None, [], [], None
+            return None, None, None, None, None, None, None, [], [], [], None
 
           
         rm = (pk + 30) / 1000.0
