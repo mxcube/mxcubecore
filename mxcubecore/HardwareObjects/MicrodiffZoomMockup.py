@@ -26,6 +26,11 @@ class MicrodiffZoomMockup(Device):
                                     "Zoom 10":10}
         self.sortPredefinedPositionsList()
 
+        self.get_state = self.getState
+        self.get_predefined_positions_list = self.getPredefinedPositionsList
+        self.get_current_position_name = self.getCurrentPositionName
+        self.move_to_position = self.moveToPosition
+
     def isReady(self):
         return True
  

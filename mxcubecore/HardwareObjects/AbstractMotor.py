@@ -18,7 +18,8 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import abc
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+
 
 class MotorStates(object):
     """Enumeration of the motor states
@@ -38,6 +39,7 @@ class MotorStates(object):
     OFFLINE      = 12
     LOWLIMIT     = 13
     HIGHLIMIT    = 14
+    NOTINITIALIZED = 15
 
     STATE_DESC = {INITIALIZING: "Initializing",
                   ON: "On",
@@ -53,17 +55,27 @@ class MotorStates(object):
                   INVALID: "Invalid",
                   OFFLINE: "Offline",
                   LOWLIMIT: "LowLimit",
-                  HIGHLIMIT: "HighLimit"}
+                  HIGHLIMIT: "HighLimit",
+                  NOTINITIALIZED: "NotInitialized"}
 
     @staticmethod
     def tostring(state):
         return MotorStates.STATE_DESC.get(state, "Unknown")
 
+    @staticmethod
+    def fromstring(state_str):
+        for key, value in MotorStates.STATE_DESC.items():
+            if value == state_str:
+                return key
+        return MotorStates.STATE_DESC[MotorStates.UNKNOWN]
 
-class AbstractMotor(object):
-    __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+class AbstractMotor(HardwareObject):
+
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
+        self.motor_name = ""
         self.motor_states = MotorStates()
         self.__state = self.motor_states.INITIALIZING
         self.__position = None
@@ -73,23 +85,30 @@ class AbstractMotor(object):
 
     def isReady(self):
         #TODO remove this method
-        print ("Deprecation warning: Instead of isReady please call is_ready")
+        #print ("Deprecation warning: Instead of isReady please call is_ready")
         return self.is_ready()
 
     def getPosition(self):
         #TODO remove this method
-        print ("Deprecation warning: Instead of getPosition please call get_position")
+        #print ("Deprecation warning: Instead of getPosition please call get_position")
         return self.get_position()
 
     def getState(self):
         #TODO remove this method
-        print ("Deprecation warning: Instead of getState please call get_state")
-        return self.get_position()
+        #print ("Deprecation warning: Instead of getState please call get_state")
+        return self.get_state()
 
     def getLimits(self):
         #TODO remove this method
-        print ("Deprecation: Instead of getLimits please call get_limits")
+        #print ("Deprecation: Instead of getLimits please call get_limits")
         return self.get_limits()
+
+    def getMotorMnemonic(self):
+        #print "Call get_motor_mnemonic!!!"
+        return self.get_motor_mnemonic
+
+    def get_motor_mnemonic(self):
+        return self.motor_name
 
     def is_ready(self):
         """
@@ -101,7 +120,6 @@ class AbstractMotor(object):
     def set_ready(self, task=None):
         """Sets motor state to ready"""
         self.set_state(self.motor_states.READY)
-        self.emit('stateChanged', (self.get_state(), ))
 
     def get_state(self):
         """Returns motor state
@@ -118,6 +136,7 @@ class AbstractMotor(object):
             state (str): motor state
         """
         self.__state = state
+        self.emit('stateChanged', (state, ))
 
     def get_position(self):
         """Read the motor user position.
@@ -134,6 +153,7 @@ class AbstractMotor(object):
             state (str): motor state
         """
         self.__position = position
+        self.emit('positionChanged', (position, ))
 
     def get_limits(self):
         """Returns motor limits as (float, float)
@@ -150,6 +170,7 @@ class AbstractMotor(object):
             limits (list): list with two floats
         """
         self.__limits = limits
+        self.emit('limitsChanged', (limits, ))
 
     def get_velocity(self):
         """Returns velocity of the motor
@@ -167,7 +188,6 @@ class AbstractMotor(object):
         """
         self.__velocity = velocity
 
-    @abc.abstractmethod
     def move(self, position, wait=False, timeout=None):
         """Move motor to absolute position.
 
@@ -188,14 +208,12 @@ class AbstractMotor(object):
         """
         self.move(self.get_position() + relative_position, wait, timeout)
 
-    def syncMoveRelative(self, position, timeout=None):
-        self.move_relative(position, wait=True, timeout=timeout)
-
-    def syncMove(self, position, timeout=None):
-        self.move(position, wait=True, timeout=timeout)
-
-    @abc.abstractmethod
     def stop(self):
         """Stops the motor movement
         """
         return
+
+    def update_values(self):
+        self.emit('stateChanged', (self.get_state(), ))
+        self.emit('positionChanged', (self.get_position(), ))
+        self.emit('limitsChanged', (self.get_limits(), ))
