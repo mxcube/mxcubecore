@@ -1,12 +1,10 @@
 from AbstractMotor import AbstractMotor
-from HardwareRepository import BaseHardwareObjects
 import logging
 import math
 
-class Resolution(AbstractMotor, BaseHardwareObjects.HardwareObject):
+class Resolution(AbstractMotor):
     def __init__(self, *args, **kwargs):
-        AbstractMotor.__init__(self)
-        BaseHardwareObjects.HardwareObject.__init__(self, *args, **kwargs)
+        AbstractMotor.__init__(self, name="Resolution")
 
         #self.get_value = self.getPosition
         self.valid = True
