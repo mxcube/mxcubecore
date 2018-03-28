@@ -17,11 +17,10 @@ Example xml file:
 </device>
 """
 
-class ExporterMotor(AbstractMotor, Device):
+class ExporterMotor(AbstractMotor):
 
     def __init__(self, name):
-        AbstractMotor.__init__(self) 
-        Device.__init__(self, name)
+        AbstractMotor.__init__(self, name) 
        
         self.motor_name = None
         self.motor_resolution = None
