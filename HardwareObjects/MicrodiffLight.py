@@ -1,11 +1,9 @@
 from AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import Device
 
-class MicrodiffLight(AbstractMotor, Device):
+class MicrodiffLight(AbstractMotor):
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
-        Device.__init__(self, name)
+        AbstractMotor.__init__(self, name)
 
     def init(self): 
         try:
@@ -36,9 +34,6 @@ class MicrodiffLight(AbstractMotor, Device):
 
     def move(self, position, wait=False, timeout=None):
         self.chan_value.setValue(position)
-
-    def getMotorMnemonic(self):
-        return self.motor_name
 
     def stop(self):
         pass

@@ -105,7 +105,7 @@ class AbstractMotor(HardwareObject):
 
     def getMotorMnemonic(self):
         #print "Call get_motor_mnemonic!!!"
-        return self.get_motor_mnemonic
+        return self.get_motor_mnemonic()
 
     def get_motor_mnemonic(self):
         return self.motor_name

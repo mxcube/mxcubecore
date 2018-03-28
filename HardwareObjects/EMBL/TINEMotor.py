@@ -38,11 +38,10 @@ def energyConverter(wavelength):
         energy = 0	
     return energy
 
-class TINEMotor(AbstractMotor, HardwareObject):
+class TINEMotor(AbstractMotor):
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractMotor.__init__(self, name)
   
         self.previous_position = None
 
@@ -217,7 +216,3 @@ class TINEMotor(AbstractMotor, HardwareObject):
         if self.cmd_set_online:
             self.cmd_set_online(0)
             gevent.sleep(2)
-
-    def update_values(self):
-        self.emit('stateChanged', (self.get_state(), ))
-        self.emit('positionChanged', (self.get_position(), ))

@@ -3,7 +3,6 @@ import logging
 import time
 from gevent import Timeout
 from AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import Device
 
 class MD2TimeoutError(Exception):
     pass
@@ -20,7 +19,7 @@ Example xml file:
 </device>
 """
 
-class MicrodiffMotor(AbstractMotor, Device):      
+class MicrodiffMotor(AbstractMotor):
     (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
     EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
                                 "Fault": UNUSABLE,
@@ -34,8 +33,7 @@ class MicrodiffMotor(AbstractMotor, Device):
                                 "HighLim": ONLIMIT }
 
     def __init__(self, name):
-        AbstractMotor.__init__(self) 
-        Device.__init__(self, name)
+        AbstractMotor.__init__(self, name) 
         self.motor_pos_attr_suffix = "Position"
 
     def init(self): 

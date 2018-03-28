@@ -98,7 +98,3 @@ class MotorMockup(AbstractMotor):
     def stop(self):
         if self.__move_task is not None:
             self.__move_task.kill()
-
-    def update_values(self):
-        self.emit('stateChanged', (self.get_state(), ))
-        self.emit('positionChanged', (self.get_position(), ))
