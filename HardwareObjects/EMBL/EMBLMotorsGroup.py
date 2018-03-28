@@ -227,7 +227,7 @@ class EMBLMotorsGroup(Device):
         #foc_mode_to_send = {}
         for motor in self.motors_list:
             old_value = motor['position']
-            if type(positions) == list or type(positions) == tuple:
+            if isinstance(positions, (tuple, list)):
                 new_value = positions[motor['index']]
             else:
                 new_value = positions
@@ -254,7 +254,7 @@ class EMBLMotorsGroup(Device):
            status has been sent"""
         for motor in self.motors_list:
             old_status = motor['status']
-            if type(status) in (tuple, list):
+            if isinstance(status, (tuple, list)):
                 new_status = status[motor['index']]
             else:
                 new_status = status
