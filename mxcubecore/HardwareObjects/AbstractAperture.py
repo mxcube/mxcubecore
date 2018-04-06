@@ -79,36 +79,40 @@ class AbstractAperture(HardwareObject):
         """
         Sets active diameter index
 
-        Keyword Args:
+        Args:
             diameter_index (int): selected diameter index
 
         Emits:
             diameterIndexChanged (int, float): current index, diameter in mm
         """
-        self._current_diameter_index = diameter_index
-        self.emit('diameterIndexChanged', self._current_diameter_index,
-                  self._diameter_size_list[self._current_diameter_index] \
-                  / 1000.0)
+        if diameter_index < len(self._diameter_size_list):
+            self._current_diameter_index = diameter_index
+            self.emit('diameterIndexChanged', self._current_diameter_index,
+                      self._diameter_size_list[self._current_diameter_index] \
+                      / 1000.0)
+        else:
+            logging.getLogger("HWR").warning(\
+                "Aperture: Selected diameter index is not valid")
 
     def get_diameter_size(self):
         #TODO rename to get_diameter_size_mm
         """
         Returns:
-            float: current diamter size in mm
+            float: current diameter size in mm
         """
         return self._diameter_size_list[self._current_diameter_index]
 
     def set_diameter_size(self, diameter_size):
         #TODO rename to set_diameter_size_mm
         """
-        Keyword Args:
+        Args:
             diameter_size (int): selected diameter index
         """
         if diameter_size in self._diameter_size_list:
             self.set_diameter_index(self._diameter_size_list.index(diameter_size))
         else:
             logging.getLogger("HWR").warning(\
-                "Aperture: Selected diamter is not in the diameter list")
+                "Aperture: Selected diameter is not in the diameter list")
 
     def get_position(self):
         #TODO rename to get_position_name
@@ -122,7 +126,7 @@ class AbstractAperture(HardwareObject):
         """
         Sets aperture position based on a position name
 
-        Keyword Args:
+        Args:
             position_name (str): selected position
         """
         if position_name in self._position_list:
@@ -136,7 +140,7 @@ class AbstractAperture(HardwareObject):
         """
         Sets aperture position based on a position index
 
-        Keyword Args:
+        Args:
             position_index (int): selected position index
         """
         if position_index < len(self._position_list):
