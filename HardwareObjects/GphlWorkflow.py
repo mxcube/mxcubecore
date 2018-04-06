@@ -1033,9 +1033,9 @@ class GphlWorkflow(HardwareObject, object):
         else:
             unitCell = None
 
-        space_group = queue_model_enumerables.SPACEGROUP_NUMBERS.get(
-            cp.space_group
-        )
+        obj = queue_model_enumerables.SPACEGROUP_MAP.get(cp.space_group)
+        space_group = obj.number if obj else None
+
         point_group = None
 
         wavelengths = []

@@ -94,11 +94,18 @@ class EMBLMotorsGroup(Device):
         self.server_address = None
         self.group_address = None
         self.motors_list = None
+        self.motors_group_position_dict = None
+        self.motors_group_status_dict = None
+        self.motors_group_foc_mode_dict = None
 
         self.chan_positions = None
         self.chan_status = None
 
     def init(self):
+        self.motors_group_position_dict = {}
+        self.motors_group_status_dict = {}
+        self.motors_group_foc_mode_dict = {}
+
         self.server_address = self.serverAddr
         self.group_address = self.groupAddr
         self.motors_list = []
@@ -126,6 +133,7 @@ class EMBLMotorsGroup(Device):
                 "name": self.positionAddr}, self.positionAddr)
             self.chan_positions.connectSignal('update',
                                               self.positions_changed)
+            self.positions_changed(self.chan_positions.getValue())
         except:
             logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to " + \
                  "add channel %s/%s %s"  %(self.server_address,
@@ -136,6 +144,7 @@ class EMBLMotorsGroup(Device):
                 "tinename": self.server_address + self.group_address,
                 "name": self.statusAddr}, self.statusAddr)
             self.chan_status.connectSignal('update', self.status_changed)
+            self.status_changed(self.chan_status.getValue())
         except:
             logging.getLogger("HWR").warning("EMBLMotorsGroup: unable to " + \
                  "add channel %s/%s %s" % (self.server_address,
@@ -214,11 +223,11 @@ class EMBLMotorsGroup(Device):
            pysignals are emited
 	"""
         do_emit = False
-        values_to_send = {}
-        foc_mode_to_send = {}
+        #values_to_send = {}
+        #foc_mode_to_send = {}
         for motor in self.motors_list:
             old_value = motor['position']
-            if type(positions) == list or type(positions) == tuple:
+            if isinstance(positions, (tuple, list)):
                 new_value = positions[motor['index']]
             else:
                 new_value = positions
@@ -226,24 +235,26 @@ class EMBLMotorsGroup(Device):
                 motor['position'] = new_value
                 do_emit = True
             if do_emit:
-                values_to_send[motor['motorName']] = new_value
+                self.motors_group_position_dict[motor['motorName']] = new_value
                 motor['focMode'] = []
                 for foc_mode in motor['focusingModes']:
                     diff = abs(motor['focusingModes'][foc_mode] - new_value)
                     if diff < motor['evalTolerance']:
                         motor['focMode'].append(foc_mode)
-                foc_mode_to_send[motor['motorName']] = motor['focMode']
+                self.motors_group_foc_mode_dict[motor['motorName']] = motor['focMode']
         if do_emit:
-            self.emit('mGroupPosChanged', str(values_to_send))
-            self.emit('mGroupFocModeChanged', str(foc_mode_to_send))
+            self.emit('mGroupPosChanged', self.motors_group_position_dict)
+            self.emit('mGroupFocModeChanged', self.motors_group_foc_mode_dict)
+
+    def get_detected_foc_mode(self):
+        return self.detected_foc_mode
 
     def status_changed(self, status):
         """Called if motors status is changed. Pysignal with new
            status has been sent"""
-        values_to_send = {}
         for motor in self.motors_list:
             old_status = motor['status']
-            if type(status) == list or type(status) == tuple:
+            if isinstance(status, (tuple, list)):
                 new_status = status[motor['index']]
             else:
                 new_status = status
@@ -251,8 +262,8 @@ class EMBLMotorsGroup(Device):
                 motor['status'] = new_status
                 for status_mode in motor['statusModes']:
                     if motor['statusModes'][status_mode] == new_status:
-                        values_to_send[motor['motorName']] = status_mode
-        self.emit('mGroupStatusChanged', str(values_to_send))
+                        self.motors_group_status_dict[motor['motorName']] = status_mode
+        self.emit('mGroupStatusChanged', self.motors_group_status_dict)
 
     def wait_motor_ready(self, motor_name, timeout):
         """Waits motor ready"""
@@ -267,3 +278,8 @@ class EMBLMotorsGroup(Device):
         for motor in self.motors_list:
             if motor['motorName'] == motor_name:
                 return motor['status'] == motor['statusModes']['Ready']
+
+    def update_values(self):
+        self.emit('mGroupPosChanged', self.motors_group_position_dict)
+        self.emit('mGroupFocModeChanged', self.motors_group_foc_mode_dict)
+        self.emit('mGroupStatusChanged', self.motors_group_status_dict)

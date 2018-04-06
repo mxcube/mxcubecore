@@ -66,6 +66,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.chan_collect_error = None
         self.chan_undulator_gap = None
 
+        self.cmd_collect_compression = None
         self.cmd_collect_description = None
         self.cmd_collect_detector = None
         self.cmd_collect_directory = None
@@ -75,6 +76,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_in_queue = None
         self.cmd_collect_num_images = None
         self.cmd_collect_overlap = None
+        self.cmd_collect_processing = None
         self.cmd_collect_range = None
         self.cmd_collect_raster_lines = None
         self.cmd_collect_raster_range = None
@@ -161,6 +163,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
 
         #Commands to set collection parameters
+        self.cmd_collect_compression = self.getCommandObject('collectCompression')
         self.cmd_collect_description = self.getCommandObject('collectDescription')
         self.cmd_collect_detector = self.getCommandObject('collectDetector')
         self.cmd_collect_directory = self.getCommandObject('collectDirectory')
@@ -170,6 +173,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_in_queue = self.getCommandObject('collectInQueue')
         self.cmd_collect_num_images = self.getCommandObject('collectNumImages')
         self.cmd_collect_overlap = self.getCommandObject('collectOverlap')
+        self.cmd_collect_processing = self.getCommandObject('collectProcessing')
         self.cmd_collect_range = self.getCommandObject('collectRange')
         self.cmd_collect_raster_lines = self.getCommandObject('collectRasterLines')
         self.cmd_collect_raster_range = self.getCommandObject('collectRasterRange')
@@ -213,13 +217,17 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self._collecting = True
 
             osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+            file_info = self.current_dc_parameters["fileinfo"]
+            sample_ref = self.current_dc_parameters['sample_reference']
 
             if self.image_tracking_hwobj is not None:
                 self.image_tracking_hwobj.set_image_tracking_state(True)
+
+            if self.cmd_collect_compression is not None:
+                self.cmd_collect_compression(file_info["compression"])
             self.cmd_collect_description(comment)
             self.cmd_collect_detector(self.detector_hwobj.get_collect_name())
-            self.cmd_collect_directory(str(\
-                 self.current_dc_parameters["fileinfo"]["directory"]))
+            self.cmd_collect_directory(str(file_info["directory"]))
             self.cmd_collect_exposure_time(osc_seq['exposure_time'])
             self.cmd_collect_in_queue(self.current_dc_parameters['in_queue'] != False)
             self.cmd_collect_overlap(osc_seq['overlap'])
@@ -234,14 +242,18 @@ class EMBLCollect(AbstractCollect, HardwareObject):
             self.cmd_collect_range(osc_seq['range'])
             if self.current_dc_parameters['experiment_type'] != 'Mesh':
                 self.cmd_collect_num_images(osc_seq['number_of_images'])
+
+            if self.cmd_collect_processing is not None:
+                #self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"] in ("MeshScan", "XrayCentering"))
+                self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"] is not None)
             self.cmd_collect_start_angle(osc_seq['start'])
             self.cmd_collect_start_image(osc_seq['start_image_number'])
-            self.cmd_collect_template(str(self.current_dc_parameters['fileinfo']['template']))
-            space_group = str(self.current_dc_parameters['sample_reference']['spacegroup'])
+            self.cmd_collect_template(str(file_info['template']))
+            space_group = str(sample_ref['spacegroup'])
             if len(space_group) == 0:
                 space_group = " "
             self.cmd_collect_space_group(space_group)
-            unit_cell = list(eval(self.current_dc_parameters['sample_reference']['cell']))
+            unit_cell = list(eval(sample_ref['cell']))
             self.cmd_collect_unit_cell(unit_cell)
 
             if self.current_dc_parameters['experiment_type'] == 'OSC':
@@ -336,11 +348,10 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         :param frame: frame num.
         :type frame: int
         """
-
         if self._collecting:
             self.collect_frame = frame
             number_of_images = self.current_dc_parameters\
-                 ['oscillation_sequence'][0]['number_of_images']
+              ['oscillation_sequence'][0]['number_of_images']
             self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
             self.emit("collectImageTaken", frame)
 
