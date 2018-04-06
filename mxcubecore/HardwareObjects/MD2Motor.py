@@ -2,16 +2,14 @@ import logging
 import time
 from gevent import Timeout
 from AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import Device
 
 class MD2TimeoutError(Exception):
     pass
 
-class MD2Motor(AbstractMotor, Device):
+class MD2Motor(AbstractMotor):
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
-        Device.__init__(self, name)
+        AbstractMotor.__init__(self, name)
 
         self.motor_pos_attr_suffix = "Position"
 

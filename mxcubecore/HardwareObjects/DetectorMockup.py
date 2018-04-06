@@ -31,7 +31,7 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
     def get_distance(self):
-        return self.distance_motor_hwobj.getPosition()
+        return self.distance_motor_hwobj.get_position()
 
     def set_distance(self, position, timeout=None):
         self.distance_motor_hwobj.move(position, wait=True)

@@ -3,6 +3,7 @@ from ConvertUtils import h_over_e
 
 from HardwareRepository.BaseHardwareObjects import Equipment
 
+h_over_e = 12.3984
 
 class EnergyMockup(Equipment):
    def init(self):

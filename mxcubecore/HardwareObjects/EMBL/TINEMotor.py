@@ -201,9 +201,4 @@ class TINEMotor(AbstractMotor):
         if self.cmd_set_online:
             self.cmd_set_online(0)
             gevent.sleep(2)
-
-    def update_values(self):
-        self.emit('stateChanged', (self.get_state(), ))
-        self.emit('positionChanged', (self.get_position(), ))
-        self.emit('limitsChanged', (self.get_limits(), ))
-
+            
