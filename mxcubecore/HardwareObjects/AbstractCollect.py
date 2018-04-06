@@ -183,14 +183,13 @@ class AbstractCollect(object):
                      self.current_dc_parameters["detdistance"])
             self.move_detector(self.current_dc_parameters["detdistance"])
 
-        # Log collection position
-        # NB Making copy since positions isn an internal dictionary BAD!!
+        # Log collection start position
         ss = ', '.join(
             '%s=%s' % tt
             for tt in sorted(self.diffractometer_hwobj.getPositions().items())
             if tt[1] is not None
         )
-        log.info("Collecting at : " + ss)
+        log.debug("Start collecting at : " + ss)
 
         # In order to call the hook with original parameters
         # before update_data_collection_in_lims changes them
@@ -204,6 +203,13 @@ class AbstractCollect(object):
         self.close_fast_shutter()
         self.close_safety_shutter()
         self.close_detector_cover()
+
+        ss = ', '.join(
+            '%s=%s' % tt
+            for tt in sorted(self.diffractometer_hwobj.getPositions().items())
+            if tt[1] is not None
+        )
+        log.debug("Finished collecting at : " + ss)
 
     def data_collection_cleanup(self, owner="MXCuBE"):
         """
@@ -635,7 +641,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         positions_str = ""
-        for motor, position in self.current_dc_parameters['motors'].iteritems():
+        for motor, position in sorted(self.current_dc_parameters['motors'].iteritems()):
             if position:
                 if isinstance(motor, str):
                     positions_str += " %s=%f" % (motor, position)
