@@ -21,7 +21,6 @@ import time
 import gevent
 
 from AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["The MxCuBE collaboration"]
@@ -39,11 +38,10 @@ Example of xml config file
 </device>
 """
 
-class MotorMockup(AbstractMotor, HardwareObject):
+class MotorMockup(AbstractMotor):
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractMotor.__init__(self, name)
 
         self.__move_task = None
 
@@ -100,7 +98,3 @@ class MotorMockup(AbstractMotor, HardwareObject):
     def stop(self):
         if self.__move_task is not None:
             self.__move_task.kill()
-
-    def update_values(self):
-        self.emit('stateChanged', (self.get_state(), ))
-        self.emit('positionChanged', (self.get_position(), ))

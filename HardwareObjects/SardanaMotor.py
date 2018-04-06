@@ -1,6 +1,5 @@
 import logging
 import time
-from HardwareRepository.BaseHardwareObjects import Device
 from AbstractMotor import AbstractMotor
 from gevent import Timeout
 
@@ -16,7 +15,7 @@ taurusname is the only obligatory property.
 </device>
 """
 
-class SardanaMotor(AbstractMotor, Device):
+class SardanaMotor(AbstractMotor):
 
     suffix_position = "Position"
     suffix_state = "State"
@@ -40,8 +39,7 @@ class SardanaMotor(AbstractMotor, Device):
     }
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
-        Device.__init__(self, name)
+        AbstractMotor.__init__(self, name)
         self.stop_command = None
         self.position_channel = None
         self.state_channel = None
