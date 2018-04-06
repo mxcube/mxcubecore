@@ -142,8 +142,8 @@ class EMBLSlitBox(HardwareObject):
         self.motors_dict = None
         self.init_max_gaps = None
         self.motors_groups = None
-        self.hor_gap = False
-        self.ver_gap = False
+        self.hor_gap_enabled = False
+        self.ver_gap_enabled = False
 
     def init(self):
         self.decimal_places = 6
@@ -182,14 +182,16 @@ class EMBLSlitBox(HardwareObject):
                      self.motors_group_position_changed)
                 self.connect(motor_group, 'mGroupStatusChanged',
                      self.motors_group_status_changed)
+                motor_group.update_values()
 
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
         if self.beam_focus_hwobj:
             self.connect(self.beam_focus_hwobj,
                          'focusingModeChanged',
                          self.focus_mode_changed)
-            self.active_focus_mode, size = self.beam_focus_hwobj.get_active_focus_mode()
-            self.focus_mode_changed(self.active_focus_mode, size)
+            #self.active_focus_mode, size = self.beam_focus_hwobj.get_active_focus_mode()
+            #self.focus_mode_changed(self.active_focus_mode, size)
+            self.beam_focus_hwobj.update_values() 
         else:
             logging.getLogger("HWR").debug(\
                 'EMBLSlitBox: beamFocus HO not defined')
@@ -233,7 +235,6 @@ class EMBLSlitBox(HardwareObject):
 
     def motors_group_status_changed(self, new_status_dict):
         """Methof called if motors group status is changed"""
-        new_status_dict = eval(new_status_dict)
         for motor in new_status_dict:
             if motor in self.motors_dict:
                 self.motors_dict[motor]['status'] = new_status_dict[motor]
@@ -244,7 +245,7 @@ class EMBLSlitBox(HardwareObject):
 
     def motors_group_position_changed(self, new_positions_dict):
         """Method called if one or sever motors value/s are changed"""
-        new_positions_dict = eval(new_positions_dict)
+        #new_positions_dict = eval(new_positions_dict)
         do_update = False
         for motor in new_positions_dict:
             #compare values
@@ -319,19 +320,16 @@ class EMBLSlitBox(HardwareObject):
                     motors_group.set_motor_focus_mode(motor, focus_mode)
 
     def focus_mode_changed(self, new_focus_mode, size):
-        """Called if focusing mode is changed"""
+        """Called if focusing mode is changed""" 
         if self.active_focus_mode != new_focus_mode:
-            self.hor_gap = False
-            self.ver_gap = False
             self.active_focus_mode = new_focus_mode
             if self.active_focus_mode is not None:
-                if self.active_focus_mode in \
-                   self.gaps_dict['Hor']['modesAllowed']:
-                    self.hor_gap = True
-                if self.active_focus_mode in \
-                   self.gaps_dict['Ver']['modesAllowed']:
-                    self.ver_gap = True
-            self.emit('focusModeChanged', (self.hor_gap, self.ver_gap))
+                self.hor_gap_enabled = self.active_focus_mode in \
+                   self.gaps_dict['Hor']['modesAllowed']
+                self.ver_gap_enabled = self.active_focus_mode in \
+                   self.gaps_dict['Ver']['modesAllowed']
+            self.emit('focusModeChanged', (self.hor_gap_enabled,
+                                           self.ver_gap_enabled))
 
     def set_gaps_limits(self, new_gaps_limits):
         """Sets max gap Limits"""
@@ -345,6 +343,9 @@ class EMBLSlitBox(HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-        self.emit('focusModeChanged', (self.hor_gap, self.ver_gap))
+        self.emit('focusModeChanged', (self.hor_gap_enabled,
+                                       self.ver_gap_enabled))
         self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
                                      self.gaps_dict['Ver']['value']])
+        self.emit('statusChanged', (self.gaps_dict['Hor']['status'],
+                                    self.gaps_dict['Ver']['status']))

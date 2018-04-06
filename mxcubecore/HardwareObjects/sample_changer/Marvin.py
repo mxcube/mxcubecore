@@ -156,14 +156,14 @@ class Marvin(SampleChanger):
 
         self.chan_puck_switches = self.getChannelObject("chanPuckSwitches")
         self.chan_puck_switches.connectSignal("update", self.puck_switches_changed)
-
+        
         self.chan_status = self.getChannelObject("chanStatusList")
         self.chan_status.connectSignal("update", self.status_list_changed)
 
         self.chan_sample_is_loaded = self.getChannelObject("chanSampleIsLoaded")
         self.chan_sample_is_loaded.connectSignal("update", self.sample_is_loaded_changed)
 
-        self.chan_veto = self.getChannelObject("chanVeto")
+        self.chan_veto = self.getChannelObject("chanVeto", optional=True)
         if self.chan_veto is not None:
             self.chan_veto.connectSignal("update", self.veto_changed)
 
@@ -202,7 +202,8 @@ class Marvin(SampleChanger):
         SampleChanger.init(self)
 
         self._setState(SampleChangerState.Ready)
-        #self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
+        self.puck_switches_changed(self.chan_puck_switches.getValue())
+        self.mounted_sample_puck_changed(self.chan_mounted_sample_puck.getValue())
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
 
     def get_status_str_desc(self):
@@ -238,9 +239,8 @@ class Marvin(SampleChanger):
             self.updateInfo()
 
     def is_sample_on_gonio(self):
-        gevent.sleep(1)
         first_try = self.chan_sample_is_loaded.getValue()
-        gevent.sleep(1)
+        gevent.sleep(0.1)
         second_try = self.chan_sample_is_loaded.getValue()
         return first_try or second_try
 
@@ -395,7 +395,7 @@ class Marvin(SampleChanger):
         msg = "Sample changer: Loading sample %d:%d" %(\
                int(basket_index), int(sample_index))
         log.warning(msg + " Please wait...")
-        self.emit("progressInit", (msg, 100))
+        self.emit("progressInit", (msg, 100, False))
 
         # 2. Set diffractometer transfer phase
         if self.diffractometer_hwobj.get_current_phase() != \
@@ -512,7 +512,7 @@ class Marvin(SampleChanger):
         msg = "Sample changer: Unloading sample %d:%d" %(\
                basket_index, sample_index)
         log.warning(msg + ". Please wait...")
-        self.emit("progressInit", (msg, 100))
+        self.emit("progressInit", (msg, 100, False))
 
         if self.diffractometer_hwobj.get_current_phase() != \
            self.diffractometer_hwobj.PHASE_TRANSFER:
@@ -709,6 +709,7 @@ class Marvin(SampleChanger):
         """
         Updates loaded sample
         """
+
         if self._sample_detected and \
            self._mounted_sample > -1 and \
            self._mounted_puck > -1 and \
@@ -723,6 +724,7 @@ class Marvin(SampleChanger):
                                               self._mounted_sample + 1))   
         else:
             new_sample = None
+
         if self.getLoadedSample() != new_sample:
             old_sample = self.getLoadedSample()
             if old_sample is not None:
@@ -850,10 +852,16 @@ class Marvin(SampleChanger):
                 except:
                    pass
             elif prop_name == "CPuck":
-                centre_puck = prop_value == "1"
+                if prop_value == "1":
+                    centre_puck = True
+                elif prop_value == "0":
+                    centre_puck = False
+
                 if centre_puck != self._centre_puck:
                     self._centre_puck = centre_puck
                     self._info_dict["centre_puck"] = self._centre_puck
+                    self._updateSCContents()
+                    self._updateLoadedSample()
             elif prop_name == "Lid":
                 self._info_dict["lid_opened"] = prop_value == "Opn"
             elif prop_name == "Err":
@@ -881,4 +889,5 @@ class Marvin(SampleChanger):
     def update_values(self):
         self.emit("statusListChanged", self._status_list)
         self.emit("infoDictChanged", self._info_dict)
-        self._updateLoadedSample()
+        self._triggerInfoChangedEvent()
+        self._triggerSelectionChangedEvent()

@@ -267,7 +267,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         Descript. :
         """
         if self.omega_reference_motor is not None:
-            reference_pos = self.omega_reference_motor.getPosition()
+            reference_pos = self.omega_reference_motor.get_position()
             self.omega_reference_motor_moved(reference_pos)
 
     def update_pixels_per_mm(self, *args):
@@ -295,7 +295,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                       GenericDiffractometer.PHASE_BEAM) or \
             self.current_phase in (GenericDiffractometer.PHASE_TRANSFER,
                                    GenericDiffractometer.PHASE_BEAM)):
-            detector_distance = self.detector_distance_motor_hwobj.getPosition()
+            detector_distance = self.detector_distance_motor_hwobj.get_position()
             logging.getLogger("HWR").debug(
                 "Diffractometer current phase: %s " % self.current_phase + \
                 "selected phase: %s" % phase + \
@@ -388,13 +388,12 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict['phi'].move(dynamic_limits[0] + 0.5)
                 elif click == 1:
                     self.motor_hwobj_dict['phi'].move(dynamic_limits[1] - 0.5)
-                
-                #elif click == 2:
-                #    self.motor_hwobj_dict['phi'].move((dynamic_limits[0] + \
-                #                                       dynamic_limits[1]) / 2.)
+                elif click == 2:
+                    self.motor_hwobj_dict['phi'].move((dynamic_limits[0] + \
+                                                       dynamic_limits[1]) / 2.)
             else:
                 if click < 2:
-                    self.motor_hwobj_dict['phi'].moveRelative(90)
+                    self.motor_hwobj_dict['phi'].move_relative(90)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -404,7 +403,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         self.wait_device_ready(20) 
         surface_score_list = []
-        self.zoom_motor_hwobj.moveToPosition("Zoom 1")
+        self.zoom_motor_hwobj.move_to_position("Zoom 1")
         self.centring_hwobj.initCentringProcedure()
         for image in range(EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES):
             x, y, score = self.find_loop()
@@ -413,10 +412,10 @@ class EMBLMiniDiff(GenericDiffractometer):
                     {"X": (x - self.beam_position[0])/ self.pixels_per_mm_x,
                      "Y": (y - self.beam_position[1])/ self.pixels_per_mm_y})
             surface_score_list.append(score)
-            self.motor_hwobj_dict['phi'].moveRelative(\
+            self.motor_hwobj_dict['phi'].move_relative(\
                  360.0 / EMBLMiniDiff.AUTOMATIC_CENTRING_IMAGES)
             gevent.sleep(0.01)
-            self.wait_device_ready(10)
+            self.wait_device_ready(15)
         self.omega_reference_add_constraint()
         centred_pos_dir = self.centring_hwobj.centeredPosition(return_by_name=False)
         #self.emit("newAutomaticCentringPoint", centred_pos_dir)
@@ -432,8 +431,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         #kappa = self.current_motor_positions["kappa"] 
         #phi = self.current_motor_positions["kappa_phi"] 
 
-        kappa = self.motor_hwobj_dict['kappa'].getPosition()
-        phi = self.motor_hwobj_dict['kappa_phi'].getPosition()
+        kappa = self.motor_hwobj_dict['kappa'].get_position()
+        phi = self.motor_hwobj_dict['kappa_phi'].get_position()
         #IK TODO remove this director call
 
         if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
@@ -493,8 +492,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Descript. :
         """ 
-        kappa = self.motor_hwobj_dict['kappa'].getPosition()
-        kappa_phi = self.motor_hwobj_dict['kappa_phi'].getPosition()
+        kappa = self.motor_hwobj_dict['kappa'].get_position()
+        kappa_phi = self.motor_hwobj_dict['kappa_phi'].get_position()
 
         if new_kappa is None:
             new_kappa = kappa
@@ -505,9 +504,9 @@ class EMBLMiniDiff(GenericDiffractometer):
 
         if (kappa, kappa_phi ) != (new_kappa, new_kappa_phi) \
          and self.minikappa_correction_hwobj is not None:
-            sampx = self.motor_hwobj_dict['sampx'].getPosition()
-            sampy = self.motor_hwobj_dict['sampy'].getPosition()
-            phiy = self.motor_hwobj_dict['phiy'].getPosition()
+            sampx = self.motor_hwobj_dict['sampx'].get_position()
+            sampy = self.motor_hwobj_dict['sampy'].get_position()
+            phiy = self.motor_hwobj_dict['phiy'].get_position()
             new_sampx, new_sampy, new_phiy = self.minikappa_correction_hwobj.shift( 
                  kappa, kappa_phi, [sampx, sampy, phiy] , new_kappa, new_kappa_phi)
             
@@ -527,7 +526,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             try:
                 motors[motor_role] = motor_pos[mot_obj]
             except KeyError:
-                motors[motor_role] = mot_obj.getPosition()
+                motors[motor_role] = mot_obj.get_position()
         motors["beam_x"] = (self.beam_position[0] - \
                             self.zoom_centre['x'] )/self.pixels_per_mm_y
         motors["beam_y"] = (self.beam_position[1] - \
@@ -544,8 +543,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             t1 = [point_1.sampx, point_1.sampy, point_1.phiy]
             t2 = [point_2.sampx, point_2.sampy, point_2.phiy]
-            kappa = self.motor_hwobj_dict['kappa'].getPosition()
-            phi = self.motor_hwobj_dict['kappa_phi'].getPosition()
+            kappa = self.motor_hwobj_dict['kappa'].get_position()
+            phi = self.motor_hwobj_dict['kappa_phi'].get_position()
             new_kappa, new_phi, (new_sampx, new_sampy, new_phiy) = \
                  self.minikappa_correction_hwobj.alignVector(t1,t2,kappa,phi)
             self.move_to_motors_positions({self.motor_hwobj_dict['kappa'] : new_kappa, 
@@ -582,7 +581,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         Description:
         """
-        self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
+        self.motor_hwobj_dict['phi'].move_relative(relative_angle, timeout=5)
 
     def close_kappa(self):
         """
@@ -606,7 +605,7 @@ class EMBLMiniDiff(GenericDiffractometer):
     def set_zoom(self, position): 
         """
         """
-        self.zoom_motor_hwobj.moveToPosition(position)
+        self.zoom_motor_hwobj.move_to_position(position)
 
     def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
         """
@@ -625,11 +624,15 @@ class EMBLMiniDiff(GenericDiffractometer):
             new_point[motor] = new_motor_pos
         return new_point
 
-    def get_osc_limits(self):
-        return self.motor_hwobj_dict['phi'].getDynamicLimits()
+    def get_osc_limits(self, speed=None):
+        if speed:
+            limits = self.cmd_get_omega_scan_limits(speed)
+        else:
+            limits = self.motor_hwobj_dict['phi'].get_dynamic_limits()
+        return (min(limits), max(limits))
 
     def get_osc_max_speed(self):
-        return self.motor_hwobj_dict['phi'].getMaxSpeed()
+        return self.motor_hwobj_dict['phi'].get_max_speed()
 
 
     def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
@@ -638,20 +641,26 @@ class EMBLMiniDiff(GenericDiffractometer):
         where osc range is limited
         """
         if speed is not None:
-            return self.cmd_get_omega_scan_limits(speed), None
+            limits = self.cmd_get_omega_scan_limits(speed)
+            return (min(limits), max(limits)), None
         total_exposure_time = num_images * exp_time
         tmp = self.cmd_get_omega_scan_limits(0)
         max_speed = self.get_osc_max_speed()
-        w0 = tmp[0]
-        w1 = tmp[1]
+        print tmp, max_speed 
+        w0 = tmp[1]
+        w1 = tmp[0]
         x1 = 10
         x2 = 100
         
-        c1 = self.cmd_get_omega_scan_limits(x1)[0] - w0
-        c2 = self.cmd_get_omega_scan_limits(x2)[0] - w0
+        c1 = min(self.cmd_get_omega_scan_limits(x1)) - w0
+        c2 = min(self.cmd_get_omega_scan_limits(x2)) - w0
+
+        print c1, c2
 
         a = -(c2 * x1 - c1 * x2)/(x1 * x2 * (x1 -x2))
         b = -(-c2 * pow(x1, 2) + c1 * pow(x2, 2))/(x1 *x2 * (x1 - x2))
+ 
+        print ((2*b+total_exposure_time)**2-8*a*(w0-w1)),a,w0,w1
 
         result_speed = (-2*b-total_exposure_time+sqrt((2*b+total_exposure_time)**2-8*a*(w0-w1))) /4/a
         if result_speed < 0:

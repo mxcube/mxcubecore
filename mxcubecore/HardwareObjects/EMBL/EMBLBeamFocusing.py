@@ -49,6 +49,9 @@ class EMBLBeamFocusing(HardwareObject):
         """Reads available focusing modes from the config xml and
            attaches corresponding motors
         """
+
+        self.cmd_set_calibration_name = self.getCommandObject(\
+            'cmdSetCalibrationName')
         self.focus_modes = []
         for focus_mode in self['focusModes']:
             self.focus_modes.append(\
@@ -78,14 +81,14 @@ class EMBLBeamFocusing(HardwareObject):
                 self.connect(motors_group,
                              'mGroupFocModeChanged',
                              self.motor_group_focus_mode_changed)
+                motors_group.update_values()
+                #self.motor_group_focus_mode_changed(motors_group.get_detected_foc_mode())
         else:
             logging.getLogger("HWR").debug('BeamFocusing: No motors defined')
             self.active_focus_mode = self.focus_modes[0]['modeName']
             self.size = self.focus_modes[0]['size']
-            self.update_values()
+        self.update_values()
 
-        self.cmd_set_calibration_name = self.getCommandObject(\
-            'cmdSetCallibrationName')
         try:
             self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
         except:
@@ -109,7 +112,8 @@ class EMBLBeamFocusing(HardwareObject):
         :param value: focusing mode
         :type value: str or None
         """
-        motors_group_foc_mode = eval(value)
+        #motors_group_foc_mode = eval(value)
+        motors_group_foc_mode = value
         for motor in motors_group_foc_mode:
             if motor in self.focus_motors_dict:
                 self.focus_motors_dict[motor] = motors_group_foc_mode[motor]
@@ -123,7 +127,6 @@ class EMBLBeamFocusing(HardwareObject):
                                               self.active_focus_mode)
             self.emit('focusingModeChanged', self.active_focus_mode, self.size)
             if self.active_focus_mode:
-                print "calib mode send: ", self.active_focus_mode.lower()
                 self.cmd_set_calibration_name(self.active_focus_mode.lower())
 
     def get_focus_mode_names(self):

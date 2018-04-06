@@ -70,8 +70,6 @@ class EMBLSafetyShutter(Device):
         self.chan_state_closed.connectSignal('update',
              self.state_closed_changed)
 
-        self.state_open_changed(self.chan_state_open.getValue())
-
         self.chan_state_open_permission = self.getChannelObject('chanStateOpenPermission')
         self.chan_state_open_permission.connectSignal('update',
              self.state_open_permission_changed)
@@ -79,6 +77,7 @@ class EMBLSafetyShutter(Device):
 
         self.chan_ics_error = self.getChannelObject('chanIcsError')
         self.chan_ics_error.connectSignal('update', self.ics_error_msg_changed)
+        self.ics_error_msg_changed(self.chan_ics_error.getValue())
 
         self.chan_cmd_close_error = self.getChannelObject('chanCmdCloseError')
         if self.chan_cmd_close_error is not None:
@@ -97,6 +96,8 @@ class EMBLSafetyShutter(Device):
             self.use_shutter = True
 
         self.getWagoState = self.getShutterState
+
+        self.state_open_changed(self.chan_state_open.getValue())
 
     def connected(self):
         self.setIsReady(True)
