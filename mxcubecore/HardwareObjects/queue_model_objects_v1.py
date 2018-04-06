@@ -1125,7 +1125,7 @@ class SampleCentring(TaskNode):
         return self._centring_result
 
     def set_centring_result(self, value):
-        if isinstance(value, (CentredPosition, None)):
+        if value is None or isinstance(value, CentredPosition):
             self._centring_result = value
         else:
             raise TypeError(
