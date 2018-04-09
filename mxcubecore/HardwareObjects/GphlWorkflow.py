@@ -1071,7 +1071,7 @@ class GphlWorkflow(HardwareObject, object):
         if beam_energies:
             ll.extend('%s=%s' % (x.role, x.wavelength) for x in wavelengths)
         if cell_params:
-            ll.append('cell_parameters=%s' % cell_params)
+            ll.append('cell_parameters=%s' % (cell_params,))
         logging.getLogger('HWR').debug(', '.join(ll))
 
         # Look for existing uuid
