@@ -770,7 +770,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
             self.diffractometer_hwobj.move_motors(dd)
 
         #TODO agree on correct message
-        log.warning("Please center a new point, and press continue.")
+        log.warning("Please center a new or select an existing point and press continue.")
         #log.warning("Please select a centred position, and press continue.")
 
         self.get_queue_controller().pause(True)
@@ -1965,7 +1965,7 @@ def mount_sample(beamline_setup_hwobj,
         dm = beamline_setup_hwobj.diffractometer_hwobj
         if dm is not None:
             if hasattr(sample_mount_device, '__TYPE__'):
-                if sample_mount_device.__TYPE__  in ('Marvin', 'PlateManipulator'):
+                if sample_mount_device.__TYPE__  in ('Marvin', 'PlateManipulator', 'Mockup'):
                     return
             try:
                 dm.connect("centringAccepted", centring_done_cb)
