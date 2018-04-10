@@ -202,8 +202,6 @@ class AbstractCollect(object):
         """
         Method called when an error is raised during the collectin.        
         """
-
-        print 444
         logging.exception("Data collection failed")
         self.current_dc_parameters["status"] = 'failed'
         exc_type, exc_value, exc_tb = sys.exc_info()
