@@ -121,92 +121,94 @@ class AbstractCollect(object):
         self.emit("progressInit", ("Collection", 100, False))
         self.collection_id = None
 
-        # ----------------------------------------------------------------
-        self.open_detector_cover()
-        self.open_safety_shutter()
-        self.open_fast_shutter()
+        with cleanup(self.data_collection_cleanup):
+            # ----------------------------------------------------------------
+            self.open_detector_cover()
+            self.open_safety_shutter()
+            self.open_fast_shutter()
 
-        # ----------------------------------------------------------------
-        self.current_dc_parameters["status"] = "Running"
-        self.current_dc_parameters["collection_start_time"] = \
-             time.strftime("%Y-%m-%d %H:%M:%S")
+            # ----------------------------------------------------------------
+            self.current_dc_parameters["status"] = "Running"
+            self.current_dc_parameters["collection_start_time"] = \
+                 time.strftime("%Y-%m-%d %H:%M:%S")
 
-        logging.getLogger("HWR").info("Collection parameters: %s" % str(self.current_dc_parameters))
-     
-        log.info("Collection: Storing data collection in LIMS") 
-        self.store_data_collection_in_lims()
+            logging.getLogger("HWR").info("Collection parameters: %s" % \
+                                          str(self.current_dc_parameters))
+
+            log.info("Collection: Storing data collection in LIMS") 
+            self.store_data_collection_in_lims()
        
-        log.info("Collection: Creating directories for raw images and processing files") 
-        self.create_file_directories()
+            log.info("Collection: Creating directories for raw images and processing files") 
+            self.create_file_directories()
 
-        log.info("Collection: Getting sample info from parameters") 
-        self.get_sample_info()
+            log.info("Collection: Getting sample info from parameters") 
+            self.get_sample_info()
         
-        #log.info("Collect: Storing sample info in LIMS")        
-        #self.store_sample_info_in_lims()
+            #log.info("Collect: Storing sample info in LIMS")        
+            #self.store_sample_info_in_lims()
 
-        if all(item == None for item in self.current_dc_parameters['motors'].values()):
-            # No centring point defined
-            # create point based on the current position
-            current_diffractometer_position = self.diffractometer_hwobj.getPositions()
-            for motor in self.current_dc_parameters['motors'].keys():
-                self.current_dc_parameters['motors'][motor] = \
-                     current_diffractometer_position.get(motor) 
+            if all(item == None for item in self.current_dc_parameters['motors'].values()):
+                # No centring point defined
+                # create point based on the current position
+                current_diffractometer_position = self.diffractometer_hwobj.getPositions()
+                for motor in self.current_dc_parameters['motors'].keys():
+                    self.current_dc_parameters['motors'][motor] = \
+                         current_diffractometer_position.get(motor) 
 
-        log.info("Collection: Moving to centred position") 
-        self.move_to_centered_position()
-        self.take_crystal_snapshots()
-        self.move_to_centered_position()
+            log.info("Collection: Moving to centred position") 
+            self.move_to_centered_position()
+            self.take_crystal_snapshots()
+            self.move_to_centered_position()
 
-        if "transmission" in self.current_dc_parameters:
-            log.info("Collection: Setting transmission to %.2f",
-                     self.current_dc_parameters["transmission"])
-            self.set_transmission(self.current_dc_parameters["transmission"])
+            if "transmission" in self.current_dc_parameters:
+                log.info("Collection: Setting transmission to %.2f",
+                         self.current_dc_parameters["transmission"])
+                self.set_transmission(self.current_dc_parameters["transmission"])
 
-        if "wavelength" in self.current_dc_parameters:
-            log.info("Collection: Setting wavelength to %.4f", \
-                     self.current_dc_parameters["wavelength"])
-            self.set_wavelength(self.current_dc_parameters["wavelength"])
+            if "wavelength" in self.current_dc_parameters:
+                log.info("Collection: Setting wavelength to %.4f", \
+                         self.current_dc_parameters["wavelength"])
+                self.set_wavelength(self.current_dc_parameters["wavelength"])
 
-        elif "energy" in self.current_dc_parameters:
-            log.info("Collection: Setting energy to %.4f",
-                     self.current_dc_parameters["energy"])
-            self.set_energy(self.current_dc_parameters["energy"])
+            elif "energy" in self.current_dc_parameters:
+                log.info("Collection: Setting energy to %.4f",
+                         self.current_dc_parameters["energy"])
+                self.set_energy(self.current_dc_parameters["energy"])
 
-        if "resolution" in self.current_dc_parameters:
-            resolution = self.current_dc_parameters["resolution"]["upper"]
-            log.info("Collection: Setting resolution to %.3f", resolution)
-            self.set_resolution(resolution)
+            if "resolution" in self.current_dc_parameters:
+                resolution = self.current_dc_parameters["resolution"]["upper"]
+                log.info("Collection: Setting resolution to %.3f", resolution)
+                self.set_resolution(resolution)
 
-        elif 'detdistance' in self.current_dc_parameters:
-            log.info("Collection: Moving detector to %.2f",
-                     self.current_dc_parameters["detdistance"])
-            self.move_detector(self.current_dc_parameters["detdistance"])
+            elif 'detdistance' in self.current_dc_parameters:
+                log.info("Collection: Moving detector to %.2f",
+                         self.current_dc_parameters["detdistance"])
+                self.move_detector(self.current_dc_parameters["detdistance"])
 
-        # In order to call the hook with original parameters
-        # before update_data_collection_in_lims changes them
-        # TODO check why this happens
-        self.data_collection_hook()
+            # In order to call the hook with original parameters
+            # before update_data_collection_in_lims changes them
+            # TODO check why this happens
+            self.data_collection_hook()
 
-        log.info("Collection: Updating data collection in LIMS")
-        self.update_data_collection_in_lims()
-        # ----------------------------------------------------------------
+            log.info("Collection: Updating data collection in LIMS")
+            self.update_data_collection_in_lims()
+            # ----------------------------------------------------------------
 
-        self.close_fast_shutter()
-        self.close_safety_shutter()
-        self.close_detector_cover()
+            self.close_fast_shutter()
+            self.close_safety_shutter()
+            self.close_detector_cover()
 
     def data_collection_cleanup(self, owner="MXCuBE"):
         """
         Method called when an error is raised during the collectin.        
         """
-
         logging.exception("Data collection failed")
         self.current_dc_parameters["status"] = 'failed'
         exc_type, exc_value, exc_tb = sys.exc_info()
         failed_msg = 'Data collection failed!\n%s' % exc_value
-        self.emit("collectOscillationFailed", (owner, False, failed_msg, 
-           self.current_dc_parameters.get('collection_id'), 1))
+        #self.emit("collectOscillationFailed", (owner, False, failed_msg, 
+        #   self.current_dc_parameters.get('collection_id'), 1))
+        self.collection_failed(failed_msg)
 
     def collection_failed(self, failed_msg=None):
         """Collection failed method"""
@@ -599,8 +601,11 @@ class AbstractCollect(object):
         self.current_dc_parameters['blSampleId'] = sample_id
 
         if self.diffractometer_hwobj.in_plate_mode():
-            plate_location = self.plate_manipulator_hwobj.get_plate_location()
-            self.current_dc_parameters["actualSampleBarcode"] = "Plate %s" % str(plate_location)
+            try:
+                plate_location = self.plate_manipulator_hwobj.get_plate_location()
+                self.current_dc_parameters["actualSampleBarcode"] = "Plate %s" % str(plate_location[:40])
+            except:
+                self.current_dc_parameters["actualSampleBarcode"] = None
         elif self.sample_changer_hwobj:
             try:
                 self.current_dc_parameters["actualSampleBarcode"] = \
