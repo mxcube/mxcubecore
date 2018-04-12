@@ -44,3 +44,22 @@ class ApertureMockup(AbstractAperture):
 
         self.set_position_index(0)
         self.set_diameter_index(0)
+
+    def set_in(self):
+        """
+        Sets aperture in the beam
+        """
+        self.set_position("BEAM")
+
+    def set_out(self):
+        """
+        Removes aperture from the beam
+        """
+        self.set_position("OFF")
+
+    def is_out(self):
+        """
+        Returns:
+            bool: True if aperture is in the beam, otherwise returns false
+        """
+        return self._current_position_name != "BEAM"

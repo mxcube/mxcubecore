@@ -156,20 +156,20 @@ class AbstractAperture(HardwareObject):
         """
         Sets aperture in the beam
         """
-        self.set_position("BEAM")
+        pass
 
     def set_out(self):
         """
         Removes aperture from the beam
         """
-        self.set_position("OFF")
+        pass
 
     def is_out(self):
         """
         Returns:
             bool: True if aperture is in the beam, otherwise returns false
         """
-        return self._current_position_name != "BEAM"
+        pass
 
     def update_values(self):
         """
