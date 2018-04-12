@@ -5,23 +5,24 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from AbstractAperture import AbstractAperture
 
 
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
+__license__ = "LGPLv3"
 
 
 """
@@ -33,6 +34,9 @@ xml example:
 </device>
 """
 
+DEFAULT_POSITION_LIST = ["BEAM", "OFF", "PARK"]
+DEFAULT_DIAMETER_SIZE_LIST = [5, 10, 20, 30, 50, 100]
+
 
 class ApertureMockup(AbstractAperture):
 
@@ -40,7 +44,20 @@ class ApertureMockup(AbstractAperture):
         AbstractAperture.__init__(self, name)
 
     def init(self):
-        AbstractAperture.init(self)
+        try:
+            self._diameter_size_list = \
+                eval(self.getProperty("diameter_size_list"))
+        except:
+            self._diameter_size_list = DEFAULT_DIAMETER_SIZE_LIST
+            logging.getLogger("HWR").error(\
+                "Aperture: no diameter size list defined, using default list")
+
+        try:
+            self._position_list = eval(self.getProperty("position_list"))
+        except:
+            self._position_list = DEFAULT_POSITION_LIST
+            logging.getLogger("HWR").error(\
+                "Aperture: no position list defined, using default list")
 
         self.set_position_index(0)
         self.set_diameter_index(0)
