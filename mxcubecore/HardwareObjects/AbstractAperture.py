@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -23,6 +23,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["MXCuBE colaboration"]
+__license__ = "LGPLv3"
 
 
 class AbstractAperture(HardwareObject):
@@ -121,6 +122,10 @@ class AbstractAperture(HardwareObject):
             str: current position as str
         """
         return self._current_position_name
+
+    def set_position(self, position_index):
+        #TODO remove this method
+        self.set_position_index(position_index)
 
     def set_position_name(self, position_name):
         """
