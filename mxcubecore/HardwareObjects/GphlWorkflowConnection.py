@@ -201,7 +201,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
         if calibration_name:
-            # Expand calibration base name
+            # Expand calibration base name - to simplify identification.
             workflow_options['calibration'] = (
                 '%s_%s' % (calibration_name,  workflow_model_obj.get_name())
             )

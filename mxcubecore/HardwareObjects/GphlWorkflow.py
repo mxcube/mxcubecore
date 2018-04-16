@@ -13,6 +13,7 @@ import logging
 import uuid
 import time
 import os
+import subprocess
 import f90nml
 
 import gevent
@@ -27,6 +28,8 @@ from HardwareRepository.HardwareRepository import HardwareRepository
 import queue_model_objects_v1 as queue_model_objects
 import queue_model_enumerables_v1 as queue_model_enumerables
 from queue_entry import QUEUE_ENTRY_STATUS
+
+import GphlMessages
 
 try:
     from collections import OrderedDict
@@ -56,6 +59,10 @@ class GphlWorkflow(HardwareObject, object):
         States.OPEN,    # Active, awaiting input
         States.RUNNING, # Active, executing workflow
     ]
+    # File names for standard data input - in config_dir
+    diffractcal_file_name = 'diffractcal.nml'
+    transcal_file_name = 'transcal.nml'
+    instrumentation_file_name = 'instrumentation.nml'
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -67,9 +74,6 @@ class GphlWorkflow(HardwareObject, object):
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
         self._queue_entry = None
-
-        # # cache dictionary to handle parameters transferred through signals
-        # self._gphl_parameters = {}
 
         # event to handle waiting for parameter input
         self._return_parameters = None
@@ -104,7 +108,7 @@ class GphlWorkflow(HardwareObject, object):
             relative_file_path
         )
         dd = f90nml.read(os.path.join(self.gphl_beamline_config,
-                                      'instrumentation.nml'))
+                                      self.instrumentation_file_name))
         dd = dd['sdcp_instrument_list']
         self.rotation_axis_roles = dd['gonio_axis_names']
         self.translation_axis_roles = dd['gonio_centring_axis_names']
@@ -250,7 +254,6 @@ class GphlWorkflow(HardwareObject, object):
 
     def execute(self):
 
-
         try:
             self.set_state(States.RUNNING)
 
@@ -341,7 +344,7 @@ class GphlWorkflow(HardwareObject, object):
         data_location = self.gphl_beamline_config
         return self.GphlMessages.ConfigurationData(data_location)
 
-    def queryCollectionStrategy(self, geometric_strategy):
+    def query_collection_strategy(self, geometric_strategy):
         """Display collection strategy for user approval,
         and query parameters needed"""
 
@@ -541,26 +544,81 @@ class GphlWorkflow(HardwareObject, object):
     def setup_data_collection(self, payload, correlation_id):
         geometric_strategy = payload
         # NB this call also asks for OK/abort of strategy, hence put first
-        parameters = self.queryCollectionStrategy(geometric_strategy)
+        parameters = self.query_collection_strategy(geometric_strategy)
         # Put resolution value in workflow model object
         gphl_workflow_model = self._queue_entry.get_data_model()
         gphl_workflow_model.set_detector_resolution(parameters.pop('resolution'))
 
         user_modifiable = geometric_strategy.isUserModifiable
+        if user_modifiable:
+            # Query user for new rotationSetting and make it,
+            logging.getLogger('HWR').warning(
+                "User modification of sweep settings not implemented. Ignored"
+            )
 
         goniostatSweepSettings = {}
+        goniostatTranslations = []
+        recen_parameters = {}
+        sweeps = list(geometric_strategy.sweeps)
+        sweepSetting = sweeps[0].goniostatSweepSetting
+        translation = sweepSetting.translation
+        startloop = 0
+        if translation is None:
+            recen_parameters = self.load_transcal_parameters()
+            if recen_parameters:
+                # Do first centring, by itself, so you can use the result for recen
+                startloop = 1
+                goniostatSweepSettings[sweepSetting.id] = sweepSetting
+                qe = self.enqueue_sample_centring(
+                    goniostatRotation=sweepSetting)
+                translation = self.execute_sample_centring(
+                        qe, sweepSetting, sweepSetting.id
+                    )
+                goniostatTranslations.append(translation)
+                recen_parameters['ref_xyz'] = tuple(
+                    translation.axisSettings[x]
+                    for x in self.translation_axis_roles
+                )
+                recen_parameters['ref_okp'] = tuple(
+                    sweepSetting.axisSettings[x]
+                    for x in self.rotation_axis_roles
+                )
+                logging.getLogger('HWR').debug(
+                    "Recentring set-up. Parameters are: %s"
+                    % sorted(recen_parameters.items())
+                )
+
+            else:
+                logging.getLogger('HWR').info(
+                    "File not found: %s\nAutomatic recentering skipped"
+                    % fp
+                )
+
         queue_entries = []
-        for sweep in geometric_strategy.sweeps:
+        for sweep in sweeps[startloop:]:
             sweepSetting = sweep.goniostatSweepSetting
             requestedRotationId = sweepSetting.id
             if requestedRotationId not in goniostatSweepSettings:
+                okp = tuple(sweepSetting.axisSettings[x]
+                            for x in self.rotation_axis_roles
+                            )
+                if recen_parameters and sweepSetting.translation is None:
+                    dd = self.calculate_recentring(okp, **recen_parameters)
 
-                if user_modifiable:
-                    # Query user for new rotationSetting and make it,
-                    logging.getLogger('HWR').warning(
-                        "User modification of sweep settings not implemented. Ignored"
+                    # Creating the Translation adds it to the Rotation
+                    GphlMessages.GoniostatTranslation(
+                        rotation=sweepSetting,
+                        requestedRotationId=requestedRotationId, **dd
                     )
-                goniostatSweepSettings[sweepSetting.id] = sweepSetting
+                    logging.getLogger('HWR').debug("Recentring. okp=%s, %s"
+                                                   % (okp, sorted(dd.items())))
+                else:
+                    logging.getLogger('HWR').debug(
+                        "No recentring. okp=%s, %s"
+                        % (okp, sorted(sweepSetting.translation.axisSettings.items()))
+                    )
+
+                goniostatSweepSettings[requestedRotationId] = sweepSetting
                 # NB there is no provision for NOT making a new translation
                 # object if you are making no changes
                 qe = self.enqueue_sample_centring(
@@ -571,7 +629,6 @@ class GphlWorkflow(HardwareObject, object):
 
         # NB, split in two loops to get all centrings on queue (and so visible) before execution
 
-        goniostatTranslations = []
         for qe, goniostatRotation, requestedRotationId in queue_entries:
             goniostatTranslations.append(
                 self.execute_sample_centring(
@@ -585,6 +642,135 @@ class GphlWorkflow(HardwareObject, object):
         )
         return sampleCentred
 
+    def load_transcal_parameters(self):
+        """Load home_position and cross_sec_of_soc from transcal.nml"""
+        fp = os.path.join(self.gphl_beamline_config, self.transcal_file_name)
+        if os.path.isfile(fp):
+            try:
+                transcal_data = f90nml.read(fp)['sdcp_instrument_list']
+            except:
+                logging.getLogger('HWR').error(
+                    "Error reading transcal.nml file: %s" % fp
+                )
+            else:
+                result = {}
+                result['home_position'] = transcal_data.get('trans_home')
+                result['cross_sec_of_soc'] = transcal_data.get(
+                    'trans_cross_sec_of_soc'
+                )
+                if None in result.values():
+                    logging.getLogger('HWR').warning(
+                        "load_transcal_parameters failed"
+                    )
+                else:
+                    return result
+        else:
+            logging.getLogger('HWR').warning(
+                "transcal.nml file not found: %s" % fp
+            )
+        # If we get here reading failed
+        return {}
+
+    def calculate_recentring(self, okp, home_position, cross_sec_of_soc,
+                             ref_okp, ref_xyz):
+        """Add predicted traslation values using recen
+        okp is the omega,gamma,phi tuple of the target position,
+        home_position is the translation calibration home position,
+        and cross_sec_of_soc is the cross-section of the sphere of confusion
+        ref_okp and ref_xyz are the reference omega,gamma,phi and the
+        corresponding x,y,z translation position"""
+
+        # Make input file
+        gphl_workflow_model = self._queue_entry.get_data_model()
+        infile = os.path.join(
+            gphl_workflow_model.path_template.process_directory,
+            'temp_recen.in'
+        )
+        recen_data = OrderedDict()
+        indata = {'recen_list':recen_data}
+
+        fp = os.path.join(self.gphl_beamline_config,
+                          self.instrumentation_file_name)
+        instrumentation_data = f90nml.read(fp)['sdcp_instrument_list']
+        diffractcal_data = instrumentation_data
+
+        fp = os.path.join(self.gphl_beamline_config,
+                          self.diffractcal_file_name)
+        try:
+            diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
+        except:
+            logging.getLogger('HWR').debug(
+                "diffractcal file not present - using instrumentation.nml %s"
+                % fp
+            )
+        ll = diffractcal_data['gonio_axis_dirs']
+        recen_data['omega_axis'] = ll[:3]
+        recen_data['kappa_axis'] = ll[3:6]
+        recen_data['phi_axis'] = ll[6:]
+        ll = instrumentation_data['gonio_centring_axis_dirs']
+        recen_data['trans_1_axis'] = ll[:3]
+        recen_data['trans_2_axis'] = ll[3:6]
+        recen_data['trans_3_axis'] = ll[6:]
+        recen_data['cross_sec_of_soc'] = cross_sec_of_soc
+        recen_data['home'] = home_position
+        #
+        f90nml.write(indata, infile, force=True)
+
+        # Get program locations
+        gphl_installation_dir = self._workflow_connection.getProperty(
+            'gphl_installation_dir'
+        )
+        dd = self._workflow_connection['gphl_program_locations'].getProperties()
+        recen_executable = os.path.join(
+            gphl_installation_dir, dd['co.gphl.wf.recen.bin']
+        )
+        # Get environmental variables
+        license_directory = dd.get('co.gphl.wf.bdg_licence_dir')
+        envs = {'BDG_home':license_directory or gphl_installation_dir}
+        # Run recen
+        command_list = [recen_executable,
+                        '--input', infile,
+                        '--init-xyz', "%s %s %s" % ref_xyz,
+                        '--init-okp', "%s %s %s" % ref_okp,
+                        '--okp', "%s %s %s" % okp,
+                        ]
+        #NB the universal_newlines has the NECESSARY side effect of converting
+        # output to string (with default encoding), avoiding an explicit
+        # decoding step.
+        result = {}
+        logging.getLogger('HWR').debug("Running Recen command: %s"
+                                       % ' '.join(command_list))
+        try:
+            output = subprocess.check_output(command_list, env=envs,
+                                             stderr=subprocess.STDOUT,
+                                             universal_newlines=True)
+        except subprocess.CalledProcessError as err:
+            logging.getLogger('HWR').error(
+                "Recen failed with returncode %s. Output was:\n%s"
+                % (err.returncode, err.output)
+            )
+            return result
+
+        terminated_ok = False
+        for line in reversed(output.splitlines()):
+            ss = line.strip()
+            if terminated_ok:
+                if 'X,Y,Z' in ss:
+                    ll = ss.split()[-3:]
+                    for ii, tag in enumerate(self.translation_axis_roles):
+                        result[tag] = float(ll[ii])
+                    break
+
+            elif ss == 'NORMAL termination':
+                terminated_ok = True
+        else:
+            logging.getLogger('HWR').error(
+                "Recen failed with normal termination=%s. Output was:\n"
+                % terminated_ok
+                + output
+            )
+        #
+        return result
 
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
@@ -885,7 +1071,6 @@ class GphlWorkflow(HardwareObject, object):
                     # we have finished - empty non-initial line
                     break
 
-
             #
             return {'header':header, 'solutions':solutions}
         else:
@@ -893,6 +1078,7 @@ class GphlWorkflow(HardwareObject, object):
                              % repr(solution_format))
 
     def process_centring_request(self, payload, correlation_id):
+        # Used for transcal only - anything else is data collection related
         request_centring = payload
 
         logging.getLogger('user_level_log').info ('Start centring no. %s of %s'

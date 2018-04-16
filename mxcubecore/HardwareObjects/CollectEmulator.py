@@ -45,7 +45,8 @@ class CollectEmulator(CollectMockup):
             self.gphl_workflow_hwobj.getProperty('gphl_config_subdir')
         )
         instrument_input = f90nml.read(
-            os.path.join(config_dir,'instrumentation.nml')
+            os.path.join(config_dir,
+                         self.gphl_workflow_hwobj.instrumentation_file_name)
         )
 
         instrument_data = instrument_input['sdcp_instrument_list']
@@ -116,7 +117,8 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp = os.path.join(config_dir, 'diffractcal.nml')
+        fp = os.path.join(config_dir,
+                          self.gphl_workflow_hwobj.diffractcal_file_name)
         if os.path.isfile(fp):
             diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
             for tag in setup_data.keys():
@@ -141,7 +143,7 @@ class CollectEmulator(CollectMockup):
                                / data_collect_parameters['energy'])
             sweep['res_limit'] = resolution
             sweep['exposure'] = osc['exposure_time']
-            ll =  self. gphl_workflow_hwobj.translation_axis_roles
+            ll =  self.gphl_workflow_hwobj.translation_axis_roles
             sweep['trans_xyz'] = list(motors.get(x) or 0.0 for x in ll)
             sweep['det_coord'] = self.get_detector_distance()
             # NBNB hardwired for omega scan TODO
@@ -225,7 +227,7 @@ class CollectEmulator(CollectMockup):
             'gphl_installation_dir'
         )
         dd = self.gphl_connection_hwobj['gphl_program_locations'].getProperties()
-        license_directory = dd['co.gphl.wf.bdg_licence_dir']
+        license_directory = dd.get('co.gphl.wf.bdg_licence_dir')
         simcal_executive = os.path.join(
             gphl_installation_dir, dd['co.gphl.wf.simcal.bin']
         )
