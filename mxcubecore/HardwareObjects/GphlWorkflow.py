@@ -59,10 +59,6 @@ class GphlWorkflow(HardwareObject, object):
         States.OPEN,    # Active, awaiting input
         States.RUNNING, # Active, executing workflow
     ]
-    # File names for standard data input - in config_dir
-    diffractcal_file_name = 'diffractcal.nml'
-    transcal_file_name = 'transcal.nml'
-    instrumentation_file_name = 'instrumentation.nml'
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -84,9 +80,6 @@ class GphlWorkflow(HardwareObject, object):
         # Subprocess names to track which subprocess is getting info
         self._server_subprocess_names = {}
 
-        # Directory for GPhL beamline configuration files
-        self.gphl_beamline_config = None
-
         # Rotation axis role names, ordered from holder towards sample
         self.rotation_axis_roles = []
 
@@ -96,22 +89,39 @@ class GphlWorkflow(HardwareObject, object):
         # Switch for 'move-to-fine-zoom' message for translational calibration
         self._use_fine_zoom = False
 
+        # Configurable file paths
+        self.file_paths = {}
+
     def _init(self):
         pass
 
     def init(self):
 
-        self.gphl_subdir = self.getProperty('gphl_subdir')
-
-        relative_file_path = self.getProperty('gphl_config_subdir')
-        self.gphl_beamline_config = HardwareRepository().findInRepository(
-            relative_file_path
+        # Set standard configurable file paths
+        file_paths = self.file_paths
+        gphl_beamline_config = HardwareRepository().findInRepository(
+            self.getProperty('gphl_beamline_config')
         )
-        dd = f90nml.read(os.path.join(self.gphl_beamline_config,
-                                      self.instrumentation_file_name))
-        dd = dd['sdcp_instrument_list']
+        file_paths['gphl_beamline_config'] = gphl_beamline_config
+        file_paths['instrumentation_file'] = fp = os.path.join(
+            gphl_beamline_config, 'instrumentation.nml'
+        )
+        dd = f90nml.read(fp)['sdcp_instrument_list']
         self.rotation_axis_roles = dd['gonio_axis_names']
         self.translation_axis_roles = dd['gonio_centring_axis_names']
+
+        file_paths['transcal_file'] = os.path.join(
+            gphl_beamline_config, 'transcal.nml'
+        )
+        file_paths['diffractcal_file'] = os.path.join(
+            gphl_beamline_config, 'diffractcal.nml'
+        )
+
+        gphl_config = HardwareRepository().findInRepository(
+            self.getProperty('gphl_config')
+        )
+        file_paths['test_samples'] = os.path.join(gphl_config, 'test_samples')
+        file_paths['scripts'] = os.path.join(gphl_config, 'scripts')
 
         # Set up processing functions map
         self._processor_functions = {
@@ -140,6 +150,7 @@ class GphlWorkflow(HardwareObject, object):
                 'gphl_connection'
             )
             self._workflow_connection = workflow_connection
+            workflow_connection._initialize_connection(self)
             workflow_connection._open_connection()
             self.set_state(States.ON)
 
@@ -195,8 +206,10 @@ class GphlWorkflow(HardwareObject, object):
                 relative_file_path = dd.get('file')
                 if relative_file_path is not None:
                     # Special case - this option must be modified before use
-                    dd['file'] = os.path.join(self.gphl_beamline_config,
-                                              relative_file_path)
+                    dd['file'] = os.path.join(
+                        self.file_paths['gphl_beamline_config'],
+                        relative_file_path
+                    )
                 instcfgout = dd.get('instcfgout')
                 if instcfgout is not None and instcfgout_dir is not None:
                     # Special case - this option must be modified before use
@@ -341,8 +354,9 @@ class GphlWorkflow(HardwareObject, object):
         logging.info('%s : FINISHED' % name)
 
     def get_configuration_data(self, payload, correlation_id):
-        data_location = self.gphl_beamline_config
-        return self.GphlMessages.ConfigurationData(data_location)
+        return self.GphlMessages.ConfigurationData(
+            self.file_paths['gphl_beamline_config']
+        )
 
     def query_collection_strategy(self, geometric_strategy):
         """Display collection strategy for user approval,
@@ -644,7 +658,7 @@ class GphlWorkflow(HardwareObject, object):
 
     def load_transcal_parameters(self):
         """Load home_position and cross_sec_of_soc from transcal.nml"""
-        fp = os.path.join(self.gphl_beamline_config, self.transcal_file_name)
+        fp = self.file_paths.get('transcal_file')
         if os.path.isfile(fp):
             try:
                 transcal_data = f90nml.read(fp)['sdcp_instrument_list']
@@ -689,13 +703,11 @@ class GphlWorkflow(HardwareObject, object):
         recen_data = OrderedDict()
         indata = {'recen_list':recen_data}
 
-        fp = os.path.join(self.gphl_beamline_config,
-                          self.instrumentation_file_name)
+        fp = self.file_paths.get('instrumentation_file')
         instrumentation_data = f90nml.read(fp)['sdcp_instrument_list']
         diffractcal_data = instrumentation_data
 
-        fp = os.path.join(self.gphl_beamline_config,
-                          self.diffractcal_file_name)
+        fp = self.file_paths.get('diffractcal_file')
         try:
             diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
         except:
@@ -717,16 +729,13 @@ class GphlWorkflow(HardwareObject, object):
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
-        gphl_installation_dir = self._workflow_connection.getProperty(
-            'gphl_installation_dir'
-        )
-        dd = self._workflow_connection['gphl_program_locations'].getProperties()
-        recen_executable = os.path.join(
-            gphl_installation_dir, dd['co.gphl.wf.recen.bin']
-        )
+        recen_executable = self._workflow_connection.software_paths[
+            'co.gphl.wf.recen.bin'
+        ]
         # Get environmental variables
-        license_directory = dd.get('co.gphl.wf.bdg_licence_dir')
-        envs = {'BDG_home':license_directory or gphl_installation_dir}
+        envs = {'BDG_home':
+                    self._workflow_connection.software_paths['BDG_home']
+                }
         # Run recen
         command_list = [recen_executable,
                         '--input', infile,
@@ -735,14 +744,13 @@ class GphlWorkflow(HardwareObject, object):
                         '--okp', "%s %s %s" % okp,
                         ]
         #NB the universal_newlines has the NECESSARY side effect of converting
-        # output to string (with default encoding), avoiding an explicit
-        # decoding step.
+        # output from bytes to string (with default encoding),
+        # avoiding an explicit decoding step.
         result = {}
         logging.getLogger('HWR').debug("Running Recen command: %s"
                                        % ' '.join(command_list))
         try:
             output = subprocess.check_output(command_list, env=envs,
-                                             stderr=subprocess.STDOUT,
                                              universal_newlines=True)
         except subprocess.CalledProcessError as err:
             logging.getLogger('HWR').error(
