@@ -7,9 +7,11 @@ from XRFSpectrum import *
 try:
     from PyMca import ConfigDict
     from PyMca import ClassMcaTheory
+    from PyMca import QtMcaAdvancedFitReport
 except ImportError:
     from PyMca5.PyMca import ConfigDict
     from PyMca5.PyMca import ClassMcaTheory
+    from PyMca5.PyMca import QtMcaAdvancedFitReport
 
 
 class ID29XRFSpectrum(XRFSpectrum):
@@ -17,7 +19,7 @@ class ID29XRFSpectrum(XRFSpectrum):
         XRFSpectrum.__init__(self, *args, **kwargs)
         self.mca_hwobj = self.getObjectByRole('mca')
         self.ctrl_hwobj = self.getObjectByRole('controller')
-        self.fname = "/users/blissadm/local/beamline_configuration/misc/9keV.cfg"
+        self.fname = "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.fname)
 
@@ -65,9 +67,7 @@ class ID29XRFSpectrum(XRFSpectrum):
         if self.fname != fname:
             self.fname = fname
             change = True
-
         self.config.read(self.fname)
-
         if 'concentrations' not in self.config:
             self.config['concentrations'] = {}
             change = True
@@ -114,16 +114,19 @@ class ID29XRFSpectrum(XRFSpectrum):
                 self._write_csv_file(fitresult, csvname)
 
                 # write html report to pyarch
-                outfile = self.spectrumInfo['filename']
-                outdir = os.path.dirname(self.spectrumInfo['annotatedPymcaXfeSpectrum'])
+                fn = os.path.basename(self.spectrumInfo['filename'])
+                outfile = fn.split(".")[0]
+                outdir = os.path.dirname(
+                    self.spectrumInfo['annotatedPymcaXfeSpectrum'])
 
                 kw = {'outdir': outdir, 'outfile': outfile,
                       'fitresult': fitresult, 'plotdict': {'logy': False}}
                 report = QtMcaAdvancedFitReport.QtMcaAdvancedFitReport(**kw)
                 text = report.getText()
                 report.writeReport(text=text)
-        except:
-            logging.getLogger().exception('XRFSpectrum: problem fitting %s %s %s' % (str(data), str(calib), str(config)))
+        except Exception as e:
+            logging.getLogger().exception('XRFSpectrum: problem fitting %s'
+                                          % str(e))
             raise
 
     def _write_csv_file(self, fitresult, fname=None):
@@ -131,8 +134,37 @@ class ID29XRFSpectrum(XRFSpectrum):
             fname = self.spectrumInfo['fittedDataFileFullPath']
         if os.path.exists(fname):
             os.remove(fname)
+
+        # get the significant peaks
+        peaks_dict = {}
+        pars_len = len(fitresult['result']['parameters'])
+        grp_len = len(fitresult['result']['groups'])
+        nglobal = pars_len - grp_len
+        parameters = fitresult['result']['fittedpar'][:nglobal] + [0.0]*grp_len
+
+        for grp in fitresult['result']['parameters'][nglobal:]:
+            idx = fitresult['result']['parameters'].index(grp)
+            parameters[idx] = fitresult['result']['fittedpar'][idx]
+            xmatrix = fitresult['result']['xdata']
+            ymatrix = self.mcafit.mcatheory(parameters, xmatrix)
+            ymatrix.shape = [len(ymatrix), 1]
+            label = 'y' + grp
+            if self.mcafit.STRIP:
+                peaks_dict[label] = ymatrix + self.mcafit.zz
+            else:
+                peaks_dict[label] = ymatrix
+            peaks_dict[label].shape = (len(peaks_dict[label]),)
+            parameters[idx] = 0.0
+
         delimiter = ","
-        header = '"channel"%s"Energy"%s"counts"%s"fit"%s"continuum"%s"pileup"' % (delimiter, delimiter, delimiter, delimiter, delimiter)
+        header = '"channel"%s"Energy"%s"counts"%s"fit"%s"continuum"%s"pileup"'\
+                 % (delimiter, delimiter, delimiter, delimiter, delimiter)
+
+        # add the peaks labels
+        for key in peaks_dict.iterkeys():
+            header += delimiter + ('"%s"' % key)
+
+        logging.getLogger('user_level_log').info("Writing %s" % fname)
         with open(fname, 'w') as csv_fd:
             csv_fd.write(header)
             csv_fd.write("\n")
@@ -149,4 +181,6 @@ class ID29XRFSpectrum(XRFSpectrum):
                               fitresult['result']['continuum'][i],
                               delimiter,
                               fitresult['result']['pileup'][i]))
+                for key in peaks_dict.iterkeys():
+                    csv_fd.write("%s%.7g" % (delimiter, peaks_dict[key][i]))
                 csv_fd.write("\n")

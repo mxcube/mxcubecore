@@ -58,7 +58,7 @@ class XRFSpectrum(Equipment):
 
         self.cfg_path = self.getProperty('cfg_path')
         if not self.cfg_path:
-            self.cfg_path = '/users/blissadm/local/userconf'
+            self.cfg_path = '/users/blissadm/local/beamline_configuration/misc'
 
         if self.isConnected():
             self.sConnected()
