@@ -129,6 +129,7 @@ class Energy(Equipment):
             try:
                 self.move_energy(value, wait=True)
             except:
+                sys.excepthook(*sys.exc_info())
                 self.moveEnergyCmdFailed()
             else:
                 self.moveEnergyCmdFinished(True)
