@@ -152,7 +152,7 @@ class Microdiff(MiniDiff.MiniDiff):
         scan(scan_params)
         print "oscil scan started at ----------->", time.time()
         if wait:
-            self._wait_ready(300) #timeout of 5 min
+            self._wait_ready(600) #timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
             print "finished at ---------->", time.time()
 
     def oscilScan4d(self, start, end, exptime,  motors_pos, wait=False):
