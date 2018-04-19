@@ -129,6 +129,7 @@ class Energy(Equipment):
             try:
                 self.move_energy(value, wait=True)
             except:
+                sys.excepthook(*sys.exc_info())
                 self.moveEnergyCmdFailed()
             else:
                 self.moveEnergyCmdFinished(True)
@@ -194,7 +195,7 @@ class Energy(Equipment):
             self.emit('valueChanged', (pos, ))
 
     def energyStateChanged(self, state):
-        print(state)
+        self.emit('stateChanged', (state,))
 
     def get_value(self):
         #generic method used by the beamline setup

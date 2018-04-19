@@ -18,7 +18,6 @@ import os
 import stat
 import time
 import gevent.monkey
-gevent.monkey.patch_all(thread=False)
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher

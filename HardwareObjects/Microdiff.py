@@ -152,7 +152,7 @@ class Microdiff(MiniDiff.MiniDiff):
         scan(scan_params)
         print "oscil scan started at ----------->", time.time()
         if wait:
-            self._wait_ready(300) #timeout of 5 min
+            self._wait_ready(600) #timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
             print "finished at ---------->", time.time()
 
     def oscilScan4d(self, start, end, exptime,  motors_pos, wait=False):
@@ -195,9 +195,8 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringVertical.syncMoveRelative((mesh_range['vertical_range'])/2)
         self.centringPhiy.syncMoveRelative(-(mesh_range['horizontal_range'])/2)
         
-
-        scan_params = "%0.3f\t" % mesh_range['vertical_range']
-        scan_params += "%0.3f\t" % -mesh_range['horizontal_range']
+        scan_params = "%0.3f\t" % -mesh_range['horizontal_range']
+        scan_params += "%0.3f\t" % mesh_range['vertical_range']
         scan_params += "%d\t" % mesh_num_lines
         scan_params += "%d\t" % (mesh_total_nb_frames/mesh_num_lines)
         #scan_params += "%d\t" % 1
@@ -288,6 +287,10 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.currentCentringProcedure.link(self.manualCentringDone)
 
+    def startCentringMethod(self, *args, **kw):
+        self._wait_ready(100)
+        return MiniDiff.startCentringMethod(*args, **kw)
+ 
     def interruptAndAcceptCentring(self):
         """ Used when plate. Kills the current 1 click centring infinite loop
         and accepts fake centring - only save the motor positions
@@ -308,12 +311,6 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def setBackLightLevel(self, level):
         return self.backLight.move(level)
-
-    def backlight_in(self, wait=True):
-        self.getDeviceByRole("BackLightSwitch").actuatorIn(wait)
-
-    def backlight_out(self, wait=True):
-        self.getDeviceByRole("BackLightSwitch").actuatorOut(wait)
 
 def set_light_in(light, light_motor, zoom):
     MICRODIFF.getDeviceByRole("FrontLight").move(0)
