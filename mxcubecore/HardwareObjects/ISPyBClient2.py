@@ -1447,11 +1447,13 @@ class ISPyBClient2(HardwareObject):
         if self.__collection:
 
             try:
-                xfespectrum_dict['startTime'] = datetime.\
-                    strptime(xfespectrum_dict["startTime"],"%Y-%m-%d %H:%M:%S")
+                if isinstance(xfespectrum_dict["startTime"], str):
+                    xfespectrum_dict['startTime'] = datetime.strptime(xfespectrum_dict["startTime"],"%Y-%m-%d %H:%M:%S")
 
-                xfespectrum_dict['endTime'] = datetime.\
-                    strptime(xfespectrum_dict["endTime"], "%Y-%m-%d %H:%M:%S")
+                    xfespectrum_dict['endTime'] = datetime.strptime(xfespectrum_dict["endTime"], "%Y-%m-%d %H:%M:%S")
+                else:
+                    xfespectrum_dict['startTime'] = xfespectrum_dict["startTime"]
+                    xfespectrum_dict['endTime'] = xfespectrum_dict["endTime"]
 
                 status['xfeFluorescenceSpectrumId'] = \
                     self.__collection.service.\
