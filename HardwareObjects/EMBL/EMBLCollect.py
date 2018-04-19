@@ -20,7 +20,6 @@ import os
 import logging
 import gevent
 from HardwareRepository.TaskUtils import task
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 
 
@@ -29,7 +28,7 @@ __version__ = "2.3."
 __category__ = "General"
 
 
-class EMBLCollect(AbstractCollect, HardwareObject):
+class EMBLCollect(AbstractCollect):
     """Main data collection class. Inherited from AbstractCollect.
        Collection is done by setting collection parameters and
        executing collect command
@@ -41,23 +40,13 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         :type name: string
         """
 
-        AbstractCollect.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractCollect.__init__(self, name)
         self._previous_collect_status = None
         self._actual_collect_status = None
-        self.current_dc_parameters = None
 
-        self.osc_id = None
-        self.owner = None
-        self._collecting = False
-        self._error_msg = ""
-        self._error_or_aborting = False
-        self.collect_frame = None
-        self.ready_event = None
         self.use_still = None
         self.break_bragg_released = False
 
-        self.exp_type_dict = None
         self.aborted_by_user = None
         self.run_autoprocessing = None
 
@@ -94,64 +83,22 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.cmd_collect_abort = None
         self.cmd_collect_xds_data_range = None
 
-        self.diffractometer_hwobj = None
-        self.lims_client_hwobj = None
-        self.machine_info_hwobj = None
         self.flux_hwobj = None
-        self.energy_hwobj = None
-        self.resolution_hwobj = None
-        self.transmission_hwobj = None
-        self.detector_hwobj = None
-        self.beam_info_hwobj = None
-        self.autoprocessing_hwobj = None
         self.graphics_manager_hwobj = None
         self.image_tracking_hwobj = None
 
     def init(self):
         """Main init method"""
-        self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("lims_client")
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
+
+        AbstractCollect.init(self)
+
         self.flux_hwobj = self.getObjectByRole("flux")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
         self.image_tracking_hwobj = self.getObjectByRole("image_tracking")
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
-        self.plate_manipulator_hwobj = self.getObjectByRole("plate_manipulator")
 
-        undulators = []
-        try:
-            for undulator in self["undulators"]:
-                undulators.append(undulator)
-        except:
-            pass
 
         self.exp_type_dict = {'Mesh': 'raster',
                               'Helical': 'Helical'}
-        self.set_beamline_configuration(\
-             synchrotron_name="EMBL-HH",
-             directory_prefix=self.getProperty("directory_prefix"),
-             default_exposure_time=self.detector_hwobj.getProperty("default_exposure_time"),
-             minimum_exposure_time=self.detector_hwobj.getProperty("minimum_exposure_time"),
-             detector_fileext=self.detector_hwobj.getProperty("fileSuffix"),
-             detector_type=self.detector_hwobj.getProperty("type"),
-             detector_manufacturer=self.detector_hwobj.getProperty("manufacturer"),
-             detector_model=self.detector_hwobj.getProperty("model"),
-             detector_px=self.detector_hwobj.getProperty("px"),
-             detector_py=self.detector_hwobj.getProperty("py"),
-             undulators=undulators,
-             focusing_optic=self.getProperty('focusing_optic'),
-             monochromator_type=self.getProperty('monochromator'),
-             beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation=self.getProperty('polarisation'),
-             input_files_server=self.getProperty("input_files_server"))
 
         self.chan_collect_status = self.getChannelObject('collectStatus')
         self._actual_collect_status = self.chan_collect_status.getValue()
@@ -297,7 +244,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
                     logging.info("Collection: Preparing ...")
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
-                    self.emit("collectStarted", (self.owner, 1))
+                    self.emit("collectStarted", (None, 1))
             elif self._previous_collect_status == 'collecting':
                 if self._actual_collect_status == "ready":
                     self.collection_finished()
@@ -349,7 +296,6 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         :type frame: int
         """
         if self._collecting:
-            self.collect_frame = frame
             number_of_images = self.current_dc_parameters\
               ['oscillation_sequence'][0]['number_of_images']
             self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
@@ -404,7 +350,7 @@ class EMBLCollect(AbstractCollect, HardwareObject):
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
 
     @task
-    def _take_crystal_animation(self, animation_filename, duration_sec):
+    def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
