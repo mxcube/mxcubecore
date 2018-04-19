@@ -194,7 +194,7 @@ class Energy(Equipment):
             self.emit('valueChanged', (pos, ))
 
     def energyStateChanged(self, state):
-        print(state)
+        self.emit('stateChanged', (state,))
 
     def get_value(self):
         #generic method used by the beamline setup
