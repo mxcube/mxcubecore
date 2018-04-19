@@ -195,9 +195,8 @@ class Microdiff(MiniDiff.MiniDiff):
         self.centringVertical.syncMoveRelative((mesh_range['vertical_range'])/2)
         self.centringPhiy.syncMoveRelative(-(mesh_range['horizontal_range'])/2)
         
-
-        scan_params = "%0.3f\t" % mesh_range['vertical_range']
-        scan_params += "%0.3f\t" % -mesh_range['horizontal_range']
+        scan_params = "%0.3f\t" % -mesh_range['horizontal_range']
+        scan_params += "%0.3f\t" % mesh_range['vertical_range']
         scan_params += "%d\t" % mesh_num_lines
         scan_params += "%d\t" % (mesh_total_nb_frames/mesh_num_lines)
         #scan_params += "%d\t" % 1
