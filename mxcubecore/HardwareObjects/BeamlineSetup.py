@@ -9,6 +9,7 @@ import queue_model_enumerables_v1 as queue_model_enumerables
 
 from HardwareRepository.HardwareRepository import HardwareRepository
 
+
 class BeamlineSetup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -32,9 +33,9 @@ class BeamlineSetup(HardwareObject):
 
         self.advanced_methods = []
         try:
-           self.advanced_methods = eval(self.getProperty("advancedMethods"))
+            self.advanced_methods = eval(self.getProperty("advancedMethods"))
         except:
-           pass
+            pass
 
     def _get_object_by_role(self, role):
         """
@@ -45,8 +46,9 @@ class BeamlineSetup(HardwareObject):
             value = self.getObjectByRole(role)
         except:
             value = None
-            logging.getLogger('HWR').exception('Could not get object with ' +\
-                'role:' + role + 'from hardware repository.')
+            logging.getLogger('HWR').exception('Could not get object with ' +
+                                               'role:' + role +
+                                               'from hardware repository.')
 
         setattr(self, role + '_hwobj', value)
 
@@ -64,7 +66,7 @@ class BeamlineSetup(HardwareObject):
         value = None
 
         if path == '/beamline/default-acquisition-parameters/':
-            value = jsonpickle.encode(self.get_default_acquisition_parameters()) 
+            value = jsonpickle.encode(self.get_default_acquisition_parameters())
         elif path == '/beamline/default-path-template/':
             value = jsonpickle.encode(self.get_default_path_template())
         else:
@@ -162,7 +164,7 @@ class BeamlineSetup(HardwareObject):
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_has_shutterless()
         try:
-            detector_mode = self.detector_hwobj.default_mode() 
+            detector_mode = self.detector_hwobj.default_mode()
         except AttributeError:
             detector_mode = None
 
@@ -201,7 +203,7 @@ class BeamlineSetup(HardwareObject):
 
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
-        #edna_beam = edna_input.getExperimentalCondition().getBeam()
+        # edna_beam = edna_input.getExperimentalCondition().getBeam()
         edna_sample = edna_input.getSample()
         char_params = queue_model_objects.CharacterisationParameters()
         char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
@@ -210,7 +212,7 @@ class BeamlineSetup(HardwareObject):
         char_params.use_aimed_resolution = False
         char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
         char_params.use_aimed_multiplicity = False
-        #char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
+        # char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
         char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
         char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
         char_params.strategy_complexity = 0
@@ -258,10 +260,10 @@ class BeamlineSetup(HardwareObject):
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
         try:
-           self[parent_key]
+            self[parent_key]
         except IndexError:
-           logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
-           parent_key = default_key
+            logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
+            parent_key = default_key
 
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
@@ -271,7 +273,7 @@ class BeamlineSetup(HardwareObject):
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_has_shutterless()
         try:
-            detector_mode = self.detector_hwobj.default_mode() 
+            detector_mode = self.detector_hwobj.default_mode()
         except AttributeError:
             detector_mode = None
 
@@ -298,46 +300,45 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
-    def get_acquisition_limit_values(self, parent_key = "acquisition_limit_values"):
+    def get_acquisition_limit_values(self,
+                                     parent_key="acquisition_limit_values"):
         limits = {}
-
         try:
             exp_time_limit = self[parent_key].getProperty('exposure_time')
-            if exp_time_limit is not None:
-                limits['exposure_time'] = exp_time_limit
-        except:
-            pass
+        except IndexError:
+            # set default exposure time limits [s] if nothing configured
+            limits['exposure_time'] = '0, 1000'
+            return limits
+        
+        if exp_time_limit is not None:
+            if isinstance(exp_time_limit, str):
+                try:
+                    exp_time_limit = '%f, 1000' % float(exp_time_limit)
+                except ValueError:
+                    pass
+            limits['exposure_time'] = exp_time_limit
+        else:
+            # set default exposure time limits [s] if not configured
+            limits['exposure_time'] = '0, 1000'       
 
-        try:
-            range_limit = self[parent_key].getProperty('osc_range')
-            if range_limit is not None:
-                limits['osc_range'] = range_limit
-        except:
-            pass
+        range_limit = self[parent_key].getProperty('osc_range')
+        if range_limit is not None:
+            limits['osc_range'] = range_limit
 
-        try:
-            num_images_limit = self[parent_key].getProperty('number_of_images')
-            if num_images_limit is not None:
-                limits['number_of_images'] = num_images_limit
-        except:
-            pass
+        num_images_limit = self[parent_key].getProperty('number_of_images')
+        if num_images_limit is not None:
+            limits['number_of_images'] = num_images_limit
 
-        try:
-            kappa_limit = self[parent_key].getProperty('kappa')
-            if kappa_limit is not None:
-                limits['kappa'] = kappa_limit
-        except:
-            pass
+        kappa_limit = self[parent_key].getProperty('kappa')
+        if kappa_limit is not None:
+            limits['kappa'] = kappa_limit
 
-        try:
-            kappa_phi_limit = self[parent_key].getProperty('kappa_phi')
-            if kappa_phi_limit is not None:
-                limits['kappa_phi'] = kappa_phi_limit
-        except:
-            pass
+        kappa_phi_limit = self[parent_key].getProperty('kappa_phi')
+        if kappa_phi_limit is not None:
+            limits['kappa_phi'] = kappa_phi_limit
 
         return limits
-        
+
     def get_default_path_template(self):
         """
         :returns: A PathTemplate object with default parameters.
@@ -356,11 +357,11 @@ class BeamlineSetup(HardwareObject):
 
         path_template.precision = '04'
         try:
-           if self.session_hwobj["file_info"].getProperty('precision'):
-               path_template.precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
+            if self.session_hwobj["file_info"].getProperty('precision'):
+                path_template.precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
         except:
-           pass
-        
+            pass
+
         path_template.start_num = int(self[parent_key].getProperty('start_image_number'))
         path_template.num_files = int(self[parent_key].getProperty('number_of_images'))
 
@@ -398,7 +399,7 @@ class BeamlineSetup(HardwareObject):
             resolution = 0
 
         return resolution
- 
+
     def _get_omega_axis_position(self):
         result = 0
 
@@ -441,19 +442,18 @@ class BeamlineSetup(HardwareObject):
         """
         result = False
         try:
-           result = self.detector_hwobj.has_shutterless()
+            result = self.detector_hwobj.has_shutterless()
         except:
-           pass
+            pass
         return result
-
 
     def _get_roi_modes(self):
         """
         Descript. :
         """
         result = []
-        try: 
-           result = self.detector_hwobj.get_roi_modes()
+        try:
+            result = self.detector_hwobj.get_roi_modes()
         except:
-           pass
+            pass
         return result
