@@ -43,7 +43,7 @@ def prepare(centring_motors_dict):
   global SAVED_INITIAL_POSITIONS
 
   if CURRENT_CENTRING and not CURRENT_CENTRING.ready():
-    raise RuntimeError("Cannot start new centring while centring in progress")
+    end()
   
   global USER_CLICKED_EVENT
   USER_CLICKED_EVENT = gevent.event.AsyncResult()  
