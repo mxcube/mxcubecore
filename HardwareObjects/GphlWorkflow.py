@@ -366,11 +366,16 @@ class GphlWorkflow(HardwareObject, object):
 
         isInterleaved = geometric_strategy.isInterleaved
         allowed_widths = geometric_strategy.allowedWidths
-        if not allowed_widths:
-            logging.getLogger('HWR').error(
-                "No allowed image widths returned by strategy - Set default options")
-            allowed_widths = [0.1, 0.2, 0.5, 1., 2.]
-        default_width_index = geometric_strategy.defaultWidthIdx or 0
+        if allowed_widths:
+            default_width_index = geometric_strategy.defaultWidthIdx or 0
+        else:
+            allowed_widths = [float(x)
+                              for x in self['default_image_widths'].split()]
+            val = allowed_widths[0]
+            allowed_widths.sort()
+            default_width_index = allowed_widths.index(val)
+            logging.getLogger('HWR').info(
+                "No allowed image widths returned by strategy - use defaults")
 
         # NBNB TODO userModifiable
 
@@ -604,8 +609,7 @@ class GphlWorkflow(HardwareObject, object):
 
             else:
                 logging.getLogger('HWR').info(
-                    "File not found: %s\nAutomatic recentering skipped"
-                    % fp
+                    "transcal.nml file not found - Automatic recentering skipped"
                 )
 
         queue_entries = []
@@ -751,6 +755,7 @@ class GphlWorkflow(HardwareObject, object):
                                        % ' '.join(command_list))
         try:
             output = subprocess.check_output(command_list, env=envs,
+                                             stderr=subprocess.STDOUT,
                                              universal_newlines=True)
         except subprocess.CalledProcessError as err:
             logging.getLogger('HWR').error(
@@ -1162,18 +1167,6 @@ class GphlWorkflow(HardwareObject, object):
 
         goniostatTranslation = goniostatRotation.translation
 
-        # # NBNB it is up to beamline setup etc. to ensure that the
-        # # axis names are correct - and this is what SampleCentring uses
-        # name = 'GPhL_centring_%s' % request_centring.currentSettingNo
-        # sc_model = queue_model_objects.SampleCentring(
-        #     name=name, kappa=axisSettings['kappa'],
-        #     kappa_phi=axisSettings['kappa_phi']
-        # )
-
-        # NBNB TODO redo when we have a specific diffractometer to work off.
-        # diffractometer = self.queue_entry.beamline_setup.getObjectByRole(
-        #     "diffractometer"
-        # )
         dd = dict((x, goniostatRotation.axisSettings[x])
                   for x in self.rotation_axis_roles)
         if goniostatTranslation is not None:

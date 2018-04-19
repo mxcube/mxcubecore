@@ -129,11 +129,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         props = self.java_properties
         dd = next(self.getObjects('software_paths')).getProperties()
         for tag, val in dd.items():
-            print ('---> ', tag, val)
             paths[tag] = val.format(**locations)
         dd = next(self.getObjects('software_properties')).getProperties()
         for tag, val in dd.items():
-            print ('---> ', tag, val)
             val = val.format(**locations)
             paths[tag] = props[tag] = val
         #
@@ -880,10 +878,6 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def _ReadyForCentring_to_java(self, readyForCentring):
         return self._gateway.jvm.astra.messagebus.messages.control.ReadyForCentringImpl(
-        )
-
-    def _BeamlineAbort_to_java(self, beamlineAbort):
-        return self._gateway.jvm.astra.messagebus.messages.information.BeamlineAbort(
         )
 
     def _PriorInformation_to_java(self, priorInformation):

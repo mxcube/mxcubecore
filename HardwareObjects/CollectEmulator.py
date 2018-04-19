@@ -23,7 +23,7 @@ class CollectEmulator(CollectMockup):
 
         # # TODO get appropriate value
         # # We must have a value for functions to work
-        # # This ought to eb OK for a Pilatus 6M (See TangoResolution object)
+        # # This ought to be OK for a Pilatus 6M (See TangoResolution object)
         # self.det_radius = 212.
 
         # self._detector_distance = 300.
