@@ -31,8 +31,8 @@ import abc
 import collections
 import gevent
 import gevent.event
-import queue_model_objects_v1 as queue_model_objects
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.2."
@@ -58,11 +58,17 @@ BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                          'input_files_server'])
 
 
-class AbstractCollect(object):
+class AbstractCollect(HardwareObject, object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+
         self.bl_config = BeamlineConfig(*[None]*17)
+
+        self._collecting = False
+        self._error_msg = ""
+        self.exp_type_dict = {}
     
         self.collection_id = None    
         self.data_collect_task = None
@@ -83,12 +89,55 @@ class AbstractCollect(object):
         self.plate_manipulator_hwobj = None
         self.transmission_hwobj = None
 
-        #self.mesh = None
-        #self.mesh_num_lines = None
-        #self.mesh_total_nb_frames = None
-        #self.mesh_range = None
-        #self.mesh_center = None
+        self.ready_event = None
+
+    def init(self):
         self.ready_event = gevent.event.Event()
+
+        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        self.detector_hwobj = self.getObjectByRole("detector")
+        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.energy_hwobj = self.getObjectByRole("energy")
+        self.lims_client_hwobj = self.getObjectByRole("lims_client")
+        self.machine_info_hwobj = self.getObjectByRole("machine_info")
+        self.resolution_hwobj = self.getObjectByRole("resolution")
+        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
+        self.plate_manipulator_hwobj = self.getObjectByRole("plate_manipulator")
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+
+        undulators = []
+        try:
+            for undulator in self["undulators"]:
+                undulators.append(undulator)
+        except:
+            pass
+
+        session_hwobj = self.getObjectByRole("session")
+        if session_hwobj:
+            synchrotron_name = session_hwobj.getProperty('synchrotron_name')
+        else:
+            synchrotron_name = 'UNKNOWN'
+
+        self.set_beamline_configuration(
+            synchrotron_name = synchrotron_name,
+            directory_prefix = self.getProperty("directory_prefix"),
+            default_exposure_time = self.detector_hwobj.getProperty("default_exposure_time"),
+            minimum_exposure_time = self.detector_hwobj.getProperty("minimum_exposure_time"),
+            detector_fileext = self.detector_hwobj.getProperty("fileSuffix"),
+            detector_type = self.detector_hwobj.getProperty("type"),
+            detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
+            detector_model = self.detector_hwobj.getProperty("model"),
+            detector_px = self.detector_hwobj.getProperty("px"),
+            detector_py = self.detector_hwobj.getProperty("py"),
+            undulators = undulators,
+            focusing_optic = self.getProperty('focusing_optic'),
+            monochromator_type = self.getProperty('monochromator'),
+            beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
+            beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
+            polarisation = self.getProperty('polarisation'),
+            input_files_server = self.getProperty("input_files_server")
+        )
 
     def set_beamline_configuration(self, **configuration_parameters):
         """Sets beamline configuration
@@ -116,12 +165,13 @@ class AbstractCollect(object):
         log = logging.getLogger("user_level_log")
         log.info("Collection: Preparing to collect")
         self.emit("collectReady", (False, ))
-        self.emit("collectOscillationStarted", (owner, None, \
-                  None, None, self.current_dc_parameters, None))
+        self.emit("collectOscillationStarted",
+                  (owner, None, None, None, self.current_dc_parameters, None)
+                  )
         self.emit("progressInit", ("Collection", 100, False))
         self.collection_id = None
 
-        with cleanup(self.data_collection_cleanup):
+        try:
             # ----------------------------------------------------------------
             self.open_detector_cover()
             self.open_safety_shutter()
@@ -132,8 +182,9 @@ class AbstractCollect(object):
             self.current_dc_parameters["collection_start_time"] = \
                  time.strftime("%Y-%m-%d %H:%M:%S")
 
-            logging.getLogger("HWR").info("Collection parameters: %s" % \
-                                          str(self.current_dc_parameters))
+            logging.getLogger("HWR").info(
+                "Collection parameters: %s" % str(self.current_dc_parameters)
+            )
 
             log.info("Collection: Storing data collection in LIMS") 
             self.store_data_collection_in_lims()
@@ -147,7 +198,7 @@ class AbstractCollect(object):
             #log.info("Collect: Storing sample info in LIMS")        
             #self.store_sample_info_in_lims()
 
-            if all(item == None for item in self.current_dc_parameters['motors'].values()):
+            if all(item is None for item in self.current_dc_parameters['motors'].values()):
                 # No centring point defined
                 # create point based on the current position
                 current_diffractometer_position = self.diffractometer_hwobj.getPositions()
@@ -166,8 +217,9 @@ class AbstractCollect(object):
                 self.set_transmission(self.current_dc_parameters["transmission"])
 
             if "wavelength" in self.current_dc_parameters:
-                log.info("Collection: Setting wavelength to %.4f", \
-                         self.current_dc_parameters["wavelength"])
+                log.info("Collection: Setting wavelength to %.4f",
+                         self.current_dc_parameters["wavelength"]
+                         )
                 self.set_wavelength(self.current_dc_parameters["wavelength"])
 
             elif "energy" in self.current_dc_parameters:
@@ -194,21 +246,21 @@ class AbstractCollect(object):
             self.update_data_collection_in_lims()
             # ----------------------------------------------------------------
 
-            self.close_fast_shutter()
-            self.close_safety_shutter()
-            self.close_detector_cover()
+        except:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            failed_msg = 'Data collection failed!\n%s' % exc_value
+            self.collection_failed(failed_msg)
 
-    def data_collection_cleanup(self, owner="MXCuBE"):
+        finally:
+            self.data_collection_cleanup()
+
+    def data_collection_cleanup(self):
         """
-        Method called when an error is raised during the collectin.        
+        Method called when at end of data collection, successful or not.
         """
-        logging.exception("Data collection failed")
-        self.current_dc_parameters["status"] = 'failed'
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        failed_msg = 'Data collection failed!\n%s' % exc_value
-        #self.emit("collectOscillationFailed", (owner, False, failed_msg, 
-        #   self.current_dc_parameters.get('collection_id'), 1))
-        self.collection_failed(failed_msg)
+        self.close_fast_shutter()
+        self.close_safety_shutter()
+        self.close_detector_cover()
 
     def collection_failed(self, failed_msg=None):
         """Collection failed method"""
@@ -217,10 +269,12 @@ class AbstractCollect(object):
             failed_msg = "Data collection failed!"
         self.current_dc_parameters["status"] = "Failed"
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
-        self.emit("collectOscillationFailed", (self.owner, False,
-             failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
+        self.emit("collectOscillationFailed",
+                  (None, False, failed_msg,
+                   self.current_dc_parameters.get("collection_id"), None)
+        )
         self.emit("progressStop", ())
-        self._collecting = None
+        self._collecting = False
         self.update_data_collection_in_lims()
         self.ready_event.set()
 
@@ -230,8 +284,8 @@ class AbstractCollect(object):
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
 
-        if self.current_dc_parameters['experiment_type'] != \
-           "Collect - Multiwedge":
+        if (self.current_dc_parameters['experiment_type']
+            != "Collect - Multiwedge"):
             self.update_data_collection_in_lims()
 
             last_frame = self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
@@ -245,17 +299,17 @@ class AbstractCollect(object):
                                              self.current_dc_parameters,
                                              0)
 
-        self.emit("collectOscillationFinished", (self.owner, True,
+        self.emit("collectOscillationFinished", (None, True,
               success_msg, self.current_dc_parameters.get('collection_id'),
-              self.osc_id, self.current_dc_parameters))
+              None, self.current_dc_parameters))
         self.emit("progressStop", ())
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
 
     def store_image_in_lims_by_frame_num(self, frame_number):
         pass
 
-    def stop_collect(self, owner="MXCuBE"):
+    def stop_collect(self):
         """
         Stops data collection
         """
@@ -452,9 +506,10 @@ class AbstractCollect(object):
         Method create directories for raw files and processing files.
         Directorie names for xds, mosflm and hkl are created
         """
-        self.create_directories(\
+        self.create_directories(
             self.current_dc_parameters['fileinfo']['directory'],  
-            self.current_dc_parameters['fileinfo']['process_directory'])
+            self.current_dc_parameters['fileinfo']['process_directory']
+        )
         xds_directory, mosflm_directory, hkl2000_directory = \
             self.prepare_input_files()
         if xds_directory:
@@ -578,25 +633,25 @@ class AbstractCollect(object):
             sample_id = int(sample_info["blSampleId"])
         except:
             sample_id = None
-
-        try:
-            sample_code = sample_info["code"]
-        except:
-            sample_code = None
-
-        sample_location = None
-
-        try:
-            sample_container_number = int(sample_info['container_reference'])
-        except:
-            pass
-        else:
-            try:
-                vial_number = int(sample_info["sample_location"])
-            except:
-                pass
-            else:
-                sample_location = (sample_container_number, vial_number)
+        # No effect - why was it there?
+        # try:
+        #     sample_code = sample_info["code"]
+        # except:
+        #     sample_code = None
+        #
+        # sample_location = None
+        #
+        # try:
+        #     sample_container_number = int(sample_info['container_reference'])
+        # except:
+        #     pass
+        # else:
+        #     try:
+        #         vial_number = int(sample_info["sample_location"])
+        #     except:
+        #         pass
+        #     else:
+        #         sample_location = (sample_container_number, vial_number)
  
         self.current_dc_parameters['blSampleId'] = sample_id
 
@@ -631,7 +686,7 @@ class AbstractCollect(object):
         Descript. : 
         """
         positions_str = ""
-        for motor, position in self.current_dc_parameters['motors'].iteritems():
+        for motor, position in self.current_dc_parameters['motors'].items():
             if position:
                 if isinstance(motor, str):
                     positions_str += " %s=%f" % (motor, position)
@@ -653,39 +708,49 @@ class AbstractCollect(object):
         Descript. : 
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
-        if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
-            snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
+        snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
+        if (number_of_snapshots > 0
+            or self.current_dc_parameters.get("take_video")
+        ):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
                 except:
                     logging.getLogger("HWR").exception("Collection: Error creating snapshot directory")
+        if number_of_snapshots > 0 and not self.current_dc_parameters["in_interleave"]:
 
-            logging.getLogger("user_level_log").info(\
-                 "Collection: Taking %d sample snapshot(s)" % number_of_snapshots)
+            logging.getLogger("user_level_log").info(
+                 "Collection: Taking %d sample snapshot(s)"
+                 % number_of_snapshots
+            )
             for snapshot_index in range(number_of_snapshots):
-                snapshot_filename = os.path.join(\
-                       snapshot_directory,
-                       "%s_%s_%s.snapshot.jpeg" % (\
-                       self.current_dc_parameters["fileinfo"]["prefix"],
-                       self.current_dc_parameters["fileinfo"]["run_number"],
-                       (snapshot_index + 1)))
-                self.current_dc_parameters['xtalSnapshotFullPath%i' % \
-                    (snapshot_index + 1)] = snapshot_filename
+                snapshot_filename = os.path.join(
+                    snapshot_directory,
+                    "%s_%s_%s.snapshot.jpeg" % (
+                        self.current_dc_parameters["fileinfo"]["prefix"],
+                        self.current_dc_parameters["fileinfo"]["run_number"],
+                        (snapshot_index + 1)
+                    )
+                )
+                self.current_dc_parameters['xtalSnapshotFullPath%i'
+                    % (snapshot_index + 1)] = snapshot_filename
                 self._take_crystal_snapshot(snapshot_filename)
                 if number_of_snapshots > 1:
                     self.diffractometer_hwobj.move_omega_relative(90)
 
-        if not self.diffractometer_hwobj.in_plate_mode() and \
-            self.current_dc_parameters.get("take_video"):
+        if (not self.diffractometer_hwobj.in_plate_mode() and
+            self.current_dc_parameters.get("take_video")):
             #Add checkbox to allow enable/disable creation of gif
-            logging.getLogger("user_level_log").info(\
-                   "Collection: Saving animated gif")
+            logging.getLogger("user_level_log").info(
+                "Collection: Saving animated gif"
+            )
             animation_filename = os.path.join(
-                   snapshot_directory,
-                   "%s_%s_animation.gif" % (\
-                   self.current_dc_parameters["fileinfo"]["prefix"],
-                   self.current_dc_parameters["fileinfo"]["run_number"]))
+                snapshot_directory,
+                "%s_%s_animation.gif" % (
+                    self.current_dc_parameters["fileinfo"]["prefix"],
+                    self.current_dc_parameters["fileinfo"]["run_number"]
+                )
+            )
             self.current_dc_parameters['xtalSnapshotFullPath2'] = animation_filename
             self._take_crystal_animation(animation_filename, duration_sec=3)
         
@@ -699,7 +764,7 @@ class AbstractCollect(object):
         """
         pass
 
-    def _take_crystal_animation(self, animation_filename):
+    def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
         """
         pass
@@ -712,7 +777,7 @@ class AbstractCollect(object):
         pass
 
     @abc.abstractmethod
-    def trigger_auto_processing(self, process_event, frame_number):
+    def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
         Descript. : 
         """

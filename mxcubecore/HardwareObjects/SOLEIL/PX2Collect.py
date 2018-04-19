@@ -23,7 +23,6 @@ import os
 import logging
 import gevent
 from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 
 from eiger import detector, goniometer
@@ -34,7 +33,7 @@ __credits__ = ["MXCuBE colaboration"]
 __version__ = "0."
 
 
-class PX2Collect(AbstractCollect, HardwareObject):
+class PX2Collect(AbstractCollect):
     """Main data collection class. Inherited from AbstractMulticollect
        Collection is done by setting collection parameters and 
        executing collect command  
@@ -46,41 +45,20 @@ class PX2Collect(AbstractCollect, HardwareObject):
         :type name: string
         """
 
-        AbstractCollect.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractCollect.__init__(self, name)
         
         self._centring_status = None
         self._previous_collect_status = None
         self._actual_collect_status = None
-        self.current_dc_parameters = None
 
-        self.osc_id = None
-        self.owner = None
-        self._collecting = False
-        self._error_msg = ""
-        self._error_or_aborting = False
-        self.collect_frame  = None
-        self.ready_event = None
-
-        self.exp_type_dict = None
-        self.aborted_by_user = None 
+        self.aborted_by_user = None
 
         # a redefinir #######################
         
         #hwobj -----------------------------------------------
         # all in AbstracCollect yet !!!! except graphics_manager_hwobj
         #pour l'instant detector>xml pointe vers un detector mockup la distance est recup par le Hwobj detectordistance
-        self.detector_hwobj = None
-        self.diffractometer_hwobj = None
 
-        self.lims_client_hwobj = None
-        self.machine_info_hwobj = None #rebaptise machine_current
-        self.energy_hwobj = None
-        self.resolution_hwobj = None
-        self.transmission_hwobj = None
-        self.beam_info_hwobj = None
-        self.autoprocessing_hwobj = None
-        
         self.graphics_manager_hwobj = None
         
         #hwobj PX2
@@ -89,44 +67,24 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.detector_distance_hwobj = None
         #self.undulators_hwobj = None
         self.flux_hwobj = None
-        
-        
-        
+
 
     def init(self):
         """Main init method
         """
 
-        self.ready_event = gevent.event.Event()
+        AbstractCollect.init(self)
                                
         # no beamlineControl !!!!!!!!!
-                               
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("dbserve")#self.getObjectByRole("lims_client")# avoir dans le xml dbserver 
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
+
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         
         #PX2
-        self.flux_hwobj              = elf.getObjectByRole("flux")
+        self.flux_hwobj              = self.getObjectByRole("flux")
         self.safety_shutter_hwobj    = self.getObjectByRole("safety_shutter")#?
         self.cryo_stream_hwobj       = self.getObjectByRole("cryo_stream")#?
         self.detector_distance_hwobj = self.getObjectByRole("detector_distance")#??? a voir plus tard si inegrqtion dans detector_hwobj
-        
-        #pas de getObjectByRole("undulators") reste [] mais pas None
-        undulators = []
-        try:
-            for undulator in self["undulators"]:
-                undulators.append(undulator)
-        except:
-            pass  
+
 
         #sc
         self.exp_type_dict = {'Mesh': 'raster',
@@ -154,35 +112,35 @@ class PX2Collect(AbstractCollect, HardwareObject):
 #              polarisation = self.getProperty('polarisation'),
 #              input_files_server = self.getProperty("input_files_server"))
 #==============================================================================
-                                      detector_type = bcm_pars["detector"].getProperty("type"),
-                                      detector_mode = spec_pars["detector"].getProperty("binning"),####### >>> ISPYBCLIENT queue_model_object
-                                      detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer"),
-                                      detector_model = bcm_pars["detector"].getProperty("model"),
-                                      detector_px = bcm_pars["detector"].getProperty("px"),
-                                      detector_py = bcm_pars["detector"].getProperty("py"),
-        self.set_beamline_configuration(\
-             synchrotron_name = "SOLEIL-PX2",
-             directory_prefix = self.getProperty("directory_prefix"),
-             default_exposure_time = bcm_pars["detector"].getProperty("default_exposure_time"),##
-             minimum_exposure_time = bcm_pars["detector"].getProperty("minimum_exposure_time"),##
-             detector_fileext = bcm_pars["detector"].getProperty("FileSuffix"),##
-             #detector_type = self.detector_hwobj.getProperty("type"),
-             detector_type = bcm_pars["detector"].getProperty("type"),
-             #detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
-             detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer")
-             #detector_model = self.detector_hwobj.getProperty("model"),
-             #detector_px = self.detector_hwobj.getProperty("px"),
-             #detector_py = self.detector_hwobj.getProperty("py"),
-             detector_model = bcm_pars["detector"].getProperty("model"),
-             detector_px = bcm_pars["detector"].getProperty("px"),
-             detector_py = sbcm_pars["detector"].getProperty("py"),
-             undulators = self.undulators_hwobj,
-             focusing_optic = self.getProperty('focusing_optic'),
-             monochromator_type = self.getProperty('monochromator'),
-             beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation = self.getProperty('polarisation'),
-             input_files_server = self.getProperty("input_files_server"))
+                                      # detector_type = bcm_pars["detector"].getProperty("type"),
+                                      # detector_mode = spec_pars["detector"].getProperty("binning"),####### >>> ISPYBCLIENT queue_model_object
+                                      # detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer"),
+                                      # detector_model = bcm_pars["detector"].getProperty("model"),
+                                      # detector_px = bcm_pars["detector"].getProperty("px"),
+                                      # detector_py = bcm_pars["detector"].getProperty("py"),
+        # self.set_beamline_configuration(\
+        #      synchrotron_name = "SOLEIL-PX2",
+        #      directory_prefix = self.getProperty("directory_prefix"),
+        #      default_exposure_time = bcm_pars["detector"].getProperty("default_exposure_time"),##
+        #      minimum_exposure_time = bcm_pars["detector"].getProperty("minimum_exposure_time"),##
+        #      detector_fileext = bcm_pars["detector"].getProperty("FileSuffix"),##
+        #      #detector_type = self.detector_hwobj.getProperty("type"),
+        #      detector_type = bcm_pars["detector"].getProperty("type"),
+        #      #detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
+        #      detector_manufacturer = bcm_pars["detector"].getProperty("manufacturer")
+        #      #detector_model = self.detector_hwobj.getProperty("model"),
+        #      #detector_px = self.detector_hwobj.getProperty("px"),
+        #      #detector_py = self.detector_hwobj.getProperty("py"),
+        #      detector_model = bcm_pars["detector"].getProperty("model"),
+        #      detector_px = bcm_pars["detector"].getProperty("px"),
+        #      detector_py = sbcm_pars["detector"].getProperty("py"),
+        #      undulators = self.undulators_hwobj,
+        #      focusing_optic = self.getProperty('focusing_optic'),
+        #      monochromator_type = self.getProperty('monochromator'),
+        #      beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
+        #      beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
+        #      polarisation = self.getProperty('polarisation'),
+        #      input_files_server = self.getProperty("input_files_server"))
 #==============================================================================
 # 
 #         self.chan_collect_status = self.getChannelObject('collectStatus')
@@ -238,9 +196,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
-    
-    def set_beamline_configuration(self, **configuration_parameters):
-        self.bl_config = BeamlineConfig(**configuration_parameters)
+
     # A REECRIRE !!!
     def data_collection_hook(self):
         """Main collection hook A REECRIRE !!!!!!!!!!!!!!!!!!!!!!!!!!111
@@ -339,7 +295,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
                     logging.info("Preparing collecting...")  
             elif self._previous_collect_status == 'busy':
                 if self._actual_collect_status == 'collecting':
-                    self.emit("collectStarted", (self.owner, 1))
+                    self.emit("collectStarted", (None, 1))
             elif self._previous_collect_status == 'collecting':
                 if self._actual_collect_status == "ready":
                     self.emit_collection_finished()
@@ -369,10 +325,10 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg) 
         #self.emit("collectOscillationFailed", (self.owner, False, 
         #     failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
-        self.emit("collectEnded", self.owner, failed_msg)
+        self.emit("collectEnded", None, failed_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ())
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
         self.update_data_collection_in_lims()
 #==============================================================================
@@ -412,13 +368,13 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
-        self.emit("collectOscillationFinished", (self.owner, True, 
+        self.emit("collectOscillationFinished", (None, True,
               success_msg, self.current_dc_parameters.get('collection_id'), 
-              self.osc_id, self.current_dc_parameters))
-        self.emit("collectEnded", self.owner, success_msg)
+              None, self.current_dc_parameters))
+        self.emit("collectEnded", None, success_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ()) 
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
     
     #PAS UTILISABLE PAS DE DEVICE COLLECT
@@ -445,8 +401,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         """Image frame update  A REECRIRE !!!!!!!!!!!!!!!!!!!!!!!!!!111
         """
 
-        if self._collecting: 
-            self.collect_frame = frame
+        if self._collecting:
             number_of_images = self.current_dc_parameters\
                  ['oscillation_sequence'][0]['number_of_images']
             self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
@@ -482,7 +437,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         return self._detector.stop_acquisition()
     
     # Fait !!
-    def stop_collect(self, owner="MXCuBE"):
+    def stop_collect(self):
         """
         Descript. : SOLEILMULTICOLLECT
         
