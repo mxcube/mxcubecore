@@ -346,7 +346,7 @@ class GenericDiffractometer(HardwareObject):
             else:
                 self.zoom_centre = {'x': 0, 'y' : 0}
                 logging.getLogger("HWR").warning("Diffractometer: " + \
-                   "Neither zoom centre nor camera size iz defined")
+                   "Neither zoom centre nor camera size is defined")
 
         self.reversing_rotation = self.getProperty("reversing_rotation")
         try:
