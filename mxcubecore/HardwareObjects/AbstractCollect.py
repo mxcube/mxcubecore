@@ -242,9 +242,9 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
             self.data_collection_hook()
 
-            log.info("Collection: Updating data collection in LIMS")
-            self.update_data_collection_in_lims()
-            # ----------------------------------------------------------------
+        log.info("Collection: Updating data collection in LIMS")
+        self.update_data_collection_in_lims()
+        # ----------------------------------------------------------------
 
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -686,7 +686,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. : 
         """
         positions_str = ""
-        for motor, position in self.current_dc_parameters['motors'].items():
+        for motor, position in sorted(self.current_dc_parameters['motors'].items()):
             if position:
                 if isinstance(motor, str):
                     positions_str += " %s=%f" % (motor, position)
