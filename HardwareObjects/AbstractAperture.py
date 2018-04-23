@@ -33,8 +33,8 @@ class AbstractAperture(HardwareObject):
 
         self._current_position_name = None
         self._current_diameter_index = None
-        self._diameter_size_list = []
-        self._position_list = []
+        self._diameter_size_list = ()
+        self._position_list = ()
 
     def init(self):
         try:

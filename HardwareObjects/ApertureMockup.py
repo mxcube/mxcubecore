@@ -34,8 +34,8 @@ xml example:
 </device>
 """
 
-DEFAULT_POSITION_LIST = ["BEAM", "OFF", "PARK"]
-DEFAULT_DIAMETER_SIZE_LIST = [5, 10, 20, 30, 50, 100]
+DEFAULT_POSITION_LIST = ("BEAM", "OFF", "PARK")
+DEFAULT_DIAMETER_SIZE_LIST = (5, 10, 20, 30, 50, 100)
 
 
 class ApertureMockup(AbstractAperture):
