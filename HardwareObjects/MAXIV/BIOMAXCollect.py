@@ -12,11 +12,10 @@ import os
 import logging
 import gevent
 import time
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import task
 from AbstractCollect import AbstractCollect
 
-class BIOMAXCollect(AbstractCollect, HardwareObject):
+class BIOMAXCollect(AbstractCollect):
     """
     Descript: Data collection class, inherited from AbstractCollect
     """
@@ -27,37 +26,18 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         Descript. :
         """
-        AbstractCollect.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractCollect.__init__(self, name)
 
-        self._centring_status = None
-
-        self.osc_id = None
-        self.owner = None
-        self._collecting = False
-        self._error_msg = ""
-        self._error_or_aborting = False
-        self.collect_frame  = None
         self.helical = False
         self.helical_pos = None
-        self.ready_event = None
-
-        self.exp_type_dict = None
 
     def init(self):
         """
         Descript. :
         """
-        self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("lims_client")
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
+
+        AbstractCollect.init(self)
+
         self.dtox_hwobj = self.getObjectByRole("dtox")
 
         #todo
@@ -68,33 +48,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         #todo
         #self.cryo_stream_hwobj = self.getObjectByRole("cryo_stream")
 
-        undulators = []
-        # todo
-        try:
-            for undulator in self["undulators"]:
-                undulators.append(undulator)
-        except:
-            pass
-
         self.exp_type_dict = {'Mesh': 'Mesh','Helical': 'Helical'}
-        self.set_beamline_configuration(\
-             synchrotron_name = "MAXIV",
-             directory_prefix = self.getProperty("directory_prefix"),
-             default_exposure_time = self.getProperty("default_exposure_time"),
-             minimum_exposure_time = self.detector_hwobj.get_minimum_exposure_time(),
-             detector_fileext = self.detector_hwobj.getProperty("file_suffix"),
-             detector_type = self.detector_hwobj.getProperty("type"),
-             detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
-             detector_model = self.detector_hwobj.getProperty("model"),
-             detector_px = self.detector_hwobj.get_pixel_size_x(),
-             detector_py = self.detector_hwobj.get_pixel_size_y(),
-             undulators = undulators,
-             focusing_optic = self.getProperty('focusing_optic'),
-             monochromator_type = self.getProperty('monochromator'),
-             beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation = self.getProperty('polarisation'),
-             input_files_server = self.getProperty("input_files_server"))
 
         """ to add """
         #self.chan_undulator_gap = self.getChannelObject('UndulatorGap')
@@ -267,11 +221,11 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         failed_msg = 'Data collection failed!'
         self.current_dc_parameters["status"] = failed_msg
         self.current_dc_parameters["comments"] = "%s\n%s" % (failed_msg, self._error_msg)
-        self.emit("collectOscillationFailed", (self.owner, False,
-             failed_msg, self.current_dc_parameters.get("collection_id"), self.osc_id))
-        self.emit("collectEnded", self.owner, failed_msg)
+        self.emit("collectOscillationFailed", (None, False,
+             failed_msg, self.current_dc_parameters.get("collection_id"), None))
+        self.emit("collectEnded", None, failed_msg)
         self.emit("collectReady", (True, ))
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
 
         self.update_data_collection_in_lims()
@@ -282,13 +236,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         """
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
-        self.emit("collectOscillationFinished", (self.owner, True,
+        self.emit("collectOscillationFinished", (None, True,
               success_msg, self.current_dc_parameters.get('collection_id'),
-              self.osc_id, self.current_dc_parameters))
-        self.emit("collectEnded", self.owner, success_msg)
+              None, self.current_dc_parameters))
+        self.emit("collectEnded", None, success_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ())
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
 
         self.update_data_collection_in_lims()

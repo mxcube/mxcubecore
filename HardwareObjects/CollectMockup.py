@@ -20,8 +20,7 @@ import os
 import time
 import logging
 import gevent
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import task
 from AbstractCollect import AbstractCollect
 
 
@@ -29,7 +28,7 @@ __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.2."
 
 
-class CollectMockup(AbstractCollect, HardwareObject):
+class CollectMockup(AbstractCollect):
     """
     """
     def __init__(self, name):
@@ -39,79 +38,18 @@ class CollectMockup(AbstractCollect, HardwareObject):
         :type name: string
         """
 
-        AbstractCollect.__init__(self)
-        HardwareObject.__init__(self, name)
-        self._centring_status = None
-        self._previous_collect_status = None
-        self._actual_collect_status = None
-        self.current_dc_parameters = None
+        AbstractCollect.__init__(self, name)
 
-        self.osc_id = None
-        self.owner = None
-        self._collecting = False
-        self._error_msg = ""
-        self._error_or_aborting = False
-        self.collect_frame  = None
-        self.ready_event = None
-
-        self.exp_type_dict = None
-        self.aborted_by_user = None 
-
-        self.diffractometer_hwobj = None
-        self.lims_client_hwobj = None
-        self.machine_info_hwobj = None
-        self.energy_hwobj = None
-        self.resolution_hwobj = None
-        self.transmission_hwobj = None
-        self.detector_hwobj = None
-        self.beam_info_hwobj = None
-        self.autoprocessing_hwobj = None
+        self.aborted_by_user = False
         self.graphics_manager_hwobj = None
 
     def init(self):
         """Main init method
         """
 
-        self.ready_event = gevent.event.Event()
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
-        self.lims_client_hwobj = self.getObjectByRole("lims_client")
-        self.machine_info_hwobj = self.getObjectByRole("machine_info")
-        self.energy_hwobj = self.getObjectByRole("energy")
-        self.resolution_hwobj = self.getObjectByRole("resolution")
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.detector_hwobj = self.getObjectByRole("detector")
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
-        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
-        self.plate_manipulator_hwobj = self.getObjectByRole("plate_manipulator")
+        AbstractCollect.init(self)
 
-        undulators = []
-        try:
-            for undulator in self["undulators"]:
-                undulators.append(undulator)
-        except:
-            pass  
-        self.exp_type_dict = {'Mesh': 'raster',
-                              'Helical': 'Helical'}
-        self.set_beamline_configuration(\
-             synchrotron_name = "EMBL-HH",
-             directory_prefix = self.getProperty("directory_prefix"),
-             default_exposure_time = self.detector_hwobj.getProperty("default_exposure_time"),
-             minimum_exposure_time = self.detector_hwobj.getProperty("minimum_exposure_time"),
-             detector_fileext = self.detector_hwobj.getProperty("fileSuffix"),
-             detector_type = self.detector_hwobj.getProperty("type"),
-             detector_manufacturer = self.detector_hwobj.getProperty("manufacturer"),
-             detector_model = self.detector_hwobj.getProperty("model"),
-             detector_px = self.detector_hwobj.getProperty("px"),
-             detector_py = self.detector_hwobj.getProperty("py"),
-             undulators = undulators,
-             focusing_optic = self.getProperty('focusing_optic'),
-             monochromator_type = self.getProperty('monochromator'),
-             beam_divergence_vertical = self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal = self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation = self.getProperty('polarisation'),
-             input_files_server = self.getProperty("input_files_server"))
+        self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -119,7 +57,7 @@ class CollectMockup(AbstractCollect, HardwareObject):
     def data_collection_hook(self):
         """Main collection hook
         """
-        self.emit("collectStarted", (self.owner, 1)) 
+        self.emit("collectStarted", (None, 1))
         self.emit("fsmConditionChanged",
                   "data_collection_started",
                   True)
@@ -129,6 +67,7 @@ class CollectMockup(AbstractCollect, HardwareObject):
         for image in range(self.current_dc_parameters["oscillation_sequence"][0]["number_of_images"]):
             if self.aborted_by_user:
                 self.ready_event.set()
+                self.aborted_by_user = False
                 return
 
             #Uncomment to test collection failed
@@ -161,10 +100,10 @@ class CollectMockup(AbstractCollect, HardwareObject):
 
         success_msg = "Data collection successful"
         self.current_dc_parameters["status"] = success_msg
-        self.emit("collectOscillationFinished", (self.owner, True, 
+        self.emit("collectOscillationFinished", (None, True,
               success_msg, self.current_dc_parameters.get('collection_id'), 
-              self.osc_id, self.current_dc_parameters))
-        self.emit("collectEnded", self.owner, success_msg)
+              None, self.current_dc_parameters))
+        self.emit("collectEnded", None, success_msg)
         self.emit("collectReady", (True, ))
         self.emit("progressStop", ()) 
         self.emit("fsmConditionChanged",
@@ -173,14 +112,13 @@ class CollectMockup(AbstractCollect, HardwareObject):
         self.emit("fsmConditionChanged",
                   "data_collection_started",
                   False)
-        self._collecting = None
+        self._collecting = False
         self.ready_event.set()
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """
         Descript. :
         """
-        image_id = None
         self.trigger_auto_processing("image", self.current_dc_parameters, frame)
         image_id = self.store_image_in_lims(frame)
         return image_id
@@ -223,7 +161,7 @@ class CollectMockup(AbstractCollect, HardwareObject):
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
 
     @task
-    def _take_crystal_animation(self, animation_filename, duration_sec):
+    def _take_crystal_animation(self, animation_filename, duration_sec=1):
         """Rotates sample by 360 and composes a gif file
            Animation is saved as the fourth snapshot
         """
@@ -248,24 +186,28 @@ class CollectMockup(AbstractCollect, HardwareObject):
         """
         i = 1
         while True:
-            xds_input_file_dirname = "xds_%s_%s_%d" % (\
+            xds_input_file_dirname = "xds_%s_%s_%d" % (
                 self.current_dc_parameters['fileinfo']['prefix'],
                 self.current_dc_parameters['fileinfo']['run_number'],
-                i)
-            xds_directory = os.path.join(\
+                i
+            )
+            xds_directory = os.path.join(
                 self.current_dc_parameters['fileinfo']['process_directory'],
-                xds_input_file_dirname)
+                xds_input_file_dirname
+            )
             if not os.path.exists(xds_directory):
                 break
             i += 1
 
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (\
-                self.current_dc_parameters['fileinfo']['prefix'],
-                self.current_dc_parameters['fileinfo']['run_number'],
-                i)
-        mosflm_directory = os.path.join(\
-                self.current_dc_parameters['fileinfo']['process_directory'],
-                mosflm_input_file_dirname)
+        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
+            self.current_dc_parameters['fileinfo']['prefix'],
+            self.current_dc_parameters['fileinfo']['run_number'],
+            i
+        )
+        mosflm_directory = os.path.join(
+            self.current_dc_parameters['fileinfo']['process_directory'],
+            mosflm_input_file_dirname
+        )
 
         return xds_directory, mosflm_directory, ""
 
