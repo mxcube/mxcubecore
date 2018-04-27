@@ -121,6 +121,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_scale_item = None
         self.graphics_omega_reference_item = None
         self.graphics_centring_lines_item = None
+        self.graphics_histogram_item = None
         self.graphics_grid_draw_item = None
         self.graphics_measure_distance_item = None
         self.graphics_measure_angle_item = None
@@ -142,6 +143,8 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view = GraphicsLib.GraphicsView()
         self.graphics_camera_frame = GraphicsLib.GraphicsCameraFrame()
         self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
+        self.graphics_histogram_item = GraphicsLib.GraphicsItemHistogram(self)
+        self.graphics_histogram_item.hide()
         self.graphics_omega_reference_item = \
              GraphicsLib.GraphicsItemOmegaReference(self)
         self.graphics_beam_item = GraphicsLib.GraphicsItemBeam(self)
@@ -184,6 +187,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_info_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_beam_mark_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_centring_lines_item) 
+        self.graphics_view.graphics_scene.addItem(self.graphics_histogram_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_scale_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_distance_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_angle_item)
@@ -510,6 +514,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
+            self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -533,8 +538,6 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: centringStarted
         """
         self.current_centring_method = centring_method
-        self.set_centring_state(True)
-        self.diffractometer_state_changed()
         self.emit("centringStarted")  
 
     def create_centring_point(self, centring_state, centring_status, emit=True):
@@ -805,6 +808,12 @@ class Qt4_GraphicsManager(HardwareObject):
         elif self.in_magnification_mode:
             self.graphics_magnification_item.set_end_position(pos_x, pos_y)
 
+        #TODO add grid commands
+        #else:
+        #    for shape in self.get_selected_shapes():
+        #        if isinstance(shape, GraphicsLib.GraphicsItemGrid):
+        #            print shape
+
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
            - Deletes selected shapes if Delete pressed
@@ -826,6 +835,8 @@ class Qt4_GraphicsManager(HardwareObject):
                 self.stop_beam_define()
             if self.in_magnification_mode:
                 self.set_magnification_mode(False)
+            self.in_move_beam_mark_state = False
+            self.graphics_move_beam_mark_item.hide()
             #self.graphics_beam_item.set_detected_beam_position(None, None)
 
         #elif key_event == "Up":
@@ -1329,7 +1340,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.in_move_beam_mark_state = True
         self.start_graphics_item(\
              self.graphics_move_beam_mark_item,
-             start_pos = self.graphics_beam_item.start_coord)
+             start_pos=self.beam_position)
         #self.graphics_move_beam_mark_item.set_beam_mark(\
         #     self.beam_info_dict, self.pixels_per_mm) 
 
@@ -1439,11 +1450,12 @@ class Qt4_GraphicsManager(HardwareObject):
         :type tree_click: bool
         :emits: - centringInProgress as bool
                 - infoMsg: as str
-        """
+        """ 
         self.emit("centringInProgress", True)
         if tree_click:
             self.hide_all_items()
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
+            self.set_centring_state(True) 
             self.diffractometer_hwobj.start_centring_method(\
                  self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
             self.emit("infoMsg", "3 click centring")
@@ -1714,7 +1726,7 @@ class Qt4_GraphicsManager(HardwareObject):
         #                       "Please wait."])
         self.emit("centringInProgress", True)
         self.diffractometer_hwobj.start_centring_method(\
-             self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=True)
+             self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=False)
         self.emit("infoMsg", "Automatic centring")
 
     def move_beam_mark_auto(self):
@@ -1850,6 +1862,16 @@ class Qt4_GraphicsManager(HardwareObject):
         """Display a grid on the screen
         """
         self.graphics_scale_item.set_display_grid(state) 
+
+    def display_histogram(self, state):
+        self.graphics_histogram_item.setVisible(state)
+        if state:
+            self.update_histogram()
+
+    def update_histogram(self):
+        image_array = self.camera_hwobj.get_snapshot(bw=True, return_as_array=True)
+        self.graphics_histogram_item.update_histogram(image_array.sum(axis=0),
+                                                      image_array.sum(axis=1))
 
     def create_automatic_line(self):
         """Create automatic line for xray centring
