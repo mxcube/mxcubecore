@@ -155,7 +155,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         if status == "calibrating":
             status_message = status_message + "Energy change in progress.\n"
             status_message = status_message + "Please wait...\n"
-            logging.getLogger('GUI').info(status_message) 
+            logging.getLogger('GUI').warning(status_message) 
         """
         elif status == "configuring":
             status_message = status_message + "Configuring"

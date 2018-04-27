@@ -55,7 +55,7 @@ class EMBLDoorInterlock(Device):
         self.chan_state_breakable = None
         self.cmd_break_interlock = None
   
-        self.ics_enabled = None
+        self.ics_enabled = True
 
     def init(self):
         self.door_interlock_state = "unknown"

@@ -73,12 +73,12 @@ class EMBLEnergy(Device):
             self.chan_energy.connectSignal('update',
                                            self.energy_position_changed)
 
-        self.chan_limit_low = self.getChannelObject('chanLimitLow')
+        self.chan_limit_low = self.getChannelObject('chanLimitLow', optional=True)
         if self.chan_limit_low is not None:
             self.chan_limit_low.connectSignal('update',
                                               self.energy_limits_changed)
 
-        self.chan_limit_high = self.getChannelObject('chanLimitHigh')
+        self.chan_limit_high = self.getChannelObject('chanLimitHigh', optional=True)
         if self.chan_limit_high is not None:
             self.chan_limit_high.connectSignal('update',
                                                self.energy_limits_changed)
@@ -88,7 +88,7 @@ class EMBLEnergy(Device):
             self.chan_status.connectSignal('update',
                                            self.energy_state_changed)
 
-        self.chan_undulator_gaps = self.getChannelObject('chanUndulatorGap')
+        self.chan_undulator_gaps = self.getChannelObject('chanUndulatorGap', optional=True)
         if self.chan_undulator_gaps is not None:
             self.chan_undulator_gaps.connectSignal('update',
                                                    self.undulator_gaps_changed)
