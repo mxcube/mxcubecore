@@ -1224,7 +1224,6 @@ class GraphicsItemScale(GraphicsItem):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
         self.__display_grid = False
-        self.__display_histogram = False
 
     def paint(self, painter, option, widget):
         #TODO move to set_pixels_per_mm
@@ -1403,7 +1402,6 @@ class GraphicsItemHistogram(GraphicsItem):
         painter.drawPath(self.ver_painter_path)
 
     def update_histogram(self, hor_array, ver_array):
-        scene_width = self.scene().width()
         scene_height = self.scene().height()
 
         self.hor_painter_path = QPainterPath()
