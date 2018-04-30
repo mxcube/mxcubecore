@@ -296,7 +296,6 @@ class AbstractCollect(HardwareObject, object):
                 self.current_dc_parameters['oscillation_sequence'][0]['overlap'] == 0 and
                 last_frame > 19):
                 self.trigger_auto_processing("after",
-                                             self.current_dc_parameters,
                                              0)
 
         self.emit("collectOscillationFinished", (None, True,
@@ -308,6 +307,10 @@ class AbstractCollect(HardwareObject, object):
 
     def store_image_in_lims_by_frame_num(self, frame_number):
         pass
+
+    def stopCollect(self):
+        #TODO remove this method and use stop_collect in the queue_entry
+        self.stop_collect()
 
     def stop_collect(self):
         """
@@ -777,7 +780,7 @@ class AbstractCollect(HardwareObject, object):
         pass
 
     @abc.abstractmethod
-    def trigger_auto_processing(self, process_event, params_dict, frame_number):
+    def trigger_auto_processing(self, process_event, frame_number):
         """
         Descript. : 
         """

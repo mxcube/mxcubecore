@@ -74,7 +74,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_frame_rate.connectSignal('update', self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
-        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate', optional=True)
+        #TODO add version of module that accepts optional argument 
+        #self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate', optional=True)
+        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate')
         if self.chan_actual_frame_rate is not None:
             self.chan_actual_frame_rate.connectSignal('update', self.actual_frame_rate_changed)
 
