@@ -316,11 +316,11 @@ class EMBLCollect(AbstractCollect):
         :param motor_position_id: position id
         :type motor_position_id: int
         """
-        self.trigger_auto_processing("image", self.current_dc_parameters, frame)
+        self.trigger_auto_processing("image", frame)
 
         return self.store_image_in_lims(frame)
 
-    def trigger_auto_processing(self, process_event, params_dict, frame_number):
+    def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
         self.autoprocessing_hwobj.execute_autoprocessing(process_event,
              self.current_dc_parameters, frame_number, self.run_processing_after)

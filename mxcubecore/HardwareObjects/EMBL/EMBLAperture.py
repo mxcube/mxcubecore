@@ -52,7 +52,7 @@ class EMBLAperture(AbstractAperture):
         if self.chan_diameters:
             self._diameter_size_list = self.chan_diameters.getValue()
         else:
-            self._diameter_size_list = [10, 20]
+            self._diameter_size_list = (10, 20)
 
         self.chan_diameter_index = \
             self.getChannelObject('CurrentApertureDiameterIndex')
@@ -114,7 +114,7 @@ class EMBLAperture(AbstractAperture):
         :param diameter_index: new position
         :type diameter_index: str
         """
-        self.chan_position.setValue(POSITIONS[position])
+        self.chan_position.setValue(self._position_list[position])
 
     def set_in(self):
         """Sets aperture to the BEAM position"""
