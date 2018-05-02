@@ -87,8 +87,8 @@ class EMBLMachineInfo(HardwareObject):
         self.hutch_temp = 0
         self.hutch_hum = 0
         self.overflow_alarm = None
-        self.low_level_alarm = None
-        self.state_text = ""
+        self.low_level_alarm = 0
+        self.state_text = "Not updated yet"
         self.ring_energy = None
         self.bunch_count = None
         self.flux_area = None
@@ -185,6 +185,7 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_sc_dewar_low_level_alarm is not None:
             self.chan_sc_dewar_low_level_alarm.connectSignal('update',
                self.low_level_alarm_changed)
+            self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
 
         self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
         if self.chan_sc_dewar_overflow_alarm is not None:
@@ -279,7 +280,7 @@ class EMBLMachineInfo(HardwareObject):
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
-        self.low_level_alarm = value == 0
+        self.low_level_alarm = value
         self.update_sc_alarm()
 
     def overflow_alarm_changed(self, value):

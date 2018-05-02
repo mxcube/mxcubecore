@@ -72,7 +72,7 @@ class TINEMotor(AbstractMotor):
             self.chan_position.connectSignal('update', self.motor_position_changed)
         self.motor_position_changed(self.chan_position.getValue())
           
-        self.chan_state = self.getChannelObject('axisState')
+        self.chan_state = self.getChannelObject('axisState', optional=True)
         if self.chan_state is not None:
             self.chan_state.connectSignal('update', self.motor_state_changed)
         
