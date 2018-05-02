@@ -144,16 +144,19 @@ class CommandContainer:
         self.__commandsToAdd = []
         self.__channelsToAdd = []
 
-
     def __getattr__(self, attr):
         try:
             return self.__dict__['_CommandContainer__commands'][attr]
         except KeyError:
             raise AttributeError(attr)
     
-    def getChannelObject(self, channelName):
-        #return self.__channels[channelName]
-        return self.__channels.get(channelName) 
+    def getChannelObject(self, channelName, optional=False):
+        channel = self.__channels.get(channelName)
+        if channel is None and not optional:
+            msg = "Unable to add channel %s" % channelName
+            logging.getLogger("user_level_log").exception(msg)
+            #raise Exception(msg)
+        return channel
 
     def getChannelNamesList(self):
         return list(self.__channels.keys())
@@ -176,6 +179,8 @@ class CommandContainer:
         del attributesDict['type']
 
         newChannel = None
+        if self.__channels.get(channelName) is not None:
+            return self.__channels[channelName]
 
         if channelType.lower() == 'spec':
             if not 'version' in attributesDict:

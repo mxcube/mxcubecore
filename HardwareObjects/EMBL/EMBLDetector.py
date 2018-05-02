@@ -74,7 +74,9 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_frame_rate.connectSignal('update', self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
-        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate', optional=True)
+        #TODO add version of module that accepts optional argument 
+        #self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate', optional=True)
+        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate')
         if self.chan_actual_frame_rate is not None:
             self.chan_actual_frame_rate.connectSignal('update', self.actual_frame_rate_changed)
 
@@ -155,7 +157,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         if status == "calibrating":
             status_message = status_message + "Energy change in progress.\n"
             status_message = status_message + "Please wait...\n"
-            logging.getLogger('GUI').info(status_message) 
+            logging.getLogger('GUI').warning(status_message) 
         """
         elif status == "configuring":
             status_message = status_message + "Configuring"

@@ -12,7 +12,7 @@ class AbstractDetector(object):
         # self.distance = None
         self.temperature = None
         self.humidity = None
-        self.exposure_time_limits = []
+        self.exposure_time_limits = [None, None]
         self.actual_frame_rate = None
 
         self.pixel_min = None

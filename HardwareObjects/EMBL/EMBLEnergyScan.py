@@ -262,8 +262,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
         symbol = "_".join((elt, edge))
-        scan_file_prefix = os.path.join(scan_directory, prefix)
-        archive_file_prefix = os.path.join(archive_directory, prefix)
+        scan_file_prefix = str(os.path.join(scan_directory, prefix))
+        archive_file_prefix = str(os.path.join(archive_directory, prefix))
 
         if os.path.exists(scan_file_prefix + ".raw"):
             i = 1
