@@ -188,7 +188,8 @@ class EMBLBeamlineTest(HardwareObject):
                      self.image_double_clicked)
 
         if hasattr(self.bl_hwobj.beam_info_hwobj, "beam_focusing_hwobj"):
-            self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
+            self.beam_focusing_hwobj = \
+              self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
             self.connect(self.beam_focusing_hwobj,
                          "focusingModeChanged",
                          self.focusing_mode_changed)
@@ -219,7 +220,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.test_filename = "mxcube_test_report"
 
         try:
-            for test in eval(self.getProperty("available_tests")):
+            for test in eval(self.getProperty("available_tests", '[]')):
                 self.available_tests_dict[test] = TEST_DICT[test]
         except:
             logging.getLogger("HWR").debug(\
@@ -245,6 +246,8 @@ class EMBLBeamlineTest(HardwareObject):
                 self.intensity_ranges.append(temp_intens_range)
             self.intensity_ranges = sorted(self.intensity_ranges,
                                            key=lambda item: item['max'])
+           
+         
 
         self.chan_intens_mean = self.getChannelObject('intensMean')
         self.chan_intens_range = self.getChannelObject('intensRange')
@@ -900,6 +903,7 @@ class EMBLBeamlineTest(HardwareObject):
                          "progress_msg": msg}
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (1, progress_info))
+        self.emit("progressInit", ("Beam centering...", 6, True))
 
         # 1. close guillotine and fast shutter -------------------------------
         # TODO
@@ -910,6 +914,8 @@ class EMBLBeamlineTest(HardwareObject):
         progress_info["progress_msg"] = msg
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (2, progress_info))
+        self.emit("progressStep", 1, "Setting diffractometer in BeamLocation phase")
+        
         self.bl_hwobj.diffractometer_hwobj.set_phase(\
              self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM, timeout=45)
 
@@ -921,6 +927,7 @@ class EMBLBeamlineTest(HardwareObject):
         progress_info["progress_msg"] = msg
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (2, progress_info))
+        self.emit("progressStep", 2, "Adjusting transmission")
 
         if current_energy < 7:
             new_transmission = 100
@@ -943,6 +950,7 @@ class EMBLBeamlineTest(HardwareObject):
             slits_hwobj = self.bl_hwobj.beam_info_hwobj.slits_hwobj
 
             active_mode, beam_size = self.get_focus_mode()
+            
             if active_mode == "Collimated":
                 self.bl_hwobj.transmission_hwobj.setTransmission(new_transmission, timeout=45)
                 self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
@@ -955,6 +963,7 @@ class EMBLBeamlineTest(HardwareObject):
             progress_info["progress_msg"] = msg
             log.info("Beam centering: %s" % msg)
             self.emit("testProgress", (2, progress_info))
+            self.emit("progressStep", 3, "Opening slits to 1x1 mm")
 
             #GB: keep standard slits settings for double foucsed mode
             if active_mode == "Collimated":
@@ -964,6 +973,7 @@ class EMBLBeamlineTest(HardwareObject):
             #self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
             # Actual centring procedure  ---------------
+            
             self.center_beam_task()
 
             # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
@@ -980,6 +990,7 @@ class EMBLBeamlineTest(HardwareObject):
 
             # 6/6 Update position of the beam mark position ----------------------
             msg = "6/6 : Updating beam mark position"
+            self.emit("progressStep", 6, "Updating beam mark position")
             progress_info["progress_msg"] = msg
             log.info("Beam centering: %s" % msg)
             self.emit("testProgress", (6, progress_info))
@@ -1000,6 +1011,7 @@ class EMBLBeamlineTest(HardwareObject):
         progress_info["progress_msg"] = msg
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (6, progress_info))
+        self.emit("progressStop", ())
         self.ready_event.set()
 
     def center_beam_task(self):
@@ -1086,11 +1098,12 @@ class EMBLBeamlineTest(HardwareObject):
                 progress_info["progress_msg"] = msg
                 log.info("Beam centering: %s" % msg)
                 self.emit("testProgress", (4, progress_info))
+                self.emit("progressStep", 4, "Applying Perp and Roll2nd correction")
  
                 delta_ver = 1.0
 
                 for i in range(5):
-                    if abs(delta_ver) > 0.050 :
+                    if abs(delta_ver) > 0.100 :
                         self.cmd_set_pitch_position(0)
                         self.cmd_set_pitch(1)
                         gevent.sleep(0.1)
@@ -1115,6 +1128,9 @@ class EMBLBeamlineTest(HardwareObject):
                         # GB : return original lenses only after scan finished 
                         if self.bl_hwobj._get_energy() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
+                        
+                        sleep(2)
+
 
                     with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
                         beam_pos_displacement = [None, None]
@@ -1136,8 +1152,8 @@ class EMBLBeamlineTest(HardwareObject):
                     log.info("Measured beam displacement: Horizontal " + \
                              "%.4f mm, Vertical %.4f mm"%beam_pos_displacement)
 
-                    if True: #abs(delta_ver) > 0.050 :
-                        delta_ver *= 0.5
+                    #if abs(delta_ver) > 0.050 :
+                    #    delta_ver *= 0.5
            
                     log.info("Applying %.4f mm horizontal " % delta_hor + \
                              "and %.4f mm vertical motor correction" % delta_ver)
@@ -1147,10 +1163,15 @@ class EMBLBeamlineTest(HardwareObject):
                             log.info("Moving horizontal by %.4f" % delta_hor)
                             self.horizontal_motor_hwobj.move_relative(delta_hor, timeout=5)
                             sleep(4)
-                        if abs(delta_ver) > 0.001:
-                            log.info("Moving vertical by %.4f" % delta_ver)
-                            self.vertical_motor_hwobj.move_relative(delta_ver, timeout=5)
-                            sleep(4)
+                        if abs(delta_ver) > 0.100:
+                            log.info("Moving vertical motor by %.4f" % delta_ver)
+                            #self.vertical_motor_hwobj.move_relative(delta_ver, timeout=5)
+                            tine.set("/p14/P14MonoMotor/Perp","IncrementMove.START",delta_ver*0.5)
+                            sleep(6)
+                        else:
+                            log.info("Moving vertical piezo by %.4f" % delta_ver)
+                            self.vertical_motor_hwobj.move_relative(-1.0*delta_ver, timeout=5)
+                            sleep(2)
                     elif active_mode == "Double":
                         if abs(delta_hor) > 0.0001:
                             log.info("Moving horizontal by %.4f" % delta_hor)
@@ -1342,11 +1363,18 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("progressStep", 5, "Measuring the intensity")
             intens_value = self.chan_intens_mean.getValue()
             intens_range_now = self.chan_intens_range.getValue()
-            for intens_range in self.intensity_ranges:
-                if intens_range['index'] is intens_range_now:
-                    self.intensity_value = intens_value[self.ampl_chan_index] - \
-                                           intens_range['offset']
-                    break
+            
+            #TODO: repair this
+            #GB 2018-03-30 09:45:25 : following loop that encodes current offset is broken as self.intensity_ranges = []
+            #hard coding 
+
+            self.intensity_value = intens_value[0] + 2.780e-6
+            
+            #for intens_range in self.intensity_ranges:
+            #    if intens_range['index'] is intens_range_now:
+            #        self.intensity_value = intens_value[self.ampl_chan_index] - \
+            #                              intens_range['offset']
+            #        break
 
         except:
             logging.getLogger("GUI").error("Unable to measure flux!") 

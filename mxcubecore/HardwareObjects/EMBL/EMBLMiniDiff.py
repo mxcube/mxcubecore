@@ -306,6 +306,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                 self.detector_distance_motor_hwobj.move(350, timeout=20)
 
         if timeout is not None:
+            _start = time.time()
             self.cmd_start_set_phase(phase)
             gevent.sleep(5)
             with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
@@ -313,6 +314,9 @@ class EMBLMiniDiff(GenericDiffractometer):
                     gevent.sleep(0.1)
             self.wait_device_ready(20)
             self.wait_device_ready(20)
+            _howlong = time.time()-_start
+            if _howlong > 11.0:
+               logging.getLogger("GUI").error("Changing phase to %s took %.1f seconds"%(phase,_howlong))          
         else:
             self.cmd_start_set_phase(phase)
    
@@ -594,11 +598,11 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         logging.getLogger("HWR").debug("Started closing Kappa")
         self.move_kappa_and_phi_procedure(0, None)
-        self.wait_device_ready(60)
-        self.motor_hwobj_dict['kappa'].homeMotor()
-        self.wait_device_ready(60)
-        self.move_kappa_and_phi_procedure(0, None)
-        self.wait_device_ready(60)
+        self.wait_device_ready(180)
+        #self.motor_hwobj_dict['kappa'].home()
+        #self.wait_device_ready(60)
+        #self.move_kappa_and_phi_procedure(0, None)
+        #self.wait_device_ready(60)
         logging.getLogger("HWR").debug("Done closing Kappa")
         #self.kappa_phi_motor_hwobj.homeMotor()
 
@@ -640,28 +644,28 @@ class EMBLMiniDiff(GenericDiffractometer):
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
+
         if speed is not None:
-            limits = self.cmd_get_omega_scan_limits(speed)
-            return (min(limits), max(limits)), None
+            try:
+                limits = self.cmd_get_omega_scan_limits(speed)
+                return (min(limits), max(limits)), None
+            except:
+                return None, None  
+
         total_exposure_time = num_images * exp_time
         tmp = self.cmd_get_omega_scan_limits(0)
         max_speed = self.get_osc_max_speed()
-        print tmp, max_speed 
         w0 = tmp[1]
         w1 = tmp[0]
         x1 = 10
-        x2 = 100
+        x2 = 50
         
         c1 = min(self.cmd_get_omega_scan_limits(x1)) - w0
         c2 = min(self.cmd_get_omega_scan_limits(x2)) - w0
 
-        print c1, c2
-
         a = -(c2 * x1 - c1 * x2)/(x1 * x2 * (x1 -x2))
         b = -(-c2 * pow(x1, 2) + c1 * pow(x2, 2))/(x1 *x2 * (x1 - x2))
  
-        print ((2*b+total_exposure_time)**2-8*a*(w0-w1)),a,w0,w1
-
         result_speed = (-2*b-total_exposure_time+sqrt((2*b+total_exposure_time)**2-8*a*(w0-w1))) /4/a
         if result_speed < 0:
             return (None, None), None

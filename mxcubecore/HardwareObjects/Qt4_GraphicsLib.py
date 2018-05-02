@@ -29,6 +29,7 @@ Graphics item library:
  - GraphicsItemOmegaReference : omega rotation line
  - GraphicsSelectTool : item selection tool
  - GraphicsItemCentringLine : centring lines for 3 click centring
+ - GraphicsItemHistogram: histogram item
  - GraphicsItemMoveBeamMark : item to move beam mark
  - GraphicsItemBeamDefine : beam size definer with slits
  - GraphicsItemMeasureDistance : line to measure distance
@@ -199,10 +200,12 @@ class GraphicsItem(QGraphicsItem):
         self.beam_is_rectangle = beam_info.get("shape") == "rectangular"
         self.beam_size_mm[0] = beam_info.get("size_x", 0)
         self.beam_size_mm[1] = beam_info.get("size_y", 0)
-        self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
-             self.pixels_per_mm[0])
-        self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
-             self.pixels_per_mm[1])
+        if not math.isnan(self.pixels_per_mm[0]):
+            self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
+                                        self.pixels_per_mm[0])
+        if not math.isnan(self.pixels_per_mm[1]):
+            self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
+                                        self.pixels_per_mm[1])
 
     def set_beam_position(self, beam_position):
         """Sets beam position
@@ -212,15 +215,14 @@ class GraphicsItem(QGraphicsItem):
     def set_pixels_per_mm(self, pixels_per_mm):
         """Sets pixels per mm and updates item
         """
-        try:
+        if not (math.isnan(pixels_per_mm[0]) or \
+                math.isnan(pixels_per_mm[1])):
             self.pixels_per_mm = pixels_per_mm
             self.beam_size_pix[0] = int(self.beam_size_mm[0] * \
-                 self.pixels_per_mm[0])
+                                        self.pixels_per_mm[0])
             self.beam_size_pix[1] = int(self.beam_size_mm[1] * \
-                 self.pixels_per_mm[1])
+                                        self.pixels_per_mm[1])
             self.update_item()
-        except:
-            pass
 
     def set_tool_tip(self, tooltip=None):
         if tooltip:
@@ -788,7 +790,8 @@ class GraphicsItemGrid(GraphicsItem):
             line, image = self.get_line_image_num(\
                    image_index + self.__first_image_num)
             pos_x, pos_y = self.get_coord_from_line_image(line, image)
-            self.__coordinate_map.append((line, image, pos_x, pos_y))
+            col, row = self.get_col_row_from_line_image(line, image)
+            self.__coordinate_map.append((line, image, pos_x, pos_y, col, row))
 
     def set_corner_coord(self, corner_coord):
         for index, coord in enumerate(corner_coord):
@@ -968,7 +971,7 @@ class GraphicsItemGrid(GraphicsItem):
             else:
                 for image_index in range(self.__num_cols * self.__num_rows):
                     #Estimate area where frame number or score will be displayed
-                    (line, image, pos_x, pos_y) = self.__coordinate_map[image_index]
+                    (line, image, pos_x, pos_y, col, row) = self.__coordinate_map[image_index]
                     paint_rect = QRect(pos_x - self.__spacing_pix[0] / 2,
                                        pos_y - self.__spacing_pix[1] / 2,
                                        self.__spacing_pix[0],
@@ -1144,6 +1147,10 @@ class GraphicsItemGrid(GraphicsItem):
         line, image = self.get_line_image_num(image_serial)
         return self.get_col_row_from_line_image(line, image)
 
+    def get_col_row_from_image(self, image_num):
+        (line, image, pos_x, pos_y, col, row) = self.__coordinate_map[image_num]
+        return col, row
+
     def get_col_row_from_line_image(self, line, image):
         """
         Descript. :  converts frame grid coordinates from scan grid
@@ -1216,7 +1223,7 @@ class GraphicsItemScale(GraphicsItem):
     def __init__(self, parent, position_x=0, position_y=0):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
-        self.__display_grid = None
+        self.__display_grid = False
 
     def paint(self, painter, option, widget):
         #TODO move to set_pixels_per_mm
@@ -1378,6 +1385,37 @@ class GraphicsItemCentringLines(GraphicsItem):
     def add_position(self, pos_x, pos_y):
         self.centring_points.append((pos_x, pos_y))
 
+class GraphicsItemHistogram(GraphicsItem):
+    """Centring lines are displayed during the 3-click centering"""
+
+    def __init__(self, parent):
+        GraphicsItem.__init__(self, parent)
+        self.hor_painter_path = None
+        self.ver_painter_path = None
+
+    def paint(self, painter, option, widget):
+        self.custom_pen.setStyle(SOLID_LINE_STYLE)
+        self.custom_pen.setColor(SELECTED_COLOR)
+        painter.setPen(self.custom_pen)
+
+        painter.drawPath(self.hor_painter_path)
+        painter.drawPath(self.ver_painter_path)
+
+    def update_histogram(self, hor_array, ver_array):
+        scene_height = self.scene().height()
+
+        self.hor_painter_path = QPainterPath()
+        self.ver_painter_path = QPainterPath()
+
+        for x, y in enumerate(hor_array):
+            if x == 0:
+                 self.hor_painter_path.moveTo(x, scene_height - 50 * y / hor_array.max())
+            self.hor_painter_path.lineTo(x, scene_height - 50 * y / hor_array.max())
+
+        for y, x in enumerate(ver_array):
+            if y == 0:
+                 self.ver_painter_path.moveTo(5 + 50 * x / ver_array.max(), y)
+            self.ver_painter_path.lineTo(5 + 50 * x / ver_array.max(), y)
 
 class GraphicsItemMoveBeamMark(GraphicsItem):
     """Tool to move beam mark to a new location"""

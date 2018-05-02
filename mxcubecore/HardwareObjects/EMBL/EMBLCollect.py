@@ -44,7 +44,8 @@ class EMBLCollect(AbstractCollect):
         self._previous_collect_status = None
         self._actual_collect_status = None
 
-        self.use_still = None
+        self._use_still = None
+        self._collect_frame = None
         self.break_bragg_released = False
 
         self.aborted_by_user = None
@@ -143,7 +144,7 @@ class EMBLCollect(AbstractCollect):
         #Other commands
 
         #Properties
-        self.use_still = self.getProperty("use_still")
+        self._use_still = self.getProperty("use_still")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -162,6 +163,7 @@ class EMBLCollect(AbstractCollect):
             comment = 'Comment: %s' % str(self.current_dc_parameters.get('comments', ""))
             self._error_msg = ""
             self._collecting = True
+            self._collect_frame = None
 
             osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
             file_info = self.current_dc_parameters["fileinfo"]
@@ -191,8 +193,8 @@ class EMBLCollect(AbstractCollect):
                 self.cmd_collect_num_images(osc_seq['number_of_images'])
 
             if self.cmd_collect_processing is not None:
-                #self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"] in ("MeshScan", "XrayCentering"))
-                self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"] is not None)
+                self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"] in (True, "MeshScan", "XrayCentering"))
+                #self.cmd_collect_processing(self.current_dc_parameters["processing_parallel"])
             self.cmd_collect_start_angle(osc_seq['start'])
             self.cmd_collect_start_image(osc_seq['start_image_number'])
             self.cmd_collect_template(str(file_info['template']))
@@ -212,7 +214,7 @@ class EMBLCollect(AbstractCollect):
                 xds_range = self.current_dc_parameters['in_interleave']
                 self.cmd_collect_xds_data_range(xds_range)
 
-            if self.use_still:
+            if self._use_still:
                 self.cmd_collect_scan_type("still")
             else:
                 self.cmd_collect_scan_type(self.exp_type_dict.get(\
@@ -230,27 +232,27 @@ class EMBLCollect(AbstractCollect):
         :param status: collection status
         :type status: string
         """
-
-        self._previous_collect_status = self._actual_collect_status
-        self._actual_collect_status = status
-        if self._collecting:
-            if self._actual_collect_status == "error":
-                self.collection_failed()
-            elif self._actual_collect_status == "collecting":
-                if self.current_dc_parameters['experiment_type'] != 'Mesh':
-                    self.store_image_in_lims_by_frame_num(1)
-            if self._previous_collect_status is None:
-                if self._actual_collect_status == 'busy':
-                    logging.info("Collection: Preparing ...")
-            elif self._previous_collect_status == 'busy':
-                if self._actual_collect_status == 'collecting':
-                    self.emit("collectStarted", (None, 1))
-            elif self._previous_collect_status == 'collecting':
-                if self._actual_collect_status == "ready":
-                    self.collection_finished()
-                elif self._actual_collect_status == "aborting":
-                    logging.info("Collection: Aborting...")
+        if status != self._actual_collect_status:
+            self._previous_collect_status = self._actual_collect_status
+            self._actual_collect_status = status
+            if self._collecting:
+                if self._actual_collect_status == "error":
                     self.collection_failed()
+                elif self._actual_collect_status == "collecting":
+                    if self.current_dc_parameters['experiment_type'] != 'Mesh':
+                        self.store_image_in_lims_by_frame_num(1)
+                if self._previous_collect_status is None:
+                    if self._actual_collect_status == 'busy':
+                        logging.info("Collection: Preparing ...")
+                elif self._previous_collect_status == 'busy':
+                    if self._actual_collect_status == 'collecting':
+                        self.emit("collectStarted", (None, 1))
+                elif self._previous_collect_status == 'collecting':
+                    if self._actual_collect_status == "ready":
+                        self.collection_finished()
+                    elif self._actual_collect_status == "aborting":
+                        logging.info("Collection: Aborting...")
+                        self.collection_failed()
 
     def collect_error_update(self, error_msg):
         """Collect error behaviour
@@ -296,10 +298,15 @@ class EMBLCollect(AbstractCollect):
         :type frame: int
         """
         if self._collecting:
-            number_of_images = self.current_dc_parameters\
-              ['oscillation_sequence'][0]['number_of_images']
-            self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
-            self.emit("collectImageTaken", frame)
+            if self.current_dc_parameters['in_interleave']:
+                number_of_images = self.current_dc_parameters['in_interleave'][1]
+            else:
+                number_of_images = self.current_dc_parameters\
+                    ['oscillation_sequence'][0]['number_of_images']
+            if self._collect_frame != frame:
+                self._collect_frame = frame
+                self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
+                self.emit("collectImageTaken", frame)
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
         """Store image in lims
@@ -309,11 +316,11 @@ class EMBLCollect(AbstractCollect):
         :param motor_position_id: position id
         :type motor_position_id: int
         """
-        self.trigger_auto_processing("image", self.current_dc_parameters, frame)
+        self.trigger_auto_processing("image", frame)
 
         return self.store_image_in_lims(frame)
 
-    def trigger_auto_processing(self, process_event, params_dict, frame_number):
+    def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
         self.autoprocessing_hwobj.execute_autoprocessing(process_event,
              self.current_dc_parameters, frame_number, self.run_processing_after)
