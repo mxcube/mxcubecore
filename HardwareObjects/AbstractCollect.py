@@ -242,9 +242,8 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
             self.data_collection_hook()
 
-        log.info("Collection: Updating data collection in LIMS")
-        self.update_data_collection_in_lims()
-        # ----------------------------------------------------------------
+            log.info("Collection: Updating data collection in LIMS")
+            self.update_data_collection_in_lims()
 
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
