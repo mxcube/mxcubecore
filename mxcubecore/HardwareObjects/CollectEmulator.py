@@ -23,7 +23,7 @@ class CollectEmulator(CollectMockup):
 
         # # TODO get appropriate value
         # # We must have a value for functions to work
-        # # This ought to eb OK for a Pilatus 6M (See TangoResolution object)
+        # # This ought to be OK for a Pilatus 6M (See TangoResolution object)
         # self.det_radius = 212.
 
         # self._detector_distance = 300.
@@ -40,13 +40,8 @@ class CollectEmulator(CollectMockup):
         setup_data = result['setup_list'] = crystal_data
 
         # update with instrument data
-        config_dir = os.path.join(
-            HardwareRepository().getHardwareRepositoryPath(),
-            self.gphl_workflow_hwobj.getProperty('gphl_config_subdir')
-        )
-        instrument_input = f90nml.read(
-            os.path.join(config_dir,'instrumentation.nml')
-        )
+        fp = self.gphl_workflow_hwobj.file_paths.get('instrumentation_file')
+        instrument_input = f90nml.read(fp)
 
         instrument_data = instrument_input['sdcp_instrument_list']
         segments = instrument_input['segment_list']
@@ -116,7 +111,7 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp = os.path.join(config_dir, 'diffractcal.nml')
+        fp = self.gphl_workflow_hwobj.file_paths.get('diffractcal_file')
         if os.path.isfile(fp):
             diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
             for tag in setup_data.keys():
@@ -141,7 +136,7 @@ class CollectEmulator(CollectMockup):
                                / data_collect_parameters['energy'])
             sweep['res_limit'] = resolution
             sweep['exposure'] = osc['exposure_time']
-            ll =  self. gphl_workflow_hwobj.translation_axis_roles
+            ll =  self.gphl_workflow_hwobj.translation_axis_roles
             sweep['trans_xyz'] = list(motors.get(x) or 0.0 for x in ll)
             sweep['det_coord'] = self.get_detector_distance()
             # NBNB hardwired for omega scan TODO
@@ -221,17 +216,13 @@ class CollectEmulator(CollectMockup):
                 raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
-        gphl_installation_dir = self.gphl_connection_hwobj.getProperty(
-            'gphl_installation_dir'
-        )
-        dd = self.gphl_connection_hwobj['gphl_program_locations'].getProperties()
-        license_directory = dd['co.gphl.wf.bdg_licence_dir']
-        simcal_executive = os.path.join(
-            gphl_installation_dir, dd['co.gphl.wf.simcal.bin']
-        )
-
+        simcal_executive = self.gphl_connection_hwobj.software_paths[
+            'co.gphl.wf.simcal.bin'
+        ]
         # Get environmental variables
-        envs = {'BDG_home':license_directory or gphl_installation_dir}
+        envs = {'BDG_home':
+                    self.gphl_connection_hwobj.software_paths['BDG_home']
+                }
         for tag, val in self['environment_variables'].getProperties().items():
             envs[str(tag)] = str(val)
 
@@ -245,7 +236,7 @@ class CollectEmulator(CollectMockup):
 
         sample_dir = os.path.join(
             HardwareRepository().getHardwareRepositoryPath(),
-            self.gphl_workflow_hwobj.getProperty('gphl_samples_subdir'),
+            self.gphl_workflow_hwobj.file_paths['test_samples'],
             sample_name
         )
         # in spite of the simcal_crystal_list name this returns an OrderdDict
