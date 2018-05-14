@@ -69,7 +69,7 @@ class AbstractCollect(HardwareObject, object):
         self._collecting = False
         self._error_msg = ""
         self.exp_type_dict = {}
-    
+
         self.collection_id = None    
         self.data_collect_task = None
         self.current_dc_parameters = None
@@ -186,16 +186,16 @@ class AbstractCollect(HardwareObject, object):
                 "Collection parameters: %s" % str(self.current_dc_parameters)
             )
 
-            log.info("Collection: Storing data collection in LIMS") 
+            log.info("Collection: Storing data collection in LIMS")
             self.store_data_collection_in_lims()
        
-            log.info("Collection: Creating directories for raw images and processing files") 
+            log.info("Collection: Creating directories for raw images and processing files")
             self.create_file_directories()
 
-            log.info("Collection: Getting sample info from parameters") 
+            log.info("Collection: Getting sample info from parameters")
             self.get_sample_info()
         
-            #log.info("Collect: Storing sample info in LIMS")        
+            #log.info("Collect: Storing sample info in LIMS")
             #self.store_sample_info_in_lims()
 
             if all(item is None for item in self.current_dc_parameters['motors'].values()):
@@ -204,9 +204,9 @@ class AbstractCollect(HardwareObject, object):
                 current_diffractometer_position = self.diffractometer_hwobj.getPositions()
                 for motor in self.current_dc_parameters['motors'].keys():
                     self.current_dc_parameters['motors'][motor] = \
-                         current_diffractometer_position.get(motor) 
+                         current_diffractometer_position.get(motor)
 
-            log.info("Collection: Moving to centred position") 
+            log.info("Collection: Moving to centred position")
             self.move_to_centered_position()
             self.take_crystal_snapshots()
             self.move_to_centered_position()
@@ -244,7 +244,6 @@ class AbstractCollect(HardwareObject, object):
 
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-            # ----------------------------------------------------------------
 
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -689,7 +688,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. : 
         """
         positions_str = ""
-        for motor, position in self.current_dc_parameters['motors'].items():
+        for motor, position in sorted(self.current_dc_parameters['motors'].items()):
             if position:
                 if isinstance(motor, str):
                     positions_str += " %s=%f" % (motor, position)

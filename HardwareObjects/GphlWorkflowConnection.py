@@ -83,6 +83,11 @@ class GphlWorkflowConnection(HardwareObject, object):
         # py4j connection parameters
         self._connection_parameters = {}
 
+        # Paths to executables and software locations
+        self.software_paths = {}
+        # Properties for GPhL invocation
+        self.java_properties = {}
+
         
     def _init(self):
         pass
@@ -113,6 +118,27 @@ class GphlWorkflowConnection(HardwareObject, object):
     def to_java_time(self, time):
         """Convert time in seconds since the epoch (python time) to Java time value"""
         return self._gateway.jvm.java.lang.Long(int(time*1000))
+
+    def _initialize_connection(self, gphl_workflow_hwobj):
+        """Set up parameters at start of first execution
+
+        NB This cannot be done in init() as it requires gphl_workflow_hwobj"""
+        locations = next(self.getObjects('directory_locations')).getProperties()
+        locations['LOCAL_SCRIPTS'] = gphl_workflow_hwobj.file_paths['scripts']
+        paths = self.software_paths
+        props = self.java_properties
+        dd = next(self.getObjects('software_paths')).getProperties()
+        for tag, val in dd.items():
+            paths[tag] = val.format(**locations)
+        dd = next(self.getObjects('software_properties')).getProperties()
+        for tag, val in dd.items():
+            val = val.format(**locations)
+            paths[tag] = props[tag] = val
+        #
+        paths['BDG_home'] = (paths.get('co.gphl.wf.bdg_licence_dir')
+                             or locations['GPHL_INSTALLATION'])
+        paths['GPHL_INSTALLATION'] = locations['GPHL_INSTALLATION']
+
 
     def _open_connection(self):
 
@@ -160,7 +186,6 @@ class GphlWorkflowConnection(HardwareObject, object):
     def start_workflow(self, workflow_queue, workflow_model_obj):
 
         self.workflow_queue = workflow_queue
-        workflow_hwobj = workflow_model_obj.workflow_hwobj
 
         if self.get_state() != States.OFF:
             # NB, for now workflow is started as the connection is made,
@@ -170,26 +195,14 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        # Add program locations
-        params['invocation_options']['cp'] = self.getProperty(
-            'gphl_java_classpath'
-        )
-        params['properties']['co.gphl.sdcp.xdsbin'] = (
-            self.getProperty('xds_binary')
-        )
-        if self.hasObject('gphl_program_locations'):
-            dd = self['gphl_program_locations'].getProperties()
-            prefix = self.getProperty('gphl_installation_dir')
-            if prefix:
-                dd = dict((key, os.path.join(prefix, val))
-                          for key, val in dd.items())
-            params['properties'].update(dd)
-
-        commandList = [self.getProperty('java_binary')]
+        commandList = [self.software_paths['java_binary']]
 
         for keyword, value in params.get('invocation_properties',{}).items():
             commandList.extend(ConvertUtils.java_property(keyword, value))
 
+        params['invocation_options']['cp'] = self.software_paths[
+            'gphl_java_classpath'
+        ]
         for keyword, value in params.get('invocation_options',{}).items():
             commandList.extend(ConvertUtils.command_option(keyword, value))
 
@@ -197,11 +210,13 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         for keyword, value in params.get('properties',{}).items():
             commandList.extend(ConvertUtils.java_property(keyword, value))
+        for keyword, value in self.java_properties.items():
+            commandList.extend(ConvertUtils.java_property(keyword, value))
 
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
         if calibration_name:
-            # Expand calibration base name
+            # Expand calibration base name - to simplify identification.
             workflow_options['calibration'] = (
                 '%s_%s' % (calibration_name,  workflow_model_obj.get_name())
             )
@@ -210,7 +225,8 @@ class GphlWorkflowConnection(HardwareObject, object):
             workflow_options['prefix'] = path_template.base_prefix
 
         workflow_options['wdir'] = os.path.join(
-            path_template.process_directory, workflow_hwobj.gphl_subdir
+            path_template.process_directory,
+            self.getProperty('gphl_subdir')
         )
         for keyword, value in workflow_options.items():
             commandList.extend(ConvertUtils.command_option(keyword, value))
@@ -234,9 +250,13 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
 
+        # Get environmental variables
+        envs = {'BDG_home':self.software_paths['BDG_home'],
+                'GPHL_INSTALLATION':self.software_paths['GPHL_INSTALLATION']
+                }
         try:
-            self._running_process = subprocess.Popen(commandList, stdout=None,
-                                                     stderr=None)
+            self._running_process = subprocess.Popen(commandList, env=envs,
+                                                     stdout=None, stderr=None)
         except:
             logging.getLogger().error('Error in spawning workflow application')
             raise
@@ -860,10 +880,6 @@ class GphlWorkflowConnection(HardwareObject, object):
         return self._gateway.jvm.astra.messagebus.messages.control.ReadyForCentringImpl(
         )
 
-    def _BeamlineAbort_to_java(self, beamlineAbort):
-        return self._gateway.jvm.astra.messagebus.messages.information.BeamlineAbort(
-        )
-
     def _PriorInformation_to_java(self, priorInformation):
 
         builder = self._gateway.jvm.astra.messagebus.messages.information.PriorInformationImpl.Builder(
@@ -955,9 +971,14 @@ class GphlWorkflowConnection(HardwareObject, object):
                     userProvidedInfo.lattice
                 )
             )
+        # NB The Java point groups are anenumeration: 'PG1', 'PG422' etc.
         xx = userProvidedInfo.pointGroup
         if xx:
-            builder = builder.pointGroup(xx)
+            builder = builder.pointGroup(
+                self._gateway.jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
+                    'PG%s' % xx
+                )
+            )
         xx = userProvidedInfo.spaceGroup
         if xx:
             builder = builder.spaceGroup(xx)
@@ -1076,127 +1097,3 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     class Java(object):
         implements = ["co.gphl.py4j.PythonListener"]
-
-
-class DummyGphlWorkflowModel(object):
-    """Dummy equivalent of Gphl workflow task node, for testing"""
-    def __init__(self):
-        # TaskNode.__init__(self)
-        self.path_template = None
-        self._type = str()
-        self._requires_centring = False
-        self.invocation_classname = None
-        self.java_binary = None
-        self._connection_parameters = {}
-        self._invocation_properties = {}
-        self._invocation_options = {}
-        self._workflow_properties = {}
-        self._workflow_options = {}
-
-    # Workflow type, or name (string).
-    def get_type(self):
-        return self._type
-    def set_type(self, workflow_type):
-        self._type = workflow_type
-
-    # Keyword-value dictionary of connection_parameters (for py4j connection)
-    def get_connection_parameters(self):
-        return dict(self._connection_parameters)
-    def set_connection_parameters(self, valueDict):
-        dd = self._connection_parameters
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-
-    # Keyword-value dictionary of invocation_properties (for execution command)
-    def get_invocation_properties(self):
-        return dict(self._invocation_properties)
-    def set_invocation_properties(self, valueDict):
-        dd = self._invocation_properties
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-
-    # Keyword-value dictionary of invocation_options (for execution command)
-    def get_invocation_options(self):
-        return dict(self._invocation_options)
-    def set_invocation_options(self, valueDict):
-        dd = self._invocation_options
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-
-    # Keyword-value dictionary of workflow_properties (for execution command)
-    def get_workflow_properties(self):
-        return dict(self._workflow_properties)
-    def set_workflow_properties(self, valueDict):
-        dd = self._workflow_properties
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-
-    # Keyword-value dictionary of workflow_options (for execution command)
-    def get_workflow_options(self):
-        return dict(self._workflow_options)
-    def set_workflow_options(self, valueDict):
-        dd = self._workflow_options
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-
-def testGphlConnection():
-    """Test communication to GPhL workflow application"""
-
-    connection = GphlWorkflowConnection()
-    wf = getDummyWorkflowModel(
-        baseDirectory='/home/rhfogh/pycharm/MXCuBE-Qt_26r',
-        gphlInstallation='/public/xtal'
-    )
-    connection.start_workflow(wf)
-
-
-def getDummyWorkflowModel(baseDirectory, gphlInstallation):
-    self = DummyGphlWorkflowModel()
-    self._type = 'TranslationalCalibrationTest'
-    self.java_binary = '%s/java/bin/java' % baseDirectory
-
-    self.invocation_classname = 'co.gphl.wf.workflows.WFTransCal'
-
-    dd = {
-        'file.encoding':'UTF-8',
-    }
-    self.set_invocation_properties(dd)
-
-    dd = {
-        'cp':'%s/gphl_java_classes/*' % baseDirectory,
-    }
-    self.set_invocation_options(dd)
-
-    dd = {
-        'co.gphl.sdcp.xdsbin':'%s/Xds/XDS-INTEL64_Linux_x86_64/xds_par' % gphlInstallation,
-        'co.gphl.wf.bdg_licence_dir':'%s/Server-nightly-alpha-bdg-linux64' % gphlInstallation,
-        'co.gphl.wf.stratcal.bin':'%s/Server-nightly-alpha-bdg-linux64/autoPROC/bin/linux64/stratcal' % gphlInstallation,
-        'co.gphl.wf.simcal_predict.bin':'%s/Server-nightly-alpha-bdg-linux64/autoPROC/bin/linux64/simcal_predict' % gphlInstallation,
-        'co.gphl.wf.transcal.bin':'%s/Server-nightly-alpha-bdg-linux64/autoPROC/bin/linux64/transcal' % gphlInstallation,
-        'co.gphl.wf.recen.bin':'%s/Server-nightly-alpha-bdg-linux64/autoPROC/bin/linux64/recen' % gphlInstallation,
-        'co.gphl.wf.diffractcal.bin':'path/to/diffractcal',
-        'co.gphl.wf.simcal_predict.b_wilson':1.5e-3,
-        'co.gphl.wf.simcal_predict.cell_dim_sd_scale':26.0,
-        'co.gphl.wf.simcal_predict.mosaicity':0.2,
-    }
-    self.set_workflow_properties(dd)
-
-    dd = {'wdir':os.path.join('/tmp/mxcube_testdata/visitor/idtest000/id-test-eh1/20130611/PROCESSED_DATA',
-                              'GPHL'),
-          'calibration':'transcal',
-          'file':'%s/HardwareRepository/tests/xml/gphl_config/TransCalTest.inp' % baseDirectory,
-          'beamline':'py4j::',
-          'persistname':'persistence',
-          'wfprefix':'gphl_wf_',
-          }
-    self.set_workflow_options(dd)
-    #
-    return self
-
-if __name__ == '__main__':
-    testGphlConnection()
