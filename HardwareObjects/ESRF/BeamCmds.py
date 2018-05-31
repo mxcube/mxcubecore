@@ -1,0 +1,95 @@
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import *
+from HardwareRepository.CommandContainer import CommandObject
+import gevent
+
+
+class ControllerCommand(CommandObject):
+    def __init__(self, name, cmd):
+        CommandObject.__init__(self, name)
+        self._cmd = cmd
+        self._cmd_execution = None
+
+    def isConnected(self):
+        return True
+
+    def getArguments(self):
+        if self.name() == 'Anneal':
+            self._arguments.append(("Time [s]", "float"))
+        return self._arguments
+
+    @task
+    def __call__(self, *args, **kwargs):
+        self.emit('commandBeginWaitReply', (str(self.name()), ))
+        self._cmd_execution = gevent.spawn(self._cmd, *args, **kwargs)
+        self._cmd_execution.link(self._cmd_done)
+
+    def _cmd_done(self, cmd_execution):
+        try:
+            try:
+                res = cmd_execution.get()
+            except:
+                self.emit('commandFailed', (str(self.name()), ))
+            else:
+                if isinstance(res, gevent.GreenletExit):
+                    self.emit('commandFailed', (str(self.name()), ))
+                else:
+                    self.emit('commandReplyArrived', (str(self.name()), res))
+        finally:
+            self.emit('commandReady')
+
+    def abort(self):
+        if self._cmd_execution and not self._cmd_execution.ready():
+            self._cmd_execution.kill()
+
+    def value(self):
+        return None
+
+
+class HWObjActuatorCommand(CommandObject):
+    def __init__(self, name, hwobj):
+        CommandObject.__init__(self, name)
+        self._hwobj = hwobj
+        self.type = "INOUT"
+
+    def isConnected(self):
+        return True
+
+    def getArguments(self):
+        if self.name() == 'Anneal':
+            self._arguments.append(("Time [s]", "float"))
+        return self._arguments
+
+    @task
+    def __call__(self, *args, **kwargs):
+        self.emit('commandBeginWaitReply', (str(self.name()), ))
+
+        if getattr(self._hwobj, "getActuatorState")() == 'in':
+            cmd = getattr(self._hwobj, "actuatorOut")
+        else:
+            cmd = getattr(self._hwobj, "actuatorIn")
+
+        self._cmd_execution = gevent.spawn(cmd)
+        self._cmd_execution.link(self._cmd_done)
+
+    def _cmd_done(self, cmd_execution):
+        try:
+            try:
+                cmd_execution.get()
+                res = getattr(self._hwobj, "getActuatorState")()
+            except:
+                self.emit('commandFailed', (str(self.name()), ))
+            else:
+                if isinstance(res, gevent.GreenletExit):
+                    self.emit('commandFailed', (str(self.name()), ))
+                else:
+                    self.emit('commandReplyArrived', (str(self.name()), res))
+        finally:
+            self.emit('commandReady')
+
+    def abort(self):
+        if self._cmd_execution and not self._cmd_execution.ready():
+            self._cmd_execution.kill()
+
+    def value(self):
+        return getattr(self._hwobj, "getActuatorState")()
