@@ -20,7 +20,6 @@ class BlissInOut(Device):
         if signal=='actuatorStateChanged':
             self.valueChanged()
 
-
     def valueChanged(self):
         self.actuatorState = self.actuator.state().lower()
         self.emit('actuatorStateChanged', (self.actuatorState, ))
@@ -34,9 +33,6 @@ class BlissInOut(Device):
         return self.actuatorState 
 
     def actuatorIn(self):
-
-
-
         self.actuator.set_in()
         self.valueChanged()
 
