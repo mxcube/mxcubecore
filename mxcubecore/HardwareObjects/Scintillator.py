@@ -30,8 +30,5 @@ class Scintillator(Device):
   def getWagoState(self):
     return self.stateChan.getValue()
 
-  def getActuatorState(self):
-    return self.stateChan.getValue()
-
   def getActuatorState(self, *args):
     return self.getWagoState()
