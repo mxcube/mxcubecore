@@ -14,7 +14,6 @@ from bliss.controllers.actuator_inout import *
 
 
 class BlissActuator(AbstractActuator):
-
     def __init__(self, name):
         AbstractActuator.__init__(self, name)
 
