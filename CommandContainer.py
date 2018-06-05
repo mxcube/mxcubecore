@@ -154,7 +154,7 @@ class CommandContainer:
         channel = self.__channels.get(channelName)
         if channel is None and not optional:
             msg = "Unable to add channel %s" % channelName
-            logging.getLogger("user_level_log").exception(msg)
+            logging.getLogger("user_level_log").error(msg)
             #raise Exception(msg)
         return channel
 
