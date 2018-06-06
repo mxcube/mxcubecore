@@ -21,7 +21,7 @@ class MicrodiffAperture(MD2Motor):
           for i in self.filters:
             if int(i) >= 300:
                 i = "Outbeam"
-            self.predefinedPositions[i] = j
+            self.predefinedPositions[str(i)] = j
             j = j+1
         if not "Outbeam" in self.predefinedPositions:
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
@@ -74,6 +74,7 @@ class MicrodiffAperture(MD2Motor):
 
     def moveToPosition(self, positionName):
         logging.getLogger().debug("%s: trying to move %s to %s:%f", self.name(), self.motor_name, positionName,self.predefinedPositions[positionName])
+
         if positionName == 'Outbeam':
             self.aperture_inout.actuatorOut()
         else:
