@@ -45,3 +45,8 @@ class BlissActuator(AbstractActuator):
     def actuator_out(self, wait=True, timeout=3):
         self._actuator.set_out()
         self.value_changed(self._actuator.state())
+
+    # Compatability with camelcase API
+    getActuatorState = get_actuator_state
+    actuatorIn = actuator_in
+    actuatorOut = actuator_out
