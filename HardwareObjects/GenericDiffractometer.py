@@ -117,15 +117,6 @@ class GenericDiffractometer(HardwareObject):
                    "kappa_phi",
                    "beam_x",
                    "beam_y"]
-    CHANNELS_NAME = ["CoaxCamScaleX",
-                     "CoaxCamScaleY",
-                     "State",
-                     "CurrentPhase",
-                     "TransferMode",
-                     "SampleIsLoaded",
-                     "HeadType"]
-    COMMANDS_NAME = ["startSetPhase"
-                    ]
 
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
@@ -166,9 +157,9 @@ class GenericDiffractometer(HardwareObject):
 
         # Channels and commands -----------------------------------------------
         self.channel_dict = {}
-        self.used_channels_list = GenericDiffractometer.CHANNELS_NAME
+        self.used_channels_list = []
         self.command_dict = {}
-        self.used_commands_list = GenericDiffractometer.COMMANDS_NAME
+        self.used_commands_list = []
 
 	# flag for using sample_centring hwobj or not
 	self.use_sample_centring = None 
@@ -274,7 +265,7 @@ class GenericDiffractometer(HardwareObject):
 
         # Commands -----------------------------------------------------------
         try:
-            self.used_commands_list = eval(self.getProperty("used_commands"))
+            self.used_commands_list = eval(self.getProperty("used_commands", "[]"))
         except:
             pass # used the default value
         for command_name in self.used_commands_list:
