@@ -4,11 +4,16 @@ from HardwareRepository.CommandContainer import CommandObject
 import gevent
 
 
+PROCEDURE_COMMAND_T = "CONTROLLER"
+TWO_STATE_COMMAND_T = "INOUT"
+TWO_STATE_COMMAND_ACTIVE_STATES = ['in', 'on', 'enabled']
+
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd):
         CommandObject.__init__(self, name)
         self._cmd = cmd
         self._cmd_execution = None
+        self.type = PROCEDURE_COMMAND_T
 
     def isConnected(self):
         return True
@@ -50,7 +55,7 @@ class HWObjActuatorCommand(CommandObject):
     def __init__(self, name, hwobj):
         CommandObject.__init__(self, name)
         self._hwobj = hwobj
-        self.type = "INOUT"
+        self.type = TWO_STATE_COMMAND_T
 
     def isConnected(self):
         return True
@@ -64,7 +69,8 @@ class HWObjActuatorCommand(CommandObject):
     def __call__(self, *args, **kwargs):
         self.emit('commandBeginWaitReply', (str(self.name()), ))
 
-        if getattr(self._hwobj, "getActuatorState")() == 'in':
+        if getattr(self._hwobj, "getActuatorState")().lower() in \
+           TWO_STATE_COMMAND_ACTIVE_STATES:
             cmd = getattr(self._hwobj, "actuatorOut")
         else:
             cmd = getattr(self._hwobj, "actuatorIn")
@@ -76,7 +82,7 @@ class HWObjActuatorCommand(CommandObject):
         try:
             try:
                 cmd_execution.get()
-                res = getattr(self._hwobj, "getActuatorState")()
+                res = getattr(self._hwobj, "getActuatorState")().lower()
             except:
                 self.emit('commandFailed', (str(self.name()), ))
             else:
@@ -92,4 +98,4 @@ class HWObjActuatorCommand(CommandObject):
             self._cmd_execution.kill()
 
     def value(self):
-        return getattr(self._hwobj, "getActuatorState")()
+        return getattr(self._hwobj, "getActuatorState")().lower()
