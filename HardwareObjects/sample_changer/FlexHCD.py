@@ -308,12 +308,16 @@ class FlexHCD(SampleChanger):
         pass
 
     def _updateState(self):
+        defreezing = self._execute_cmd("isDefreezing")
+
+        if defreezing:
+          return
+
         try:
           state = self._readState()
         except:
           state = SampleChangerState.Unknown
-        if state == SampleChangerState.Moving and self._isDeviceBusy(state):
-            return          
+
         self._setState(state)
       
     def isSequencerReady(self):
