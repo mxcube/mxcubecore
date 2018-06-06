@@ -194,7 +194,7 @@ class Microdiff(MiniDiff.MiniDiff):
         self.moveMotors(mesh_center.as_dict())
         self.centringVertical.syncMoveRelative((mesh_range['vertical_range'])/2)
         self.centringPhiy.syncMoveRelative(-(mesh_range['horizontal_range'])/2)
-        
+
         scan_params = "%0.3f\t" % -mesh_range['horizontal_range']
         scan_params += "%0.3f\t" % mesh_range['vertical_range']
         scan_params += "%d\t" % mesh_num_lines
@@ -289,7 +289,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def startCentringMethod(self, *args, **kw):
         self._wait_ready(100)
-        return MiniDiff.startCentringMethod(*args, **kw)
+        return MiniDiff.MiniDiff.startCentringMethod(self, *args, **kw)
  
     def interruptAndAcceptCentring(self):
         """ Used when plate. Kills the current 1 click centring infinite loop
