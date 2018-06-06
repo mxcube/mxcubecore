@@ -202,18 +202,17 @@ class CollectEmulator(CollectMockup):
 
         # Done here as there are what-happens-first conflicts
         # if you put it in init
+        bl_setup_hwobj = HardwareRepository().getHardwareObject(
+            'beamline-setup'
+        )
         if self.gphl_workflow_hwobj is None:
-            self.gphl_workflow_hwobj = HardwareRepository().getHardwareObject(
-                'gphl-workflow'
-            )
-            if not self.gphl_workflow_hwobj:
-                raise ValueError("Emulator requires GPhL workflow installation")
+            self.gphl_workflow_hwobj = bl_setup_hwobj.gphl_workflow_hwobj
+        if not self.gphl_workflow_hwobj:
+            raise ValueError("Emulator requires GPhL workflow installation")
         if self.gphl_connection_hwobj is None:
-            self.gphl_connection_hwobj = HardwareRepository().getHardwareObject(
-                'gphl-setup'
-            )
-            if not self.gphl_connection_hwobj:
-                raise ValueError("Emulator requires GPhL connection installation")
+            self.gphl_connection_hwobj = bl_setup_hwobj.gphl_connection_hwobj
+        if not self.gphl_connection_hwobj:
+            raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
         simcal_executive = self.gphl_connection_hwobj.software_paths[
