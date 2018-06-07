@@ -117,9 +117,9 @@ class MD2Motor(AbstractMotor, Device):
         return self.getPosition()
 
     def move(self, absolutePosition, timeout=None, wait=False):
-        if self.getState() != MD2Motor.NOTINITIALIZED:
-          self.position_attr.setValue(absolutePosition)
-          self.motorStateChanged(MD2Motor.MOVING)
+        self.position_attr.setValue(absolutePosition)
+        self.motorStateChanged(MD2Motor.MOVING)
+
         if wait:
             try:
                 self.waitEndOfMove(timeout)
