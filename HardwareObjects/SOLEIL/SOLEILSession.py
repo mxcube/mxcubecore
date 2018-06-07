@@ -1,5 +1,8 @@
 
-import os, time, logging
+import os
+import time
+import logging
+
 from HardwareRepository import HardwareRepository
 
 import Session
@@ -7,7 +10,7 @@ import Session
 class SOLEILSession(Session.Session):
 
     def __init__(self, *args, **kwargs):
-        Session.Session.__init__(self,*args, **kwargs)
+        Session.Session.__init__(self, *args, **kwargs)
         self.username = ''
         self.gid = ''
         self.uid = ''
@@ -58,7 +61,7 @@ class SOLEILSession(Session.Session):
             if _local_time[3] > 7:
                 start_time = time.strftime("%Y-%m-%d")
             else:
-                # substract 8 hourse to current date to get yesterday's date. 
+                # substract 8 hours to current date to get yesterday's date. 
                 _local_time = time.gmtime((time.time() - 8*60*60))
                 start_time = time.strftime("%Y-%m-%d", _local_time)
 
