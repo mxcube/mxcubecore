@@ -72,8 +72,9 @@ class Session(HardwareObject):
            self['file_info'].getProperty('archive_folder'))
 
         precision = self.default_precision
+                
         try:
-            precision = eval(self.session_hwobj["file_info"].getProperty('precision', self.default_precision))
+            precision = eval(self["file_info"].getProperty('precision', self.default_precision))
         except:
             pass
 
