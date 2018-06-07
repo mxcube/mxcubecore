@@ -625,7 +625,13 @@ class ISPyBClient2Mockup(HardwareObject):
     def _store_workflow(self, info_dict):
         pass
 
+    def store_workflow_step(self, *args, **kwargs):
+        return None
+
     def store_image_quality_indicators(self, image_dict):
+        pass
+
+    def set_image_quality_indicators_plot(self, collection_id, plot_path, csv_path):
         pass
 
     # Bindings to methods called from older bricks.
