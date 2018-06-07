@@ -1,15 +1,14 @@
-from MD2Motor import MD2Motor
+from MicrodiffMotorr import MicrodiffMotor
 import logging
 import math
 
-class MicrodiffAperture(MD2Motor):
+class MicrodiffAperture(MicrodiffMotor):
     def __init__(self, name):
-        MD2Motor.__init__(self, name)
+        MicrodiffMotor.__init__(self, name)
 
     def init(self):
         self.motor_name = "CurrentApertureDiameter"
         self.motor_pos_attr_suffix = "Index"
-        MD2Motor.init(self)
 
         self.aperture_inout = self.getObjectByRole('inout')
         self.predefinedPositions = {}
@@ -27,6 +26,7 @@ class MicrodiffAperture(MD2Motor):
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
         self.predefinedPositions.pop("Outbeam")
         self.sortPredefinedPositionsList()
+        MicrodiffMotor.init(self)
         
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
@@ -44,7 +44,7 @@ class MicrodiffAperture(MD2Motor):
         elif signal == 'apertureChanged':
                 self.emit('apertureChanged', (self.getApertureSize(), ))
         else:
-            return MD2Motor.connectNotify.im_func(self, signal)
+            return MicrodiffMotor.connectNotify.im_func(self, signal)
 
     def getLimits(self):
         return (1,self.nb)
@@ -53,7 +53,7 @@ class MicrodiffAperture(MD2Motor):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
