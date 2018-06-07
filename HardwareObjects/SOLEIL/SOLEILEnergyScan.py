@@ -1,10 +1,11 @@
-from qt import *
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository.TaskUtils import *
-import logging
-import PyChooch
+
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+import logging
+import PyChooch
 import os
 import time
 import types
@@ -14,6 +15,7 @@ import Xanes
 
 class SOLEILEnergyScan(Equipment):
     def init(self):
+        logging.getLogger("HWR").info('#############################    EnergyScan: INIT HWOBJ  ###################')
         self.ready_event = gevent.event.Event()
         self.scanning = None
         self.moving = None
@@ -30,8 +32,9 @@ class SOLEILEnergyScan(Equipment):
         except KeyError:
             self.defaultWavelengthChannel=None
         else:
-            self.defaultWavelengthChannel.connectSignal("connected", self.sConnected) 
-            self.defaultWavelengthChannel.connectSignal("disconnected", self.sDisconnected)
+            if self.defaultWavelengthChannel is not None:
+                self.defaultWavelengthChannel.connectSignal("connected", self.sConnected) 
+                self.defaultWavelengthChannel.connectSignal("disconnected", self.sDisconnected)
 
         if self.defaultWavelengthChannel is None:
             #MAD beamline
@@ -115,6 +118,7 @@ class SOLEILEnergyScan(Equipment):
         
         if self.isConnected():
            self.sConnected()
+        logging.getLogger("HWR").info('#############################    EnergyScan: INIT HWOBJ IS FINISHED ###################')
 
     def isConnected(self):
         if self.defaultWavelengthChannel is not None:
@@ -527,6 +531,7 @@ class SOLEILEnergyScan(Equipment):
                 return None
         elif self.energy2WavelengthConstant is not None and self.defaultWavelength is not None:
             return self.energy2wavelength(self.defaultWavelength)
+
         return None
 
 
