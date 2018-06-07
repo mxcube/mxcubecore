@@ -1277,7 +1277,7 @@ class PathTemplate(object):
         return prefix
 
     def get_image_file_name(self, suffix=None):
-        template = "%s_%s_%%" + self.precision + "d.%s"
+        template = "%s_%s_%%" + str(self.precision) + "d.%s"
 
         if suffix:
             file_name = template % (self.get_prefix(),
