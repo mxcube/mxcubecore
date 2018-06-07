@@ -83,7 +83,11 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
     """ Overloading of GenericVideoDevice methods """
     def get_image_dimensions(self):
-        return [self.device.image_width, self.device.image_height]
+        try:
+            width, height = self.device.image_width, self.device.image_height
+        except:
+            width, height = self.device.width, self.device.height
+        return [width, height]
 
     def get_image(self):
         img_data = self.device.video_last_image
@@ -120,6 +124,12 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
     """ END Overloading of GenericVideoDevice methods """
 
+    def getWidth(self):
+        return self.device.width
+    
+    def getHeight(self):
+        return self.device.height
+    
 
 def test_hwo(hwo):
     print "Image dimensions: ", hwo.get_image_dimensions()
