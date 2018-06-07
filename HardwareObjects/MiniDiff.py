@@ -255,6 +255,9 @@ class MiniDiff(Equipment):
         img = myimage(self._drawing)
         img.save(filename)
 
+    def set_light_in(self):
+        set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
+
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
 
