@@ -23,11 +23,6 @@ from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 
-import sys
-sys.path.insert(0, '/home/smartin/ResearchEducationDevelopment/eiger')
-
-logging.getLogger('GUI').info('sys.path %s' % sys.path)
-
 from omega_scan import omega_scan
 from inverse_scan import inverse_scan
 from reference_images import reference_images
@@ -39,6 +34,8 @@ from raster_scan import raster_scan
 from nested_helical_acquisition import nested_helical_acquisition
 from tomography import tomography
 from film import film
+
+from slits import slits1
 
 __credits__ = ["Synchrotron SOLEIL"]
 __version__ = "2.3."
@@ -78,13 +75,14 @@ class PX2Collect(AbstractCollect, HardwareObject):
         :type name: string
         """
         
-        AbstractCollect.__init__(self)
+        AbstractCollect.__init__(self, name)
         HardwareObject.__init__(self, name)
         
         self.current_dc_parameters = None
         self.osc_id = None
         self.owner = None
         self.aborted_by_user = None
+        self.slits1 = slits1()
         
     def init(self):
         
@@ -160,7 +158,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         in_queue = parameters['in_queue'] != False
 
         overlap = osc_seq['overlap']
-        scan_range = osc_seq['range']
+        angle_per_frame = osc_seq['range']
         scan_start_angle = osc_seq['start']
         number_of_images = osc_seq['number_of_images']
         image_nr_start = osc_seq['start_image_number']
@@ -182,36 +180,126 @@ class PX2Collect(AbstractCollect, HardwareObject):
         
         self.store_image_in_lims_by_frame_num(1)
         
+        name_pattern = template[:-8]
+        
         if experiment_type == 'OSC':
-            name_pattern = template[:-8]
+            scan_range = angle_per_frame * number_of_images
+            scan_exposure_time = exposure_time * number_of_images
+            experiment = omega_scan(name_pattern,
+                                    directory,
+                                    scan_range=scan_range,
+                                    scan_exposure_time=scan_exposure_time,
+                                    scan_start_angle=scan_start_angle,
+                                    angle_per_frame=angle_per_frame,
+                                    image_nr_start=image_nr_start,
+                                    photon_energy=energy,
+                                    transmission=transmission,
+                                    resolution=resolution,
+                                    simulation=False)
+            experiment.execute()
             
-            os = omega_scan(name_pattern,
-                            directory,
-                            photon_energy=energy,
-                            transmission=transmission,
-                            resolution=resolution,
-                            simulation=True)
+        elif experiment_type == 'Characterization':
             
-            os.execute()
+            number_of_wedges = osc_seq['number_of_images']
+            wedge_size = osc_seq['wedge_size']
+            overlap = osc_seq['overlap']
+            scan_start_angles = []
+            scan_exposure_time = exposure_time * wedge_size
+            scan_range = angle_per_frame * wedge_size
+            
+            for k in range(number_of_wedges):
+                scan_start_angles.append(scan_start_angle + k * -overlap + k * scan_range)
+
+            experiment = reference_images(name_pattern,
+                                          directory,
+                                          scan_range=scan_range,
+                                          scan_exposure_time=scan_exposure_time,
+                                          scan_start_angles=scan_start_angles,
+                                          angle_per_frame=angle_per_frame,
+                                          image_nr_start=image_nr_start,
+                                          photon_energy=energy,
+                                          transmission=transmission,
+                                          resolution=resolution,
+                                          simulation=False)
         
-        for image in range(number_of_images):
-            if self.aborted_by_user:
-                self.ready_event.set()
-                return
-
-            #Uncomment to test collection failed
-            #if image == 5:
-            #    self.emit("collectOscillationFailed", (self.owner, False, 
-            #       "Failed on 5", parameters.get("collection_id")))
-            #    self.ready_event.set()
-            #    return
-
-            gevent.sleep(exposure_time)
-            self.emit("collectImageTaken", image)
-            self.emit("progressStep", (int(float(image) / number_of_images * 100)))
+            experiment.execute()
+       
+        elif experiment_type == 'Helical' and osc_seq['mesh_range'] == ():
+            scan_range = angle_per_frame * number_of_images
+            scan_exposure_time = exposure_time * number_of_images
+            log.info('helical_pos %s' % self.helical_pos)
+            experiment = helical_scan(name_pattern,
+                                      directory,
+                                      scan_range=scan_range,
+                                      scan_exposure_time=scan_exposure_time,
+                                      scan_start_angle=scan_start_angle,
+                                      angle_per_frame=angle_per_frame,
+                                      image_nr_start=image_nr_start,
+                                      position_start=self.translate_position(self.helical_pos['1']),
+                                      position_end=self.translate_position(self.helical_pos['2']),
+                                      photon_energy=energy,
+                                      transmission=transmission,
+                                      resolution=resolution,
+                                      simulation=False)
+            experiment.execute()
             
+        elif experiment_type == 'Helical' and osc_seq['mesh_range'] != ():
+            horizontal_range, vertical_range = osc_seq['mesh_range']
+            
+            experiment = xray_centring(name_pattern,
+                                       directory)
+            
+            experiment.execute(simulation=False)
+            
+        elif experiment_type == 'Mesh':
+            number_of_columns = osc_seq['number_of_lines']
+            number_of_rows = int(number_of_images/number_of_columns)
+            horizontal_range, vertical_range = osc_seq['mesh_range']
+            angle_per_line = angle_per_frame * number_of_columns
+            experiment = raster_scan(name_pattern,
+                                     directory,
+                                     vertical_range,
+                                     horizontal_range,
+                                     number_of_rows,
+                                     number_of_columns,
+                                     frame_time=exposure_time,
+                                     scan_start_angle=scan_start_angle,
+                                     scan_range=angle_per_line,
+                                     image_nr_start=image_nr_start,
+                                     photon_energy=energy,
+                                     transmission=transmission,
+                                     simulation=False)
+            experiment.execute()
+            
+            
+        #for image in range(number_of_images):
+            #if self.aborted_by_user:
+                #self.ready_event.set()
+                #return
+
+            ##Uncomment to test collection failed
+            ##if image == 5:
+            ##    self.emit("collectOscillationFailed", (self.owner, False, 
+            ##       "Failed on 5", parameters.get("collection_id")))
+            ##    self.ready_event.set()
+            ##    return
+
+            #gevent.sleep(exposure_time)
+            #self.emit("collectImageTaken", image)
+            #self.emit("progressStep", (int(float(image) / number_of_images * 100)))
+        
         self.emit_collection_finished()
-        
+   
+    def translate_position(self, position):
+        translation = {'sampx': 'CentringX', 'sampy': 'CentringY', 'phix': 'AlignmentX', 'phiy': 'AlignmentY', 'phiz': 'AlignmentZ'}
+        translated_position = {}
+        for key in position:
+            if key in translation:
+                translated_position[translation[key]] = position[key]
+            else:
+                translated_position[key] = position[key]
+        return translated_position
+    
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
         Descript. : 
@@ -305,3 +393,13 @@ class PX2Collect(AbstractCollect, HardwareObject):
         self.aborted_by_user = True 
         self.cmd_collect_abort()
         self.emit_collection_failed("Aborted by user")
+
+    def set_helical_pos(self, helical_pos):
+        self.helical_pos = helical_pos
+        
+    def get_slit_gaps(self):
+        return self.get_slits_gap()
+    
+    def get_slits_gap(self):
+        return self.slits1.get_horizontal_gap(), self.slits1.get_vertical_gap()
+
