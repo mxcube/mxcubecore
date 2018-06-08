@@ -207,8 +207,11 @@ class SOLEILCatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        argin = self.tool
+        argin = (str(self.tool), )
         self._executeServerTask(self._cmdDry, argin)
+    
+    def _doDryGripper(self):
+        return self._doDrySoak()
     
     def _doDrySoak(self):
         """
