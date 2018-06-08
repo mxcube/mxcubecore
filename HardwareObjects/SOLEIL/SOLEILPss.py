@@ -29,7 +29,7 @@ class SOLEILPss(Device):
             logging.getLogger("HWR").error("%s: unknown pss device name", self.getProperty("tangoname"))
 
         if self.getProperty("hutch") not in ("optical", "experimental"):
-            logging.getLogger("HWR").error("TangoPss.init Hutch property %s is not correct",self.getProperty("hutch"))
+            logging.getLogger("HWR").error("SOLEILPss.init Hutch property %s is not correct",self.getProperty("hutch"))
         else :
             self.hutch  = self.getProperty("hutch")
             self.stateChan = self.getChannelObject("State")
@@ -44,7 +44,7 @@ class SOLEILPss(Device):
         return self.get_state(self.stateChan.getValue())
     
     def valueChanged(self, value):
-        logging.getLogger("HWR").info("%s: TangoPss.valueChanged, %s", self.name(), value)
+        logging.getLogger("HWR").info("%s: SOLEILPss.valueChanged, %s", self.name(), value)
         state = self.get_state(value)
         self.emit('wagoStateChanged', (state, ))
             
