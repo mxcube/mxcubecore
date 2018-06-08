@@ -1,7 +1,7 @@
 from HardwareRepository import HardwareRepository
 
 import logging
-import time
+import gevent
 
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.Command.Tango import TangoCommand
@@ -12,6 +12,7 @@ from PyQt4.QtGui import QApplication
 #from qt import qApp
 
 import numpy
+from AbstractMotor import MotorStates
 
 class TangoDCMotor(Device):
     
@@ -38,7 +39,8 @@ class TangoDCMotor(Device):
 
         Device.__init__(self, name)
         self.GUIstep = 0.1
-
+        self.motor_states = MotorStates()
+        
     def _init(self):
         self.positionValue = 0.0
         self.stateValue    = 'UNKNOWN'
@@ -86,6 +88,9 @@ class TangoDCMotor(Device):
                 logging.getLogger("HWR").error("%s: TangoDCMotor not responding, %s", self.name(), '')
                 self.old_value = value
     
+    def is_ready(self):
+        return self.isReady()
+    
     def isReady(self):
         return self.stateValue == 'STANDBY'
         
@@ -107,6 +112,9 @@ class TangoDCMotor(Device):
         logging.info("motor state changed. it is %s " % self.stateValue)
         self.emit('stateChanged', (TangoDCMotor.stateDict[self.stateValue], ))
         
+    def get_state(self):
+        return self.getState()
+    
     def getState(self):
         #state = self.stateValue
         return TangoDCMotor.stateDict[self.stateValue]
@@ -121,7 +129,15 @@ class TangoDCMotor(Device):
         except:
             #import traceback
             #logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
-            limits = None
+            if self.motor_name in ['detector_distance', 'detector_horizontal', 'detector_vertical']:
+                info = self.positionChan.getInfo()
+                limits = [float(info.min_value), float(info.max_value)]
+            #if self.motor_name == 'detector_ts':
+                #limits = [96, 1100]
+            #elif self.motor_name == 'detector_tx':
+                 #limits = 
+            elif self.motor_name == 'exposure':
+                limits = [float(self.min_value), float(self.max_value)]
             
         if limits is None:
             try:
@@ -152,6 +168,9 @@ class TangoDCMotor(Device):
     def getRealPosition(self):
         return self.positionChan.getValue()
     
+    def get_position(self):
+        return self.getRealPosition()
+    
     def getPosition(self):
         pos = self.positionValue
         return pos
@@ -164,7 +183,7 @@ class TangoDCMotor(Device):
         #self.positionValue = position
         relative_position = position - prev_position
         self.syncMoveRelative(relative_position)
-        time.sleep(0.2) # allow MD2 to change the state
+        gevent.sleep(0.2) # allow MD2 to change the state
         while self.stateValue == "RUNNING" or self.stateValue == "MOVING": # or self.stateValue == SpecMotor.MOVESTARTED:
             QApplication.processEvents(100)
 
@@ -191,14 +210,14 @@ class TangoDCMotor(Device):
         self.positionChan.setValue( self.convertValue(self.positionValue) )
 
         dev = DeviceProxy(self.tangoname)
-        time.sleep(0.2) # allow MD2 to change the state
+        gevent.sleep(0.2) # allow MD2 to change the state
 
         mystate = str( dev.State() )
         logging.info("TangoDCMotor: %s syncMoveRelative state is %s / %s " % ( self.tangoname, str( self.stateValue ), mystate))
 
         while mystate == "RUNNING" or mystate == "MOVING":
             logging.info("TangoDCMotor: syncMoveRelative is moving %s" % str( mystate ))
-            time.sleep(0.1)
+            gevent.sleep(0.1)
             mystate = str( dev.State() )
             QApplication.processEvents(100)
         
