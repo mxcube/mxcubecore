@@ -957,7 +957,6 @@ class GraphicsItemGrid(GraphicsItem):
 
         painter.setPen(self.custom_pen)
         brush_color = self.base_color
-
         self.custom_brush.setColor(brush_color)
         painter.setBrush(self.custom_brush)
 
