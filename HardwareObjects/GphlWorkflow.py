@@ -369,8 +369,8 @@ class GphlWorkflow(HardwareObject, object):
         if allowed_widths:
             default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
-            allowed_widths = [float(x)
-                              for x in self['default_image_widths'].split()]
+            allowed_widths = [float(x) for x in
+                              self.getProperty('default_image_widths').split()]
             val = allowed_widths[0]
             allowed_widths.sort()
             default_width_index = allowed_widths.index(val)
