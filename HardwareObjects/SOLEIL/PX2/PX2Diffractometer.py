@@ -69,6 +69,7 @@ class PX2Diffractometer(GenericDiffractometer):
         self.chan_head_type = None
         self.chan_fast_shutter_is_open = None
         self.chan_state = None
+        self.chan_status = None
         self.chan_sync_move_motors = None
         self.chan_scintillator_position = None
         self.chan_capillary_position = None
@@ -90,9 +91,14 @@ class PX2Diffractometer(GenericDiffractometer):
         self.centring_status = {"valid": False}
 
         self.chan_state = self.getChannelObject('State')
+        self.chan_status = self.getChannelObject('Status')
+        
         self.current_state = self.chan_state.getValue()
+        self.current_status = self.chan_status.getValue()
+        
         self.chan_state.connectSignal("update", self.state_changed)
-
+        self.chan_status.connectSignal("update", self.status_changed)
+        
         self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
         self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
         self.update_pixels_per_mm()
@@ -169,7 +175,10 @@ class PX2Diffractometer(GenericDiffractometer):
         #logging.getLogger("HWR").debug("State changed: %s" % str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
-        self.emit("minidiffStatusChanged", (self.current_state))
+    
+    def status_changed(self, status):
+        self.current_status = status
+        self.emit("minidiffStatusChanged", (self.current_status))
 
     def zoom_position_changed(self, value):
         self.update_pixels_per_mm()
@@ -609,6 +618,10 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         self.zoom_motor_hwobj.moveToPosition(position)
 
+    def get_status(self):
+        self.current_status = self.chan_status.getValue()
+        return self.current_status
+    
     def get_point_from_line(self, point_one, point_two, frame_num, frame_total):
         """
         Descript. : method used to get a new motor position based on a position
