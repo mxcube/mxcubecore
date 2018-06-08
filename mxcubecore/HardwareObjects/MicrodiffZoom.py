@@ -11,9 +11,11 @@ class MicrodiffZoom(MicrodiffMotor):
         self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
         
-        self.predefined_position_attr = self.getChannelObject("predefined_position")
-        print 'self.predefined_position_attr', self.predefined_position_attr
-        
+        try:
+            self.predefined_position_attr = self.getChannelObject("predefined_position")
+        except:
+            self.predefined_position_attr = self.addChannel({"type":"exporter", "name":"predefined_position" }, "CoaxialCameraZoomValue")
+            
         self.predefinedPositions = { "Zoom 1": 1, "Zoom 2": 2, "Zoom 3": 3, "Zoom 4": 4, "Zoom 5": 5, "Zoom 6": 6, "Zoom 7": 7, "Zoom 8": 8, "Zoom 9": 9, "Zoom 10":10 }
         self.sortPredefinedPositionsList()
         
