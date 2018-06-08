@@ -24,7 +24,7 @@ class SampleChangerMockup(SampleChanger):
 
             self.no_of_samples_in_basket = self.getProperty('no_of_samples_in_basket')
         except:
-            self.no_of_samples_in_basket = SampleChangerMockup.NO_OF_SAMPLES_IN_BASKETu
+            self.no_of_samples_in_basket = SampleChangerMockup.NO_OF_SAMPLES_IN_BASKET
         
         for i in range(self.no_of_baskets):
             basket = Basket(self, i+1, samples_num=self.no_of_samples_in_basket)
