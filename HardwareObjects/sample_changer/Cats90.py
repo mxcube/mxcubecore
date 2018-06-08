@@ -361,7 +361,7 @@ class Cats90(SampleChanger):
             # self._executeServerTask(self._scan_samples, [component.getIndex()+1,])
             lid = ((selected.getBasketNo() - 1) / self.number_of_lids) + 1
             sample = (((selected.getBasketNo() - 1) % self.number_of_lids) * self.samples_per_basket) + selected.getVialNo()
-            argin = [str(self.tool), str(lid), str(sample), "0", "0"]
+            argin = [str(self.tool), str(lid), str(sample), str(self.puck_type), "0"]
             self._executeServerTask(self._cmdScanSample, argin)
             self._updateSampleBarcode(component)
         elif isinstance(component, Container) and ( component.getType() == Basket.__TYPE__):
@@ -378,7 +378,7 @@ class Cats90(SampleChanger):
                 for sample_index in range(basket.getNumberOfSamples()):
                     lid = ((selected.getBasketNo() - 1) / self.number_of_lids) + 1
                     sample = (((selected.getBasketNo() - 1) % self.number_of_lids) * self.samples_per_basket) + (sample_index+1)
-                    argin = [str(self.tool), str(lid), str(sample), "0", "0"]
+                    argin = [str(self.tool), str(lid), str(sample), str(self.puck_type), "0"]
                     self._executeServerTask(self._cmdScanSample, argin)
     
     def _doLoad(self, sample=None, shifts=None):
@@ -412,7 +412,7 @@ class Cats90(SampleChanger):
         else:
             xshift, yshift, zshift = map(str,shifts)
 
-        argin = [str(self.tool), str(lid), str(sample), "0", "0", xshift, yshift, zshift]
+        argin = [str(self.tool), str(lid), str(sample), str(self.puck_type), "0", xshift, yshift, zshift]
             
         if self.hasLoadedSample():
             if selected==self.getLoadedSample():
