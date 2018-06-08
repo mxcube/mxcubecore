@@ -58,7 +58,7 @@ class MotorStates(object):
                   LOWLIMIT: "LowLimit",
                   HIGHLIMIT: "HighLimit",
                   NOTINITIALIZED: "NotInitialized",
-                  MOVESTARTED: "MoveStated"}
+                  MOVESTARTED: "MoveStarted"}
 
     @staticmethod
     def tostring(state):
