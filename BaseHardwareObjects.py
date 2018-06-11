@@ -174,7 +174,7 @@ class HardwareObjectNode:
                 hw_object.__role = role
 
                 if objectsNamesIndex >= 0:
-                    self.__objectsNames[objectsNamesIndex] = name
+                    self.__objectsNames[objectsNamesIndex] = role
                     self.__objects[objectsIndex] = [hw_object]
                 else:
                     self.__objects[objectsIndex][objectsIndex2] = hw_object
