@@ -40,7 +40,8 @@ class MotorStates(object):
     LOWLIMIT     = 13
     HIGHLIMIT    = 14
     NOTINITIALIZED = 15
-
+    MOVESTARTED  = 16
+    
     STATE_DESC = {INITIALIZING: "Initializing",
                   ON: "On",
                   OFF: "Off",
@@ -56,7 +57,8 @@ class MotorStates(object):
                   OFFLINE: "Offline",
                   LOWLIMIT: "LowLimit",
                   HIGHLIMIT: "HighLimit",
-                  NOTINITIALIZED: "NotInitialized"}
+                  NOTINITIALIZED: "NotInitialized",
+                  MOVESTARTED: "MoveStarted"}
 
     @staticmethod
     def tostring(state):
