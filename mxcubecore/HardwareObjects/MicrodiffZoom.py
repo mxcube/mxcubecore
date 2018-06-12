@@ -1,23 +1,27 @@
-from MD2Motor import MD2Motor
+from MicrodiffMotor import MicrodiffMotor
 import logging
 import math
 
-class MicrodiffZoom(MD2Motor):
+class MicrodiffZoom(MicrodiffMotor):
     def __init__(self, name):
-        MD2Motor.__init__(self, name)
+        MicrodiffMotor.__init__(self, name)
 
     def init(self):
         self.motor_name = "Zoom"
         self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
- 
-        MD2Motor.init(self)
-
-        self.predefined_position_attr = self.addChannel({"type":"exporter", "name":"predefined_position"  }, "CoaxialCameraZoomValue")
-
-        self.predefinedPositions = { "Zoom 1": 1, "Zoom 2": 2, "Zoom 3": 3, "Zoom 4": 4, "Zoom 5": 5, "Zoom 6": 6, "Zoom 7": 7, "Zoom 8": 8, "Zoom 9": 9, "Zoom 10":10 }
+        
+        self.predefined_position_attr = self.getChannelObject("predefined_position")
+        if not self.predefined_position_attr:
+            self.predefined_position_attr = self.addChannel({"type":"exporter",
+                                                             "name":"predefined_position" },
+                                                             "CoaxialCameraZoomValue")
+            
+        self.predefinedPositions = { "Zoom 1": 1, "Zoom 2": 2, "Zoom 3": 3, "Zoom 4": 4, "Zoom 5": 5, "Zoom 6": 6, "Zoom 7": 7, "Zoom 8": 8, "Zoom 9": 9, "Zoom 10": 10 }
         self.sortPredefinedPositionsList()
-
+        
+        MicrodiffMotor.init(self)
+        
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
         self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
@@ -33,16 +37,16 @@ class MicrodiffZoom(MD2Motor):
             else:
                 self.emit(signal, (positionName, pos))
         else:
-            return MD2Motor.connectNotify.im_func(self, signal)
+            return MicrodiffMotor.connectNotify.im_func(self, signal)
 
     def getLimits(self):
-        return (1,10)
+        return (1, 10)
 
     def getPredefinedPositionsList(self):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
+        MicrodiffMotor.motorPositionChanged.im_func(self, absolutePosition, private)
 
         positionName = self.getCurrentPositionName(absolutePosition)
         if self._last_position_name != positionName:
