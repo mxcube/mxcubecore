@@ -29,7 +29,7 @@ class BeamInfoMockup(Equipment):
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
         self.beam_size_definer = [9999, 9999]
-        self.beam_position = [300, 300]
+        self.beam_position = [318, 238]
         self.beam_info_dict = {}
 
     def init(self):
