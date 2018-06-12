@@ -19,15 +19,9 @@ class SampleChangerMockup(SampleChanger):
         self._selected_basket = -1
         self._scIsCharging = None
     
-        try:
-            self.no_of_baskets = self.getProperty('no_of_baskets')
-        except:
-            self.no_of_baskets = SampleChangerMockup.NO_OF_BASKETS
-            
-        try:
-            self.no_of_samples_in_basket = self.getProperty('no_of_samples_in_basket')
-        except:
-            self.no_of_samples_in_basket = SampleChangerMockup.NO_OF_SAMPLES_IN_BASKET
+        self.no_of_baskets = self.getProperty('no_of_baskets', SampleChangerMockup.NO_OF_BASKETS)
+        
+        self.no_of_samples_in_basket = self.getProperty('no_of_samples_in_basket', SampleChangerMockups.NO_OF_SAMPLES_IN_BASKET)
         
         for i in range(self.no_of_baskets):
             basket = Basket(self, i+1, samples_num=self.no_of_samples_in_basket)

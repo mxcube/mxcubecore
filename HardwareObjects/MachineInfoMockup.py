@@ -82,8 +82,8 @@ class MachineInfoMockup(HardwareObject):
         """
         Descript.
         """
-        self.min_current = self.getProperty('min_current')
-        self.min_current = self.getProperty('max_current')
+        self.min_current = self.getProperty('min_current', 80.1)
+        self.min_current = self.getProperty('max_current', 90.1)
 
         self.update_values()
         spawn(self.change_mach_current)
