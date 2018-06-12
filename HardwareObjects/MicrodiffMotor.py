@@ -81,7 +81,7 @@ class MicrodiffMotor(AbstractMotor):
             self.motors_state_attr.connectSignal("update", self.updateMotorState)
             
             self._motor_abort = self.getCommandObject("abort")
-            if not self._motro_abort:
+            if not self._motor_abort:
                 self._motor_abort = self.addCommand({"type": "exporter",
                                                      "name": "abort" },
                                                      "abort")
