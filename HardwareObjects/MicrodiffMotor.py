@@ -21,7 +21,7 @@ Example xml file:
 """
 
 class MicrodiffMotor(AbstractMotor):
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,3,4,5,6)
+    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
     EXPORTER_TO_MOTOR_STATE = { "Invalid": NOTINITIALIZED,
                                 "Fault": UNUSABLE,
                                 "Ready": READY,
@@ -57,17 +57,15 @@ class MicrodiffMotor(AbstractMotor):
 
         self.motorState = MicrodiffMotor.NOTINITIALIZED
         
-        try:
-            self.position_attr = self.getChannelObject("%s%s" % (self.motor_name, self.motor_pos_attr_suffix))
-        except:
+        self.position_attr = self.getChannelObject("%s%s" % (self.motor_name, self.motor_pos_attr_suffix))
+        if not self.position_attr:
             self.position_attr = self.addChannel({"type": "exporter",
                                                   "name": "%sPosition" %self.motor_name},
                                                   self.motor_name + self.motor_pos_attr_suffix)
         
         if self.position_attr is not None:
-            try:
-                self.state_attr = self.getChannelObject("%s%s" % (self.motor_name, self.motor_state_attr_suffix))
-            except:
+            self.state_attr = self.getChannelObject("%s%s" % (self.motor_name, self.motor_state_attr_suffix))
+            if not self.state_attr:
                 self.state_attr = self.addChannel({"type": "exporter",
                                                    "name": "%sState" %self.motor_name},
                                                    self.motor_name + self.motor_state_attr_suffix)
@@ -75,38 +73,42 @@ class MicrodiffMotor(AbstractMotor):
             self.position_attr.connectSignal("update", self.motorPositionChanged)
             self.state_attr.connectSignal("update", self.motorStateChanged)
             
-            try:
-                self.motors_state_attr = self.getChannelObject("motor_states")
-            except:
-                self.motors_state_attr = self.addChannel({"type":"exporter", "name":"motor_states"}, "MotorStates")
+            self.motors_state_attr = self.getChannelObject("motor_states")
+            if not self.motors_state_attr:
+                self.motors_state_attr = self.addChannel({"type": "exporter",
+                                                          "name": "motor_states"},
+                                                          "MotorStates")
             self.motors_state_attr.connectSignal("update", self.updateMotorState)
             
-            try:
-                self._motor_abort = self.getCommandObject("abort")
-            except:
-                self._motor_abort = self.addCommand( {"type":"exporter", "name":"abort" }, "abort")
-                
-            try:
-                self.get_dynamic_limits_cmd = self.getCommandObject("get%sDynamicLimits" % self.motor_name)
-            except:
+            self._motor_abort = self.getCommandObject("abort")
+            if not self._motro_abort:
+                self._motor_abort = self.addCommand({"type": "exporter",
+                                                     "name": "abort" },
+                                                     "abort")
+            
+            self.get_dynamic_limits_cmd = self.getCommandObject("get%sDynamicLimits" % self.motor_name)
+            if not self.get_dynamic_limits_cmd:
                 self.get_dynamic_limits_cmd = self.addCommand({"type": "exporter",
                                                                "name": "get%sDynamicLimits" % self.motor_name},
                                                                "getMotorDynamicLimits")
             
-            try:
-                self.get_limits_cmd = self.getCommandObject("getMotorLimits")
-            except:
-                self.get_limits_cmd = self.addCommand( { "type": "exporter", "name": "get_limits"}, "getMotorLimits")
+            self.get_limits_cmd = self.getCommandObject("getMotorLimits")
+            if not self.get_limits_cmd:
+                self.get_limits_cmd = self.addCommand({"type": "exporter",
+                                                       "name": "get_limits"},
+                                                       "getMotorLimits")
                 
-            try:
-                self.get_max_speed_cmd = self.getCommandObject("getMotorMaxSpeed")
-            except:
-                self.get_max_speed_cmd = self.addCommand( { "type": "exporter", "name": "get_max_speed"}, "getMotorMaxSpeed")
+            self.get_max_speed_cmd = self.getCommandObject("getMotorMaxSpeed")
+            if not self.get_max_spped_cmd:
+                self.get_max_speed_cmd = self.addCommand({"type": "exporter",
+                                                          "name": "get_max_speed"},
+                                                          "getMotorMaxSpeed")
             
-            try:
-                self.home_cmd = self.getCommandObject("homing")
-            except:
-                self.home_cmd = self.addCommand( {"type":"exporter", "name":"homing" }, "startHomingMotor")
+            self.home_cmd = self.getCommandObject("homing")
+            if not self.home_cmd:
+                self.home_cmd = self.addCommand({"type": "exporter",
+                                                 "name": "homing" },
+                                                 "startHomingMotor")
             
         self.motorPositionChanged(self.position_attr.getValue())
 
