@@ -114,11 +114,11 @@ class MicrodiffMotor(AbstractMotor):
 
     def connectNotify(self, signal):
         if signal == 'positionChanged':
-                self.emit('positionChanged', (self.getPosition(), ))
+            self.emit('positionChanged', (self.get_position(), ))
         elif signal == 'stateChanged':
-                self.motorStateChanged(self.getState())
+            self.motorStateChanged(self.get_state())
         elif signal == 'limitsChanged':
-                self.motorLimitsChanged()  
+            self.motorLimitsChanged()  
  
     def updateState(self):
         self.setIsReady(self.motorState > MicrodiffMotor.UNUSABLE)
@@ -144,16 +144,11 @@ class MicrodiffMotor(AbstractMotor):
         self.motorStateChanged(self.motorState)
 
     def motorStateChanged(self, state):
-        self.getState()
-        #if state in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
-            #self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[state]
-        #else:
-            #self.motorState = MicrodiffMotor.TANGO_TO_MOTOR_STATE[state.name]
         logging.getLogger().debug("%s: in motorStateChanged: motor state changed to %s", self.name(), state)
         self.updateState()
-        self.emit('stateChanged', (self.motorState, ))
+        self.emit('stateChanged', (state, ))
 
-    def getState(self):
+    def get_state(self):
         if self.motorState == MicrodiffMotor.NOTINITIALIZED:
             if self.state_attr.getValue() in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
                 self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[self.state_attr.getValue()]
@@ -163,13 +158,10 @@ class MicrodiffMotor(AbstractMotor):
                 #self.updateMotorState(self.motors_state_attr.getValue())
         return self.motorState
     
-    def get_state(self):
-        return self.getState()
-    
     def motorLimitsChanged(self):
-        self.emit('limitsChanged', (self.getLimits(), ))
+        self.emit('limitsChanged', (self.get_limits(), ))
                      
-    def getLimits(self):
+    def get_limits(self):
         dynamic_limits = self.getDynamicLimits()
         if dynamic_limits != (-1E4, 1E4):
             return dynamic_limits
@@ -182,9 +174,6 @@ class MicrodiffMotor(AbstractMotor):
             except:
               return (-1E4, 1E4)
 
-    def get_limits(self):
-        return self.getLimits()
-    
     def getDynamicLimits(self):
         try:
           low_lim,hi_lim = map(float, self.get_dynamic_limits_cmd(self.motor_name))
@@ -204,27 +193,24 @@ class MicrodiffMotor(AbstractMotor):
         self.position = absolute_position
         self.emit('positionChanged', (self.position, ))
 
-    def getPosition(self):
+    def get_position(self):
         if self.position_attr is not None:   
            self.position = self.position_attr.getValue()
         return self.position
     
-    def get_position(self):
-        return self.getPosition()
-    
     def getDialPosition(self):
-        return self.getPosition()
+        return self.get_position()
 
     def move(self, absolutePosition, wait=True, timeout=None):
-        #if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+        #if self.get_state() != MicrodiffMotor.NOTINITIALIZED:
         if abs(self.position - absolutePosition) >= self.motor_resolution:
            self.position_attr.setValue(absolutePosition) #absolutePosition-self.offset)
 
     def moveRelative(self, relativePosition):
-        self.move(self.getPosition() + relativePosition)
+        self.move(self.get_position() + relativePosition)
 
     def syncMoveRelative(self, relative_position, timeout=None):
-        return self.syncMove(self.getPosition() + relative_position)
+        return self.syncMove(self.get_position() + relative_position)
 
     def waitEndOfMove(self, timeout=None):
         with Timeout(timeout):
@@ -246,7 +232,7 @@ class MicrodiffMotor(AbstractMotor):
         return self.motor_name
 
     def stop(self):
-        if self.getState() != MicrodiffMotor.NOTINITIALIZED:
+        if self.get_state() != MicrodiffMotor.NOTINITIALIZED:
           self._motor_abort()
 
     def homeMotor(self, timeout=None):
