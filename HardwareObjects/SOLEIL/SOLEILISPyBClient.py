@@ -81,89 +81,22 @@ class SOLEILISPyBClient(ISPyBClient2):
         try:
 
             if self.ws_root:
-                #logging.getLogger("HWR").debug("SOLEILISPyBClient: attempting to connect to %s" % self.ws_root)
                 logging.info("SOLEILISPyBClient: attempting to connect to %s" % self.ws_root)
                 print "SOLEILISPyBClient: attempting to connect to %s" % self.ws_root
                 
                 try: 
                     self._shipping = self._wsdl_shipping_client()
-                    self._shipping2 = self._wsdl_shipping_client()
                     self._collection = self._wsdl_collection_client()
                     self._tools_ws = self._wsdl_tools_client()
-                    #logging.getLogger("HWR").debug("SOLEILISPyBClient: extracted from ISPyB values for shipping, collection and tools")
                     logging.debug("SOLEILISPyBClient: extracted from ISPyB values for shipping, collection and tools")
                 except: 
                     print traceback.print_exc()
-                    #logging.getLogger("HWR").exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
                     logging.exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
                     return
         except:
             print traceback.print_exc()
             logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
             return
-        #try:
-            ## ws_root is a property in the configuration xml file
-            #if self.ws_root:
-                #global _WSDL_ROOT
-                #global _WS_BL_SAMPLE_URL
-                #global _WS_SHIPPING_URL
-                #global _WS_COLLECTION_URL
-                #global _WS_SCREENING_URL
-                #global _WS_AUTOPROC_URL
-
-                #_WSDL_ROOT = self.ws_root.strip()
-                #_WS_BL_SAMPLE_URL = _WSDL_ROOT + 'ToolsForBLSampleWebService?wsdl'
-                #_WS_SHIPPING_URL = _WSDL_ROOT + 'ToolsForShippingWebService?wsdl'
-                #_WS_COLLECTION_URL = _WSDL_ROOT + 'ToolsForCollectionWebService?wsdl'
-                #_WS_AUTOPROC_URL = _WSDL_ROOT + 'ToolsForAutoprocessingWebService?wsdl'
-
-                #if self.ws_root.strip().startswith("https://"):
-                    #from suds.transport.https import HttpAuthenticated
-                #else:
-                    #from suds.transport.http import HttpAuthenticated
-
-                #t1 = HttpAuthenticated(username = self.ws_username, 
-                                      #password = self.ws_password)
-                
-                #t2 = HttpAuthenticated(username = self.ws_username, 
-                                      #password = self.ws_password)
-                
-                #t3 = HttpAuthenticated(username = self.ws_username, 
-                                      #password = self.ws_password)
-
-                #t4 = HttpAuthenticated(username = self.ws_username,
-                                       #password = self.ws_password)
-                
-                #try: 
-                    #print '_WS_SHIPPING_URL', _WS_SHIPPING_URL
-                    #self._shipping = Client(_WS_SHIPPING_URL, timeout = 3,
-                                             #transport = t1, cache = None)
-                    #print '_WS_COLLECTION_URL', _WS_COLLECTION_URL
-                    #self._collection = Client(_WS_COLLECTION_URL, timeout = 3,
-                                               #transport = t2, cache = None)
-                    #self._tools_ws = Client(_WS_BL_SAMPLE_URL, timeout = 3,
-                                             #transport = t3, cache = None)
-                    #self._autoproc_ws = Client(_WS_AUTOPROC_URL, timeout = 3,
-                                             #transport = t4, cache = None)
-                
-                    ## ensure that suds do not create those files in tmp 
-                    #self._shipping.set_options(cache=None)
-                    #self._collection.set_options(cache=None)
-                    #self._tools_ws.set_options(cache=None)
-                    #self._autoproc_ws.set_options(cache=None)
-                #except URLError:
-                    #print traceback.print_exc()
-                    #logging.getLogger("ispyb_client")\
-                        #.exception(_CONNECTION_ERROR_MSG)
-                    #return
-        #except:
-            #logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-            #return
-        
-        #print 'self._collection init', self._collection
-        
-        # Add the porposal codes defined in the configuration xml file
-        # to a directory. Used by translate()
         try:
             proposals = self.session_hwobj['proposals']
             
@@ -186,9 +119,6 @@ class SOLEILISPyBClient(ISPyBClient2):
             pass
         except:
             pass
-            #import traceback
-            #traceback.print_exc()
-        #self.beamline_name = self.get_beamline_name()
         
     def translate(self, code, what):  
         """
@@ -198,7 +128,6 @@ class SOLEILISPyBClient(ISPyBClient2):
         if what == "ispyb":
             return "mx"
         return ""
-        # return code
 
     def _wsdl_shipping_client(self):
         return self._wsdl_client(self.ws_shipping)
@@ -305,3 +234,4 @@ def test():
     
 if __name__ == '__main__':
     test()
+
