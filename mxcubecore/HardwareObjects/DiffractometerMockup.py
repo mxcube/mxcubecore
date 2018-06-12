@@ -54,11 +54,11 @@ class DiffractometerMockup(GenericDiffractometer):
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
         self.y_calib = 0.000446
-        self.last_centred_position = [200, 200]
+        self.last_centred_position = [318, 238]
          
         self.pixels_per_mm_x = 1.0 / self.x_calib
         self.pixels_per_mm_y = 1.0 / self.y_calib
-        self.beam_position = [200, 200]
+        self.beam_position = [318, 238]
         
         self.cancel_centring_methods = {}
         self.current_motor_positions = {
@@ -348,7 +348,7 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def update_values(self):
         self.emit('zoomMotorPredefinedPositionChanged', None, None)
-        omega_ref = [300, 0]
+        omega_ref = [0, 238]
         self.emit('omegaReferenceChanged', omega_ref)
 
     def move_kappa_and_phi(self, kappa, kappa_phi):

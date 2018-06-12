@@ -82,6 +82,9 @@ class MachineInfoMockup(HardwareObject):
         """
         Descript.
         """
+        self.min_current = self.getProperty('min_current', 80.1)
+        self.min_current = self.getProperty('max_current', 90.1)
+
         self.update_values()
         spawn(self.change_mach_current)
        
@@ -112,7 +115,7 @@ class MachineInfoMockup(HardwareObject):
 
     def change_mach_current(self):
         while True:
-            self.values_list[0]['value'] = uniform(80.1, 90.1)
+            self.values_list[0]['value'] = uniform(self.min_current, self.min_current)
             self.values_list[0]['value_str'] = "%.1f mA" % \
                  self.values_list[0]['value']
             self.update_values()
