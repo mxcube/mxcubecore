@@ -36,11 +36,18 @@ class MicrodiffMotor(AbstractMotor):
     TANGO_TO_MOTOR_STATE = {"STANDBY": READY,
                             "MOVING": MOVING}
     
+    
     def __init__(self, name):
         AbstractMotor.__init__(self, name) 
         self.motor_pos_attr_suffix = "Position"
         self.motor_state_attr_suffix = "State"
-    
+        self.translate_state = {MicrodiffMotor.NOTINITIALIZED: self.motor_states.NOTINITIALIZED,
+                                MicrodiffMotor.UNUSABLE: self.motor_states.BUSY,
+                                MicrodiffMotor.READY: self.motor_states.READY,
+                                MicrodiffMotor.MOVESTARTED: self.motor_states.MOVESTARTED,
+                                MicrodiffMotor.MOVING: self.motor_states.MOVING,
+                                MicrodiffMotor.ONLIMIT: self.motor_states.HIGHLIMIT}
+        
     def init(self):
         self.position = None
         #assign value to motor_name
@@ -99,7 +106,7 @@ class MicrodiffMotor(AbstractMotor):
                                                        "getMotorLimits")
                 
             self.get_max_speed_cmd = self.getCommandObject("getMotorMaxSpeed")
-            if not self.get_max_spped_cmd:
+            if not self.get_max_speed_cmd:
                 self.get_max_speed_cmd = self.addCommand({"type": "exporter",
                                                           "name": "get_max_speed"},
                                                           "getMotorMaxSpeed")
@@ -116,7 +123,7 @@ class MicrodiffMotor(AbstractMotor):
         if signal == 'positionChanged':
             self.emit('positionChanged', (self.get_position(), ))
         elif signal == 'stateChanged':
-            self.motorStateChanged(self.get_state())
+            self.motorStateChanged(self.state_attr.getValue())
         elif signal == 'limitsChanged':
             self.motorLimitsChanged()  
  
@@ -144,20 +151,18 @@ class MicrodiffMotor(AbstractMotor):
         self.motorStateChanged(self.motorState)
 
     def motorStateChanged(self, state):
-        logging.getLogger().debug("%s: in motorStateChanged: motor state changed to %s", self.name(), state)
         self.updateState()
-        self.emit('stateChanged', (state, ))
+        if type(state) is str:
+            state = self.get_state()
+        self.emit('stateChanged', (self.translate_state[state], ))
 
     def get_state(self):
-        if self.motorState == MicrodiffMotor.NOTINITIALIZED:
-            if self.state_attr.getValue() in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
-                self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[self.state_attr.getValue()]
-            else:
-                self.motorState = MicrodiffMotor.TANGO_TO_MOTOR_STATE[self.state_attr.getValue().name]
-            self.motorStateChanged(self.motorState)
-                #self.updateMotorState(self.motors_state_attr.getValue())
+        if self.state_attr.getValue() in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
+            self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[self.state_attr.getValue()]
+        else:
+            self.motorState = MicrodiffMotor.TANGO_TO_MOTOR_STATE[self.state_attr.getValue().name]
         return self.motorState
-    
+
     def motorLimitsChanged(self):
         self.emit('limitsChanged', (self.get_limits(), ))
                      
