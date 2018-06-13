@@ -696,7 +696,7 @@ class SampleQueueEntry(BaseQueueEntry):
         try:
             #TODO move this to AutoProcessing hwobj
             programs = self.beamline_setup.collect_hwobj["auto_processing"]
-        except IndexError:
+        except (KeyError, IndexError):
             # skip autoprocessing of the data
             pass
         else:
