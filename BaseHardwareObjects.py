@@ -118,7 +118,7 @@ class HardwareObjectNode:
             try:
                 i = self.__objectsNames.index(objectName)
             except:
-                raise IndexError
+                raise KeyError
             else:
                 obj = self.__objects[i]
                 if len(obj) == 1:
@@ -140,7 +140,7 @@ class HardwareObjectNode:
             else:
                 raise IndexError
         else:
-            raise IndexError
+            raise TypeError
 
 
     def addReference(self, name, reference, role = None):
