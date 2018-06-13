@@ -36,7 +36,6 @@ class MicrodiffMotor(AbstractMotor):
     TANGO_TO_MOTOR_STATE = {"STANDBY": READY,
                             "MOVING": MOVING}
     
-    
     def __init__(self, name):
         AbstractMotor.__init__(self, name) 
         self.motor_pos_attr_suffix = "Position"
