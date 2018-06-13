@@ -229,7 +229,7 @@ class ISPyBClient2(HardwareObject):
                     self._translations[code]['gui'] = proposal.gui
                 except AttributeError:
                     pass
-        except IndexError:
+        except (KeyError, IndexError):
             pass
 
     def get_login_type(self):
