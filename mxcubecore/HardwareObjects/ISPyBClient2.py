@@ -212,9 +212,8 @@ class ISPyBClient2(HardwareObject):
 
         # Add the porposal codes defined in the configuration xml file
         # to a directory. Used by translate()
-        try:
-            proposals = self.session_hwobj['proposals']
-            for proposal in proposals:
+        if hasattr(self.session_hwobj, 'proposals'):
+            for proposal in self.session_hwobj['proposals']:
                 code = proposal.code
                 self._translations[code] = {}
                 try:
@@ -229,8 +228,6 @@ class ISPyBClient2(HardwareObject):
                     self._translations[code]['gui'] = proposal.gui
                 except AttributeError:
                     pass
-        except (KeyError, IndexError):
-            pass
 
     def get_login_type(self):
         return self.loginType
@@ -248,11 +245,11 @@ class ISPyBClient2(HardwareObject):
 
 
     def clear_daily_email(self):
-        raise NotImplementedException("Depricated ?")
+        raise NotImplementedError("Deprecated ?")
 
 
     def send_email(self):
-        raise NotImplementedException("Depricated ?")
+        raise NotImplementedError("Deprecated ?")
 
     def get_dc_display_link(self):
         ws_root_base = ":".join(self.ws_root.split(":")[:2])
@@ -364,7 +361,7 @@ class ISPyBClient2(HardwareObject):
 
                 except WebFault, e:
                     print traceback.print_exc()
-                    logging.getLogger("ispyb_client").exception(str(e))
+                    logging.getLogger("ispyb_client").error(str(e))
                     person = {}
 
                 try:
@@ -383,7 +380,7 @@ class ISPyBClient2(HardwareObject):
 
                 except WebFault, e:
                     print traceback.print_exc()
-                    logging.getLogger("ispyb_client").exception(str(e))
+                    logging.getLogger("ispyb_client").error(str(e))
                     proposal = {}
 
                 try:
@@ -396,7 +393,7 @@ class ISPyBClient2(HardwareObject):
 
                 except WebFault, e:
                     print traceback.print_exc()
-                    logging.getLogger("ispyb_client").exception(str(e))
+                    logging.getLogger("ispyb_client").error(str(e))
 
                     lab = {}
                 try:
@@ -423,7 +420,7 @@ class ISPyBClient2(HardwareObject):
 
                 except WebFault, e:
                     print traceback.print_exc()
-                    logging.getLogger("ispyb_client").exception(str(e))
+                    logging.getLogger("ispyb_client").error(str(e))
                     sessions = []
 
             except URLError:
@@ -546,10 +543,10 @@ class ISPyBClient2(HardwareObject):
                 person = self._shipping.service.\
                     findPersonBySessionIdLocalContact(session_id)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
                 person = {}
             except URLError:
-                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+                logging.getLogger("ispyb_client").error(_CONNECTION_ERROR_MSG)
                 person = {}
 
             if person is None:
@@ -814,7 +811,7 @@ class ISPyBClient2(HardwareObject):
                         self.update_session(session)
 
                     except WebFault, e:
-                        logging.getLogger("ispyb_client").exception(str(e))
+                        logging.getLogger("ispyb_client").error(str(e))
                     except URLError:
                         logging.getLogger("ispyb_client").\
                             exception(_CONNECTION_ERROR_MSG)
@@ -881,7 +878,7 @@ class ISPyBClient2(HardwareObject):
                 status = self._tools_ws.service.\
                     storeOrUpdateBLSample(bl_sample)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
                 status = {}
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -969,7 +966,7 @@ class ISPyBClient2(HardwareObject):
                     findSampleInfoLightForProposal(proposal_id,
                                                    self.beamline_name)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
@@ -1018,7 +1015,7 @@ class ISPyBClient2(HardwareObject):
                                                    self.beamline_name)
 
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1146,7 +1143,7 @@ class ISPyBClient2(HardwareObject):
             try:
                 result = self._tools_ws.service.findBLSample(bl_sample_id)
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1189,7 +1186,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 session = {}
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1273,7 +1270,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 result = -1
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1307,7 +1304,7 @@ class ISPyBClient2(HardwareObject):
 
             except WebFault, e:
                 dc = {}
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 dc = {}
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
@@ -1331,7 +1328,7 @@ class ISPyBClient2(HardwareObject):
                     dc_dict['run_number'])
             except WebFault, e:
                 dc = {}
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1344,7 +1341,7 @@ class ISPyBClient2(HardwareObject):
 
     @trace
     def get_sample_last_data_collection(self, blsampleid):
-        raise NotImplementedException("Unused method ?")
+        raise NotImplementedError("Unused method ?")
 
 
     @trace
@@ -1369,7 +1366,7 @@ class ISPyBClient2(HardwareObject):
                     session = utf_encode(asdict(session))
 
             except WebFault, e:
-                logging.getLogger("ispyb_client").exception(str(e))
+                logging.getLogger("ispyb_client").error(str(e))
             except URLError:
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
@@ -1514,7 +1511,7 @@ class ISPyBClient2(HardwareObject):
                            proposal_list.append(proposal)
             except WebFault, e:
                proposal_list = []
-               logging.getLogger("ispyb_client").exception(e.message)
+               logging.getLogger("ispyb_client").error(e.message)
 
             proposal_list = newlist = sorted(proposal_list,
                 key=lambda k: int(k['proposalId'])) 
@@ -1533,7 +1530,7 @@ class ISPyBClient2(HardwareObject):
                         if not person:
                             person = {}
                     except WebFault, e:
-                        logging.getLogger("ispyb_client").exception(e.message)
+                        logging.getLogger("ispyb_client").error(e.message)
                         person = {}
 
                     #lab
@@ -1544,7 +1541,7 @@ class ISPyBClient2(HardwareObject):
                         if not lab:
                             lab = {}
                     except WebFault, e:
-                        logging.getLogger("ispyb_client").exception(e.message)
+                        logging.getLogger("ispyb_client").error(e.message)
                         lab = {}
 
                     #sessions
@@ -1568,7 +1565,7 @@ class ISPyBClient2(HardwareObject):
                                 sessions.append(utf_encode(asdict(session)))
 
                     except WebFault, e:
-                        logging.getLogger("ispyb_client").exception(e.message)
+                        logging.getLogger("ispyb_client").error(e.message)
                         sessions = []
 
                     
@@ -1598,8 +1595,8 @@ class ISPyBClient2(HardwareObject):
                         ["processing_start_time"], "%Y-%m-%d %H:%M:%S"),
                    processingEndTime = datetime.strptime(autoproc_program_dict\
                         ["processing_end_time"], "%Y-%m-%d %H:%M:%S"))
-        except ex:
-            msg = 'Could not store autoprocessing program in lims: %s' % ex.message
+        except:
+            msg = 'Could not store autoprocessing program in lims: '
             logging.getLogger("ispyb_client").exception(msg)
         return autoproc_program_id
 
@@ -1712,18 +1709,19 @@ class ISPyBClient2(HardwareObject):
         try:
            quality_ind_id = self._autoproc_ws.service.\
                 storeOrUpdateImageQualityIndicators(quality_ind_dict)
-        except ex:
-            msg = 'Could not store image quality indicators in lims: %s' % ex.message
+        except:
+            msg = 'Could not store image quality indicators in lims:'
             logging.getLogger("ispyb_client").exception(msg)
         return quality_ind_id
 
     def set_image_quality_indicators_plot(self, collection_id, plot_path, csv_path):
         """Assigns image quality indicators png and csv filenames to collection"""
         try:
-            self._collection.service.setImageQualityIndicatorsPlot(\
-                collection_id, plot_path, csv_path)
-        except ex:
-            msg = 'Could not set image quality indicators in lims: %s' % ex.message
+            self._collection.service.setImageQualityIndicatorsPlot(
+                collection_id, plot_path, csv_path
+            )
+        except:
+            msg = 'Could not set image quality indicators in lims:'
             logging.getLogger("ispyb_client").exception(msg)
 
     def store_robot_action(self, robot_action_dict):
