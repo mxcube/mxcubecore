@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
@@ -74,20 +74,22 @@ class EMBLCRL(HardwareObject):
                      "focusingModeRequested",
                      self.focusing_mode_requested)
 
-        focus_modes = self.beam_focusing_hwobj.get_available_lens_modes()
-        if focus_modes:
-            self.set_mode(focus_modes[0])
+        lens_modes = self.beam_focusing_hwobj.get_available_lens_modes()
+        if lens_modes:
+            self.set_mode(lens_modes[0])
 
     def convert_value(self, value):
         """Converts int to list of bits"""
         if type(value) in (list, tuple):
             lens_combination = 0
             for index in range(self.lens_count):
-                lens_combination = lens_combination + value[index] * pow(2, index)
+                lens_combination = lens_combination + value[index] * \
+                                   pow(2, index)
         else:
             lens_combination = [0, 0, 0, 0, 0, 0]
             for index in range(self.lens_count):
-                lens_combination[index] = (value & pow(2, index)) / pow(2, index)
+                lens_combination[index] = (value & pow(2, index)) / \
+                                          pow(2, index)
 
         return lens_combination
 
@@ -100,7 +102,12 @@ class EMBLCRL(HardwareObject):
         return self.current_mode
 
     def set_mode(self, mode):
-        """Sets crl mode"""
+        """Sets crl mode
+
+        :param mode: crl mode
+        :type mode: str
+        :return: None
+        """
         self.current_mode = mode
         #if self.current_mode == "Out":
         #    self.set_crl_value([0, 0, 0, 0, 0, 0])
@@ -110,9 +117,12 @@ class EMBLCRL(HardwareObject):
 
     def energy_state_changed(self, state):
         """If CRL's in the automatic mode then change setting accoring
-           to the current energy"""
-        if state == "ready" and \
-           state != self.energy_state and \
+           to the current energy
+
+        :param state: energy state
+        :type state: str
+        """
+        if state == "ready" and state != self.energy_state and \
            self.current_mode == "Automatic":
             self.energy_value = self.energy_hwobj.getCurrentEnergy()
             self.set_according_to_energy()
@@ -126,8 +136,10 @@ class EMBLCRL(HardwareObject):
 
         self.energy_value = self.energy_hwobj.getCurrentEnergy()
         for combination_index in range(1, 65):
-            current_abs = abs(self.energy_value - math.sqrt((2 * 341.52 * \
-                combination_index) / (2000 * (1 / 42.6696 + 1 / self.focal_length))))
+            current_abs = abs(self.energy_value -
+                              math.sqrt((2 * 341.52 * combination_index) /
+                                        (2000 * (1 / 42.6696 + 1 /
+                                                 self.focal_length))))
             if current_abs < min_abs:
                 min_abs = current_abs
                 selected_combination = combination_index
@@ -149,12 +161,12 @@ class EMBLCRL(HardwareObject):
 
     def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
-        if focusing_mode != None:
+        if focusing_mode is not None:
             self.modes = self.beam_focusing_hwobj.\
                 get_available_lens_modes()
             self.set_mode(self.modes[0])
-            self.set_crl_value(self.beam_focusing_hwobj.\
-                get_lens_combination(focusing_mode))
+            self.set_crl_value(self.beam_focusing_hwobj.get_lens_combination(
+                focusing_mode))
 
     def crl_value_changed(self, value):
         """Emit signal when crl combination changed"""
@@ -179,7 +191,7 @@ class EMBLCRL(HardwareObject):
             gevent.sleep(1)
             with gevent.Timeout(timeout, Exception("Timeout waiting for CRL")):
                 while value != self.crl_value:
-                    gevent.sleep(0.1) 
+                    gevent.sleep(0.1)
 
     def get_crl_value(self):
         """Return crl combination"""

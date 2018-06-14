@@ -205,6 +205,10 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").warning(\
                "BeamlineTest: PPU control hwobj is not defined")
 
+        self.connect(self.bl_hwobj.energy_hwobj,
+                     "beamAlignmentRequested",
+                     self.center_beam_report)
+
         self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name
         self.csv_file_name = self.getProperty("device_list")
         if self.csv_file_name:
@@ -915,7 +919,8 @@ class EMBLBeamlineTest(HardwareObject):
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (2, progress_info))
         self.emit("progressStep", 1, "Setting diffractometer in BeamLocation phase")
-        
+       
+        self.bl_hwobj.diffractometer_hwobj.wait_device_ready(10) 
         self.bl_hwobj.diffractometer_hwobj.set_phase(\
              self.bl_hwobj.diffractometer_hwobj.PHASE_BEAM, timeout=45)
 
@@ -923,7 +928,7 @@ class EMBLBeamlineTest(HardwareObject):
         gevent.sleep(0.1)
         aperture_hwobj.set_out()
 
-        msg = "2/6 : Adjusting transmission to the current energy %.1f " % current_energy
+        msg = "2/6 : Adjusting transmission to the current energy %.1f keV" % current_energy
         progress_info["progress_msg"] = msg
         log.info("Beam centering: %s" % msg)
         self.emit("testProgress", (2, progress_info))
@@ -974,7 +979,12 @@ class EMBLBeamlineTest(HardwareObject):
 
             # Actual centring procedure  ---------------
             
-            self.center_beam_task()
+            beam_task_result = self.center_beam_task()
+            if not beam_task_result:
+                log.error("Beam centering: Failed")
+                self.emit("progressStop", ())
+                self.ready_event.set()
+                return
 
             # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
             if active_mode == "Collimated":
@@ -998,12 +1008,14 @@ class EMBLBeamlineTest(HardwareObject):
 
         self.bl_hwobj.transmission_hwobj.setTransmission(current_transmission)
 
+        """
         self.graphics_manager_hwobj.save_scene_snapshot(\
              os.path.join(self.test_directory,
                           "beam_image_after.png"))
         self.graphics_manager_hwobj.save_beam_profile(\
              os.path.join(self.test_directory,
                           "beam_profile_after.png"))
+        """
 
         self.graphics_manager_hwobj.graphics_beam_item.set_detected_beam_position(None, None)
 
@@ -1023,6 +1035,7 @@ class EMBLBeamlineTest(HardwareObject):
         progress_info = {"progress_total": 6,
                          "progress_msg": msg}
 
+        """
         self.graphics_manager_hwobj.save_scene_snapshot(\
              os.path.join(self.test_directory,
                           "beam_image_before.png"))
@@ -1030,6 +1043,7 @@ class EMBLBeamlineTest(HardwareObject):
              os.path.join(self.test_directory,
                           "beam_profile_before.png"))
         gevent.sleep(1)
+        """
 
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             #Beam centering procedure for P13 ---------------------------------
@@ -1055,15 +1069,15 @@ class EMBLBeamlineTest(HardwareObject):
                        gevent.sleep(0.1)
             self.cmd_set_vmax_pitch(1)
 
+            self.emit("progressStep", 4, "Detecting beam position and centering the beam")
             for i in range(3):
-                with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
+                with gevent.Timeout(10, False):
                     beam_pos_displacement = [None, None]
                     while None in beam_pos_displacement:
                         beam_pos_displacement = self.graphics_manager_hwobj.\
                            get_beam_displacement(reference="beam")
                         gevent.sleep(0.1)
                 if None or 0 in beam_pos_displacement:
-                    log.debug("No beam detected")
                     return
 
                 delta_hor = beam_pos_displacement[0] * self.scale_hor
@@ -1094,12 +1108,11 @@ class EMBLBeamlineTest(HardwareObject):
             # 4/6 Applying Perp and Roll2nd correction ------------------------
             #if active_mode == "Collimated":
             if True:
-                msg = "4.3/6 : Applying Perp and Roll2nd correction"
+                msg = "4/6 : Applying Perp and Roll2nd correction"
                 progress_info["progress_msg"] = msg
                 log.info("Beam centering: %s" % msg)
                 self.emit("testProgress", (4, progress_info))
-                self.emit("progressStep", 4, "Applying Perp and Roll2nd correction")
- 
+                self.emit("progressStep", 4, "Detecting beam position and centering the beam")
                 delta_ver = 1.0
 
                 for i in range(5):
@@ -1120,7 +1133,7 @@ class EMBLBeamlineTest(HardwareObject):
 
                         gevent.sleep(2.0)
 
-                        with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
+                        with gevent.Timeout(10, RuntimeError("Timeout waiting for pitch scan ready")):
                             while self.chan_pitch_scan_status.getValue() != 0:
                                  gevent.sleep(0.1)
                         self.cmd_set_vmax_pitch(1)
@@ -1128,18 +1141,16 @@ class EMBLBeamlineTest(HardwareObject):
                         # GB : return original lenses only after scan finished 
                         if self.bl_hwobj._get_energy() < 10:
                             self.crl_hwobj.set_crl_value(crl_value, timeout=30)
-                        
                         sleep(2)
 
-
-                    with gevent.Timeout(10, Exception("Timeout waiting for beam shape")):
+                    with gevent.Timeout(10, False):
                         beam_pos_displacement = [None, None]
                         while None in beam_pos_displacement:
                             beam_pos_displacement = self.graphics_manager_hwobj.\
                                get_beam_displacement(reference="screen")
                             gevent.sleep(0.1)
-                    if None or 0 in beam_pos_displacement:
-                        log.debug("No beam detected")
+                    if None in beam_pos_displacement:
+                        #log.debug("No beam detected")
                         return
 
                     if active_mode == "Collimated":
@@ -1181,6 +1192,7 @@ class EMBLBeamlineTest(HardwareObject):
                             log.info("Moving vertical by %.4f" % delta_ver)
                             self.vertical_double_mode_motor_hwobj.move_relative(delta_ver, timeout=5)
                             sleep(2)
+        return True
 
     def pitch_scan_status_changed(self, status):
         """Store pitch scan status"""
