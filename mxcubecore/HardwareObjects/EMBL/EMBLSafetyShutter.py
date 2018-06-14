@@ -125,7 +125,7 @@ class EMBLSafetyShutter(Device):
     def state_open_changed(self, state):
         """Updates shutter state when shutter open value changes
 
-        :param state: shuuter open state
+        :param state: shutter open state
         :type state: str
         :return: None
         """

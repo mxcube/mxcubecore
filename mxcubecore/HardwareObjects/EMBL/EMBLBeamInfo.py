@@ -158,8 +158,8 @@ class EMBLBeamInfo(Equipment):
         :return: [float, float]
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
-            self.beam_position = [self.chan_beam_position_hor.getValue(),
-                                  self.chan_beam_position_ver.getValue()]
+            self.beam_position = (self.chan_beam_position_hor.getValue(),
+                                  self.chan_beam_position_ver.getValue())
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
@@ -235,7 +235,7 @@ class EMBLBeamInfo(Equipment):
     def get_beam_size(self):
         """Returns beam size in microns
 
-        :return: list with two integers
+        :return: Tuple(int, int)
         """
         self.evaluate_beam_info()
         return (self.beam_info_dict["size_x"], self.beam_info_dict["size_y"])
@@ -287,7 +287,7 @@ class EMBLBeamInfo(Equipment):
         if size_x == 9999 or size_y == 9999:
             return
         if (abs(size_x - self.beam_info_dict.get("size_x", 0)) > 1e-3 or
-                abs(size_y - self.beam_info_dict.get("size_y", 0)) > 1e-3):
+            abs(size_y - self.beam_info_dict.get("size_y", 0)) > 1e-3):
             self.beam_info_dict["size_x"] = size_x
             self.beam_info_dict["size_y"] = size_y
 
