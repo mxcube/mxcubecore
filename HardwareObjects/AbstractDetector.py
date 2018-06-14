@@ -84,11 +84,14 @@ class AbstractDetector(object):
         """
         return
 
+    def get_detector_mode(self):
+        return self.binding_mode
+
     def set_detector_mode(self, value):
         """
         Descript. : 
         """
-        return
+        self.binding_mode = value
 
     def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still):
         """
