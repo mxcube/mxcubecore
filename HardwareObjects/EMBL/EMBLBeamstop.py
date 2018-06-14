@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -47,20 +47,27 @@ class EMBLBeamstop(Device):
         if self.default_distance is None:
             self.chan_distance = self.getChannelObject('BeamstopDistance')
             if self.chan_distance is not None:
-                self.chan_distance.connectSignal("update", self.distance_changed)
+                self.chan_distance.connectSignal("update",
+                                                 self.distance_changed)
         else:
             self.distance = float(self.default_distance)
 
         self.chan_position = self.getChannelObject('BeamstopPosition')
 
     def isReady(self):
-        """Returns True if device ready"""
+        """Returns True if device ready
+        """
         return True
 
     def distance_changed(self, value):
-        """Callback when distance changed"""
+        """Updates beam stop distance value
+
+        :param value: beamstop distance
+        :type value: float
+        :return: None
+        """
         self.distance = value
-        self.emit('beamstopDistanceChanged', (value))
+        self.emit('beamstopDistanceChanged', value)
 
     def get_size(self):
         """Returns default beamstop size"""
@@ -96,11 +103,15 @@ class EMBLBeamstop(Device):
         return self.chan_position.getValue()
 
     def set_position(self, position):
-        """Sets position"""
+        """Sets position
+
+        :param position: beamstop position
+        :type position: str
+        """
         self.chan_position.setValue(position)
 
     def update_values(self):
         """Reemits available signals"""
         if self.chan_distance is not None:
             self.distance = self.chan_distance.getValue()
-        self.emit('beamstopDistanceChanged', (self.distance))
+        self.emit('beamstopDistanceChanged', self.distance)

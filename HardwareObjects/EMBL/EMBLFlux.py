@@ -22,6 +22,7 @@ import gevent
 import logging
 
 from copy import copy
+from datetime import datetime
 from scipy.interpolate import interp1d
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -216,7 +217,7 @@ class EMBLFlux(HardwareObject):
         self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
 
         # 7/7 set back original phase ----------------------------------------
-        self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
+        #self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
 
         #8. Calculate --------------------------------------------------------
         energy = self.bl_hwobj._get_energy()
