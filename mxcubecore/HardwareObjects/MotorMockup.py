@@ -38,6 +38,12 @@ Example of xml config file
 </device>
 """
 
+
+DEFAULT_VELOCITY = 100
+DEFAULT_LIMITS = (-360, 360)
+DEFAULT_POSITION = 10.124
+
+
 class MotorMockup(AbstractMotor):
 
     def __init__(self, name):
@@ -46,22 +52,19 @@ class MotorMockup(AbstractMotor):
         self.__move_task = None
 
     def init(self):
-        self.move(float(self.getProperty("start_position", 10.124)))
-
         try:
             self.set_velocity(float(self.getProperty("velocity")))
         except:
-            self.set_velocity(100)
+            self.set_velocity(DEFAULT_VELOCITY)
 
         try:
-            self.default_limits = eval(self.getProperty("default_limits"))
+            self.set_limits(eval(self.getProperty("default_limits")))
         except:
-            self.default_limits = (-360, 360)
-        finally:
-            self.set_limits(self.default_limits)
+            self.set_limits(DEFAULT_LIMITS)
 
 
         self.set_state(self.motor_states.READY)
+        self.move(float(self.getProperty("start_position", DEFAULT_POSITION)))
 
     def move_task(self, position, wait=False, timeout=None):
         if position is None:

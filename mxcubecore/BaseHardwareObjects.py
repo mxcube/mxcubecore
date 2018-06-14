@@ -259,11 +259,11 @@ class HardwareObjectNode:
         value = str(value)
         
         if value=='None':
-          value=None
+            value=None
         else:
           #
           # try to convert buffer to the appropriate type
-          # 
+          #
           try:
               value = int(value)
           except:
