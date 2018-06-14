@@ -57,7 +57,7 @@ class EMBLAperture(AbstractAperture):
         if self.chan_diameter_index is not None:
             self._current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self._current_diameter_index)
-            self.chan_diameter_index.connectSignal( \
+            self.chan_diameter_index.connectSignal(
                 'update', self.diameter_index_changed)
         else:
             self._current_diameter_index = 0

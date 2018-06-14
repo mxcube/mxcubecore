@@ -83,8 +83,8 @@ class EMBLCRL(HardwareObject):
         if type(value) in (list, tuple):
             lens_combination = 0
             for index in range(self.lens_count):
-                lens_combination = lens_combination + value[index] * \
-                                   pow(2, index)
+                lens_combination = (lens_combination
+                                    + value[index] * pow(2, index))
         else:
             lens_combination = [0, 0, 0, 0, 0, 0]
             for index in range(self.lens_count):
