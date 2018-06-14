@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import gevent
@@ -52,16 +52,23 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_actual_frame_rate = None
 
         self.cmd_close_cover = None
+        self.cmd_restart_daq = None
+        self.binding_mode = 1
+        self.tolerance = None
+        self.temperature = None
+        self.humidity = None
+        self.actual_frame_rate = None
 
     def init(self):
 
         self.cover_state = 'unknown'
-        self.binding_mode = 1
+
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject('chanCoverState')
         if self.chan_cover_state is not None:
-            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
+            self.chan_cover_state.connectSignal("update",
+                                                self.cover_state_changed)
         self.chan_temperature = self.getChannelObject('chanTemperature')
         self.chan_temperature.connectSignal("update", self.temperature_changed)
         self.chan_humidity = self.getChannelObject('chanHumidity')
@@ -74,11 +81,11 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.chan_frame_rate.connectSignal('update', self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
-        #TODO add version of module that accepts optional argument 
-        #self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate', optional=True)
-        self.chan_actual_frame_rate = self.getChannelObject('chanActualFrameRate')
+        self.chan_actual_frame_rate = self.getChannelObject(
+            'chanActualFrameRate', optional=True)
         if self.chan_actual_frame_rate is not None:
-            self.chan_actual_frame_rate.connectSignal('update', self.actual_frame_rate_changed)
+            self.chan_actual_frame_rate.connectSignal(
+                'update', self.actual_frame_rate_changed)
 
         self.chan_beam_xy = self.getChannelObject('chanBeamXY')
 
@@ -99,8 +106,15 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         return self.distance_motor_hwobj.getPosition()
 
     def set_distance(self, position, timeout=None):
+        """Sets detector distance
+
+        :param position: distance in mm
+        :type position: float
+        :param timeout: timeout
+        :type timeout: float
+        :return: None
+        """
         return self.distance_motor_hwobj.move(position, timeout)
-        
 
     def get_distance_limits(self):
         """Returns detector distance limits"""
@@ -144,20 +158,20 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             status = self.chan_status.getValue()
         status_message = "Detector: "
         if self.temperature > self.temp_treshold:
-            logging.getLogger('GUI').warning(\
-                "Detector: Temperature %0.2f is greater than allowed %0.2f" %\
+            logging.getLogger('GUI').warning(
+                "Detector: Temperature %0.2f is greater than allowed %0.2f" %
                 (self.temperature, self.temp_treshold))
             status_message = "Temperature has exceeded threshold.\n"
         if self.humidity > self.hum_treshold:
-            logging.getLogger('GUI').warning(\
-                "Detector: Humidity %0.2f is greater than allowed %0.2f" %\
+            logging.getLogger('GUI').warning(
+                "Detector: Humidity %0.2f is greater than allowed %0.2f" %
                 (self.humidity, self.hum_treshold))
             status_message = status_message + \
                 "Humidity has exceeded threshold.\n"
         if status == "calibrating":
             status_message = status_message + "Energy change in progress.\n"
             status_message = status_message + "Please wait...\n"
-            logging.getLogger('GUI').warning(status_message) 
+            logging.getLogger('GUI').warning(status_message)
         """
         elif status == "configuring":
             status_message = status_message + "Configuring"
@@ -172,7 +186,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
         self.roi_mode = self.roi_modes_list.index(mode)
-        print 'detectorRoiModeChanged', self.roi_mode
         self.emit('detectorRoiModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
@@ -180,7 +193,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         if frame_rate is not None:
             self.exposure_time_limits[0] = 1 / float(frame_rate)
             self.exposure_time_limits[1] = 6000
-            
+
         self.emit('expTimeLimitsChanged', (self.exposure_time_limits, ))
 
     def actual_frame_rate_changed(self, value):
@@ -225,13 +238,27 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         return self.cover_state
 
     def get_cover_state(self):
+        """Returns cover state
+
+        :return: str
+        """
         return self.cover_state_changed(self.chan_cover_state.getValue())
 
     def is_cover_closed(self):
+        """Returns True if cover is closed
+
+        :return: bool
+        """
         self.get_cover_state()
         return self.cover_state == "closed"
 
     def close_cover(self, wait=True):
+        """Closes detector cover
+
+        :param wait: wait
+        :type wait: bool
+        :return: None
+        """
         if self.get_cover_state() != "closed":
             self.cmd_close_cover([0,0])
             if wait:
@@ -240,6 +267,10 @@ class EMBLDetector(AbstractDetector, HardwareObject):
                    gevent.sleep(0.05)
 
     def restart_daq(self):
+        """Restarts detector DAQ
+
+        :return: None
+        """
         self.cmd_restart_daq(0)
 
     def update_values(self):

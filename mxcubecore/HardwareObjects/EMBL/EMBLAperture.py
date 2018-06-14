@@ -20,11 +20,9 @@
 import gevent
 from AbstractAperture import AbstractAperture
 
-
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
 __license__ = "LGPLv3"
-
 
 DEFAULT_POSITION_LIST = ("BEAM", "OFF", "PARK")
 
@@ -59,8 +57,8 @@ class EMBLAperture(AbstractAperture):
         if self.chan_diameter_index is not None:
             self._current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self._current_diameter_index)
-            self.chan_diameter_index.connectSignal(\
-                 'update', self.diameter_index_changed)
+            self.chan_diameter_index.connectSignal( \
+                'update', self.diameter_index_changed)
         else:
             self._current_diameter_index = 0
 
@@ -68,9 +66,10 @@ class EMBLAperture(AbstractAperture):
         if self.chan_position:
             self._current_position_name = self.chan_position.getValue()
             self.current_position_name_changed(self._current_position_name)
-            self.chan_position.connectSignal('update', self.current_position_name_changed)
+            self.chan_position.connectSignal('update',
+                                             self.current_position_name_changed)
 
-        self.chan_state = self.getChannelObject('State') 
+        self.chan_state = self.getChannelObject('State')
 
     def diameter_index_changed(self, diameter_index):
         """Callback when diameter index has been changed"""
@@ -86,7 +85,7 @@ class EMBLAperture(AbstractAperture):
     def current_position_name_changed(self, position):
         """Position change callback"""
         if position != "UNKNOWN":
-            self.set_position_name(position) 
+            self.set_position_name(position)
 
     def set_diameter_index(self, diameter_index):
         """Sets new diameter index
@@ -101,20 +100,22 @@ class EMBLAperture(AbstractAperture):
 
         :param diameter_size: new size
         :type diameter_size: int
+        :param timeout: timeout in seconds
+        :type timeout: float
         """
         diameter_index = self._diameter_size_list.index(diameter_size)
         self.chan_diameter_index.setValue(diameter_index)
-        #if timeout:
+        # if timeout:
         #    while diameter_index != self.chan_diameter_index.getValue():
         #         gevent.sleep(0.1)
 
-    def set_position_index(self, position):
+    def set_position_index(self, position_index):
         """Sets new aperture position
 
-        :param diameter_index: new position
-        :type diameter_index: str
+        :param position_index: new position
+        :type position_index: int
         """
-        self.chan_position.setValue(self._position_list[position])
+        self.chan_position.setValue(self._position_list[position_index])
 
     def set_in(self):
         """Sets aperture to the BEAM position"""
@@ -125,9 +126,10 @@ class EMBLAperture(AbstractAperture):
         self.chan_position.setValue("OFF")
 
     def wait_ready(self, timeout=20):
-        with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
+        with gevent.Timeout(timeout,
+                            Exception("Timeout waiting for status ready")):
             while self.chan_state.getValue() != "Ready":
-                   gevent.sleep(0.1)
+                gevent.sleep(0.1)
 
     def is_out(self):
         """Returns True if aperture is on the beam"""
