@@ -5,24 +5,23 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
-import gevent
 import logging
 import subprocess
-#import PyChooch
+import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
@@ -39,14 +38,12 @@ __category__ = "General"
 class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
     def __init__(self, name):
-        """
-        Descript. :
-        """
 
         AbstractEnergyScan.__init__(self)
         HardwareObject.__init__(self, name)
         self._tunable_bl = True
 
+        self.status = None
         self.startup_done = False
         self.ready_event = None
         self.scanning = False
@@ -57,6 +54,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_prefix = None
         self.num_points = None
         self.scan_info = None
+        self.chooch_cmd = None
 
         self.energy_hwobj = None
         self.db_connection_hwobj = None
@@ -65,6 +63,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
 
         self.chan_scan_start = None
         self.chan_scan_status = None
+        self.chan_scan_error = None
+
         self.cmd_scan_abort = None
         self.cmd_adjust_transmission = False
         self.cmd_set_max_transmission = False
@@ -86,23 +86,32 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.chan_scan_error.connectSignal('update', self.scan_error_update)
 
         self.cmd_scan_abort = self.getCommandObject('energyScanAbort')
-        self.cmd_adjust_transmission = self.getCommandObject('cmdAdjustTransmission')
-        self.cmd_set_max_transmission = self.getCommandObject('cmdSetMaxTransmission')
+        self.cmd_adjust_transmission = \
+            self.getCommandObject('cmdAdjustTransmission')
+        self.cmd_set_max_transmission = \
+            self.getCommandObject('cmdSetMaxTransmission')
 
         self.num_points = self.getProperty("numPoints", 60)
         self.chooch_cmd = self.getProperty("chooch_command")
 
     def scan_start_update(self, values):
+        """Emits new scan point
+
+        :param values: list of values
+        :type values: list of two floats
+        :return:
+        """
         if self.scanning:
             self.emit_new_data_point(values)
 
     def scan_status_update(self, status):
-        if self.scanning:
+        if self.scanning and status != self.status:
             if status == 'scanning':
                 logging.getLogger("GUI").info('Energy scan: Executing...')
- 
+
                 if self.transmission_hwobj is not None:
-                    self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
+                    self.scan_info['transmissionFactor'] = \
+                        self.transmission_hwobj.get_value()
                 else:
                     self.scan_info['transmissionFactor'] = None
             elif status == 'ready':
@@ -114,16 +123,27 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                     self.scanCommandAborted()
                     logging.getLogger("GUI").info('Energy scan: Aborted')
             elif status == 'error':
-                #logging.getLogger("GUI").error('Energy scan: Failed')
                 self.scanCommandFailed()
+            self.status = status
 
     def scan_error_update(self, error_msg):
+        """Prints error message
+
+        :param error_msg: error message
+        :type error_msg: str
+        :return: None
+        """
         if len(error_msg) > 0 and self.startup_done:
-            logging.getLogger("GUI").error("Energy scan: %s" % error_msg) 
+            logging.getLogger("GUI").error("Energy scan: %s" % error_msg)
 
     def emit_new_data_point(self, values):
+        """Adds new point to the energy scan curve
+
+        :param values: values
+        :type values: list of two floats
+        :return: None
+        """
         if len(values) > 0:
-            print values
             if type(values) in (tuple, list):
                 if type(values[-1]) not in (tuple, list):
                     values = [values]
@@ -131,27 +151,47 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 y = values[-1][1]
                 # if x is in keV, transform into eV otherwise let it like it is
 	        # if point larger than previous point (for chooch)
-                if len(self.scan_data) > 0:
-                    if x > self.scan_data[-1][0]:
+                if x > 0 and y > 0:
+                    if len(self.scan_data) > 0:
+                        if x > self.scan_data[-1][0]:
+                            self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
+                    else:
                         self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
-                else:
-                    self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
+                    #a = str(x < 1000 and x*1000.0 or x) + " -- " + str(y)
+                    #logging.getLogger("GUI").info(a)
+                    self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
+                    self.emit("progressStep", (len(self.scan_data)))
                      
-                self.emit('scanNewPoint', ((x < 1000 and x*1000.0 or x), y, ))
-                self.emit("progressStep", (len(self.scan_data)))
-
     def isConnected(self):
         return True
 
     def canScanEnergy(self):
         return self.isConnected()
 
-    def startEnergyScan(self, element, edge, directory, prefix, \
-                 session_id=None, blsample_id=None, exptime=3):
+    def startEnergyScan(self, element, edge, directory, prefix,
+                        session_id=None, blsample_id=None, exptime=3):
+        """Starts energy scan
+
+        :param element: scan element
+        :type element: str
+        :param edge: edge
+        :type edge: str
+        :param directory: scan directory
+        :type directory: str
+        :param prefix: scan prefix
+        :type prefix: str
+        :param session_id: session id
+        :type session_id: int
+        :param blsample_id: sample id
+        :type blsample_id: int
+        :param exptime: exposure time in seconds
+        :type exptime: float
+        :return: True if success, otherwise returns Fals
+        """
         log = logging.getLogger("HWR")
 
         self.scan_info = {"sessionId": session_id, "blSampleId": blsample_id,
-                         "element": element, "edgeEnergy" : edge}
+                          "element": element, "edgeEnergy": edge}
         self.scan_data = []
         self.scan_directory = directory
         self.scan_prefix = prefix
@@ -162,13 +202,13 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             try:
                 os.makedirs(directory)
             except OSError, diag:
-                log.error("EnergyScan: error creating directory %s (%s)" % \
+                log.error("EnergyScan: error creating directory %s (%s)" %
                           (directory, str(diag)))
                 self.emit('energyScanStatusChanged', ("Error creating directory",))
                 return False
 
         if self.chan_scan_status.getValue() in ['ready', 'unknown', 'error']:
-            if hasattr(self.energy_hwobj, "release_break_bragg" ):
+            if hasattr(self.energy_hwobj, "release_break_bragg"):
                 self.energy_hwobj.release_break_bragg()
 
             #if self.transmission_hwobj is not None:
@@ -178,7 +218,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.scan_info['exposureTime'] = exptime
             self.scan_info['startEnergy'] = 0
             self.scan_info['endEnergy'] = 0
-            self.scan_info['startTime'] = str(time.strftime("%Y-%m-%d %H:%M:%S"))
+            self.scan_info['startTime'] = \
+                str(time.strftime("%Y-%m-%d %H:%M:%S"))
             size_hor = None
             size_ver = None
             if self.beam_info_hwobj is not None:
@@ -190,10 +231,11 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             self.chan_scan_start.setValue("%s;%s" % (element, edge))
             self.scanCommandStarted()
         else:
-            log.error("Another energy scan in progress. " + \
+            log.error("Another energy scan in progress. " +
                       "Please wait when the scan is finished")
-            self.emit('energyScanStatusChanged', ("Another energy " + \
-                  "scan in progress. Please wait when the scan is finished"))
+            self.emit('energyScanStatusChanged',
+                      ("Another energy scan in progress. " +
+                       "Please wait when the scan is finished"))
             self.scanCommandFailed()
 
             return False
@@ -215,10 +257,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             title = "Element: %s Edge: %s" % (self.scan_info["element"],
                                               self.scan_info["edgeEnergy"])
 
-        graph_info = {'xlabel' : 'energy',
-                      'ylabel' :  'counts',
-                      'scaletype' : 'normal',
-                      'title' : title}
+        graph_info = {'xlabel': 'energy',
+                      'ylabel':  'counts',
+                      'scaletype': 'normal',
+                      'title': title}
         self.scanning = True
         self.emit('energyScanStarted', graph_info)
         self.emit("progressInit", "Energy scan", self.num_points, False)
@@ -261,13 +303,12 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 self.energy_hwobj.set_break_bragg()
 
     def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
-        symbol = "_".join((elt, edge))
         scan_file_prefix = str(os.path.join(scan_directory, prefix))
         archive_file_prefix = str(os.path.join(archive_directory, prefix))
 
         if os.path.exists(scan_file_prefix + ".raw"):
             i = 1
-            while os.path.exists(scan_file_prefix + "%d.raw" %i):
+            while os.path.exists(scan_file_prefix + "%d.raw" % i):
                 i = i + 1
             scan_file_prefix += "_%d" % i
             archive_file_prefix += "_%d" % i
@@ -291,7 +332,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
         except:
-            logging.getLogger("HWR").exception(\
+            logging.getLogger("HWR").exception(
                  "EMBLEnergyScan: could not create results directory.")
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
@@ -301,18 +342,22 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
         except:
-            logging.getLogger("HWR").exception(\
+            logging.getLogger("HWR").exception(
                  "EMBLEnergyScan: could not create results raw file")
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
             return
         else:
             scanData = []
+            x_array = []
+            y_array = []
             for i in range(len(self.scan_data)):
                 x = float(self.scan_data[i][0])
                 x = x < 1000 and x * 1000.0 or x
                 y = float(self.scan_data[i][1])
                 scanData.append((x, y))
+                x_array.append(x / 1000.)
+                y_array.append(y)
                 scan_file_raw.write("%f,%f\r\n" % (x, y))
                 archive_file_raw.write("%f,%f\r\n" % (x, y))
             scan_file_raw.close()
@@ -323,9 +368,9 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             p = subprocess.Popen([self.chooch_cmd,
                                   scan_file_raw_filename,
                                   elt,
-                                  edge], 
+                                  edge],
                                   stdout=subprocess.PIPE)
-            
+
             chooch_results_list = p.communicate()[0].split("\n")
             chooch_results_list.remove("")
             pk, fppPeak, fpPeak, ip, fppInfl, fpInfl = \
@@ -333,39 +378,20 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             chooch_graph_data = eval(chooch_results_list[-1])
         except:
             self.store_energy_scan()
-            
+
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
             return None, None, None, None, None, None, None, [], [], [], None
 
-          
         rm = (pk + 30) / 1000.0
         pk = pk / 1000.0
         savpk = pk
         ip = ip / 1000.0
         comm = ""
-        #IK TODO clear this
         self.scan_info['edgeEnergy'] = 0.1
         self.th_edge = self.scan_info['edgeEnergy']
-        logging.getLogger("GUI").info(\
-              "Energy Scan: Chooch results are pk=%f, ip=%f, rm=%f" % \
+        logging.getLogger("GUI").info(
+              "Energy Scan: Chooch results are pk=%f, ip=%f, rm=%f" %
               (pk, ip, rm))
-
-        #should be better, but OK for time being
-        """
-        self.th_edgeThreshold = 0.01
-        if math.fabs(self.th_edge - ip) > self.thEdgeThreshold:
-          pk = 0
-          ip = 0
-          rm = self.th_edge + 0.03
-          comm = "Calculated peak (%f) is more that 10eV away from the " + \
-                 "theoretical value (%f). Please check your scan" % \
-                 (savpk, self.th_edge)
-
-          logging.getLogger("HWR").warning("EnergyScan: calculated peak " + \
-                  "(%f) is more that 20eV %s the theoretical value (%f). " + \
-                  "Please check your scan and choose the energies manually" % \
-                   (savpk, (self.th_edge - ip) > 0.02 and "below" or "above", self.thEdge))
-        """
 
         try:
             fi = open(scan_file_efs_filename)
@@ -392,7 +418,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info["filename"] = archive_file_raw_filename
         self.scan_info["workingDirectory"] = archive_directory
 
-        chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = zip(*chooch_graph_data)
+        chooch_graph_x, chooch_graph_y1, chooch_graph_y2 = \
+            zip(*chooch_graph_data)
         chooch_graph_x = list(chooch_graph_x)
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
@@ -405,28 +432,42 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         ax = fig.add_subplot(211)
         ax.set_title("%s\n%s" % (scan_file_efs_filename, title))
         ax.grid(True)
-        ax.plot(*(zip(*scanData)), **{"color": 'black'})
-        ax.set_xlabel("Energy")
+        ax.plot(x_array, y_array, **{"color": 'black'})
+        ax.set_xlabel("Energy (keV)")
         ax.set_ylabel("MCA counts")
+        ax.set_xticklabels(np.round(np.linspace(min(x_array),
+                                                max(x_array),
+                                                len(ax.get_xticklabels()),
+                                                endpoint=True), 3))
         ax2 = fig.add_subplot(212)
         ax2.grid(True)
-        ax2.set_xlabel("Energy")
+        ax2.set_xlabel("Energy (keV)")
         ax2.set_ylabel("")
         handles = []
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y1, color='blue'))
         handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color='red'))
+        ax2.set_xticklabels(np.round(np.linspace(min(x_array),
+                                                max(x_array),
+                                                len(ax.get_xticklabels()),
+                                                endpoint=True), 3))
+        ax2.axvline(pk, linestyle='--')
+        ax2.axvline(ip, linestyle='--')
+
         canvas = FigureCanvasAgg(fig)
 
-        self.scan_info["jpegChoochFileFullPath"] = str(archive_file_png_filename)
+        self.scan_info["jpegChoochFileFullPath"] = \
+            str(archive_file_png_filename)
         try:
-            logging.getLogger("HWR").info("Rendering energy scan and Chooch " + \
-                 "graphs to PNG file : %s", scan_file_png_filename)
+            logging.getLogger("HWR").info("Rendering energy scan and Chooch " +
+                                          "graphs to PNG file : %s",
+                                          scan_file_png_filename)
             canvas.print_figure(scan_file_png_filename, dpi=80)
         except:
             logging.getLogger("HWR").exception("could not print figure")
         try:
-            logging.getLogger("HWR").info("Saving energy scan to archive " +\
-                 "directory for ISPyB : %s", archive_file_png_filename)
+            logging.getLogger("HWR").info("Saving energy scan to archive " +
+                                          "directory for ISPyB : %s",
+                                          archive_file_png_filename)
             canvas.print_figure(archive_file_png_filename, dpi=80)
         except:
             logging.getLogger("HWR").exception("could not save figure")
@@ -434,9 +475,10 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.store_energy_scan()
 
         self.emit('choochFinished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,
-                 rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
+                                     rm, chooch_graph_x, chooch_graph_y1,
+                                     chooch_graph_y2, title))
         return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, \
-                 chooch_graph_y1, chooch_graph_y2, title
+               chooch_graph_y1, chooch_graph_y2, title
 
     def scan_status_changed(self, status):
         self.emit('energyScanStatusChanged', (status,))
@@ -448,8 +490,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         elements = []
         try:
             for el in self["elements"]:
-                elements.append({"symbol" : el.getProperty('symbol'),
-                                 "energy" : el.getProperty('energy')})
+                elements.append({"symbol": el.getProperty('symbol'),
+                                 "energy": el.getProperty('energy')})
         except IndexError:
             pass
         return elements
@@ -477,7 +519,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         """
         Enables/disables usage of maximal transmission set
         during the energy scan
-        """ 
+        """
         self.cmd_adjust_transmission(state)
 
     def set_max_transmission(self, value):

@@ -114,6 +114,7 @@ class Marvin(SampleChanger):
         self._process_step_info = None
         self._command_list = None
         self._info_dict = {}
+        self._in_error_state = False
 
         self.chan_status = None
         self.chan_sample_is_loaded = None
@@ -146,11 +147,13 @@ class Marvin(SampleChanger):
         self.chan_mounted_sample_puck = self.getChannelObject("chanMountedSamplePuck")
         self.chan_mounted_sample_puck.connectSignal("update", self.mounted_sample_puck_changed)
 
-        self.chan_process_step_info = self.getChannelObject("chanProcessStepInfo")
+        self.chan_process_step_info = self.getChannelObject("chanProcessStepInfo",
+                                                            optional=True)
         if self.chan_process_step_info is not None:
             self.chan_process_step_info.connectSignal("update", self.process_step_info_changed)
 
-        self.chan_command_list = self.getChannelObject("chanCommandList")
+        self.chan_command_list = self.getChannelObject("chanCommandList",
+                                                       optional=True)
         if self.chan_command_list is not None:
             self.chan_command_list.connectSignal("update", self.command_list_changed)
 
@@ -238,6 +241,17 @@ class Marvin(SampleChanger):
             self._updateLoadedSample()
             self.updateInfo()
 
+    def wait_sample_on_gonio(self, timeout):
+        #with gevent.Timeout(timeout, Exception("Timeout waiting for sample on gonio")):
+        #    while not self._sample_detected:
+        #        gevent.sleep(0.05)
+        with gevent.Timeout(timeout, Exception("Timeout waiting for centring phase")):
+            while self.diffractometer_hwobj.get_current_phase() != \
+                  self.diffractometer_hwobj.PHASE_CENTRING:
+                if not self._isDeviceBusy():
+                    return
+                gevent.sleep(0.05)
+
     def is_sample_on_gonio(self):
         first_try = self.chan_sample_is_loaded.getValue()
         gevent.sleep(0.1)
@@ -277,7 +291,12 @@ class Marvin(SampleChanger):
 
     def process_step_info_changed(self, process_step_info):
         self._process_step_info = process_step_info
-        logging.getLogger("GUI").info("Sample changer: %s" % self._process_step_info)
+        if "error" in process_step_info.lower():
+            logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info)
+            self._in_error_state = True
+            self._setState(SampleChangerState.Alarm)
+        else:
+            logging.getLogger("GUI").info("Sample changer: %s" % self._process_step_info) 
         self._info_dict["process_step"] = self._process_step_info
 
     def command_list_changed(self, cmd_list):
@@ -356,13 +375,21 @@ class Marvin(SampleChanger):
            old + mount of  new sample) if a sample is already mounted on 
            the diffractometer.
         """
-        self._setState(SampleChangerState.Ready)
+        #self._setState(SampleChangerState.Ready)
+        log = logging.getLogger("GUI")
+
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
-            raise Exception(error_msg)
+            return
 
-        log = logging.getLogger("GUI")
+        if self._in_error_state:
+            log.error("Sample changer is in error state. " + \
+                      "All commands are disabled." + \
+                      "Fix the issue and reset sample changer in MXCuBE")
+            return
+        
+
         start_time = datetime.now()
         selected = self.getSelectedSample()
 
@@ -476,6 +503,7 @@ class Marvin(SampleChanger):
             if self._focusing_mode == "P13mode":
                 self.diffractometer_hwobj.set_phase(\
                     self.diffractometer_hwobj.PHASE_CENTRING, 60.0)
+                #self.diffractometer_hwobj.close_kappa()
         else:
             log.error("Sample changer: Failed to load sample %d:%d" % \
                       (int(basket_index), int(sample_index)))
@@ -483,7 +511,7 @@ class Marvin(SampleChanger):
 
     def load(self, sample=None, wait=True):
         """ Load a sample"""
-        self._setState(SampleChangerState.Ready)
+        #self._setState(SampleChangerState.Ready)
         if self._focusing_mode == "P13mode":
             SampleChanger.load(self, sample, wait)
         else:
@@ -495,12 +523,18 @@ class Marvin(SampleChanger):
         """Unloads a sample from the diffractometer"""
         log = logging.getLogger("GUI")
  
-        self._setState(SampleChangerState.Ready)
-        self._setState(SampleChangerState.Ready)
+        #self._setState(SampleChangerState.Ready)
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
-            raise Exception(error_msg)
+            return
+
+        if self._in_error_state:
+            log.error("Sample changer is in error state. " + \
+                      "All commands are disabled." + \
+                      "Fix the issue and reset sample changer in MXCuBE")
+            return
+
 
         if self._focusing_mode == "P13mode": 
             sample_index = self._mounted_sample
@@ -606,11 +640,13 @@ class Marvin(SampleChanger):
            from center to base"""
         self._setState(SampleChangerState.Ready)
         self._initSCContents()
+        self._in_error_state = False
 
     def _executeServerTask(self, method, *args):
         """Executes called cmd, waits until sample changer is ready and
            updates loaded sample info
         """
+        #self.waitReady(60.0)
         self._state_string = "Bsy"
         self._progress = 5
 
@@ -622,16 +658,18 @@ class Marvin(SampleChanger):
         
         method(arg_arr)
         logging.getLogger("HWR").debug("Sample changer: Waiting ready...")
-        gevent.sleep(15)
         self._action_started = True
-        self.waitReady(120.0)
-        self.waitReady(60.0)
+        gevent.sleep(30)
+        if method == self.cmd_mount_sample:
+            self.wait_sample_on_gonio(120.0)
+        else:
+            self.waitReady(120.0)
         logging.getLogger("HWR").debug("Sample changer: Ready")
         logging.getLogger("HWR").debug("Sample changer: Waiting veto...")
         self.waitVeto(20.0)
         logging.getLogger("HWR").debug("Sample changer: Veto ready")
-        if self._isDeviceBusy():
-            raise Exception("Action finished to early. Sample changer is not ready!!!")
+        #if self._isDeviceBusy():
+        #    raise Exception("Action finished to early. Sample changer is not ready!!!")
         self.sample_is_loaded_changed(self.chan_sample_is_loaded.getValue())
         self._updateState()
         self._updateLoadedSample()
@@ -804,6 +842,7 @@ class Marvin(SampleChanger):
 
             basket._setInfo(present, datamatrix, scanned)
             # set the information for all dependent samples
+            """
             for sample_index in range(10):
                 sample = self.getComponentByAddress(Pin.getSampleAddress(\
                     (basket_index + 1), (sample_index + 1)))
@@ -819,6 +858,7 @@ class Marvin(SampleChanger):
                 # forget about any loaded state in newly mounted or removed basket)
                 loaded = has_been_loaded = False
                 sample._setLoaded(loaded, has_been_loaded)
+            """
 
         self._triggerSelectionChangedEvent()
 

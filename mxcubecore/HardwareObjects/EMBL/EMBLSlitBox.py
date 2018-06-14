@@ -5,16 +5,16 @@
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -179,9 +179,9 @@ class EMBLSlitBox(HardwareObject):
         if self.motors_groups is not None:
             for motor_group in self.motors_groups:
                 self.connect(motor_group, 'mGroupPosChanged',
-                     self.motors_group_position_changed)
+                             self.motors_group_position_changed)
                 self.connect(motor_group, 'mGroupStatusChanged',
-                     self.motors_group_status_changed)
+                             self.motors_group_status_changed)
                 motor_group.update_values()
 
         self.beam_focus_hwobj = self.getObjectByRole("focusing")
@@ -189,11 +189,9 @@ class EMBLSlitBox(HardwareObject):
             self.connect(self.beam_focus_hwobj,
                          'focusingModeChanged',
                          self.focus_mode_changed)
-            #self.active_focus_mode, size = self.beam_focus_hwobj.get_active_focus_mode()
-            #self.focus_mode_changed(self.active_focus_mode, size)
-            self.beam_focus_hwobj.update_values() 
+            self.beam_focus_hwobj.update_values()
         else:
-            logging.getLogger("HWR").debug(\
+            logging.getLogger("HWR").debug(
                 'EMBLSlitBox: beamFocus HO not defined')
 
     def get_step_sizes(self):
@@ -210,7 +208,7 @@ class EMBLSlitBox(HardwareObject):
 
     def get_max_gaps(self):
         """Returns max Hor and Ver gaps values (list of two values)
-	"""
+    """
         return [self.gaps_dict['Hor']['maxGap'],
                 self.gaps_dict['Ver']['maxGap']]
 
@@ -229,7 +227,8 @@ class EMBLSlitBox(HardwareObject):
         :type position: float
         """
         for motors_group in self.motors_groups:
-            if self.motors_dict[motor_name]['motorsGroup'] == motors_group.userName():
+            if self.motors_dict[motor_name]['motorsGroup'] == \
+                    motors_group.userName():
                 motors_group.set_motor_position(motor_name, position)
                 return
 
@@ -239,17 +238,15 @@ class EMBLSlitBox(HardwareObject):
             if motor in self.motors_dict:
                 self.motors_dict[motor]['status'] = new_status_dict[motor]
                 self.gaps_dict[self.motors_dict[motor]['gap']]['status'] = \
-                     new_status_dict[motor]
+                    new_status_dict[motor]
         self.emit('statusChanged', (self.gaps_dict['Hor']['status'],
                                     self.gaps_dict['Ver']['status']))
 
     def motors_group_position_changed(self, new_positions_dict):
         """Method called if one or sever motors value/s are changed"""
-        #new_positions_dict = eval(new_positions_dict)
         do_update = False
         for motor in new_positions_dict:
-            #compare values
-            if self.motors_dict.has_key(motor):
+            if motor in self.motors_dict.keys():
                 if abs(self.motors_dict[motor]['position'] - \
                        new_positions_dict[motor]) > 0.001:
                     self.motors_dict[motor]['position'] = \
@@ -260,7 +257,7 @@ class EMBLSlitBox(HardwareObject):
             self.gaps_dict['Hor']['value'] = self.get_gap_hor()
             self.gaps_dict['Ver']['value'] = self.get_gap_ver()
             self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
-                 self.gaps_dict['Ver']['value']])
+                                         self.gaps_dict['Ver']['value']])
 
     def get_gap_hor(self):
         """Evaluates Horizontal gap"""
@@ -294,13 +291,17 @@ class EMBLSlitBox(HardwareObject):
                 if self.motors_dict[motor]['gap'] == gap_name:
                     if new_gap > old_gap:
                         new_position = self.motors_dict[motor]['position'] - \
-                        float((new_gap - old_gap) / 2 * (10 ** self.decimal_places))
+                                       float((new_gap - old_gap) /
+                                             2 * (10 ** self.decimal_places))
                     else:
                         new_position = self.motors_dict[motor]['position'] + \
-                        float((old_gap - new_gap) / 2 * (10 ** self.decimal_places))
+                                       float((old_gap - new_gap) /
+                                             2 * (10 ** self.decimal_places))
                     for motor_group in self.motors_groups:
-                        if self.motors_dict[motor]['motorsGroup'] == motor_group.userName():
-                            motor_group.set_motor_position(motor, new_position, timeout=10)
+                        if self.motors_dict[motor]['motorsGroup'] == \
+                                motor_group.userName():
+                            motor_group.set_motor_position(motor, new_position,
+                                                           timeout=10)
                             break
 
     def stop_gap_move(self, gap_name):
@@ -316,7 +317,8 @@ class EMBLSlitBox(HardwareObject):
         self.active_focus_mode = focus_mode
         for motor in self.motors_dict:
             for motors_group in self.motors_groups_devices:
-                if self.motors_dict[motor]['motorsGroup'] == motors_group.userName():
+                if self.motors_dict[motor]['motorsGroup'] == \
+                        motors_group.userName():
                     motors_group.set_motor_focus_mode(motor, focus_mode)
 
     def focus_mode_changed(self, new_focus_mode, size):
@@ -325,9 +327,9 @@ class EMBLSlitBox(HardwareObject):
             self.active_focus_mode = new_focus_mode
             if self.active_focus_mode is not None:
                 self.hor_gap_enabled = self.active_focus_mode in \
-                   self.gaps_dict['Hor']['modesAllowed']
+                                       self.gaps_dict['Hor']['modesAllowed']
                 self.ver_gap_enabled = self.active_focus_mode in \
-                   self.gaps_dict['Ver']['modesAllowed']
+                                       self.gaps_dict['Ver']['modesAllowed']
             self.emit('focusModeChanged', (self.hor_gap_enabled,
                                            self.ver_gap_enabled))
 
