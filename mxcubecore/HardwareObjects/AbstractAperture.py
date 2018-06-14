@@ -93,7 +93,7 @@ class AbstractAperture(HardwareObject):
                       / 1000.0)
         else:
             logging.getLogger("HWR").warning(\
-                "Aperture: Selected diameter index is not valid")
+                "Aperture: Diameter index %d is not valid" % diameter_index)
 
     def get_diameter_size(self):
         #TODO rename to get_diameter_size_mm
@@ -139,7 +139,7 @@ class AbstractAperture(HardwareObject):
             self.emit('positionChanged', self._current_position_name)
         else:
             logging.getLogger("HWR").warning(\
-                "Aperture: Selected position is not in the position list")
+                "Aperture: Position %s is not in the position list" % position_name)
 
     def set_position_index(self, position_index):
         """
