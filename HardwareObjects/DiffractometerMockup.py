@@ -380,4 +380,5 @@ class DiffractometerMockup(GenericDiffractometer):
         self.motor_hwobj_dict['phi'].syncMoveRelative(relative_angle, 5)
 
     def set_phase(self, phase, timeout=None):
-        pass
+        self.current_phase = str(phase)
+        self.emit('minidiffPhaseChanged', (self.current_phase, ))

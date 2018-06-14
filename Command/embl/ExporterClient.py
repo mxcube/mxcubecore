@@ -7,6 +7,8 @@
   Copyright 2009 by European Molecular Biology Laboratory - Grenoble
 """
 
+import logging
+
 from StandardClient import *
 
 CMD_SYNC_CALL = "EXEC"
@@ -79,6 +81,8 @@ class ExporterClient(StandardClient):
 
     def __processReturn(self,ret):
         if ret[:4]==RET_ERR:
+            logging.getLogger("user_level_log").error(\
+                "Diffractometer: %s" % str(ret[4:]))
             raise Exception,ret[4:]
         elif ret==RET_NULL:
             return None
