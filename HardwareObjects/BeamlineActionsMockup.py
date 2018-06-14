@@ -6,8 +6,8 @@ import logging
 
 class SimulatedAction:
     def __call__(self, *args, **kw):
-      gevent.sleep(3)
-      return args
+        gevent.sleep(3)
+        return args
 
 class SimulatedActionError:
     def __call__(self, *args, **kw):
@@ -15,16 +15,16 @@ class SimulatedActionError:
 
 class LongSimulatedAction:
     def __call__(self, *args, **kw):
-      for i in range(10):
-        gevent.sleep(1)
-        logging.getLogger("user_level_log").info("%d, sleeping for 1 second", i+1)
+        for i in range(10):
+            gevent.sleep(1)
+            logging.getLogger("user_level_log").info("%d, sleeping for 1 second", i+1)
       return args
 
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd, username=None, klass=SimulatedAction):
         CommandObject.__init__(self, name, username)
         self._cmd = klass()
-	self._cmd_execution = None
+        self._cmd_execution = None
         self.type = "CONTROLLER"
 
         if self.name() == 'Anneal':
