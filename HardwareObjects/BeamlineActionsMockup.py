@@ -25,6 +25,7 @@ class ControllerCommand(CommandObject):
         CommandObject.__init__(self, name, username)
         self._cmd = klass()
 	self._cmd_execution = None
+        self.type = "CONTROLLER"
 
         if self.name() == 'Anneal':
             self.addArgument("Time [s]", "float")
@@ -59,7 +60,9 @@ class ControllerCommand(CommandObject):
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
             self._cmd_execution.kill()
-        
+
+    def value(self):
+        return None        
 
 class BeamlineActionsMockup(HardwareObject):
     def __init__(self, *args):
