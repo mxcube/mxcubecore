@@ -631,9 +631,14 @@ class GphlWorkflow(HardwareObject, object):
                     logging.getLogger('HWR').debug("Recentring. okp=%s, %s"
                                                    % (okp, sorted(dd.items())))
                 else:
+                    if sweepSetting.translation is None:
+                        xx = "No translation settings."
+                    else:
+                        xx = sorted(
+                            sweepSetting.translation.axisSettings.items()
+                        )
                     logging.getLogger('HWR').debug(
-                        "No recentring. okp=%s, %s"
-                        % (okp, sorted(sweepSetting.translation.axisSettings.items()))
+                        "No recentring. okp=%s, %s" % (okp, xx)
                     )
 
                 goniostatSweepSettings[requestedRotationId] = sweepSetting
