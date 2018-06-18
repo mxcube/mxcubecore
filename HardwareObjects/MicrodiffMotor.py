@@ -127,7 +127,7 @@ class MicrodiffMotor(AbstractMotor):
             self.motorLimitsChanged()  
  
     def updateState(self):
-        self.setIsReady(self.motorState > MicrodiffMotor.UNUSABLE)
+        self.setIsReady(self._get_state() > MicrodiffMotor.UNUSABLE)
 
     def setIsReady(self, value):
         if value == True:
@@ -137,30 +137,36 @@ class MicrodiffMotor(AbstractMotor):
         d = dict([x.split("=") for x in motor_states])
         #Some are like motors but have no state
         # we set them to ready
-        if d.get(self.motor_name) is None:
+        _motor_state = d.get(self.motor_name)
+        if _motor_state is None:
             new_motor_state = MicrodiffMotor.READY    
         else:
-            if d[self.motor_name] in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
-                new_motor_state = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[d[self.motor_name]]
+            if _motor_state in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
+                new_motor_state = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[_motor_state]
             else:
-                new_motor_state = MicrodiffMotor.TANGO_TO_MOTOR_STATE[d[self.motor_name]]
+                new_motor_state = MicrodiffMotor.TANGO_TO_MOTOR_STATE[_motor_state]
         if self.motorState == new_motor_state:
           return
         self.motorState = new_motor_state
         self.motorStateChanged(self.motorState)
-
+    
     def motorStateChanged(self, state):
         self.updateState()
-        if type(state) is str:
+        if type(state) is not int:
             state = self.get_state()
-        self.emit('stateChanged', (self.translate_state[state], ))
+        self.emit('stateChanged', (state, ))
 
-    def get_state(self):
-        if self.state_attr.getValue() in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
-            self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[self.state_attr.getValue()]
+    def _get_state(self):
+        state_value = self.state_attr.getValue()
+        if state_value in MicrodiffMotor.EXPORTER_TO_MOTOR_STATE:
+            self.motorState = MicrodiffMotor.EXPORTER_TO_MOTOR_STATE[state_value]
         else:
-            self.motorState = MicrodiffMotor.TANGO_TO_MOTOR_STATE[self.state_attr.getValue().name]
+            self.motorState = MicrodiffMotor.TANGO_TO_MOTOR_STATE[state_value.name]
         return self.motorState
+    
+    def get_state(self):
+        state = self._get_state()
+        return self.translate_state[state]
 
     def motorLimitsChanged(self):
         self.emit('limitsChanged', (self.get_limits(), ))
