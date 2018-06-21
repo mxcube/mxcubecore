@@ -39,12 +39,10 @@ def addHardwareObjectsDirs(hoDirs):
     if type(hoDirs) == list:
         newHoDirs = list(filter(os.path.isdir, list(map(os.path.abspath, hoDirs))))
 
-        for newHoDir in newHoDirs:
+        for newHoDir in reversed(newHoDirs):
             if not newHoDir in sys.path:
                 sys.path.insert(0, newHoDir)
 
-default_local_ho_dir = os.environ.get('CUSTOM_HARDWARE_OBJECTS_PATH', '').split(os.path.pathsep)
-addHardwareObjectsDirs(default_local_ho_dir)
 
 def setUserFileDirectory(user_file_directory):
     BaseHardwareObjects.HardwareObjectNode.setUserFileDirectory(user_file_directory)
@@ -60,7 +58,7 @@ def setHardwareRepositoryServer(hwrserver):
 
 def HardwareRepository(hwrserver = None):
     """Return the Singleton instance of the Hardware Repository."""
-    global _instance        
+    global _instance
 
     if _instance is None:
         if _hwrserver is None:
