@@ -224,6 +224,13 @@ class Cats90(SampleChanger):
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "di_AllLidsClosed")
 
+        self._chnInSoak = self.getChannelObject("_chnInSoak")
+        if self._chnInSoak is None:
+            self._chnInSoak = self.addChannel({
+                    "type": "tango", "name": "_chnInSoak",
+                    "tangoname": self.tangoname, "polling": 1000,
+                }, "InSoak")
+
         # commands
         self._cmdLoad = self.getCommandObject("_cmdLoad")
         if self._cmdLoad is None:
