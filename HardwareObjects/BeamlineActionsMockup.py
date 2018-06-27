@@ -18,7 +18,8 @@ class LongSimulatedAction:
         for i in range(10):
             gevent.sleep(1)
             logging.getLogger("user_level_log").info("%d, sleeping for 1 second", i+1)
-      return args
+
+        return args
 
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd, username=None, klass=SimulatedAction):
