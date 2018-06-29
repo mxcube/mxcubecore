@@ -302,6 +302,10 @@ class HardwareObjectNode:
     def clear_gevent(self):
         pass
 
+    def print_log(self, log_type='HWR', level='debug', msg=""):
+        if hasattr(logging.getLogger(log_type), level):
+            getattr(logging.getLogger(log_type), level)(msg)
+
 class HardwareObject(HardwareObjectNode, CommandContainer):
     def __init__(self, rootName):
         HardwareObjectNode.__init__(self, rootName)
