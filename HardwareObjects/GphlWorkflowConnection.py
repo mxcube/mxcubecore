@@ -364,8 +364,9 @@ class GphlWorkflowConnection(HardwareObject, object):
                     "Workflow enactment I(D %s != info message enactment ID %s."
                     % (self._enactment_id, enactment_id)
                     )
-
-            self.workflow_queue.put_nowait((message_type, payload,
+            if self.workflow_queue is not None:
+                # Could happen if we have ended the workflow
+                self.workflow_queue.put_nowait((message_type, payload,
                                             correlation_id, None))
 
         logging.getLogger('HWR').debug("Text info message - return None")
@@ -413,8 +414,10 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         if  message_type in ('SubprocessStarted', 'SubprocessStopped'):
 
-            self.workflow_queue.put_nowait((message_type, payload,
-                                            correlation_id, None))
+            if self.workflow_queue is not None:
+            # Could happen if we have ended the workflow
+                self.workflow_queue.put_nowait((message_type, payload,
+                                                correlation_id, None))
             logging.getLogger('HWR').debug("Subprocess start/stop - return None")
             return None
 
@@ -428,8 +431,10 @@ class GphlWorkflowConnection(HardwareObject, object):
             # Requests:
             self._await_result = []
             self.set_state(States.OPEN)
-            self.workflow_queue.put_nowait((message_type, payload,
-                                            correlation_id, self._await_result))
+            if self.workflow_queue is not None:
+            # Could happen if we have ended the workflow
+                self.workflow_queue.put_nowait((message_type, payload,
+                                                correlation_id, self._await_result))
             while not self._await_result:
                 time.sleep(0.1)
             result, correlation_id = self._await_result.pop(0)
@@ -445,9 +450,11 @@ class GphlWorkflowConnection(HardwareObject, object):
         elif message_type in ('WorkflowAborted',
                               'WorkflowCompleted',
                               'WorkflowFailed'):
-            self.workflow_queue.put_nowait((message_type, payload,
-                                            correlation_id, None))
-            self.workflow_queue.put_nowait(StopIteration)
+            if self.workflow_queue is not None:
+            # Could happen if we have ended the workflow
+                self.workflow_queue.put_nowait((message_type, payload,
+                                                correlation_id, None))
+                self.workflow_queue.put_nowait(StopIteration)
             logging.getLogger('HWR').debug("Aborting - return None")
             return None
 
@@ -829,8 +836,10 @@ class GphlWorkflowConnection(HardwareObject, object):
     43        mI        999.0      79.6  219.6   56.3 104.8 135.0  68.8
 
  For protein crystals the possible space group numbers corresponding  to""")
-        self.workflow_queue.put_nowait(('ChooseLattice', test_payload,
-                                        '9999999', None))
+        if self.workflow_queue is not None:
+        # Could happen if we have ended the workflow
+            self.workflow_queue.put_nowait(('ChooseLattice', test_payload,
+                                            '9999999', None))
         print('@~@~ end lattice selection test')
 
     def _response_to_server(self, payload, correlation_id):
