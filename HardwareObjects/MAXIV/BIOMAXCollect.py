@@ -76,6 +76,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.transmission_hwobj = self.getObjectByRole("transmission")
+        self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
         self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.session_hwobj = self.getObjectByRole("session")
@@ -1042,6 +1043,42 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
                 self.close_safety_shutter()
 	    self.move_detector(800)
+
+    def prepare_open_hutch(self):
+        """
+        Descript.: prepare beamline for openning the hutch door,
+        """   
+        logging.getLogger("HWR").info("[HWR] Preparing experimental hutch for door openning.")
+        if self.safety_shutter_hwobj is not None and self.safety_shutter_hwobj.getShutterState() == 'opened':
+            self.close_safety_shutter()
+        if self.detector_cover_hwobj is not None:
+            self.close_detector_cover()
+        self.move_detector(800)
+        #self.diffractometer_hwobj.set_phase("Transfer", wait=True)
+        if self.self.sample_changer_hwobj.getLoadedSample() is not None:
+            logging.getLogger("HWR").info("[HWR] Unloading mounted sample.")
+            self.sample_changer_hwobj.unload(None, wait=True)
+            self.sample_changer._waitDeviceReady(30)
+
+        logging.getLogger("HWR").info("[HWR] Sample Changer to DRY")
+        logging.getLogger("user_level_log").info("[HWR] Sample Changer to DRY")
+        self.sample_changer_maint_hwobj.send_command('dry')
+	self.sample_changer._waitDeviceReady(200)
+
+        logging.getLogger("HWR").info("[HWR] Sample Changer to HOME")
+        logging.getLogger("user_level_log").info("[HWR] Sample Changer to HOME")
+        self.sample_changer_maint_hwobj.send_command('home')
+	self.sample_changer._waitDeviceReady(30)
+
+        logging.getLogger("HWR").info("[HWR] Sample Changer CLOSING LID")
+        logging.getLogger("user_level_log").info("[HWR] Sample Changer CLOSING LID")
+        self.sample_changer_maint_hwobj.send_command('closelid1')
+	self.sample_changer._waitDeviceReady(10)
+
+        logging.getLogger("HWR").info("[HWR] Sample Changer POWER OFF")
+        logging.getLogger("user_level_log").info("[HWR] Sample Changer POWER OFF")
+        self.sample_changer_maint_hwobj.send_command('powerOff')
+
 
     def _update_image_to_display(self):
         fname1 = "/mxn/groups/biomax/wmxsoft/auto_load_img_cc/to_display"
