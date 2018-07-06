@@ -77,6 +77,7 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.transmission_hwobj = self.getObjectByRole("transmission")
         self.sample_changer_hwobj = self.getObjectByRole("sample_changer")
+        self.sample_changer_maint_hwobj = self.getObjectByRole("sample_changer_maintenance")
         self.dtox_hwobj = self.getObjectByRole("dtox")
         self.detector_cover_hwobj = self.getObjectByRole("detector_cover")
         self.session_hwobj = self.getObjectByRole("session")
