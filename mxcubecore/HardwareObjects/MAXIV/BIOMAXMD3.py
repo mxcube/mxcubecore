@@ -37,6 +37,8 @@ class BIOMAXMD3(GenericDiffractometer):
         Description:
         """
         GenericDiffractometer.__init__(self, *args)
+	#Compatibility line
+	self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
 
     def init(self):
 
