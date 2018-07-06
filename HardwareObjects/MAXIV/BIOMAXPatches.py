@@ -14,7 +14,11 @@ class BIOMAXPatches(HardwareObject):
         if not self.sample_changer._chnPowered.getValue():
             raise RuntimeError('Cannot load sample, sample changer not powered')
         if not self.sc_in_soak():
-            raise RuntimeError('Cannot load sample, sample changer not in SOAK position')
+            logging.getLogger("HWR").info("Sample changer not in SOAK position, moving there...")
+            try:
+                self.sample_changer_maintenance.send_command('soak')  
+            except Exception as ex:
+                raise RuntimeError('Cannot load sample, sample changer cannot go to SOAK position: %s' %str(ex))
         self.curr_dtox_pos = self.dtox_hwobj.getPosition()
         if self.dtox_hwobj is not None and self.dtox_hwobj.getPosition() < self.safe_position:
             logging.getLogger("HWR").info("Moving detector to safe position before loading a sample.")
@@ -74,6 +78,7 @@ class BIOMAXPatches(HardwareObject):
 
     def init(self, *args):
         self.sample_changer = self.getObjectByRole('sample_changer')
+        self.sample_changer_maintenance = self.getObjectByRole('sample_changer_maintenance')
         self.diffractometer = self.getObjectByRole('diffractometer')
         self.__load = self.sample_changer.load
         self.__unload = self.sample_changer.unload
