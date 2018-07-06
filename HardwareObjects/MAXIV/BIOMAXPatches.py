@@ -26,7 +26,11 @@ class BIOMAXPatches(HardwareObject):
         else:
             logging.getLogger("HWR").info("Detector already in safe position.")
             logging.getLogger("user_level_log").info("Detector already in safe position.")
-
+        try:
+            logging.getLogger("HWR").info("Waiting for Diffractometer to be ready before proceeding with the sample loading.")
+            self.diffractometer.wait_device_ready(15)
+        except Exception as ex:
+            logging.getLogger("HWR").warning("Diffractometer not ready. Proceeding with the sample loading, good luck...")
 
     def after_load_sample(self):
         '''
