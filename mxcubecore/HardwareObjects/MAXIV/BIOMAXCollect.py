@@ -1046,6 +1046,12 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
 	    self.move_detector(800)
 
     def prepare_open_hutch(self):
+        try:
+            self._open_hutch_task = gevent.spawn(self._prepare_open_hutch_task)
+	except Exception:
+	    logging.getLogger("HWR").info("[HWR] Error preparing beamline for openning hutch")
+
+    def _prepare_open_hutch_task(self):
         """
         Descript.: prepare beamline for openning the hutch door,
         """   
@@ -1056,29 +1062,35 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
             self.close_detector_cover()
         self.move_detector(800)
         #self.diffractometer_hwobj.set_phase("Transfer", wait=True)
-        if self.self.sample_changer_hwobj.getLoadedSample() is not None:
+        if self.sample_changer_hwobj.getLoadedSample() is not None:
             logging.getLogger("HWR").info("[HWR] Unloading mounted sample.")
             self.sample_changer_hwobj.unload(None, wait=True)
-            self.sample_changer._waitDeviceReady(30)
+            self.sample_changer_hwobj._waitDeviceReady(30)
+        if self.sample_changer_hwobj._chnInSoak.getValue():
+	    logging.getLogger("HWR").info("[HWR] Sample Changer was in SOAK, going to DRY")
+	    logging.getLogger("user_level_log").info("Sample Changer was in SOAK, going to DRY")
+	    self.sample_changer_maint_hwobj.send_command('dry')
+            time.sleep(1)
+	    self.sample_changer_hwobj._waitDeviceReady(300)
+	
+        if self.sample_changer_hwobj.isPowered():
+	    logging.getLogger("HWR").info("[HWR] Sample Changer to HOME")
+	    logging.getLogger("user_level_log").info("Sample Changer to HOME")
+	    self.sample_changer_maint_hwobj.send_command('home')
+            time.sleep(1)
+	    self.sample_changer_hwobj._waitDeviceReady(30)
 
-        logging.getLogger("HWR").info("[HWR] Sample Changer to DRY")
-        logging.getLogger("user_level_log").info("[HWR] Sample Changer to DRY")
-        self.sample_changer_maint_hwobj.send_command('dry')
-	self.sample_changer._waitDeviceReady(200)
+	    logging.getLogger("HWR").info("[HWR] Sample Changer CLOSING LID")
+	    logging.getLogger("user_level_log").info("Sample Changer CLOSING LID")
+	    self.sample_changer_maint_hwobj.send_command('closelid1')
+            time.sleep(1)
+	    self.sample_changer_hwobj._waitDeviceReady(10)
 
-        logging.getLogger("HWR").info("[HWR] Sample Changer to HOME")
-        logging.getLogger("user_level_log").info("[HWR] Sample Changer to HOME")
-        self.sample_changer_maint_hwobj.send_command('home')
-	self.sample_changer._waitDeviceReady(30)
-
-        logging.getLogger("HWR").info("[HWR] Sample Changer CLOSING LID")
-        logging.getLogger("user_level_log").info("[HWR] Sample Changer CLOSING LID")
-        self.sample_changer_maint_hwobj.send_command('closelid1')
-	self.sample_changer._waitDeviceReady(10)
-
-        logging.getLogger("HWR").info("[HWR] Sample Changer POWER OFF")
-        logging.getLogger("user_level_log").info("[HWR] Sample Changer POWER OFF")
-        self.sample_changer_maint_hwobj.send_command('powerOff')
+	    logging.getLogger("HWR").info("[HWR] Sample Changer POWER OFF")
+	    logging.getLogger("user_level_log").info("Sample Changer POWER OFF")
+	    self.sample_changer_maint_hwobj.send_command('powerOff')
+        else:
+            raise Exception('Cannot prepare Hutch openning, Isara is powered off')
 
 
     def _update_image_to_display(self):
