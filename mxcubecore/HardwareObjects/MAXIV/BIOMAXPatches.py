@@ -2,6 +2,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 import types
 import logging
 import gevent
+import time
 
 class BIOMAXPatches(HardwareObject):
     '''
@@ -16,7 +17,9 @@ class BIOMAXPatches(HardwareObject):
         if not self.sc_in_soak():
             logging.getLogger("HWR").info("Sample changer not in SOAK position, moving there...")
             try:
-                self.sample_changer_maintenance.send_command('soak')  
+                self.sample_changer_maintenance.send_command('soak')
+                time.sleep(0.25)
+                self.sample_changer._waitDeviceReady(45)
             except Exception as ex:
                 raise RuntimeError('Cannot load sample, sample changer cannot go to SOAK position: %s' %str(ex))
         self.curr_dtox_pos = self.dtox_hwobj.getPosition()
@@ -35,6 +38,9 @@ class BIOMAXPatches(HardwareObject):
             self.diffractometer.wait_device_ready(15)
         except Exception as ex:
             logging.getLogger("HWR").warning("Diffractometer not ready. Proceeding with the sample loading, good luck...")
+        else:
+            logging.getLogger("HWR").info("Diffractometer ready, proceeding with the sample loading.")
+            time.sleep(1)
 
     def after_load_sample(self):
         '''
@@ -57,9 +63,18 @@ class BIOMAXPatches(HardwareObject):
 
 
     def new_load(self, *args, **kwargs):
-        logging.getLogger("HWR").info("Sample changer in SOAK position: %s" %self.sc_in_soak())
+        logging.getLogger("HWR").debug("Patched sample load version.")
+        try:
+            sample = kwargs.get('sample', None)
+        except Exception:
+            pass
+        if sample is None:
+            sample = args[1]
+
+        logging.getLogger("HWR").debug("Patched sample load version. Sample to load: %s" %sample)
+
         self.before_load_sample()
-        self.__load(args[1])
+        self.__load(sample)
         self.after_load_sample()
 
     def new_unload(self, *args, **kwargs):
