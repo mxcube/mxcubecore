@@ -160,23 +160,34 @@ class ISPyBRestClient(HardwareObject):
         :param int dc_id: The collection id
         :returns: Data collection dict
         """
-        dc_list = self.get_dc_list()
-        dc_dict = {}
+        self.__update_rest_token()
 
-        for lims_dc in dc_list:
-            if 'DataCollection_dataCollectionId' in lims_dc:
-                if lims_dc['DataCollection_dataCollectionId'] == dc_id:
-                    for key, value in lims_dc.iteritems():
-                        if key.startswith('DataCollection_'):
-                            k = str(key.replace('DataCollection_', ''))
-                            dc_dict[k] = value
-                        elif key == 'firstImageId':
-                            dc_dict['firstImageId'] = value
-                        elif key == 'lastImageId':
-                            dc_dict['lastImageId'] = value
-                            
-                    
-        return dc_dict
+        url = "{rest_root}{token}"
+        url += "/proposal/{pcode}{pnumber}/mx/datacollection/{dc_id}/list"
+        url = url.format(rest_root = self.__rest_root,
+                         token = str(self.__rest_token),
+                         pcode = self.session_hwobj.proposal_code,
+                         pnumber = self.session_hwobj.proposal_number,
+                         dc_id = dc_id)
+        try:
+            response = json.loads(get(url).text)
+        except Exception as ex:
+            response = None
+            logging.getLogger("ispyb_client").exception(str(ex))
+
+        lims_dc = {}
+
+        if response:
+            for key, value in response[0].iteritems():
+                if key.startswith('DataCollection_'):
+                    k = str(key.replace('DataCollection_', ''))
+                    lims_dc[k] = value
+                elif key == 'firstImageId':
+                    lims_dc['firstImageId'] = value
+                elif key == 'lastImageId':
+                    lims_dc['lastImageId'] = value
+
+        return lims_dc
 
 
     def get_quality_indicator_plot(self, collection_id):
@@ -215,10 +226,10 @@ class ISPyBRestClient(HardwareObject):
         :param int image_id: The image id
         :returns: tuple on the form (file name, base64 encoded data)
         """
-        
+
         self.__update_rest_token()
         fname, data = ('' ,'')
-        
+
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/image/{image_id}/thumbnail"
         url = url.format(rest_root = self.__rest_root,
@@ -232,7 +243,38 @@ class ISPyBRestClient(HardwareObject):
             data = response.content
             value, params = cgi.parse_header(response.headers)
             fname = params['filename']
-            
+
+        except Exception as ex:
+            response = []
+            logging.getLogger("ispyb_client").exception(str(ex))
+
+        return fname, data
+
+    def get_dc_image(self, image_id):
+        """
+        Get the image data for image with id <image_id>
+
+        :param int image_id: The image id
+        :returns: tuple on the form (file name, base64 encoded data)
+        """
+
+        self.__update_rest_token()
+        fname, data = ('' ,'')
+
+        url = "{rest_root}{token}"
+        url += "/proposal/{pcode}{pnumber}/mx/image/{image_id}/get"
+        url = url.format(rest_root = self.__rest_root,
+                         token = str(self.__rest_token),
+                         pcode = self.session_hwobj.proposal_code,
+                         pnumber = self.session_hwobj.proposal_number,
+                         image_id = image_id)
+
+        try:
+            response = get(url)
+            data = response.content
+            value, params = cgi.parse_header(response.headers)
+            fname = params['filename']
+
         except Exception as ex:
             response = []
             logging.getLogger("ispyb_client").exception(str(ex))
