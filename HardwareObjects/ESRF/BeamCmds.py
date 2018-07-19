@@ -20,8 +20,9 @@ class ControllerCommand(CommandObject):
 
     def getArguments(self):
         if self.name() == 'Anneal':
-            self._arguments.append(("Time [s]", "float"))
-        return self._arguments
+            self.addArgument("Time [s]", "float")
+
+        return CommandObject.getArguments(self)
 
     @task
     def __call__(self, *args, **kwargs):
