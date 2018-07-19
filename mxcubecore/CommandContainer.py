@@ -51,7 +51,8 @@ class CommandObject:
  
     def addArgument(self, argName, argType, combo_items=None, onchange=None, valuefrom=None):
         #print "Adding argument", argName, argType.lower(), combo_items
-        self._arguments.append( (argName, argType.lower(), onchange, valuefrom) )
+        if argName not in self._arguments:
+            self._arguments.append( (argName, argType.lower(), onchange, valuefrom) )
         if combo_items is not None:
             self._combo_arguments_items[argName]=combo_items
 
