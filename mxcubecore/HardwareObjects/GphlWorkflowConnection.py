@@ -139,6 +139,8 @@ class GphlWorkflowConnection(HardwareObject, object):
                              or locations['GPHL_INSTALLATION'])
         paths['GPHL_INSTALLATION'] = locations['GPHL_INSTALLATION']
 
+        os.environ['GPHL_INSTALLATION'] = locations['GPHL_INSTALLATION']
+
 
     def _open_connection(self):
 
