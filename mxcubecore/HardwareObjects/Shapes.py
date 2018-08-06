@@ -110,7 +110,7 @@ class Shapes(HardwareObject):
         :returns: Shape of type <t>
         :rtype: <t>
         """
-        cls_dict = {"P": Point, "L": Line, "G": Grid}
+        cls_dict = {"P": Point, "L": Line, "G": Grid, "2DP": TwoDPoint}
         _cls = cls_dict[t]
         shape = None
 
@@ -359,6 +359,16 @@ class Point(Shape):
         # replace cpos_list with the motor positions
         d["motor_positions"] = self.cp_list[0].as_dict()
         return d
+
+
+class TwoDPoint(Point):
+    SHAPE_COUNT = 0
+
+    def __init__(self, mpos_list, screen_coord):
+        Point.__init__(self, mpos_list, screen_coord)
+        self.t = "2DP"
+        self.label = "2D-Point"
+        self.set_id(Point.SHAPE_COUNT)
 
 
 class Line(Shape):
