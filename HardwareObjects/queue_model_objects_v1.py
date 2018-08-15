@@ -1690,20 +1690,20 @@ class GphlWorkflow(TaskNode):
                                % repr(self.get_type()))
         return result
 
-
-    # Keyword-value dictionary of workflow_options (for execution command)
-    def get_workflow_options(self):
-        result = dict(self._workflow_options)
-        if 'prefix' in result:
-            result['prefix'] = self.get_path_template().base_prefix
-        return result
-    def set_workflow_options(self, valueDict):
-        dd = self._workflow_options
-        dd.clear()
-        if valueDict:
-            dd.update(valueDict)
-            if 'prefix' in dd:
-                self.get_path_template().base_prefix = dd.pop('prefix')
+    # Apparently not used :
+    # # Keyword-value dictionary of workflow_options (for execution command)
+    # def get_workflow_options(self):
+    #     result = dict(self._workflow_options)
+    #     if 'prefix' in result:
+    #         result['prefix'] = self.get_path_template().base_prefix
+    #     return result
+    # def set_workflow_options(self, valueDict):
+    #     dd = self._workflow_options
+    #     dd.clear()
+    #     if valueDict:
+    #         dd.update(valueDict)
+    #         if 'prefix' in dd:
+    #             self.get_path_template().base_prefix = dd.pop('prefix')
 
 
 #
