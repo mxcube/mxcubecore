@@ -135,11 +135,23 @@ class GphlWorkflowConnection(HardwareObject, object):
             val = val.format(**locations)
             paths[tag] = props[tag] = val
         #
-        paths['BDG_home'] = (paths.get('co.gphl.wf.bdg_licence_dir')
-                             or locations['GPHL_INSTALLATION'])
-        paths['GPHL_INSTALLATION'] = locations['GPHL_INSTALLATION']
+        pp = paths.get('co.gphl.wf.bin')
+        if pp:
+            locations['GPHL_INSTALLATION'] = pp
+        pp = (paths.get('co.gphl.wf.bdg_licence_dir')
+              or locations.get('GPHL_INSTALLATION'))
+        if pp:
+            paths['BDG_home'] = pp
 
-        os.environ['GPHL_INSTALLATION'] = locations['GPHL_INSTALLATION']
+
+    def get_executable(self, name):
+        """Get location of executable binary for program called 'name'"""
+        tag = 'co.gphl.wf.%s.bin' % name
+        result = self.software_paths.get(tag)
+        if not result:
+            result = os.path.join(self.software_paths['co.gphl.wf.bin'], name)
+        #
+        return result
 
 
     def _open_connection(self):
@@ -234,6 +246,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             commandList.extend(ConvertUtils.command_option(keyword, value))
         #
         wdir = workflow_options.get('wdir')
+        # NB this creates the appdir as well (wdir is within appdir)
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
@@ -253,9 +266,14 @@ class GphlWorkflowConnection(HardwareObject, object):
         logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
 
         # Get environmental variables
-        envs = {'BDG_home':self.software_paths['BDG_home'],
-                'GPHL_INSTALLATION':self.software_paths['GPHL_INSTALLATION']
-                }
+        envs = {}
+        # These env variables are needed in some cases for wrapper scripts
+        # Specifically for the stratcal wrapper.
+        # They may be unset depending on the config files
+        for tag in ('BDG_home', 'GPHL_INSTALLATION'):
+            val = self.software_paths.get(tag)
+            if val:
+                envs[tag] = val
         try:
             self._running_process = subprocess.Popen(commandList, env=envs,
                                                      stdout=None, stderr=None)

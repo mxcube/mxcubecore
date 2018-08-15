@@ -215,9 +215,7 @@ class CollectEmulator(CollectMockup):
             raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
-        simcal_executive = self.gphl_connection_hwobj.software_paths[
-            'co.gphl.wf.simcal.bin'
-        ]
+        simcal_executive = self.gphl_connection_hwobj.get_executable('simcal')
         # Get environmental variables
         envs = {'BDG_home':
                     self.gphl_connection_hwobj.software_paths['BDG_home']
@@ -249,15 +247,15 @@ class CollectEmulator(CollectMockup):
         # NB outfile is the echo output of the input file;
         # image files templates are set in the input file
         file_info = data_collect_parameters['fileinfo']
-        if not os.path.exists(file_info['process_directory']):
-            os.makedirs(file_info['process_directory'])
         if not os.path.exists(file_info['directory']):
             os.makedirs(file_info['directory'])
-        infile = os.path.join(file_info['process_directory'],
+        if not os.path.exists(file_info['directory']):
+            os.makedirs(file_info['directory'])
+        infile = os.path.join(file_info['directory'],
                               'simcal_in_%s.nml' % self._counter)
 
         f90nml.write(input_data, infile, force=True)
-        outfile = os.path.join(file_info['process_directory'],
+        outfile = os.path.join(file_info['directory'],
                                'simcal_out_%s.nml' % self._counter)
         self._counter += 1
         hklfile = os.path.join(sample_dir, 'sample.hkli')
