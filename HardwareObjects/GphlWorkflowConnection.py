@@ -270,10 +270,12 @@ class GphlWorkflowConnection(HardwareObject, object):
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
         # They may be unset depending on the config files
-        for tag in ('BDG_home', 'GPHL_INSTALLATION'):
-            val = self.software_paths.get(tag)
-            if val:
-                envs[tag] = val
+        val = self.software_paths.get('BDG_home')
+        if val:
+            envs['BDG_home'] = val
+        val = self.software_paths.get('co.gphl.wf.bin')
+        if val:
+            envs['GPHL_INSTALLATION'] = val
         try:
             self._running_process = subprocess.Popen(commandList, env=envs,
                                                      stdout=None, stderr=None)
