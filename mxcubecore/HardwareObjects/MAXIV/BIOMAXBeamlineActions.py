@@ -82,25 +82,21 @@ class BIOMAXBeamlineActions(HardwareObject):
 		self.sample_changer_hwobj._waitDeviceReady(30)
 	    if self.sample_changer_hwobj._chnInSoak.getValue():
 		logging.getLogger("HWR").info("Sample Changer was in SOAK, going to DRY")
-		logging.getLogger("user_level_log").info("Sample Changer was in SOAK, going to DRY")
 		self.sample_changer_maint_hwobj.send_command('dry')
 		gevent.sleep(1)
 		self.sample_changer_hwobj._waitDeviceReady(300)
 	    if self.sample_changer_hwobj.isPowered():
 		logging.getLogger("HWR").info("Sample Changer to HOME")
-		logging.getLogger("user_level_log").info("Sample Changer to HOME")
 		self.sample_changer_maint_hwobj.send_command('home')
 		gevent.sleep(1)
 		self.sample_changer_hwobj._waitDeviceReady(30)
 
 		logging.getLogger("HWR").info("Sample Changer CLOSING LID")
-		logging.getLogger("user_level_log").info("Sample Changer CLOSING LID")
 		self.sample_changer_maint_hwobj.send_command('closelid1')
 		gevent.sleep(1)
 		self.sample_changer_hwobj._waitDeviceReady(10)
 
 		logging.getLogger("HWR").info("Sample Changer POWER OFF")
-		logging.getLogger("user_level_log").info("Sample Changer POWER OFF")
 		self.sample_changer_maint_hwobj.send_command('powerOff')
         else:
             logging.getLogger("HWR").warning("Cannot prepare Hutch openning, Isara is powered off")
