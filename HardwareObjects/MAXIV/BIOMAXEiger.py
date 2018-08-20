@@ -414,6 +414,12 @@ class BIOMAXEiger(Equipment):
         """
         self.set_value("ImageAppendix", value)
 
+    def set_roi_mode(self, value):
+	if value not in ["4M", "16M", "disabled"]:
+            logging.getLogger("HWR").error("Cannot set stream header detail")
+            return
+        return self.get_value("RoiMode")
+
     #  SET VALUES END
 
     def prepare_acquisition(self, config):
