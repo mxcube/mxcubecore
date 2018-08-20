@@ -99,4 +99,9 @@ class HWObjActuatorCommand(CommandObject):
             self._cmd_execution.kill()
 
     def value(self):
-        return getattr(self._hwobj, "getActuatorState")().lower()
+        value = "UNKNOWN"
+
+        if hasattr(self._hwobj, "getActuatorState"):
+            value = getattr(self._hwobj, "getActuatorState")().lower()
+
+        return value 
