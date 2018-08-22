@@ -28,6 +28,7 @@ class Shapes(HardwareObject):
 
     def init(self):
         self.diffractometer = self.getObjectByRole("diffractometer")
+        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
 
     def get_shapes(self):
         """
@@ -430,8 +431,9 @@ class Grid(Shape):
 
     def update_position(self, transform):
         phi_pos = self.shapes_hw_object.diffractometer.phiMotor.getPosition() % 360
+        d = abs((self.get_centred_position().phi % 360) - phi_pos)
 
-        if abs((self.get_centred_position().phi % 360) - phi_pos) > self.hide_threshold:
+        if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:
             self.state = "HIDDEN"
         else:
             super(Grid, self).update_position(transform)
