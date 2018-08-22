@@ -384,6 +384,9 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
     def get_mesh_total_nb_frames(self):
         return self.mesh_total_nb_frames
 
+    def get_current_shape_id(self):
+        return self.current_dc_parameters["shape"]
+
     def oscil(self, start, end, exptime, npass, wait=True):
         oscillation_parameters = self.current_dc_parameters["oscillation_sequence"][0]
         msg = "[BIOMAXCOLLECT] Oscillation requested oscillation_parameters: %s" % oscillation_parameters
