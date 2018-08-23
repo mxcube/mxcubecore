@@ -151,7 +151,10 @@ class Shapes(HardwareObject):
         :type shape: Shape object.
         """
         shape = self.shapes.pop(sid, None)
-        shape.shapes_hw_object = None
+
+        if shape:
+            shape.shapes_hw_object = None
+
         return shape
 
     def clear_all(self):
