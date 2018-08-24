@@ -255,8 +255,9 @@ class SampleChanger(Container,Equipment):
         """
         Returns current loaded sample
         :rtype: str
-        """           
-        return self.getLoadedSample() is not None
+        """
+        return self._execute_cmd("pin_on_gonio")
+        #return self.getLoadedSample() is not None
 
     
     def is_mounted_sample(self, sample_location):
@@ -289,9 +290,9 @@ class SampleChanger(Container,Equipment):
             self._triggerInfoChangedEvent()
         
         loaded=self.getLoadedSample()
-        if loaded != former_loaded:
-            if (loaded is None) or (former_loaded is None) or (loaded.getAddress()!=former_loaded.getAddress()):
-                self._triggerLoadedSampleChangedEvent(loaded)
+#        if loaded != former_loaded:
+#            if (loaded is None) or (former_loaded is None) or (loaded.getAddress()!=former_loaded.getAddress()):
+#                self._triggerLoadedSampleChangedEvent(loaded)
                 
         self._resetDirty()                    
 
