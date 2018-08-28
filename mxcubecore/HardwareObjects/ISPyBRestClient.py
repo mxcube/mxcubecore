@@ -178,19 +178,22 @@ class ISPyBRestClient(HardwareObject):
         lims_dc = {}
         lims_dc["workflow_result_url_list"] = []
 
-        if "WorkflowStep_workflowStepId" in response:
-            step_id_list = response["WorkflowStep_workflowStepId"].split(',')
+        try:
+            if response and "WorkflowStep_workflowStepId" in response:
+                step_id_list = response["WorkflowStep_workflowStepId"].split(',')
 
-            for step_id in step_id_list:
-                 url = "{rest_root}{token}"
-                 url += "/proposal/{pcode}{pnumber}/mx/workflow/step/{step_id}/result"
-                 url = url.format(rest_root = self.__rest_root,
-                                  token = str(self.__rest_token),
-                                  pcode = self.session_hwobj.proposal_code,
-                                  pnumber = self.session_hwobj.proposal_number,
-                                  step_id = step_id)
+                for step_id in step_id_list:
+                    url = "{rest_root}{token}"
+                    url += "/proposal/{pcode}{pnumber}/mx/workflow/step/{step_id}/result"
+                    url = url.format(rest_root = self.__rest_root,
+                                     token = str(self.__rest_token),
+                                     pcode = self.session_hwobj.proposal_code,
+                                     pnumber = self.session_hwobj.proposal_number,
+                                     step_id = step_id)
 
-                 lims_dc["workflow_result_url_list"].append(url)
+                    lims_dc["workflow_result_url_list"].append(url)
+        except Exception as ex:
+            logging.getLogger("ispyb_client").exception(str(ex))
 
         if response:
             for key, value in response.iteritems():
