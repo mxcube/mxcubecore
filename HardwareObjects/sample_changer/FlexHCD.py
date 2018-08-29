@@ -199,11 +199,13 @@ class FlexHCD(SampleChanger):
     def load(self, sample):
         self.prepare_load(wait=True)
         self.enable_power()
+
         try:
             res = SampleChanger.load(self, sample)
         finally:
             for msg in self.get_robot_exceptions():
                 logging.getLogger("HWR").error(msg)
+
         if res:
             self.prepareCentring()
         else:
@@ -242,10 +244,8 @@ class FlexHCD(SampleChanger):
 
     @task
     def home(self):
-        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepare_load(wait=True)
         self.enable_power()
-        #warning_task.kill()
         self._execute_cmd("homeClear")
 
     @task
@@ -265,17 +265,13 @@ class FlexHCD(SampleChanger):
         gevent.sleep(5)
         while not load_task.ready():
            if self._execute_cmd("get_robot_cache_variable", "SampleCentringReady") == "True":
-              #self._setLoadedSample(sample)
               return True
            gevent.sleep(1)
 
         load_task.get()
 
         if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
-          #self._setLoadedSample(sample)
           return True
-        #if not self._execute_cmd("pin_on_gonio"):
-        #    self._resetLoadedSample()
         return False
 
     def _doUnload(self, sample=None):
@@ -310,11 +306,6 @@ class FlexHCD(SampleChanger):
         pass
 
     def _updateState(self):
-        defreezing = self._execute_cmd("isDefreezing")
-
-        if defreezing:
-          return
-
         try:
           state = self._readState()
         except:
@@ -331,7 +322,8 @@ class FlexHCD(SampleChanger):
     def _readState(self):
         # should read state from robot
 
-        state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
+        state = "RUNNING" if (self._execute_cmd("robot.isBusy") and \
+                              not self._execute_cmd("isDefreezing")) else "STANDBY"
 
         if state == 'STANDBY' and not self.isSequencerReady():
           state = 'RUNNING'
