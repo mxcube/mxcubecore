@@ -22,7 +22,7 @@ class ID29BeamCmds(HardwareObject):
                                         controller.anneal_procedure)
 
         self.detcover = HWObjActuatorCommand("Detector cover", detcover)
-        self.scintilator = HWObjActuatorCommand("Scintilator", scintilator)
+        self.scintilator = HWObjActuatorCommand("Scintillator", scintilator)
         self.aperture = HWObjActuatorCommand("Aperture", aperture)
         self.hutchtrigger = HWObjActuatorCommand("Hutchtrigger", hutchtrigger)
         self.cryo = HWObjActuatorCommand("Cryo", cryo)
