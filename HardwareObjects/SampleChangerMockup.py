@@ -38,13 +38,14 @@ class SampleChangerMockup(SampleChanger):
             time.sleep(2)
 
             self._setState(SampleChangerState.Ready)
-            self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
         except:
             basket, sample = (None, None)
             self._setState(SampleChangerState.Error)
         finally:
             self._selected_basket = int(basket)
             self._selected_sample = int(sample)
+            self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
+
 
         return self.getLoadedSample()
 
