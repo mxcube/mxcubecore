@@ -12,10 +12,14 @@ class ALBASupervisor(Device):
     def init(self):
         self.state_chan = self.getChannelObject("state")
         self.go_collect_cmd = self.getCommandObject("go_collect")
+        self.go_sample_view_cmd = self.getCommandObject("go_sample_view")
+        self.go_transfer_cmd = self.getCommandObject("go_transfer")
+        self.go_beam_view_cmd = self.getCommandObject("go_beam_view")
 
         self.phase_chan = self.getChannelObject("phase")
         self.detector_cover_chan = self.getChannelObject("detector_cover_open")
 
+        self.state_chan.connectSignal("update", self.state_changed)
         self.phase_chan.connectSignal("update", self.phase_changed)
         self.detector_cover_chan.connectSignal("update", self.detector_cover_changed)
 
@@ -25,7 +29,13 @@ class ALBASupervisor(Device):
     def getUserName(self):
         return self.username
 
+    def state_changed(self,value):
+        self.current_state = value
+        self.emit('stateChanged', self.current_state)
+
     def phase_changed(self,value):
+        if value == 'Sample':
+           value = 'Centring'
         self.current_phase = value
         self.emit('phaseChanged', self.current_phase)
 
@@ -34,6 +44,15 @@ class ALBASupervisor(Device):
 
     def go_collect(self):
         return self.go_collect_cmd()
+
+    def go_transfer(self):
+        return self.go_transfer_cmd()
+
+    def go_sample_view(self):
+        return self.go_sample_view_cmd()
+
+    def go_beam_view(self):
+        return self.go_beam_view_cmd()
 
     def get_state(self):
         return self.state_chan.getValue()
