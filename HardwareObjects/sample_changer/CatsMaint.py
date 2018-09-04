@@ -33,7 +33,7 @@ TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, \
 TOOL_TO_STR = {
        "Flange": TOOL_FLANGE,
        "Unipuck": TOOL_UNIPUCK,
-       "Rotat": TOOL_SPINE,
+       "EMBL": TOOL_SPINE,
        "Plate": TOOL_PLATE,
        "Laser": TOOL_LASER,
        "Double": TOOL_DOUBLE_GRIPPER,
@@ -95,6 +95,9 @@ class CatsMaint(Equipment):
         self._chnLN2Regulation = self.addChannel({ "type": "tango", 
             "name": "_chnLN2Regulation", "tangoname": self.tangoname, 
             "polling": 1000, }, "LN2Regulating")
+        self._chnBarcode = self.addChannel({ "type": "tango", 
+            "name": "_chnBarcode", "tangoname": self.tangoname, 
+            "polling": 1000, }, "Barcode")
 
         self._chnLid1State = self.addChannel({ "type": "tango", 
             "name": "_chnLid1State", "tangoname": self.tangoname, 
@@ -119,7 +122,10 @@ class CatsMaint(Equipment):
         self._chnToolOpenClose.connectSignal("update", self._updateToolState)
         self._chnMessage.connectSignal("update", self._updateMessage)
         self._chnLN2Regulation.connectSignal("update", self._updateRegulationState)
+        self._chnBarcode.connectSignal("update", self._updateBarcode)
            
+        self._chnCurrentTool = self.addChannel({ "type": "tango", 
+            "name": "_chnCurrentTool", "tangoname": self.tangoname }, "Tool")
         # 
         self._cmdPowerOn = self.addCommand({ "type": "tango", 
             "name": "_cmdPowerOn", "tangoname": self.tangoname, }, "powerOn")
@@ -154,6 +160,13 @@ class CatsMaint(Equipment):
 
         self._cmdRegulOn = self.addCommand({ "type": "tango", 
             "name": "_cmdRegulOn", "tangoname": self.tangoname, }, "regulon")
+        self._cmdRegulOff = self.addCommand({ "type": "tango", 
+            "name": "_cmdRegulOff", "tangoname": self.tangoname, }, "reguloff")
+
+        self._cmdToolOpen = self.addCommand({ "type": "tango", 
+            "name": "_cmdToolOpen", "tangoname": self.tangoname, }, "opentool")
+        self._cmdToolClose = self.addCommand({ "type": "tango", 
+            "name": "_cmdToolClose", "tangoname": self.tangoname, }, "closetool")
 
         # Paths
         self._cmdAbort = self.addCommand({ "type": "tango", 
@@ -178,6 +191,12 @@ class CatsMaint(Equipment):
         self._cmdResetParameters = self.addCommand({ "type": "tango", 
             "name": "_cmdResetParameters", "tangoname": self.tangoname, }, "reset_parameters")
 
+        self._cmdRecoverFailure = self.addCommand({ "type": "tango", 
+            "name": "_cmdRecoverFailure", "tangoname": self.tangoname, }, "recoverFailure")
+
+        self._cmdResetMotion = self.addCommand({ "type": "tango", 
+            "name": "_cmdResetMotion", "tangoname": self.tangoname, }, "resetmotion")
+
         self._cmdSetOnDiff = self.addCommand({ "type": "tango", 
             "name": "_cmdSetOnDiff", "tangoname": self.tangoname, }, "setondiff")
         self._cmdSetOnTool = self.addCommand({ "type": "tango", 
@@ -198,7 +217,13 @@ class CatsMaint(Equipment):
 
     def get_current_tool(self):
         val = self.cats_device.read_attribute("Tool").value
-        tool = TOOL_TO_STR.get(val, None)
+        return tool
+
+    def get_current_tool(self):
+        current_value = self._chnCurrentTool.getValue()
+
+        tool = TOOL_TO_STR.get(current_value, None)
+
         return tool
 
     ################################################################################
@@ -224,6 +249,16 @@ class CatsMaint(Equipment):
         """
         self._cmdAbort()            
 
+    def _doHome(self):
+        """
+        Launch the "abort" trajectory on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
+        tool = self.get_current_tool()
+        self._cmdHome(tool)            
+
     def _doReset(self):
         """
         Launch the "reset" command on the CATS Tango DS
@@ -231,7 +266,10 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
+        logging.getLogger("HWR").debug("CatsMaint. doing reset")
+        return
         self._cmdReset()
+
     def _doResetMemory(self):
         """
         Launch the "reset memory" command on the CATS Tango DS
@@ -244,6 +282,24 @@ class CatsMaint(Equipment):
         self._cmdResetParameters()
         time.sleep(1)
 
+    def _doResetMotion(self):
+        """
+        Launch the "reset_motion" command on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
+        self._cmdResetMotion()
+
+    def _doRecoverFailure(self):
+        """
+        Launch the "recoverFailure" command on the CATS Tango DS
+
+        :returns: None
+        :rtype: None
+        """
+        self._cmdRecoverFailure()
+
     def _doCalibration(self):
         """
         Launch the "toolcalibration" command on the CATS Tango DS
@@ -251,7 +307,8 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        self._cmdCalibration(2)
+        tool = self.get_current_tool()
+        self._cmdCalibration(tool)
 
     def _doOpenTool(self):
         """
@@ -278,7 +335,8 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        self._cmdDry(2)
+        tool = self.get_current_tool()
+        self._cmdDry(tool)
 
     def _doSetOnDiff(self, sample):
         """
@@ -307,7 +365,8 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        argin = ["2", "0"] # to send string array with two arg...
+        tool = self.get_current_tool()
+        argin = [str(tool), "0"] # to send string array with two arg...
         self._executeServerTask(self._cmdBack, argin)
 
     def _doSafe(self):
@@ -317,7 +376,7 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
-        argin = 2
+        argin = self.get_current_tool()
         self._executeServerTask(self._cmdSafe, argin)
 
     def _doPowerState(self, state=False):
@@ -327,12 +386,11 @@ class CatsMaint(Equipment):
         :returns: None
         :rtype: None
         """
+        logging.getLogger("HWR").debug("   running power state command ")
         if state:
             self._cmdPowerOn()
         else:
             self._cmdPowerOff()
-
-        self.do_state_action("power",state)
 
     def _doEnableRegulation(self):
         """
@@ -388,6 +446,16 @@ class CatsMaint(Equipment):
         else:
             self._executeServerTask(self._cmdCloseLid3)
            
+    def _doMagnetOn(self):
+        self._executeServerTask(self._cmdMagnetOn)
+    def _doMagnetOff(self):
+        self._executeServerTask(self._cmdMagnetOff)
+       
+    def _doToolOpen(self):
+        self._executeServerTask(self._cmdToolOpen)
+    def _doToolClose(self):
+        self._executeServerTask(self._cmdToolClose)
+
     #########################          PROTECTED          #########################        
 
     def _executeTask(self,wait,method,*args):        
@@ -435,6 +503,10 @@ class CatsMaint(Equipment):
         self._regulating = value
         self.emit('regulationStateChanged', (value, ))
         self._updateGlobalState()
+
+    def _updateBarcode(self, value):
+        self._barcode = value
+        self.emit('barcodeChanged', (value, ))
 
     def _updateState(self, value):
         self._state = value
