@@ -2,6 +2,8 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
+import logging
+
 class ALBAEnergy(Device):
 
     def __init__(self,*args):
@@ -27,6 +29,8 @@ class ALBAEnergy(Device):
             self.energy_position = self.energy_hwobj.getPosition()
         return self.energy_position
 
+    getCurrentEnergy = get_energy
+
     def get_wavelength(self):
         if self.wavelength_position is None:
             self.wavelength_position = self.wavelength_hwobj.getPosition()
@@ -46,7 +50,13 @@ class ALBAEnergy(Device):
             self.emit('energyChanged', self.energy_position, self.wavelength_position)
 
     def move_energy(self, value):
+        current_egy = self.get_energy()
+         
+        logging.getLogger("HWR").debug("moving energy to %s. now is %s" % (value, current_egy))
         self.energy_hwobj.move(value)
+
+    def wait_move_energy_done(self):
+        self.energy_hwobj.wait_end_of_move()
 
     def move_wavelength(self, value):
         self.wavelength_hwobj.move(value)
