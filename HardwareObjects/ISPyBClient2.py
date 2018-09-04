@@ -627,10 +627,17 @@ class ISPyBClient2(HardwareObject):
 
 #        logging.getLogger('HWR').debug(todays_session)
         return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
-        'session': todays_session,
+        'Session': todays_session,
         "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
         "person": prop['Person'],
         "laboratory": prop['Laboratory']}
+
+    def ldap_login(self, login_name, psd, ldap_connection):
+        if ldap_connection is None:
+            ldap_connection = self.ldapConnection
+
+        ok, msg=ldap_connection.login(login_name,psd)
+        return ok, msg
 
     def get_todays_session(self, prop):
         logging.getLogger('HWR').debug('getting proposal for todays session')
