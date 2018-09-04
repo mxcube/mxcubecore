@@ -2,6 +2,7 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Procedure
 import math
 import numpy
+import logging
 
 class CentringMath(Procedure):
     """
@@ -49,6 +50,7 @@ class CentringMath(Procedure):
     def listOfCentringsToScreen(self,list_of_centring_dicts):
         self.factorize()
         lst= []
+        logging.getLogger("HWR").debug(" in listOfCentringToScreen - %s points in list " % len(list_of_centring_dicts))
         for centring in list_of_centring_dicts:
           lst.append(self.centringToScreen(centring,factorized = True))
         return lst
@@ -161,7 +163,11 @@ class CentringMath(Procedure):
         index = 0 
         for axis in self.gonioAxes:
            if axis['type'] == "translation":
-              vector[index]=float(centrings_dictionary[axis['motor_name']])
+              motname = axis['motor_name']
+              if centrings_dictionary[motname] is not None: 
+                  vector[index]=float(centrings_dictionary[axis['motor_name']])
+              else:
+                  return None
               index += 1
         return vector
 
