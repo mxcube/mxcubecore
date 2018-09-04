@@ -120,10 +120,13 @@ class SardanaMacro(CommandObject, SardanaObject):
             self.init_device()
 
         logging.getLogger('HWR').debug("Executing sardana macro: %s" % self.macro_format)
+        logging.getLogger('HWR').debug("   args=%s / kwargs=%s" % (str(args), str(kwargs)))
         
         try:
-            fullcmd = self.macro_format % args 
+            fullcmd = self.macro_format + " " + " ".join([str(a) for a in args])
         except:
+            import traceback
+            logging.getLogger('HWR').info(traceback.format_exc())
             logging.getLogger('HWR').info("  - Wrong format for macro arguments. Macro is %s / args are (%s)" % (self.macro_format, str(args)))
             return
    
@@ -131,7 +134,7 @@ class SardanaMacro(CommandObject, SardanaObject):
             import time
             self.t0 = time.time()
             if (self.doorstate in ["ON","ALARM"]):
-                self.door.runMacro( (fullcmd).split()  )
+                self.door.runMacro( fullcmd.split()  )
                 self.macrostate = SardanaMacro.STARTED
                 self.emit('commandBeginWaitReply', (str(self.name()), ))
             else:
@@ -165,7 +168,7 @@ class SardanaMacro(CommandObject, SardanaObject):
             if type(data) != PyTango.DeviceAttribute:
                   # Events different than a value changed on attribute.  Taurus sends an event with attribute info
                   # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
-                  logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
+                  #logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
                   return
 
             # Handling macro state changed event
