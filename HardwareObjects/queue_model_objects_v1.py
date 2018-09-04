@@ -1312,6 +1312,27 @@ class PathTemplate(object):
                                              PathTemplate.archive_folder)
             archive_directory = os.path.join(archive_directory,
                                              *folders[4:])
+        elif PathTemplate.synchotron_name == "ALBA": 
+            #archive_directory = os.path.join(PathTemplate.archive_base_directory)
+                                             # PathTemplate.archive_folder)
+            #archive_directory = os.path.join(archive_directory,
+            #                                 *folders[4:])
+            #archive_directory = self.directory
+            #if 'RAW_DATA' in archive_directory:
+            #    archive_directory = archive_directory.replace('RAW_DATA',PathTemplate.archive_folder)
+            #else:
+            #    archive_directory = os.path.join(archive_directory,PathTemplate.archive_folder)
+            logging.getLogger("HWR").debug("PathTemplate (ALBA) - directory is %s" % self.directory)
+            directory = self.directory
+            folders = directory.split(os.path.sep)
+            user_dir = folders[5]
+            session_date = folders[6]
+            try:
+                more = folders[8:]
+            except:
+                more = []
+            archive_directory = os.path.join(PathTemplate.archive_base_directory, user_dir, session_date, *more)
+            logging.getLogger("HWR").debug("PathTemplate (ALBA) - archive_directory is %s" % archive_directory)
         else:
             directory = self.directory[len(PathTemplate.base_directory):]
             folders = directory.split('/')
