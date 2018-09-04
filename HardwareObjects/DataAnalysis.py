@@ -115,6 +115,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             transmission = self.collect_obj.get_transmission()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
+            import traceback
+            logging.getLogger("HWR").debug("DataAnalysis. transmission not saved ")
+            logging.getLogger("HWR").debug(traceback.format_exc())
             pass
 
         try:
@@ -151,8 +154,11 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         _range = char_params.permitted_phi_end - char_params.permitted_phi_start
         rotation_range = XSDataAngle(_range)
 
-        diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
-        diff_plan.setAimedCompleteness(aimed_completness)
+        if char_params.aimed_i_sigma:
+            diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
+
+        if char_params.aimed_completness:
+            diff_plan.setAimedCompleteness(aimed_completness)
 
         if char_params.use_aimed_multiplicity:
             diff_plan.setAimedMultiplicity(aimed_multiplicity)
@@ -232,8 +238,12 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         except:
             dc_id = id(edna_input)
 
-        for dataSet in edna_input.dataSet:
+        firstImage = None
+        #for dataSet in edna_input.dataSet:
+        for dataSet in edna_input.getDataSet():
             for imageFile in dataSet.imageFile:
+                if imageFile.getPath() is None:
+                    continue
                 firstImage = imageFile.path.value
                 break
 
@@ -253,23 +263,44 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             raise RuntimeError("No process directory specified in edna_input")
 
         edna_input_file = os.path.join(edna_directory, "EDNAInput_%s.xml" % dc_id)
-        edna_input.exportToFile(edna_input_file)
+
+        self.prepare_edna_input(edna_input, edna_directory)
+
+        try:
+            edna_input.exportToFile(edna_input_file)
+        except:
+            import traceback
+            logging.getLogger("HWR").debug(" problem generating input file")
+            logging.getLogger("HWR").debug(" %s " % traceback.format_exc())
         edna_results_file = os.path.join(edna_directory, "EDNAOutput_%s.xml" % dc_id)
 
         msg = "Starting EDNA using xml file %r", edna_input_file
         logging.getLogger("queue_exec").info(msg)
 
-        self.edna_processing_thread = \
+        self.result = self.run_edna(edna_input_file, edna_results_file, edna_directory)
+        logging.getLogger("queue_exec").info("edna job submitted")
+
+        return self.result
+
+    def prepare_edna_input(self, edna_input, edna_directory):
+        """
+        STAB. Allows to manipulate edna_input object before exporting it to file
+          Example: to set a site specific output directory
+        """
+        pass
+
+    def run_edna(self, input_file, results_file, edna_directory):
+        edna_processing_thread = \
           EdnaProcessingThread(self.start_edna_command, edna_input_file,
                                edna_results_file, edna_directory)
 
-        self.processing_done_event = self.edna_processing_thread.start()
+        logging.getLogger("queue_exec").info("starting edna thread")
+        self.processing_done_event = edna_processing_thread.start()
         self.processing_done_event.wait()
-        self.result = None
-        if os.path.exists(edna_results_file):
-            self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
-    
-        return self.result
+        logging.getLogger("queue_exec").info("         edna thread finished. now reading results")
+        result = XSDataResultMXCuBE.parseFile(edna_results_file)
+        logging.getLogger("queue_exec").info("         edna thread finished. results are now parsed")
+        return result
 
     def is_running(self):
         return not self.processing_done_event.is_set()
