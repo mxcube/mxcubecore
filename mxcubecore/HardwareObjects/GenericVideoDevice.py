@@ -202,7 +202,7 @@ class GenericVideoDevice(Device):
 
             qpixmap = QPixmap(qimage)
             self.emit("imageReceived", qpixmap)
-            return qimage
+            return qimage.copy()
 
     def get_jpg_image(self):
         """ for now this function allows to deal with prosilica or any RGB encoded video data"""
