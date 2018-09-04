@@ -201,6 +201,7 @@ class BeamlineSetup(HardwareObject):
 
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
+
         #edna_beam = edna_input.getExperimentalCondition().getBeam()
         edna_sample = edna_input.getSample()
         char_params = queue_model_objects.CharacterisationParameters()
@@ -208,11 +209,20 @@ class BeamlineSetup(HardwareObject):
 
         # Optimisation parameters
         char_params.use_aimed_resolution = False
-        char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
+        try:
+            char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
+        except:
+            char_params.aimed_resolution = None
+
         char_params.use_aimed_multiplicity = False
-        #char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
-        char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
-        char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
+        try:
+            #char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
+            char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
+            char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
+        except:
+            char_params.aimed_i_sigma = None
+            char_params.aimed_completness = None
+
         char_params.strategy_complexity = 0
         char_params.induce_burn = False
         char_params.use_permitted_rotation = False
