@@ -24,7 +24,18 @@ class ALBADataAnalysis(DataAnalysis):
     def init(self):
         DataAnalysis.init(self)
 
-    # used for strategy calculation (characterization) using data analysis cluster
+    def prepare_edna_input(self, edna_input, edna_directory):
+
+        # used for strategy calculation (characterization) using data analysis cluster
+        # ALBA specific
+        edna_input.process_directory = edna_directory
+
+        output_dir = XSDataFile()
+        path = XSDataString()
+        path.setValue(edna_directory)
+        output_dir.setPath(path)
+        edna_input.setOutputFileDirectory( output_dir )
+
     def run_edna(self, input_file, results_file, edna_directory):
         return self.run(input_file, results_file, edna_directory)
 
