@@ -623,8 +623,8 @@ class SampleQueueEntry(BaseQueueEntry):
                 mount_device = self.sample_changer_hwobj
 
             if mount_device is not None:
-                log.info("Loading sample " + self._data_model.loc_str)
-                sample_mounted = mount_device.is_mounted_sample(self._data_model.location)
+                log.info("Loading sample " + str(self._data_model.location))
+                sample_mounted = mount_device.is_mounted_sample(tuple(self._data_model.location))
                 if not sample_mounted:
                     self.sample_centring_result = gevent.event.AsyncResult()
                     try:
@@ -1177,6 +1177,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         characterisation_parameters = char.characterisation_parameters
 
         if self.data_analysis_hwobj is not None:
+            log.info("  - creating edna input from params")
             edna_input = self.data_analysis_hwobj.\
                          from_params(reference_image_collection,
                                      characterisation_parameters)
@@ -1958,7 +1959,6 @@ def mount_sample(beamline_setup_hwobj,
         raise QueueSkippEntryException("Sample not loaded", "")
     else:
         view.setText(1, "Sample loaded")
-
         dm = beamline_setup_hwobj.diffractometer_hwobj
         if dm is not None:
             if hasattr(sample_mount_device, '__TYPE__'):
@@ -1966,7 +1966,6 @@ def mount_sample(beamline_setup_hwobj,
                     return
             try:
                 dm.connect("centringAccepted", centring_done_cb)
-                #TODO store current centring method in minidiff
                 centring_method = view.listView().parent().parent().\
                                   centring_method
                 if centring_method == CENTRING_METHOD.MANUAL:
