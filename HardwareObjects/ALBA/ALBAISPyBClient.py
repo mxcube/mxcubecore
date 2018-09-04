@@ -12,119 +12,43 @@ from ISPyBClient2 import  _CONNECTION_ERROR_MSG
 
 class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
 
-    def init(self):
-        """
-        Init method declared by HardwareObject.
-        """
-        self.session_hwobj = self.getObjectByRole('session')
+    def ldap_login(self, login_name, psd, ldap_connection):
+        # overwrites standard ldap login  is ISPyBClient2.py
+        #  to query for homeDirectory
 
-        self.ws_username = self.getProperty('ws_username')
-        self.ws_password = self.getProperty('ws_password')
-        
-        #self.ws_username = 'mx20100023' #self.getProperty('ws_username')
-        #self.ws_password = 'tisabet' #self.getProperty('ws_password')
-        
-        self.ws_collection = self.getProperty('ws_collection')
-        self.ws_shipping = self.getProperty('ws_shipping')
-        self.ws_tools = self.getProperty('ws_tools')
-        self.ws_autoproc = self.getProperty('ws_autoproc')
-        
-        self.loginType = self.getProperty("loginType") or "proposal"
-        self.loginTranslate = self.getProperty("loginTranslate") or True
-        
-        logging.debug("Initializing ALBA ISPyB Client")
-        logging.debug("   - using http_proxy = %s " % os.environ.get('http_proxy',None))
+        if ldap_connection is None:
+            ldap_connection = self.ldapConnection
 
-        try:
+        ok, msg = ldap_connection.login(login_name,psd, fields=["uid","homeDirectory"])
 
-            if self.ws_root:
-                logging.debug("self.ws_root %s" % self.ws_root)
-                try: 
-                    self._shipping = self._wsdl_shipping_client()
-                    self._collection = self._wsdl_collection_client()
-                    self._tools_ws = self._wsdl_tools_client()
-                    self._autoproc_ws = self._wsdl_autoproc_client()
-
-                except: 
-                    import traceback
-                    print traceback.print_exc()
-                #except URLError:
-                    print "URLError"
-                    logging.getLogger("ispyb_client")\
-                        .exception(_CONNECTION_ERROR_MSG)
-                    return
-        except:
-            import traceback
-            print traceback.print_exc()
-            logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
-            return
- 
-        # Add the porposal codes defined in the configuration xml file
-        # to a directory. Used by translate()
-        try:
-            proposals = self.session_hwobj['proposals']
-            
-            for proposal in proposals:
-                code = proposal.code
-                self.__translations[code] = {}
-                try:
-                    self.__translations[code]['ldap'] = proposal.ldap
-                except AttributeError:
-                    pass
-                try:
-                    self.__translations[code]['ispyb'] = proposal.ispyb
-                except AttributeError:
-                    pass
-                try:
-                    self.__translations[code]['gui'] = proposal.gui
-                except AttributeError:
-                    pass
-        except IndexError:
-            pass
-        except:
-            pass
-            #import traceback
-            #traceback.print_exc()
-
-        self.beamline_name = self.session_hwobj.beamline_name
+        if ok:
+            vals = ldap_connection.get_field_values()
+            if 'homeDirectory' in vals:        
+                home_dir = vals['homeDirectory'][0]
+                logging.getLogger("HWR").debug("  homeDirectory for user %s is %s" % (login_name, home_dir))
+                #self.session_hwobj.set_base_data_directories(home_dir, home_dir, home_dir)
+                self.session_hwobj.set_ldap_homedir(home_dir)
+        else:
+            home_dir = '/tmp'
+            self.session_hwobj.set_ldap_homedir(home_dir)
+           
+        return ok, msg
 
     def translate(self, code, what):  
         """
         Given a proposal code, returns the correct code to use in the GUI,
         or what to send to LDAP, user office database, or the ISPyB database.
         """
+        logging.getLogger("HWR").debug( "translating %s %s" % (code,what) )
+        if what == 'ldap':
+            if code == 'mx':
+                return 'u'
+
+        if what == 'ispyb':
+            if code == 'u':
+                return 'mx'
+
         return code
-
-    def _wsdl_shipping_client(self):
-        return self._wsdl_client(self.ws_shipping)
-
-    def _wsdl_tools_client(self):
-        return self._wsdl_client(self.ws_tools)
-
-    def _wsdl_collection_client(self):
-        return self._wsdl_client(self.ws_collection)
-
-    def _wsdl_client(self, service_name):
-
-        # Handling of redirection at soleil needs cookie handling
-
-        #trans = HttpAuthenticated(username = self.ws_username, password = self.ws_password)
-        trans = HttpAuthenticated(username = "rey", password = "patata")
-        print '_wsdl_client %s' % service_name, trans
-        urlbase = service_name + "?wsdl"
-        locbase = service_name
-       
-        ws_root = self.ws_root.strip()
-
-        url = ws_root + urlbase
-        loc = ws_root + locbase
-
-        #ws_client = Client(url, transport=trans, timeout=3, \
-                           #location=loc, cache = None)
-        ws_client = Client(url, timeout=3, \
-                           location=loc, cache = None)
-
-        return ws_client
 
     def prepare_collect_for_lims(self, mx_collect_dict):
         # Attention! directory passed by reference. modified in place
@@ -149,9 +73,17 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 pass
 
 def test_hwo(hwo):
-    proposal_code = 'av'
-    proposal_number = '2020000007'
+    proposal = 'mx2017062242'
+    proposal = 'mx2018012551'
+    pasw = 'mxcube'
     
-    info = hwo.get_proposal(proposal_code, proposal_number)
-    print info
+    info = hwo.login(proposal, pasw)
+    # info = hwo.get_proposal(proposal_code, proposal_number)
+    # info = hwo.get_proposal_by_username("u2020000007")
+    print info['status']
  
+    print "Getting associated samples"
+    session_id = 58248
+    proposal_id = 8250
+    samples = hwo.get_samples(proposal_id, session_id)
+    print samples
