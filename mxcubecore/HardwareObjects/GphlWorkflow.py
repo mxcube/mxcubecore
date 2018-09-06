@@ -189,6 +189,12 @@ class GphlWorkflow(HardwareObject, object):
         else:
             invocation_properties = {}
 
+        # Add options for target directories:
+        # There should be a better way, but apparently there isn't
+        session_hwobj = HardwareRepository().getHardwareObject('session')
+        process_root = session_hwobj.get_base_process_directory()
+        options['appdir'] = process_root
+
         for wf_node in self['workflows']:
             name = wf_node.name()
             wf_dict = {'name':name,
@@ -738,9 +744,7 @@ class GphlWorkflow(HardwareObject, object):
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
-        recen_executable = self._workflow_connection.software_paths[
-            'co.gphl.wf.recen.bin'
-        ]
+        recen_executable = self._workflow_connection.get_executable('recen')
         # Get environmental variables
         envs = {'BDG_home':
                     self._workflow_connection.software_paths['BDG_home']
@@ -1281,8 +1285,18 @@ class GphlWorkflow(HardwareObject, object):
         else:
             sampleId = uuid.uuid1()
 
-        # TODO re-check if this is correct
-        rootDirectory = workflow_model.path_template.directory
+        session_hwobj = HardwareRepository().getHardwareObject('session')
+        image_root = session_hwobj.get_base_image_directory()
+
+        if not os.path.isdir(image_root):
+            # This direstory must exist by the time the WF software checks for it
+            try:
+                os.makedirs(image_root)
+            except:
+                # No need to raise error - program will fail downstream
+                logging.getLogger('HWR').error(
+                    "Could not create image root directory: %s" % image_root
+                )
 
         priorInformation = self.GphlMessages.PriorInformation(
             sampleId=sampleId,
@@ -1290,7 +1304,7 @@ class GphlWorkflow(HardwareObject, object):
                         or sample_model.lims_code or
                         workflow_model.path_template.get_prefix()
                         or str(sampleId)),
-            rootDirectory=rootDirectory,
+            rootDirectory=image_root,
             userProvidedInfo=userProvidedInfo
         )
         #
