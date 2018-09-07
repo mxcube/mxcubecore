@@ -82,12 +82,8 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
-    def get_image_dimensions(self):
-        try:
-            width, height = self.device.image_width, self.device.image_height
-        except:
-            width, height = self.device.width, self.device.height
-        return [width, height]
+    def get_raw_image_size(self):
+        return [self.device.image_width, self.device.image_height] 
 
     def get_image(self):
         img_data = self.device.video_last_image
