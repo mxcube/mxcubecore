@@ -1240,15 +1240,16 @@ class GraphicsItemScale(GraphicsItem):
         self.custom_pen.setColor(SELECTED_COLOR)
         painter.setPen(self.custom_pen)
 
-        painter.drawLine(7, self.start_coord[1] - 15,
-                         7 + hor_scale_len_pix, self.start_coord[1] - 15)
+        painter.drawLine(7, self.start_coord[1] - 25,
+                         7 + hor_scale_len_pix, self.start_coord[1] - 25)
         painter.drawText(hor_scale_len_pix - 18,
-                         self.start_coord[1] - 20,
+                         self.start_coord[1] - 30,
                          "%d %s" % (self.__scale_len, u"\u00B5"))
-        painter.drawLine(7, self.start_coord[1] - 15,
-                         7, self.start_coord[1] - 15 - ver_scale_len_pix)
+        painter.drawLine(7, self.start_coord[1] - 25,
+                         7, self.start_coord[1] - 25 - ver_scale_len_pix)
         painter.drawText(12, self.start_coord[1] - 7 - ver_scale_len_pix,
                          "%d %s" % (self.__scale_len / 2, u"\u00B5"))
+
 
         if self.__display_grid:
             self.custom_pen.setStyle(Qt.DotLine)
