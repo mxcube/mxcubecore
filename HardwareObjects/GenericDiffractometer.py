@@ -417,6 +417,7 @@ class GenericDiffractometer(HardwareObject):
         :param timeout: timeout in second
         :type timeout: int
         """
+        gevent.sleep(0.1) # wait a bit to see if state does not change inmediately
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 time.sleep(0.01)
@@ -759,7 +760,7 @@ class GenericDiffractometer(HardwareObject):
     def centring_motor_moved(self, pos):
         """
         """
-        if time.time() - self.centring_time > 1.0:
+        if time.time() - self.centring_time > 5.0:
             self.invalidate_centring()
         self.emit_diffractometer_moved()
 
