@@ -74,6 +74,7 @@ class GenericVideoDevice(Device):
 
         self.cam_scale_factor = None
 
+        self.raw_image_dimensions = [None,None]
         self.image_dimensions = [None,None]
         self.image_polling = None
         self.image_format = None # not used
@@ -119,6 +120,15 @@ class GenericVideoDevice(Device):
             pass
 
         try:
+            scale = self.getProperty("scale")
+            if scale is None:
+                self.scale = 1
+            else:
+                self.scale = float(scale)
+        except:
+            self.scale = 1
+
+        try:
             self.cam_type = self.getProperty("type").lower()
         except:
             pass
@@ -138,6 +148,8 @@ class GenericVideoDevice(Device):
 
         # Apply values	
 
+        self.set_video_live(False)
+        time.sleep(0.1)
         self.set_cam_encoding(self.cam_encoding)
         self.set_exposure_time(self.cam_exposure)
 
@@ -171,7 +183,7 @@ class GenericVideoDevice(Device):
         """
         raw_buffer, width, height = self.get_image()
 
-        if raw_buffer is not None:
+        if raw_buffer is not None and raw_buffer.any():
             if self.cam_type == "basler":
                 raw_buffer = self.decoder(raw_buffer)
                 qimage = QImage(raw_buffer, width, height,
@@ -183,6 +195,10 @@ class GenericVideoDevice(Device):
 
             if self.cam_mirror is not None:
                 qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
+
+            if self.scale != 1:
+               dims = self.get_image_dimensions()  #  should be already scaled
+               qimage = qimage.scaled(QSize(dims[0], dims[1]))
 
             qpixmap = QPixmap(qimage)
             self.emit("imageReceived", qpixmap)
@@ -212,12 +228,14 @@ class GenericVideoDevice(Device):
 
     def y8_2_rgb(self, raw_buffer):
         image = np.fromstring(raw_buffer, dtype=np.uint8)
-        image.resize(self.image_dimensions[1], self.image_dimensions[0], 1)
+        raw_dims = self.get_raw_image_size()
+        image.resize(raw_dims[1], raw_dims[0], 1)
         return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
     def yuv_2_rgb(self, raw_buffer):
         image = np.fromstring(raw_buffer, dtype=np.uint8)
-        image.resize(self.image_dimensions[1], self.image_dimensions[0], 2)
+        raw_dims = self.get_raw_image_size()
+        image.resize(raw_dims[1], raw_dims[0], 2)
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
 
     def save_snapshot(self, filename, image_type='PNG'):
@@ -338,7 +356,14 @@ class GenericVideoDevice(Device):
             self.decoder = self.y8_2_rgb
 
     def get_image_dimensions(self):
-        return self.image_dimensions
+        raw_width, raw_height = self.get_raw_image_size()
+        width = raw_width * self.scale
+        height =  raw_height * self.scale
+        return [width, height]
+
+    """  Methods to be implemented by the implementing class """
+    def get_raw_image_size(self):
+        pass
 
     @abc.abstractmethod
     def get_image(self):
