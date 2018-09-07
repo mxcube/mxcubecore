@@ -606,6 +606,8 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").exception("Diffractometer: problem while centring")
                 self.emit_centring_failed()
 
+    startCentringMethod = start_centring_method   # ensure backward compatibility with queue_entry.py
+
     def cancel_centring_method(self, reject=False):
         """
         """
@@ -670,7 +672,7 @@ class GenericDiffractometer(HardwareObject):
                                                   self.beam_position[0],
                                                   self.beam_position[1],
                                                   msg_cb = self.emit_progress_message,
-                                                  new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
+                                                  new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", (point,)))
               else:
                   self.current_centring_procedure = gevent.spawn(self.automatic_centring)
               self.current_centring_procedure.link(self.centring_done)
@@ -833,8 +835,13 @@ class GenericDiffractometer(HardwareObject):
                             and target values.
         :type motors_dict: dict
         """
+        if not type(motor_positions) is dict:
+            motor_positions = motor_positions.as_dict()
+
+        self.wait_device_ready(timeout)
         for motor in motor_positions.keys():
             position = motor_positions[motor]
+            logging.getLogger("HWR").debug(" Moving %s to %s" % (str(motor), position))
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
@@ -842,6 +849,7 @@ class GenericDiffractometer(HardwareObject):
                 if None in (motor, position):
                     continue
                 motor_positions[motor] = position
+            #self.wait_device_ready(timeout)
             motor.move(position)
 
         if self.delay_state_polling is not None and self.delay_state_polling > 0:    
@@ -893,6 +901,8 @@ class GenericDiffractometer(HardwareObject):
             centring_status['motors'] = self.get_positions()
         self.emit('centringAccepted', (True, centring_status))
         self.emit("fsmConditionChanged", "centering_position_accepted", True)
+
+    acceptCentring = accept_centring
 
     def reject_centring(self):
         """
@@ -1138,6 +1148,15 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         return
+
+    def get_osc_dynamic_limits(self):
+        return (-10000, 10000)
+
+    def get_osc_max_speed(self):
+        """
+        """
+        return None
+        # raise NotImplementedError
 
     def zoom_in(self):
         return
