@@ -13,7 +13,8 @@ from .. import saferef
 
 try:
     import PyTango
-    from PyTango.gevent import DeviceProxy
+    #from PyTango.gevent import DeviceProxy
+    from PyTango import DeviceProxy
 except ImportError:
     logging.getLogger('HWR').warning("Tango support is not available.")
 
