@@ -30,33 +30,6 @@ from XSDataCommon import XSDataString
 #from edna_test_data import EDNA_TEST_DATA
 
 
-class EdnaProcessingThread(threading.Thread):
-    def __init__(self, edna_cmd, edna_input_file, edna_output_file, base_dir):
-        threading.Thread.__init__(self)
-
-        self.edna_cmd = edna_cmd
-        self.edna_input_file = edna_input_file
-        self.edna_output_file = edna_output_file
-        self.base_dir = base_dir
-
-    def start(self):
-        self.edna_processing_watcher = gevent.get_hub().loop.async()
-        self.edna_processing_done = gevent.event.Event()
-        threading.Thread.start(self)
-        return self.edna_processing_done
-
-    def run(self):
-        self.edna_processing_watcher.start(self.edna_processing_done.set)
-        args = (self.edna_cmd, self.edna_input_file,
-                self.edna_output_file, self.base_dir)
-        subprocess.call("%s %s %s %s" % args, shell=True)
-        self.edna_processing_watcher.send()
-
-    def stop(self):
-        self.edna_processing_watcher.stop()
-        self.edna_processing_done.set() 
-
-
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -84,14 +57,8 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         return html_report
 
-    def execute_command(self, command_name, *args, **kwargs):
-        wait = kwargs.get("wait", True)
-        cmd_obj = self.getCommandObject(command_name)
-        return cmd_obj(*args, wait=wait)
-
     def get_beam_size(self):
-        beam_info = self.getObjectByRole("beam")
-        return beam_info.get_beam_size()
+        return self.collect_obj.beam_info_hwobj.get_beam_size()
 
     def modify_strategy_option(self, diff_plan, strategy_option):
         """Method for modifying the diffraction plan 'strategyOption' entry"""
@@ -125,6 +92,12 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         try:
             beam.setFlux(XSDataFlux(self.collect_obj.get_measured_intensity()))
+        except AttributeError:
+            pass
+
+        try:
+            min_exp_time = self.collect_obj.detector_hwobj.get_exposure_time_limits()[0]
+            beam.setMinExposureTimePerImage(XSDataTime(min_exp_time))
         except AttributeError:
             pass
 
@@ -227,48 +200,38 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         # this is to give a unique number to the EDNA input and result files;
         # something more clever might be done to give a more significant
         # name, if there is no dc id.
+        path = edna_input.process_directory
+
+        # if there is no data collection id, the id will be a random number
+        # this is to give a unique number to the EDNA input and result files;
+        # something more clever might be done to give a more significant
+        # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().getValue()
         except:
             dc_id = id(edna_input)
 
-        for dataSet in edna_input.dataSet:
-            for imageFile in dataSet.imageFile:
-                firstImage = imageFile.path.value
-                break
-
-        self.edna_processing_thread = None
-        listImageName = os.path.basename(firstImage).split("_")
-        prefix = "_".join(listImageName[:-2])
-        run_number = listImageName[-2]
-        i = 1
-
         if hasattr(edna_input, "process_directory"):
-            edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
-            while os.path.exists(edna_directory):
-                i += 1
-                edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
-            os.makedirs(edna_directory)
+            edna_input_file = os.path.join(path, "EDNAInput_%s.xml" % dc_id)
+            edna_input.exportToFile(edna_input_file)
+            edna_results_file = os.path.join(path, "EDNAOutput_%s.xml" % dc_id)
+
+            if not os.path.isdir(path):
+                os.makedirs(path)
         else:
             raise RuntimeError("No process directory specified in edna_input")
-
-        edna_input_file = os.path.join(edna_directory, "EDNAInput_%s.xml" % dc_id)
-        edna_input.exportToFile(edna_input_file)
-        edna_results_file = os.path.join(edna_directory, "EDNAOutput_%s.xml" % dc_id)
 
         msg = "Starting EDNA using xml file %r", edna_input_file
         logging.getLogger("queue_exec").info(msg)
 
-        self.edna_processing_thread = \
-          EdnaProcessingThread(self.start_edna_command, edna_input_file,
-                               edna_results_file, edna_directory)
+        args = (self.start_edna_command, edna_input_file,
+                edna_results_file, path)
+        subprocess.call("%s %s %s %s" % args, shell=True)
 
-        self.processing_done_event = self.edna_processing_thread.start()
-        self.processing_done_event.wait()
         self.result = None
         if os.path.exists(edna_results_file):
             self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
-    
+
         return self.result
 
     def is_running(self):
