@@ -19,97 +19,20 @@
 
 import logging
 from random import random
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from AbstractFlux import AbstractFlux
 
 
 __credits__ = ["MXCuBE collaboration"]
-__version__ = "2.3."
 __category__ = "General"
 
 
-class FluxMockup(HardwareObject):
+class FluxMockup(AbstractFlux):
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractFlux.__init__(self, name)
+        self._value = 7e+12
 
-        self.flux_value = None
-        self.flux_info = {}
-        self.beam_info = None
-        self.transmission = None
-
-    def init(self):
-        """Reads config xml, initiates all necessary hwobj, channels and cmds
-        """
-   
-        self.flux_value = 1
-        self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        self.connect(self.beam_info_hwobj,
-                     "beamInfoChanged",
-                     self.beam_info_changed)
-        self.beam_info_changed(self.beam_info_hwobj.get_beam_info())
-
-        self.transmission_hwobj = self.getObjectByRole("transmission")
-        self.connect(self.transmission_hwobj,
-                     "attFactorChanged",
-                     self.transmission_changed)
-        self.transmission_changed(self.transmission_hwobj.getAttFactor())
-
-    def beam_info_changed(self, beam_info):
-        self.beam_info = beam_info
-        #self.update_flux_value()
-
-    def transmission_changed(self, transmission):
-        self.transmission = transmission
-        #self.update_flux_value()
-
-    def set_flux(self, flux_value):
-        self.flux_value = flux_value
-        #self.origin_flux_value = copy(flux_value)
-        #self.origin_beam_info = copy(self.beam_info)
-        #self.origin_transmission = copy(self.transmission)
-        self.update_flux_value()
-
-    def get_flux(self):
-        return self.flux_value
-
-    def get_flux_info(self):
-        return self.flux_info
-
-    def update_flux_value(self):
-        self.flux_info = {"flux" : self.flux_value,
-                          "beam_info": self.beam_info,
-                          "transmission": self.transmission}
-        self.emit('fluxChanged', self.flux_info)
-        """
-        if self.flux_value is not None:
-            if self.origin_transmission is not None:
-                if self.origin_transmission != self.transmission:
-                    self.flux_value = self.origin_flux_value * self.transmission / \
-                                      self.origin_transmission
-                else:
-                    self.flux_value = self.origin_flux_value
-            if self.origin_beam_info is not None:
-                if self.origin_beam_info != self.beam_info:
-                    if self.origin_beam_info['shape'] == 'ellipse':
-                        origin_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
-                    else:     
-                        origin_area = self.origin_beam_info['size_x'] * \
-                                      self.origin_beam_info['size_y']
-
-                    if self.beam_info['shape'] == 'ellipse':
-                        current_area = 3.141592 * pow(self.beam_info['size_x'] / 2, 2)
-                    else:
-                        current_area = self.beam_info['size_x'] * \
-                                       self.beam_info['size_y']
-                    self.flux_value = self.flux_value * current_area / \
-                                      origin_area   
-            self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
-        """
-
-    def measure_intensity(self):
+    def measure_flux(self):
         """Measures intesity"""
-        self.flux_value = 1e+12 + random() * 1e+12
-        self.update_flux_value() 
-
-    def update_values(self):
-        self.emit('fluxChanged', self.flux_info)
+        self._value = 1e+12 + random() * 1e+12
+        self.emit('fluxValueChanged', self._value)
