@@ -23,7 +23,6 @@ from AbstractFlux import AbstractFlux
 
 
 __credits__ = ["MXCuBE collaboration"]
-__version__ = "2.3."
 __category__ = "General"
 
 
