@@ -17,7 +17,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import logging
+
 from HardwareRepository.TaskUtils import task
 from AbstractCollect import AbstractCollect
 
@@ -110,8 +110,6 @@ class EMBLCollect(AbstractCollect):
         self.chan_collect_error = self.getChannelObject('collectError')
         self.chan_collect_error.connectSignal('update',
                                               self.collect_error_update)
-        self.chan_undulator_gap = self.getChannelObject('chanUndulatorGap')
-
         self.cmd_collect_compression = \
             self.getCommandObject('collectCompression')
         self.cmd_collect_description = \
@@ -204,6 +202,7 @@ class EMBLCollect(AbstractCollect):
             self.cmd_collect_in_queue(
                 self.current_dc_parameters['in_queue'] != False)
             self.cmd_collect_overlap(osc_seq['overlap'])
+#            self.cmd_collect_overlap(-0.5)           
             shutter_name = self.detector_hwobj.get_shutter_name()
             if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
@@ -220,7 +219,19 @@ class EMBLCollect(AbstractCollect):
                 self.cmd_collect_processing(
                     self.current_dc_parameters["processing_parallel"] in
                     (True, "MeshScan", "XrayCentering"))
+            
+            #print "Experiment type::::::::::", self.current_dc_parameters['experiment_type']
+            # GB 2018-05-16 : Workaround a fuzzy mesh scan interface of MD3
+            #if self.current_dc_parameters['experiment_type'] == 'Mesh':
+            #   _do_start = osc_seq['start'] - 0.5 * osc_seq['range']*osc_seq['number_of_images']/float(osc_seq['number_of_lines'])
+            #   print _do_start, ' Here'
+            #else:
+            #   _do_start = osc_seq['start']
+            #print "Oscillation Start::::::::::::::::::::", _do_start
+
             self.cmd_collect_start_angle(osc_seq['start'])
+            #self.cmd_collect_start_angle(_do_start)
+ 
             self.cmd_collect_start_image(osc_seq['start_image_number'])
             self.cmd_collect_template(str(file_info['template']))
             space_group = str(sample_ref['spacegroup'])
@@ -268,7 +279,7 @@ class EMBLCollect(AbstractCollect):
                         self.store_image_in_lims_by_frame_num(1)
                 if self._previous_collect_status is None:
                     if self._actual_collect_status == 'busy':
-                        logging.info("Collection: Preparing ...")
+                        self.print_log("HWR", "info", "Collection: Preparing ...")
                 elif self._previous_collect_status == 'busy':
                     if self._actual_collect_status == 'collecting':
                         self.emit("collectStarted", (None, 1))
@@ -276,7 +287,7 @@ class EMBLCollect(AbstractCollect):
                     if self._actual_collect_status == "ready":
                         self.collection_finished()
                     elif self._actual_collect_status == "aborting":
-                        logging.info("Collection: Aborting...")
+                        self.print_log("HWR", "info", "Collection: Aborting...")
                         self.collection_failed()
 
     def collect_error_update(self, error_msg):
@@ -288,8 +299,8 @@ class EMBLCollect(AbstractCollect):
 
         if self._collecting and len(error_msg) > 0:
             self._error_msg = error_msg
-            logging.getLogger("GUI").error(
-                "Collection: Error from detector server: %s" % error_msg)
+            self.print_log("GUI", "error", \
+                 "Collection: Error from detector server: %s" % error_msg)
 
     def collection_finished(self):
         AbstractCollect.collection_finished(self)
@@ -314,7 +325,7 @@ class EMBLCollect(AbstractCollect):
                 self.lims_client_hwobj.update_data_collection(
                     self.current_dc_parameters)
             except:
-                logging.getLogger("HWR").exception(
+                self.print_log("HWR", "error",
                     "Could not store data collection into ISPyB")
 
     def collect_frame_update(self, frame):
@@ -351,7 +362,8 @@ class EMBLCollect(AbstractCollect):
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
         self.autoprocessing_hwobj.execute_autoprocessing(
-            process_event, self.current_dc_parameters, frame_number, self.run_processing_after)
+            process_event, self.current_dc_parameters,
+            frame_number, self.run_processing_after)
 
     def stopCollect(self, owner="MXCuBE"):
         """Stops collect"""
@@ -390,9 +402,8 @@ class EMBLCollect(AbstractCollect):
            Animation is saved as the fourth snapshot
         """
 
-        return
-        #self.graphics_manager_hwobj.save_scene_animation(animation_filename,
-        #                                                 duration_sec)
+        self.graphics_manager_hwobj.save_scene_animation(animation_filename,
+                                                         duration_sec)
 
     def set_energy(self, value):
         """Sets energy"""
@@ -479,7 +490,7 @@ class EMBLCollect(AbstractCollect):
     def get_transmission(self):
         """Returns transmision in %"""
         if self.transmission_hwobj is not None:
-            return self.transmission_hwobj.getAttFactor()
+            return self.transmission_hwobj.get_value()
 
     def get_undulators_gaps(self):
         """Return triplet with gaps. In our case we have one gap,
