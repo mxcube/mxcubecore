@@ -390,7 +390,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         self.scan_info['edgeEnergy'] = 0.1
         self.th_edge = self.scan_info['edgeEnergy']
         logging.getLogger("GUI").info(
-              "Energy Scan: Chooch results are pk=%f, ip=%f, rm=%f" %
+              "Energy Scan: Chooch results are pk=%.2f, ip=%.2f, rm=%.2f" %
               (pk, ip, rm))
 
         try:
@@ -450,8 +450,8 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                                                 max(x_array),
                                                 len(ax.get_xticklabels()),
                                                 endpoint=True), 3))
-        ax2.axvline(pk, linestyle='--')
-        ax2.axvline(ip, linestyle='--')
+        ax2.axvline(pk, linestyle='--', color='blue')
+        ax2.axvline(ip, linestyle='--', color='red')
 
         canvas = FigureCanvasAgg(fig)
 
