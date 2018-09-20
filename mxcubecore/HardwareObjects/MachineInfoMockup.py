@@ -85,8 +85,14 @@ class MachineInfoMockup(HardwareObject):
         self.min_current = self.getProperty('min_current', 80.1)
         self.min_current = self.getProperty('max_current', 90.1)
 
+        self.flux_hwobj = self.getObjectByRole("flux")
+        self.connect(self.flux_hwobj,
+                     "fluxValueChanged",
+                     self.flux_changed)
+
         self.update_values()
         spawn(self.change_mach_current)
+
        
     def update_values(self):
         """
@@ -120,3 +126,9 @@ class MachineInfoMockup(HardwareObject):
                  self.values_list[0]['value']
             self.update_values()
             time.sleep(5)
+
+    def flux_changed(self, value):
+        self.values_list[-1]["value"] = value
+        self.values_list[-1]["in_range"] = value > 1e10
+        self.values_list[-1]["value_str"] = "%.2e ph/s" % value
+        self.update_values()

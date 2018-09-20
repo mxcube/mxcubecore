@@ -44,7 +44,8 @@ __version__ = "2.2."
 
 
 TEST_DICT = {"example_one": "Beamline test example no 1.",
-             "example_two": "Beamline test example no 2."}
+             "example_two": "Beamline test example no 2.",
+             "file_system": "File system"}
 
 TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
 TEST_COLORS_FONT = {False : '#FE0000', True : '#007800'}
@@ -192,14 +193,20 @@ class BeamlineTestMockup(HardwareObject):
     def test_example_one(self):
         """Text one"""
         result = {}
-        result["result_bit"] = True
-        result["result_short"] = "Test passed"
+
+        current_energy = self.bl_hwobj.energy_hwobj.getCurrentEnergy()
+
+        result["result_bit"] = current_energy < 12
+        result["result_short"] = "Test passed (energy = %.2f)" % current_energy
         result["result_details"] = ["An example test that was successful"]
         self.ready_event.set()
         return result
 
     def test_example_two(self):
         """Text one"""
+
+        
+
         result = {}
         result["result_bit"] = False
         result["result_short"] = "Test failed"
