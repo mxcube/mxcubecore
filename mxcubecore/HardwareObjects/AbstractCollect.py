@@ -173,18 +173,21 @@ class AbstractCollect(HardwareObject, object):
 
         try:
             # ----------------------------------------------------------------
+            # Prepare data collection
+
             self.open_detector_cover()
             self.open_safety_shutter()
             self.open_fast_shutter()
 
             # ----------------------------------------------------------------
+            # Store information in LIMS 
+
             self.current_dc_parameters["status"] = "Running"
             self.current_dc_parameters["collection_start_time"] = \
                  time.strftime("%Y-%m-%d %H:%M:%S")
 
             logging.getLogger("HWR").info(
-                "Collection parameters: %s" % str(self.current_dc_parameters)
-            )
+                "Collection parameters: %s" % str(self.current_dc_parameters))
 
             log.info("Collection: Storing data collection in LIMS") 
             self.store_data_collection_in_lims()
@@ -206,10 +209,16 @@ class AbstractCollect(HardwareObject, object):
                     self.current_dc_parameters['motors'][motor] = \
                          current_diffractometer_position.get(motor) 
 
+            # ----------------------------------------------------------------
+            # Move to the centered position and take crystal snapshots
+
             log.info("Collection: Moving to centred position") 
             self.move_to_centered_position()
             self.take_crystal_snapshots()
             self.move_to_centered_position()
+
+            # ----------------------------------------------------------------
+            # Set data collection parameters
 
             if "transmission" in self.current_dc_parameters:
                 log.info("Collection: Setting transmission to %.2f",
@@ -237,20 +246,23 @@ class AbstractCollect(HardwareObject, object):
                          self.current_dc_parameters["detdistance"])
                 self.move_detector(self.current_dc_parameters["detdistance"])
 
+            # ----------------------------------------------------------------
+            # Site specific implementation of a data collection
+
             # In order to call the hook with original parameters
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
             self.data_collection_hook()
 
+            # ----------------------------------------------------------------
+            # Store information in LIMS
+
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-            # ----------------------------------------------------------------
-
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = 'Data collection failed!\n%s' % exc_value
             self.collection_failed(failed_msg)
-
         finally:
             self.data_collection_cleanup()
 
