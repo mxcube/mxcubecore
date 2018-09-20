@@ -22,7 +22,6 @@ from AbstractSlits import AbstractSlits
 
 
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.3"
 
 
 class SlitsMockup(AbstractSlits):

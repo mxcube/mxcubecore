@@ -38,9 +38,7 @@ import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
 
 
 TEST_DICT = {"example_one": "Beamline test example no 1.",
