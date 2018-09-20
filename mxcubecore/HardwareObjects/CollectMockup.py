@@ -25,7 +25,6 @@ from AbstractCollect import AbstractCollect
 
 
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
 
 
 class CollectMockup(AbstractCollect):
