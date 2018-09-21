@@ -34,9 +34,9 @@ import gevent.event
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
-__status__ = "Draft"
+
 
 BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                         ['synchrotron_name',
@@ -69,7 +69,7 @@ class AbstractCollect(HardwareObject, object):
         self._collecting = False
         self._error_msg = ""
         self.exp_type_dict = {}
-
+    
         self.collection_id = None    
         self.data_collect_task = None
         self.current_dc_parameters = None
@@ -173,30 +173,33 @@ class AbstractCollect(HardwareObject, object):
 
         try:
             # ----------------------------------------------------------------
+            # Prepare data collection
+
             self.open_detector_cover()
             self.open_safety_shutter()
             self.open_fast_shutter()
 
             # ----------------------------------------------------------------
+            # Store information in LIMS 
+
             self.current_dc_parameters["status"] = "Running"
             self.current_dc_parameters["collection_start_time"] = \
                  time.strftime("%Y-%m-%d %H:%M:%S")
 
             logging.getLogger("HWR").info(
-                "Collection parameters: %s" % str(self.current_dc_parameters)
-            )
+                "Collection parameters: %s" % str(self.current_dc_parameters))
 
-            log.info("Collection: Storing data collection in LIMS")
+            log.info("Collection: Storing data collection in LIMS") 
             self.store_data_collection_in_lims()
        
-            log.info("Collection: Creating directories for raw images and processing files")
+            log.info("Collection: Creating directories for raw images and processing files") 
             self.create_file_directories()
 
-            log.info("Collection: Getting sample info from parameters")
+            log.info("Collection: Getting sample info from parameters") 
             self.get_sample_info()
         
-            #log.info("Collect: Storing sample info in LIMS")
-            #self.store_sample_info_in_lims()
+            log.info("Collect: Storing sample info in LIMS")        
+            self.store_sample_info_in_lims()
 
             if all(item is None for item in self.current_dc_parameters['motors'].values()):
                 # No centring point defined
@@ -204,12 +207,18 @@ class AbstractCollect(HardwareObject, object):
                 current_diffractometer_position = self.diffractometer_hwobj.getPositions()
                 for motor in self.current_dc_parameters['motors'].keys():
                     self.current_dc_parameters['motors'][motor] = \
-                         current_diffractometer_position.get(motor)
+                         current_diffractometer_position.get(motor) 
 
-            log.info("Collection: Moving to centred position")
+            # ----------------------------------------------------------------
+            # Move to the centered position and take crystal snapshots
+
+            log.info("Collection: Moving to centred position") 
             self.move_to_centered_position()
             self.take_crystal_snapshots()
             self.move_to_centered_position()
+
+            # ----------------------------------------------------------------
+            # Set data collection parameters
 
             if "transmission" in self.current_dc_parameters:
                 log.info("Collection: Setting transmission to %.2f",
@@ -237,19 +246,23 @@ class AbstractCollect(HardwareObject, object):
                          self.current_dc_parameters["detdistance"])
                 self.move_detector(self.current_dc_parameters["detdistance"])
 
+            # ----------------------------------------------------------------
+            # Site specific implementation of a data collection
+
             # In order to call the hook with original parameters
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
             self.data_collection_hook()
 
+            # ----------------------------------------------------------------
+            # Store information in LIMS
+
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-
         except:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = 'Data collection failed!\n%s' % exc_value
             self.collection_failed(failed_msg)
-
         finally:
             self.data_collection_cleanup()
 
@@ -306,10 +319,6 @@ class AbstractCollect(HardwareObject, object):
 
     def store_image_in_lims_by_frame_num(self, frame_number):
         pass
-
-    def stopCollect(self):
-        #TODO remove this method and use stop_collect in the queue_entry
-        self.stop_collect()
 
     def stop_collect(self):
         """
@@ -416,7 +425,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. : 
         """
         if self.transmission_hwobj is not None:
-            return self.transmission_hwobj.getAttFactor()  
+            return self.transmission_hwobj.get_value()  
 
     def get_beam_centre(self):
         """
@@ -615,8 +624,8 @@ class AbstractCollect(HardwareObject, object):
             if archive_directory:
                 jpeg_filename = "%s.jpeg" % os.path.splitext(image_file_template)[0]
                 thumb_filename = "%s.thumb.jpeg" % os.path.splitext(image_file_template)[0]
-                jpeg_file_template = os.path.join(archive_directory, jpeg_filename)
-                jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename)
+                jpeg_file_template = os.path.join(archive_directory, jpeg_filename).replace("cbf.thumb", "thumb")
+                jpeg_thumbnail_file_template = os.path.join(archive_directory, thumb_filename).replace("cbf.thumb", "thumb")
                 jpeg_full_path = jpeg_file_template % frame_number
                 jpeg_thumbnail_full_path = jpeg_thumbnail_file_template % frame_number
                 lims_image['jpegFileFullPath'] = jpeg_full_path
@@ -635,34 +644,11 @@ class AbstractCollect(HardwareObject, object):
             sample_id = int(sample_info["blSampleId"])
         except:
             sample_id = None
-        # No effect - why was it there?
-        # try:
-        #     sample_code = sample_info["code"]
-        # except:
-        #     sample_code = None
-        #
-        # sample_location = None
-        #
-        # try:
-        #     sample_container_number = int(sample_info['container_reference'])
-        # except:
-        #     pass
-        # else:
-        #     try:
-        #         vial_number = int(sample_info["sample_location"])
-        #     except:
-        #         pass
-        #     else:
-        #         sample_location = (sample_container_number, vial_number)
  
         self.current_dc_parameters['blSampleId'] = sample_id
 
         if self.diffractometer_hwobj.in_plate_mode():
-            try:
-                plate_location = self.plate_manipulator_hwobj.get_plate_location()
-                self.current_dc_parameters["actualSampleBarcode"] = "Plate %s" % str(plate_location[:40])
-            except:
-                self.current_dc_parameters["actualSampleBarcode"] = None
+            #TODO store plate location in lims
         elif self.sample_changer_hwobj:
             try:
                 self.current_dc_parameters["actualSampleBarcode"] = \
@@ -688,7 +674,7 @@ class AbstractCollect(HardwareObject, object):
         Descript. : 
         """
         positions_str = ""
-        for motor, position in sorted(self.current_dc_parameters['motors'].items()):
+        for motor, position in self.current_dc_parameters['motors'].items():
             if position:
                 if isinstance(motor, str):
                     positions_str += " %s=%f" % (motor, position)
@@ -754,7 +740,7 @@ class AbstractCollect(HardwareObject, object):
                 )
             )
             self.current_dc_parameters['xtalSnapshotFullPath2'] = animation_filename
-            self._take_crystal_animation(animation_filename, duration_sec=3)
+            self._take_crystal_animation(animation_filename, duration_sec=1)
         
     @abc.abstractmethod
     @task
