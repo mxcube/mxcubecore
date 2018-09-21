@@ -34,9 +34,9 @@ import gevent.event
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
-__status__ = "Draft"
+
 
 BeamlineConfig = collections.namedtuple('BeamlineConfig',
                                         ['synchrotron_name',
@@ -198,8 +198,8 @@ class AbstractCollect(HardwareObject, object):
             log.info("Collection: Getting sample info from parameters") 
             self.get_sample_info()
         
-            #log.info("Collect: Storing sample info in LIMS")        
-            #self.store_sample_info_in_lims()
+            log.info("Collect: Storing sample info in LIMS")        
+            self.store_sample_info_in_lims()
 
             if all(item is None for item in self.current_dc_parameters['motors'].values()):
                 # No centring point defined
@@ -644,35 +644,11 @@ class AbstractCollect(HardwareObject, object):
             sample_id = int(sample_info["blSampleId"])
         except:
             sample_id = None
-        # No effect - why was it there?
-        # try:
-        #     sample_code = sample_info["code"]
-        # except:
-        #     sample_code = None
-        #
-        # sample_location = None
-        #
-        # try:
-        #     sample_container_number = int(sample_info['container_reference'])
-        # except:
-        #     pass
-        # else:
-        #     try:
-        #         vial_number = int(sample_info["sample_location"])
-        #     except:
-        #         pass
-        #     else:
-        #         sample_location = (sample_container_number, vial_number)
  
         self.current_dc_parameters['blSampleId'] = sample_id
 
         if self.diffractometer_hwobj.in_plate_mode():
-            try:
-                plate_location = self.plate_manipulator_hwobj.get_plate_location()
-                #self.current_dc_parameters["actualSampleBarcode"] = "Plate %s" % str(plate_location[:30])
-                self.current_dc_parameters["actualSampleBarcode"] = "Plate"
-            except:
-                self.current_dc_parameters["actualSampleBarcode"] = None
+            #TODO store plate location in lims
         elif self.sample_changer_hwobj:
             try:
                 self.current_dc_parameters["actualSampleBarcode"] = \
