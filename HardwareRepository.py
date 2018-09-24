@@ -19,6 +19,7 @@ import stat
 import time
 import gevent.monkey
 gevent.monkey.patch_all(thread=False)
+from datetime import datetime
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher
@@ -92,19 +93,6 @@ class __HardwareRepositoryClient:
         try:
             self.invalidHardwareObjects = set()
             self.hardwareObjects = weakref.WeakValueDictionary()
-
-            if type(self.serverAddress)==bytes:
-                mngr = SpecConnectionsManager.SpecConnectionsManager() 
-                self.server = mngr.getConnection(self.serverAddress)
-      
-                with gevent.Timeout(3): 
-                    while not self.server.isSpecConnected():
-                        time.sleep(0.5) 
-   
-                # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
-                self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
-            else:
-                self.server = None
         finally:
             self.__connected = True
 
@@ -319,11 +307,11 @@ class __HardwareRepositoryClient:
     
 
     def getHardwareRepositoryPath(self):
-       if self.server:
-         return ""
-       else:
-         path = self.serverAddress[0]
-         return os.path.abspath(path)
+        if self.server:
+            return ""
+        else:
+            path = self.serverAddress[0]
+            return os.path.abspath(path)
 
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
@@ -404,13 +392,16 @@ class __HardwareRepositoryClient:
                 if objectName in self.hardwareObjects:
                     ho = self.hardwareObjects[objectName]
                 else:
+                    start_time = datetime.now()
+
                     ho = self.loadHardwareObject(objectName)
 
-                #try:
-                #    print (111, self.hardwareObjects, objectName)
-                #    ho = self.hardwareObjects[objectName]
-                #except KeyError:
-                #    ho = self.loadHardwareObject(objectName)
+                    end_time = datetime.now()
+                    time_delta = end_time - start_time
+
+                    logging.getLogger("HWR").debug(\
+                       "Loading of hwobj %s (%s.xml) took %d ms." % \
+                       (ho.__module__, objectName[1:], time_delta.microseconds / 1000))
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
