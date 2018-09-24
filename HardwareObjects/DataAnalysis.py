@@ -221,7 +221,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         else:
             raise RuntimeError("No process directory specified in edna_input")
 
-        msg = "Starting EDNA using xml file %r", edna_input_file
+        msg = "Starting EDNA characterisation using xml file %s" % edna_input_file
         logging.getLogger("queue_exec").info(msg)
 
         args = (self.start_edna_command, edna_input_file,

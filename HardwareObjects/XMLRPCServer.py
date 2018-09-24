@@ -162,7 +162,7 @@ class XMLRPCServer(HardwareObject):
 
         # Check if communication should be "secure". If self.doEnforceUseOfToken is set to True
         # all incoming http requests must have the correct token in the headers.
-        self.enforceUseOfToken = self.getProperty('enforceUseOfToken')
+        self.enforceUseOfToken = self.getProperty('enforceUseOfToken', False)
         if self.enforceUseOfToken:
             self.doEnforceUseOfToken = True
 
@@ -187,11 +187,13 @@ class XMLRPCServer(HardwareObject):
         if hasattr(self, "_server" ):
             return
         self.xmlrpc_prefixes = set()
+
         if self.doEnforceUseOfToken:
             self._server = SimpleXMLRPCServer((self.host, int(self.port)), requestHandler=SecureXMLRpcRequestHandler, 
                                               logRequests = False, allow_none = True)
         else:
             self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
+
         msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
@@ -218,7 +220,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.workflow_end) 
         self._server.register_function(self.dozor_batch_processed)
         self._server.register_function(self.dozor_status_changed)
-        self._server.register_function(self.add_processing_message)
+        self._server.register_function(self.processing_status_changed)
         self.image_num = 0
         self._server.register_function(self.get_image_num, "get_image_num")
         self._server.register_function(self.set_zoom_level) 
@@ -543,11 +545,27 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj.parallel_processing_hwobj.\
             set_processing_status(status)
 
-    def add_processing_message(self, collection_id, msg):
+    def processing_status_changed(self, collection_id, method, status, msg=''):
         for queue_entry in self.queue_model_hwobj.get_all_dc_queue_entries():
-            if queue_entry.get_data_model().id == collection_id:
-                queue_entry.get_data_model().processing_msg_list.append(\
-                   "%s: %s" % (str(time.strftime("%Y-%m-%d %H:%M:%S")), msg))
+            data_model = queue_entry.get_data_model()
+            if data_model.id == collection_id:
+                prefix = data_model.acquisitions[0].path_template.get_image_file_name()
+                prefix = prefix.replace("%05d", "#####")
+                
+                if status in ('started', 'success'):
+                    logging.getLogger('user_level_log').info(\
+                        "EDNA | %s: processing of data collection %s %s %s" % \
+                        (method, prefix, status, msg))
+                elif status == 'failed':
+                    logging.getLogger('user_level_log').error(\
+                        "EDNA | %s: processing of data collection %s %s %s" % \
+                        (method, prefix, status, msg))
+
+                queue_entry.add_processing_msg(\
+                    str(time.strftime("%Y-%m-%d %H:%M:%S")),
+                    method,
+                    status,
+                    msg)
 
     def image_taken(self, image_num):
         self.image_num = image_num
