@@ -1220,11 +1220,11 @@ class Qt4_GraphicsManager(HardwareObject):
         #self.diffractometer_hwobj.set_ready(False)
         gevent.spawn(self.diffractometer_hwobj.move_omega_relative,
                      180)
-        gevent.spawn(self.foo,
+        gevent.spawn(self.save_scene_animation_task,
                      filename,
                      duration_sec)
 
-    def foo(self, filename, duration_sec):
+    def save_scene_animation_task(self, filename, duration_sec):
 
         from array2gif import write_gif
         image_list = []
