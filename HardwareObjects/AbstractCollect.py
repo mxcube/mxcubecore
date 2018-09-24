@@ -649,6 +649,7 @@ class AbstractCollect(HardwareObject, object):
 
         if self.diffractometer_hwobj.in_plate_mode():
             #TODO store plate location in lims
+            pass
         elif self.sample_changer_hwobj:
             try:
                 self.current_dc_parameters["actualSampleBarcode"] = \
