@@ -392,16 +392,16 @@ class __HardwareRepositoryClient:
                 if objectName in self.hardwareObjects:
                     ho = self.hardwareObjects[objectName]
                 else:
-                    #start_time = datetime.now()
+                    start_time = datetime.now()
 
                     ho = self.loadHardwareObject(objectName)
 
-                    #end_time = datetime.now()
-                    #time_delta = end_time - start_time
+                    end_time = datetime.now()
+                    time_delta = end_time - start_time
 
-                    #logging.getLogger("HWR").debug(\
-                    #   "Loading of hwobj %s (%s.xml) took %d ms." % \
-                    #   (ho.__module__, objectName[1:], time_delta.microseconds / 1000))
+                    logging.getLogger("HWR").debug(\
+                       "Loading of hwobj %s (%s.xml) took %d ms." % \
+                       (ho.__module__, objectName[1:], time_delta.microseconds / 1000))
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
