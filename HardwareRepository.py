@@ -93,6 +93,17 @@ class __HardwareRepositoryClient:
         try:
             self.invalidHardwareObjects = set()
             self.hardwareObjects = weakref.WeakValueDictionary()
+
+            if type(self.serverAddress)==bytes:
+                mngr = SpecConnectionsManager.SpecConnectionsManager()
+                self.server = mngr.getConnection(self.serverAddress)
+
+                with gevent.Timeout(3):
+                    while not self.server.isSpecConnected():
+                        time.sleep(0.5)
+
+                # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
+                self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
         finally:
             self.__connected = True
 
