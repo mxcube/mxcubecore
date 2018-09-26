@@ -176,7 +176,6 @@ class FlexHCD(SampleChanger):
         gevent.sleep(15)
         while not unload_load_task.ready():
            if self._execute_cmd("get_robot_cache_variable", "SampleCentringReady") == "True":
-              self._setLoadedSample(sample)
               return True
            gevent.sleep(1)
 
@@ -186,7 +185,6 @@ class FlexHCD(SampleChanger):
 
         if not self._execute_cmd("pin_on_gonio"):
             logging.getLogger('HWR').info("reset loaded sample")
-            self._resetLoadedSample()
         logging.getLogger('HWR').info("return False")
         return False
 
@@ -199,10 +197,9 @@ class FlexHCD(SampleChanger):
 
     @task
     def load(self, sample):
-        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepare_load(wait=True)
         self.enable_power()
-        #warning_task.kill()
+
         try:
             res = SampleChanger.load(self, sample)
         finally:
@@ -211,6 +208,9 @@ class FlexHCD(SampleChanger):
 
         if res:
             self.prepareCentring()
+        else:
+            self._resetLoadedSample()
+
         return res
 
     @task
@@ -244,10 +244,8 @@ class FlexHCD(SampleChanger):
 
     @task
     def home(self):
-        #warning_task = gevent.spawn(self._execute_cmd, "PSS_light")
         self.prepare_load(wait=True)
         self.enable_power()
-        #warning_task.kill()
         self._execute_cmd("homeClear")
 
     @task
@@ -267,15 +265,13 @@ class FlexHCD(SampleChanger):
         gevent.sleep(5)
         while not load_task.ready():
            if self._execute_cmd("get_robot_cache_variable", "SampleCentringReady") == "True":
-              self._setLoadedSample(sample)
               return True
            gevent.sleep(1)
 
+        load_task.get()
+
         if self._execute_cmd("get_loaded_sample") == (sample.getCellNo(), sample.getBasketNo(), sample.getVialNo()):
-          self._setLoadedSample(sample)
           return True
-        if not self._execute_cmd("pin_on_gonio"):
-            self._resetLoadedSample()
         return False
 
     def _doUnload(self, sample=None):
@@ -310,11 +306,6 @@ class FlexHCD(SampleChanger):
         pass
 
     def _updateState(self):
-        defreezing = self._execute_cmd("isDefreezing")
-
-        if defreezing:
-          return
-
         try:
           state = self._readState()
         except:
@@ -331,7 +322,8 @@ class FlexHCD(SampleChanger):
     def _readState(self):
         # should read state from robot
 
-        state = "RUNNING" if self._execute_cmd("robot.isBusy") else "STANDBY"
+        state = "RUNNING" if (self._execute_cmd("robot.isBusy") and \
+                              not self._execute_cmd("isDefreezing")) else "STANDBY"
 
         if state == 'STANDBY' and not self.isSequencerReady():
           state = 'RUNNING'
@@ -347,12 +339,12 @@ class FlexHCD(SampleChanger):
     def _isDeviceBusy(self, state=None):
         if state is None:
             state = self._readState()
-        return state not in (SampleChangerState.Ready, SampleChangerState.Loaded, SampleChangerState.Alarm, 
+        return state not in (SampleChangerState.Ready, SampleChangerState.Loaded, SampleChangerState.Alarm,
                              SampleChangerState.Disabled, SampleChangerState.Fault, SampleChangerState.StandBy)
 
     def _isDeviceReady(self):
         state = self._readState()
-        return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
+        return state in (SampleChangerState.Ready, SampleChangerState.Charging)
 
     def _waitDeviceReady(self,timeout=None):
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
@@ -373,7 +365,6 @@ class FlexHCD(SampleChanger):
         for s in self.getSampleList():
           if s.getCoords() == (sample_cell, sample_puck, sample):
             self._setLoadedSample(s)
-            #self._setSelectedSample(s)
             return
 
         for s in self.getSampleList():

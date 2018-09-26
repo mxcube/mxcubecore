@@ -183,6 +183,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.log_message)
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
+        self._server.register_function(self.queue_set_workflow_lims_id)
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.shape_history_set_grid_data)
         self._server.register_function(self.beamline_setup_read)
@@ -366,6 +367,24 @@ class XMLRPCServer(HardwareObject):
             raise
         else:
             return True
+
+    def queue_set_workflow_lims_id(self, node_id, lims_id):
+        """
+        Set lims id of workflow node with id <node_id>
+
+        :param node_id: The node id of the workflow node
+        :type node_id: int
+        :param lims_id: The lims id
+        :type lims_id: int
+        """
+        try:
+            model = self.queue_model_hwobj.get_node(node_id)
+            model.lims_id = lims_id
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return True        
 
     def is_queue_executing(self, node_id=None):
         """
