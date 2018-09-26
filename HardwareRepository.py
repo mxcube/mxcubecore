@@ -151,7 +151,7 @@ class __HardwareRepositoryClient:
             logging.getLogger('HWR').exception("Could not execute 'require' on Hardware Repository server")
 
 
-    def loadHardwareObject(self, hwobj_name):
+    def loadHardwareObject(self, hwobj_name=""):
         """
         Load a Hardware Object
 
