@@ -170,15 +170,33 @@ class ISPyBRestClient(HardwareObject):
                          pnumber = self.session_hwobj.proposal_number,
                          dc_id = dc_id)
         try:
-            response = json.loads(get(url).text)
+            response = json.loads(get(url).text)[0]
         except Exception as ex:
             response = None
             logging.getLogger("ispyb_client").exception(str(ex))
 
         lims_dc = {}
+        lims_dc["workflow_result_url_list"] = []
+
+        try:
+            if response and "WorkflowStep_workflowStepId" in response:
+                step_id_list = response["WorkflowStep_workflowStepId"].split(',')
+
+                for step_id in step_id_list:
+                    url = "{rest_root}{token}"
+                    url += "/proposal/{pcode}{pnumber}/mx/workflow/step/{step_id}/result"
+                    url = url.format(rest_root = self.__rest_root,
+                                     token = str(self.__rest_token),
+                                     pcode = self.session_hwobj.proposal_code,
+                                     pnumber = self.session_hwobj.proposal_number,
+                                     step_id = step_id)
+
+                    lims_dc["workflow_result_url_list"].append(url)
+        except Exception as ex:
+            logging.getLogger("ispyb_client").exception(str(ex))
 
         if response:
-            for key, value in response[0].iteritems():
+            for key, value in response.iteritems():
                 if key.startswith('DataCollection_'):
                     k = str(key.replace('DataCollection_', ''))
                     lims_dc[k] = value
@@ -296,14 +314,14 @@ class ISPyBRestClient(HardwareObject):
                 url = url.format(rest_root = self.__rest_root,
                                  token = self.__rest_token,
                                  username = user_name)
-                
+
                 response = get(url)
                 proposal_list = json.loads(str(response.text))
-                
+
                 for proposal in proposal_list:
                     temp_proposal_dict = {}
                     # Backward compatability with webservices
-                    # Could be removed if webservices disapear 
+                    # Could be removed if webservices disapear
                     temp_proposal_dict['Proposal'] = {}
                     temp_proposal_dict['Proposal']['type'] = str(proposal['Proposal_proposalType'])
 
@@ -324,16 +342,16 @@ class ISPyBRestClient(HardwareObject):
                                 date_object, "%Y-%m-%d %H:%M:%S")
                             date_object = datetime.strptime(session['endDate'], '%b %d, %Y %I:%M:%S %p')
                             session['endDate'] = datetime.strftime(
-                                date_object, "%Y-%m-%d %H:%M:%S") 
+                                date_object, "%Y-%m-%d %H:%M:%S")
                             proposal_sessions.append(session)
 
                             temp_proposal_dict['Sessions'] = proposal_sessions
 
                         result.append(temp_proposal_dict)
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)  
+               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
-             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)        
+             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
         return result
 
     def get_proposal_sessions(self, proposal_id):
@@ -346,7 +364,7 @@ class ISPyBRestClient(HardwareObject):
                session_list = response.json()
                #for session in all_sessions:
                #    if session['proposalVO']['proposalId'] == proposal_id:
-               #session_list.append(all_sessions) 
+               #session_list.append(all_sessions)
             except:
                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
@@ -364,7 +382,7 @@ class ISPyBRestClient(HardwareObject):
         """
         self.__update_rest_token()
         session_list = []
-        result = {} 
+        result = {}
 
         if self.__rest_token:
              response = get(self.__rest_root + self.__rest_token + \
@@ -393,7 +411,7 @@ class ISPyBRestClient(HardwareObject):
 
         :param mx_collection: The data collection parameters.
         :type mx_collection: dict
-        
+
         :param beamline_setup: The beamline setup.
         :type beamline_setup: dict
 
@@ -418,7 +436,7 @@ class ISPyBRestClient(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print "store_beamline_setup...", beamline_setup 
+        print "store_beamline_setup...", beamline_setup
         pass
 
 
@@ -431,7 +449,7 @@ class ISPyBRestClient(HardwareObject):
         :type mx_collection: dict
 
         :returns: None
-        """  
+        """
         print "update_data_collection... ", mx_collection
         pass
 
@@ -439,7 +457,7 @@ class ISPyBRestClient(HardwareObject):
     def store_image(self, image_dict):
         """
         Stores the image (image parameters) <image_dict>
-        
+
         :param image_dict: A dictonary with image pramaters.
         :type image_dict: dict
 
@@ -448,17 +466,16 @@ class ISPyBRestClient(HardwareObject):
         print "store_image ", image_dict
         pass
 
-    
     def __find_sample(self, sample_ref_list, code = None, location = None):
         """
         Returns the sample with the matching "search criteria" <code> and/or
         <location> with-in the list sample_ref_list.
 
         The sample_ref object is defined in the head of the file.
-        
+
         :param sample_ref_list: The list of sample_refs to search.
         :type sample_ref: list
-        
+
         :param code: The vial datamatrix code (or bar code)
         :param type: str
 
@@ -470,8 +487,8 @@ class ISPyBRestClient(HardwareObject):
 
     def get_samples(self, proposal_id, session_id):
         pass
-    
-        
+
+
     def get_session_samples(self, proposal_id, session_id, sample_refs):
         """
         Retrives the list of samples associated with the session <session_id>.
@@ -483,7 +500,7 @@ class ISPyBRestClient(HardwareObject):
 
         :param proposal_id: ISPyB proposal id.
         :type proposal_id: int
-        
+
         :param session_id: ISPyB session id to retreive samples for.
         :type session_id: int
 
@@ -497,7 +514,7 @@ class ISPyBRestClient(HardwareObject):
         """
         pass
 
-    
+
     def get_bl_sample(self, bl_sample_id):
         """
         Fetch the BLSample entry with the id bl_sample_id
@@ -514,7 +531,7 @@ class ISPyBRestClient(HardwareObject):
     def disable(self):
         self.__disabled = True
 
- 
+
     def enable(self):
         self.__disabled = False
 
@@ -524,7 +541,7 @@ class ISPyBRestClient(HardwareObject):
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
         mx_collection dictionary is set to an exisitng
-        DataCollectionGroup id. 
+        DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
         :type mx_collection: dict
@@ -532,7 +549,7 @@ class ISPyBRestClient(HardwareObject):
         :returns: DataCollectionGroup id
         :rtype: int
         """
-        pass 
+        pass
 
     def _store_data_collection_group(self, group_data):
         self.update_rest_token()
@@ -548,4 +565,4 @@ class ISPyBRestClient(HardwareObject):
         else:
              logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
-        return session_list        
+        return session_list

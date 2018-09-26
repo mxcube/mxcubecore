@@ -1417,6 +1417,7 @@ class Workflow(TaskNode):
         self.path_template = PathTemplate()
         self._type = str()
         self.set_requires_centring(False)
+        self.lims_id = None
 
     def set_type(self, workflow_type):
         self._type = workflow_type

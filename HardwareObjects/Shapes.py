@@ -26,6 +26,10 @@ class Shapes(HardwareObject):
         HardwareObject.__init__(self, name)
         self.shapes = {}
 
+    def init(self):
+        self.diffractometer = self.getObjectByRole("diffractometer")
+        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
+
     def get_shapes(self):
         """
         Get all Shapes.
@@ -98,6 +102,7 @@ class Shapes(HardwareObject):
         :type shape: Shape object.
         """
         self.shapes[shape.id] = shape
+        shape.shapes_hw_object = self
 
     def add_shape_from_mpos(self, mpos_list, screen_coord, t):
         """
@@ -145,7 +150,12 @@ class Shapes(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
-        return self.shapes.pop(sid, None)
+        shape = self.shapes.pop(sid, None)
+
+        if shape:
+            shape.shapes_hw_object = None
+
+        return shape
 
     def clear_all(self):
         """
@@ -226,7 +236,7 @@ class Shapes(HardwareObject):
         """
         Get the first of the selected grids, (the one that was selected first in
         a sequence of select operations)
-        
+
         :returns: The first selected grid as a dictionary
         :rtype: dict
         """
@@ -272,6 +282,7 @@ class Shape(object):
         self.screen_coord = screen_coord
         self.selected = False
         self.refs = []
+        self.shapes_hw_object = None
 
         self.add_cp_from_mp(mpos_list)
 
@@ -329,6 +340,9 @@ class Shape(object):
             cpos_list.append(cpos.as_dict())
 
         d = copy.deepcopy(vars(self))
+
+        # Do not serialize Shapes HW Object
+        d.pop("shapes_hw_object")
 
         # replace cpos_list with a list of motor positions
         d.pop("cp_list")
@@ -414,11 +428,22 @@ class Grid(Shape):
         self.beam_pos = [1, 1]
         self.beam_width = 0
         self.beam_height = 0
+        self.hide_threshold = 5
 
         self.set_id(Grid.SHAPE_COUNT)
 
+    def update_position(self, transform):
+        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.getPosition() % 360
+        d = abs((self.get_centred_position().phi % 360) - phi_pos)
+
+        if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:
+            self.state = "HIDDEN"
+        else:
+            super(Grid, self).update_position(transform)
+            self.state = "SAVED"
+
     def get_centred_position(self):
-        return self.cp_list[1]
+        return self.cp_list[0]
 
     def get_grid_range(self):
         return (float(self.cell_width * (self.num_cols - 1)), \
@@ -458,4 +483,4 @@ class Grid(Shape):
         d["beam_height"] = d["beam_height"]
         d["angle"] = 0
 
-        return d    
+        return d
