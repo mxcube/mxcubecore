@@ -218,12 +218,7 @@ class __HardwareRepositoryClient:
                     hwobj_instance.resolveReferences()
 
                     try:
-                        def addChannelsAndCommands(node):
-                            if isinstance(node, BaseHardwareObjects.CommandContainer):
-                                node._addChannelsAndCommands()
-                            for child_node in node:
-                                addChannelsAndCommands(child_node)
-                        addChannelsAndCommands(hwobj_instance)
+                        hwobj_instance._addChannelsAndCommands()
                     except:
                         logging.getLogger('HWR').exception("Error while adding commands and/or channels to Hardware Object %s", hwobj_name)
                         comment = "Failed to add all commands and/or channels"
