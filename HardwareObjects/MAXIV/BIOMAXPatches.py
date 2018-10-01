@@ -26,8 +26,13 @@ class BIOMAXPatches(HardwareObject):
         if self.dtox_hwobj is not None and self.dtox_hwobj.getPosition() < self.safe_position:
             logging.getLogger("HWR").info("Moving detector to safe position before loading a sample.")
             logging.getLogger("user_level_log").info("Moving detector to safe position before loading a sample.")
-            self.wait_motor_ready(self.dtox_hwobj)
+
+        self.wait_motor_ready(self.dtox_hwobj)
+        try:
             self.dtox_hwobj.syncMove(self.safe_position, timeout = 30)
+        except Exception:
+            logging.getLogger("HWR").warning("Cannot move detector")
+        finally:
             logging.getLogger("HWR").info("Detector in safe position, position: %s" %self.dtox_hwobj.getPosition())
             logging.getLogger("user_level_log").info("Detector in safe position, position: %s" %self.dtox_hwobj.getPosition())
         else:
@@ -59,9 +64,11 @@ class BIOMAXPatches(HardwareObject):
             logging.getLogger("HWR").info("Diffractometer already in Centring")
             logging.getLogger("user_level_log").info("Diffractometer already in Centring")
         logging.getLogger("HWR").info("Moving detector to pre-mount position %s" %self.curr_dtox_pos)
-        self.dtox_hwobj.syncMove(self.curr_dtox_pos, timeout = 30)
-
-
+        try:
+            self.dtox_hwobj.syncMove(self.curr_dtox_pos, timeout = 30)
+        except Exception:
+            logging.getLogger("HWR").warning("Cannot move detector")
+ 
     def new_load(self, *args, **kwargs):
         logging.getLogger("HWR").debug("Patched sample load version.")
         try:
