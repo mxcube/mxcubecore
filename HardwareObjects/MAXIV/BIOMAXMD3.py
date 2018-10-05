@@ -37,9 +37,10 @@ class BIOMAXMD3(GenericDiffractometer):
         Description:
         """
         GenericDiffractometer.__init__(self, *args)
-	#Compatibility line
-	self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
-	self.MANUAL3CLICK_MODE = "Manual 3-click"
+        #Compatibility line
+        self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
+        self.MANUAL3CLICK_MODE = "Manual 3-click"
+
     def init(self):
 
         GenericDiffractometer.init(self)
@@ -67,13 +68,13 @@ class BIOMAXMD3(GenericDiffractometer):
         self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
         self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
         self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
-    try:
+        try:
             self.kappa_motor_hwobj = self.motor_hwobj_dict['kappa']
-    except:
+        except:
             self.kappa_motor_hwobj = None
-    try:
+        try:
             self.kappa_phi_motor_hwobj = self.motor_hwobj_dict['kappa_phi']
-    except:
+        except:
             self.kappa_phi_motor_hwobj = None
 
         self.cent_vertical_pseudo_motor = None
@@ -372,9 +373,9 @@ class BIOMAXMD3(GenericDiffractometer):
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
         scan = self.command_dict["startScan4DEx"]
         time.sleep(0.1) 
-        self.wait_device_ready(exptime+30)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, device ready.")
         scan(scan_params)
+        self.wait_device_ready(exptime+30)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
 
@@ -425,7 +426,7 @@ class BIOMAXMD3(GenericDiffractometer):
         raster(raster_params)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation launched, waiting for device ready.")
         time.sleep(0.1)
-        self.wait_device_ready(exptime+30)  # timeout of 5 min
+        self.wait_device_ready(exptime*nlines+30)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 finish raster scan, device ready.")
 
     def keep_position_after_phase_change(self, new_phase):
