@@ -82,8 +82,11 @@ class ID232MultiCollect(ESRFMultiCollect):
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         #diffr.moveToPhase("Centring", wait=True, timeout=200)
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
-        diffr._wait_ready(20)
+        if number_of_snapshots:
+            # put the back light in
+            diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
+            self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+            diffr._wait_ready(20)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
@@ -98,6 +101,8 @@ class ID232MultiCollect(ESRFMultiCollect):
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
         diffr.getObjectByRole("FrontLight").move(2)
+        #take the back light out
+        diffr.getObjectByRole("BackLightSwitch").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass):
@@ -113,7 +118,10 @@ class ID232MultiCollect(ESRFMultiCollect):
         energy = self._tunable_bl.getCurrentEnergy()
         diffr = self.getObjectByRole("diffractometer")
         diffr.setNbImages(number_of_images)
-        return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode="EXTERNAL_GATE")
+        if self.mesh :
+            return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode="EXTERNAL_GATE")
+        else :
+            return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode="EXTERNAL_TRIGGER")
 
     def open_fast_shutter(self):
         self.getObjectByRole("fastshut").actuatorIn()
