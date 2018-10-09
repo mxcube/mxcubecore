@@ -19,6 +19,7 @@ when enter (1) or interlock (0) the hutch.
 class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
         BaseHardwareObjects.HardwareObject.__init__(self, name)
+        self._enabled = True
 
     def _do_polling(self):
         while True: 
@@ -88,10 +89,12 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
                 print "Moving %s to %g" % (dtox.name(), old["dtox"])
                 dtox.move(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
+            self.flex_device.eval("flex.robot_port(1)")
             udiff_ctrl.moveToPhase(phase="Centring",wait=True)
         else:
             old["dtox"] = dtox.getPosition()
             ctrl_obj.detcover.set_in()
+            self.flex_device.eval("flex.robot_port(0)")
             dtox.move(815)
             udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
 
@@ -117,3 +120,17 @@ class ID232HutchTrigger(BaseHardwareObjects.HardwareObject):
         self.hutch_opened = 1-value
 	self.initialized = True
 
+        if self._enabled:
+            self.macro(self.hutch_opened)
+
+    def getActuatorState(self):
+        if self._enabled:
+            return "ENABLED"
+        else:
+            return "DISABLED"
+
+    def actuatorIn(self):
+        self._enabled = True
+
+    def actuatorOut(self):
+        self._enabled = False
