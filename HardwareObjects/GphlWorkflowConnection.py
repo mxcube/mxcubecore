@@ -266,22 +266,42 @@ class GphlWorkflowConnection(HardwareObject, object):
         logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
 
         # Get environmental variables
-        envs = {}
+        envs = os.environ.copy()
+
+        # # Trick to allow unauthorised account (e.g. opid30) on EDRF to run GPhL programs
+        # # Any value is OK, just setting it is enough.
+        # envs['AutoPROCWorkFlowUser'] = '1'
+
+        # Hack to pass alternative installation dir for processing
+        val = self.software_paths.get('gphl_wf_processing_installation')
+        if val:
+            envs['GPHL_PROC_INSTALLATION'] = val
+
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
         # They may be unset depending on the config files
-        val = self.software_paths.get('BDG_home')
+        val = self.software_paths.get('co.gphl.wf.bdg_licence_dir')
         if val:
             envs['BDG_home'] = val
         val = self.software_paths.get('co.gphl.wf.bin')
         if val:
             envs['GPHL_INSTALLATION'] = val
+        logging.getLogger('HWR').info('Executing GPhL workflow, in environment %s' % envs)
+        ff = self.software_paths.get('gphl_wf_redirected_out')
+        if ff:
+            fp1 = open(ff, 'w')
+            fp2 = subprocess.STDOUT
+        else:
+            fp1 = fp2 = None
         try:
             self._running_process = subprocess.Popen(commandList, env=envs,
-                                                     stdout=None, stderr=None)
+                                                     stdout=fp1, stderr=fp2)
         except:
             logging.getLogger().error('Error in spawning workflow application')
             raise
+        finally:
+            if ff:
+                fp1.close()
 
         self.set_state(States.RUNNING)
 
