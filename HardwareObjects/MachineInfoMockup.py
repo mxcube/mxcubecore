@@ -35,12 +35,12 @@ class MachineInfoMockup(HardwareObject):
     """
 
     def __init__(self, name):
-	HardwareObject.__init__(self, name)
+        HardwareObject.__init__(self, name)
         """
         Descript. : 
         """
         #Parameters
-	#Intensity current ranges
+	    #Intensity current ranges
         self.values_list = []
         temp_dict = {}
         temp_dict['value'] = 90.1
