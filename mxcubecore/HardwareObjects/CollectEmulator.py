@@ -218,7 +218,9 @@ class CollectEmulator(CollectMockup):
         simcal_executive = self.gphl_connection_hwobj.get_executable('simcal')
         # Get environmental variables
         envs = {'BDG_home':
-                    self.gphl_connection_hwobj.software_paths['BDG_home']
+                    self.gphl_connection_hwobj.software_paths['BDG_home'],
+                'GPHL_INSTALLATION':
+                    self.gphl_connection_hwobj.software_paths['co.gphl.wf.bin']
                 }
         for tag, val in self['environment_variables'].getProperties().items():
             envs[str(tag)] = str(val)
@@ -257,6 +259,8 @@ class CollectEmulator(CollectMockup):
         f90nml.write(input_data, infile, force=True)
         outfile = os.path.join(file_info['directory'],
                                'simcal_out_%s.nml' % self._counter)
+        logfile = os.path.join(file_info['directory'],
+                               'simcal_log_%s.txt' % self._counter)
         self._counter += 1
         hklfile = os.path.join(sample_dir, 'sample.hkli')
         command_list = [simcal_executive, '--input', infile, '--output', outfile,
@@ -266,13 +270,22 @@ class CollectEmulator(CollectMockup):
             command_list.extend(ConvertUtils.command_option(tag, val,
                                                             prefix='--'))
         logging.getLogger('HWR').info("Executing command: %s" % command_list)
+        logging.getLogger('HWR').info("Executing environment: %s"
+                                      % sorted(envs.items()))
+
+
+        fp1 = open(logfile, 'w')
+        fp2 = subprocess.STDOUT
+        # resource.setrlimit(resource.RLIMIT_STACK, (-1,-1))
 
         try:
-            running_process = subprocess.Popen(command_list, stdout=None,
-                                                     stderr=None, env=envs)
+            running_process = subprocess.Popen(command_list, stdout=fp1,
+                                               stderr=fp2, env=envs)
         except:
             logging.getLogger('HWR').error('Error in spawning workflow application')
             raise
+        finally:
+            fp1.close()
 
         # This does waiting, so we want to collect the result afterwards
         super(CollectEmulator, self).data_collection_hook()
