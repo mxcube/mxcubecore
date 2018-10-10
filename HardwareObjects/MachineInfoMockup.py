@@ -40,7 +40,7 @@ class MachineInfoMockup(HardwareObject):
         Descript. : 
         """
         #Parameters
-	    #Intensity current ranges
+        #Intensity current ranges
         self.values_list = []
         temp_dict = {}
         temp_dict['value'] = 90.1
