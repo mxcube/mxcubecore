@@ -268,7 +268,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         # Get environmental variables
         envs = os.environ.copy()
 
-        # # Trick to allow unauthorised account (e.g. opid30) on EDRF to run GPhL programs
+        # # Trick to allow unauthorised account (e.g. opid30) on ESRF to run GPhL programs
         # # Any value is OK, just setting it is enough.
         # envs['AutoPROCWorkFlowUser'] = '1'
 
