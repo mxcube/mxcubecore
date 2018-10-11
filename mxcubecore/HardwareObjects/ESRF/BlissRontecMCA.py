@@ -1,6 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractMCA import *
-from bliss.controllers.rontec import Rontec
+
 
 class BlissRontecMCA(AbstractMCA, HardwareObject):
     def __init__(self, name):
@@ -10,11 +10,9 @@ class BlissRontecMCA(AbstractMCA, HardwareObject):
         self.calib_cf = []
 
     def init(self):
-        self.mca = Rontec(self.getProperty("SLdevice"))
-        calib_cf = self.getProperty("calib_cf")
-        for i in calib_cf.split(","):
-            self.calib_cf.append(float(i))
-
+        session = self.getObjectByRole('bliss_session')
+        obj_name = self.getProperty("object_name")
+        self.mca = getattr(session, obj_name)
 
     @task
     def read_raw_data(self, chmin=0, chmax=4095, save_data=False):
@@ -52,6 +50,7 @@ class BlissRontecMCA(AbstractMCA, HardwareObject):
     @task
     def clear_roi(self, **kwargs):
         self.mca.clear_roi(**kwargs)
+
     @task
     def get_times(self):
         return self.mca.get_times()
@@ -65,13 +64,13 @@ class BlissRontecMCA(AbstractMCA, HardwareObject):
         self.mca.set_presets(**kwargs)
 
     @task
-    def start_acq (self, cnt_time=None):
+    def start_acq(self, cnt_time=None):
         self.mca.start_acq(cnt_time)
 
     @task
-    def stop_acq (self):
+    def stop_acq(self):
         self.mca.stop_acq()
 
     @task
-    def clear_spectrum (self):
+    def clear_spectrum(self):
         self.mca.clear_spectrum()
