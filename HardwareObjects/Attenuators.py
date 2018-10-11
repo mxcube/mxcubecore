@@ -33,10 +33,13 @@ class Attenuators(AbstractAttenuators):
     def init(self):
         self.chan_att_value = self.getChannelObject('chanAttValue')
         self.chan_att_value.connectSignal('update', self.value_changed)
+        self.value_changed(self.chan_att_value.getValue())
         self.chan_att_state = self.getChannelObject('chanAttState')
         self.chan_att_state.connectSignal('update', self.state_changed)
         self.chan_att_limits = self.getChannelObject('chanAttLimits')
         self.chan_att_limits.connectSignal('update', self.limits_changed)
+
+        self.update_values()
 
     def state_changed(self, state):
         self._state = state
@@ -48,7 +51,7 @@ class Attenuators(AbstractAttenuators):
 
     def limits_changed(self, value):
         self._limits = value
-        self.emit('trslimitsChanged', self._limits)
+        self.emit('limitsChanged', (self._limits, ))
 
     def set_value(self, value, timeout=None):
         if timeout is not None:
