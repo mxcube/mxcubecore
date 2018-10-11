@@ -221,10 +221,11 @@ class FlexHCD(SampleChanger):
         return self.swstate_attr.getValue() == 'Ready'
 
     def _wait_ready(self, timeout=None):
+        err_msg = "Timeout waiting for sample changer to be ready"
         # None means infinite timeout <=0 means default timeout
         if timeout is not None and timeout <= 0:
             timeout = self.timeout
-        with gevent.Timeout(timeout, RuntimeError("Timeout waiting for sample changer to be ready")):
+        with gevent.Timeout(timeout, RuntimeError(err_msg)):
             while not self._ready():
                 time.sleep(0.5)
 
@@ -269,20 +270,24 @@ class FlexHCD(SampleChanger):
                                              sample.getVialNo()])
 
         gevent.sleep(15)
+
+        err_msg = "Timeout waiting for sample changer to be in safe position"
         while not unload_load_task.ready():
             if self.exporter_addr:
                 loading_state = self._execute_cmd_exporter('getCurrentLoadSampleState', attribute=True)
                 if 'on_gonio' in loading_state:
                     self._setLoadedSample(sample)
-                    with gevent.Timeout(20, RuntimeError("Timeout waiting for sample changer to be in safe position")):
-                        while not self._execute_cmd_exporter('getRobotIsSafe', attribute=True):
+                    with gevent.Timeout(20, RuntimeError(err_msg)):
+                        while not self._execute_cmd_exporter('getRobotIsSafe',
+                                                             attribute=True):
                             gevent.sleep(0.5)
                     return True
             else:
-                if 'on_gonio' in str(self._execute_cmd('sampleStatus',
-                                                       'LoadSampleStatus')):
+                loading_state = str(self._execute_cmd('sampleStatus',
+                                                      'LoadSampleStatus'))
+                if 'on_gonio' in loading_state:
                     self._setLoadedSample(sample)
-                    with gevent.Timeout(20, RuntimeError("Timeout waiting for sample changer to be in safe position")):
+                    with gevent.Timeout(20, RuntimeError(err_msg)):
                         while not self._execute_cmd('get_robot_cache_variable',
                                                     'data:dioRobotIsSafe') == 'true':
                             gevent.sleep(0.5)
@@ -298,7 +303,8 @@ class FlexHCD(SampleChanger):
     def _check_pin_on_gonio(self):
         print "_check_pin_on_gonio"
         if self.exporter_addr:
-            _on_gonio = self._execute_cmd_exporter('pin_on_gonio', command=True)
+            _on_gonio = self._execute_cmd_exporter('pin_on_gonio',
+                                                   command=True)
         else:
             _on_gonio = self._execute_cmd('pin_on_gonio')
 
@@ -426,21 +432,24 @@ class FlexHCD(SampleChanger):
                                      sample.getCellNo(), sample.getBasketNo(),
                                      sample.getVialNo())
         gevent.sleep(5)
+
+        err_msg = "Timeout waiting for sample changer to be in safe position"
         while not load_task.ready():
             if self.exporter_addr:
                 loading_state = self._execute_cmd_exporter('getCurrentLoadSampleState', attribute=True)
                 if 'on_gonio' in loading_state:
                     self._setLoadedSample(sample)
-                    with gevent.Timeout(20, RuntimeError("Timeout waiting for sample changer to be in safe position")):
+                    with gevent.Timeout(20, RuntimeError(err_msg)):
                         while not self._execute_cmd_exporter('getRobotIsSafe',
                                                              attribute=True):
                             gevent.sleep(0.5)
                     return True
             else:
-                if 'on_gonio' in str(self._execute_cmd('sampleStatus',
-                                                       'LoadSampleStatus')):
+                loading_state = str(self._execute_cmd('sampleStatus',
+                                                      'LoadSampleStatus'))
+                if 'on_gonio' in loading_state:
                     self._setLoadedSample(sample)
-                    with gevent.Timeout(20, RuntimeError("Timeout waiting for sample changer to be in safe position")):
+                    with gevent.Timeout(20, RuntimeError(err_msg)):
                         while not self._execute_cmd('get_robot_cache_variable',
                                                     'data:dioRobotIsSafe') == 'true':
                             gevent.sleep(0.5)
@@ -507,13 +516,14 @@ class FlexHCD(SampleChanger):
 
     def _updateState(self):
         # see if the command exists for exporter
-        defreezing = self._execute_cmd('isDefreezing')
-        if defreezing:
-            return
+        if not self.exporter_addr:
+            defreezing = self._execute_cmd('isDefreezing')
+            if defreezing:
+                self._setState(SampleChangerState.Ready)
 
         try:
             state = self._readState()
-        except:
+        except Exception:
             state = SampleChangerState.Unknown
 
         self._setState(state)
@@ -590,16 +600,13 @@ class FlexHCD(SampleChanger):
         self._setSelectedSample(None)
 
     def prepare_hutch(self, **kwargs):
+        if self.exporter_addr:
+            return
+
         user_port = kwargs.get('user_port')
         robot_port = kwargs.get('robot_port')
         if user_port is not None:
-            if self.exporter_addr:
-                pass
-            else:
-                self._execute_cmd('robot.user_port(user_port)')
+            self._execute_cmd('robot.user_port(user_port)')
 
         if robot_port is not None:
-            if self.exporter_addr:
-                pass
-            else:
-                self._execute_cmd('robot.robot_port(robot_port)')
+            self._execute_cmd('robot.robot_port(robot_port)')
