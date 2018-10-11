@@ -309,25 +309,6 @@ class EMBLCollect(AbstractCollect):
             self.break_bragg_released = False
             self.energy_hwobj.set_break_bragg()
 
-    def update_lims_with_workflow(self, workflow_id, grid_snapshot_filename):
-        """Updates collection with information about workflow
-
-        :param workflow_id: workflow id
-        :type workflow_id: int
-        :param grid_snapshot_filename: grid snapshot file path
-        :type grid_snapshot_filename: string
-        """
-        if self.lims_client_hwobj is not None:
-            try:
-                self.current_dc_parameters["workflow_id"] = workflow_id
-                self.current_dc_parameters["xtalSnapshotFullPath3"] =\
-                    grid_snapshot_filename
-                self.lims_client_hwobj.update_data_collection(
-                    self.current_dc_parameters)
-            except:
-                self.print_log("HWR", "error",
-                    "Could not store data collection into ISPyB")
-
     def collect_frame_update(self, frame):
         """Image frame update
 
