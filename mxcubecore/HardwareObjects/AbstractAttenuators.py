@@ -33,7 +33,7 @@ class AbstractAttenuators(Device, object):
         Device.__init__(self, name)
 
         self._value = None
-        self._limits = None
+        self._limits = [0, 100]
         self._state = None
 
     @abc.abstractmethod
@@ -46,7 +46,7 @@ class AbstractAttenuators(Device, object):
 
     def set_limits(self, limits):
         self._limits = limits
-        self.emit('limitsChanged', self._limits) 
+        self.emit('limitsChanged', (self._limits, )) 
 
     def get_limits(self):
         return self._limits
@@ -60,5 +60,5 @@ class AbstractAttenuators(Device, object):
 
     def update_values(self):
         self.emit('valueChanged', self._value)
-        self.emit('trslimitsChanged', self._limits)
+        self.emit('limitsChanged', (self._limits, ))
         self.emit('stateChanged', self._state)
