@@ -125,7 +125,7 @@ class Microdiff(MiniDiff.MiniDiff):
                 continue
             name = self.MOTOR_TO_EXPORTER_NAME[motor]
             if not in_kappa_mode and motor in ('kappa','kappa_phi'):
-              continue
+                continue
             argin += "%s=%0.3f;" % (name, position)
         if not argin:
             return
@@ -287,10 +287,6 @@ class Microdiff(MiniDiff.MiniDiff):
 
         self.currentCentringProcedure.link(self.manualCentringDone)
 
-    def startCentringMethod(self, *args, **kw):
-        self._wait_ready(100)
-        return MiniDiff.MiniDiff.startCentringMethod(self, *args, **kw)
- 
     def interruptAndAcceptCentring(self):
         """ Used when plate. Kills the current 1 click centring infinite loop
         and accepts fake centring - only save the motor positions
@@ -312,6 +308,11 @@ class Microdiff(MiniDiff.MiniDiff):
     def setBackLightLevel(self, level):
         return self.backLight.move(level)
 
+    def backlight_in(self, wait=True):
+        self.getDeviceByRole("BackLightSwitch").actuatorIn(wait)
+
+    def backlight_out(self, wait=True):
+        self.getDeviceByRole("BackLightSwitch").actuatorOut(wait)
 def set_light_in(light, light_motor, zoom):
     MICRODIFF.getDeviceByRole("FrontLight").move(0)
     MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
