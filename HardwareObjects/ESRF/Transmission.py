@@ -1,5 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 class Transmission(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -53,4 +54,4 @@ class Transmission(HardwareObject):
     def is_in(self, attenuator_index):
         curr_bits = self.getAttState()
         idx = self.indexes[attenuator_index]
-        return bool((1<<idx) & curr_bits)
+        return bool((1 << idx) & curr_bits)
