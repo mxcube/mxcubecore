@@ -308,13 +308,8 @@ class Microdiff(MiniDiff.MiniDiff):
     def setBackLightLevel(self, level):
         return self.backLight.move(level)
 
-    def backlight_in(self, wait=True):
-        self.getDeviceByRole("BackLightSwitch").actuatorIn(wait)
-
-    def backlight_out(self, wait=True):
-        self.getDeviceByRole("BackLightSwitch").actuatorOut(wait)
 def set_light_in(light, light_motor, zoom):
-    MICRODIFF.getDeviceByRole("FrontLight").move(0)
+    self.frontlight.move(0)
     MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
 
 MiniDiff.set_light_in = set_light_in
