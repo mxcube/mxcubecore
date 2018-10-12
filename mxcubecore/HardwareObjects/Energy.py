@@ -84,7 +84,8 @@ class Energy(Equipment):
     def getEnergyLimits(self):
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            return None
+            energy = self.getCurrentEnergy()
+            return (energy, energy)
 
         if self.energy_motor is not None:
             try:
