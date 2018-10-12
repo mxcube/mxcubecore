@@ -36,7 +36,8 @@ class MachCurrent(BaseHardwareObjects.Device):
             fillmode = fillmode.strip()
 
             refill = self.getChannelObject('RefillCountdown').getValue()
-        except:
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
             opmsg, fillmode, value, refill = ("", "", -1, -1)
 
         if opmsg and opmsg != self.opmsg:
@@ -49,7 +50,8 @@ class MachCurrent(BaseHardwareObjects.Device):
     def getCurrent(self):
         try:
             value = self.getChannelObject('Current').getValue()
-        except:
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
             value = -1
 
         return value
@@ -58,7 +60,8 @@ class MachCurrent(BaseHardwareObjects.Device):
 
         try:
             msg = self.getChannelObject('OperatorMsg').getValue()
-        except:
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
             msg = ""
 
         return msg
@@ -66,7 +69,8 @@ class MachCurrent(BaseHardwareObjects.Device):
     def getFillMode(self):
         try:
             fmode = self.getChannelObject('FillingMode').getValue()
-        except:
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
             fmode = ""
 
         return fmode
