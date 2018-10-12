@@ -10,7 +10,7 @@ Example xml file:
   - for tunable wavelength beamline:
 <object class="Energy">
   <object href="/energy" role="energy"/>
-  <object href="/khoros" role="controller"/>
+  <object href="/bliss" role="controller"/>
   <tunable_energy>True</tunable_energy>
 </object>
 The energy should have methods getPosition, getLimits and move.
@@ -84,7 +84,8 @@ class Energy(Equipment):
     def getEnergyLimits(self):
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            return None
+            energy = self.getCurrentEnergy()
+            return (energy, energy)
 
         if self.energy_motor is not None:
             try:
