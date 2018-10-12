@@ -20,8 +20,8 @@ class MicrodiffInOut(Device):
         Device.__init__(self, name)
         self.actuatorState = "unknown"
         self.username = "unknown"
-        #default timeout - 3 sec
-        self.timeout = 3
+        #default timeout - 5 sec
+        self.timeout = 5
         self.hwstate_attr = None
 
 

@@ -5,12 +5,12 @@ from HardwareRepository import BaseHardwareObjects
 import PyTango.gevent
 
 """
-Read the state of the hutch from the PSS device server and take consequent
-actions when enter (1) or interlock (0) the hutch.
+Read the state of the hutch from the PSS device server and take actions
+when enter (1) or interlock (0) the hutch.
 0 = The hutch has been interlocked and the sample environment should be made
      ready for either loading a sample or a data collection.
 1 = The interlock is cleared and the user is entering the hutch. The equipment
-    is placed in save position.
+    is placed in safe position.
 Example xml file:
 <object class="ESRF.BlissHutchTrigger">
   <username>Hutchtrigger</username>
@@ -18,7 +18,6 @@ Example xml file:
   <pss_card_ch>7/1</pss_card_ch>
   <polling_interval>500</polling_interval>
   <object href="/bliss" role="controller"/>
-  <object href="/sample_changer", role="sample_changer"/>
 </object>
 """
 
@@ -38,11 +37,12 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
 
     def init(self):
         try:
-            self.device = PyTango.gevent.DeviceProxy(self.getProperty('pss_tangoname'))
+            self.device = PyTango.gevent.DeviceProxy(
+                self.getProperty('pss_tangoname'))
         except PyTango.DevFailed, traceback:
             last_error = traceback[-1]
-            logging.getLogger('HWR').error("%s: %s", str(self.name()),
-                                           last_error['desc'])
+            logging.getLogger('HWR').error(
+                "%s: %s", str(self.name()), last_error['desc'])
             self.device = None
 
         self.pollingTask = None
@@ -55,8 +55,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
         except:
-            logging.getLogger().error("%s: cannot find PSS number",
-                                      self.name())
+            logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 
         if self.device is not None:
@@ -81,23 +80,13 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
     def macro(self, entering_hutch, **kwargs):
         logging.info("%s: %s hutch", self.name(),
                      "entering" if entering_hutch else "leaving")
-
         ctrl_obj = self.getObjectByRole('controller')
-        sample_changer_hwobj = self.getObjectByRole('sample_changer')
-
-        ctrl_obj.enter_hutch(entering_hutch, **kwargs)
-        if sample_changer_hwobj:
-            if entering_hutch:
-                sample_changer_hwobj.prepare_hutch(robot_port=0)
-            else:
-                sample_changer_hwobj.prepare_hutch(user_port=0,
-                                                   robot_port=1)
+        ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
 
     def poll(self):
-        a = self.device.GetInterlockState([self.card-1,
-                                           2*(self.channel-1)])[0]
-        b = self.device.GetInterlockState([self.card-1,
-                                           2*(self.channel-1)+1])[0]
+        a = self.device.GetInterlockState([self.card-1, 2*(self.channel-1)])[0]
+        b = self.device.GetInterlockState(
+            [self.card-1, 2*(self.channel-1)+1])[0]
         value = a & b
 
         if value == self.__oldValue:
