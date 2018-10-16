@@ -4,12 +4,15 @@ import time
 
 from sample_changer.GenericSampleChanger import *
 
+
 class SampleChangerMockup(SampleChanger):
 
     __TYPE__ = "SC3"
     NO_OF_BASKETS = 17
+
     def __init__(self, *args, **kwargs):
-        super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
+        super(SampleChangerMockup, self).__init__(
+            self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self._selected_sample = 1
@@ -17,7 +20,7 @@ class SampleChangerMockup(SampleChanger):
         self._scIsCharging = None
 
         for i in range(5):
-            basket = Basket(self,i+1)
+            basket = Basket(self, i+1)
             self._addComponent(basket)
 
         self._initSCContents()
@@ -46,14 +49,13 @@ class SampleChangerMockup(SampleChanger):
             self._selected_sample = int(sample)
             self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
 
-
         return self.getLoadedSample()
 
     def unload(self, sample_slot, wait):
-        self._selected_basket = None
-        self._selected_sample = None
+        self._selected_basket = -1
+        self._selected_sample = -1
         self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
- 
+
     def getBasketList(self):
         basket_list = []
         for basket in self.components:
@@ -67,7 +69,7 @@ class SampleChangerMockup(SampleChanger):
     def is_mounted_sample(self, sample):
         if isinstance(sample, tuple):
             sample = "%s:%s" % sample
-        
+
         return sample == self.getLoadedSample()
 
     def _doAbort(self):
@@ -79,16 +81,16 @@ class SampleChangerMockup(SampleChanger):
     def _doUpdateInfo(self):
         return
 
-    def _doSelect(self,component):
+    def _doSelect(self, component):
         return
 
-    def _doScan(self,component,recursive):
+    def _doScan(self, component, recursive):
         return
 
     def _doLoad(self, sample=None):
         return
 
-    def _doUnload(self,sample_slot=None):
+    def _doUnload(self, sample_slot=None):
         return
 
     def _doReset(self):
@@ -101,28 +103,30 @@ class SampleChangerMockup(SampleChanger):
         :returns: None
         :rtype: None
         """
-        basket_list= [('', 4)] * 5
+        basket_list = [('', 4)] * 5
 
         for basket_index in range(5):
-            basket=self.getComponents()[basket_index]
+            basket = self.getComponents()[basket_index]
             datamatrix = None
             scanned = False
             present = True
             basket._setInfo(present, datamatrix, scanned)
 
-        sample_list=[]
+        sample_list = []
         for basket_index in range(5):
             for sample_index in range(10):
-                sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
+                sample_list.append(
+                    ("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
         for spl in sample_list:
-            sample = self.getComponentByAddress(Pin.getSampleAddress(spl[1], spl[2]))
-            datamatrix = "matr%d_%d" %(spl[1], spl[2])
+            sample = self.getComponentByAddress(
+                Pin.getSampleAddress(spl[1], spl[2]))
+            datamatrix = "matr%d_%d" % (spl[1], spl[2])
             scanned = loaded = has_been_loaded = False
             present = True
             sample._setInfo(present, datamatrix, scanned)
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
 
-        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1,1))
-        mounted_sample._setLoaded(True, False)  
+        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1, 1))
+        mounted_sample._setLoaded(True, False)
         self._setState(SampleChangerState.Ready)
