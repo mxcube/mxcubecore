@@ -853,7 +853,10 @@ class GenericDiffractometer(HardwareObject):
         self.wait_device_ready(timeout)
         for motor in motor_positions.keys():
             position = motor_positions[motor]
-            logging.getLogger("HWR").debug(" Moving %s to %s" % (str(motor), position))
+            if type(motor) == str:
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
+            else:
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (str(motor.name()), position))
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
@@ -861,8 +864,8 @@ class GenericDiffractometer(HardwareObject):
                 if None in (motor, position):
                     continue
                 motor_positions[motor] = position
-            #self.wait_device_ready(timeout)
             motor.move(position)
+        self.wait_device_ready(timeout)
 
         if self.delay_state_polling is not None and self.delay_state_polling > 0:    
             # delay polling for state in the
