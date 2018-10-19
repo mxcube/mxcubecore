@@ -93,11 +93,26 @@ class GphlWorkflowConnection(HardwareObject, object):
         pass
 
     def init(self):
-
         if self.hasObject('connection_parameters'):
-            self._connection_parameters.update(
-                self['connection_parameters'].getProperties()
-            )
+            # NBNB TODO This should be done differentlty, with either localhost or gethostname, commanded by a switch
+            dd =  self['connection_parameters'].getProperties()
+            # if not dd.get('python_address'):
+            dd['python_address'] = socket.gethostname()
+            self._connection_parameters.update(dd)
+
+        locations = next(self.getObjects('directory_locations')).getProperties()
+        paths = self.software_paths
+        props = self.java_properties
+        dd = next(self.getObjects('software_paths')).getProperties()
+        for tag, val in dd.items():
+            paths[tag] = val.format(**locations)
+        dd = next(self.getObjects('software_properties')).getProperties()
+        for tag, val in dd.items():
+            val = val.format(**locations)
+            paths[tag] = props[tag] = val
+        #
+        pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+        paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
     def get_state(self):
         """Returns a member of the General.States enumeration"""
@@ -118,30 +133,22 @@ class GphlWorkflowConnection(HardwareObject, object):
     def to_java_time(self, time):
         """Convert time in seconds since the epoch (python time) to Java time value"""
         return self._gateway.jvm.java.lang.Long(int(time*1000))
-
-    def _initialize_connection(self, gphl_workflow_hwobj):
-        """Set up parameters at start of first execution
-
-        NB This cannot be done in init() as it requires gphl_workflow_hwobj"""
-        locations = next(self.getObjects('directory_locations')).getProperties()
-        locations['LOCAL_SCRIPTS'] = gphl_workflow_hwobj.file_paths['scripts']
-        paths = self.software_paths
-        props = self.java_properties
-        dd = next(self.getObjects('software_paths')).getProperties()
-        for tag, val in dd.items():
-            paths[tag] = val.format(**locations)
-        dd = next(self.getObjects('software_properties')).getProperties()
-        for tag, val in dd.items():
-            val = val.format(**locations)
-            paths[tag] = props[tag] = val
-        #
-        pp = paths.get('co.gphl.wf.bin')
-        if pp:
-            locations['GPHL_INSTALLATION'] = pp
-        pp = (paths.get('co.gphl.wf.bdg_licence_dir')
-              or locations.get('GPHL_INSTALLATION'))
-        if pp:
-            paths['BDG_home'] = pp
+    #
+    # def _initialize_connection(self, gphl_workflow_hwobj):
+    #     """Set up parameters at start of first execution"""
+    #     locations = next(self.getObjects('directory_locations')).getProperties()
+    #     paths = self.software_paths
+    #     props = self.java_properties
+    #     dd = next(self.getObjects('software_paths')).getProperties()
+    #     for tag, val in dd.items():
+    #         paths[tag] = val.format(**locations)
+    #     dd = next(self.getObjects('software_properties')).getProperties()
+    #     for tag, val in dd.items():
+    #         val = val.format(**locations)
+    #         paths[tag] = props[tag] = val
+    #     #
+    #     pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+    #     paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
 
     def get_executable(self, name):
@@ -149,7 +156,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         tag = 'co.gphl.wf.%s.bin' % name
         result = self.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.software_paths['co.gphl.wf.bin'], name)
+            result = os.path.join(self.software_paths['GPHL_INSTALLATION'], name)
         #
         return result
 
@@ -209,7 +216,10 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        commandList = [self.software_paths['java_binary']]
+        # We do this trick to allow specifying teh java binary as, e.g.
+        # 'ssh lonsdale java;
+        commandList = self.software_paths['java_binary'].split()
+        #commandList = [self.software_paths['java_binary']]
 
         for keyword, value in params.get('invocation_properties',{}).items():
             commandList.extend(ConvertUtils.java_property(keyword, value))
@@ -279,16 +289,12 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
-        # They may be unset depending on the config files
-        val = self.software_paths.get('co.gphl.wf.bdg_licence_dir')
-        if val:
-            envs['BDG_home'] = val
-        val = self.software_paths.get('co.gphl.wf.bin')
-        if val:
-            envs['GPHL_INSTALLATION'] = val
+        envs['GPHL_INSTALLATION'] = self.software_paths['GPHL_INSTALLATION']
+        envs['BDG_home'] = self.software_paths['BDG_home']
         logging.getLogger('HWR').info('Executing GPhL workflow, in environment %s' % envs)
         ff = self.software_paths.get('gphl_wf_redirected_out')
         if ff:
+            ff = os.path.join(path_template.process_directory, ff)
             fp1 = open(ff, 'w')
             fp2 = subprocess.STDOUT
         else:
