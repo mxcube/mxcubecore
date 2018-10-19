@@ -136,10 +136,16 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
     """ END Overloading of GenericVideoDevice methods """
 
     def getWidth(self):
-        return self.device.width
+        if self.width:
+            return self.width
+        else:
+            return self.device.width
     
     def getHeight(self):
-        return self.device.height
+        if self.height:
+            return self.height
+        else:
+            return self.device.height
     
 
 def test_hwo(hwo):
