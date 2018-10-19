@@ -84,6 +84,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
         self.stateChannel = self.getChannelObject("state")
         self.labelsChannel = self.getChannelObject("labels")
         self.currentposition = 0
+        self.currentstate = None
 
         self.positionChannel.connectSignal("update", self.positionChanged)
         self.stateChannel.connectSignal("update", self.stateChanged)
@@ -157,7 +158,10 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
     
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
-        self.emit('stateChanged', (self.getState(), ))
+        the_state = self.getState()
+        if the_state != self.currentstate:
+            self.currentstate = the_state 
+            self.emit('stateChanged', (the_state, ))
 
     def positionChanged(self, currentposition):
         previous_position = self.currentposition
