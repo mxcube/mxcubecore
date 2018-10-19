@@ -411,6 +411,11 @@ class GenericDiffractometer(HardwareObject):
         return self.current_state == DiffractometerState.tostring(\
                     DiffractometerState.Ready)
 
+    def wait_device_not_ready(self, timeout=5):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device not ready")):
+            while self.is_ready():
+                time.sleep(0.01)
+
     def wait_device_ready(self, timeout=30):
         """ Waits when diffractometer status is ready:
 
@@ -730,8 +735,10 @@ class GenericDiffractometer(HardwareObject):
         else:
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
+
             try:
-                self.move_to_motors_positions(motor_pos)
+                logging.getLogger("HWR").debug("Centring finished. Moving motoros to position %s" % str(motor_pos))
+                self.move_to_motors_positions(motor_pos, wait=True)
             except:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
@@ -826,6 +833,7 @@ class GenericDiffractometer(HardwareObject):
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
+            self.wait_device_not_ready()
             self.wait_device_ready(10)
   
     def move_motors(self, motor_positions, timeout=15):
