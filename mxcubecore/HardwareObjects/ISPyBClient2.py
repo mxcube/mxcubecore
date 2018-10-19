@@ -583,7 +583,7 @@ class ISPyBClient2(HardwareObject):
         # Authentication
         if self.authServerType == 'ldap':
             logging.getLogger('HWR').debug('LDAP login')
-            ok, msg=ldap_connection.login(login_name,psd)
+            ok, msg=self.ldap_login(login_name,psd, ldap_connection)
             logging.getLogger("HWR").debug(" searching for user %s / psd: %s. It is %s" % (login_name,psd, ok))
         elif self.authServerType == 'ispyb':
             logging.getLogger('HWR').debug('ISPyB login')
