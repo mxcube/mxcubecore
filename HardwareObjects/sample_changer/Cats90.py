@@ -770,15 +770,17 @@ class Cats90(SampleChanger):
 
     def cats_state_changed(self, value):
 
-        # hack for transient states
-        trials = 0
-        while value in [PyTango.DevState.ALARM, PyTango.DevState.ON]:
-            time.sleep(0.1)
-            trials += 1
-            logging.getLogger("HWR").warning("SAMPLE CHANGER could be in transient state. trying again")
-            value = self._chnState.getValue()
-            if trials > 4:
-               break
+        if self.cats_state != value:
+            # hack for transient states
+            trials = 0
+    
+            while value in [PyTango.DevState.ALARM, PyTango.DevState.ON]:
+                time.sleep(0.1)
+                trials += 1
+                logging.getLogger("HWR").warning("SAMPLE CHANGER could be in transient state. trying again")
+                value = self._chnState.getValue()
+                if trials > 4:
+                   break
 
         self.cats_state = value
         self._updateState()
