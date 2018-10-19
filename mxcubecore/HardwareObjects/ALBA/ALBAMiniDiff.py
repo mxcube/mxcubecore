@@ -150,9 +150,14 @@ class ALBAMiniDiff(GenericDiffractometer):
         
         @state: Tango state
         """
+
         if str(state) == "ON":
             state = DiffractometerState.tostring(DiffractometerState.Ready)
-        GenericDiffractometer.state_changed(self, state)
+
+        if state != self.current_state:
+            logging.getLogger("HWR").debug("ALBAMinidiff: State changed %s (was: %s)" % (str(state), self.current_state)  )
+            self.current_state = state
+            self.emit("minidiffStateChanged", (self.current_state))
 
     def getCalibrationData(self, offset=None):
         """
@@ -358,6 +363,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         Emit stateChanged signal according to supervisor current state.
         """
+        return
         self.current_state = state
         self.emit('stateChanged', (self.current_state, ))
 
@@ -366,8 +372,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         Emit stateChanged signal according to supervisor current phase.
         """
-        self.current_state = phase
-        self.emit('minidiffPhaseChanged', (self.current_state, ))
+        #self.current_state = phase
+        self.emit('minidiffPhaseChanged', (phase, ))
 
     def phi_motor_moved(self, pos):
         """

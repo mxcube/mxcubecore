@@ -391,6 +391,7 @@ class ALBACats(Cats90):
             logging.getLogger("HWR").info("  AUTO_PREPARE_DIFF (On) sample changer is in safe state... preparing diff now")
             #ret = self.diff_send_sampleview()
             self.go_sampleview_cmd()   
+            logging.getLogger("HWR").info("     restoring detector distance")
             self.restore_detdist_position()
             self._wait_phase_done('SAMPLE')
         else:
@@ -408,8 +409,8 @@ class ALBACats(Cats90):
         @shifts: mounting position
         """
         if not self._chnPowered.getValue():
-            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
-            
+            self._cmdPowerOn()  # try switching power on
+
         ret = self.diff_send_transfer()
 
         if ret is False:

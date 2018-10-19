@@ -73,9 +73,9 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 pass
 
 def test_hwo(hwo):
-    proposal = 'mx2017062242'
     proposal = 'mx2018012551'
-    pasw = 'mxcube'
+    proposal = 'mx2018002222'
+    pasw = '2222008102'
     
     info = hwo.login(proposal, pasw)
     # info = hwo.get_proposal(proposal_code, proposal_number)

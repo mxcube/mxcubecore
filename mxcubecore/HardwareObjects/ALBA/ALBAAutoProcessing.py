@@ -171,10 +171,14 @@ class ALBAAutoProcessing(HardwareObject):
     def trigger_auto_processing(self, dc_pars):
         logging.getLogger("HWR").debug(" ALBAAutoProcessing. triggering auto processing.")
 
-        job = ALBAEdnaProcJob()
         dc_id = dc_pars['collection_id']  
-        input_file = self.input_file  # TODO
         output_dir = dc_pars['ednaproc_dir']
+
+        logging.getLogger("HWR").debug("    - collection_id = %s " % dc_id)
+        logging.getLogger("HWR").debug("    - output_dir    = %s " % output_dir)
+
+        job = ALBAEdnaProcJob()
+        input_file = self.input_file  # TODO
 
         job.run(dc_id, input_file, output_dir)
     
