@@ -743,9 +743,13 @@ class GenericDiffractometer(HardwareObject):
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                #if 3 click centring move -180
-                if not self.in_plate_mode():
-                    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #if 3 click centring move -180. well. dont, in principle the calculated
+                # centred positions include omega to initial position
+                pass
+                #if not self.in_plate_mode():
+                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+                #    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #    logging.getLogger("HWR").debug("         Moving omega done")
 
             if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO:
                 self.emit("newAutomaticCentringPoint", motor_pos)
