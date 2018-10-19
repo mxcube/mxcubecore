@@ -173,77 +173,77 @@ class Cats90(SampleChanger):
             self.number_of_lids = int(no_of_lids)
 
         # Create channels
-        self._chnState = self.getChannelObject("_chnState")
+        self._chnState = self.getChannelObject("_chnState", optional=True)
         if self._chnState is None:
             self._chnState = self.addChannel({
                     "type": "tango", "name": "_chnState",
                     "tangoname": self.tangoname, "polling": 300,
                 }, "State")
 
-        self._chnStatus = self.getChannelObject("_chnStatus")
+        self._chnStatus = self.getChannelObject("_chnStatus", optional=True)
         if self._chnStatus is None:
             self._chnStatus = self.addChannel({
                     "type": "tango", "name": "_chnStatus",
                     "tangoname": self.tangoname, "polling": 300,
                 }, "Status")
 
-        self._chnPowered = self.getChannelObject("_chnPowered")
+        self._chnPowered = self.getChannelObject("_chnPowered", optional=True)
         if self._chnPowered is None:
             self._chnPowered = self.addChannel({
                     "type": "tango", "name": "_chnPowered",
                     "tangoname": self.tangoname, "polling": 300,
                 }, "Powered")
 
-        self._chnPathRunning = self.getChannelObject("_chnPathRunning")
+        self._chnPathRunning = self.getChannelObject("_chnPathRunning", optional=True)
         if self._chnPathRunning is None:
             self._chnPathRunning = self.addChannel({
                     "type": "tango", "name": "_chnPathRunning",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "PathRunning")
 
-        self._chnPathSafe = self.getChannelObject("_chnPathSafe")
+        self._chnPathSafe = self.getChannelObject("_chnPathSafe", optional=True)
         if self._chnPathSafe is None:
             self._chnPathSafe = self.addChannel({
                     "type": "tango", "name": "_chnPathSafe",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "PathSafe")
 
-        self._chnNumLoadedSample = self.getChannelObject("_chnNumLoadedSample")
+        self._chnNumLoadedSample = self.getChannelObject("_chnNumLoadedSample", optional=True)
         if self._chnNumLoadedSample is None:
             self._chnNumLoadedSample = self.addChannel({
                     "type": "tango", "name": "_chnNumLoadedSample",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "NumSampleOnDiff")
 
-        self._chnLidLoadedSample = self.getChannelObject("_chnLidLoadedSample")
+        self._chnLidLoadedSample = self.getChannelObject("_chnLidLoadedSample", optional=True)
         if self._chnLidLoadedSample is None:
             self._chnLidLoadedSample = self.addChannel({
                     "type": "tango", "name": "_chnLidLoadedSample",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "LidSampleOnDiff")
 
-        self._chnSampleBarcode = self.getChannelObject("_chnSampleBarcode")
+        self._chnSampleBarcode = self.getChannelObject("_chnSampleBarcode", optional=True)
         if self._chnSampleBarcode is None:
             self._chnSampleBarcode = self.addChannel({
                     "type": "tango", "name": "_chnSampleBarcode",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "Barcode")
 
-        self._chnSampleIsDetected = self.getChannelObject("_chnSampleIsDetected")
+        self._chnSampleIsDetected = self.getChannelObject("_chnSampleIsDetected", optional=True)
         if self._chnSampleIsDetected is None:
             self._chnSampleIsDetected = self.addChannel({
                     "type": "tango", "name": "_chnSampleIsDetected",
                     "tangoname": self.tangoname, 
                 }, "di_PRI_SOM")
 
-        self._chnAllLidsClosed = self.getChannelObject("_chnTotalLidState")
+        self._chnAllLidsClosed = self.getChannelObject("_chnTotalLidState", optional=True)
         if self._chnAllLidsClosed is None:
             self._chnAllLidsClosed = self.addChannel({
                     "type": "tango", "name": "_chnAllLidsClosed",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "di_AllLidsClosed")
 
-        self._chnCurrentTool = self.getChannelObject("_chnCurrentTool")
+        self._chnCurrentTool = self.getChannelObject("_chnCurrentTool", optional=True)
         if self._chnCurrentTool is None:
             self._chnCurrentTool = self.addChannel({
                     "type": "tango", "name": "_chnCurrentTool",
@@ -360,7 +360,7 @@ class Cats90(SampleChanger):
         # declare channels to detect basket presence changes
         if self.is_isara():
             self.basket_channels = None
-            self._chnBasketPresence = self.getChannelObject("_chnBasketPresence")
+            self._chnBasketPresence = self.getChannelObject("_chnBasketPresence", optional=True)
             if self._chnBasketPresence is None:
                 self._chnBasketPresence = self.addChannel({
                         "type": "tango", "name": "_chnBasketPresence",
@@ -372,7 +372,7 @@ class Cats90(SampleChanger):
 
             for basket_index in range(self.number_of_baskets):            
                 channel_name = "_chnBasket%dState" % (basket_index + 1)
-                chan = self.getChannelObject(channel_name)
+                chan = self.getChannelObject(channel_name, optional=True)
                 if chan is None:
                    chan = self.addChannel({
                         "type": "tango", "name": channel_name,
