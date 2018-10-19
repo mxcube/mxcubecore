@@ -123,22 +123,21 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             else:
                 act_state = STATE_IN
     
-        self.actuator_state = act_state
+        if act_state != self.actuator_state:
+            self.actuator_state = act_state
+            self.emitStateChanged()
 
     def stateChanged(self, value):
         self.actuator_value = value
         self.update_state()
-        self.emitStateChanged()
 
     def motorPositionChanged(self, value):
         self.motor_position = value
         self.update_state()
-        self.emitStateChanged()
 
     def motorStateChanged(self, value):
         self.motor_state = value
         self.update_state()
-        self.emitStateChanged()
 
     def emitStateChanged(self):
         #

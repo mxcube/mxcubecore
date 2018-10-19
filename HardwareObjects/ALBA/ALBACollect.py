@@ -33,7 +33,7 @@ __author__ = "Vicente Rey Bakaikoa"
 __credits__ = ["MXCuBE collaboration"]
 __version__ = "2.2."
 
-class ALBACollect(AbstractCollect, HardwareObject):
+class ALBACollect(AbstractCollect):
     """Main data collection class. Inherited from AbstractMulticollect
        Collection is done by setting collection parameters and 
        executing collect command  
@@ -45,8 +45,8 @@ class ALBACollect(AbstractCollect, HardwareObject):
         :type name: string
         """
 
-        AbstractCollect.__init__(self)
-        HardwareObject.__init__(self, name)
+        AbstractCollect.__init__(self, name)
+#        HardwareObject.__init__(self, name)
 
         self._error_msg = ""
         self.owner = None
@@ -868,8 +868,9 @@ class ALBACollect(AbstractCollect, HardwareObject):
         """
         return self.get_measured_intensity()
 
-    def trigger_auto_processing(self, event, dc_pars, frame):
+    def trigger_auto_processing(self, event, frame):
         if event == "after":
+            dc_pars = self.current_dc_parameters
             self.autoprocessing_hwobj.trigger_auto_processing(dc_pars)
 
 def test_hwo(hwo):
