@@ -12,6 +12,7 @@ from DataAnalysis import DataAnalysis
 from HardwareRepository.TaskUtils import *
 
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+from XSDataCommon import XSDataFile, XSDataString
 
 root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
 
@@ -59,7 +60,8 @@ class ALBADataAnalysis(DataAnalysis):
 
         self.edna_directory = os.path.dirname(input_file)
         self.input_file = os.path.basename(input_file)
-        self.results_file = self.fix_path(results_file)
+        #self.results_file = self.fix_path(results_file)
+        self.results_file = results_file
         logging.getLogger("HWR").debug("      self.results file: %s" % self.results_file)
 
         state = self.wait_done()
