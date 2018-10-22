@@ -1,6 +1,6 @@
 import logging
 import time
-from AbstractMotor import AbstractMotor
+from AbstractMotor import AbstractMotor, MotorStates
 from gevent import Timeout
 
 """
@@ -24,23 +24,21 @@ class SardanaMotor(AbstractMotor):
     suffix_velocity = "Velocity"
     suffix_acceleration = "Acceleration"
 
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
-
     state_map = {
-        "ON": READY,
-        "OFF": UNUSABLE,
-        "CLOSE": UNUSABLE,
-        "OPEN": UNUSABLE,
-        "INSERT": UNUSABLE,
-        "EXTRACT": UNUSABLE,
-        "MOVING": MOVING,
-        "STANDBY": READY,
-        "FAULT": UNUSABLE,
-        "INIT": UNUSABLE,
-        "RUNNING": MOVING,
-        "ALARM": UNUSABLE,
-        "DISABLE": UNUSABLE,
-        "UNKNOWN": UNUSABLE,
+        "ON": MotorStates.READY,
+        "OFF": MotorStates.OFF,
+        "CLOSE": MotorStates.DISABLED,
+        "OPEN": MotorStates.DISABLED,
+        "INSERT": MotorStates.DISABLED,
+        "EXTRACT": MotorStates.DISABLED,
+        "MOVING": MotorStates.MOVING,
+        "STANDBY": MotorStates.READY,
+        "FAULT": MotorStates.FAULT,
+        "INIT": MotorStates.INITIALIZING,
+        "RUNNING": MotorStates.MOVING,
+        "ALARM": MotorStates.ALARM,
+        "DISABLE": MotorStates.DISABLED,
+        "UNKNOWN": MotorStates.UNKNOWN,
     }
 
     def __init__(self, name):
@@ -57,7 +55,7 @@ class SardanaMotor(AbstractMotor):
         self.limit_lower = None
         self.static_limits = (-1E4, 1E4)
         self.limits = (None, None)
-        self.motor_state = self.NOTINITIALIZED
+        self.motor_state = MotorStates.NOTINITIALIZED
 
     def init(self):
 
@@ -168,12 +166,13 @@ class SardanaMotor(AbstractMotor):
         state = str(state)
         motor_state = SardanaMotor.state_map[state]
 
-        if motor_state != self.UNUSABLE and \
-                (self.motor_position >= self.limit_upper or \
-                self.motor_position <= self.limit_lower):
-            motor_state = self.ONLIMIT
+        if motor_state != MotorStates.DISABLED:
+            if self.motor_position >= self.limit_upper:
+	        motor_state = MotorStates.HIGHLIMIT
+            elif self.motor_position <= self.limit_lower:
+                motor_state = MotorStates.LOWLIMIT
 
-        self.set_ready(motor_state > self.UNUSABLE)
+        self.set_ready(motor_state > MotorStates.DISABLED)
 
         if motor_state != self.motor_state:
             self.motor_state = motor_state
@@ -271,7 +270,7 @@ class SardanaMotor(AbstractMotor):
         """
         Descript. : True if the motor is currently moving
         """
-        return self.isReady() and self.getState() == SardanaMotor.MOVING
+        return self.isReady() and self.getState() == MotorStates.MOVING
 
     motorIsMoving = is_moving
 
