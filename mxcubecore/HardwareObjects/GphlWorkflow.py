@@ -14,6 +14,7 @@ import uuid
 import time
 import os
 import subprocess
+import socket
 import f90nml
 
 import gevent
@@ -168,6 +169,13 @@ class GphlWorkflow(HardwareObject, object):
 
         if self.hasObject('workflow_options'):
             options = self['workflow_options'].getProperties()
+            if 'beamline' in options:
+                pass
+            elif self._workflow_connection.hasObject('ssh_options'):
+                # We are running workflow through ssh - set beamline url
+                options['beamline'] = 'py4j:%s:' % socket.gethostname()
+            else:
+                options['beamline'] = 'py4j::'
         else:
             options = {}
         if self.hasObject('invocation_options'):
