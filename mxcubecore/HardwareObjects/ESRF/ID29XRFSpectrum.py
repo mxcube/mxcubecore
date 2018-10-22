@@ -25,15 +25,18 @@ class ID29XRFSpectrum(XRFSpectrum):
 
     def preset_mca(self, ctime, fname=None):
         self.mca_hwobj.set_roi(2, 15, channel=1)
-        self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=fname)
+        self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=str(fname))
 
     def choose_attenuation(self, ctime, fname=None):
         res = True
         if not fname:
-            # fname = self.spectrumInfo['filename'].replace('.dat', '.raw')
             fname = self.spectrumInfo['filename']
+        fname = str(fname)
 
         self.preset_mca(ctime, fname)
+
+        # put the detector name
+        # self.spectrumInfo['fluorescenceDetector'] = self.mca_hwobj.getProperty('username')
 
         self.ctrl_hwobj.detcover.set_in()
         try:
