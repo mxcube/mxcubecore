@@ -94,11 +94,13 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def init(self):
         if self.hasObject('connection_parameters'):
-            # NBNB TODO This should be done differentlty, with either localhost or gethostname, commanded by a switch
-            dd =  self['connection_parameters'].getProperties()
-            # if not dd.get('python_address'):
-            dd['python_address'] = socket.gethostname()
-            self._connection_parameters.update(dd)
+            self._connection_parameters.update(
+                self['connection_parameters'].getProperties()
+            )
+        if self.hasObject('ssh_options'):
+            # We are running through ssh - so we need python_address
+            # If not, we stick to default, which is localhost (127.0.0.1)
+            self._connection_parameters['python_address'] = socket.gethostname()
 
         locations = next(self.getObjects('directory_locations')).getProperties()
         paths = self.software_paths
@@ -206,6 +208,9 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
 
+        # NBNB All command line option values are put in qquotes (repr) when
+        # the workflow is invoked remotely through ssh.
+
         self.workflow_queue = workflow_queue
 
         if self.get_state() != States.OFF:
@@ -216,26 +221,39 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        # We do this trick to allow specifying teh java binary as, e.g.
-        # 'ssh lonsdale java;
-        commandList = self.software_paths['java_binary'].split()
-        #commandList = [self.software_paths['java_binary']]
+        in_shell = self.hasObject('ssh_options')
+        if in_shell:
+            dd =  self['ssh_options'].getProperties()
+            #
+            host = dd.pop('Host')
+            command_list = ['ssh']
+            for tag, val in sorted(dd.items()):
+                command_list.extend(('-o',  '%s=%s' % (tag, val)))
+                # command_list.extend(('-o', tag, val))
+            command_list.append(host)
+        else:
+            command_list = []
+        command_list.append(self.software_paths['java_binary'])
 
         for keyword, value in params.get('invocation_properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
 
         params['invocation_options']['cp'] = self.software_paths[
             'gphl_java_classpath'
         ]
         for keyword, value in params.get('invocation_options',{}).items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
+            command_list.extend(ConvertUtils.command_option(keyword, value,
+                                                            quote_value=in_shell))
 
-        commandList.append(params['application'])
+        command_list.append(params['application'])
 
         for keyword, value in params.get('properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
         for keyword, value in self.java_properties.items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
 
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
@@ -253,7 +271,8 @@ class GphlWorkflowConnection(HardwareObject, object):
             self.getProperty('gphl_subdir')
         )
         for keyword, value in workflow_options.items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
+            command_list.extend(ConvertUtils.command_option(keyword, value,
+                                                            quote_value=in_shell))
         #
         wdir = workflow_options.get('wdir')
         # NB this creates the appdir as well (wdir is within appdir)
@@ -266,14 +285,14 @@ class GphlWorkflowConnection(HardwareObject, object):
                     "Could not create GPhL working directory: %s" % wdir
                 )
 
-        for ss in commandList:
+        for ss in command_list:
             ss = ss.split('=')[-1]
             if ss.startswith('/') and not '*' in ss and not os.path.exists(ss):
                 logging.getLogger('HWR').warning(
                     "File does not exist : %s" % ss
                 )
 
-        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
+        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(command_list))
 
         # Get environmental variables
         envs = os.environ.copy()
@@ -300,7 +319,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         else:
             fp1 = fp2 = None
         try:
-            self._running_process = subprocess.Popen(commandList, env=envs,
+            self._running_process = subprocess.Popen(command_list, env=envs,
                                                      stdout=fp1, stderr=fp2)
         except:
             logging.getLogger().error('Error in spawning workflow application')
