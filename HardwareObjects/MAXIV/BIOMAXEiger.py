@@ -188,22 +188,22 @@ class BIOMAXEiger(Equipment):
         with gevent.Timeout(20, RuntimeError("Detector neither ready or idle")):
             while not (self.is_ready() or self.is_idle()):
                 logging.getLogger("HWR").debug("Waiting for the detector to be ready, current state: " + self.get_status())
-                gevent.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_idle():
-                gevent.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_acquire(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_acquire():
-                gevent.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_buffer_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
             while self.get_buffer_free() < self.buffer_limit:
-                gevent.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_config_done(self):
         logging.getLogger("HWR").info("Waiting to configure the detector.")
