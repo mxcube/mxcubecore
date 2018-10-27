@@ -115,7 +115,7 @@ class GphlWorkflow(HardwareObject, object):
             'WorkflowFailed':self.workflow_failed,
         }
 
-        workflow_connection = HardwareRepository().getHardwareObject('/gphl-setup')
+        workflow_connection = HardwareRepository().getHardwareObject('/gphl_beamline_config/gphl-setup')
         self._workflow_connection = workflow_connection
 
         # Set standard configurable file paths
@@ -191,12 +191,12 @@ class GphlWorkflow(HardwareObject, object):
         # There should be a better way, but apparently there isn't
         session_hwobj = HardwareRepository().getHardwareObject('session')
         process_root = session_hwobj.get_base_process_directory()
-        options['appdir'] = process_root
 
         for wf_node in self['workflows']:
             name = wf_node.name()
+            strategy_type = wf_node.getProperty('strategy_type')
             wf_dict = {'name':name,
-                       'strategy_type':wf_node.getProperty('strategy_type'),
+                       'strategy_type':strategy_type,
                        'application':wf_node.getProperty('application'),
                        'documentation':wf_node.getProperty('documentation',
                                                            default_value=''),
@@ -205,6 +205,9 @@ class GphlWorkflow(HardwareObject, object):
             }
             result[name] = wf_dict
             wf_dict['options'] = dd = options.copy()
+            if strategy_type != 'transcal':
+                dd['appdir'] = process_root
+                
             if wf_node.hasObject('options'):
                 dd.update(wf_node['options'].getProperties())
                 relative_file_path = dd.get('file')
@@ -626,6 +629,8 @@ class GphlWorkflow(HardwareObject, object):
                             )
                 if recen_parameters and sweepSetting.translation is None:
                     dd = self.calculate_recentring(okp, **recen_parameters)
+                    
+                    logging.getLogger('HWR').debug('@~@~ Recentring. okp, motors' + str(okp) + str(sorted(dd.items())))
 
                     # Creating the Translation adds it to the Rotation
                     GphlMessages.GoniostatTranslation(
@@ -1199,6 +1204,7 @@ class GphlWorkflow(HardwareObject, object):
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x])
                       for x in self.translation_axis_roles)
+            logging.getLogger('HWR').debug('@~@~ cenred: allmotors' + str(sorted(positionsDict.items())))
             return self.GphlMessages.GoniostatTranslation(
                 rotation=goniostatRotation,
                 requestedRotationId=requestedRotationId, **dd
