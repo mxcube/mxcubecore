@@ -422,7 +422,7 @@ class GenericDiffractometer(HardwareObject):
         :param timeout: timeout in second
         :type timeout: int
         """
-        gevent.sleep(0.1) # wait a bit to see if state does not change inmediately
+        gevent.sleep(1) # wait a bit to see if state does not change inmediately
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 time.sleep(0.01)
