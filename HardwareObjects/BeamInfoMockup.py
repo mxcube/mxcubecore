@@ -41,7 +41,7 @@ class BeamInfoMockup(Equipment):
         self.slits_hwobj = self.getObjectByRole("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj,
-                         "gapSizeChanged",
+                         "valueChanged",
                          self.slits_gap_changed)
         self.emit("beamPosChanged", (self.beam_position, ))
 
@@ -85,8 +85,8 @@ class BeamInfoMockup(Equipment):
 
     def set_slits_gap(self, width_microns, height_microns):
         if self.slits_hwobj:
-            self.slits_hwobj.set_gap("Hor", width_microns / 1000.0)
-            self.slits_hwobj.set_gap("Ver", height_microns / 1000.0)
+            self.slits_hwobj.set_horizontal_gap(width_microns / 1000.0)
+            self.slits_hwobj.set_vertical_gap(height_microns / 1000.0)
 
     def evaluate_beam_info(self):
         """
