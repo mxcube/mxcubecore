@@ -170,8 +170,14 @@ class AbstractXRFSpectrum(object):
             calibrated_data = []
 
             try:
-               spectrum_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
-               archive_file_raw = open(self.spectrum_info["scanFilePath"], "w")
+               spectrum_file_raw = open(self.spectrum_info["scanFilePath"], "w")
+            except:
+               logging.getLogger("HWR").exception(
+                 "XRFSpectrum: could not create spectrum result raw file %s" % \
+                 self.spectrum_info["scanFilePath"])
+
+            try:
+               archive_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
             except:
                logging.getLogger("HWR").exception(
                  "XRFSpectrum: could not create spectrum result raw file %s" % \

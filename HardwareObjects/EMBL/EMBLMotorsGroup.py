@@ -254,7 +254,7 @@ class EMBLMotorsGroup(Device):
            status has been sent"""
         for motor in self.motors_list:
             old_status = motor['status']
-            if isinstance(positions, (list, tuple)):
+            if isinstance(status, (list, tuple)):
                 new_status = status[motor['index']]
             else:
                 new_status = status

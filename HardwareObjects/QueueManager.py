@@ -83,6 +83,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         Starts execution of the queue.
         """
         if not self.is_disabled():
+            self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._set_in_queue_flag()
             self._root_task = gevent.spawn(self.__execute_task)
@@ -190,15 +191,18 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 self.__execute_entry(child)
             # This part should not be here
             # But somehow exception from collect_failed is not catched here
-            if entry._execution_failed:
+            if entry.is_failed():
                 self.emit('queue_entry_execute_finished', (entry, "Failed"))
+                self.emit('statusMessage', ("status", "Queue execution failed", "error"))
             else:
                 self.emit('queue_entry_execute_finished', (entry, "Successful"))
+                self.emit('statusMessage', ("status", "", "ready"))
         except queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
             self.emit('queue_entry_execute_finished', (entry, "Skipped"))
-        #except (queue_entry.QueueExecutionException, Exception) as ex:
-        #    self.emit('queue_entry_execute_finished', (entry, "Failed"))
+        except queue_entry.QueueExecutionException as ex:
+            self.emit('queue_entry_execute_finished', (entry, "Failed"))
+            self.emit('statusMessage', ("status", "Queue execution failed", "error"))
         except (queue_entry.QueueAbortedException, Exception) as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:
@@ -212,7 +216,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         else:
             entry.post_execute()
         finally:
-            self.emit('queue_execute_entry_finished', (entry, ))
+            #self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
             self._current_queue_entries.remove(entry)
 
@@ -239,6 +243,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
         self.emit('queue_stopped', (None,))
+        self.emit('statusMessage', ("status", "", "Queue stoped"))
         #self.emit('centringAllowed', (True, )) 
         self._is_stopped = True
 
@@ -254,6 +259,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :rtype: NoneType
         """
         self.emit('queue_paused', (state,))
+        self.emit('statusMessage', ("status", "Queue paused", "action_req"))
         #self.emit('centringAllowed', (True, ))
         if state:
             self._paused_event.clear()
