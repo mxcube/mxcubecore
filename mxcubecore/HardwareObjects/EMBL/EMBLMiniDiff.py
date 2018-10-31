@@ -87,6 +87,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.current_state = self.chan_state.getValue()
         self.chan_state.connectSignal("update", self.state_changed)
 
+        self.chan_status = self.getChannelObject('Status')
+        self.chan_status.connectSignal("update", self.status_changed)
+
         self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
         self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
         self.update_pixels_per_mm()
@@ -174,6 +177,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
         self.emit("minidiffStatusChanged", (self.current_state))
+
+    def status_changed(self, state):
+        self.emit('statusMessage', ("diffractometer", state, "busy"))
 
     def zoom_position_changed(self, value):
         self.update_pixels_per_mm()
@@ -285,7 +291,7 @@ class EMBLMiniDiff(GenericDiffractometer):
             self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x,
                                               self.pixels_per_mm_y),))
 
-    def set_phase(self, phase, timeout=60):
+    def set_phase(self, phase, timeout=80):
         """Sets diffractometer to the selected phase.
            In the plate mode before going to or away from
            Transfer or Beam location phase if needed then detector
@@ -317,8 +323,8 @@ class EMBLMiniDiff(GenericDiffractometer):
             with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
                 while phase != self.chan_current_phase.getValue():
                     gevent.sleep(0.1)
-            self.wait_device_ready(20)
-            self.wait_device_ready(20)
+            self.wait_device_ready(30)
+            self.wait_device_ready(30)
             _howlong = time.time()-_start
             if _howlong > 11.0:
                logging.getLogger("GUI").error("Changing phase to %s took %.1f seconds"%(phase,_howlong))
@@ -589,11 +595,11 @@ class EMBLMiniDiff(GenericDiffractometer):
     def move_omega(self, angle):
         self.motor_hwobj_dict['phi'].move(angle, timeout=5)
 
-    def move_omega_relative(self, relative_angle):
+    def move_omega_relative(self, relative_angle, timeout=5):
         """
         Description:
         """
-        self.motor_hwobj_dict['phi'].move_relative(relative_angle, timeout=5)
+        self.motor_hwobj_dict['phi'].move_relative(relative_angle, timeout=timeout)
 
     def close_kappa(self):
         """
@@ -604,14 +610,12 @@ class EMBLMiniDiff(GenericDiffractometer):
     def close_kappa_task(self):
         """Close kappa task
         """
-        logging.getLogger("HWR").debug("Started closing Kappa")
+        logging.getLogger("HWR").debug("Diffractometer: Closing Kappa started...")
         self.move_kappa_and_phi_procedure(0, None)
-        self.wait_device_ready(60)
+        self.wait_device_ready(180)
         self.motor_hwobj_dict['kappa'].home()
         self.wait_device_ready(60)
-        self.move_kappa_and_phi_procedure(0, None)
-        self.wait_device_ready(60)
-        logging.getLogger("HWR").debug("Done closing Kappa")
+        logging.getLogger("HWR").debug("Diffractometer: Done Closing Kappa")
 
     def set_zoom(self, position):
         """
@@ -646,12 +650,45 @@ class EMBLMiniDiff(GenericDiffractometer):
         return self.motor_hwobj_dict['phi'].get_max_speed()
 
 
-    def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
+    def get_scan_limits(self, num_images=0, exp_time=0.001343):
         """
         Gets scan limits. Necessary for example in the plate mode
         where osc range is limited
         """
+       
+        
 
+        """
+        if num_images==0:
+            try:
+                return (155.7182, 204.8366)
+                limits = self.cmd_get_omega_scan_limits(0)
+                return (min(limits) + 0.01, max(limits) - 0.01)
+            except:
+                return (None, None)
+        """
+
+        total_exposure_time = num_images * exp_time
+        a = 0.002
+        b = 0.1537
+        w0 = 155.7182
+        w1 = 204.8366 # was 196 not to shadow laser
+
+        if num_images == 0:
+            return (w0, w1)
+
+        speed = (-2 * b-total_exposure_time + \
+                 sqrt((2 * b + total_exposure_time)**2 - \
+                 8 * a *(w0 - w1)))/ 4 / a
+        if speed < 0:
+            return None, None
+        else:
+            delta = a * speed**2 + b * speed
+
+            return (w0 + delta, w1 - delta)
+
+
+        """
         if speed is not None:
             try:
                 limits = self.cmd_get_omega_scan_limits(speed)
@@ -683,23 +720,9 @@ class EMBLMiniDiff(GenericDiffractometer):
         else:
             delta = a * result_speed**2 + b * result_speed
 
+        print "get scan limits 2 ", (w0 + delta, w1 - delta)
+
         return (w0 + delta, w1 - delta), total_exposure_time / num_images
-
-        """
-        if speed is not None:
-            return self.cmd_get_omega_scan_limits(speed)
-        elif speed == 0: 
-            return self.get_osc_limits()
-        else:
-            motor_acc_const = 5
-            motor_acc_time = num_images / exp_time / motor_acc_const
-            min_acc_time = 0.0015
-            acc_time = max(motor_acc_time, min_acc_time)
-
-            shutter_time = 3.7 / 1000.
-            max_limit = num_images / exp_time * (acc_time+2*shutter_time + 0.2) / 2
-
-            return [0, max_limit]
         """
 
     def get_scintillator_position(self):
