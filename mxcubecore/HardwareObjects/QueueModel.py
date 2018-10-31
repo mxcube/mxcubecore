@@ -27,6 +27,7 @@ handle several models by using register_model and select_model.
 """
 
 import os
+import json
 import logging
 import jsonpickle
 
@@ -34,6 +35,11 @@ import queue_entry
 import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+class Serializer(object):
+    @staticmethod
+    def serialize(object):
+        return json.dumps(object, default=lambda o: o.__dict__.values()[0])
 
 
 class QueueModel(HardwareObject):
@@ -407,9 +413,9 @@ class QueueModel(HardwareObject):
     def get_all_dc_queue_entries(self):
         result = []
  
-        for queue_entry in self.get_all_queue_entries():
-            if isinstance(queue_entry, queue_entry.DataCollectionQueueEntry):
-                result.append(queue_entry)
+        for item in self.get_all_queue_entries():
+            if isinstance(item, queue_entry.DataCollectionQueueEntry):
+                result.append(item)
 
         return result
 
@@ -461,8 +467,9 @@ class QueueModel(HardwareObject):
             if isinstance(item, queue_entry.SampleQueueEntry):
                 for task_item in item.get_queue_entry_list():
                     task_item_dict = {"sample_location" : item.get_data_model().location,
-                                      "task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
-                                      #"task_group_entry" : json.dumps(task_item.get_data_model())}
+                                      #"task_group_entry": Serializer.serialize(task_item.get_data_model())}
+                                      #"task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
+                                      "task_group_entry" : json.dumps(task_item.get_data_model())}
                     items_to_save.append(task_item_dict)
 
         return selected_model, items_to_save
@@ -481,7 +488,7 @@ class QueueModel(HardwareObject):
         if len(queue_list) > 0:
             try:
                 for task_group_item in queue_list:
-                    task_group_entry = jsonpickle.decode(\
+                    task_group_entry = json.load(\
                          task_group_item["task_group_entry"])
                     self.add_child(sample_dict[task_group_item["sample_location"]],
                                    task_group_entry)
