@@ -18,15 +18,13 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-EMBLDoorInterlock
+DoorInterlockMockup
 """
 
 import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__author__ = "Ivars Karpics"
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.2."
 
 
 class DoorInterlockMockup(HardwareObject):

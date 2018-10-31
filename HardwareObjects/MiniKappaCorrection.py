@@ -61,7 +61,12 @@ class MiniKappaCorrection(Device):
         xp = np.dot(Rk,x)
         d1 = self.align_direction - c * pp
         d2 = xp - c * pp
-        new_phi = math.acos(np.dot(d1,d2)/np.linalg.norm(d1)/np.linalg.norm(d1))*180./np.pi # is the angle between projections
+        nd1 = np.linalg.norm(d1)
+        nd2 = np.linalg.norm(d2)
+        if nd1*nd2 <= 0.0000000001:
+           new_phi = phi
+        else:
+           new_phi = math.acos(np.dot(d1,d2)/nd1/nd2)*180./np.pi # is the angle between projections
         newaxis = {}
         newaxis['mT']=np.outer(pp,pp)
         newaxis['mC']=np.array([[ 0.0 ,-pp[2], pp[1] ],[ pp[2], 0.0 ,-pp[0] ],[-pp[1], pp[0], 0.0 ]])  
