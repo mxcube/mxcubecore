@@ -97,10 +97,9 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :param data_collection: data collection object
         :type data_collection: queue_model_objects.DataCollection
         """
-        self.prepare_processing(data_collection)
-
-        self.create_processing_input_file(os.path.join(
-            self.params_dict["directory"], "dozor_input.xml"))
+        self.data_collection = data_collection
+        self.prepare_processing()
+        self.create_processing_input_file(os.path.join(self.params_dict["directory"], "dozor_input.xml"))
 
         self.emit("paralleProcessingResults",
                   (self.results_aligned,
@@ -160,13 +159,13 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                 self.results_raw["score"][frame_num] = image[2]
 
                 for score_key in self.results_raw.keys():
-                    if self.params_dict["lines_num"] > 1:
-                        col, row = self.grid.get_col_row_from_image(frame_num)
-                        self.results_aligned[score_key][col][row] =\
-                            self.results_raw[score_key][frame_num]
-                    else:
-                        self.results_aligned[score_key][frame_num] =\
-                            self.results_raw[score_key][frame_num]
+                     if self.params_dict["lines_num"] > 1:
+                          col, row = self.grid.get_col_row_from_image(frame_num)
+                          self.results_aligned[score_key][col][row] = \
+                              self.results_raw[score_key][frame_num]
+                     else:
+                          self.results_aligned[score_key][frame_num] = \
+                              self.results_raw[score_key][frame_num]
             if self.params_dict["lines_num"] <= 1:
                self.smooth()
             
@@ -176,10 +175,6 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             #           False))
 
     def update_map(self):
-        """Updates plot map
-
-        :return: None
-        """
         gevent.sleep(1)
         while self.started:
             self.emit("paralleProcessingResults",
@@ -188,7 +183,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                        False))
             if self.params_dict["lines_num"] > 1:
                 self.grid.set_score(self.results_raw['score'])
-            gevent.sleep(0.5)
+            gevent.sleep(0.5) 
 
     def set_processing_status(self, status):
         """Sets processing status and finalize the processing
