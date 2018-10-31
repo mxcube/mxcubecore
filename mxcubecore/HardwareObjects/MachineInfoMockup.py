@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import time
 from gevent import spawn
 from random import uniform
@@ -34,12 +35,12 @@ class MachineInfoMockup(HardwareObject):
     """
 
     def __init__(self, name):
-	HardwareObject.__init__(self, name)
+        HardwareObject.__init__(self, name)
         """
         Descript. : 
         """
         #Parameters
-	#Intensity current ranges
+        #Intensity current ranges
         self.values_list = []
         temp_dict = {}
         temp_dict['value'] = 90.1
@@ -78,6 +79,13 @@ class MachineInfoMockup(HardwareObject):
         temp_dict['title'] = "Flux"
         self.values_list.append(temp_dict)
 
+        temp_dict = {}
+        temp_dict['value'] = "-"
+        temp_dict['in_range'] = True
+        temp_dict['title'] = "Disk space"
+        temp_dict['align'] = "left"
+        self.values_list.append(temp_dict)
+
     def init(self):
         """
         Descript.
@@ -85,8 +93,16 @@ class MachineInfoMockup(HardwareObject):
         self.min_current = self.getProperty('min_current', 80.1)
         self.min_current = self.getProperty('max_current', 90.1)
 
+        self.flux_hwobj = self.getObjectByRole("flux")
+        self.connect(self.flux_hwobj,
+                     "fluxValueChanged",
+                     self.flux_changed)
+
+        self.session_hwobj = self.getObjectByRole("session")
+
         self.update_values()
         spawn(self.change_mach_current)
+
        
     def update_values(self):
         """
@@ -118,5 +134,53 @@ class MachineInfoMockup(HardwareObject):
             self.values_list[0]['value'] = uniform(self.min_current, self.min_current)
             self.values_list[0]['value_str'] = "%.1f mA" % \
                  self.values_list[0]['value']
+
+            self.update_disk_space()
             self.update_values()
             time.sleep(5)
+
+    def flux_changed(self, value):
+        self.values_list[4]["value"] = value
+        self.values_list[4]["in_range"] = value > 1e10
+        self.values_list[4]["value_str"] = "%.2e ph/s" % value
+        self.update_values()
+
+    def update_disk_space(self):
+        data_path = self.session_hwobj.get_base_data_directory()
+        data_path_root = "/%s" % data_path.split("/")[0]
+
+        if os.path.exists(data_path_root):
+            st = os.statvfs(data_path_root)
+            total = st.f_blocks * st.f_frsize
+            free = st.f_bavail * st.f_frsize
+            perc = st.f_bavail / float(st.f_blocks)
+            txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
+                                                 self.sizeof_fmt(free),
+                                                 '{0:.0%}'.format(perc))
+            #if free / 2 ** 30 > self['diskThreshold']:
+            #        Qt4_widget_colors.set_widget_color(self.disc_value_label,
+            #                                       STATES['ready'])
+            #    else:
+            #        Qt4_widget_colors.set_widget_color(self.disc_value_label,
+        else:
+            txt = 'Not available'
+        self.values_list[5]["value_str"] = txt
+
+    def sizeof_fmt(self, num):
+        """Returns disk space formated in string"""
+
+        for x in ['bytes', 'KB', 'MB', 'GB']:
+            if num < 1024.0:
+                return "%3.1f%s" % (num, x)
+            num /= 1024.0
+        return "%3.1f%s" % (num, 'TB')
+
+    def sizeof_num(self, num):
+        """Returns disk space formated in exp value"""
+
+        for x in ['m', unichr(181), 'n']:
+            if num > 0.001:
+                num *= 1000.0
+                return "%0.1f%s" % (num, x)
+            num *= 1000.0
+        return "%3.1f%s" % (num, ' n')
