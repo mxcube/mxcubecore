@@ -365,9 +365,9 @@ class DiffractometerMockup(GenericDiffractometer):
  
     def get_scan_limits(self, speed=None, num_images=None, exp_time=None):
         if self.in_plate_mode:
-            return (170, 190), 0.04
+            return (170, 190)
         else: 
-            return (-360, 360), 0.04
+            return (-360, 360)
  
     def get_osc_dynamic_limits(self):
         """Returns dynamic limits of oscillation axis"""
@@ -381,4 +381,7 @@ class DiffractometerMockup(GenericDiffractometer):
 
     def set_phase(self, phase, timeout=None):
         self.current_phase = str(phase)
-        self.emit('minidiffPhaseChanged', (self.current_phase, ))
+        self.emit('minidiffPhaseChanged', (self.current_phase, )) 
+
+    def get_point_from_line(self, point_one, point_two, index, images_num):
+        return point_one.as_dict()
