@@ -47,6 +47,7 @@ class EMBLBeamInfo(Equipment):
         self.slits_hwobj = None
         self.beam_focusing_hwobj = None
 
+        self.focus_mode = None
         self.beam_size_slits = None
         self.beam_size_aperture = None
         self.beam_size_focusing = None
@@ -81,7 +82,7 @@ class EMBLBeamInfo(Equipment):
         self.slits_hwobj = self.getObjectByRole("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj,
-                         "gapSizeChanged",
+                         "valueChanged",
                          self.slits_gap_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
@@ -158,8 +159,8 @@ class EMBLBeamInfo(Equipment):
         :return: [float, float]
         """
         if self.chan_beam_position_hor and self.chan_beam_position_ver:
-            self.beam_position = (self.chan_beam_position_hor.getValue(),
-                                  self.chan_beam_position_ver.getValue())
+            self.beam_position = [self.chan_beam_position_hor.getValue(),
+                                  self.chan_beam_position_ver.getValue()]
         return self.beam_position
 
     def set_beam_position(self, beam_x, beam_y):
@@ -221,6 +222,7 @@ class EMBLBeamInfo(Equipment):
         :type size: float
         :return: None
         """
+        self.focus_mode = name
         self.beam_size_focusing = size
         self.evaluate_beam_info()
         self.emit_beam_info_change()
@@ -268,9 +270,11 @@ class EMBLBeamInfo(Equipment):
         :type height_microns: float
         :return: None
         """
-        if self.slits_hwobj:
-            self.slits_hwobj.set_gap("Hor", width_microns / 1000.0)
-            self.slits_hwobj.set_gap("Ver", height_microns / 1000.0)
+        if self.focus_mode == "Double":
+            logging.getLogger("GUI").warning("Slits are disabled in the Double focus mode")    
+        else:
+            self.slits_hwobj.set_horizontal_gap(width_microns / 1000.0)
+            self.slits_hwobj.set_vertical_gap(height_microns / 1000.0)
 
     def evaluate_beam_info(self):
         """Called if aperture, slits or focusing has been changed
@@ -296,7 +300,9 @@ class EMBLBeamInfo(Equipment):
             else:
                 self.beam_info_dict["shape"] = "rectangular"
 
-            if self.chan_beam_size_microns is not None:
+            if self.chan_beam_size_microns is not None and \
+               self.beam_info_dict["size_x"] < 3 and \
+               self.beam_info_dict["size_y"] < 3:
                 self.chan_beam_size_microns.setValue(
                     (self.beam_info_dict["size_x"] * 1000,
                      self.beam_info_dict["size_y"] * 1000))

@@ -154,14 +154,16 @@ class TineChannel(ChannelObject):
             TineChannel.updates.put((weakref.ref(self), value))
             self.oldvalue = value
 
-    def getValue(self):
+    def getValue(self, force=False):
         #logging.getLogger("HWR").debug('TINE channel %s, %s get at val=%s'%(self.tineName,self.attributeName,self.value))
         #if self.tineName == "/P14/BCUIntensity/Device0":
         #   print self.attributeName, self.value           
 
-        if self.value is None:
+        if self.value is None or force:
             try:
-               time.sleep(0.02)
+               #TODO remove this
+               if not force:
+                   time.sleep(0.02)
                self.value = tine.get(self.tineName, self.attributeName, self.timeout)
             except IOError as strerror:
                logging.getLogger("HWR").error("%s" %strerror)

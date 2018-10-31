@@ -199,7 +199,7 @@ class PlateManipulator(SampleChanger):
         """
         Descript. :
         """
-        cmd_get_config = self.getChannelObject("GetPlateConfig")
+        cmd_get_config = self.getChannelObject("GetPlateConfig", optional=True)
         if cmd_get_config:
             try:
                 self.num_rows, self.num_cols, self.num_drops = cmd_get_config.getValue()
@@ -228,14 +228,20 @@ class PlateManipulator(SampleChanger):
         
         self.chan_state = self.getChannelObject("State")
         if self.chan_state is not None:
-            self.chan_state.connectSignal("update", self._onStateChanged)
+            self.chan_state.connectSignal("update", self.state_changed)
        
         SampleChanger.init(self)
+
+        self.plate_location_changed(self.chan_plate_location.getValue())
 
     def plate_location_changed(self, plate_location):
         self.plate_location = plate_location
         self._updateLoadedSample()
         self.updateInfo()
+
+    def state_changed(self ,state):
+        self.plate_location_changed(self.chan_plate_location.getValue())
+        self._onStateChanged(state)
 
     def _onStateChanged(self, state):
         """
@@ -302,26 +308,27 @@ class PlateManipulator(SampleChanger):
                 self._doSelect(sample)
             self._setLoadedSample(sample)
 
-    def load_sample(self, sample_location=None):
+    def load_sample(self, sample_location=None, pos_x=None, pos_y=None, wait=True):
         """
-        Descript. : function to move to plate location.
-                    Location is estimated by sample location and reference positions.
+        Location is estimated by sample location and reference positions.
         """
-        gevent.spawn(self.load_sample_task,
-                     sample_location)
-
-    def load_sample_task(self, sample_location):
         row =  sample_location[0] - 1 
         col =  (sample_location[1] - 1)/ self.num_drops
         drop = sample_location[1] - self.num_drops * col
-        pos_y = float(drop) / (self.num_drops + 1)
+
+        if not pos_x:
+            pos_x = self.reference_pos_x
+        if not pos_y:
+            pos_y = float(drop) / (self.num_drops + 1)
 
         if self.cmd_move_to_location:
-            self.cmd_move_to_location(row, col, self.reference_pos_x, pos_y)
-            self._wait_ready(60)
+            self.cmd_move_to_location(row, col, pos_x, pos_y)
+            if wait:
+                self._wait_ready(60)
         elif self.cmd_move_to_drop:
             self.cmd_move_to_drop(row, col, drop-1)
-            self._wait_ready(60)
+            if wait:
+                self._wait_ready(60)
         else:
             #No actual move cmd defined. Act like a mockup
             self.plate_location = [row, col, self.reference_pos_x, pos_y]
