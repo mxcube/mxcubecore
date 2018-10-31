@@ -280,7 +280,7 @@ SPACEGROUP_MAP = OrderedDict((info.name, info) for info in SPACEGROUP_DATA)
 XTAL_SPACEGROUPS = [''] + [info.name for info in SPACEGROUP_DATA
                            if info.point_group.isdigit()]
 
-@enum.unique
+#@enum.unique
 class States(enum.Enum):
     """Standard device states, based on TangoShutter states.
     SardanaMotor.state_map, and DiffractometerState,

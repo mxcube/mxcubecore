@@ -4,7 +4,7 @@ The Hardware Repository database is a set of XML files describing devices, equip
 and procedures on a beamline. Each XML file represent a Hardware Object.
 The Hardware Repository module provides access to these Hardware Objects, and manages
 connections to the Control Software (Spec or Taco Device Servers).
-""" 
+"""
 
 __author__ = 'Matias Guijarro'
 __version__ = 1.3
@@ -19,6 +19,7 @@ import stat
 import time
 import gevent.monkey
 gevent.monkey.patch_all(thread=False)
+from datetime import datetime
 
 try:
     from SpecClient_gevent import SpecEventsDispatcher
@@ -26,8 +27,8 @@ try:
     from SpecClient_gevent import SpecWaitObject
     from SpecClient_gevent import SpecClientError
 except ImportError:
-    pass 
- 
+    pass
+
 import HardwareObjectFileParser
 import BaseHardwareObjects
 from dispatcher import *
@@ -63,7 +64,7 @@ def HardwareRepository(hwrserver = None):
     if _instance is None:
         if _hwrserver is None:
             setHardwareRepositoryServer(hwrserver)
-        
+
         _instance = __HardwareRepositoryClient(_hwrserver)
 
     return _instance
@@ -71,7 +72,7 @@ def HardwareRepository(hwrserver = None):
 
 class __HardwareRepositoryClient:
     """Hardware Repository class
-    
+
     Warning -- should not be instanciated directly ; call the module's level HardwareRepository() function instead
     """
     def __init__(self, serverAddress):
@@ -85,7 +86,8 @@ class __HardwareRepositoryClient:
         self.xml_source={}
         self.__connected = False
         self.server = None
-        
+        self.hwobj_info_list = []
+
     def connect(self):
         if self.__connected:
             return
@@ -94,17 +96,15 @@ class __HardwareRepositoryClient:
             self.hardwareObjects = weakref.WeakValueDictionary()
 
             if type(self.serverAddress)==bytes:
-                mngr = SpecConnectionsManager.SpecConnectionsManager() 
+                mngr = SpecConnectionsManager.SpecConnectionsManager()
                 self.server = mngr.getConnection(self.serverAddress)
-      
-                with gevent.Timeout(3): 
+
+                with gevent.Timeout(3):
                     while not self.server.isSpecConnected():
-                        time.sleep(0.5) 
-   
+                        time.sleep(0.5)
+
                 # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
                 self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
-            else:
-                self.server = None
         finally:
             self.__connected = True
 
@@ -135,10 +135,10 @@ class __HardwareRepositoryClient:
     def require(self, mnemonicsList):
         """Download a list of Hardware Objects in one go"""
         self.requiredHardwareObjects = {}
-       
-        if not self.server:  
-            return 
- 
+
+        if not self.server:
+            return
+
         try:
             t0=time.time()
             mnemonics = ",".join([repr(mne) for mne in mnemonicsList])
@@ -150,107 +150,115 @@ class __HardwareRepositoryClient:
         except:
             logging.getLogger('HWR').exception("Could not execute 'require' on Hardware Repository server")
 
-                
-    def loadHardwareObject(self, hoName):               
-        """Load a Hardware Object
-        
-        Parameters :
-          hoName -- string name of the Hardware Object to load, for example '/motors/m0'
 
-        Return :
-          the loaded Hardware Object, or None if it fails
+    def loadHardwareObject(self, hwobj_name=""):
         """
+        Load a Hardware Object
+
+        :param hwobj_name:  string name of the Hardware Object to load, for example '/motors/m0'
+        :return: the loaded Hardware Object, or None if it fails
+        """
+
+        comment = ""
+        class_name = ""
+        hwobj_instance = None
+
         if self.server:
-          if self.server.isSpecConnected():
-            try:
-                #t0=time.time()
-                if hoName in self.requiredHardwareObjects:
-                    replyDict = self.requiredHardwareObjects[hoName]
-                    #del self.requiredHardwareObjects[hoName]
-                else:
-                    replyDict = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('xml_get("%s")' % hoName, ), timeout = 3)
-            except:
-                logging.getLogger('HWR').exception('Could not load Hardware Object "%s"', hoName)
-            else:
+            if self.server.isSpecConnected():
                 try:
-                  xmldata = replyDict['xmldata']
-                  mtime = int(replyDict['mtime'])
-                except KeyError:
-                  logging.getLogger("HWR").error("Cannot load Hardware Object %s: file does not exist.", hoName)
-                  return
-          else:
-            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.', hoName)
-        else:
-            xmldata = ""
-            for xml_files_path in self.serverAddress:
-               file_name = hoName[1:] if hoName.startswith(os.path.sep) else hoName
-               file_path = os.path.join(xml_files_path, file_name)+os.path.extsep+"xml"
-               if os.path.exists(file_path):
-                 try:
-                   xmldata = open(file_path, "r").read()
-                 except:
-                   pass
-                 break 
-
-        if True:
-                if len(xmldata) > 0:
-                    try:
-                        #t0 = time.time()
-                        ho = self.parseXML(xmldata, hoName)
-                        if type(ho) == str:
-                            return self.loadHardwareObject(ho)  
-                    except:
-                        logging.getLogger("HWR").exception("Cannot parse XML file for Hardware Object %s", hoName)
+                    if hwobj_name in self.requiredHardwareObjects:
+                        reply_dict = self.requiredHardwareObjects[hwobj_name]
                     else:
-                        if ho is not None:
-                            self.xml_source[hoName]=xmldata
-                            dispatcher.send('hardwareObjectLoaded', hoName, self)
-
-                            def hardwareObjectDeleted(name=ho.name()):
-                                logging.getLogger("HWR").debug("%s Hardware Object has been deleted from Hardware Repository", name)
-                                del self.hardwareObjects[name]
-
-                            ho.resolveReferences()
-
-                            try:
-                                def addChannelsAndCommands(node):
-                                  #import pdb; pdb.set_trace()
-                                  if isinstance(node, BaseHardwareObjects.CommandContainer):
-                                     node._addChannelsAndCommands()
-                                  for child_node in node:
-                                    addChannelsAndCommands(child_node)
-                                addChannelsAndCommands(ho) 
-                            except:
-                                logging.getLogger('HWR').exception("Error while adding commands and/or channels to Hardware Object %s", hoName)
-
-                            try:
-                                ho._init()
-                                ho.init()
-                            except:
-                                logging.getLogger('HWR').exception('Cannot initialize Hardware Object "%s"', hoName)
-
-                                self.invalidHardwareObjects.add(ho.name())
-
-                                return None
-                            else:
-                                if ho.name() in self.invalidHardwareObjects:
-                                    self.invalidHardwareObjects.remove(ho.name())
-
-                                self.hardwareObjects[ho.name()] = ho
-
-                            return ho
-                        else:
-                            logging.getLogger("HWR").error("Failed to load Hardware Object %s", hoName)
+                        reply_dict = SpecWaitObject.waitReply(self.server, 'send_msg_chan_read', ('xml_get("%s")' % hwobj_name, ), timeout = 3)
+                except:
+                    logging.getLogger('HWR').exception('Could not load Hardware Object "%s"' % hwobj_name)
                 else:
-                    logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : file not found.', hoName)   
+                    try:
+                        #TODO Both variables not used: remove?
+                        xml_data = reply_dict['xmldata']
+                        mtime = int(reply_dict['mtime'])
+                    except KeyError:
+                        logging.getLogger("HWR").error("Cannot load Hardware Object %s: file does not exist." % hwobj_name)
+                        return
+            else:
+                logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : not connected to server.' % hwobj_name)
+        else:
+            xml_data = ""
+            for xml_files_path in self.serverAddress:
+                file_name = hwobj_name[1:] if hwobj_name.startswith(os.path.sep) else hwobj_name
+                file_path = os.path.join(xml_files_path, file_name) + \
+                            os.path.extsep + \
+                            "xml"
+                if os.path.exists(file_path):
+                    try:
+                        xml_data = open(file_path, "r").read()
+                    except:
+                        pass
+                    break
 
-   
+        start_time = datetime.now()
+
+        if len(xml_data) > 0:
+            try:
+                hwobj_instance = self.parseXML(xml_data, hwobj_name)
+                if type(hwobj_instance) == str:
+                    return self.loadHardwareObject(hwobj_instance)
+            except:
+                comment = "Cannot parse xml"
+                logging.getLogger("HWR").exception("Cannot parse XML file for Hardware Object %s", hwobj_name)
+            else:
+                if hwobj_instance is not None:
+                    self.xml_source[hwobj_name] = xml_data
+                    dispatcher.send('hardwareObjectLoaded', hwobj_name, self)
+
+                    def hardwareObjectDeleted(name=hwobj_instance.name()):
+                        logging.getLogger("HWR").debug("%s Hardware Object has been deleted from Hardware Repository", name)
+                        del self.hardwareObjects[name]
+
+                    hwobj_instance.resolveReferences()
+
+                    try:
+                        hwobj_instance._addChannelsAndCommands()
+                    except:
+                        logging.getLogger('HWR').exception("Error while adding commands and/or channels to Hardware Object %s", hwobj_name)
+                        comment = "Failed to add all commands and/or channels"
+
+                    try:
+                        hwobj_instance._init()
+                        hwobj_instance.init()
+                        class_name = str(hwobj_instance.__module__)
+                    except:
+                        logging.getLogger('HWR').exception('Cannot initialize Hardware Object "%s"', hwobj_name)
+                        self.invalidHardwareObjects.add(hwobj_instance.name())
+                        hwobj_instance = None
+                        comment = "Failed to init class"
+                    else:
+                        if hwobj_instance.name() in self.invalidHardwareObjects:
+                            self.invalidHardwareObjects.remove(hwobj_instance.name())
+
+                        self.hardwareObjects[hwobj_instance.name()] = hwobj_instance
+                else:
+                    logging.getLogger("HWR").error("Failed to load Hardware object %s", hwobj_name)
+                    comment = "Loading failed"
+        else:
+            logging.getLogger('HWR').error('Cannot load Hardware Object "%s" : file not found.', hwobj_name)
+
+        end_time = datetime.now()
+        time_delta = end_time - start_time
+
+        self.hwobj_info_list.append((hwobj_name,
+                                    class_name,
+                                    "%d ms" % (time_delta.microseconds / 1000),
+                                    comment))
+
+        return hwobj_instance
+
     def discardHardwareObject(self, hoName):
         """Remove a Hardware Object from the Hardware Repository
 
         Parameters :
           hoName -- the name of the Hardware Object to remove
-          
+
         Emitted signals :
           hardwareObjectDiscarded (<object name>) -- emitted when the object has been removed
         """
@@ -258,7 +266,7 @@ class __HardwareRepositoryClient:
             del self.hardwareObjects[hoName]
         except KeyError:
             pass
-        try:    
+        try:
             self.invalidHardwareObjects.remove(hoName)
         except:
             pass
@@ -268,8 +276,8 @@ class __HardwareRepositoryClient:
             pass
 
         dispatcher.send('hardwareObjectDiscarded', hoName, self)
-            
-        
+
+
     def parseXML(self, XMLString, hoName):
         """Load a Hardware Object from its XML string representation
 
@@ -286,7 +294,7 @@ class __HardwareRepositoryClient:
             logging.getLogger('HWR').exception('Cannot parse Hardware Repository file %s', hoName)
         else:
             return ho
-            
+
 
     def update(self, name, updatesList):
         #TODO: update without HWR server
@@ -294,17 +302,17 @@ class __HardwareRepositoryClient:
             self.server.send_msg_cmd_with_return('xml_multiwrite("%s", "%s")' % (name, str(updatesList)))
         else:
             logging.getLogger('HWR').error('Cannot update Hardware Object %s : not connected to server', name)
-                  
+
 
     def rewrite_xml(self, name, xml):
         #TODO: rewrite without HWR server
-        if self.server is not None and self.server.isSpecConnected():    
+        if self.server is not None and self.server.isSpecConnected():
             self.server.send_msg_cmd_with_return('xml_writefile("%s", %s)' % (name, repr(xml)))
             self.xml_source[name]=xml
         else:
             logging.getLogger('HWR').error('Cannot update Hardware Object %s : not connected to server', name)
-            
-    
+
+
     def __getitem__(self, item):
         if item == 'equipments':
             return self.getEquipments()
@@ -316,14 +324,14 @@ class __HardwareRepositoryClient:
             return self.getHardwareObject(item)
 
         raise KeyError
-    
+
 
     def getHardwareRepositoryPath(self):
-       if self.server:
-         return ""
-       else:
-         path = self.serverAddress[0]
-         return os.path.abspath(path)
+        if self.server:
+            return ""
+        else:
+            path = self.serverAddress[0]
+            return os.path.abspath(path)
 
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
@@ -343,8 +351,8 @@ class __HardwareRepositoryClient:
                 for name, filename in completeFilesList.items():
                     if name.startswith(startdir):
                         yield (name, filename)
-                        
-    
+
+
     def getEquipments(self):
         """Return the list of the currently loaded Equipments Hardware Objects"""
         list = []
@@ -355,7 +363,7 @@ class __HardwareRepositoryClient:
 
         return list
 
-    
+
     def getProcedures(self):
         """Return the list of the currently loaded Procedures Hardware Objects"""
         list = []
@@ -365,7 +373,7 @@ class __HardwareRepositoryClient:
                 list.append(self.hardwareObjects[hoName])
 
         return list
-        
+
 
     def getDevices(self):
         """Return the list of the currently loaded Devices Hardware Objects"""
@@ -377,7 +385,7 @@ class __HardwareRepositoryClient:
 
         return list
 
-    
+
     def getHardwareObject(self, objectName):
         """Return a Hardware Object given its name
 
@@ -405,21 +413,15 @@ class __HardwareRepositoryClient:
                     ho = self.hardwareObjects[objectName]
                 else:
                     ho = self.loadHardwareObject(objectName)
-
-                #try:
-                #    print (111, self.hardwareObjects, objectName)
-                #    ho = self.hardwareObjects[objectName]
-                #except KeyError:
-                #    ho = self.loadHardwareObject(objectName)
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
-        
+
 
     def getEquipment(self, equipmentName):
         """Return an Equipment given its name (see getHardwareObject())"""
         return self.getHardwareObject(equipmentName)
-        
+
 
     def getDevice(self, deviceName):
         """Return a Device given its name (see getHardwareObject())"""
@@ -429,8 +431,8 @@ class __HardwareRepositoryClient:
     def getProcedure(self, procedureName):
         """Return a Procedure given its name (see getHardwareObject())"""
         return self.getHardwareObject(procedureName)
-        
-    
+
+
     def getConnection(self, connectionName):
         """Return the Connection object for a Spec connection, given its name
 
@@ -443,7 +445,7 @@ class __HardwareRepositoryClient:
         connectionsManager = SpecConnectionsManager.SpecConnectionsManager()
 
         return connectionsManager.getConnection(connectionName)
-    
+
 
     def isDevice(self, name):
         """Check if a Hardware Object is a Device
@@ -458,7 +460,7 @@ class __HardwareRepositoryClient:
             return isinstance(self.hardwareObjects[name], BaseHardwareObjects.Device)
         except:
             return False
-        
+
 
     def isProcedure(self, name):
         """Check if a Hardware Object is a Procedure
@@ -488,7 +490,7 @@ class __HardwareRepositoryClient:
             return isinstance(self.hardwareObjects[name], BaseHardwareObjects.Equipment)
         except:
             return False
-        
+
 
     def hasHardwareObject(self, name):
         """Check if the Hardware Repository contains an object
@@ -500,7 +502,7 @@ class __HardwareRepositoryClient:
           True if the Hardware Object is loaded in the Hardware Repository, False otherwise
         """
         return name in self.hardwareObjects
-       
+
 
     def getInfo(self, name):
         """Return a dictionary with information about the specified Hardware Object
@@ -517,7 +519,7 @@ class __HardwareRepositoryClient:
             return {}
         else:
             ho_class = ho.__class__.__name__
-            
+
             d = { "class": ho_class,
                   "python module": sys.modules[ho.__module__].__file__ }
 
@@ -527,7 +529,7 @@ class __HardwareRepositoryClient:
             if hasattr(ho, "getCommands"):
                 # hardware object is a command container
                 d["commands"] = {}
-                
+
                 for cmd in ho.getCommands():
                     if cmd.__class__.__name__ == "SpecCommand":
                         d["commands"][cmd.userName()] = { "type": "spec",
@@ -537,14 +539,14 @@ class __HardwareRepositoryClient:
                     elif cmd.__class__.__name__ == "TacoCommand":
                         dd = { "type": "taco",
                                "device": cmd.deviceName }
-                        
+
                         try:
                             dd["imported ?"] = cmd.device.imported and "yes" or "no"
                         except:
                             dd["imported ?"] = "no, invalid Taco device"
-                        
+
                         dd["device method"] = str(cmd.command)
-                        
+
                         d["commands"][cmd.userName()] = dd
                     elif cmd.__class__.__name__ == "TangoCommand":
                         d["commands"][cmd.userName()] = { "type": "tango",
@@ -553,7 +555,7 @@ class __HardwareRepositoryClient:
                                                           "device method": str(cmd.command) }
 
                 d["channels"] = {}
-                
+
                 for chan in ho.getChannels():
                     if chan.__class__.__name__ == "SpecChannel":
                         d["channels"][chan.userName()] = { "type": "spec",
@@ -577,16 +579,16 @@ class __HardwareRepositoryClient:
 
             if isinstance(ho, BaseHardwareObjects.DeviceContainer):
                 d["children"] = {}
-                
+
                 for ho in ho.getDevices():
                     try:
                         d["children"][ho.name()] = self.getInfo(ho.name())
                     except Exception:
                         continue
-                    
+
             return d
-        
-    
+
+
     def endPolling(self):
         """Stop all pollers
 
@@ -608,7 +610,7 @@ class __HardwareRepositoryClient:
     def timerEvent(self, t_ev):
         try:
             global _timers
-        
+
             func_ref = _timers[t_ev.timerId()]
             func = func_ref()
 
@@ -623,6 +625,19 @@ class __HardwareRepositoryClient:
         except:
             logging.getLogger("HWR").exception("an error occured inside the timerEvent")
 
+    def printReport(self):
+        longest_cols = [(max([len(str(row[i])) for row in self.hwobj_info_list]) + 3)
+                        for i in range(len(self.hwobj_info_list[0]))]
+        row_format = "| ".join(["{:<" + str(longest_col) + "}" for longest_col in longest_cols])
+
+        print "+","=" * (sum(longest_cols) + 5), "+"
+        print "| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment"))
+        print "+","=" * (sum(longest_cols) + 5), "+"
+
+        for row in self.hwobj_info_list:
+            print "| %s|" % row_format.format(*row)
+        print "+","=" * (sum(longest_cols) + 4), "+"
+
     def reloadHardwareObjects(self):
         """
         Reloads all modified modules.
@@ -632,7 +647,7 @@ class __HardwareRepositoryClient:
         2. imported in this module with __import__ and reimport is called
         3. connected back to the gui channels
         """
-        #NOTE 
+        #NOTE
         #reimport is supported for python 2.x and not by python 3.x
         #if needed a similar package for 3x could be used. In this case
         #code depends on a platform: platform.python_version()[0] > 2 ...
@@ -643,7 +658,7 @@ class __HardwareRepositoryClient:
         for hwr_obj in self.hardwareObjects:
             for item in modified_modules:
                 if self.hardwareObjects[hwr_obj].__module__ == item:
-                    try: 
+                    try:
                         connections = self.hardwareObjects[hwr_obj].connect_dict
                         for sender in connections:
                             self.hardwareObjects[hwr_obj].disconnect(\
@@ -664,7 +679,7 @@ class __HardwareRepositoryClient:
                     except:
                         logging.getLogger("HWR").exception(\
                            "HardwareRepository: Unable to reload module %s" % item)
-                    
+
                     try:
                         for sender in connections:
                             self.hardwareObjects[hwr_obj].connect(\
