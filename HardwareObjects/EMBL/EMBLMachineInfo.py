@@ -100,7 +100,7 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['in_range'] = False
         temp_dict['title'] = "Machine current"
         temp_dict['bold'] = True
-        temp_dict['font'] = 14
+        #temp_dict['font'] = 16
         #temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
@@ -108,6 +108,12 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value'] = None
         temp_dict['in_range'] = True
         temp_dict['title'] = "Machine state"
+        self.values_list.append(temp_dict)
+
+        temp_dict = {}
+        temp_dict['value'] = None
+        temp_dict['in_range'] = True
+        temp_dict['title'] = "Front End"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -122,7 +128,7 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict['value_str'] = "Remeasure flux!"
         temp_dict['in_range'] = False
         temp_dict['title'] = "Flux"
-        temp_dict['align'] = "left"
+        #temp_dict['align'] = "left"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -174,6 +180,10 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_bunch_count is not None:
             self.chan_bunch_count.connectSignal('update',
                                                 self.bunch_count_changed)
+        self.chan_frontend_status = self.getChannelObject('frontEndStatus')
+        if self.chan_frontend_status is not None:
+            self.chan_frontend_status.connectSignal('update',
+                                                    self.frontend_status_changed)
 
         self.chan_cryojet_in = self.getChannelObject('cryojetIn')
         if self.chan_cryojet_in is not None:
@@ -212,8 +222,11 @@ class EMBLMachineInfo(HardwareObject):
 
         self.flux_hwobj = self.getObjectByRole("flux")
         self.connect(self.flux_hwobj,
-                     'fluxChanged',
-                     self.flux_changed)
+                     'fluxInfoChanged',
+                     self.flux_info_changed)
+        #self.connect(self.flux_hwobj,
+        #             'fluxValueChanged',
+        #             self.flux_value_changed)
 
         self.temp_hum_polling = spawn(self.get_temp_hum_values,
                                       self.getProperty("updateIntervalS"))
@@ -237,17 +250,17 @@ class EMBLMachineInfo(HardwareObject):
         :return: None
         """
 
-        self.values_list[4]['in_range'] = False
-        self.values_list[4]['bold'] = True
+        self.values_list[5]['in_range'] = False
+        self.values_list[5]['bold'] = True
 
         if value == 1:
-            self.values_list[4]['value'] = " In place"
-            self.values_list[4]['in_range'] = True
-            self.values_list[4]['bold'] = False
+            self.values_list[5]['value'] = " In place"
+            self.values_list[5]['in_range'] = True
+            self.values_list[5]['bold'] = False
         elif value == 0:
-            self.values_list[4]['value'] = "NOT IN PLACE"
+            self.values_list[5]['value'] = "NOT IN PLACE"
         else:
-            self.values_list[4]['value'] = "Unknown"
+            self.values_list[5]['value'] = "Unknown"
         self.update_values()
 
     def mach_current_changed(self, value):
@@ -288,6 +301,14 @@ class EMBLMachineInfo(HardwareObject):
         self.bunch_count = value
         self.update_machine_state()
 
+    def frontend_status_changed(self, value):
+        if value[2] == 2:
+            self.values_list[2]['in_range'] = True
+            self.values_list[2]['value_str'] = "Opened"
+        else:
+            self.values_list[2]['in_range'] = False
+            self.values_list[2]['value_str'] = "Closed"       
+
     def update_machine_state(self):
         """Machine state assembly"""
         state_text = self.state_text
@@ -300,7 +321,7 @@ class EMBLMachineInfo(HardwareObject):
 
     def low_level_alarm_changed(self, value):
         """Low level alarm"""
-        self.low_level_alarm = value == 0
+        self.low_level_alarm = value
         self.update_sc_alarm()
 
     def overflow_alarm_changed(self, value):
@@ -320,33 +341,41 @@ class EMBLMachineInfo(HardwareObject):
     def update_sc_alarm(self):
         """Sample changer alarm"""
         if self.low_level_alarm == 1:
-            self.values_list[5]['value'] = "Low level alarm!"
-            self.values_list[5]['in_range'] = False
-            self.values_list[5]['bold'] = True
+            self.values_list[6]['value'] = "Low level alarm!"
+            self.values_list[6]['in_range'] = False
+            self.values_list[6]['bold'] = True
             logging.getLogger("GUI").error(
                 "Liquid nitrogen level in sample changer dewar is too low!")
 
         elif self.overflow_alarm:
-            self.values_list[5]['value'] = "Overflow alarm!"
-            self.values_list[5]['in_range'] = False
-            self.values_list[5]['bold'] = True
+            self.values_list[6]['value'] = "Overflow alarm!"
+            self.values_list[6]['in_range'] = False
+            self.values_list[6]['bold'] = True
             logging.getLogger("GUI").error(
                 "Liquid nitrogen overflow in sample changer dewar!")
         else:
-            self.values_list[5]['value'] = "Dewar level in range"
-            self.values_list[5]['in_range'] = True
+            self.values_list[6]['value'] = "Dewar level in range"
+            self.values_list[6]['in_range'] = True
         self.update_values()
 
-    def flux_changed(self, value, beam_info, transmission):
+    def flux_info_changed(self, flux_info):
         """Sets flux value"""
-        self.values_list[3]['value'] = value
-        msg_str = "Flux: %.2E ph/s" % value
-        msg_str += "\n@ %.1f transmission , %d x %d beam" % (
-            transmission, beam_info['size_x'] * 1000,
-            beam_info['size_y'] * 1000)
-        self.values_list[3]['value_str'] = msg_str
-        self.values_list[3]['in_range'] = value > 1e+6
+        msg_str = "Flux: %.2E ph/s\n" % flux_info["current"]["flux"]
+        msg_str += "%d%% transmission, %dx%d beam" % \
+                   (flux_info["current"]["transmission"],
+                    flux_info["current"]["beam_size"][0] * 1000,
+                    flux_info["current"]["beam_size"][1] * 1000)
+
+        self.values_list[4]['value'] = flux_info["current"]["flux"]
+        self.values_list[4]['value_str'] = msg_str
+        self.values_list[4]['in_range'] = flux_info["current"]["flux"] > 1e+6
         self.update_values()
+
+    def flux_value_changed(self, flux_value):
+        self.values_list[4]['value'] = flux_value
+        self.values_list[4]['value_str'] = "%.2E ph/s" % flux_value
+        self.values_list[4]['in_range'] = flux_value > 1e+6
+        self.update_values()   
 
     def get_flux(self, beam_info=None, transmission=None):
         """Returns flux value"""
@@ -390,9 +419,9 @@ class EMBLMachineInfo(HardwareObject):
                         or abs(float(hum) != self.hutch_hum > 1)):
                     self.hutch_temp = temp
                     self.hutch_hum = hum
-                    self.values_list[2]['value'] = "%.1f C, %.1f %%" % (temp,
+                    self.values_list[3]['value'] = "%.1f C, %.1f %%" % (temp,
                                                                         hum)
-                    self.values_list[2]['in_range'] = temp < 25 and hum < 60
+                    self.values_list[3]['in_range'] = temp < 25 and hum < 60
                     self.update_values()
             time.sleep(sleep_time)
 

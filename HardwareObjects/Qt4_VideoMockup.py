@@ -18,10 +18,11 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 import gevent
 import numpy as np
 
-from QtImport import QPixmap, QImage
+from QtImport import *
 
 from GenericVideoDevice import GenericVideoDevice
 
@@ -45,9 +46,23 @@ class Qt4_VideoMockup(GenericVideoDevice):
         """ 
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-1])
-        image_path = "/" + current_path + "/tests/fakeimg.jpg"
+
+        default_image_path = "/" + current_path + "/tests/fakeimg.jpg"
+        image_path = self.getProperty("file_name", default_image_path)
+
         self.image = QPixmap(image_path)
         self.image_dimensions = (self.image.width(), self.image.height())
+        self.painter = QPainter(self.image)
+
+        custom_pen = QPen(Qt.SolidLine)
+        custom_pen.setColor(Qt.black)
+        custom_pen.setWidth(1)
+        self.painter.setPen(custom_pen)
+
+        custom_brush = QBrush(Qt.SolidPattern)
+        custom_brush.setColor(Qt.lightGray)
+        self.painter.setBrush(custom_brush)
+
         self.setIsReady(True)
         GenericVideoDevice.init(self)
 
@@ -55,6 +70,13 @@ class Qt4_VideoMockup(GenericVideoDevice):
         return self.image_dimensions
 
     def get_new_image(self):
+        self.painter.drawRect(self.image.width() - 75,
+                              self.image.height() - 30,
+                              70,
+                              20)
+        self.painter.drawText(self.image.width() - 70, 
+                              self.image.height() - 15,
+                              time.strftime("%H:%M:%S"))
         self.emit("imageReceived", self.image) 
 
     def save_snapshot(self, filename, image_type='PNG'):
