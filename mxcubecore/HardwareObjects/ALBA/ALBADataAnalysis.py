@@ -25,10 +25,34 @@ class ALBADataAnalysis(DataAnalysis):
     def init(self):
         DataAnalysis.init(self)
 
-    def prepare_edna_input(self, edna_input, edna_directory):
+    def prepare_edna_input(self, edna_input):
 
         # used for strategy calculation (characterization) using data analysis cluster
         # ALBA specific
+
+        firstImage = None
+
+        for dataSet in edna_input.getDataSet():
+            for imageFile in dataSet.imageFile:
+                if imageFile.getPath() is None:
+                    continue
+                firstImage = imageFile.path.value
+                break
+
+        listImageName = os.path.basename(firstImage).split("_")
+        prefix = "_".join(listImageName[:-2])
+        run_number = listImageName[-2]
+        i = 1
+
+        if hasattr(edna_input, "process_directory"):
+            edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
+            while os.path.exists(edna_directory):
+                i += 1
+                edna_directory = os.path.join(edna_input.process_directory, "characterisation_%s_run%s_%d" % (prefix, run_number, i))
+            os.makedirs(edna_directory)
+        else:
+            raise RuntimeError("No process directory specified in edna_input")
+
         edna_input.process_directory = edna_directory
 
         output_dir = XSDataFile()
