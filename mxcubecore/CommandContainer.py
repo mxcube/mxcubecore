@@ -132,7 +132,7 @@ class ChannelObject:
                  cmdobj(value)
     
 
-    def getValue(self):
+    def getValue(self, force=False):
         raise NotImplementedError
         
 
@@ -153,7 +153,7 @@ class CommandContainer:
     def getChannelObject(self, channelName, optional=False):
         channel = self.__channels.get(channelName)
         if channel is None and not optional:
-            msg = "Unable to add channel %s" % channelName
+            msg = "%s: Unable to add channel %s" % (self.name(), channelName)
             logging.getLogger("user_level_log").error(msg)
             #raise Exception(msg)
         return channel

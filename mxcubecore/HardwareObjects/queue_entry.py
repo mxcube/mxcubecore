@@ -28,16 +28,15 @@ import queue_model_objects_v1 as queue_model_objects
 import os
 import autoprocessing
 
-import edna_test_data
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE, XSDataResultMXCuBE
 
 from copy import copy
 from queue_model_enumerables_v1 import *
 from HardwareRepository.HardwareRepository import dispatcher
 
-status_list = ['SUCCESS','WARNING', 'FAILED']
+status_list = ['SUCCESS','WARNING', 'FAILED', 'SKIPPED']
 QueueEntryStatusType = namedtuple('QueueEntryStatusType', status_list)
-QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,)
+QUEUE_ENTRY_STATUS = QueueEntryStatusType(0,1,2,3)
 
 
 class QueueExecutionException(Exception):
@@ -209,7 +208,6 @@ class BaseQueueEntry(QueueEntryContainer):
         self.set_view(view, view_set_queue_entry)
         self._checked_for_exec = False
         self.beamline_setup = None
-        self._execution_failed = False
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
         self.type_str = ""
 
@@ -218,6 +216,9 @@ class BaseQueueEntry(QueueEntryContainer):
     
     # def __setstate__(self, d):
     #     return QueueEntryContainer.__setstate__(self, d)
+
+    def is_failed(self):
+        return self.status == QUEUE_ENTRY_STATUS.FAILED
 
     def enqueue(self, queue_entry):
         """
@@ -884,8 +885,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                    self.collect_number_of_frames)
 
         if self.parallel_processing_hwobj is not None:
-            qc.connect(self.parallel_processing_hwobj, 'paralleProcessingResults',
-                       self.processing_set_result)
+            #qc.connect(self.parallel_processing_hwobj, 'paralleProcessingResults',
+            #           self.processing_set_result)
             qc.connect(self.parallel_processing_hwobj, 'processingFinished',
                        self.processing_finished)
             qc.connect(self.parallel_processing_hwobj, 'processingFailed',
@@ -917,8 +918,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                      self.collect_number_of_frames)
 
         if self.parallel_processing_hwobj is not None:
-            qc.disconnect(self.parallel_processing_hwobj, 'paralleProcessingResults',
-                       self.processing_set_result)
+            #qc.disconnect(self.parallel_processing_hwobj, 'paralleProcessingResults',
+            #           self.processing_set_result)
             qc.disconnect(self.parallel_processing_hwobj, 'processingFinished',
                        self.processing_finished)
             qc.disconnect(self.parallel_processing_hwobj, 'processingFailed',
@@ -959,11 +960,13 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     self.collect_hwobj.set_mesh_scan_parameters(mesh_nb_lines, mesh_total_nb_frames, mesh_center, mesh_range)
                     self.collect_hwobj.set_helical(False)
                     self.collect_hwobj.set_mesh(True)
+                    dc.grid.used_count += 1
                 else:
                     self.collect_hwobj.set_helical(False)
                     self.collect_hwobj.set_mesh(False)
 
                 if dc.run_processing_parallel and \
+                   acq_1.acquisition_parameters.num_images > 4 and \
                    self.parallel_processing_hwobj is not None:
                       self.processing_task = gevent.spawn(\
                            self.parallel_processing_hwobj.run_processing,
@@ -1000,6 +1003,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                     dc.id = param_list[0]['collection_id']
 
                 dc.acquisitions[0].path_template.xds_dir = param_list[0]['xds_dir']
+
+                #if self.processing_task:
+                #    self.parallel_processing_hwobj.done_event.wait(timeout=60)
+                #    self.parallel_processing_hwobj.done_event.clear()
 
             except gevent.GreenletExit:
                 #log.warning("Collection stopped by user.")
@@ -1047,15 +1054,15 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
     def collect_finished(self, owner, state, message, *args):
         # this is to work around the remote access problem
-        if self.processing_task is not None:
-            self.get_view().setText(1, "Processing")
-            logging.getLogger("user_level_log").info('Processing: Please wait...')
-            self.parallel_processing_hwobj.done_event.wait()
-            self.parallel_processing_hwobj.done_event.clear()
-
         dispatcher.send("collect_finished")
         self.get_view().setText(1, "Collection done")
-        logging.getLogger("user_level_log").info('Collection finished')
+        logging.getLogger("user_level_log").info('Collection: finished')
+
+        if self.processing_task is not None:
+            self.get_view().setText(1, "Processing...")
+            logging.getLogger("user_level_log").warning('Processing: Please wait...')
+            self.parallel_processing_hwobj.done_event.wait(timeout=120)
+            self.parallel_processing_hwobj.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
@@ -1077,20 +1084,20 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         dispatcher.send("collect_finished")
         raise QueueAbortedException('Queue stopped', self)
 
-    def processing_set_result(self, result_dict, info_dict, last_result):
-        data_model = self.get_data_model()
-        data_model.parallel_processing_result = result_dict
+    #def processing_set_result(self, result_dict, info_dict, last_result):
+    #    data_model = self.get_data_model()
+    #    #data_model.parallel_processing_result = copy(result_dict)
 
     def processing_finished(self):
         dispatcher.send("collect_finished")
         self.processing_task = None
-        self.get_view().setText(1, "Processing done")
-        logging.getLogger("user_level_log").info('Processing done')
+        self.get_view().setText(1, "Done")
+        logging.getLogger("user_level_log").info('Processing: Done')
 
     def processing_failed(self):
         self.processing_task = None
         self.get_view().setText(1, "Processing failed")
-        logging.getLogger("user_level_log").error('Processing failed')
+        logging.getLogger("user_level_log").error('Processing: Failed')
 
     def get_type_str(self):
         data_model = self.get_data_model()
@@ -1100,7 +1107,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             return "Mesh"
         else:
             return "OSC"
-            
+
+    def add_processing_msg(self, time, method, status, msg):
+        data_model = self.get_data_model()
+        data_model.add_processing_msg(time, method, status, msg)
+        self.get_view().update_tool_tip()
 
 class CharacterisationGroupQueueEntry(BaseQueueEntry):
     """
@@ -1168,10 +1179,19 @@ class CharacterisationQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
-        log = logging.getLogger("queue_exec")
 
+        if self.data_analysis_hwobj is not None:
+            if self.get_data_model().wait_result:
+                logging.getLogger("user_level_log").warning("Characterisation: Please wait ...")
+                self.start_char()
+            else:
+                logging.getLogger("user_level_log").info("Characterisation: Started in the background")
+                gevent.spawn(self.start_char)
+
+    def start_char(self):
+        log = logging.getLogger("user_level_log")
         self.get_view().setText(1, "Characterising")
-        log.info("Characterising, please wait ...")
+
         char = self.get_data_model()
         reference_image_collection = char.reference_image_collection
         characterisation_parameters = char.characterisation_parameters
@@ -1182,12 +1202,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                          from_params(reference_image_collection,
                                      characterisation_parameters)
 
-            #Un-comment to use the test input files
-            #edna_input = XSDataInputMXCuBE.parseString(edna_test_data.EDNA_TEST_DATA)
-            #edna_input.process_directory = reference_image_collection.acquisitions[0].\
-            #                                path_template.process_directory
-            #self.edna_result = XSDataResultMXCuBE.parseString(edna_test_data.EDNA_RESULT_DATA)
-            self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
+        self.edna_result = self.data_analysis_hwobj.characterise(edna_input)
 
         if self.edna_result is not None:
             log.info("Characterisation completed.")
@@ -1215,7 +1230,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                               get_next_number_for_name(new_dcg_name)
 
                 new_dcg_model = queue_model_objects.TaskGroup()
-                new_dcg_model.set_enabled(False)
+                new_dcg_model.set_enabled(char.run_diffraction_plan)
                 new_dcg_model.set_name(new_dcg_name)
                 new_dcg_model.set_number(new_dcg_num)
                 new_dcg_model.set_origin(char._node_id)
@@ -1233,8 +1248,9 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                     path_template = edna_dc.acquisitions[0].path_template
                     run_number = self.queue_model_hwobj.get_next_run_number(path_template)
                     path_template.run_number = run_number
+                    path_template.compression = char.diff_plan_compression
 
-                    edna_dc.set_enabled(False)
+                    edna_dc.set_enabled(char.run_diffraction_plan)
                     edna_dc.set_name(path_template.get_prefix())
                     edna_dc.set_number(path_template.run_number)
                     self.queue_model_hwobj.add_child(new_dcg_model, edna_dc)
@@ -1373,8 +1389,8 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         logging.getLogger("user_level_log").info("Energy scan started.")
         self.get_view().setText(1, "In progress")
 
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
+    def energy_scan_finished(self, scan_info):
+        self.get_view().setText(1, "Done")
 
         energy_scan = self.get_data_model()
         #fname = "_".join((energy_scan.path_template.get_prefix(),str(energy_scan.path_template.run_number)))
@@ -1428,12 +1444,9 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         if sample.crystals[0].energy_scan_result.peak and \
            sample.crystals[0].energy_scan_result.inflection:
             logging.getLogger("user_level_log").\
-                info("Energy scan, result: peak: %.4f, inflection: %.4f" %
+                info("Energy scan: Result peak: %.4f, inflection: %.4f" %
                      (sample.crystals[0].energy_scan_result.peak,
                       sample.crystals[0].energy_scan_result.inflection))
-
-    def energy_scan_finished(self, scan_info):
-        self.get_view().setText(1, "Done")
 
     def energy_scan_failed(self):
         self._failed = True
@@ -1894,6 +1907,22 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
     def get_type_str(self):
         return "Optical automatic centering"
 
+class XrayImagingQueueEntry(BaseQueueEntry):
+    """
+    """
+    def __init__(self, view=None, data_model=None,
+                 view_set_queue_entry=True):
+        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
+
+    def execute(self):
+        BaseQueueEntry.execute(self)
+
+    def pre_execute(self):
+        BaseQueueEntry.pre_execute(self)
+
+    def post_execute(self):
+        BaseQueueEntry.post_execute(self)
+
 def mount_sample(beamline_setup_hwobj,
                  view, data_model,
                  centring_done_cb, async_result):
@@ -2010,4 +2039,5 @@ MODEL_QUEUE_ENTRY_MAPPINGS = \
      queue_model_objects.Workflow: GenericWorkflowQueueEntry,
      queue_model_objects.XrayCentering: XrayCenteringQueueEntry,
      queue_model_objects.GphlWorkflow: GphlWorkflowQueueEntry,
+     queue_model_objects.XrayImaging: XrayImagingQueueEntry,
 }
