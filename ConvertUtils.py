@@ -29,19 +29,25 @@ h_over_e = 12.3984
 
 # Utility functions:
 
-def java_property(keyword, value):
+def java_property(keyword, value, quote_value=False):
     """Return argument list for command line invocation setting java property"""
     if value is None:
         return ['-D' + keyword]
     else:
+        if value and quote_value:
+            value = repr(value)
         return ['-D%s=%s' % (keyword, value)]
 
-def command_option(keyword, value, prefix='-'):
+def command_option(keyword, value, prefix='-', quote_value=False):
     """Return argument list for command line option"""
     if value is None:
         return [prefix + keyword]
     else:
-        return [prefix + keyword, str(value)]
+        if value and quote_value:
+            value = repr(value)
+        else:
+            value = str(value)
+        return [prefix + keyword, value]
 
 def to_ascii(text):
     """Rough-and-ready conversion to bytes, intended for ascii contexts"""
@@ -52,7 +58,7 @@ def to_ascii(text):
         return text
 
 def convert_string_value(text):
-    """Convert in put string to int, float, or sstring (in order of priority)"""
+    """Convert input string to int, float, or string (in order of priority)"""
     try:
         return int(text)
     except ValueError:
