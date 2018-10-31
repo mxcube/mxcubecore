@@ -17,15 +17,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import tine
 import numpy
 import gevent
 import logging
 
-from copy import copy
+from copy import deepcopy
 from datetime import datetime
 from scipy.interpolate import interp1d
 
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from AbstractFlux import AbstractFlux
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -33,16 +34,16 @@ __version__ = "2.3."
 __category__ = "General"
 
 
-class EMBLFlux(HardwareObject):
+class EMBLFlux(AbstractFlux):
 
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+        AbstractFlux.__init__(self, name)
 
-        self.flux_value = None
-        self.beam_info = None
-        self.transmission = None
-        self.ready_event = None
-        self.intensity_measurements = []
+        self.measured_flux_dict = None
+        self.measured_flux_list = None
+        self.current_flux_dict = None
+        self.flux_value = 1
+
         self.ampl_chan_index = None
         self.intensity_ranges = []
         self.intensity_value = None
@@ -56,6 +57,16 @@ class EMBLFlux(HardwareObject):
         self.cmd_set_intens_acq_time = None
         self.cmd_set_intens_range = None
         self.cmd_set_intens_resolution = None
+
+        self.back_light_hwobj = None
+        self.beam_info_hwobj = None
+        self.beamstop_hwobj = None
+        self.detector_hwobj = None
+        self.diffractometer_hwobj = None
+        self.energy_hwobj = None
+        self.fast_shutter_hwobj = None
+        self.transmission_hwobj = None
+        self.session_hwobj = None
      
         self.diode_calibration_amp_per_watt = interp1d(\
               [4., 6., 8., 10., 12., 12.5, 15., 16., 20., 30.],
@@ -79,11 +90,10 @@ class EMBLFlux(HardwareObject):
     def init(self):
         """Reads config xml, initiates all necessary hwobj, channels and cmds
         """
-        self.ready_event = gevent.event.Event()
-
-        self.flux_value = 1
         self.intensity_ranges = []
-        self.intensity_measurements = []
+        self.measured_flux_dict = None
+        self.measured_flux_list = []
+        self.current_flux_dict = None
 
         try:
             for intens_range in self['intensity']['ranges']:
@@ -108,52 +118,72 @@ class EMBLFlux(HardwareObject):
         self.cmd_set_intens_range = \
             self.getCommandObject('setIntensRange')
 
+        self.back_light_hwobj =self.getObjectByRole("backlight")
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        self.beamstop_hwobj = self.getObjectByRole("beamstop")
+        self.detector_hwobj = self.getObjectByRole("detector")
+        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.energy_hwobj = self.getObjectByRole("energy")
+        self.fast_shutter_hwobj = self.getObjectByRole("fast_shutter")
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+        self.session_hwobj = self.getObjectByRole("session")
+        self.aperture_hwobj = self.beam_info_hwobj.aperture_hwobj
+
+        #P14
+        """
         self.connect(self.beam_info_hwobj,
                      "beamInfoChanged",
                      self.beam_info_changed)
-        self.beam_info_changed(self.beam_info_hwobj.get_beam_info())
-
-        self.transmission_hwobj = self.getObjectByRole("transmission")
+        """
         self.connect(self.transmission_hwobj,
-                     "attFactorChanged",
+                     "valueChanged",
                      self.transmission_changed)
-        self.transmission_changed(self.transmission_hwobj.getAttFactor())
+        self.connect(self.aperture_hwobj,
+                     "diameterIndexChanged",
+                     self.aperture_diameter_changed)
 
-        if self.getProperty("defaultFlux") is not None:
-            self.set_flux(self.getProperty("defaultFlux"))
+    def aperture_diameter_changed(self, index, size):
+        if self.measured_flux_list and not self.measuring:
+            self.current_flux_dict = self.measured_flux_list[index]
+            self.measured_flux_dict = self.measured_flux_list[index]
+            self.update_flux_value()
 
     def beam_info_changed(self, beam_info):
         self.beam_info = beam_info
-        #self.update_flux_value()
+        self.update_flux_value()
 
     def transmission_changed(self, transmission):
         self.transmission = transmission
-        #self.update_flux_value()
-
-    def set_flux(self, flux_value):
-        self.flux_value = flux_value
-        #self.origin_flux_value = copy(flux_value)
-        #self.origin_beam_info = copy(self.beam_info)
-        #self.origin_transmission = copy(self.transmission)
         self.update_flux_value()
 
     def get_flux(self):
         return self.flux_value
 
-    def update_flux_value(self):
-        self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
+        if self.current_flux_dict is not None:
+            return self.current_flux_dict["flux"]
+        else:
+            return 1
 
-        """
-        if self.flux_value is not None:
-            if self.origin_transmission is not None:
-                if self.origin_transmission != self.transmission:
-                    self.flux_value = self.origin_flux_value * self.transmission / \
-                                      self.origin_transmission
-                else:
-                    self.flux_value = self.origin_flux_value
-            if self.origin_beam_info is not None:
-                if self.origin_beam_info != self.beam_info:
+    def set_flux(self, flux_value):
+        #self.result_dict = flux_dict
+        #self.update_flux_value()
+        self.flux_value = flux_value
+        self.emit('fluxValueChanged', flux_value)
+
+    def set_flux_info(self, flux_info):
+        self.emit('fluxInfoChanged', flux_info)
+
+    def update_flux_value(self):
+        if self.measured_flux_dict is not None:
+
+            self.current_flux_dict = deepcopy(self.measured_flux_dict)
+            if int(self.transmission) != int(self.measured_flux_dict["transmission"]):
+                 self.current_flux_dict["flux"] = self.measured_flux_dict["flux"] * \
+                                                  self.transmission / \
+                                                  self.measured_flux_dict["transmission"]
+                 self.current_flux_dict["transmission"] = self.transmission
+                 """
+                 if self.origin_beam_info != self.beam_info:
                     if self.origin_beam_info['shape'] == 'ellipse':
                         origin_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
                     else:     
@@ -167,107 +197,148 @@ class EMBLFlux(HardwareObject):
                                        self.beam_info['size_y']
                     self.flux_value = self.flux_value * current_area / \
                                       origin_area   
-            self.emit('fluxChanged', self.flux_value, self.beam_info, self.transmission)
-        """
+                 """
+            self.emit('fluxChanged', {"measured": self.measured_flux_dict,
+                                      "current": self.current_flux_dict})
 
-    def measure_intensity(self):
-        """Measures intesity"""
+    def measure_flux(self, wait=True):
+        gevent.spawn(self.measure_flux_task, wait)
 
-        # 1. close guillotine and fast shutter -------------------------------
-        self.bl_hwobj.collect_hwobj.close_guillotine(wait=True)
-        self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
-        gevent.sleep(0.1)
+    def measure_flux_task(self, wait=True):
+        try:
+            self.measuring = True
+            intens_value = 0
+            current_phase = self.diffractometer_hwobj.current_phase
+            current_transmission = self.transmission_hwobj.get_value()
+            current_aperture_index = self.aperture_hwobj.get_diameter_index()
 
-        #2. move back light in, check beamstop position ----------------------
-        self.bl_hwobj.back_light_hwobj.move_in()
+            self.emit("progressInit", "Measuring flux. Please wait...", 10, True)
 
-        beamstop_position = self.bl_hwobj.beamstop_hwobj.get_position()
-        if beamstop_position == "BEAM":
-            self.bl_hwobj.beamstop_hwobj.set_position("OFF")
-            self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)
+            self.emit("progressStep", 1, "Setting transmission to 100%")
+            self.transmission_hwobj.setTransmission(100, timeout=20)
 
-        #3. check scintillator position --------------------------------------
-        scintillator_position = self.bl_hwobj.\
-            diffractometer_hwobj.get_scintillator_position()
-        if scintillator_position == "SCINTILLATOR":
-            #TODO add state change when scintillator position changed
-            self.bl_hwobj.diffractometer_hwobj.\
-                 set_scintillator_position("PHOTODIODE")
-            gevent.sleep(1)
-            self.bl_hwobj.diffractometer_hwobj.\
-                 wait_device_ready(30)
+            # 1. close guillotine and fast shutter -------------------------------
+            if not self.detector_hwobj.is_cover_closed():
+                self.print_log('GUI', 'error', "Unable to measure flux!" + \
+                               "Close the detecor cover to continue")
+                self.emit("progressStop", ())
+                return
 
-        #5. open the fast shutter --------------------------------------------
-        self.bl_hwobj.fast_shutter_hwobj.openShutter(wait=True)
-        gevent.sleep(0.3)
+            #2. move back light in, check beamstop position ----------------------
+            self.emit("progressStep", 1, "Moving backlight in")
+            self.back_light_hwobj.move_in()
+            self.aperture_hwobj.set_diameter_index(0)
 
-        #6. measure mean intensity
-        self.ampl_chan_index = 0
+            beamstop_position = self.beamstop_hwobj.get_position()
+            if beamstop_position == "BEAM":
+                self.emit("progressStep", 2, "Moving beamstop OFF")
+                self.beamstop_hwobj.set_position("OFF")
+                self.diffractometer_hwobj.wait_device_ready(30)
 
-        if True:
-            intens_value = self.chan_intens_mean.getValue()
-            intens_range_now = self.chan_intens_range.getValue()
-            for intens_range in self.intensity_ranges:
-                if intens_range['index'] is intens_range_now:
-                    self.intensity_value = intens_value[self.ampl_chan_index] - \
-                                           intens_range['offset']
-                    break
+            #3. check scintillator position --------------------------------------
+            scintillator_position = self.diffractometer_hwobj.get_scintillator_position()
+            if scintillator_position == "SCINTILLATOR":
+                #TODO add state change when scintillator position changed
+                self.emit("progressStep", 3, "Setting the photodiode")
+                self.diffractometer_hwobj.set_scintillator_position("PHOTODIODE")
+                gevent.sleep(0.5)
+                self.diffractometer_hwobj.wait_device_ready(30)
 
-        #7. close the fast shutter -------------------------------------------
-        self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+            #TODO move in the apeture for P13
+            if self.session_hwobj.beamline_name == "P13":
+                #self.bl_hwobj.diffractometer_hwobj.set_capillary_position("BEAM")
+                self.aperture_hwobj.set_in()
+                self.diffractometer_hwobj.wait_device_ready(30)
+                self.ampl_chan_index = 0
 
-        # 7/7 set back original phase ----------------------------------------
-        #self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
+                self.fast_shutter_hwobj.openShutter(wait=True)
 
-        #8. Calculate --------------------------------------------------------
-        energy = self.bl_hwobj._get_energy()
-        detector_distance = self.bl_hwobj.detector_hwobj.get_distance()
-        beam_size = self.bl_hwobj.collect_hwobj.get_beam_size()
-        transmission = self.bl_hwobj.transmission_hwobj.getAttFactor()
+                self.measured_flux_list = []
+                for index, diameter_size in enumerate(self.aperture_hwobj.get_diameter_list()):
+                    #5. open the fast shutter --------------------------------------------
+                    self.emit("progressStep", 4 + index, "Measuring flux with %d micron aperture" % diameter_size)
+                    logging.getLogger("GUI").info("Measuring flux with %d micron aperture" % diameter_size)
+                    #TODO replace with beam area
+                    beamsize = (diameter_size/ 1000., diameter_size/ 1000.)
+                    self.aperture_hwobj.set_diameter_index(index)
+                    self.diffractometer_hwobj.wait_device_ready(10)
 
-        meas_item = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                     "%.4f" % energy,
-                     "%.2f" % detector_distance,
-                     "%.2f x %.2f" % (beam_size[0], beam_size[1]),
-                     "%.2f" % transmission]
+                    gevent.sleep(1.5)
+                    intens_value = self.chan_intens_mean.getValue(force=True)
+                    #intens_range_now = self.chan_intens_range.getValue()
+                    intensity_value = intens_value[0] + 1.872e-5  #2.780e-6
+                    self.measured_flux_list.append(self.get_flux_result(intensity_value, beamsize))
+                    gevent.sleep(0.5)
 
+                self.fast_shutter_hwobj.closeShutter(wait=True)
+
+        except Exception as ex:
+            logging.getLogger("GUI").error("Unable to measure flux! %s" % str(ex))
+            self.fast_shutter_hwobj.closeShutter()
+            self.emit("progressStop", ())
+            return
+
+        max_frame_rate = 1 / self.detector_hwobj.get_exposure_time_limits()[0]
+
+        self.emit("progressStep", 10, "Restoring original state") 
+        self.print_log('GUI', 'info', "Flux measurement results:")
+        self.print_log('GUI', 'info', "Aperture | Intensity (A) | Flux (ph/s) | " + \
+                       "Dose rate (KGy/s) | Time to reach 20 MGy (s) | " + \
+                       "Number of frames @ %d Hz" % max_frame_rate)
+        
+        for item in self.measured_flux_list:
+            msg = "  *  %d | %1.1e  | %1.1e  | %1.1e  | %.1f  | %d" % \
+                   (item["beam_size"][0] * 1000,
+                    item["intensity"],
+                    item["flux"],
+                    item["dose_rate"],
+                    item["time_to_reach_limit"],
+                    item["frames_to_reach_limit"])
+            if item["flux"] < 1e9:
+                self.print_log('GUI', 'error', msg)
+            else:
+                self.print_log('GUI', 'info', msg)
+
+        self.measured_flux_dict = self.measured_flux_list[current_aperture_index]
+        self.current_flux_dict = self.measured_flux_list[current_aperture_index]
+
+        self.emit("fluxChanged", {"measured": self.measured_flux_dict,
+                                  "current": self.current_flux_dict})
+        self.measuring = False
+
+        # 7 Restoring previous states ----------------------------------------
+        self.transmission_hwobj.setTransmission(current_transmission)
+        self.diffractometer_hwobj.wait_device_ready(10)
+        self.diffractometer_hwobj.set_phase(current_phase)
+        self.aperture_hwobj.set_diameter_index(current_aperture_index)
+        self.emit("progressStop", ())
+
+    def get_flux_result(self, intensity_value, beam_size):
+        energy = self.energy_hwobj.getCurrentEnergy()
+        detector_distance = self.detector_hwobj.get_distance()
+        beam_size = self.beam_info_hwobj.get_beam_size()
+        transmission = self.transmission_hwobj.get_value()
         air_trsm = numpy.exp(-self.air_absorption_coeff_per_meter(energy) * \
              detector_distance / 1000.0)
         carb_trsm = self.carbon_window_transmission(energy)
-        flux = 0.624151 * 1e16 * self.intensity_value / \
+        flux = 0.624151 * 1e16 * intensity_value / \
                self.diode_calibration_amp_per_watt(energy) / \
                energy / air_trsm / carb_trsm
 
-        #GB correcting diode misscalibration!!!
         flux = flux * 1.8
-
         dose_rate = 1e-3 * 1e-14 * self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
                flux / beam_size[0] / beam_size[1]
+        max_frame_rate = 1 / self.detector_hwobj.get_exposure_time_limits()[0]
 
-        self.bl_hwobj.collect_hwobj.machine_info_hwobj.\
-           set_flux(flux, self.bl_hwobj.beam_info_hwobj.get_beam_info())
+        result = {"energy": energy,
+                  "detector_distance": detector_distance,
+                  "beam_size": beam_size,
+                  "transmission": transmission,
+                  "intensity": intensity_value,
+                  "flux": flux,
+                  "dose_rate": dose_rate,
+                  "time_to_reach_limit": 20000. / dose_rate, 
+                  "frames_to_reach_limit": int(max_frame_rate * 20000. / dose_rate),
+                  "max_frame_rate": max_frame_rate}
 
-        msg = "Intensity = %1.1e A" % self.intensity_value
-        logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%1.1e" % self.intensity_value)
-
-        msg = "Flux = %1.1e photon/s" % flux
-        logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%1.1e" % flux)
-
-        msg = "Dose rate =  %1.1e KGy/s" % dose_rate
-        logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%1.1e" % dose_rate)
-
-        msg = "Time to reach 20 MGy =  %.1f = %d 16M frames " % \
-              (20000. / dose_rate, int(130 * 20000. / dose_rate))
-        logging.getLogger("user_level_log").info(msg)
-        meas_item.append("%.1f, %d 16M frames" % \
-              (20000. / dose_rate, int(130 * 20000. / dose_rate)))
-
-        self.intensity_measurements.insert(0, meas_item)
-        self.flux_value = flux
-
-        self.ready_event.set()
-
-        return meas_item
+        return result

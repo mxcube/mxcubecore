@@ -71,8 +71,8 @@ class GenericVideoDevice(Device):
         self.cam_exposure = None
         self.poll_interval = None
         self.cam_type = None
-
         self.cam_scale_factor = None
+        self.cam_name = None
 
         self.raw_image_dimensions = [None,None]
         self.image_dimensions = [None,None]
@@ -82,6 +82,8 @@ class GenericVideoDevice(Device):
         self.default_poll_interval = None
 
     def init(self):
+        self.cam_name = self.getProperty("name", "camera")
+
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
         except:
@@ -163,7 +165,7 @@ class GenericVideoDevice(Device):
             self.set_video_live(True)
             self.change_owner()
 
-            logging.getLogger("HWR").info('Starting polling for camera')
+            logging.getLogger("HWR").info('Camera: Starting polling for camera')
             self.image_polling = gevent.spawn(self.do_image_polling,
                                               self.poll_interval/1000.0)
             self.image_polling.link_exception(self.polling_ended_exc)
@@ -171,8 +173,12 @@ class GenericVideoDevice(Device):
 
         self.setIsReady(True)
 
+    def get_camera_name(self):
+        return self.cam_name
+
     def polling_ended(self, gl=None):
         logging.getLogger("HWR").info('Polling ended for qt4 camera')
+
     def polling_ended_exc(self, gl=None):
         logging.getLogger("HWR").info('Polling ended exception for qt4 camera')
 

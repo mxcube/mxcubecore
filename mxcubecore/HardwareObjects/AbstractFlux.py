@@ -17,22 +17,28 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-from random import random
-from AbstractFlux import AbstractFlux
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["MXCuBE collaboration"]
+__version__ = "2.3."
 __category__ = "General"
 
 
-class FluxMockup(AbstractFlux):
+class AbstractFlux(HardwareObject):
 
     def __init__(self, name):
-        AbstractFlux.__init__(self, name)
-        self._value = 7e+12
+        HardwareObject.__init__(self, name)
 
-    def measure_flux(self):
-        """Measures intesity"""
-        self._value = 1e+12 + random() * 1e+12
+        self._value = None
+        self._status = None
+
+    def set_flux(self, value):
+        self._value = value
+        self.emit('fluxValueChanged', self._value)
+
+    def get_flux(self):
+        return self._value
+
+    def update_values(self):
         self.emit('fluxValueChanged', self._value)
