@@ -175,8 +175,11 @@ class EMBLDoorInterlock(Device):
                 if self.detector_distance_hwobj.getPosition() < 1099:
                     self.detector_distance_hwobj.move(1100)
                     gevent.sleep(1)
-            self.diffractometer_hwobj.set_phase(
-                self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None)
+            try:
+               self.diffractometer_hwobj.set_phase(
+                    self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None)
+            except:
+               logging.getLogger("GUI").error("Unable to set diffractometer to transfer phase") 
 
         if not self.use_door_interlock:
             logging.getLogger().info('Door interlock is disabled')

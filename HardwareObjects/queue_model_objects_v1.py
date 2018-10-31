@@ -286,12 +286,14 @@ class Sample(TaskNode):
         acronym = self.crystals[0].protein_acronym
 
         if self.name is not '' and acronym is not '':
-            display_name = acronym + '-' + name
+            display_name = "%s - %s-%s" % (self.loc_str,
+                                           acronym,
+                                           name)
         else:
             display_name = self.get_name()
 
         if self.lims_code:
-            display_name += " (%s)" % self.lims_code            
+            display_name += " (%s)" % self.lims_code
 
         return display_name
 
@@ -524,10 +526,15 @@ class DataCollection(TaskNode):
         self.id = int()
         self.lims_group_id = None
         self.run_processing_after = None
-        self.run_processing_parallel = None
+        self.run_processing_parallel = False
         self.grid = None
-        self.parallel_processing_result = None        
+        self.parallel_processing_result = None
         self.processing_msg_list = []
+        self.workflow_id = None
+
+    @staticmethod
+    def set_processing_methods(processing_methods):
+        DataCollection.processing_methods = processing_methods
 
     def as_dict(self):
 
@@ -552,6 +559,7 @@ class DataCollection(TaskNode):
                 'resolution': parameters.resolution,
                 'transmission': parameters.transmission,
                 'detector_mode': parameters.detector_mode,
+                'detector_roi_mode': parameters.detector_roi_mode,
                 'shutterless': parameters.shutterless,
                 'inverse_beam': parameters.inverse_beam,
                 'sample': str(self.crystal),
@@ -679,6 +687,9 @@ class DataCollection(TaskNode):
         self.acquisitions[0].acquisition_parameters.\
              centred_position.snapshot_image = snapshot
 
+    def add_processing_msg(self, time, method, status, msg):
+        self.processing_msg_list.append((time, method, status, msg))
+
 class ProcessingParameters():
     def __init__(self):
         self.space_group = 0
@@ -719,6 +730,9 @@ class Characterisation(TaskNode):
         self.html_report = None
         self.run_characterisation = True
         self.characterisation_software = None
+        self.wait_result = None
+        self.run_diffraction_plan = None
+        self.diff_plan_compression = True
 
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
@@ -809,7 +823,7 @@ class CharacterisationParameters(object):
         self.use_min_time = bool()
         self.min_dose = float()
         self.min_time = float()
-        self.account_rad_damage = bool()
+        self.account_rad_damage = True
         self.auto_res = bool()
         self.opt_sad = bool()
         self.sad_res = float()
@@ -1051,6 +1065,21 @@ class XrayCentering(TaskNode):
             crystal = Crystal()
 
         self.reference_image_collection = ref_data_collection
+
+        self.line_collection = ref_data_collection.copy()
+        self.line_collection.set_experiment_type(queue_model_enumerables.EXPERIMENT_TYPE.HELICAL)
+        self.line_collection.run_processing_parallel = "XrayCentering"
+        self.line_collection.grid = None
+
+        acq_two = Acquisition()
+        self.line_collection.acquisitions.append(acq_two)
+        self.line_collection.acquisitions[0].acquisition_parameters.num_images = 100
+        self.line_collection.acquisitions[0].acquisition_parameters.num_lines = 1
+        helical_acq_path_template = self.line_collection.acquisitions[0].path_template
+        helical_acq_path_template.base_prefix = "line_" + \
+               helical_acq_path_template.base_prefix
+
+
         self.crystal = crystal
 
         self.html_report = None
@@ -1207,24 +1236,6 @@ class PathTemplate(object):
     def set_precision(precision):
         PathTemplate.precision = precision
 
-    @staticmethod
-    def interpret_path(path):
-        try:
-            dirname, fname = os.path.split(path)
-            fname, ext = os.path.splitext(fname)
-            fname_parts = fname.split("_")
-
-            # Get run number and image number from path
-            run_number, img_number = map(try_parse_int, fname_parts[-2:])
-
-            # Get the prefix and filename part
-            prefix = "_".join(fname_parts[:-2])
-            prefix_path = os.path.join(dirname, prefix)
-        except IndexError:
-            prefix_path, run_number, img_number = ["", -1, -1]
-
-        return prefix_path, run_number, img_number
-
     def __init__(self):
         object.__init__(self)
 
@@ -1239,6 +1250,7 @@ class PathTemplate(object):
         self.suffix = str()
         self.start_num = int()
         self.num_files = int()
+        self.compression = True
 
         if not hasattr(self, "precision"):
             self.precision = str()
@@ -1255,7 +1267,8 @@ class PathTemplate(object):
                 "suffix" : self.suffix,
                 "precision" : self.precision,
                 "start_num" : self.start_num,
-                "num_files" : self.num_files}
+                "num_files" : self.num_files,
+                "compression": self.compression}
 
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
@@ -1285,6 +1298,8 @@ class PathTemplate(object):
         else:
             file_name = template % (self.get_prefix(),
                                     self.run_number, self.suffix)
+        if self.compression:
+            file_name = "%s.gz" % file_name
 
         return file_name
 
@@ -1429,6 +1444,7 @@ class AcquisitionParameters(object):
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
+        self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()        
         self.mesh_snapshot = None
@@ -1467,6 +1483,7 @@ class AcquisitionParameters(object):
                 "take_dark_current": self.take_dark_current,
                 "skip_existing_images": self.skip_existing_images,
                 "detector_mode": self.detector_mode,
+                "detector_roi_mode": self.detector_roi_mode,
                 "induce_burn": self.induce_burn,
                 "mesh_range": self.mesh_range,
                 "mesh_snapshot": self.mesh_snapshot,
@@ -1477,6 +1494,20 @@ class AcquisitionParameters(object):
     def copy(self):
         return copy.deepcopy(self)
 
+class XrayImagingParameters(object):
+    def __init__(self):
+        object.__init__(self)
+
+        self.camera_hw_binning = 0
+        self.camera_hw_roi = 0
+        self.store_data = True
+        self.live_display = True
+        self.pre_flat_field_frames = False
+        self.post_flat_field_frames = False
+        self.apply_pre_flat_field_frames = False
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 class Crystal(object):
     def __init__(self):
@@ -1726,6 +1757,33 @@ class GphlWorkflow(TaskNode):
     #         if 'prefix' in dd:
     #             self.get_path_template().base_prefix = dd.pop('prefix')
 
+class XrayImaging(TaskNode):
+    def __init__(self, xray_imaging_params, acquisitions=None, crystal=None, name=''):
+        TaskNode.__init__(self)
+        
+        self.xray_imaging_parameters = xray_imaging_params
+        if not acquisitions:
+            acquisitions = [Acquisition()]
+
+        if not crystal:
+            crystal = Crystal()
+
+        self.acquisitions = acquisitions
+        self.crystal = crystal
+        self.set_name(name)
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
+        self.set_requires_centring(False)
+
+    def get_display_name(self):
+        return "Xray imaging"
+
+    def get_path_template(self):
+        return self.acquisitions[0].path_template
+
+    def get_files_to_be_written(self):
+        path_template = self.acquisitions[0].path_template
+        file_locations = path_template.get_files_to_be_written()
+        return file_locations
 
 #
 # Collect hardware object utility function.
@@ -1785,10 +1843,13 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                           'process_directory': acquisition.\
                           path_template.process_directory,
                           'template': acquisition.\
-                          path_template.get_image_file_name()},
+                          path_template.get_image_file_name(),
+                          'compression': acquisition.\
+                          path_template.compression},
              'in_queue': acq_params.in_queue,
              'in_interleave' : acq_params.in_interleave,
              'detector_mode': acq_params.detector_mode,
+             'detector_roi_mode': acq_params.detector_roi_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,
              'do_inducedraddam': acq_params.induce_burn,
@@ -1796,6 +1857,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                   'cell': proc_params.get_cell_str(),
                                   'blSampleId': sample.lims_id},
              'processing': str(proc_params.process_data and True),
+             'processing_after': data_collection.run_processing_after,
+             'processing_parallel': data_collection.run_processing_parallel,
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
              #'scan4d': 0,
@@ -1941,7 +2004,6 @@ def dc_from_edna_output(edna_result, reference_image_collection,
                 acquisition_parameters.exp_time = beam.getExposureTime().getValue()
             except AttributeError:
                 pass
-
 
             # dc.parameters.comments = enda_result.comments
             # dc.parametets.path = enda_result.directory

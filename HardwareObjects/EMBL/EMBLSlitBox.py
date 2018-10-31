@@ -154,7 +154,7 @@ class EMBLSlitBox(HardwareObject):
         self.gaps_dict['Ver']['value'] = 0.10
         self.gaps_dict['Hor']['status'] = ''
         self.gaps_dict['Ver']['status'] = ''
-        self.init_max_gaps = self.get_max_gaps()
+        self.init_max_gaps = self.get_max_limits()
 
         self.motors_dict = {}
         for motor in self['gapH']['motors']:
@@ -200,15 +200,15 @@ class EMBLSlitBox(HardwareObject):
         return [self.gaps_dict['Hor']['stepSize'],
                 self.gaps_dict['Ver']['stepSize']]
 
-    def get_min_gaps(self):
+    def get_min_limits(self):
         """Returns min Hor and Ver gaps values (list of two values)
         """
         return [self.gaps_dict['Hor']['minGap'],
                 self.gaps_dict['Ver']['minGap']]
 
-    def get_max_gaps(self):
+    def get_max_limits(self):
         """Returns max Hor and Ver gaps values (list of two values)
-    """
+        """
         return [self.gaps_dict['Hor']['maxGap'],
                 self.gaps_dict['Ver']['maxGap']]
 
@@ -256,10 +256,10 @@ class EMBLSlitBox(HardwareObject):
         if do_update:
             self.gaps_dict['Hor']['value'] = self.get_gap_hor()
             self.gaps_dict['Ver']['value'] = self.get_gap_ver()
-            self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
-                                         self.gaps_dict['Ver']['value']])
+            self.emit('valueChanged', [self.gaps_dict['Hor']['value'],
+                                       self.gaps_dict['Ver']['value']])
 
-    def get_gap_hor(self):
+    def get_horizontal_gap(self):
         """Evaluates Horizontal gap"""
         gap = self.motors_dict['In']['position'] - \
               self.motors_dict['In']['reference'] + \
@@ -269,7 +269,7 @@ class EMBLSlitBox(HardwareObject):
 
         return gap
 
-    def get_gap_ver(self):
+    def get_vertical_gap(self):
         """Evaluates Vertical gap"""
         gap = self.motors_dict['Top']['position'] - \
               self.motors_dict['Top']['reference'] + \
@@ -283,8 +283,14 @@ class EMBLSlitBox(HardwareObject):
         """Returns horizontala and vertical gap values"""
         return self.get_gap_hor(), self.get_gap_ver()
 
-    def set_gap(self, gap_name, new_gap):
+    def set_horizontal_gap(self, new_gap):
         """Sets new gap value"""
+        self.set_gap_by_name("Hor", new_gap, timeout)
+
+    def set_vertical_gap(self, new_gap, timeout=None):
+        self.set_gap_by_name("Ver", new_gap)
+
+    def set_gap_by_name(self, gap_name, new_gap):
         old_gap = self.gaps_dict[gap_name]['value']
         if abs(old_gap - new_gap) > self.gaps_dict[gap_name]['updateTolerance']:
             for motor in self.motors_dict:
@@ -301,8 +307,14 @@ class EMBLSlitBox(HardwareObject):
                         if self.motors_dict[motor]['motorsGroup'] == \
                                 motor_group.userName():
                             motor_group.set_motor_position(motor, new_position,
-                                                           timeout=10)
+                                                           timeout=timeout)
                             break
+
+    def stop_horizontal_gap_move(self):
+        self.stop_gap_move("Hor")
+
+    def stop_vertical_gap_move(self):
+        self.stop_gap_move("Ver")
 
     def stop_gap_move(self, gap_name):
         """Stops motors movements"""
@@ -340,14 +352,14 @@ class EMBLSlitBox(HardwareObject):
                                                   new_gaps_limits[0])
             self.gaps_dict['Ver']['maxGap'] = min(self.init_max_gaps[1],
                                                   new_gaps_limits[1])
-            self.emit('gapLimitsChanged', [self.gaps_dict['Hor']['maxGap'],
+            self.emit('maxLimitsChanged', [self.gaps_dict['Hor']['maxGap'],
                                            self.gaps_dict['Ver']['maxGap']])
 
     def update_values(self):
         """Reemits signals"""
         self.emit('focusModeChanged', (self.hor_gap_enabled,
                                        self.ver_gap_enabled))
-        self.emit('gapSizeChanged', [self.gaps_dict['Hor']['value'],
-                                     self.gaps_dict['Ver']['value']])
+        self.emit('valueChanged', [self.gaps_dict['Hor']['value'],
+                                   self.gaps_dict['Ver']['value']])
         self.emit('statusChanged', (self.gaps_dict['Hor']['status'],
                                     self.gaps_dict['Ver']['status']))
