@@ -24,7 +24,7 @@ import os
 import time
 import gevent
 import vapory
-from qt import QImage
+from QtImport import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 
