@@ -144,7 +144,7 @@ class ALBAAutoProcessing(HardwareObject):
         collection_id = dc_pars['collection_id']  
         output_dir = dc_pars['ednaproc_dir']
 
-        ednaproc_input_file = os.path.join(output_dir, "EDNAAutoprocInput_%d.xml" % collection_id)
+        ednaproc_input_file = os.path.join(output_dir, "EDNAprocInput_%d.xml" % collection_id)
 
         ednaproc_input = XSDataAutoprocInput()
 
