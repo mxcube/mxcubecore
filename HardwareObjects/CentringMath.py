@@ -12,7 +12,7 @@ class CentringMath(Procedure):
     def init(self):
         """
         Ggonio axes definitions are static
-        motorHO is expected to have getPosition() that returns coordinate in mm
+        motorHO is expected to have get_position() that returns coordinate in mm
         """
         self.motorConstraints=[]
         self.gonioAxes = []
@@ -112,7 +112,7 @@ class CentringMath(Procedure):
         j=0
         for axis in self.gonioAxes: # skip base gonio axis
            if axis['type'] =="rotation":
-              Ra=self.rotation_matrix(axis['direction'],axis['motor_HO'].getPosition())
+              Ra=self.rotation_matrix(axis['direction'],axis['motor_HO'].get_position())
               R=numpy.dot(Ra,R)
            elif axis['type'] == "translation":
               f=numpy.dot(R,axis['direction'])
@@ -155,7 +155,7 @@ class CentringMath(Procedure):
         vector=[]
         for axis in self.gonioAxes:
            if axis['type'] == "translation":
-             vector.append(axis['motor_HO'].getPosition())
+             vector.append(axis['motor_HO'].get_position())
         return vector
 
     def centred_positions_to_vector(self,centrings_dictionary):
@@ -203,7 +203,7 @@ class CentringMath(Procedure):
         for axis in self.gonioAxes:
             if axis['type'] == "translation" and motor_HO is axis['motor_HO']:
                index += 1
-               self.motorConstraints.append({"index":index,"position":motor_HO.getPosition()-position})
+               self.motorConstraints.append({"index":index,"position":motor_HO.get_position()-position})
                return
 
     def camera2alignmentMotor(self,motor_HO,camxy):

@@ -159,7 +159,7 @@ class EMBLEnergy(Device):
     def getEnergyLimits(self):
         """Returns energy limits as list of two floats"""
         if self.chan_limit_low is not None and \
-           self.chan_limit_high is not None:
+            self.chan_limit_high is not None:
             try:
                 self.en_lims[0] = self.chan_limit_low.getValue()
                 self.en_lims[1] = self.chan_limit_high.getValue()
@@ -217,18 +217,19 @@ class EMBLEnergy(Device):
 
     def move_energy_task(self, energy):
         current_en = self.getCurrentEnergy()
-        self.delta = abs(current_en - energy)
-        if self.delta < 0.001:
+        pos = abs(current_en - energy)
+        self.delta = pos
+        if pos < 0.001:
             self.emit('stateChanged', ('ready', ))
         else:
             if self.cmd_energy_ctrl_byte is not None:
-                if self.delta > 0.1:
+                if pos > 0.1:
                     #p13 63, p14 15
                     self.cmd_energy_ctrl_byte(self.ctrl_bytes[1])
                 else:
                     self.cmd_energy_ctrl_byte(self.ctrl_bytes[0])
 
-            self.moving = True
+            self.moving = pos
             self.release_break_bragg()
             gevent.sleep(2)
 
@@ -271,8 +272,8 @@ class EMBLEnergy(Device):
             self.emit('stateChanged', "ready")
             self.emit('statusInfoChanged', "")
             if self.do_beam_alignment and self.delta > 0.1:
-                self.delta = 0
                 self.emit('beamAlignmentRequested')
+            self.delta = 0
 
         elif state == 1:
             self.move_energy_started()
