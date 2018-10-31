@@ -213,6 +213,12 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         # this is to give a unique number to the EDNA input and result files;
         # something more clever might be done to give a more significant
         # name, if there is no dc id.
+        path = edna_input.process_directory
+
+        # if there is no data collection id, the id will be a random number
+        # this is to give a unique number to the EDNA input and result files;
+        # something more clever might be done to give a more significant
+        # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().getValue()
         except:
