@@ -31,10 +31,20 @@ class BeamlineSetup(HardwareObject):
         self._object_by_path['/beamline/transmission'] = self.transmission_hwobj
 
         self.advanced_methods = []
+
         try:
-           self.advanced_methods = eval(self.getProperty("advancedMethods"))
+           self.advanced_methods = eval(self.getProperty("advancedMethods", "[]"))
         except:
            pass
+
+        self.autoprocessing_methods = []
+        try:
+           self.autoprocessing_methods = eval(self.getProperty("autoprocessingMethods"))
+           queue_model_objects.DataCollection.set_processing_methods(self.autoprocessing_methods)
+        except:
+           pass
+
+        self.run_processing_parallel = self.getProperty("run_processing_parallel", False)
 
     def _get_object_by_role(self, role):
         """
@@ -180,7 +190,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.transmission = self._get_transmission()
 
         acq_parameters.shutterless = self._has_shutterless()
-        acq_parameters.detector_mode = self._get_roi_modes()
+        acq_parameters.detector_mode = self.detector_hwobj.get_detector_mode()
 
         acq_parameters.inverse_beam = False
         acq_parameters.take_dark_current = True
@@ -269,7 +279,7 @@ class BeamlineSetup(HardwareObject):
 
         try:
            self[parent_key]
-        except IndexError:
+        except KeyError:
            logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
            parent_key = default_key
 
@@ -280,6 +290,7 @@ class BeamlineSetup(HardwareObject):
         exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_has_shutterless()
+
         try:
             detector_mode = self.detector_hwobj.default_mode() 
         except AttributeError:
@@ -299,7 +310,7 @@ class BeamlineSetup(HardwareObject):
         acq_parameters.transmission = self._get_transmission()
 
         acq_parameters.shutterless = self._has_shutterless()
-        acq_parameters.detector_mode = self._get_roi_modes()
+        acq_parameters.detector_mode = self._get_detector_mode()
 
         acq_parameters.inverse_beam = False
         acq_parameters.take_dark_current = True
@@ -391,7 +402,7 @@ class BeamlineSetup(HardwareObject):
 
     def _get_transmission(self):
         try:
-            transmission = self.transmission_hwobj.getAttFactor()
+            transmission = self.transmission_hwobj.get_value()
             #transmission = round(float(transmission), 2)
         except AttributeError:
             transmission = 0
@@ -459,16 +470,19 @@ class BeamlineSetup(HardwareObject):
         return result
 
 
-    def _get_roi_modes(self):
+    def _get_detector_mode(self):
         """
         Descript. :
         """
-        result = []
+        result = ""
         try: 
-           result = self.detector_hwobj.get_roi_modes()
+           result = self.detector_hwobj.get_detector_mode()
         except:
            pass
         return result
+
+    def _get_run_processing_parallel(self):
+        return self.run_processing_parallel
 
     def check_collection_parameters(self, parameters_list):
         invalid_parameters_list = []
@@ -477,7 +491,7 @@ class BeamlineSetup(HardwareObject):
             if parameter_item['energy'] > top or \
                parameter_item['energy'] < bottom:
                invalid_parameters_list.append('Energy')
-            (bottom, top) = self.detector_hwobj.get_exposure_time_limits()
+            [bottom, top] = self.detector_hwobj.get_exposure_time_limits()
             if parameter_item['exp_time'] > top or \
                parameter_item['exp_time'] < bottom:
                invalid_parameters_list.append('Exposure time')

@@ -3,7 +3,6 @@ import logging
 import time
 from gevent import Timeout
 from AbstractMotor import AbstractMotor
-from HardwareRepository.BaseHardwareObjects import Device
 
 """
 Example xml file:
@@ -80,6 +79,7 @@ class ExporterMotor(AbstractMotor):
             new_motor_state = self.motor_states.READY
         else:
             new_motor_state = self.motor_states.fromstring(d[self.motor_name])
+    
         if self.get_state() != new_motor_state:
             self.set_state(new_motor_state)
 
@@ -139,6 +139,6 @@ class ExporterMotor(AbstractMotor):
             self.cmd_abort()
 
     def home(self, timeout=None):
-        self.home_cmd(self.motor_name)
+        self.cmd_home(self.motor_name)
         if timeout:
             self.wait_end_of_move(timeout)

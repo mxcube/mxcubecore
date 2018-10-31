@@ -15,6 +15,7 @@ class Qt4_VimbaVideo(GenericVideoDevice):
         self.camera = None
         self.camera_id = str
         self.qimage = None
+        self.qpixmap = None
 
     def init(self):
         # start Vimba
@@ -53,8 +54,12 @@ class Qt4_VimbaVideo(GenericVideoDevice):
                 if self.cam_mirror is not None:
                     self.qimage = self.qimage.mirrored(self.cam_mirror[0],
                                                        self.cam_mirror[1])
+                if self.qpixmap is None:
+                     self.qpixmap = QPixmap(self.qimage)
+                else:
+                     self.qpixmap.convertFromImage(self.qimage)
 
-                self.emit("imageReceived", QPixmap(self.qimage))
+                self.emit("imageReceived", self.qpixmap)
                 time.sleep(sleep_time)
 
     def get_new_image(self):
