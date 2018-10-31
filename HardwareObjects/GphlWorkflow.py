@@ -14,6 +14,7 @@ import uuid
 import time
 import os
 import subprocess
+import socket
 import f90nml
 
 import gevent
@@ -97,32 +98,6 @@ class GphlWorkflow(HardwareObject, object):
 
     def init(self):
 
-        # Set standard configurable file paths
-        file_paths = self.file_paths
-        gphl_beamline_config = HardwareRepository().findInRepository(
-            self.getProperty('gphl_beamline_config')
-        )
-        file_paths['gphl_beamline_config'] = gphl_beamline_config
-        file_paths['instrumentation_file'] = fp = os.path.join(
-            gphl_beamline_config, 'instrumentation.nml'
-        )
-        dd = f90nml.read(fp)['sdcp_instrument_list']
-        self.rotation_axis_roles = dd['gonio_axis_names']
-        self.translation_axis_roles = dd['gonio_centring_axis_names']
-
-        file_paths['transcal_file'] = os.path.join(
-            gphl_beamline_config, 'transcal.nml'
-        )
-        file_paths['diffractcal_file'] = os.path.join(
-            gphl_beamline_config, 'diffractcal.nml'
-        )
-
-        gphl_config = HardwareRepository().findInRepository(
-            self.getProperty('gphl_config')
-        )
-        file_paths['test_samples'] = os.path.join(gphl_config, 'test_samples')
-        file_paths['scripts'] = os.path.join(gphl_config, 'scripts')
-
         # Set up processing functions map
         self._processor_functions = {
             'String':self.echo_info_string,
@@ -140,18 +115,34 @@ class GphlWorkflow(HardwareObject, object):
             'WorkflowFailed':self.workflow_failed,
         }
 
+        workflow_connection = HardwareRepository().getHardwareObject('/gphl-setup')
+        self._workflow_connection = workflow_connection
+
+        # Set standard configurable file paths
+        file_paths = self.file_paths
+        ss = workflow_connection.software_paths['gphl_beamline_config']
+        file_paths['gphl_beamline_config'] = ss
+        file_paths['transcal_file'] = os.path.join(ss, 'transcal.nml')
+        file_paths['diffractcal_file'] = os.path.join(ss, 'diffractcal.nml')
+        file_paths['instrumentation_file'] = fp = os.path.join(
+            ss, 'instrumentation.nml'
+        )
+        dd = f90nml.read(fp)['sdcp_instrument_list']
+        self.rotation_axis_roles = dd['gonio_axis_names']
+        self.translation_axis_roles = dd['gonio_centring_axis_names']
+
+        # gphl_config = HardwareRepository().findInRepository(
+        #     self.getProperty('gphl_config')
+        # )
+
     def pre_execute(self, queue_entry):
 
         self._queue_entry = queue_entry
 
-        #If not already active, set up connections and turn ON
         if self.get_state() == States.OFF:
-            workflow_connection = queue_entry.beamline_setup.getObjectByRole(
-                'gphl_connection'
-            )
-            self._workflow_connection = workflow_connection
-            workflow_connection._initialize_connection(self)
-            workflow_connection._open_connection()
+            # If not already active (i.e. first time),turn ON
+            # self._workflow_connection._initialize_connection(self)
+            self._workflow_connection._open_connection()
             self.set_state(States.ON)
 
     def shutdown(self):
@@ -178,6 +169,13 @@ class GphlWorkflow(HardwareObject, object):
 
         if self.hasObject('workflow_options'):
             options = self['workflow_options'].getProperties()
+            if 'beamline' in options:
+                pass
+            elif self._workflow_connection.hasObject('ssh_options'):
+                # We are running workflow through ssh - set beamline url
+                options['beamline'] = 'py4j:%s:' % socket.gethostname()
+            else:
+                options['beamline'] = 'py4j::'
         else:
             options = {}
         if self.hasObject('invocation_options'):

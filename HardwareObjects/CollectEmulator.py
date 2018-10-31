@@ -218,7 +218,9 @@ class CollectEmulator(CollectMockup):
         simcal_executive = self.gphl_connection_hwobj.get_executable('simcal')
         # Get environmental variables
         envs = {'BDG_home':
-                    self.gphl_connection_hwobj.software_paths['BDG_home']
+                    self.gphl_connection_hwobj.software_paths['BDG_home'],
+                'GPHL_INSTALLATION':
+                    self.gphl_connection_hwobj.software_paths['GPHL_INSTALLATION']
                 }
         for tag, val in self['environment_variables'].getProperties().items():
             envs[str(tag)] = str(val)
@@ -231,15 +233,25 @@ class CollectEmulator(CollectMockup):
             if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name  = ss[len(self.TEST_SAMPLE_PREFIX):]
 
-        sample_dir = os.path.join(
-            HardwareRepository().getHardwareRepositoryPath(),
-            self.gphl_workflow_hwobj.file_paths['test_samples'],
-            sample_name
+        sample_dir = self.gphl_connection_hwobj.software_paths.get(
+            'gphl_test_samples'
         )
+        if not sample_dir:
+            raise ValueError(
+                "Emulator requires gphl_test_samples dir specified"
+            )
+        sample_dir = os.path.join(sample_dir, sample_name)
+        if not os.path.isdir(sample_dir):
+            raise ValueError(
+                "Sample data directory %s does not exist" % sample_dir
+            )
+        crystal_file = os.path.join(sample_dir, 'crystal.nml')
+        if not os.path.isfile(crystal_file):
+            raise ValueError(
+                "Emulator crystal data file %s does not exist" % crystal_file
+            )
         # in spite of the simcal_crystal_list name this returns an OrderdDict
-        crystal_data = f90nml.read(
-            os.path.join(sample_dir, 'crystal.nml')
-        )['simcal_crystal_list']
+        crystal_data = f90nml.read(crystal_file)['simcal_crystal_list']
 
         input_data = self._get_simcal_input(data_collect_parameters,
                                             crystal_data)
@@ -257,8 +269,14 @@ class CollectEmulator(CollectMockup):
         f90nml.write(input_data, infile, force=True)
         outfile = os.path.join(file_info['directory'],
                                'simcal_out_%s.nml' % self._counter)
+        logfile = os.path.join(file_info['directory'],
+                               'simcal_log_%s.txt' % self._counter)
         self._counter += 1
         hklfile = os.path.join(sample_dir, 'sample.hkli')
+        if not os.path.isfile(hklfile):
+            raise ValueError(
+                "Emulator hkli file %s does not exist" % hklfile
+            )
         command_list = [simcal_executive, '--input', infile, '--output', outfile,
                         '--hkl', hklfile]
 
@@ -266,13 +284,22 @@ class CollectEmulator(CollectMockup):
             command_list.extend(ConvertUtils.command_option(tag, val,
                                                             prefix='--'))
         logging.getLogger('HWR').info("Executing command: %s" % command_list)
+        logging.getLogger('HWR').info("Executing environment: %s"
+                                      % sorted(envs.items()))
+
+
+        fp1 = open(logfile, 'w')
+        fp2 = subprocess.STDOUT
+        # resource.setrlimit(resource.RLIMIT_STACK, (-1,-1))
 
         try:
-            running_process = subprocess.Popen(command_list, stdout=None,
-                                                     stderr=None, env=envs)
+            running_process = subprocess.Popen(command_list, stdout=fp1,
+                                               stderr=fp2, env=envs)
         except:
             logging.getLogger('HWR').error('Error in spawning workflow application')
             raise
+        finally:
+            fp1.close()
 
         # This does waiting, so we want to collect the result afterwards
         super(CollectEmulator, self).data_collection_hook()
