@@ -7,9 +7,9 @@ from gevent import Timeout
 Interfaces Sardana Motor objects.
 taurusname is the only obligatory property.
 <device class="SardanaMotor">
+    <taurusname>dmot01</taurusname>
     <username>Dummy</username>
-    <motor_name>Dummy</motor_name>
-    <taurusname>exp_dmy01</taurusname>
+    <motor_name>dummy_motor</motor_name>
     <threshold>0.005</threshold>
     <move_threshold>0.005</move_threshold>
     <interval>2000</interval>
@@ -46,7 +46,7 @@ class SardanaMotor(AbstractMotor):
         self.stop_command = None
         self.position_channel = None
         self.state_channel = None
-        self.taurusname = ""
+        self.taurusname = None
         self.motor_position = 0.0
         self.threshold_default = 0.0018
         self.move_threshold_default = 0.0
@@ -59,43 +59,24 @@ class SardanaMotor(AbstractMotor):
 
     def init(self):
 
-        try:
-            self.taurusname = self.getProperty("taurusname")
-        except KeyError:
-            logging.getLogger("HWR").warning(
-                    "SardanaMotor: taurusname not defined")
-            return
+        self.taurusname = self.getProperty("taurusname")
+        if not self.taurusname:
+            raise RuntimeError("Undefined property taurusname")
 
-        try:
-            self.motor_name = self.getProperty("motor_name")
-        except KeyError:
+        self.motor_name = self.getProperty("motor_name")
+        if not self.name:
             logging.getLogger("HWR").info(
-                    "SardanaMotor: motor_name not defined")
+                    "Undefined property motor_name in xml. Applying name during instance creation.")
             self.motor_name = self.name()
 
-        try:
-            self.threshold = self.getProperty("threshold")
-        except KeyError:
-            self.threshold = None
+        self.threshold = self.getProperty("threshold", self.threshold_default)
+        logging.getLogger("HWR").debug("Motor {0} threshold = {1}".format(self.motor_name, self.threshold))
 
-        if self.threshold is None:
-            self.threshold = self.threshold_default
+        self.move_threshold = self.getProperty("move_threshold", self.move_threshold_default)
+        logging.getLogger("HWR").debug("Motor {0} move_threshold = {1}".format(self.motor_name, self.move_threshold))
 
-        try:
-            self.move_threshold = self.getProperty("move_threshold")
-        except KeyError:
-            self.move_threshold = None
-
-        if self.move_threshold is None:
-            self.move_threshold = self.move_threshold_default
-
-        try:
-            self.polling = self.getProperty("interval")
-        except KeyError:
-            self.polling = None
-
-        if self.polling is None:
-            self.polling = self.polling_default
+        self.polling = self.getProperty("interval", self.polling_default)
+        logging.getLogger("HWR").debug("Motor {0} polling = {1}".format(self.motor_name, self.polling))
 
         self.stop_command = self.addCommand({
                     "type": "sardana",
@@ -304,10 +285,10 @@ def test_hwo(hwo):
     print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
     print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
     print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))
-    print("Moving motor to %s" % newpos)
-    hwo.syncMove(newpos)
-    while hwo.is_moving():
-        print "Moving"
-        time.sleep(0.3)
-    print("Movement done. Position is now: %s" % hwo.getPosition())
+#    print("Moving motor to %s" % newpos)
+#    hwo.syncMove(newpos)
+#    while hwo.is_moving():
+#        print "Moving"
+#        time.sleep(0.3)
+#    print("Movement done. Position is now: %s" % hwo.getPosition())
 
