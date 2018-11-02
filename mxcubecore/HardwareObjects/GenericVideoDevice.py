@@ -121,14 +121,7 @@ class GenericVideoDevice(Device):
         except:
             pass
 
-        try:
-            scale = self.getProperty("scale")
-            if scale is None:
-                self.scale = 1
-            else:
-                self.scale = float(scale)
-        except:
-            self.scale = 1
+        self.scale = self.getProperty("scale", 1.0)
 
         try:
             self.cam_type = self.getProperty("type").lower()
