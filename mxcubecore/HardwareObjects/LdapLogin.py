@@ -33,7 +33,9 @@ class LdapLogin(Procedure):
         ldaphost = self.getProperty('ldaphost')
         ldapport = self.getProperty('ldapport')
         domain   = self.getProperty('ldapdomain')
-	ldapou   = self.getProperty('ldapou')
+        ldapou   = self.getProperty('ldapou')
+
+        self.field_values = None
 
         if ldaphost is None:
             logging.getLogger("HWR").error("LdapLogin: you must specify the LDAP hostname")
@@ -87,14 +89,24 @@ class LdapLogin(Procedure):
         return (False,msg)
 
     # Check password in LDAP
-    def login(self,username,password,retry=True):
+    def login(self,username,password,retry=True, fields=None):
+
+        # fields can be used in local implementation to retrieve user information from 
+        # ldap.  In ALBA for example, it is used to obtain homeDirectory upon successful
+        # login and use that value for programming session hwo directories
+
+        self.field_values = None
+
         if self.ldapConnection is None:
             return self.cleanup(msg="no LDAP server configured")
 
         logging.getLogger("HWR").debug("LdapLogin: searching for %s / %s" % (username, self.domstr))
         try:
             search_str = self.domstr
-            found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,["uid"])
+            if fields is None:
+                found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,["uid"])
+            else:
+                found=self.ldapConnection.search_s(search_str, ldap.SCOPE_SUBTREE,"uid="+username,fields)
         except ldap.LDAPError as err:
             if retry:
                 self.cleanup(ex=err)
@@ -104,6 +116,10 @@ class LdapLogin(Procedure):
 
         if not found:
             return self.cleanup(msg="unknown proposal %s" % username)
+
+        if fields is not None:
+            self.field_values = found[0][1]  
+
         if password=="":
             return self.cleanup(msg="invalid password for %s" % username)
 
@@ -117,7 +133,7 @@ class LdapLogin(Procedure):
         try:
             result=self.ldapConnection.result(handle)
         except ldap.INVALID_CREDENTIALS:
-            #try second time with different binf_str
+            #try second time with different bind_str
             bind_str = "uid=%s, ou=people,%s" % (username, self.domstr)
             handle = self.ldapConnection.simple_bind(bind_str,password)
             try:
@@ -131,4 +147,7 @@ class LdapLogin(Procedure):
             else:
                 return self.cleanup(ex=err)
 
-        return (True,username)
+        return (True, username)
+
+    def get_field_values(self):
+        return self.field_values
