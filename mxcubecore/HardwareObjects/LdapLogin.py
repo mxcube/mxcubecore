@@ -33,7 +33,7 @@ class LdapLogin(Procedure):
         ldaphost = self.getProperty('ldaphost')
         ldapport = self.getProperty('ldapport')
         domain   = self.getProperty('ldapdomain')
-	ldapou   = self.getProperty('ldapou')
+        ldapou   = self.getProperty('ldapou')
 
         self.field_values = None
 
