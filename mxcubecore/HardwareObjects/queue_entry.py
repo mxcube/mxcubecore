@@ -1197,7 +1197,6 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         characterisation_parameters = char.characterisation_parameters
 
         if self.data_analysis_hwobj is not None:
-            log.info("  - creating edna input from params")
             edna_input = self.data_analysis_hwobj.\
                          from_params(reference_image_collection,
                                      characterisation_parameters)
