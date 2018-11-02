@@ -2,15 +2,12 @@
 CATS sample changer hardware object.
 
 Implements the abstract interface of the GenericSampleChanger for the CATS
-sample changer model.
+and ISARA sample changer model.
 
 Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
 Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
 
-History:
-   - adds support for ISARA Model
-
-Know Catalog of MXCuBE sites and CATS
+Known sites using cats90
    BESSY - 
        BL14. (CATS) 3lid * 3puck (SPINE) * 10 = 90 samples  
    ALBA - 
@@ -432,7 +429,7 @@ class Cats90(SampleChanger):
         return self.cats_model == "ISARA"
 
     def is_cats(self):
-        return self.cats_model != "ISARA"
+        return self.cats_model != "CATS"
 
     def _initSCContents(self):
         """
@@ -629,7 +626,7 @@ class Cats90(SampleChanger):
             return 
 
         self._updateState() # remove software flags like Loading.
-        logging.getLogger("HWR").debug("  ***** ISARA *** load cmd .state is:  %s " % (self.state))
+        logging.getLogger("HWR").debug("   ==========CATS== load cmd .state is:  %s " % (self.state))
 
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
@@ -667,7 +664,7 @@ class Cats90(SampleChanger):
         lid, sample = self.basketsample_to_lidsample(basketno,sampleno)
 
         tool = self.tool_for_basket(basketno)
-	stype  = self.get_cassette_type(basketno)
+        stype  = self.get_cassette_type(basketno)
 
         # we should now check basket type on diffr to see if tool is different... then decide what to do
      
@@ -678,7 +675,7 @@ class Cats90(SampleChanger):
 
         # prepare argin values
         argin = [str(tool), str(lid), str(sample), str(stype), "0", xshift, yshift, zshift]
-        logging.getLogger("HWR").debug("  ***** ISARA *** doLoad argin:  %s / %s:%s" % (argin, basketno, sampleno))
+        logging.getLogger("HWR").debug("  ==========CATS=== doLoad argin:  %s / %s:%s" % (argin, basketno, sampleno))
             
         if self.hasLoadedSample():
             if selected==self.getLoadedSample():
