@@ -82,6 +82,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             transmission = self.collect_obj.get_transmission()
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
+            import traceback
+            logging.getLogger("HWR").debug("DataAnalysis. transmission not saved ")
+            logging.getLogger("HWR").debug(traceback.format_exc())
             pass
 
         try:
@@ -124,8 +127,11 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         _range = char_params.permitted_phi_end - char_params.permitted_phi_start
         rotation_range = XSDataAngle(_range)
 
-        diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
-        diff_plan.setAimedCompleteness(aimed_completness)
+        if char_params.aimed_i_sigma:
+            diff_plan.setAimedIOverSigmaAtHighestResolution(aimed_i_sigma)
+
+        if char_params.aimed_completness:
+            diff_plan.setAimedCompleteness(aimed_completness)
 
         if char_params.use_aimed_multiplicity:
             diff_plan.setAimedMultiplicity(aimed_multiplicity)
@@ -196,6 +202,13 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
     def characterise(self, edna_input):
 
+	self.prepare_edna_input(edna_input)
+        # if there is no data collection id, the id will be a random number
+        # this is to give a unique number to the EDNA input and result files;
+        # something more clever might be done to give a more significant
+        # name, if there is no dc id.
+        path = edna_input.process_directory
+
         # if there is no data collection id, the id will be a random number
         # this is to give a unique number to the EDNA input and result files;
         # something more clever might be done to give a more significant
@@ -221,22 +234,29 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         else:
             raise RuntimeError("No process directory specified in edna_input")
 
-        msg = "Starting EDNA characterisation using xml file %s" % edna_input_file
-        logging.getLogger("queue_exec").info(msg)
-
-        args = (self.start_edna_command, edna_input_file,
-                edna_results_file, path)
-        subprocess.call("%s %s %s %s" % args, shell=True)
-
-        self.result = None
-        if os.path.exists(edna_results_file):
-            self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
+        self.result = self.run_edna(edna_input_file, edna_results_file, path)
 
         return self.result
 
-    def is_running(self):
-        return not self.processing_done_event.is_set()
+    def prepare_edna_input(self, edna_input):
+        """
+        STAB. Allows to manipulate edna_input object before exporting it to file
+          Example: to set a site specific output directory
+        """
+        pass
 
-    def stop(self):
-        if self.edna_processing_thread is not None:
-            self.edna_processing_thread.stop()
+    def run_edna(self, input_file, results_file, process_directory):
+
+        msg = "Starting EDNA characterisation using xml file %s" % input_file
+        logging.getLogger("queue_exec").info(msg)
+
+        args = (self.start_edna_command, input_file,
+                results_file, process_directory)
+        subprocess.call("%s %s %s %s" % args, shell=True)
+
+        self.result = None
+        if os.path.exists(results_file):
+            self.result = XSDataResultMXCuBE.parseFile(results_file)
+
+        return self.result
+
