@@ -146,7 +146,7 @@ class ISPyBClient2(HardwareObject):
         self.ws_username = self.getProperty('ws_username')
         if not self.ws_username:
             self.ws_username = _WS_USERNAME
-        self.ws_password = self.getProperty('ws_password')
+        self.ws_password = str(self.getProperty('ws_password'))
         if not self.ws_password:
             self.ws_password = _WS_PASSWORD
 
@@ -583,7 +583,7 @@ class ISPyBClient2(HardwareObject):
         # Authentication
         if self.authServerType == 'ldap':
             logging.getLogger('HWR').debug('LDAP login')
-            ok, msg=ldap_connection.login(login_name,psd)
+            ok, msg=self.ldap_login(login_name,psd, ldap_connection)
             logging.getLogger("HWR").debug(" searching for user %s / psd: %s. It is %s" % (login_name,psd, ok))
         elif self.authServerType == 'ispyb':
             logging.getLogger('HWR').debug('ISPyB login')
@@ -627,10 +627,17 @@ class ISPyBClient2(HardwareObject):
 
 #        logging.getLogger('HWR').debug(todays_session)
         return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
-        'session': todays_session,
+        'Session': todays_session,
         "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
         "person": prop['Person'],
         "laboratory": prop['Laboratory']}
+
+    def ldap_login(self, login_name, psd, ldap_connection):
+        if ldap_connection is None:
+            ldap_connection = self.ldapConnection
+
+        ok, msg=ldap_connection.login(login_name,psd)
+        return ok, msg
 
     def get_todays_session(self, prop):
         logging.getLogger('HWR').debug('getting proposal for todays session')
