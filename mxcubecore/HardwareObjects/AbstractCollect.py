@@ -519,8 +519,8 @@ class AbstractCollect(HardwareObject, object):
         """
         self.create_directories(
             self.current_dc_parameters['fileinfo']['directory'],  
-            self.current_dc_parameters['fileinfo']['process_directory']
-        )
+            self.current_dc_parameters['fileinfo']['process_directory'],
+            self.current_dc_parameters['fileinfo']['archive_directory'])
         xds_directory, mosflm_directory, hkl2000_directory = \
             self.prepare_input_files()
         if xds_directory:
