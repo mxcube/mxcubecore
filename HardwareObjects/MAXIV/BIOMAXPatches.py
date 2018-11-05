@@ -51,6 +51,8 @@ class BIOMAXPatches(HardwareObject):
         '''
         Move to centring after loading the sample
         '''
+        if not self.sample_changer._chnPowered.getValue():
+	    raise RuntimeError('Not proceeding with the steps after sample loading, sample changer not powered')
         if self.diffractometer is not None and self.diffractometer.get_current_phase() != 'Centring':
             logging.getLogger("HWR").info("Changing diffractometer phase to Centring")
             logging.getLogger("user_level_log").info("Changing diffractometer phase to Centring")
@@ -65,6 +67,8 @@ class BIOMAXPatches(HardwareObject):
             logging.getLogger("user_level_log").info("Diffractometer already in Centring")
         logging.getLogger("HWR").info("Moving detector to pre-mount position %s" %self.curr_dtox_pos)
         try:
+            if not self.sample_changer._chnPowered.getValue():
+                raise RuntimeError('Not moving detector to pre-mount position, sample changer not powered')
             self.dtox_hwobj.syncMove(self.curr_dtox_pos, timeout = 30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
