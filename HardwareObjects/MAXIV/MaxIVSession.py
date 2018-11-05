@@ -7,6 +7,7 @@ import os
 import time
 import socket
 import logging
+
 try:
     from sdm import storage, Visitor
 except:
@@ -30,7 +31,6 @@ class MaxIVSession(Session):
         self.endstation_name = self.getProperty('endstation_name').lower()
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.base_directory = self["file_info"].getProperty('base_directory')
-
         self.base_process_directory = self["file_info"].\
             getProperty('processed_data_base_directory')
 
@@ -121,11 +121,11 @@ class MaxIVSession(Session):
         else:
             start_time = time.strftime("%Y%m%d")
 
-    	if not self.is_commissioning:
+        if not self.is_commissioning:
             # /data/visitors/biomax/prop/visit/
             # /data/(user-type)/(beamline)/(proposal)/(visit)/raw
             directory = os.path.join(self.base_directory,
-                                     self.get_user_category(self.login),
+                                     'visitors',#self.get_user_category(self.login),
                                      self.beamline_name.lower(),
                                      self.get_proposal(),
                                      start_time)
