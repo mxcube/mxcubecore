@@ -199,35 +199,36 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
 
     #TODO: looks quite bizarre.
-    def motor_positions_to_screen(self, centred_positions_dict):
-        """
-        Convert motor positions contained in a dictionary to screen (canvas) positions.
-        Overrides GenericDiffractometer method.
-
-        @centered_positions_dict: dictionary to be converted
-        @return: position
-        """
-        c = centred_positions_dict
+    # Use parent method which uses sample_centring module
+#    def motor_positions_to_screen(self, centred_positions_dict):
+#        """
+#        Convert motor positions contained in a dictionary to screen (canvas) positions.
+#        Overrides GenericDiffractometer method.
+#
+#        @centered_positions_dict: dictionary to be converted
+#        @return: position
+#        """
+#        c = centred_positions_dict
 
         #if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
             #kappa = self.motor_hwobj_dict["kappa"]
             # phi = self.motor_hwobj_dict["kappa_phi"]
 
-        xy = self.centring_hwobj.centringToScreen(c)
-        if xy is None:
-           return None
+#        xy = self.centring_hwobj.centringToScreen(c)
+#        if xy is None:
+#           return None
         
-        x = xy['X']  * self.pixels_per_mm_x + \
-              self.zoom_centre['x']
+#        x = xy['X']  * self.pixels_per_mm_x + \
+#              self.zoom_centre['x']
        
-        y = xy['Y']  * self.pixels_per_mm_y + \
-              self.zoom_centre['y']
+#        y = xy['Y']  * self.pixels_per_mm_y + \
+#              self.zoom_centre['y']
 
         # logging.getLogger("HWR").debug("  motor_positions_to_screen ")
         # logging.getLogger("HWR").debug(" positions = %s " % str(centred_positions_dict)) 
         # logging.getLogger("HWR").debug(" x,y = %s, %s " % (x,y)) 
 
-        return x,y
+#        return x,y
 
     #TODO: Must be implemented correctly.
     def get_centred_point_from_coord(self, x,y, return_by_names=None):
@@ -274,6 +275,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         return False
 
     # We are using the sample_centring module. this is not used anymore
+    # Not true, we use it!
     def start_manual_centring(self, *args, **kwargs):
         """
         Start manual centring. Overrides GenericDiffracometer method.
