@@ -140,6 +140,19 @@ class ALBAMiniDiff(GenericDiffractometer):
             self.connect(self.focus_motor_hwobj, 'positionChanged', self.focus_motor_moved)
 
         GenericDiffractometer.init(self)
+        
+        # overwrite default centring motors configuration from GenericDiffractometer
+        # when using sample_centring
+        if self.use_sample_centring:
+            self.omegaz_reference = eval(self.getProperty("omegaReference"))
+#            self.centring_phi.direction = 1
+#            self.centring_phiy.direction = 1
+            try:
+                logging.getLogger("HWR").debug("Setting omegaz reference position to {0}".format(self.omegaz_reference['position']))
+                self.centring_phiz.reference_position = self.omegaz_reference['position']
+            except:
+                logging.getLogger("HWR").warning("Invalid value for omegaz reference!")
+                raise
 
         queue_model_objects.CentredPosition.\
             set_diffractometer_motor_names("phi", "phiy", "phiz", "sampx", "sampy", "kappa")
