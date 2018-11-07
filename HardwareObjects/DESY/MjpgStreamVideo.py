@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 __copyright__ = "(c)2015 DESY, FS-PE, P11"
@@ -27,14 +26,14 @@ __license__ = "GPL"
 import gevent
 import httplib
 import json
-
-from PyQt4 import QtGui
-from PyQt4 import QtCore
-
+import logging
+#from PyQt4.QtGui import QImage, QPixmap
+from QtImport import QImage, QPixmap
 from HardwareRepository.BaseHardwareObjects import Device
+from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
 
 
-class Qt4_MjpgStreamVideo(Device):
+class MjpgStreamVideo(GenericVideoDevice):
     """
     Hardware object to capture images using mjpg-streamer
     and it's input_avt.so plugin for AVT Prosilica cameras.
@@ -246,8 +245,9 @@ class Qt4_MjpgStreamVideo(Device):
         """
         Descript. :
         """
-        Device.__init__(self, name)
+        GenericVideoDevice.__init__(self, name)
         self.force_update = None
+        self.sensor_dimensions = None
         self.image_dimensions = None
         self.image_polling = None
         self.image_type = None
@@ -258,13 +258,13 @@ class Qt4_MjpgStreamVideo(Device):
         self.port = None
         self.path = "/"
         self.plugin = 0
-        self.updateControls = None
-        self.inputAvt = None
+        self.update_controls = None
+        self.input_avt = None
 
     def init(self):
         """
         Descript. :
-        """ 
+        """
         self.sleep_time = self.getProperty("interval")
         width = self.getProperty("width")
         height = self.getProperty("height")
@@ -275,12 +275,20 @@ class Qt4_MjpgStreamVideo(Device):
         self.port = int(self.getProperty("port"))
         self.path = "/"
         self.plugin = 0
-        self.updateControls = self.hasUpdateControls()
-        self.inputAvt = self.isInputAvt()
+        self.update_controls = self.has_update_controls()
+        self.input_avt = self.is_input_avt()
         self.image = self.get_new_image()
+        if self.input_avt:
+            sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_WIDTH)
+            if sensor_info:
+                sensor_width = int(sensor_info['value'])
+            sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_HEIGHT)
+            if sensor_info:
+                sensor_height = int(sensor_info['value'])
+            self.sensor_dimensions = (sensor_width, sensor_height)
         self.setIsReady(True)
 
-    def httpGet(self, query, host=None, port=None, path=None):
+    def http_get(self, query, host=None, port=None, path=None):
         """Sends HTTP GET requests and returns the answer.
         
         Keyword arguments:
@@ -293,25 +301,29 @@ class Qt4_MjpgStreamVideo(Device):
         the HTTP answer content or None on error
         
         """
-        if(host is None): host = self.host
-        if(port is None): port = self.port
-        if(path is None): path = self.path
+        if host is None: host = self.host
+        if port is None: port = self.port
+        if path is None: path = self.path
         # send get request and return response
         http = httplib.HTTPConnection(host, port, timeout=3)
         try:
             http.request("GET", path+query)
             response = http.getresponse()
         except:
-            logging.getLogger().error("MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(host, port, path, query))
+            logging.getLogger().error( \
+                    "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused"
+                    .format(host, port, path, query))
             return None
         if response.status != 200:
-            logging.getLogger().error("MjpgStreamVideo: Error {0}, {1}".format(response.status, response.reason))
+            logging.getLogger().error( \
+                    "MjpgStreamVideo: Error {0}, {1}"
+                    .format(response.status, response.reason))
             return None
         data = response.read()
         http.close()
         return data
 
-    def sendCmd(self, value, cmd, group=None, plugin=None, dest=None):
+    def send_cmd(self, value, cmd, group=None, plugin=None, dest=None):
         """Sends a command to mjpg-streamer.
         
         Keyword arguments:
@@ -337,7 +349,7 @@ class Qt4_MjpgStreamVideo(Device):
             option = value
             value = None
             if(type(option) is str):
-                info = self.getCmdInfo(cmd, group)
+                info = self.get_cmd_info(cmd, group)
                 if(info and "menu" in info and option in info["menu"].values()):
                     value = str([k for k, v in info["menu"].iteritems() if(v == option)][0])
             if(value is None):
@@ -351,9 +363,9 @@ class Qt4_MjpgStreamVideo(Device):
         else:
             dest = str(int(dest))
         # send request
-        self.httpGet("?action=command&id="+cmd+"&dest="+dest+"&group="+group+"&value="+value+"&plugin="+plugin)
+        self.http_get("?action=command&id="+cmd+"&dest="+dest+"&group="+group+"&value="+value+"&plugin="+plugin)
 
-    def hasCmd(self, cmd, group=None, plugin=None, dest=None):
+    def has_cmd(self, cmd, group=None, plugin=None, dest=None):
         """Checks whether a command with the given id and group is known by the specified plugin.
         
         Keyword arguments:
@@ -366,12 +378,12 @@ class Qt4_MjpgStreamVideo(Device):
         True if so, False if not or the connection was refused
         
         """
-        data = self.getCmdInfo(cmd, group, plugin, dest)
+        data = self.get_cmd_info(cmd, group, plugin, dest)
         if(not data is None):
             return True
         return False
 
-    def getCmdInfo(self, cmd, group=None, plugin=None, dest=None):
+    def get_cmd_info(self, cmd, group=None, plugin=None, dest=None):
         """Returns a dictionary with informations on the queried command.
         
         Keyword arguments:
@@ -399,17 +411,17 @@ class Qt4_MjpgStreamVideo(Device):
             plugin = str(int(plugin))
         if(dest is None or (dest != self.DEST_INPUT and dest != self.DEST_OUTPUT)):
             dest = self.DEST_INPUT
-        if(self.updateControls):
-            self.sendCmd(group, self.IN_CMD_UPDATE_CONTROLS, plugin, dest)
+        if(self.update_controls):
+            self.send_cmd(group, self.IN_CMD_UPDATE_CONTROLS, plugin, dest)
         # get list of controls and search for the matching one
-        data = self.getControls(plugin, dest)
+        data = self.get_controls(plugin, dest)
         if(data != None):
             for info in data:
                 if(int(info["group"]) == int(group) and int(info["id"]) == int(cmd)):
                     return info
         return None
 
-    def getControls(self, plugin=None, dest=None):
+    def get_controls(self, plugin=None, dest=None):
         """Returns a list with information on all commands supported by the 
         plugin. If DEST_PROGRAM is given for dest, a list with information on 
         all loaded plugins is returned.
@@ -420,7 +432,7 @@ class Qt4_MjpgStreamVideo(Device):
         
         Return value:
         depends on destination plugin. For input_avt.so a list with all commands 
-        supported by the connected camera is returned - q.v. getCmdInfo().
+        supported by the connected camera is returned - q.v. get_cmd_info().
         
         """
         if(plugin is None):
@@ -440,7 +452,7 @@ class Qt4_MjpgStreamVideo(Device):
             query = "program.json"
         # fetch json from server, decode it into a python object and return it
         if(query is not None):
-            data = self.httpGet(query)
+            data = self.http_get(query)
             if(data is not None):
                 data = json.loads(data)
                 if(dest != self.DEST_PROGRAM and "controls" in data):
@@ -448,33 +460,33 @@ class Qt4_MjpgStreamVideo(Device):
                 return data
         return None
 
-    def hasUpdateControls(self):
+    def has_update_controls(self):
         """Checks if the default plugin for this instance knows the UpdateControls command.
         
         Return value:
         True if so, False if not and None if the connection was refused
         
         """
-        data = self.getCmdInfo(self.IN_CMD_UPDATE_CONTROLS)
+        data = self.get_cmd_info(self.IN_CMD_UPDATE_CONTROLS)
         if(data is None):
             return None
         if(data["name"] == "UpdateControls"):
             return True
         return False
 
-    def isInputAvt(self):
+    def is_input_avt(self):
         """Checks if the default plugin for this instance is input_avt.so.
         
         Return value:
         True if so, False if not and None if the connection was refused
         
         """
-        data = self.getControls(0, self.DEST_PROGRAM)
+        data = self.get_controls(0, self.DEST_PROGRAM)
         if(data is None):
             return None
         if(data.has_key("inputs")):
             for info in data["inputs"]:
-                if(info["name"][:12] == "input_avt.so"):
+                if(info["name"][-12:] == "input_avt.so"):
                     return True
         return False
 
@@ -491,25 +503,37 @@ class Qt4_MjpgStreamVideo(Device):
         """
         return
 
-    def contrastExists(self):
+    def contrast_exists(self):
         """
         Descript. :
         """
         return
 
-    def setContrast(self, contrast):
+    def set_contrast(self, contrast):
         """
         Descript. :
         """
         return
 
-    def getContrast(self):
+    def get_contrast(self):
         """
         Descript. :
         """
         return 
 
-    def getContrastMinMax(self):
+    def set_contrast_auto(self, state=True):
+        """
+        Descript. :
+        """
+        return
+
+    def get_contrast_auto(self):
+        """
+        Descript. :
+        """
+        return 
+
+    def get_contrast_min_max(self):
         """
         Descript. :
         """
@@ -521,78 +545,211 @@ class Qt4_MjpgStreamVideo(Device):
         """
         return
 
-    def setBrightness(self, brightness):
+    def set_brightness(self, brightness):
         """
         Descript. :
         """
         return
 
-    def getBrightness(self):
+    def get_brightness(self):
         """
         Descript. :
         """ 
         return 
 
-    def getBrightnessMinMax(self):
+    def set_brightness_auto(self, state=True):
+        """
+        Descript. :
+        """
+        return
+
+    def get_brightness_auto(self):
         """
         Descript. :
         """
         return 
 
-    def gainExists(self):
+    def get_brightness_min_max(self):
         """
         Descript. :
         """
-        return self.hasCmd(self.IN_CMD_AVT_GAIN_VALUE)
+        return 
 
-    def setGain(self, gain):
+    def gain_exists(self):
         """
         Descript. :
         """
-        self.sendCmd("Manual", self.IN_CMD_AVT_GAIN_MODE) # gain mode manual
-        self.sendCmd(gain, self.IN_CMD_AVT_GAIN_VALUE)
+        return self.has_cmd(self.IN_CMD_AVT_GAIN_VALUE)
 
-    def getGain(self):
+    def set_gain(self, gain):
         """
         Descript. :
         """
-        info = self.getCmdInfo(self.IN_CMD_AVT_GAIN_VALUE)
+        #self.send_cmd("Manual", self.IN_CMD_AVT_GAIN_MODE) # gain mode manual
+        self.send_cmd(gain, self.IN_CMD_AVT_GAIN_VALUE)
+
+    def get_gain(self):
+        """
+        Descript. :
+        """
+        info = self.get_cmd_info(self.IN_CMD_AVT_GAIN_VALUE)
         if info is not None:
-            return info["value"]
+            return float(info["value"])
         return
 
-    def getGainMinMax(self):
+    def set_gain_auto(self, state=True):
         """
         Descript. :
         """
-        info = self.getCmdInfo(self.IN_CMD_AVT_GAIN_VALUE)
+        if bool(state):
+            self.send_cmd("Auto", self.IN_CMD_AVT_GAIN_MODE)
+        else:
+            self.send_cmd("Manual", self.IN_CMD_AVT_GAIN_MODE)
+
+    def get_gain_auto(self):
+        """
+        Descript. :
+        """
+        value = None
+        info = self.get_cmd_info(self.IN_CMD_AVT_GAIN_MODE)
         if info is not None:
-            value = (info["min"], info["max"])
+            value = info["menu"][info["value"]] == "Auto"
+        return value
+
+    def get_gain_min_max(self):
+        """
+        Descript. :
+        """
+        info = self.get_cmd_info(self.IN_CMD_AVT_GAIN_VALUE)
+        if info is not None:
+            return (float(info["min"]), float(info["max"]))
         return 
 
-    def gammaExists(self):
+    def gamma_exists(self):
         """
         Descript. :
         """
         return
 
-    def setGamma(self, gamma):
+    def set_gamma(self, gamma):
         """
         Descript. :
         """
         return
 
-    def getGamma(self):
+    def get_gamma(self):
         """
         Descript. :
         """
         return 
 
-    def getGammaMinMax(self):
+    def set_gamma_auto(self, state=True):
+        """
+        Descript. :
+        """
+        return
+
+    def get_gamma_auto(self):
+        """
+        Descript. :
+        """
+        return 
+
+    def get_gamma_min_max(self):
         """
         Descript. :
         """ 
         return (0, 1)
+
+    def exposure_time_exists(self):
+        """
+        Descript. :
+        """
+        return self.has_cmd(self.IN_CMD_AVT_EXPOSURE_VALUE)
+
+    def set_exposure_time(self, gain):
+        """
+        Descript. :
+        """
+        #self.send_cmd("Manual", self.IN_CMD_AVT_EXPOSURE_MODE) # gain mode manual
+        self.send_cmd(gain, self.IN_CMD_AVT_EXPOSURE_VALUE)
+
+    def get_exposure_time(self):
+        """
+        Descript. :
+        """
+        info = self.get_cmd_info(self.IN_CMD_AVT_EXPOSURE_VALUE)
+        if info is not None:
+            return float(info["value"])
+        return
+
+    def set_exposure_time_auto(self, state=True):
+        """
+        Descript. :
+        """
+        if bool(state):
+            self.send_cmd("Auto", self.IN_CMD_AVT_EXPOSURE_MODE)
+        else:
+            self.send_cmd("Manual", self.IN_CMD_AVT_EXPOSURE_MODE)
+
+    def get_exposure_time_auto(self):
+        """
+        Descript. :
+        """
+        value = None
+        info = self.get_cmd_info(self.IN_CMD_AVT_EXPOSURE_MODE)
+        if info is not None:
+            value = info["menu"][info["value"]] == "Auto"
+        return value
+
+    def get_exposure_time_min_max(self):
+        """
+        Descript. :
+        """
+        info = self.get_cmd_info(self.IN_CMD_AVT_EXPOSURE_VALUE)
+        if info is not None:
+            return (float(info["min"]), float(info["max"]))
+        return 
+
+    def zoom_exists(self):
+        """
+        Descript. : True if the device supports digital zooming.
+        """
+        return self.input_avt and self.sensor_dimensions is not None
+
+    def set_zoom(self, zoom):
+        """
+        Descript. : Sets digital zoom factor.
+        """
+        limits = self.get_zoom_min_max()
+        if zoom < limits[0] or zoom > limits[1]:
+            return
+        width = self.image_dimensions[0] / zoom
+        height = self.image_dimensions[1] / zoom
+        pos_x = (self.sensor_dimensions[0] - width) / 2
+        pos_y = (self.sensor_dimensions[1] - height) / 2
+        self.send_cmd(1, self.IN_CMD_AVT_BINNING_X)
+        self.send_cmd(1, self.IN_CMD_AVT_BINNING_Y)
+        self.send_cmd(int(pos_x), self.IN_CMD_AVT_REGION_X)
+        self.send_cmd(int(pos_y), self.IN_CMD_AVT_REGION_Y)
+        self.send_cmd(int(width), self.IN_CMD_AVT_WIDTH)
+        self.send_cmd(int(height), self.IN_CMD_AVT_HEIGHT)
+
+    def get_zoom(self):
+        """
+        Descript. : Returns the digital zoom factor.
+        """
+        info = self.get_cmd_info(self.IN_CMD_AVT_WIDTH)
+        if info is not None:
+            return self.image_dimensions[0] / float(info["value"])
+        return
+
+    def get_zoom_min_max(self):
+        """
+        Descript. : Returns the limits for the digital zoom factor.
+                    The upper limit is arbitrarily defined.
+        """
+        return (self.image_dimensions[0] / float(self.sensor_dimensions[0]), 2)
 
     def setLive(self, mode):
         """
@@ -613,31 +770,45 @@ class Qt4_MjpgStreamVideo(Device):
         return self.image_dimensions[1]
 
     def get_new_image(self):
-        image = self.httpGet("?action=snapshot")
+        """
+        Descript. : reads new image, flips it if necessary and returns the
+                    result or None on error
+        """
+        image = self.http_get("?action=snapshot")
         if image is not None:
-            return QtGui.QImage.fromData(image).mirrored(self.flip["h"], self.flip["v"])
+            return QImage.fromData(image).mirrored(self.flip["h"], self.flip["v"])
         return None
+
+    def refresh_video(self):
+        """
+        Descript. : reads new image into member variable, scales it and emits
+                    imageReceived event. Added for compatibility.
+        """
+        image = self.get_new_image()
+        if image is not None:
+            self.image = QPixmap.fromImage(image.scaled(self.width, self.height))
+            self.emit("imageReceived", self.image)
 
     def take_snapshot(self, filename, bw=False):
         """
-        Descript. :
+        Descript. : calls get_new_image() and saves the result
         """
         try:   
-           qimage = self.get_new_image()
-           #TODO convert to grayscale
-           #if bw:
-           #    qimage.setNumColors(0)
-           qimage.save(filename, 'PNG')
+            qimage = self.get_new_image()
+            #TODO convert to grayscale
+            #if bw:
+            #    qimage.setNumColors(0)
+            qimage.save(filename, 'PNG')
         except:
-           logging.getLogger().error("MjpgStreamVideo: unable to save snapshot: %s" %filename)
+            logging.getLogger().error("MjpgStreamVideo: unable to save snapshot: %s" %filename)
 
     def _do_imagePolling(self, sleep_time):
         """
-        Descript. :
+        Descript. : worker method
         """ 
         while True:
             image = self.get_new_image()
             if image is not None:
-                self.image = QtGui.QPixmap.fromImage(image.scaled(self.width, self.height))
+                self.image = QPixmap.fromImage(image.scaled(self.width, self.height))
                 self.emit("imageReceived", self.image)
             gevent.sleep(sleep_time)
