@@ -767,6 +767,7 @@ class Cats90(SampleChanger):
         self._updateState()
         time.sleep(1.0)
         self.emit('pathSafeChanged', (value, ))
+        self.emit('isCollisionSafe', (value, ))
 
     def cats_lids_closed_changed(self, value):
         self.cats_lids_closed = value
