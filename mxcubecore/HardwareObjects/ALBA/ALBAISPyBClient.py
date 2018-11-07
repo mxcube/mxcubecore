@@ -45,7 +45,7 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 return 'u'
 
         if what == 'ispyb':
-            if code == 'u':
+            if code == 'u' or code == 'uind-':
                 return 'mx'
 
         return code
