@@ -83,12 +83,11 @@ class CollectEmulator(CollectMockup):
         setup_data['trans_y_axis'] = ll[3:6]
         setup_data['trans_z_axis'] = ll[6:]
         tags = ('cone_radius', 'cone_s_height', 'beam_stop_radius',
-                'beam_stop_s_length', 'beam_stop_s_distance', 'gain', 'background',)
+                'beam_stop_s_length', 'beam_stop_s_distance',)
         for tag in tags:
             val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
                 setup_data[tag] = val
-
 
         # Add/overwrite parameters from emulator configuration
         conv = ConvertUtils.convert_string_value
