@@ -204,9 +204,8 @@ class BeamlineSetup(HardwareObject):
         :returns: A CharacterisationsParameters object with default parameters.
         """
         input_fname = self.data_analysis_hwobj.edna_default_file
-        hwr_dir = HardwareRepository().getHardwareRepositoryPath()
-
-        with open(os.path.join(hwr_dir, input_fname), 'r') as f:
+        fp = HardwareRepository().findInRepository(input_fname)
+        with open(fp, 'r') as f:
             edna_default_input = ''.join(f.readlines())
 
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)

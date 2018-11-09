@@ -251,6 +251,14 @@ class __HardwareRepositoryClient:
                                     "%d ms" % (time_delta.microseconds / 1000),
                                     comment))
 
+        # # Temporary help to get hold of superclasses
+        # import inspect
+        # for cls in inspect.getmro(hwobj_instance.__class__)[1:]:
+        #     tt = ('super', cls.__name__, "0 ms", '@~@~')
+        #     if tt not in  self.hwobj_info_list:
+        #         self.hwobj_info_list.append(tt)
+
+
         return hwobj_instance
 
     def discardHardwareObject(self, hoName):
@@ -325,13 +333,13 @@ class __HardwareRepositoryClient:
 
         raise KeyError
 
-
-    def getHardwareRepositoryPath(self):
-        if self.server:
-            return ""
-        else:
-            path = self.serverAddress[0]
-            return os.path.abspath(path)
+    #  Removed 20181109, as it did not work with multi-directory serverAddress
+    # def getHardwareRepositoryPath(self):
+    #     if self.server:
+    #         return ""
+    #     else:
+    #         path = self.serverAddress[0]
+    #         return os.path.abspath(path)
 
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
@@ -634,7 +642,7 @@ class __HardwareRepositoryClient:
         print "| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment"))
         print "+","=" * (sum(longest_cols) + 5), "+"
 
-        for row in self.hwobj_info_list:
+        for row in sorted(self.hwobj_info_list):
             print "| %s|" % row_format.format(*row)
         print "+","=" * (sum(longest_cols) + 4), "+"
 

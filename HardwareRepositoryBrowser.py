@@ -291,14 +291,14 @@ class __HardwareRepositoryClient:
             return self.getHardwareObject(item)
 
         raise KeyError
-    
 
-    def getHardwareRepositoryPath(self):
-       if self.server:
-         return ""
-       else:
-         path = self.serverAddress[0]
-         return os.path.abspath(path)
+    #  Removed 20181109, as it did not work with multi-directory serverAddress
+    # def getHardwareRepositoryPath(self):
+    #    if self.server:
+    #      return ""
+    #    else:
+    #      path = self.serverAddress[0]
+    #      return os.path.abspath(path)
 
 
     def getHardwareRepositoryFiles(self, startdir = '/'):
