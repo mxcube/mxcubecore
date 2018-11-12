@@ -35,7 +35,7 @@ from gevent.event import AsyncResult
 from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-
+#from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 last_centred_position = [200, 200]
