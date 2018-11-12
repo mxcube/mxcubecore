@@ -18,6 +18,7 @@ Example xml file:
   <pss_card_ch>7/1</pss_card_ch>
   <polling_interval>500</polling_interval>
   <object href="/bliss" role="controller"/>
+  <object href="/sample_changer", role="sample_changer"/>
 </object>
 """
 
@@ -82,6 +83,15 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
                      "entering" if entering_hutch else "leaving")
         ctrl_obj = self.getObjectByRole('controller')
         ctrl_obj.hutch_actions(entering_hutch, hutch_trigger=True, **kwargs)
+
+        # open the flexHCD ports
+        sample_changer_hwobj = self.getObjectByRole('sample_changer')
+        if sample_changer_hwobj:
+            if entering_hutch:
+                sample_changer_hwobj.prepare_hutch(robot_port=0)
+            else:
+                sample_changer_hwobj.prepare_hutch(user_port=0,
+                                                   robot_port=1)
 
     def poll(self):
         a = self.device.GetInterlockState([self.card-1, 2*(self.channel-1)])[0]

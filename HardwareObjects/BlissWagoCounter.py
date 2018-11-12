@@ -3,6 +3,7 @@ import logging
 import operator
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 class BlissWagoCounter(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -26,8 +27,9 @@ class BlissWagoCounter(HardwareObject):
             return -9999
         counter = operator.attrgetter(self.wagoname)(self.controller)
         return counter.read()*math.pow(self.gainfactor, gn)
-        
+
     def getCorrectedPhysValue(self):
         return self.getValue()
 
-
+    def read(self):
+        return self.getValue()
