@@ -37,6 +37,9 @@ class BIOMAXMD3(GenericDiffractometer):
         Description:
         """
         GenericDiffractometer.__init__(self, *args)
+        #Compatibility line
+        self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
+        self.MANUAL3CLICK_MODE = "Manual 3-click"
 
     def init(self):
 
@@ -65,6 +68,14 @@ class BIOMAXMD3(GenericDiffractometer):
         self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
         self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
         self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
+        try:
+            self.kappa_motor_hwobj = self.motor_hwobj_dict['kappa']
+        except:
+            self.kappa_motor_hwobj = None
+        try:
+            self.kappa_phi_motor_hwobj = self.motor_hwobj_dict['kappa_phi']
+        except:
+            self.kappa_phi_motor_hwobj = None
 
         self.cent_vertical_pseudo_motor = None
         try:
@@ -334,7 +345,7 @@ class BIOMAXMD3(GenericDiffractometer):
         scan(scan_params)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation launched, waiting for device ready.")
         #if wait:
-        time.sleep(0.1)	
+        time.sleep(0.1) 
         self.wait_device_ready(exptime+30)  # timeout of 5 min
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation, device ready.")
 
@@ -361,10 +372,10 @@ class BIOMAXMD3(GenericDiffractometer):
 
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
         scan = self.command_dict["startScan4DEx"]
-        time.sleep(0.1)	
-        self.wait_device_ready(exptime+30)
+        time.sleep(0.1) 
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, device ready.")
         scan(scan_params)
+        self.wait_device_ready(exptime+30)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
 
@@ -415,7 +426,7 @@ class BIOMAXMD3(GenericDiffractometer):
         raster(raster_params)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation launched, waiting for device ready.")
         time.sleep(0.1)
-        self.wait_device_ready(exptime+30)  # timeout of 5 min
+        self.wait_device_ready(exptime*nlines+30)
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 finish raster scan, device ready.")
 
     def keep_position_after_phase_change(self, new_phase):
@@ -439,11 +450,16 @@ class BIOMAXMD3(GenericDiffractometer):
         motors_dict = {}
         if keep_position:
             for motor in motors:
-		try:
+                try:
                     current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
                 except:
-		    pass
-        if self.is_ready():
+                    pass
+        try:
+            self.wait_device_ready(10)
+        except Exception as ex:
+            logging.getLogger('HWR').error('[BIOMAXMD3] Cannot change phase to %s, timeout waiting for MD3 ready, %s' %(phase, ex))
+            logging.getLogger('user_log').error('[MD3] Cannot change phase to %s, timeout waiting for MD3 ready' %phase)
+        else:
             self.command_dict["startSetPhase"](phase)
             if keep_position:
                 self.move_sync_motors(current_positions)
@@ -451,33 +467,29 @@ class BIOMAXMD3(GenericDiffractometer):
                 if not timeout:
                     timeout = 40
                 self.wait_device_ready(timeout)
-        else:
-            print "moveToPhase - Ready is: ", self.is_ready()
-
-
 
     # def move_sync_motors(self, motors_dict, wait=False, timeout=None):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
-    	try:
-    	    motors_dict.pop('kappa')
-    	    motors_dict.pop('kappa_phi')
-                logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
-    	except Exception as ex:
-    	    print ex
-            logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
-            for motor in motors_dict.keys():
-                position = motors_dict[motor]
-                if position is None:
-                    continue
-                name = self.MOTOR_TO_EXPORTER_NAME[motor]
-                argin += "%s=%0.3f;" % (name, position)
-            if not argin:
-                return
-            self.wait_device_ready(2000)
-            self.command_dict["startSimultaneousMoveMotors"](argin)
-            if wait:
-                self.wait_device_ready(timeout)
+        try:
+            motors_dict.pop('kappa')
+            motors_dict.pop('kappa_phi')
+            logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
+        except Exception as ex:
+            print ex
+        logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
+        for motor in motors_dict.keys():
+            position = motors_dict[motor]
+            if position is None:
+                continue
+            name = self.MOTOR_TO_EXPORTER_NAME[motor]
+            argin += "%s=%0.3f;" % (name, position)
+        if not argin:
+            return
+        self.wait_device_ready(2000)
+        self.command_dict["startSimultaneousMoveMotors"](argin)
+        if wait:
+            self.wait_device_ready(timeout)
 
     def moveToBeam(self, x, y):
         try:
@@ -530,3 +542,13 @@ class BIOMAXMD3(GenericDiffractometer):
         #return self.current_state == DiffractometerState.tostring(\
                     DiffractometerState.Ready)
 
+    def get_positions(self):
+      return { "phi": float(self.phi_motor_hwobj.getPosition()),
+               "focus": float(self.focus_motor_hwobj.getPosition()),
+               "phiy": float(self.phiy_motor_hwobj.getPosition()),
+               "phiz": float(self.phiz_motor_hwobj.getPosition()),
+               "sampx": float(self.sample_x_motor_hwobj.getPosition()),
+               "sampy": float(self.sample_y_motor_hwobj.getPosition()),
+               "kappa": float(self.kappa_motor_hwobj.getPosition()) if self.kappa_motor_hwobj else None,
+               "kappa_phi": float(self.kappa_phi_motor_hwobj.getPosition()) if self.kappa_phi_motor_hwobj else None,
+               "zoom": float(self.zoom_motor_hwobj.getPosition())}
