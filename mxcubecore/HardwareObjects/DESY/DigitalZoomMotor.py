@@ -26,7 +26,8 @@ __license__ = "GPL"
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
-from AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.AbstractMotor import MotorStates
 
 
 class DigitalZoomMotor(AbstractMotor, Device):
@@ -41,18 +42,17 @@ class DigitalZoomMotor(AbstractMotor, Device):
     """
 
     def __init__(self, name):
-        AbstractMotor.__init__(self)
+        AbstractMotor.__init__(self, name)
         Device.__init__(self, name)
         self.camera = None
-        self.limits = (1.0, 1.0)
-        self.motor_position = 1.0
         self.zoom_supported = None
 
     def init(self):
+        self.set_limits((1.0, 1.0))
         try:
             self.camera = self.getObjectByRole('camera')
         except KeyError:
-            logging.getLogger("HWR").warning( \
+            logging.getLogger("HWR").warning(
                     "DigitalZoomMotor: camera not defined")
             return
         try:
@@ -60,19 +60,21 @@ class DigitalZoomMotor(AbstractMotor, Device):
         except AttributeError:
             self.zoom_supported = False
         if self.zoom_supported:
-            self.limits = self.camera.get_zoom_min_max()
-            if self.limits[0] is None:
-                self.limits[0] = self.static_limits[0]
-            if self.limits[1] is None:
-                self.limits[1] = self.static_limits[1]
-            self.getPosition()
-            self.motor_state = AbstractMotor.READY
+            limits = self.camera.get_zoom_min_max()
+            if limits[0] is None:
+                limits[0] = -1000
+            if limits[1] is None:
+                limits[1] = 1000
+            self.set_limits(limits)
+            self.set_position(self.camera.get_zoom())
+            self.set_state(MotorStates.READY)
         else:
-            self.motor_state = AbstractMotor.UNUSABLE
-            logging.getLogger("HWR").warning( \
+            self.set_state(MotorStates.DISABLED)
+            logging.getLogger("HWR").warning(
                     "DigitalZoomMotor: digital zoom is not supported "
                     "by camera object")
-        self.setIsReady(self.motor_state > AbstractMotor.UNUSABLE)
+
+        self.setIsReady(self.get_state() == MotorStates.READY)
 
     def updateState(self):
         """
@@ -92,53 +94,50 @@ class DigitalZoomMotor(AbstractMotor, Device):
                 position = self.camera.get_zoom()
             else:
                 position = 1.0
-        if position != self.motor_position:
-            motor_state = self.motor_state
-            if position <= self.limits[0] or position >= self.limits[1]:
-                motor_state = AbstractMotor.ONLIMIT
+
+        if position != self.get_position():
+            current_motor_state = self.get_state()
+            if position <= self.getLimits()[0]:
+                self.set_state(MotorStates.LOWLIMIT)
+            elif position >= self.get_limits()[1]:
+                self.set_state(MotorStates.HIGHLIMIT)
             else:
-                motor_state = AbstractMotor.READY
-            if self.zoom_supported and motor_state != self.motor_state:
-                self.motor_state = motor_state
-                self.emit('stateChanged', (motor_state, ))
-            self.motor_position = position
+                current_motor_state = MotorStates.READY
+            if self.zoom_supported and current_motor_state != self.get_state():
+                self.set_state(current_motor_state)
+                self.emit('stateChanged', (current_motor_state, ))
+            self.set_position(position)
             self.emit('positionChanged', (position, ))
 
-    def getState(self):
-        """
-        Descript. : returns the current motor state
-        """
-        return self.motor_state
+#    def getLimits(self):
+#        """
+#        Descript. : returns motor limits. If no limits channel defined then
+#                    static_limits is returned
+#        """
+#        return self.limits
 
-    def getLimits(self):
-        """
-        Descript. : returns motor limits. If no limits channel defined then
-                    static_limits is returned
-        """
-        return self.limits
+#    def getPosition(self):
+#        """
+#        Descript. : returns the current position
+#        """
+#        if self.zoom_supported:
+#            self.motor_position = self.camera.get_zoom()
+#        else:
+#            self.motor_position = 1.0
+#        return self.motor_position
 
-    def getPosition(self):
-        """
-        Descript. : returns the current position
-        """
+    def get_position(self):
         if self.zoom_supported:
             self.motor_position = self.camera.get_zoom()
         else:
             self.motor_position = 1.0
-        return self.motor_position
-
-    def getDialPosition(self):
-        """
-        Descript. : not implemented i.e. identical to getPosition()
-        """
-        return self.getPosition()
 
     def move(self, absolute_position):
         """
         Descript. : move to the given position
         """
-        if self.zoom_supported and absolute_position >= self.limits[0] and \
-                absolute_position <= self.limits[1]:
+        if self.zoom_supported and absolute_position >= self.getLimits()[0] and \
+                absolute_position <= self.getLimits()[1]:
             self.camera.set_zoom(absolute_position)
             self.motor_position_changed(absolute_position)
 
