@@ -66,9 +66,6 @@ class Qt4_VideoMockup(GenericVideoDevice):
         self.setIsReady(True)
         GenericVideoDevice.init(self)
 
-    def get_image_dimensions(self):
-        return self.image_dimensions
-
     def get_new_image(self):
         self.painter.drawRect(self.image.width() - 75,
                               self.image.height() - 30,

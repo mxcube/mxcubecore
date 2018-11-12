@@ -68,6 +68,16 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
         tangoname = self.getProperty("tangoname")
 
+        width = self.getProperty("width")
+        height = self.getProperty("height")
+
+        if None not in [width,height]:
+            self.width = width
+            self.height = height
+        else:
+            self.width = None
+            self.height = None
+
         self.device = PyTango.DeviceProxy(tangoname)
         self.device.ping()
 
@@ -82,12 +92,13 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
-    def get_image_dimensions(self):
-        try:
-            width, height = self.device.image_width, self.device.image_height
-        except:
-            width, height = self.device.width, self.device.height
-        return [width, height]
+    def get_raw_image_size(self):
+
+        # in case width and height not set in xml return server values
+        if None not in [self.width, self.height]:
+            return [self.width, self.height] 
+        else:
+            return [self.device.image_width, self.device.image_height] 
 
     def get_image(self):
         img_data = self.device.video_last_image
@@ -125,10 +136,16 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
     """ END Overloading of GenericVideoDevice methods """
 
     def getWidth(self):
-        return self.device.width
+        if self.width:
+            return self.width
+        else:
+            return self.device.width
     
     def getHeight(self):
-        return self.device.height
+        if self.height:
+            return self.height
+        else:
+            return self.device.height
     
 
 def test_hwo(hwo):

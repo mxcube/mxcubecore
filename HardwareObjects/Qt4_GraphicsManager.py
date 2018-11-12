@@ -94,7 +94,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.pixels_per_mm = [0, 0]
         self.beam_position = [0, 0]
         self.beam_info_dict = {}
-        self.graphics_scene_size = [0, 0]
+        self.graphics_scene_size = None
         self.mouse_position = [0, 0]
         self.image_scale = None 
         self.image_scale_list = []
@@ -273,8 +273,8 @@ class Qt4_GraphicsManager(HardwareObject):
 
         self.camera_hwobj = self.getObjectByRole(self.getProperty("camera_name", "camera"))
         if self.camera_hwobj is not None:
-            self.graphics_scene_size = self.camera_hwobj.get_image_dimensions()
-            self.set_graphics_scene_size(self.graphics_scene_size, False)
+            graphics_scene_size = self.camera_hwobj.get_image_dimensions()
+            self.set_graphics_scene_size(graphics_scene_size, False)
             self.camera_hwobj.start_camera()
             self.connect(self.camera_hwobj, 
                          "imageReceived", 
@@ -554,6 +554,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: centringStarted
         """
         self.current_centring_method = centring_method
+        self.set_centring_state(True) 
         self.emit("centringStarted")  
 
     def create_centring_point(self, centring_state, centring_status, emit=True):
