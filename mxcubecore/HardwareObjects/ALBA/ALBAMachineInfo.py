@@ -168,9 +168,21 @@ class ALBAMachineInfo(Equipment):
         self.logger.debug("SIGNAL valuesChanged emitted")
         
     def get_mach_current(self):
-        return self.chan_mach_current.getValue()
+        try:
+            value = self.chan_mach_current.getValue()
+        except Exception as e:
+            self.logger.error('Cannot read machine current value, returning 0')
+	    value = 0
+        finally:
+	    return value
         #return self.values_dict['mach_current']
  
+    def get_current(self):
+        return self.get_mach_current()
+
+    def get_message(self):
+        return "Machinfo status: %s" % self.get_mach_status()
+
 #    def get_current_value(self):
 #        """
 #        Descript. :
@@ -184,3 +196,6 @@ class ALBAMachineInfo(Equipment):
     def get_topup_remaining(self):
         return self.chan_topup_remaining.getValue()
 #        return self.values_dict['remaining']
+
+def test_hwo(hwo):
+    print "Current is", hwo.get_current()
