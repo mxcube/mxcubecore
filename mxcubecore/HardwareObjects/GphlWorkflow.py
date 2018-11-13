@@ -131,10 +131,6 @@ class GphlWorkflow(HardwareObject, object):
         self.rotation_axis_roles = dd['gonio_axis_names']
         self.translation_axis_roles = dd['gonio_centring_axis_names']
 
-        # gphl_config = HardwareRepository().findInRepository(
-        #     self.getProperty('gphl_config')
-        # )
-
     def pre_execute(self, queue_entry):
 
         self._queue_entry = queue_entry
