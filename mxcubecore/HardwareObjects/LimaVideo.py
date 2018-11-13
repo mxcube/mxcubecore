@@ -46,7 +46,7 @@ class LimaVideo(Device):
         self.gamma_exists = None
 
         self.image_format = None
-        self.image_dimensions = None
+        self.image_dimensions = [None, None]
 
         self.camera = None
         self.interface = None
