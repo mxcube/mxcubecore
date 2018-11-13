@@ -140,6 +140,7 @@ class Cats90(SampleChanger):
 
         # Default values
         self.cats_powered = False
+        self.cats_pathsafe = True
         self.cats_status = ""
         self.cats_running = False
         self.cats_state = PyTango.DevState.UNKNOWN
@@ -180,7 +181,14 @@ class Cats90(SampleChanger):
             self._chnPowered = self.addChannel({
                     "type": "tango", "name": "_chnPowered",
                     "tangoname": self.tangoname, "polling": 300,
-                }, "Powered")
+                }, "Powered")        
+
+        self._chnPathSafe = self.getChannelObject("_chnPathSafe")
+        if self._chnPathSafe is None:
+            self._chnPathSafe = self.addChannel({
+                    "type": "tango", "name": "_chnPathSafe",
+                    "tangoname": self.tangoname, "polling": 300,
+                }, "PathSafe")
 
         self._chnPathRunning = self.getChannelObject("_chnPathRunning")
         if self._chnPathRunning is None:
@@ -223,6 +231,13 @@ class Cats90(SampleChanger):
                     "type": "tango", "name": "_chnAllLidsClosed",
                     "tangoname": self.tangoname, "polling": 1000,
                 }, "di_AllLidsClosed")
+
+        self._chnInSoak = self.getChannelObject("_chnInSoak")
+        if self._chnInSoak is None:
+            self._chnInSoak = self.addChannel({
+                    "type": "tango", "name": "_chnInSoak",
+                    "tangoname": self.tangoname, "polling": 1000,
+                }, "InSoak")
 
         # commands
         self._cmdLoad = self.getCommandObject("_cmdLoad")
@@ -361,6 +376,7 @@ class Cats90(SampleChanger):
         self._chnStatus.connectSignal("update", self.cats_status_changed)
         self._chnPathRunning.connectSignal("update", self.cats_pathrunning_changed) 
         self._chnPowered.connectSignal("update", self.cats_powered_changed) 
+        self._chnPathSafe.connectSignal("update", self.cats_pathsafe_changed) 
         self._chnAllLidsClosed.connectSignal("update", self.cats_lids_closed_changed)
         self._chnLidLoadedSample.connectSignal("update", self.cats_loaded_lid_changed)
         self._chnNumLoadedSample.connectSignal("update", self.cats_loaded_num_changed)
@@ -744,7 +760,14 @@ class Cats90(SampleChanger):
     def cats_powered_changed(self, value):
         self.cats_powered = value
         self._updateState()
-        self.emit('powerStateChanged', (value, ))
+        self.emit('powerStateChanged', (value, ))    
+
+    def cats_pathsafe_changed(self, value):
+        self.cats_pathsafe = value
+        self._updateState()
+        time.sleep(1.0)
+        self.emit('pathSafeChanged', (value, ))
+        self.emit('isCollisionSafe', (value, ))
 
     def cats_lids_closed_changed(self, value):
         self.cats_lids_closed = value
