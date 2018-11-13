@@ -362,7 +362,8 @@ class GenericVideoDevice(Device):
 
     """  Methods to be implemented by the implementing class """
     def get_raw_image_size(self):
-        pass
+        # Must return a two-value list necessary to avoid breaking e.g. ViideoMockup
+        return [None,None]
 
     @abc.abstractmethod
     def get_image(self):

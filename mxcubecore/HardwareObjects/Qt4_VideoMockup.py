@@ -127,3 +127,6 @@ class Qt4_VideoMockup(GenericVideoDevice):
 
     def get_video_live(self):
         return True
+
+    def get_raw_image_size(self):
+        return list(self.image_dimensions)
