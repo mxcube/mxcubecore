@@ -7,9 +7,15 @@ access and manipulate this information.
 import os
 import time
 import logging
+import xml.etree.ElementTree as ET
 
+from HardwareRepository.HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects_v1 as queue_model_objects
+
+# Configuration file used to override base_directory paths.
+# Will be ignored if not founc
+parameter_override_file = 'session_parameter_override.xml'
 
 class Session(HardwareObject):
 
@@ -52,6 +58,23 @@ class Session(HardwareObject):
 
         self.suffix = self["file_info"].getProperty('file_suffix')
         self.template = self["file_info"].getProperty('file_template')
+
+        # Override directory names, if parameter_override_file exists.
+        # Intended to allow resetting directories in mock mode,
+        # while keeping the session/xml used for the mocked beamline.
+        override_file = HardwareRepository().findInRepository(
+            parameter_override_file
+        )
+        logging.getLogger('HWR').info('Reading override directory names from %s' % override_file)
+        if override_file:
+            parameters =  ET.parse(override_file).getroot()
+            for elem in parameters:
+                tag = elem.tag
+                if tag in ('base_directory', 'processed_data_base_directory',
+                           'archive_base_directory'):
+                    val = elem.text.strip()
+                    if val is not None:
+                        self["file_info"].setProperty(tag, val)
 
         base_directory = self["file_info"].\
                               getProperty('base_directory')
