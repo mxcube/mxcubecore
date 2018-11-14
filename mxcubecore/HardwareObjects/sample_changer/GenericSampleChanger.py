@@ -203,6 +203,7 @@ class SampleChanger(Container,Equipment):
     LOADED_SAMPLE_CHANGED_EVENT="loadedSampleChanged"
     SELECTION_CHANGED_EVENT="selectionChanged"    
     TASK_FINISHED_EVENT="taskFinished"
+    CONTENTS_UPDATED_EVENT="contentsUpdated"
     
                 
     def __init__(self,type,scannable, *args, **kwargs):
@@ -275,7 +276,7 @@ class SampleChanger(Container,Equipment):
     
     def _onTimerUpdate(self):        
         #if not self.isExecutingTask():
-        self.updateInfo()  
+        self.updateInfo()
              
     def _onTimer1s(self):
         pass        
@@ -618,9 +619,13 @@ class SampleChanger(Container,Equipment):
         self.task_proc=None
         self._triggerTaskFinishedEvent(task,ret,exception)
         if exception is not None:
+            self._onTaskFailed(task, exception)
             raise exception
         return ret
                                 
+    def _onTaskFailed(self, task, exception):
+        pass
+
     def _onTaskEnded(self, task):        
         try:                
             e = task.get()
@@ -638,7 +643,7 @@ class SampleChanger(Container,Equipment):
         
         if (status is not None) and (self.status!=status):
             self.status=status
-            self._triggerStatusChangedEvent()        
+            self._triggerStatusChangedEvent()
         
     def _resetLoadedSample(self):
         for s in self.getSampleList():
@@ -685,3 +690,6 @@ class SampleChanger(Container,Equipment):
     def _triggerTaskFinishedEvent(self,task,ret,exception):
         self.emit(self.TASK_FINISHED_EVENT, (task, ret, exception))
                 
+    def _triggerContentsUpdatedEvent(self):
+        self.emit(self.CONTENTS_UPDATED_EVENT)
+
