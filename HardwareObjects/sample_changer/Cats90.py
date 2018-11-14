@@ -429,7 +429,7 @@ class Cats90(SampleChanger):
         return self.cats_model == "ISARA"
 
     def is_cats(self):
-        return self.cats_model != "CATS"
+        return self.cats_model == "CATS"
 
     def _initSCContents(self):
         """
