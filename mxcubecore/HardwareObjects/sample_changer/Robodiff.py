@@ -64,7 +64,7 @@ class Cell(Container):
       return self
 
 class Robodiff(SampleChanger):
-    __TYPE__ = "Robodiff"
+    __TYPE__ = "HCD"
 
     def __init__(self, *args, **kwargs):
         super(Robodiff, self).__init__(self.__TYPE__, True, *args, **kwargs)

@@ -158,7 +158,7 @@ class GenericVideoDevice(Device):
             self.set_video_live(True)
             self.change_owner()
 
-            logging.getLogger("HWR").info('Camera: Starting polling for camera')
+            logging.getLogger("HWR").info('Starting polling for camera')
             self.image_polling = gevent.spawn(self.do_image_polling,
                                               self.poll_interval/1000.0)
             self.image_polling.link_exception(self.polling_ended_exc)

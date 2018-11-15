@@ -5,6 +5,7 @@ import logging
 
 from sample_changer.GenericSampleChanger import *
 
+
 class SampleChangerMockup(SampleChanger):
 
     __TYPE__ = "Mockup"
@@ -12,7 +13,8 @@ class SampleChangerMockup(SampleChanger):
     NO_OF_SAMPLES_IN_BASKET = 10
     
     def __init__(self, *args, **kwargs):
-        super(SampleChangerMockup, self).__init__(self.__TYPE__,False, *args, **kwargs)
+        super(SampleChangerMockup, self).__init__(
+            self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self._selected_sample = -1
@@ -101,16 +103,16 @@ class SampleChangerMockup(SampleChanger):
     def _doUpdateInfo(self):
         return
 
-    def _doSelect(self,component):
+    def _doSelect(self, component):
         return
 
-    def _doScan(self,component,recursive):
+    def _doScan(self, component, recursive):
         return
 
     def _doLoad(self, sample=None):
         return
 
-    def _doUnload(self,sample_slot=None):
+    def _doUnload(self, sample_slot=None):
         return
 
     def _doReset(self):
@@ -151,6 +153,4 @@ class SampleChangerMockup(SampleChanger):
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
 
-        #mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(1,1))
-        #mounted_sample._setLoaded(True, False)  
         self._setState(SampleChangerState.Ready)

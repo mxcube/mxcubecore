@@ -68,7 +68,6 @@ class ID29MultiCollect(ESRFMultiCollect):
     @task
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
-        cover_task = self.getObjectByRole("controller").detcover.set_out()
         try:
             motors_to_move_dict.pop('kappa')
             motors_to_move_dict.pop('kappa_phi')
@@ -83,11 +82,15 @@ class ID29MultiCollect(ESRFMultiCollect):
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
         #diffr.moveToPhase("Centring", wait=True, timeout=200)
-        self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
-        diffr._wait_ready(20)
+        if number_of_snapshots:
+            # put the back light in
+            diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
+            self.bl_control.diffractometer.takeSnapshots(number_of_snapshots, wait=True)
+            diffr._wait_ready(20)
 
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
+        self.getObjectByRole("controller").detcover.set_out()
         diffr = self.getObjectByRole("diffractometer")
         #send again the command as MD2 software only handles one
         #centered position!!
@@ -98,15 +101,30 @@ class ID29MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
-        diffr.getObjectByRole("flight").move(2)
+        diffr.getObjectByRole("FrontLight").move(2)
 
     @task
     def oscil(self, start, end, exptime, npass):
         diffr = self.getObjectByRole("diffractometer")
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
+        elif self.mesh:
+            det = self._detector._detector
+            latency_time = det.config.getProperty("latecy_time_mesh") or \
+                det.get_deadtime()
+            diffr.oscilScanMesh(start, end, exptime, latency_time,
+                                self.mesh_num_lines,
+                                self.mesh_total_nb_frames,
+                                self.mesh_center, self.mesh_range , wait=True)
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
+
+    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+        if self.mesh:
+            trigger_mode = "EXTERNAL_GATE"
+        else:
+            trigger_mode = None #will be determined by ESRFMultiCollect
+        return ESRFMultiCollect.prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, trigger_mode)
 
     def open_fast_shutter(self):
         self.getObjectByRole("fastshut").actuatorIn()
@@ -119,6 +137,24 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     def set_helical_pos(self, helical_oscil_pos):
         self.helical_pos = helical_oscil_pos
+
+    # specifies the next scan will be a mesh scan
+    def set_mesh(self, mesh_on):
+        self.mesh = mesh_on
+
+    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
+        """
+        sets the mesh scan parameters :
+         - vertcal range
+         - horizontal range
+         - nb lines
+         - nb frames per line
+         - invert direction (boolean)  # NOT YET DONE
+         """
+        self.mesh_num_lines = num_lines
+        self.mesh_total_nb_frames = total_nb_frames
+        self.mesh_range = mesh_range_param
+        self.mesh_center = mesh_center_param
 
     def set_transmission(self, transmission):
     	self.getObjectByRole("transmission").set_value(transmission)

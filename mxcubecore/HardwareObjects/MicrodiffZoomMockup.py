@@ -76,10 +76,16 @@ class MicrodiffZoomMockup(Device):
         return ''          
 
     def moveToPosition(self, positionName):
+        valid = True
+
         try:
             self.predefined_position_attr = self.predefinedPositions[positionName]
             self.motorPositionChanged(self.predefined_position_attr)
             return True
         except:
-            return False
+            valid = False
+        
+        self.connectNotify('predefinedPositionChanged')
+        return valid
+
 

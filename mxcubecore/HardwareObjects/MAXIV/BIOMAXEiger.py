@@ -5,7 +5,7 @@
   Description:  This module implements the hardware object for the Eiger detector
      based on a Tango device server
 
-   
+
 Detector Status:
 -----------------
 
@@ -26,8 +26,9 @@ import copy
 import logging
 
 from HardwareRepository import HardwareRepository
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
+
 
 class BIOMAXEiger(Equipment):
     """
@@ -54,92 +55,99 @@ class BIOMAXEiger(Equipment):
         self.energy_change_threshold_default = 20
 
     def init(self):
-        
         tango_device = self.getProperty("detector_device")
         filewriter_device = self.getProperty("filewriter_device")
 
-        self.file_suffix =  self.getProperty("file_suffix") 
+        self.file_suffix = self.getProperty("file_suffix")
         self.default_exposure_time = self.getProperty("default_exposure_time")
         self.default_compression = self.getProperty("default_compression")
         self.buffer_limit = self.getProperty("buffer_limit")
         self.dcu = self.getProperty("dcu")
 
         # not all of the following attr are needed, for now all of them here for convenience
-        attr_list=('NbImages','Temperature','Humidity','CountTime','FrameTime','PhotonEnergy',
-                    'Wavelength','EnergyThreshold','FlatfieldEnabled','AutoSummationEnabled',
-                    'TriggerMode','RateCorrectionEnabled','BitDepth','ReadoutTime','Description',
-                    'NbImagesMax','NbImagesMin','CountTimeMax','CountTimeMin','FrameTimeMax',
-                    'FrameTimeMin','PhotonEnergyMax','PhotonEnergyMin','EnergyThresholdMax',
-                    'EnergyThresholdMin','Time','NbTriggers','NbTriggersMax','XPixelSize','YPixelSize',
-                    'NbTriggersMin','CountTimeInte','DownloadDirectory','FilesInBuffer','Error',
-                    'BeamCenterX','BeamCenterY','DetectorDistance','OmegaIncrement','OmegaStart',
-                    'Compression','RoiMode', 'State',"Status",'XPixelsDetector','YPixelsDetector')
+        attr_list = ('NbImages', 'Temperature', 'Humidity', 'CountTime', 'FrameTime', 'PhotonEnergy',
+                     'Wavelength', 'EnergyThreshold', 'FlatfieldEnabled', 'AutoSummationEnabled',
+                     'TriggerMode', 'RateCorrectionEnabled', 'BitDepth', 'ReadoutTime', 'Description',
+                     'NbImagesMax', 'NbImagesMin', 'CountTimeMax', 'CountTimeMin', 'FrameTimeMax',
+                     'FrameTimeMin', 'PhotonEnergyMax', 'PhotonEnergyMin', 'EnergyThresholdMax',
+                     'EnergyThresholdMin', 'Time', 'NbTriggers', 'NbTriggersMax', 'XPixelSize',
+                     'YPixelSize', 'NbTriggersMin', 'CountTimeInte', 'DownloadDirectory',
+                     'FilesInBuffer', 'Error', 'BeamCenterX', 'BeamCenterY', 'DetectorDistance',
+                     'OmegaIncrement', 'OmegaStart', 'Compression', 'RoiMode', 'State', "Status",
+                     'XPixelsDetector', 'YPixelsDetector', 'CollectionUUID', 'RoiMode',
+                     'HeaderDetail', 'HeaderAppendix', 'ImageAppendix',
+                     'StreamState'
+                     )
 
-	fw_list = ('FilenamePattern','ImagesPerFile','BufferFree',# 'CompressionEnabled'
-		  'FileWriterState', 'ImageNbStart', 'Mode')
+        fw_list = ('FilenamePattern', 'ImagesPerFile', 'BufferFree', 'FileWriterState', 'ImageNbStart', 'Mode')
 
         # config needed to be set up for data collection
         # if values are None, use the one from the system
-        self.col_config = { 'OmegaStart': 0,
-                       'OmegaIncrement': 0.1,
-                       'BeamCenterX': None, # length not pixel
-                       'BeamCenterY': None,
-                       'DetectorDistance': None,
-                       'CountTime': None,
-                       'NbImages': None,
-                       'NbTriggers': None,
-                       'ImagesPerFile': None,
-                       'RoiMode': None,
-                       'FilenamePattern':None,
-                       'PhotonEnergy': None,
-                       'TriggerMode': "exts",
-                     }
+        self.col_config = {'OmegaStart': 0,
+                           'OmegaIncrement': 0.1,
+                           'BeamCenterX': None,  # length not pixel
+                           'BeamCenterY': None,
+                           'DetectorDistance': None,
+                           'CountTime': None,
+                           'NbImages': None,
+                           'NbTriggers': None,
+                           'ImagesPerFile': None,
+                           'RoiMode': None,
+                           'FilenamePattern': None,
+                           'PhotonEnergy': None,
+                           'TriggerMode': "exts",
+                           }
 
         # not all of the following commands are needed, for now all of them here for convenience
-        cmd_list = ('Arm','Trigger','Abort','Cancel','ClearBuffer','DeleteFileFromBuffer',
-                'Disarm','DownloadFilesFromBuffer')
+        cmd_list = ('Arm', 'Trigger', 'Abort', 'Cancel', 'ClearBuffer', 'DeleteFileFromBuffer',
+                    'Disarm', 'DownloadFilesFromBuffer', 'EnableStream', 'DisableStream'
+                    )
 
         for channel_name in attr_list:
-            self.addChannel({"type":"tango", 
+            self.addChannel({"type": "tango",
                              "name": channel_name,
-                            "tangoname": tango_device, 
-                            "timeout": 10000, },
-                             channel_name)
+                             "tangoname": tango_device,
+                             "timeout": 10000,
+                             },
+                            channel_name
+                            )
 
         # we need to program timeout once in the device
         # get any of the channels for that.
 
         for channel_name in fw_list:
-            self.addChannel({"type":"tango", 
+            self.addChannel({"type": "tango",
                              "name": channel_name,
-                             "tangoname": filewriter_device },
-                             channel_name)
+                             "tangoname": filewriter_device
+                             },
+                            channel_name
+                            )
 
         for cmd_name in cmd_list:
-            self.addCommand({"type":"tango",
-                             "name": cmd_name, 
-                             "timeout": 8000, 
-                             "tangoname": tango_device },
-                             cmd_name)
-
+            self.addCommand({"type": "tango",
+                             "name": cmd_name,
+                             "timeout": 8000,
+                             "tangoname": tango_device
+                             },
+                            cmd_name
+                            )
         # init the detector settings in case of detector restart
-        # use bslz4 for compression ()        
+        # use bslz4 for compression ()
 
         # we need to call the init device before accessing the channels here
         #   otherwise the initialization is triggered by the HardwareRepository Poller
         #   that is delayed after the application starts
 
         try:
-            self.energy_change_threshold = float( self.getProperty("min_trigger_energy_change") )
+            self.energy_change_threshold = float(self.getProperty("min_trigger_energy_change"))
         except:
             self.energy_change_threshold = self.energy_change_threshold_default
- 
 
         self.getChannelObject('Compression').init_device()
         self.getChannelObject('Compression').setValue("bslz4")
 
-        #self.getChannelObject('TriggerMode').init_device()
-        #self.getChannelObject('TriggerMode').setValue("exts")
+        # self.getChannelObject('TriggerMode').init_device()
+        # self.getChannelObject('TriggerMode').setValue("exts")
 
     #  STATUS , status can be "idle", "ready", "UNKNOWN"
     def get_status(self):
@@ -151,13 +159,13 @@ class BIOMAXEiger(Equipment):
             else:
                 return "not_init"
 
-        return self.status_chan.getValue()
-     
+        return self.status_chan.getValue().split('\n')[0]
+
     def is_idle(self):
-        return self.get_status() == "idle"
+        return self.get_status()[:4] == "idle"
 
     def is_ready(self):
-        return self.get_status() == "ready"
+        return self.get_status()[:5] == "ready"
 
     def is_acquire(self):
         return self.get_status() == "acquire"
@@ -166,40 +174,59 @@ class BIOMAXEiger(Equipment):
         return self.config_state == "config"
 
     def prepare_error(self):
-        if self.config_state == "error": 
-           return True
+        if self.config_state == "error":
+            return True
         else:
-           return False
+            return False
 
     def wait_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_ready():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
 
     def wait_ready_or_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector neither ready or idle")):
             while not (self.is_ready() or self.is_idle()):
-                time.sleep(0.1)
+                logging.getLogger("HWR").debug("Waiting for the detector to be ready, current state: " + self.get_status())
+                gevent.sleep(0.25)
 
     def wait_idle(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_idle():
-                time.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_acquire(self):
         with gevent.Timeout(20, RuntimeError("Detector not ready")):
             while not self.is_acquire():
-                time.sleep(0.1)
+                gevent.sleep(0.25)
 
     def wait_buffer_ready(self):
         with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
             while self.get_buffer_free() < self.buffer_limit:
-                time.sleep(0.1)
-    
+                gevent.sleep(0.25)
+
     def wait_config_done(self):
-        with gevent.Timeout(20, RuntimeError("Detector free buffer size is lower than limit")):
+        logging.getLogger("HWR").info("Waiting to configure the detector.")
+        with gevent.Timeout(30, RuntimeError("Detector configuration error")):
             while self.is_preparing():
-                time.sleep(0.1)
+                gevent.sleep(0.1)
+        logging.getLogger("HWR").info("Detector configuration finished.")
+    
+    def wait_attribute_applied(self, att, new_val):
+        with gevent.Timeout(10, RuntimeError("Timeout setting attr: %s to value %s, type: %s" %(att, new_val, type(new_val)))):
+            # format numbers to remove the precission comparison, 3 decimal enough?
+            #if type(new_val)== 'str' or type(new_val) == 'unicode':
+            #   while self.get_value(att) != new_val:
+                #       gevent.sleep(0.1)
+            if att in ['FilenamePattern', 'HeaderDetail', 'HeaderAppendix', 'ImageAppendix']:
+                while self.get_value(att) != new_val:
+                        gevent.sleep(0.1)
+            elif 'BeamCenter' in att:
+                while format(self.get_value(att), '.2f') != format(new_val, '.2f'):
+                    gevent.sleep(0.1)
+            else:       
+                while format(self.get_value(att), '.4f') != format(new_val, '.4f'):
+                    gevent.sleep(0.1)
     #  STATUS END
 
     #  GET INFORMATION
@@ -207,29 +234,43 @@ class BIOMAXEiger(Equipment):
         return self.getChannelObject(name).getValue()
 
     def set_value(self, name, value):
-        self.getChannelObject(name).setValue(value)
+        try:
+            logging.getLogger("HWR").debug("[DETECTOR] Setting value: %s for attribute %s"  %(value, name))
+            self.getChannelObject(name).setValue(value)
+            self.wait_attribute_applied(name, value)
+        except Exception as ex:
+            logging.getLogger("HWR").error(ex)
+            logging.getLogger("HWR").info("Cannot set value: %s for attribute %s"  %(value, name))
 
     def get_readout_time(self):
-        return self.get_value("ReadoutTime")  
-  
+        return self.get_value("ReadoutTime")
+
     def get_acquisition_time(self):
         frame_time = self.get_value("FrameTime")
         readout_time = self.get_value("ReadoutTime")
         nb_images = self.get_value("NbImages")
-        return nb_images * frame_time - readout_time
+        time =  nb_images * frame_time - readout_time
+        _count_time = self._config_vals.get('CountTime') 
+        _nb_images = self._config_vals.get('NbImages')  
+        logging.getLogger("HWR").debug("[DETECTOR] Configuration params: CounTime: %s, NbImages: %s" %(_count_time, _nb_images))
+        logging.getLogger("HWR").debug("[DETECTOR] Params applied IN the detector: FrameTime: %s, NbImages: %s" %(frame_time, nb_images))
+        if format(time, '.4f') != format(_nb_images * _count_time - readout_time, '.4f'):
+            logging.getLogger("HWR").error("[DETECTOR] Acquisition time configuration wrong.")    
+        logging.getLogger("HWR").info("Detector acquisition time: "+str(time))
+        return time
 
     def get_buffer_free(self):
         return self.get_value("BufferFree")
 
     def get_roi_mode(self):
         return self.get_value("RoiMode")
- 
+
     def get_pixel_size_x(self):
-        """ 
+        """
         return sizes of a single pixel along x-axis respectively
         unit, mm
         """
-        #x_pixel_size = self.getChannelObject("XPixelSize")  # unit, m 
+        # x_pixel_size = self.getChannelObject("XPixelSize")  # unit, m
         x_pixel_size = 0.000075
         return x_pixel_size * 1000
 
@@ -238,7 +279,7 @@ class BIOMAXEiger(Equipment):
         return sizes of a single pixel along y-axis respectively
         unit, mm
         """
-        #y_pixel_size = self.getChannelObject("YPixelSize")  # unit, m
+        # y_pixel_size = self.getChannelObject("YPixelSize")  # unit, m
         y_pixel_size = 0.000075
         return y_pixel_size * 1000
 
@@ -258,33 +299,60 @@ class BIOMAXEiger(Equipment):
 
     def get_minimum_exposure_time(self):
         return self.get_value("FrameTimeMin") - self.get_readout_time()
-  
+
     def get_sensor_thickness(self):
-        return # not available, self.getChannelObject("").getValue()
+        return  # not available, self.getChannelObject("").getValue()
 
     def has_shutterless(self):
         return True
-        
+
+    def get_collection_uuid(self):
+        return self.get_value("CollectionUUID")
+
+    def get_header_detail(self):
+        """
+    Detail of header data to be sent.
+        """
+        return self.get_value("HeaderDetail")
+
+    def get_header_appendix(self):
+        """
+        Data that is appended to the header data
+        """
+        return self.get_value("HeaderAppendix")
+
+    def get_image_appendix(self):
+        """
+        Data that is appended to the image data
+        """
+        return self.get_value("ImageAppendix")
+
+    def get_stream_state(self):
+        """
+        "disabled", "ready", "acquire" or "error".
+        """
+        return self.get_value("StreamState")
+
     #  GET INFORMATION END
 
     #  SET VALUES
-    def set_photon_energy(self,energy):
+    def set_photon_energy(self, energy):
         """
         set photon_energy
         Note, the readout_time will be changed
         engery, in eV
         """
-        valid = self._validate_energy_value(energy) 
+        valid = self._validate_energy_value(energy)
 
         if valid == -1:
             return False
         elif valid == 0:
             return True  # is valid, but no need to change energy. continue
         else:
-            self.set_value("PhotonEnergy",energy)
+            self.set_value("PhotonEnergy", energy)
             return True
 
-    def _validate_energy_value(self,energy):
+    def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
         except:
@@ -296,8 +364,8 @@ class BIOMAXEiger(Equipment):
         min_energy = self.get_value("PhotonEnergyMin")
         current_energy = self.get_value("PhotonEnergy")
 
-        print( "   - currently configured energy is: %s" % current_energy)
-        print( "   -    min val: %s / max val: %s " % (min_energy, max_energy))
+        print("   - currently configured energy is: %s" % current_energy)
+        print("   -    min val: %s / max val: %s " % (min_energy, max_energy))
 
         if target_energy < min_energy or target_energy > max_energy:
             print("Energy value out of limits: %s" % energy)
@@ -311,17 +379,46 @@ class BIOMAXEiger(Equipment):
             print("Energy difference below threshold. Do not need to program")
             return 0
 
-
     def set_energy_threshold(self, threshold):
         """
         set energy_threshold
         Note, the readout_time will be changed
-        By deafult, the value is 50% of the photon_energy and will be 
+        By deafult, the value is 50% of the photon_energy and will be
         updated upon setting PhotonEnergy. If other values are needed,
         this should be set after changing PhotonEnergy.
         Eengery, in eV
         """
-        self.set_value("EnergyThreshold",threshold)
+        self.set_value("EnergyThreshold", threshold)
+
+    def set_collection_uuid(self, col_uuid):
+        self.set_value("CollectionUUID", col_uuid)
+
+    def set_header_detail(self, value):
+        """
+        Detail of header data to be sent.
+        """
+        if value not in ["all", "basic", "none"]:
+                logging.getLogger("HWR").error("Cannot set stream header detail")
+                return
+        self.set_value("HeaderDetail", value)
+
+    def set_header_appendix(self, value):
+        """
+        Data that is appended to the header data
+        """
+        self.set_value("HeaderAppendix", value)
+
+    def set_image_appendix(self, value):
+        """
+        Data that is appended to the image data
+        """
+        self.set_value("ImageAppendix", value)
+
+    def set_roi_mode(self, value):
+	if value not in ["4M", "disabled"]:
+            logging.getLogger("HWR").error("Cannot set stream header detail")
+            return
+        return self.get_value("RoiMode")
 
     #  SET VALUES END
 
@@ -333,66 +430,74 @@ class BIOMAXEiger(Equipment):
         BeamCenterY
         OmegaStart
         OmegaIncrement
-        start, osc_range, exptime, ntrigger, number_of_images, images_per_file, compression,ROI,wavelength):
+        start, osc_range, exptime, ntrigger, number_of_images, images_per_file,
+        compression,ROI,wavelength):
         """
-        
+
         logging.getLogger("user_level_log").info("Preparing acquisition")
 
         self.config_state = "config"
 
         self._config_vals = copy.copy(config)
-        self._config_task = gevent.spawn(self._prepare_acquisition_sequence)
-        self._config_task.link(self._configuration_done)
-        self._config_task.link_exception(self._configuration_failed)
-   
-    def _configuration_done(self,gl):
+        # self._config_task = gevent.spawn(self._prepare_acquisition_sequence)
+        # self._config_task.link(self._configuration_done)
+        # self._config_task.link_exception(self._configuration_failed)
+        try:
+            self._prepare_acquisition_sequence()
+        except Exception as ex:
+            print ex
+            self._configuration_failed()
+        else:
+            self._configuration_done()
+
+    def _configuration_done(self): # (self, gl)
+        logging.getLogger("HWR").info("Detector configuration done")
         self.config_state = None
 
-    def _configuration_failed(self,gl):
+    def _configuration_failed(self): # (self, gl)
         self.config_state = "error"
+        logging.getLogger("HWR").error("Could not configure detector")
         RuntimeError("Could not configure detector")
 
     def _prepare_acquisition_sequence(self):
-
         if not self.is_idle():
             self.stop_acquisition()
 
         self.wait_idle()
-
-        print("Ok. detector is idle. Continuing with configuration")
-
+    
+        logging.getLogger("HWR").info("Ok. detector is idle. Continuing with configuration")
+        logging.getLogger("HWR").info(self._config_vals)    
         if "PhotonEnergy" in self._config_vals.keys():
             new_egy = self._config_vals["PhotonEnergy"]
             if new_egy is not None:
-                if self.set_photon_energy( new_egy ) is False:
+                if self.set_photon_energy(new_egy) is False:
                     raise Exception("Could not program energy in detector")
+        if "CountTime" in self._config_vals.keys():
+            self.set_value("CountTime",  self._config_vals["CountTime"])
+            print "readout time and count time is ", self.get_readout_time(), self.get_value("CountTime")
+            self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
+            print "new frame time is ", self.get_value("FrameTime")
+            for cfg_name, cfg_value in self._config_vals.items():
+                t0 = time.time()
+                if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
+                    continue  # already handled above
 
-	if "CountTime" in self._config_vals.keys():
-	    self.set_value("CountTime",  self._config_vals["CountTime"])
-	    self.set_value("FrameTime",  self._config_vals["CountTime"]+self.get_readout_time())
+                logging.getLogger("HWR").info("Detector: configuring %s: %s" % (cfg_name, cfg_value))
+                if cfg_value is None or cfg_value == "":
+                    continue
 
-        for cfg_name, cfg_value in self._config_vals.items():
-            t0 = time.time()   
-            if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
-                continue # already handled above
-
-            print("  configuring %s: %s" % (cfg_name, cfg_value))
-            if cfg_value is None or cfg_value == "":
-                continue 
-
-            if cfg_value is not None:
-                if self.get_value(cfg_name) != cfg_value:
-                    self.set_value(cfg_name, cfg_value)
-                    if cfg_name == "RoiMode":
-                        self.emit("roiChanged")
+                if cfg_value is not None:
+                    if self.get_value(cfg_name) != cfg_value:
+                        self.set_value(cfg_name, cfg_value)
+                        if cfg_name == "RoiMode":
+                            self.emit("roiChanged")
+                    else:
+                        print("      - value does need to change")
                 else:
-                    print("      - value does need to change")
-            else:
-                logging.getLogger("HWR").error("Could not config value %s for detector. Not such channel" % cfg_name)
+                    logging.getLogger("HWR").error("Could not config value %s for detector. Not such channel" % cfg_name)
+        logging.getLogger("HWR").info("Detector parameter configuration took %s seconds" % (time.time() - t0))
 
-            print(" took %s seconds" % (time.time() - t0))
-    
-    @task 
+    @task
     def start_acquisition(self):
         """
         Before starting the acquisition a prepare_acquisition should be issued
@@ -404,35 +509,38 @@ class BIOMAXEiger(Equipment):
 
         self.wait_buffer_ready()
 
-        if not self.is_idle(): 
+        if not self.is_idle():
             RuntimeError("Detector should be idle before starting a new acquisition")
 
         self.config_state = None
 
-        logging.getLogger("user_level_log").info("Detector armed")
+        logging.getLogger("user_level_log").info("Detector going to arm")
 
         return self.arm()
-    
+
     def stop_acquisition(self):
         """
-        when use external trigger, Disarm is required, otherwise the last h5 will 
+        when use external trigger, Disarm is required, otherwise the last h5 will
         not be released and not available in WebDAV.
         """
-      
-        print("Stop acquisition. waiting")
-        self.wait_ready_or_idle()  
-  
+
+        logging.getLogger("HWR").info("[DETECTOR] Stop acquisition, waiting...")
+        self.wait_ready_or_idle()
+
         try:
-            self.cancel()  # this is needed as disarm in tango device server does not seem to work
-                           # as expected. the disarm command in the simpleinterface is always working
-                           # when called from Tango it does not. Once bug is solved in tango server, the
-                           # call to "cancel()" is not necessary here
+            self.cancel()
+            # this is needed as disarm in tango device server does not seem to work
+            # as expected. the disarm command in the simpleinterface is always working
+            # when called from Tango it does not. Once bug is solved in tango server, the
+            # call to "cancel()" is not necessary here
             self.disarm()
+            logging.getLogger("HWR").info("[DETECTOR] Stop acquisition, detector canceled and disarmed.")
         except:
             pass
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
+        logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
         except:
@@ -442,15 +550,25 @@ class BIOMAXEiger(Equipment):
         self.disarm()
 
     def arm(self):
+        logging.getLogger("HWR").info("[DETECTOR] Arm command requested")
         cmd = self.getCommandObject("Arm")
-        cmd.setTimeout(10000)
+        cmd.setDeviceTimeout(10000)
         cmd()
+        self.wait_ready()
+        logging.getLogger("HWR").info("[DETECTOR] Arm command executed, new state of the dectector: " + self.get_status())
+        logging.getLogger("user_level_log").info("Detector armed")
 
     def trigger(self):
         self.getCommandObject("Trigger")()
 
     def disarm(self):
         self.getCommandObject("Disarm")()
+
+    def enable_stream(self):
+        self.getCommandObject("EnableStream")()
+
+    def disable_stream(self):
+        self.getCommandObject("DisableStream")()
 
     def cancel(self):
         self.getCommandObject("Cancel")()
@@ -460,6 +578,7 @@ class BIOMAXEiger(Equipment):
             self.getCommandObject("Abort")()
         except:
             pass
+
 
 def test():
     import sys
@@ -486,10 +605,10 @@ def test():
     hwr.connect()
     obj = hwr.getHardwareObject("/detector")
 
-    config = { 
+    config = {
          'OmegaStart': 0,
          'OmegaIncrement': 0.1,
-         'BeamCenterX': None, # length not pixel
+         'BeamCenterX': None,  # length not pixel
          'BeamCenterY': None,
          'DetectorDistance': None,
          'FrameTime': exptime,
@@ -497,17 +616,16 @@ def test():
          'NbTriggers': None,
          'ImagesPerFile': None,
          'RoiMode': "4M",
-         'FilenamePattern':None,
+         'FilenamePattern': None,
          'PhotonEnergy': egy,
          'TriggerMode': trigmode,
         }
-
 
     if obj.get_status() == "not_init":
         print("Cannot initialize hardware object")
         sys.exit(0)
 
-    if not obj.is_idle():  
+    if not obj.is_idle():
         obj.stop_acquisition()
         obj.wait_idle()
 
@@ -519,24 +637,24 @@ def test():
         gevent.wait(timeout=0.1)
         gevent.sleep(0.1)
         print "."
- 
+
     if obj.prepare_error():
-        print "Prepare went wrong. Aborting"  
+        print "Prepare went wrong. Aborting"
         sys.exit(0)
 
     readout_time = obj.get_readout_time()
     print("EIGER configuration done")
 
-    print("Starting acquisition (trigmode = %s)" %trigmode)
+    print("Starting acquisition (trigmode = %s)" % trigmode)
     if trigmode == "exts":
-       total_time = nimages * (exptime + readout_time)
-       print("Total exposure time (estimated) will be: %s", total_time)
- 
+        total_time = nimages * (exptime + readout_time)
+        print("Total exposure time (estimated) will be: %s", total_time)
+
     try:
         obj.start_acquisition()
 
         if trigmode == "exts":
-            print("  - waiting for trigger.") 
+            print("  - waiting for trigger.")
             sys.stdout.flush()
             obj.wait_acquire()
             print("  - trigger received. Acquiring")
@@ -551,5 +669,6 @@ def test():
         obj.abort()
         obj.wait_idle()
 
+
 if __name__ == "__main__":
-   test()
+    test()

@@ -10,7 +10,7 @@ Example xml file:
   - for tunable wavelength beamline:
 <object class="Energy">
   <object href="/energy" role="energy"/>
-  <object href="/khoros" role="controller"/>
+  <object href="/bliss" role="controller"/>
   <tunable_energy>True</tunable_energy>
 </object>
 The energy should have methods getPosition, getLimits and move.
@@ -66,7 +66,6 @@ class Energy(Equipment):
         return True
 
     def getCurrentEnergy(self):
-        logging.getLogger('user_level_log').debug("Get current energy")
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition()
@@ -85,7 +84,8 @@ class Energy(Equipment):
     def getEnergyLimits(self):
         logging.getLogger("HWR").debug("Get energy limits")
         if not self.tunable:
-            return None
+            energy = self.getCurrentEnergy()
+            return (energy, energy)
 
         if self.energy_motor is not None:
             try:
@@ -130,6 +130,7 @@ class Energy(Equipment):
             try:
                 self.move_energy(value, wait=True)
             except:
+                sys.excepthook(*sys.exc_info())
                 self.moveEnergyCmdFailed()
             else:
                 self.moveEnergyCmdFinished(True)
@@ -180,8 +181,7 @@ class Energy(Equipment):
             if pos > 0.02:
                 try:
                     if self.ctrl:
-                        self.ctrl.moveEnergy(energy)
-                        self.ctrl.quick_realign()
+                        self.ctrl.change_energy(energy)
                     else:
                         self.executeCommand("moveEnergy", energy, wait=True)
                 except RuntimeError as AttributeError:
@@ -196,7 +196,7 @@ class Energy(Equipment):
             self.emit('valueChanged', (pos, ))
 
     def energyStateChanged(self, state):
-        print(state)
+        self.emit('stateChanged', (state,))
 
     def get_value(self):
         #generic method used by the beamline setup

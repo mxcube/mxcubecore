@@ -393,6 +393,7 @@ class Cats90(SampleChanger):
         self._chnStatus.connectSignal("update", self.cats_status_changed)
         self._chnPathRunning.connectSignal("update", self.cats_pathrunning_changed) 
         self._chnPowered.connectSignal("update", self.cats_powered_changed) 
+        self._chnPathSafe.connectSignal("update", self.cats_pathsafe_changed) 
         self._chnAllLidsClosed.connectSignal("update", self.cats_lids_closed_changed)
         self._chnLidLoadedSample.connectSignal("update", self.cats_loaded_lid_changed)
         self._chnNumLoadedSample.connectSignal("update", self.cats_loaded_num_changed)
@@ -795,6 +796,13 @@ class Cats90(SampleChanger):
         self.cats_powered = value
         self._updateState()
         self.emit('powerStateChanged', (value, ))
+
+    def cats_pathsafe_changed(self, value):
+        self.cats_pathsafe = value
+        self._updateState()
+        time.sleep(1.0)
+        self.emit('pathSafeChanged', (value, ))
+        self.emit('isCollisionSafe', (value, ))
 
     def cats_lids_closed_changed(self, value):
         self.cats_lids_closed = value
@@ -1229,7 +1237,6 @@ class Cats90(SampleChanger):
                     loaded = has_been_loaded = False
                     sample._setLoaded(loaded, has_been_loaded)
 
-        self._triggerInfoChangedEvent()
         self._triggerContentsUpdatedEvent()
         self._updateLoadedSample()
         self._triggerInfoChangedEvent()
