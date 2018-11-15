@@ -160,8 +160,7 @@ class XMLRPCServer(HardwareObject):
         self.host = host    
         self.port = self.getProperty('port')
 
-        if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
-            self.doEnforceUseOfToken = True
+        self.doEnforceUseOfToken = self.getProperty('enforceUseOfToken', False)
 
         try:
             self.open()
