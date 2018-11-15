@@ -43,6 +43,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
         fp = HardwareRepository().findInRepository(self.edna_default_file)
+        if fp is None:
+            raise ValueError("File %s not found in repository"
+                             % self.edna_default_file)
         with open(fp, 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
 
