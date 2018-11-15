@@ -164,6 +164,9 @@ class GenericDiffractometer(HardwareObject):
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
 
+        self.delay_state_polling = None # time to delay for state polling for controllers
+                                        # not updating state inmediately after cmd started
+
         # Internal values -----------------------------------------------------
         self.ready_event = None
         self.head_type = GenericDiffractometer.HEAD_TYPE_MINIKAPPA
@@ -334,6 +337,11 @@ class GenericDiffractometer(HardwareObject):
         except:
            pass # used the default value
 
+	try:
+            self.delay_state_polling = self.getProperty("delay_state_polling")
+        except:
+            pass
+
         # Other parameters ---------------------------------------------------
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
@@ -402,6 +410,11 @@ class GenericDiffractometer(HardwareObject):
         """
         return self.current_state == DiffractometerState.tostring(\
                     DiffractometerState.Ready)
+
+    def wait_device_not_ready(self, timeout=5):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device not ready")):
+            while self.is_ready():
+                time.sleep(0.01)
 
     def wait_device_ready(self, timeout=30):
         """ Waits when diffractometer status is ready:
@@ -598,6 +611,8 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").exception("Diffractometer: problem while centring")
                 self.emit_centring_failed()
 
+    startCentringMethod = start_centring_method   # ensure backward compatibility with queue_entry.py
+
     def cancel_centring_method(self, reject=False):
         """
         """
@@ -662,7 +677,7 @@ class GenericDiffractometer(HardwareObject):
                                                   self.beam_position[0],
                                                   self.beam_position[1],
                                                   msg_cb = self.emit_progress_message,
-                                                  new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", point))
+                                                  new_point_cb=lambda point: self.emit("newAutomaticCentringPoint", (point,)))
               else:
                   self.current_centring_procedure = gevent.spawn(self.automatic_centring)
               self.current_centring_procedure.link(self.centring_done)
@@ -719,15 +734,21 @@ class GenericDiffractometer(HardwareObject):
         else:
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
+
             try:
-                self.move_to_motors_positions(motor_pos)
+                logging.getLogger("HWR").debug("Centring finished. Moving motoros to position %s" % str(motor_pos))
+                self.move_to_motors_positions(motor_pos, wait=True)
             except:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                #if 3 click centring move -180
-                if not self.in_plate_mode():
-                    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #if 3 click centring move -180. well. dont, in principle the calculated
+                # centred positions include omega to initial position
+                pass
+                #if not self.in_plate_mode():
+                #    logging.getLogger("HWR").debug("Centring finished. Moving omega back to initial position")
+                #    self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                #    logging.getLogger("HWR").debug("         Moving omega done")
 
             if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO:
                 self.emit("newAutomaticCentringPoint", motor_pos)
@@ -815,6 +836,7 @@ class GenericDiffractometer(HardwareObject):
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
+            self.wait_device_not_ready()
             self.wait_device_ready(10)
   
     def move_motors(self, motor_positions, timeout=15):
@@ -825,8 +847,16 @@ class GenericDiffractometer(HardwareObject):
                             and target values.
         :type motors_dict: dict
         """
+        if not type(motor_positions) is dict:
+            motor_positions = motor_positions.as_dict()
+
+        self.wait_device_ready(timeout)
         for motor in motor_positions.keys():
             position = motor_positions[motor]
+            if type(motor) == str:
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
+            else:
+                logging.getLogger("HWR").debug(" Moving %s to %s" % (str(motor.name()), position))
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
@@ -835,6 +865,13 @@ class GenericDiffractometer(HardwareObject):
                     continue
                 motor_positions[motor] = position
             motor.move(position)
+        self.wait_device_ready(timeout)
+
+        if self.delay_state_polling is not None and self.delay_state_polling > 0:    
+            # delay polling for state in the
+            # case of controller not reporting MOVING inmediately after cmd
+            gevent.sleep(self.delay_state_polling)
+
         self.wait_device_ready(timeout)
 
     def move_motors_done(self, move_motors_procedure):
@@ -879,6 +916,8 @@ class GenericDiffractometer(HardwareObject):
             centring_status['motors'] = self.get_positions()
         self.emit('centringAccepted', (True, centring_status))
         self.emit("fsmConditionChanged", "centering_position_accepted", True)
+
+    acceptCentring = accept_centring
 
     def reject_centring(self):
         """
@@ -1124,6 +1163,15 @@ class GenericDiffractometer(HardwareObject):
         Descript. :
         """
         return
+
+    def get_osc_dynamic_limits(self):
+        return (-10000, 10000)
+
+    def get_osc_max_speed(self):
+        """
+        """
+        return None
+        # raise NotImplementedError
 
     def zoom_in(self):
         return
