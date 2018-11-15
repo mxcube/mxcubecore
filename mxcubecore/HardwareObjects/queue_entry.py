@@ -888,8 +888,8 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                    self.collect_number_of_frames)
 
         if self.parallel_processing_hwobj is not None:
-           qc.connec(self.parallel_processing_hwobj, 'processingFinished',
-                     self.processing_finished)
+           qc.connect(self.parallel_processing_hwobj, 'processingFinished',
+                      self.processing_finished)
            qc.connect(self.parallel_processing_hwobj, 'processingFailed',
                       self.processing_failed)
 
@@ -920,9 +920,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
 
         if self.parallel_processing_hwobj is not None:
             qc.disconnect(self.parallel_processing_hwobj, 'processingFinished',
-                       self.processing_finished)
+                          self.processing_finished)
             qc.disconnect(self.parallel_processing_hwobj, 'processingFailed',
-                       self.processing_failed)
+                          self.processing_failed)
 
         self.get_view().set_checkable(False)
 
@@ -1957,9 +1957,9 @@ def mount_sample(beamline_setup_hwobj,
                          "sampleBarcode": data_model.code,
                          "sampleId": data_model.lims_id,
                          "sessionId": beamline_setup_hwobj.session_hwobj.session_id,
-                         "startTime": time.strftime("%Y-%m-%d %H:%M:%S"),
-                         "xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
-                         "xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
+                         "startTime": time.strftime("%Y-%m-%d %H:%M:%S")}
+                         #"xtalSnapshotBefore": data_model.get_snapshot_filename(prefix="before"),
+                         #"xtalSnapshotAfter": data_model.get_snapshot_filename(prefix="after")}
  
 
     # This is a possible solution how to deal with two devices that
