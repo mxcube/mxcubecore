@@ -26,6 +26,10 @@ class Shapes(HardwareObject):
         HardwareObject.__init__(self, name)
         self.shapes = {}
 
+    def init(self):
+        self.diffractometer = self.getObjectByRole("diffractometer")
+        self.hide_grid_threshold = self.getProperty("hide_grid_threshold", 5)
+
     def get_shapes(self):
         """
         Get all Shapes.
@@ -57,13 +61,13 @@ class Shapes(HardwareObject):
         :returns: All lines currently handled
         :rtype: Line
         """
-        current_points = []
+        lines = []
 
         for shape in self.get_shapes():
             if isinstance(shape, Line):
-                current_points.append(shape)
+                lines.append(shape)
 
-        return current_points
+        return lines
 
     def get_grids(self):
         """
@@ -72,13 +76,13 @@ class Shapes(HardwareObject):
         :returns: All Grids currently handled
         :rtype: Grid
         """
-        current_points = []
+        grid = []
 
         for shape in self.get_shapes():
             if isinstance(shape, Grid):
-                current_points.append(shape)
+                grid.append(shape)
 
-        return current_points
+        return grid
 
     def get_shape(self, sid):
         """
@@ -98,6 +102,7 @@ class Shapes(HardwareObject):
         :type shape: Shape object.
         """
         self.shapes[shape.id] = shape
+        shape.shapes_hw_object = self
 
     def add_shape_from_mpos(self, mpos_list, screen_coord, t):
         """
@@ -110,7 +115,7 @@ class Shapes(HardwareObject):
         :returns: Shape of type <t>
         :rtype: <t>
         """
-        cls_dict = {"P": Point, "L": Line, "G": Grid}
+        cls_dict = {"P": Point, "L": Line, "G": Grid, "2DP": TwoDPoint}
         _cls = cls_dict[t]
         shape = None
 
@@ -145,13 +150,21 @@ class Shapes(HardwareObject):
         :param shape: The shape to remove
         :type shape: Shape object.
         """
-        return self.shapes.pop(sid, None)
+        shape = self.shapes.pop(sid, None)
+
+        if shape:
+            shape.shapes_hw_object = None
+
+        return shape
 
     def clear_all(self):
         """
         Clear the shapes, remove all contents.
         """
         self.shapes = {}
+        Grid.SHAPE_COUNT = 0
+        Line.SHAPE_COUNT = 0
+        Point.SHAPE_COUNT =0
 
     def get_selected_shapes(self):
         """
@@ -217,12 +230,34 @@ class Shapes(HardwareObject):
     def select_shape_with_cpos(self, cpos):
         return
 
+    # For backwards compatability with old ShapeHisotry object
+    # returns first of selected grids
     def get_grid(self):
-        pass
+        """
+        Get the first of the selected grids, (the one that was selected first in
+        a sequence of select operations)
 
-    def set_grid_data(self, key, result_data):
-        shape = self.get_shape(key)
-        shape.set_result(result_data)
+        :returns: The first selected grid as a dictionary
+        :rtype: dict
+        """
+        grid = None
+
+        for shape in self.get_shapes():
+            if isinstance(shape, Grid):
+                grid = shape.as_dict()
+                break;
+
+        return grid
+
+
+    def set_grid_data(self, sid, result_data):
+        shape = self.get_shape(sid)
+
+        if shape:
+            shape.set_result(result_data)
+        else:
+            msg = "Cant set result for %s, no shape with id %s" % (sid, sid)
+            raise AttributeError(msg)
 
     def get_grid_data(self, key):
         shape = self.get_shape(key)
@@ -243,9 +278,11 @@ class Shape(object):
         self.cp_list = []
         self.name = ""
         self.state = "SAVED"
+        self.label = ""
         self.screen_coord = screen_coord
         self.selected = False
         self.refs = []
+        self.shapes_hw_object = None
 
         self.add_cp_from_mp(mpos_list)
 
@@ -256,15 +293,22 @@ class Shape(object):
         """
         return self.cp_list
 
+    def get_centred_position(self):
+        return self.get_centred_positions()[0]
+
     def select(self):
         self.selected = True
 
     def de_select(self):
         self.selected = False
 
+    def is_selected(self):
+        return self.selected
+
     def update_position(self, transform):
         spos_list = [transform(cp.as_dict()) for cp in self.cp_list]
-        self.screen_coord = reduce((lambda x, y: x + y), spos_list, ())
+        spos_list = tuple([pos for l in spos_list for pos in l])
+        self.screen_coord = spos_list
 
     def add_cp_from_mp(self, mpos_list):
         for mp in mpos_list:
@@ -272,8 +316,8 @@ class Shape(object):
 
     def set_id(self, id_num):
         self.id = self.t + "%s" % id_num
-        self.name = self.id
-         
+        self.name = self.label + "-%s" % id_num
+
     def move_to_mpos(self, mpos_list, screen_coord=[]):
         self.cp_list = []
         self.add_cp_from_mp(mpos_list)
@@ -297,6 +341,9 @@ class Shape(object):
 
         d = copy.deepcopy(vars(self))
 
+        # Do not serialize Shapes HW Object
+        d.pop("shapes_hw_object")
+
         # replace cpos_list with a list of motor positions
         d.pop("cp_list")
         d["motor_positions"] = str(cpos_list)
@@ -311,10 +358,8 @@ class Point(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Point.SHAPE_COUNT += 1
         self.t = "P"
+        self.label = "Point"
         self.set_id(Point.SHAPE_COUNT)
-
-    def get_centred_position(self):
-        return self.cp_list[0]
 
     def mpos(self):
         return self.cp_list[0].as_dict()
@@ -330,6 +375,16 @@ class Point(Shape):
         return d
 
 
+class TwoDPoint(Point):
+    SHAPE_COUNT = 0
+
+    def __init__(self, mpos_list, screen_coord):
+        Point.__init__(self, mpos_list, screen_coord)
+        self.t = "2DP"
+        self.label = "2D-Point"
+        self.set_id(Point.SHAPE_COUNT)
+
+
 class Line(Shape):
     SHAPE_COUNT = 0
 
@@ -337,6 +392,7 @@ class Line(Shape):
         Shape.__init__(self, mpos_list, screen_coord)
         Line.SHAPE_COUNT += 1
         self.t = "L"
+        self.label = "Line"
         self.set_id(Line.SHAPE_COUNT)
 
     def get_centred_positions(self):
@@ -356,8 +412,6 @@ class Grid(Shape):
         self.t = "G"
         self.set_id(Grid.SHAPE_COUNT)
 
-        self.top = -1
-        self.left = -1
         self.width = -1
         self.height = -1
         self.cell_count_fun = "zig-zag"
@@ -370,9 +424,26 @@ class Grid(Shape):
         self.num_rows = -1
         self.selected = False
         self.result = []
+        self.pixels_per_mm = [1, 1]
+        self.beam_pos = [1, 1]
+        self.beam_width = 0
+        self.beam_height = 0
+        self.hide_threshold = 5
+
+        self.set_id(Grid.SHAPE_COUNT)
+
+    def update_position(self, transform):
+        phi_pos = self.shapes_hw_object.diffractometer.phiMotor.getPosition() % 360
+        d = abs((self.get_centred_position().phi % 360) - phi_pos)
+
+        if min(d, 360 - d) > self.shapes_hw_object.hide_grid_threshold:
+            self.state = "HIDDEN"
+        else:
+            super(Grid, self).update_position(transform)
+            self.state = "SAVED"
 
     def get_centred_position(self):
-        return self.cp_list[1]
+        return self.cp_list[0]
 
     def get_grid_range(self):
         return (float(self.cell_width * (self.num_cols - 1)), \
@@ -408,8 +479,8 @@ class Grid(Shape):
         d["steps_y"] = d["num_rows"]
         d["dx_mm"] = d["width"] / self.pixels_per_mm[0]
         d["dy_mm"] = d["height"] / self.pixels_per_mm[1]
-        d["beam_width"] = d["cell_width"]
-        d["beam_height"] = d["cell_height"]
+        d["beam_width"] = d["beam_width"]
+        d["beam_height"] = d["beam_height"]
         d["angle"] = 0
 
-        return d    
+        return d

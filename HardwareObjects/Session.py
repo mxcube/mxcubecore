@@ -6,6 +6,7 @@ access and manipulate this information.
 """
 import os
 import time
+import socket
 import logging
 import xml.etree.ElementTree as ET
 
@@ -14,7 +15,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects_v1 as queue_model_objects
 
 # Configuration file used to override base_directory paths.
-# Will be ignored if not founc
+# Will be ignored if not found
 parameter_override_file = 'session_parameter_override.xml'
 
 class Session(HardwareObject):
@@ -35,6 +36,7 @@ class Session(HardwareObject):
         self.endstation_name = None
         self.session_start_date = None
         self.user_group = ''
+        self.email_extension = None
         self.template = None
 
         self.default_precision = '05'
@@ -98,16 +100,30 @@ class Session(HardwareObject):
             getProperty('archive_folder')
 
         try:
-           inhouse_proposals = self["inhouse_users"]["proposal"]
- 
-           for prop in inhouse_proposals:
-               self.in_house_users.append((prop.getProperty('code'),
-                   str(prop.getProperty('number'))))
-        except:
-           pass
+            inhouse_proposals = self["inhouse_users"]["proposal"]
+            for prop in inhouse_proposals:
+                self.in_house_users.append((prop.getProperty('code'),
+                                            str(prop.getProperty('number'))))
+        except IndexError:
+            pass
 
-        queue_model_objects.PathTemplate.\
-           set_path_template_style(self.synchrotron_name, self.template) 
+        email_extension = self.getProperty('email_extension')
+        if email_extension:
+            self.email_extension = email_extension
+        else:
+            try:
+                domain = socket.getfqdn().split('.')
+                self.email_extension = '.'.join((domain[-2], domain[-1]))
+            except (TypeError, IndexError):
+                pass
+
+        archive_base_directory = self['file_info'].getProperty('archive_base_directory')
+        if archive_base_directory:
+            queue_model_objects.PathTemplate.set_archive_path(archive_base_directory,
+                                                              self['file_info'].getProperty('archive_folder'))
+
+        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)
+        queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
 
         self.set_base_data_directories( base_directory, 
                                         base_process_directory, 
@@ -271,7 +287,10 @@ class Session(HardwareObject):
         if self.synchrotron_name == "EMBL-HH":
             folders = self.get_base_data_directory().split('/')
             archive_directory = os.path.join(archive_directory,
-                                             *folders[4:]) 
+                                             *folders[4:])
+        else:
+            archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
+
         return archive_directory
         
 

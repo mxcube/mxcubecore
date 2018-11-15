@@ -68,7 +68,7 @@ class Pilatus:
       return float(self.config.getProperty("deadtime"))
 
   @task
-  def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still):
+  def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode):
       diffractometer_positions = self.collect_obj.bl_control.diffractometer.getPositions()
       self.start_angles = list()
       for i in range(number_of_images):
@@ -112,10 +112,7 @@ class Pilatus:
 
       self.set_energy_threshold(energy)
 
-      if still:
-          self.getChannelObject("acq_trigger_mode").setValue("INTERNAL_TRIGGER")
-      else:
-          self.getChannelObject("acq_trigger_mode").setValue("EXTERNAL_TRIGGER")
+      self.getChannelObject("acq_trigger_mode").setValue(trigger_mode)
 
       self.getChannelObject("saving_mode").setValue("AUTO_FRAME")
       self.getChannelObject("acq_nb_frames").setValue(number_of_images)
@@ -168,7 +165,7 @@ class Pilatus:
           header = "\n%s\n" % self.config.getProperty("serial")
           header += "# %s\n" % time.strftime("%Y/%b/%d %T")
           header += "# Pixel_size 172e-6 m x 172e-6 m\n"
-          header += "# Silicon sensor, thickness 0.001 m\n"
+          header += "# Silicon sensor, thickness 0.000320 m\n"  
           self.header["Start_angle"]=start_angle
           for key, value in self.header.iteritems():
               header += "# %s %s\n" % (key, value)

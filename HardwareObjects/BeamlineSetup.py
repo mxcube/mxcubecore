@@ -9,6 +9,7 @@ import queue_model_enumerables_v1 as queue_model_enumerables
 
 from HardwareRepository.HardwareRepository import HardwareRepository
 
+
 class BeamlineSetup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -33,16 +34,16 @@ class BeamlineSetup(HardwareObject):
         self.advanced_methods = []
 
         try:
-           self.advanced_methods = eval(self.getProperty("advancedMethods", "[]"))
+            self.advanced_methods = eval(self.getProperty("advancedMethods", "[]"))
         except:
-           pass
+            pass
 
         self.autoprocessing_methods = []
         try:
-           self.autoprocessing_methods = eval(self.getProperty("autoprocessingMethods"))
-           queue_model_objects.DataCollection.set_processing_methods(self.autoprocessing_methods)
+            self.autoprocessing_methods = eval(self.getProperty("autoprocessingMethods"))
+            queue_model_objects.DataCollection.set_processing_methods(self.autoprocessing_methods)
         except:
-           pass
+            pass
 
         self.run_processing_parallel = self.getProperty("run_processing_parallel", False)
 
@@ -74,7 +75,7 @@ class BeamlineSetup(HardwareObject):
         value = None
 
         if path == '/beamline/default-acquisition-parameters/':
-            value = jsonpickle.encode(self.get_default_acquisition_parameters()) 
+            value = jsonpickle.encode(self.get_default_acquisition_parameters())
         elif path == '/beamline/default-path-template/':
             value = jsonpickle.encode(self.get_default_path_template())
         else:
@@ -172,7 +173,7 @@ class BeamlineSetup(HardwareObject):
         num_passes = int(self[parent_key].getProperty('number_of_passes'))
         shutterless = self.detector_has_shutterless()
         try:
-            detector_mode = self.detector_hwobj.default_mode() 
+            detector_mode = self.detector_hwobj.default_mode()
         except AttributeError:
             detector_mode = None
 
@@ -213,7 +214,6 @@ class BeamlineSetup(HardwareObject):
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()
 
-        #edna_beam = edna_input.getExperimentalCondition().getBeam()
         edna_sample = edna_input.getSample()
         char_params = queue_model_objects.CharacterisationParameters()
         char_params.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.OSC
@@ -227,7 +227,6 @@ class BeamlineSetup(HardwareObject):
 
         char_params.use_aimed_multiplicity = False
         try:
-            #char_params.aimed_multiplicity = diff_plan.getAimedMultiplicity().getValue()
             char_params.aimed_i_sigma = diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
             char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
         except:
@@ -279,10 +278,10 @@ class BeamlineSetup(HardwareObject):
         acq_parameters = queue_model_objects.AcquisitionParameters()
 
         try:
-           self[parent_key]
+            self[parent_key]
         except KeyError:
-           logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
-           parent_key = default_key
+            logging.warning("No key %s in beamline setup, using %s", parent_key, default_key)
+            parent_key = default_key
 
         img_start_num = self[parent_key].getProperty('start_image_number')
         num_images = self[parent_key].getProperty('number_of_images')
@@ -293,7 +292,7 @@ class BeamlineSetup(HardwareObject):
         shutterless = self.detector_has_shutterless()
 
         try:
-            detector_mode = self.detector_hwobj.default_mode() 
+            detector_mode = self.detector_hwobj.default_mode()
         except AttributeError:
             detector_mode = None
 
@@ -320,15 +319,26 @@ class BeamlineSetup(HardwareObject):
 
         return acq_parameters
 
-    def get_acquisition_limit_values(self, parent_key = "acquisition_limit_values"):
+    def get_acquisition_limit_values(self,
+                                     parent_key="acquisition_limit_values"):
         limits = {}
-
         try:
             exp_time_limit = self[parent_key].getProperty('exposure_time')
-            if exp_time_limit is not None:
-                limits['exposure_time'] = exp_time_limit
-        except:
-            pass
+        except IndexError:
+            # set default exposure time limits [s] if nothing configured
+            limits['exposure_time'] = '0, 1000'
+            return limits
+        
+        if exp_time_limit is not None:
+            if isinstance(exp_time_limit, str):
+                try:
+                    exp_time_limit = '%f, 1000' % float(exp_time_limit)
+                except ValueError:
+                    pass
+            limits['exposure_time'] = exp_time_limit
+        else:
+            # set default exposure time limits [s] if not configured
+            limits['exposure_time'] = '0, 1000'       
 
         try:
             range_limit = self[parent_key].getProperty('osc_range')
@@ -359,7 +369,7 @@ class BeamlineSetup(HardwareObject):
             pass
 
         return limits
-        
+
     def get_default_path_template(self):
         """
         :returns: A PathTemplate object with default parameters.
@@ -375,16 +385,14 @@ class BeamlineSetup(HardwareObject):
         path_template.wedge_prefix = ''
         path_template.run_number = self[parent_key].getProperty('run_number')
         path_template.suffix = self.session_hwobj["file_info"].getProperty('file_suffix')
-
-        """
         path_template.precision = '04'
+
         try:
-           if self.session_hwobj["file_info"].getProperty('precision'):
-               path_template.precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
+            if self.session_hwobj["file_info"].getProperty('precision'):
+                path_template.precision = eval(self.session_hwobj["file_info"].getProperty('precision'))
         except:
-           pass
-        """
-        
+            pass
+
         path_template.start_num = int(self[parent_key].getProperty('start_image_number'))
         path_template.num_files = int(self[parent_key].getProperty('number_of_images'))
 
@@ -393,7 +401,6 @@ class BeamlineSetup(HardwareObject):
     def _get_energy(self):
         try:
             energy = self.energy_hwobj.getCurrentEnergy()
-            #energy = round(float(energy), 4)
         except AttributeError:
             energy = 0
         except TypeError:
@@ -404,7 +411,6 @@ class BeamlineSetup(HardwareObject):
     def _get_transmission(self):
         try:
             transmission = self.transmission_hwobj.get_value()
-            #transmission = round(float(transmission), 2)
         except AttributeError:
             transmission = 0
         except TypeError:
@@ -415,14 +421,13 @@ class BeamlineSetup(HardwareObject):
     def _get_resolution(self):
         try:
             resolution = self.resolution_hwobj.getPosition()
-            #resolution = round(float(resolution), 3)
         except AttributeError:
             resolution = 0
         except TypeError:
             resolution = 0
 
         return resolution
- 
+
     def _get_omega_axis_position(self):
         result = 0
 
@@ -465,9 +470,9 @@ class BeamlineSetup(HardwareObject):
         """
         result = False
         try:
-           result = self.detector_hwobj.has_shutterless()
+            result = self.detector_hwobj.has_shutterless()
         except:
-           pass
+            pass
         return result
 
 
@@ -479,7 +484,7 @@ class BeamlineSetup(HardwareObject):
         try: 
            result = self.detector_hwobj.get_detector_mode()
         except:
-           pass
+            pass
         return result
 
     def _get_run_processing_parallel(self):

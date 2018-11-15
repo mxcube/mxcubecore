@@ -10,6 +10,8 @@ class ID231MultiCollect(ESRFMultiCollect):
        
     @task
     def data_collection_hook(self, data_collect_parameters):
+      ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
+
       oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
       if data_collect_parameters.get("nb_sum_images"):
         if oscillation_parameters["number_of_images"] % data_collect_parameters.get("nb_sum_images", 1) != 0:

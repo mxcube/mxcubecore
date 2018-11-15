@@ -3,7 +3,8 @@ from HardwareRepository.TaskUtils import *
 import numpy
 import time
 import logging
-from PyTango.gevent import DeviceProxy
+#from PyTango.gevent import DeviceProxy
+from PyTango import DeviceProxy
 
 class TangoKeithleyPhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):

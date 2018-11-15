@@ -298,8 +298,6 @@ class Sample(TaskNode):
         return display_name
 
     def init_from_sc_sample(self, sc_sample):
-        #self.loc_str = ":".join(map(str,sc_sample[-1]))
-        #self.location = sc_sample[-1]
         self.loc_str = str(sc_sample[1]) + ':' + str(sc_sample[2])
         self.location = (sc_sample[1], sc_sample[2])
 
@@ -423,10 +421,6 @@ class Sample(TaskNode):
 
         return processing_params
 
-    def get_snapshot_filename(self, prefix):
-        return prefix 
-
-
 class Basket(TaskNode):
     """
     Class represents a basket in the tree. It has not task assigned.
@@ -531,6 +525,7 @@ class DataCollection(TaskNode):
         self.parallel_processing_result = None
         self.processing_msg_list = []
         self.workflow_id = None
+        self.center_before_collect = False
 
     @staticmethod
     def set_processing_methods(processing_methods):
@@ -569,6 +564,8 @@ class DataCollection(TaskNode):
 
     def set_experiment_type(self, exp_type):
         self.experiment_type = exp_type
+        if self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH:
+            self.set_requires_centring(False)
 
     def is_helical(self):
         return self.experiment_type == \
@@ -734,6 +731,9 @@ class Characterisation(TaskNode):
         self.run_diffraction_plan = None
         self.diff_plan_compression = True
 
+        self.auto_add_diff_plan = True
+        self.diffraction_plan = []
+
     def get_name(self):
         return '%s_%i' % (self._name, self._number)
 
@@ -823,7 +823,7 @@ class CharacterisationParameters(object):
         self.use_min_time = bool()
         self.min_dose = float()
         self.min_time = float()
-        self.account_rad_damage = True
+        self.account_rad_damage = bool()
         self.auto_res = bool()
         self.opt_sad = bool()
         self.sad_res = float()
@@ -1212,7 +1212,6 @@ class Acquisition(object):
                                     suffix='thumb.jpeg') % i)
 
             paths.append(path)
-
         return paths
 
 
@@ -1222,6 +1221,7 @@ class PathTemplate(object):
         # os.path.abspath returns path without trailing slash, if any
         # eg. '/data/' => '/data'.
         PathTemplate.base_directory = os.path.abspath(base_directory)
+
     @staticmethod
     def set_archive_path(archive_base_directory, archive_folder):
         PathTemplate.archive_base_directory = os.path.abspath(archive_base_directory)
@@ -1235,6 +1235,24 @@ class PathTemplate(object):
     @staticmethod
     def set_precision(precision):
         PathTemplate.precision = precision
+
+    @staticmethod
+    def interpret_path(path):
+        try:
+            dirname, fname = os.path.split(path)
+            fname, ext = os.path.splitext(fname)
+            fname_parts = fname.split("_")
+
+            # Get run number and image number from path
+            run_number, img_number = map(try_parse_int, fname_parts[-2:])
+
+            # Get the prefix and filename part
+            prefix = "_".join(fname_parts[:-2])
+            prefix_path = os.path.join(dirname, prefix)
+        except IndexError:
+            prefix_path, run_number, img_number = ["", -1, -1]
+
+        return prefix_path, run_number, img_number
 
     def __init__(self):
         object.__init__(self)
@@ -1250,7 +1268,7 @@ class PathTemplate(object):
         self.suffix = str()
         self.start_num = int()
         self.num_files = int()
-        self.compression = True
+        self.compression = bool()
 
         if not hasattr(self, "precision"):
             self.precision = str()
@@ -1424,7 +1442,7 @@ class AcquisitionParameters(object):
         self.exp_time = float()
         self.num_passes = int()
         self.num_lines = 1
-        self.energy = int()
+        self.energy = float()
         self.centred_position = CentredPosition()
         self.resolution = float()
         self.transmission = float()
@@ -1464,7 +1482,6 @@ class AcquisitionParameters(object):
                 "num_passes": self.num_passes,
                 "num_lines": self.num_lines,
                 "energy": self.energy,
-                #"centred_position": self.centred_position,
                 "resolution": self.resolution,
                 "transmission": self.transmission,
                 "inverse_beam": self.inverse_beam,
@@ -1499,6 +1516,7 @@ class XrayImagingParameters(object):
 
     def copy(self):
         return copy.deepcopy(self)
+
 
 class Crystal(object):
     def __init__(self):
@@ -1539,15 +1557,14 @@ class CentredPosition(object):
         self.snapshot_image = None
         self.centring_method = True
         self.index = None
-        #self.used_for_collection = 0
         self.motor_pos_delta = CentredPosition.MOTOR_POS_DELTA
 
         for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES:
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            for motor_item in motor_dict.items():
-                setattr(self, motor_item[0], motor_item[1])
+            for motor_name, position in motor_dict.iteritems():
+                setattr(self, motor_name, position)
 
     def as_dict(self):
         return dict(zip(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
@@ -1602,6 +1619,7 @@ class Workflow(TaskNode):
         self.path_template = PathTemplate()
         self._type = str()
         self.set_requires_centring(False)
+        self.lims_id = None
 
     def set_type(self, workflow_type):
         self._type = workflow_type
@@ -1733,20 +1751,6 @@ class GphlWorkflow(TaskNode):
                                % repr(self.get_type()))
         return result
 
-    # Apparently not used :
-    # # Keyword-value dictionary of workflow_options (for execution command)
-    # def get_workflow_options(self):
-    #     result = dict(self._workflow_options)
-    #     if 'prefix' in result:
-    #         result['prefix'] = self.get_path_template().base_prefix
-    #     return result
-    # def set_workflow_options(self, valueDict):
-    #     dd = self._workflow_options
-    #     dd.clear()
-    #     if valueDict:
-    #         dd.update(valueDict)
-    #         if 'prefix' in dd:
-    #             self.get_path_template().base_prefix = dd.pop('prefix')
 
 class XrayImaging(TaskNode):
     def __init__(self, xray_imaging_params, acquisitions=None, crystal=None, name=''):
@@ -1822,8 +1826,6 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
     proc_params = data_collection.processing_parameters
 
     return [{'comment': '',
-             #'helical': 0,
-             #'motors': {},
              'take_video': acq_params.take_video,
              'take_snapshots': acq_params.take_snapshots,
              'fileinfo': {'directory': acquisition.path_template.directory,
@@ -1852,11 +1854,9 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
              'processing_parallel': data_collection.run_processing_parallel,
              'residues':  proc_params.num_residues,
              'dark': acq_params.take_dark_current,
-             #'scan4d': 0,
              'resolution': {'upper': acq_params.resolution},
              'transmission': acq_params.transmission,
              'energy': acq_params.energy,
-             #'input_files': 1,
              'oscillation_sequence': [{'exposure_time': acq_params.exp_time,
                                        'kappaStart': acq_params.kappa,
                                        'phiStart': acq_params.kappa_phi,
@@ -1869,11 +1869,9 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                                        'number_of_lines': acq_params.num_lines,
                                        'mesh_range': acq_params.mesh_range}],
              'group_id': data_collection.lims_group_id,
-             #'nb_sum_images': 0,
              'EDNA_files_dir': acquisition.path_template.process_directory,
              'xds_dir': acquisition.path_template.xds_dir,
              'anomalous': proc_params.anomalous,
-             #'file_exists': 0,
              'experiment_type': queue_model_enumerables.\
              EXPERIMENT_TYPE_STR[data_collection.experiment_type],
              'skip_images': acq_params.skip_existing_images,
@@ -1995,10 +1993,6 @@ def dc_from_edna_output(edna_result, reference_image_collection,
                 acquisition_parameters.exp_time = beam.getExposureTime().getValue()
             except AttributeError:
                 pass
-
-            # dc.parameters.comments = enda_result.comments
-            # dc.parametets.path = enda_result.directory
-            # dc.parameters.centred_positions = enda_result.centred_positions
 
             dc = DataCollection([acq], crystal, processing_parameters)
             data_collections.append(dc)

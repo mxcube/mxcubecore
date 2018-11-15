@@ -13,6 +13,7 @@ Example XML:
 from HardwareRepository import BaseHardwareObjects
 import logging
 
+
 class MachCurrent(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
@@ -25,14 +26,19 @@ class MachCurrent(BaseHardwareObjects.Device):
             self.setIsReady(True)
         except KeyError:
             logging.getLogger().warning('%s: cannot read current', self.name())
-    
+
     def valueChanged(self, value):
         mach = value
-        opmsg = self.getChannelObject('OperatorMsg').getValue()
-        fillmode = self.getChannelObject('FillingMode').getValue()
-        fillmode = fillmode.strip()
-        
-        refill = self.getChannelObject('RefillCountdown').getValue()
+
+        try:
+            opmsg = self.getChannelObject('OperatorMsg').getValue()
+            fillmode = self.getChannelObject('FillingMode').getValue()
+            fillmode = fillmode.strip()
+
+            refill = self.getChannelObject('RefillCountdown').getValue()
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
+            opmsg, fillmode, value, refill = ("", "", -1, -1)
 
         if opmsg and opmsg != self.opmsg:
             self.opmsg = opmsg
@@ -42,10 +48,29 @@ class MachCurrent(BaseHardwareObjects.Device):
         self.emit('valueChanged', (mach, opmsg, fillmode, refill))
 
     def getCurrent(self):
-        return self.getChannelObject('Current').getValue()
+        try:
+            value = self.getChannelObject('Current').getValue()
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
+            value = -1
+
+        return value
 
     def getMessage(self):
-        return self.getChannelObject('OperatorMsg').getValue()
+
+        try:
+            msg = self.getChannelObject('OperatorMsg').getValue()
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
+            msg = ""
+
+        return msg
 
     def getFillMode(self):
-        return self.getChannelObject('FillingMode').getValue()
+        try:
+            fmode = self.getChannelObject('FillingMode').getValue()
+        except Exception as e:
+            logging.getLogger('HWR').exception(e)
+            fmode = ""
+
+        return fmode

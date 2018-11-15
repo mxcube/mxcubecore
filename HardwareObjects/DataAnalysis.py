@@ -29,13 +29,11 @@ from XSDataCommon import XSDataString
 #from edna_test_data import EDNA_DEFAULT_INPUT
 #from edna_test_data import EDNA_TEST_DATA
 
-
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.collect_obj = None
         self.result = None
-        self.edna_processing_thread = None
         self.processing_done_event = gevent.event.Event()
 
     def init(self):
@@ -87,7 +85,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             import traceback
             logging.getLogger("HWR").debug("DataAnalysis. transmission not saved ")
             logging.getLogger("HWR").debug(traceback.format_exc())
-            pass
 
         try:
             wavelength = self.collect_obj.get_wavelength()
@@ -203,18 +200,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return edna_input
 
     def characterise(self, edna_input):
-
 	self.prepare_edna_input(edna_input)
-        # if there is no data collection id, the id will be a random number
-        # this is to give a unique number to the EDNA input and result files;
-        # something more clever might be done to give a more significant
-        # name, if there is no dc id.
-        path = edna_input.process_directory
-
-        # if there is no data collection id, the id will be a random number
-        # this is to give a unique number to the EDNA input and result files;
-        # something more clever might be done to give a more significant
-        # name, if there is no dc id.
         path = edna_input.process_directory
 
         # if there is no data collection id, the id will be a random number
@@ -242,8 +228,8 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
     def prepare_edna_input(self, edna_input):
         """
-        STAB. Allows to manipulate edna_input object before exporting it to file
-          Example: to set a site specific output directory
+        Allows to manipulate edna_input object before exporting it to file
+        Example: to set a site specific output directory
         """
         pass
 
@@ -262,3 +248,5 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         return self.result
 
+    def is_running(self):
+        return not self.processing_done_event.is_set()

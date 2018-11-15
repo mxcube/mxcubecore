@@ -145,10 +145,7 @@ class MiniDiff(Equipment):
 
         self.centringStatus={"valid":False}
         
-        try:
-          self.chiAngle = 0.0 #self.getProperty("chi")
-        except: 
-          self.chiAngle = 0.0
+        self.chiAngle = self.getProperty("chi", 0)
 
         try:
           phiz_ref = self["centringReferencePosition"].getProperty("phiz")
@@ -257,6 +254,9 @@ class MiniDiff(Equipment):
         set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
         img = myimage(self._drawing)
         img.save(filename)
+
+    def set_light_in(self):
+        set_light_in(self.lightWago, self.lightMotor, self.zoomMotor)
 
     def setSampleInfo(self, sample_info):
         self.currentSampleInfo = sample_info
@@ -390,16 +390,42 @@ class MiniDiff(Equipment):
         return self.imgHeight / 2
 
     def moveToBeam(self, x, y):
+        self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(self.zoomMotor.getPosition())
+
+        if None in (self.pixelsPerMmY,self.pixelsPerMmZ):
+            return 0,0
+
+        dx = (x - self.getBeamPosX()) / self.pixelsPerMmY
+        dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
+
+        phi_angle = math.radians(self.centringPhi.direction * self.centringPhi.getPosition())
+
+        sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
+        sampy = self.centringSampley.direction * self.centringSampley.getPosition()
+
+        phiy = self.centringPhiy.direction * self.centringPhiy.getPosition()
+        phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
+
+        rotMatrix = numpy.matrix([[math.cos(phi_angle), -math.sin(phi_angle)],
+                                  [math.sin(phi_angle), math.cos(phi_angle)]])
+        invRotMatrix = numpy.array(rotMatrix.I)
+
+        dsampx, dsampy = numpy.dot(numpy.array([0, dy]), invRotMatrix)
+
+        chi_angle = math.radians(self.chiAngle)
+        chiRot = numpy.matrix([[math.cos(chi_angle), -math.sin(chi_angle)],
+                               [math.sin(chi_angle), math.cos(chi_angle)]])
+
+        sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
+
+        sampx = sampx + sx
+        sampy = sampy + sy
+        phiy = phiy + dx
+
         try:
-            beam_xc = self.getBeamPosX()
-            beam_yc = self.getBeamPosY()
-            chi_angle = math.radians(self.chiAngle)
-            chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle), math.sin(chi_angle), math.cos(chi_angle)])
-            chiRot.shape = (2,2)
-            dx, dy = numpy.dot(numpy.array([x-beam_xc, y-beam_yc]), numpy.array(chiRot))
-           
-            self.centringPhiz.moveRelative(self.centringPhiz.direction*dy/float(self.pixelsPerMmZ))
-            self.centringPhiy.moveRelative(self.centringPhiy.direction*dx/float(self.pixelsPerMmY))
+            self.centringSamplex.move(-sampx)
+            self.centringSampley.move(sampy)
+            self.centringPhiy.move(-phiy)
         except:
             logging.getLogger("HWR").exception("MiniDiff: could not center to beam, aborting")
 
@@ -544,7 +570,7 @@ class MiniDiff(Equipment):
 #                           numpy.array(chiRot)) ))
 
 
-        return {"phi": float(phi_angle),
+        return {"phi": self.centringPhi.getPosition(),
                 "phiz": float(phiz),
                 "phiy": float(phiy),
                 "sampx": float(sampx),
@@ -744,3 +770,7 @@ class MiniDiff(Equipment):
 
     def simulateAutoCentring(self,sample_info=None):
         pass
+
+    def wait_ready(self, timeout=None):
+        pass
+

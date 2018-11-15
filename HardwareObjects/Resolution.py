@@ -76,18 +76,18 @@ class Resolution(AbstractMotor):
 
         try:
             ttheta = 2*math.asin(current_wavelength / (2*res))
-            return self.det_radius / math.tan(ttheta)
-            dx = (self.det_width - bx)/(math.tan(ttheta)+ax)
-            dy = (self.det_width - by)/(math.tan(ttheta)+ay)
-            return min(dx, dy)
+
+            dist_1 = bx / (math.tan(ttheta) - ax)
+            dist_2 = by / (math.tan(ttheta) - ay)
+            dist_3 = (self.det_width - bx) / (math.tan(ttheta) + ax)
+            dist_4 = (self.det_height - by) / (math.tan(ttheta) + ay)
+
+            return min(dist_1, dist_2, dist_3, dist_4)
         except:
             return None
 
     def _calc_res(self, radius, dist):
         current_wavelength = self.getWavelength()
-        print "wavelength=",current_wavelength
-        print "radius=",radius
-        print "dist=",dist
 
         try:
             ttheta = math.atan(radius / dist)
@@ -144,11 +144,9 @@ class Resolution(AbstractMotor):
     def dtoxStateChanged(self, state):
         self.emit("stateChanged", (state, ))
         if state == self.dtox.READY:
-          print 'recalculate resolution'
           self.recalculateResolution()
 
     def dtoxPositionChanged(self, pos):
-        print 'dtox pos',pos
         self.update_beam_centre(pos)
         self.update_resolution(self.dist2res(pos))
 

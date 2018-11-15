@@ -18,7 +18,6 @@ import os
 import stat
 import time
 import gevent.monkey
-gevent.monkey.patch_all(thread=False)
 from datetime import datetime
 
 try:
@@ -105,6 +104,8 @@ class __HardwareRepositoryClient:
 
                 # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
                 self.server.registerChannel("update", self.discardHardwareObject, dispatchMode=SpecEventsDispatcher.FIREEVENT)
+            else:
+                self.server = None
         finally:
             self.__connected = True
 
@@ -333,13 +334,13 @@ class __HardwareRepositoryClient:
 
         raise KeyError
 
-    #  Removed 20181109, as it did not work with multi-directory serverAddress
-    # def getHardwareRepositoryPath(self):
-    #     if self.server:
-    #         return ""
-    #     else:
-    #         path = self.serverAddress[0]
-    #         return os.path.abspath(path)
+
+    def getHardwareRepositoryPath(self):
+       if self.server:
+         return ""
+       else:
+         path = self.serverAddress[0]
+         return os.path.abspath(path)
 
 
     def getHardwareRepositoryFiles(self, startdir = '/'):

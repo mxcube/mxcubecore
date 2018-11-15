@@ -184,12 +184,10 @@ class SardanaMotor(AbstractMotor):
         Descript. : returns motor limits. If no limits channel defined then
                     static_limits is returned
         """
-        info = self.position_channel.getInfo()
-
-        return (self.limit_lower, self.limit_upper)
-
-    def get_limits(self):
-        return self.getLimits()
+        try:
+            return (self.limit_lower, self.limit_upper)
+        except:
+            return (None,None)
 
     def getPosition(self):
         """

@@ -21,7 +21,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
     @task
     def data_collection_hook(self, data_collect_parameters):
         ESRFMultiCollect.data_collection_hook(self, data_collect_parameters)
-        self._reset_detector_task = None
 
         oscillation_parameters = data_collect_parameters["oscillation_sequence"][0]
         exp_time = oscillation_parameters['exposure_time']
@@ -122,9 +121,9 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
         #switch on the front light
-        diffr.getObjectByRole("flight").move(0.8)
+        diffr.getObjectByRole("FrontLight").move(0.8)
         #take the back light out
-        diffr.getObjectByRole("lightInOut").actuatorOut()
+        diffr.getObjectByRole("BackLightSwitch").actuatorOut()
 
     @task
     def oscil(self, start, end, exptime, npass, wait=True):
@@ -148,24 +147,14 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         self.getObjectByRole("fastshut").actuatorOut()
 
     def stop_oscillation(self):
-        #self.getObjectByRole("diffractometer").controller.omega.stop()
-        #self.getObjectByRole("diffractometer").controller.musst.putget("#ABORT")
         pass
-
-    def reset_detector(self):
-        self.stop_oscillation()
-        self._reset_detector_task = ESRFMultiCollect.reset_detector(self, wait=False)
 
     @task
     def data_collection_cleanup(self):
-        #self.stop_oscillation()
         self.getObjectByRole("diffractometer")._wait_ready(10)
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
         if state != "out":
             self.close_fast_shutter()
-
-        if self._reset_detector_task is not None:
-            self._reset_detector_task.get()
 
     def set_helical(self, helical_on):
         self.helical = helical_on
@@ -208,15 +197,6 @@ class ID30A3MultiCollect(ESRFMultiCollect):
           pass
        else:
           albula_socket.sendall(pickle.dumps({ "type":"newimage", "path": image_filename }))
-
-    @task
-    def write_image(self, last_frame):
-        ESRFMultiCollect.write_image(self, last_frame)
-        if last_frame:
-            gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
-        else:
-            if self._notify_greenlet is None or self._notify_greenlet.ready():
-                self._notify_greenlet = gevent.spawn_later(1, self.adxv_notify, self.last_image_filename)
 
 #    def trigger_auto_processing(self, *args, **kw):
 #        return

@@ -34,6 +34,7 @@ TOOL_TO_STR = {
        "Flange": TOOL_FLANGE,
        "Unipuck": TOOL_UNIPUCK,
        "EMBL": TOOL_SPINE,
+       "Rotat": TOOL_SPINE,
        "Plate": TOOL_PLATE,
        "Laser": TOOL_LASER,
        "Double": TOOL_DOUBLE_GRIPPER,
@@ -216,10 +217,6 @@ class CatsMaint(Equipment):
         return self.cats_model != "ISARA"
 
     def get_current_tool(self):
-        val = self.cats_device.read_attribute("Tool").value
-        return tool
-
-    def get_current_tool(self):
         current_value = self._chnCurrentTool.getValue()
 
         tool = TOOL_TO_STR.get(current_value, None)
@@ -391,6 +388,8 @@ class CatsMaint(Equipment):
             self._cmdPowerOn()
         else:
             self._cmdPowerOff()
+
+        self.do_state_action("power",state)
 
     def _doEnableRegulation(self):
         """
@@ -588,7 +587,7 @@ class CatsMaint(Equipment):
            "safe": (not self._running) and self._powered and _ready,
            "clear_memory": True,
            "reset": True,
-           "abort": self._running,
+           "abort": True,
         }
 
         message = self._message

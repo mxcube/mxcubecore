@@ -152,7 +152,7 @@ class XMLRPCServer(HardwareObject):
         self.all_interfaces = self.getProperty('all_interfaces')
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if self.all_interfaces:
+        if hasattr(self, "all_interfaces") and self.all_interfaces.strip().lower() == "true":
             host = ''
         else:
             host = socket.gethostname()
@@ -160,16 +160,13 @@ class XMLRPCServer(HardwareObject):
         self.host = host    
         self.port = self.getProperty('port')
 
-        # Check if communication should be "secure". If self.doEnforceUseOfToken is set to True
-        # all incoming http requests must have the correct token in the headers.
-        self.enforceUseOfToken = self.getProperty('enforceUseOfToken', False)
-        if self.enforceUseOfToken:
+        if hasattr(self, "enforceUseOfToken") and self.enforceUseOfToken.strip().lower() == "true":
             self.doEnforceUseOfToken = True
 
-        #try:
-        self.open()
-        #except:
-        #    logging.getLogger("HWR").debug("Can't start XML-RPC server")
+        try:
+            self.open()
+        except:
+            logging.getLogger("HWR").debug("Can't start XML-RPC server")
         
 
     def close(self):
@@ -202,6 +199,7 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.log_message)
         self._server.register_function(self.is_queue_executing)
         self._server.register_function(self.queue_execute_entry_with_id)
+        self._server.register_function(self.queue_set_workflow_lims_id)
         self._server.register_function(self.shape_history_get_grid)
         self._server.register_function(self.shape_history_set_grid_data)
         self._server.register_function(self.beamline_setup_read)
@@ -247,11 +245,7 @@ class XMLRPCServer(HardwareObject):
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
-        self.collect_hwobj = self.beamline_setup_hwobj.collect_hwobj
-        #self.connect(self.collect_hwobj,
-        #             'collectImageTaken',
-        #             self.image_taken) 
-
+ 
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
         self.workflow_hwobj = self.getObjectByRole("workflow")
         self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
@@ -396,6 +390,24 @@ class XMLRPCServer(HardwareObject):
         else:
             return True
 
+    def queue_set_workflow_lims_id(self, node_id, lims_id):
+        """
+        Set lims id of workflow node with id <node_id>
+
+        :param node_id: The node id of the workflow node
+        :type node_id: int
+        :param lims_id: The lims id
+        :type lims_id: int
+        """
+        try:
+            model = self.queue_model_hwobj.get_node(node_id)
+            model.lims_id = lims_id
+        except Exception as ex:
+            logging.getLogger('HWR').exception(str(ex))
+            raise
+        else:
+            return True        
+
     def is_queue_executing(self, node_id=None):
         """
         :returns: True if the queue is executing otherwise False
@@ -475,7 +487,7 @@ class XMLRPCServer(HardwareObject):
         self.diffractometer_hwobj.moveMotors(roles_positions_dict)
         return True
 
-    def save_snapshot(self, imgpath, showScale=True):
+    def save_snapshot(self, imgpath, showScale=False):
         res = True
 
         try:
@@ -484,8 +496,8 @@ class XMLRPCServer(HardwareObject):
             else:
                 self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
         except Exception as ex:
-            logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
-            res = False
+          logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
+          res = False
 
         return res
 

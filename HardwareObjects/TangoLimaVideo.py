@@ -1,4 +1,16 @@
 """Class for cameras connected to Lima Tango Device Servers
+
+Example configuration:
+----------------------
+<device class="TangoLimaVideo">
+  <username>Prosilica 1350C</username>
+  <tangoname>id23/limaccd/minidiff2</tangoname>
+  <bpmname>id23/limabeamviewer/minidiff2</bpmname>
+  <interval>15</interval>
+  <video_mode>RGB24</video_mode>
+</device>
+
+If video mode is not specified, BAYER_RG16 is used by default.
 """
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository import CommandContainer
@@ -23,7 +35,9 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         self.__gainExists = False
         self.__gammaExists = False
         self.__polling = None
+        self._video_mode = "BAYER_RG16"
         self.scaling = pixmaptools.LUT.Scaling()
+        self.scaling.set_custom_mapping(0, 255)
         
     def init(self):
         self.device = None
@@ -39,24 +53,31 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             
             self.device = BaseHardwareObjects.Null()
         else:
-            self.setExposure(self.getProperty("interval")/1000.0)
-            self.device.video_mode = "BAYER_RG16"
+            self._video_mode = self.getProperty("video_mode") or "BAYER_RG16"
+            self.device.video_mode = self._video_mode
+            if self.getProperty("exposure_time"):
+                self.setExposure(float(self.getProperty("exposure_time")))
+            else:
+                self.setExposure(self.getProperty("interval")/1000.0)
 
         self.setIsReady(True)
 
     def imageType(self):
-        return BayerType("RG16")
+        return BayerType("RG16") if self._video_mode == "BAYER_RG16" else RGBType(None)
 
     def _get_last_image(self):
         img_data = self.device.video_last_image
         if img_data[0]=="VIDEO_IMAGE":
             header_fmt = ">IHHqiiHHHH"
             _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)])
-            raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
-            self.scaling.autoscale_min_max(raw_buffer, width, height, pixmaptools.LUT.Scaling.BAYER_RG16)
+            if self._video_mode == 'BAYER_RG16':
+                raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint16)
+                self.scaling.autoscale_min_max(raw_buffer, width, height, pixmaptools.LUT.Scaling.BAYER_RG16)
+            else:
+                raw_buffer = numpy.fromstring(img_data[1][32:], numpy.uint8)
             validFlag, qimage = pixmaptools.LUT.raw_video_2_image(raw_buffer,
                                                                   width, height,
-                                                                  pixmaptools.LUT.Scaling.BAYER_RG16,
+                                                                  pixmaptools.LUT.Scaling.RGB24 if self._video_mode=='RGB24' else pixmaptools.LUT.Scaling.BAYER_RG16,
                                                                   self.scaling)
             if validFlag:
                 return qimage
@@ -120,10 +141,13 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
 
     def setLive(self, mode):
         """tango"""
+        curr_state = self.device.video_live
         if mode:
-            self.device.video_live=True
+            if not curr_state:
+                self.device.video_live=True
         else:
-            self.device.video_live=False
+            if curr_state:
+                self.device.video_live=False
 
     def setExposure(self, exposure):
         self.device.video_exposure = exposure
