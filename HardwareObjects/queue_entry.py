@@ -888,10 +888,10 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                    self.collect_number_of_frames)
 
         if self.parallel_processing_hwobj is not None:
-           qc.connect(self.parallel_processing_hwobj, 'processingFinished',
-                       self.processing_finished)
-            qc.connect(self.parallel_processing_hwobj, 'processingFailed',
-                       self.processing_failed)
+           qc.connec(self.parallel_processing_hwobj, 'processingFinished',
+                     self.processing_finished)
+           qc.connect(self.parallel_processing_hwobj, 'processingFailed',
+                      self.processing_failed)
 
         data_model = self.get_data_model()
 

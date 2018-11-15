@@ -104,7 +104,7 @@ class Session(HardwareObject):
             for prop in inhouse_proposals:
                 self.in_house_users.append((prop.getProperty('code'),
                                             str(prop.getProperty('number'))))
-        except IndexError:
+        except KeyError:
             pass
 
         email_extension = self.getProperty('email_extension')
@@ -121,9 +121,6 @@ class Session(HardwareObject):
         if archive_base_directory:
             queue_model_objects.PathTemplate.set_archive_path(archive_base_directory,
                                                               self['file_info'].getProperty('archive_folder'))
-
-        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name)
-        queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
 
         self.set_base_data_directories( base_directory, 
                                         base_process_directory, 
