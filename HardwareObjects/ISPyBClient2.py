@@ -236,7 +236,7 @@ class ISPyBClient2(HardwareObject):
                 
                     # ensure that suds do not create those files in tmp 
                     self._shipping.set_options(cache=None, location=_WS_SHIPPING_URL)
-                    self._collection.set_options(cache=None, location=_WS_COLLECTION_URL) )
+                    self._collection.set_options(cache=None, location=_WS_COLLECTION_URL)
                     self._tools_ws.set_options(cache=None, location=_WS_BL_SAMPLE_URL)
                     self._autoproc_ws.set_options(cache=None, location=_WS_AUTOPROC_URL)
                 except URLError:
@@ -654,7 +654,7 @@ class ISPyBClient2(HardwareObject):
             return {'status':{ "code": "error", "msg": msg }, 'Proposal': None, 'session': None}
 
         # login succeed, get proposal and sessions
-       if self.loginType == "proposal":
+        if self.loginType == "proposal":
             # get the proposal ID
             _code = self.translate(proposal_code, 'ispyb')
             prop=self.get_proposal(_code, proposal_number)
