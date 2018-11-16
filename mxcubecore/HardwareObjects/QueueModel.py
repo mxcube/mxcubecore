@@ -36,6 +36,7 @@ import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
+
 class Serializer(object):
     @staticmethod
     def serialize(object):
@@ -53,9 +54,11 @@ class QueueModel(HardwareObject):
         self._plate_model = queue_model_objects.RootNode()
         self._plate_model._node_id = 0
 
-        self._models = {'ispyb': self._ispyb_model,
-                        'free-pin': self._free_pin_model,
-                        'plate': self._plate_model}
+        self._models = {
+            "ispyb": self._ispyb_model,
+            "free-pin": self._free_pin_model,
+            "plate": self._plate_model,
+        }
 
         self._selected_model = self._ispyb_model
 
@@ -76,7 +79,7 @@ class QueueModel(HardwareObject):
         You should normaly not need to call this method.
         """
         self.queue_hwobj = self.getObjectByRole("queue")
-       
+
         self.queue_hwobj.queue_model_hwobj = self
 
     def select_model(self, name):
@@ -127,7 +130,7 @@ class QueueModel(HardwareObject):
         :rtype: NoneType
         """
         if name in self._models:
-            raise KeyError('The key %s is already registered' % name)
+            raise KeyError("The key %s is already registered" % name)
         else:
             self._models[name]
 
@@ -136,7 +139,7 @@ class QueueModel(HardwareObject):
         Re-emits the 'child_added' for all the nodes in the model.
         """
         for child_node in parent_node.get_children():
-            self.emit('child_added', (parent_node, child_node))
+            self.emit("child_added", (parent_node, child_node))
             self._re_emit(child_node)
 
     def add_child(self, parent, child):
@@ -158,10 +161,9 @@ class QueueModel(HardwareObject):
             child._node_id = self._selected_model._total_node_count
             parent._children.append(child)
             child._set_name(child._name)
-            self.emit('child_added', (parent, child))
+            self.emit("child_added", (parent, child))
         else:
-            raise TypeError("Expected type TaskNode, got %s "\
-                            % str(type(child)))
+            raise TypeError("Expected type TaskNode, got %s " % str(type(child)))
 
     def add_child_at_id(self, _id, child):
         """
@@ -180,7 +182,7 @@ class QueueModel(HardwareObject):
         self.add_child(parent, child)
         return child._node_id
 
-    def get_node(self, _id, parent = None):
+    def get_node(self, _id, parent=None):
         """
         Retrieves the node with the node id <_id>
 
@@ -194,7 +196,7 @@ class QueueModel(HardwareObject):
         :rtype: TaskNode
         """
         if parent is None:
-            parent = self._selected_model 
+            parent = self._selected_model
 
         for node in parent._children:
             if node._node_id == _id:
@@ -217,7 +219,7 @@ class QueueModel(HardwareObject):
         """
         if child in parent._children:
             parent._children.remove(child)
-            self.emit('child_removed', (parent, child))
+            self.emit("child_removed", (parent, child))
 
     def _detach_child(self, parent, child):
         """
@@ -261,16 +263,16 @@ class QueueModel(HardwareObject):
 
         :returns: None
         :rtype: None
-        """        
+        """
         view_item._data_model = task_model
         cls = queue_entry.MODEL_QUEUE_ENTRY_MAPPINGS[task_model.__class__]
         qe = cls(view_item, task_model)
-        #view_item.setText(0, task_model.get_name())
+        # view_item.setText(0, task_model.get_name())
 
-        #if isinstance(task_model, queue_model_objects.Sample) or \
+        # if isinstance(task_model, queue_model_objects.Sample) or \
         #  isinstance(task_model, queue_model_objects.TaskGroup):
         #    view_item.setText(0, task_model.get_name())
-        #else:
+        # else:
         view_item.setText(0, task_model.get_display_name())
 
         view_item.setOn(task_model.is_enabled())
@@ -278,11 +280,11 @@ class QueueModel(HardwareObject):
         if isinstance(task_model, queue_model_objects.Sample):
             self.queue_hwobj.enqueue(qe)
         elif not isinstance(task_model, queue_model_objects.Basket):
-        #else:
+            # else:
             view_item.parent().get_queue_entry().enqueue(qe)
         view_item.update_tool_tip()
 
-    def get_next_run_number(self, new_path_template, exclude_current = True):
+    def get_next_run_number(self, new_path_template, exclude_current=True):
         """
         Iterates through all the path templates of the tasks
         in the model and returns the next available run number
@@ -345,7 +347,7 @@ class QueueModel(HardwareObject):
         """
         result = False
         path_template_list = self.get_path_templates()
-        
+
         for pt in path_template_list:
             if pt[1] is not new_path_template:
                 if new_path_template.intersection(pt[1]):
@@ -364,14 +366,14 @@ class QueueModel(HardwareObject):
         :rtype: TaskModel
         """
         new_node = node.copy()
- 
+
         if new_node.get_path_template():
             pt = new_node.get_path_template()
             new_run_number = self.get_next_run_number(pt)
             pt.run_number = new_run_number
             new_node.set_number(new_run_number)
 
-        #We do not copy grid object, but keep a link to the original grid
+        # We do not copy grid object, but keep a link to the original grid
         if hasattr(new_node, "grid"):
             new_node.grid = node.grid
 
@@ -381,6 +383,7 @@ class QueueModel(HardwareObject):
 
     def get_nodes(self):
         node_list = []
+
         def get_nodes_list(entry):
             for child in entry._children:
                 node_list.append(child)
@@ -393,6 +396,7 @@ class QueueModel(HardwareObject):
 
     def get_all_queue_entries(self):
         node_list = []
+
         def get_nodes_list(entry):
             for child in entry._queue_entry_list:
                 node_list.append(child)
@@ -401,11 +405,11 @@ class QueueModel(HardwareObject):
         for qe in self.queue_hwobj._queue_entry_list:
             get_nodes_list(qe)
 
-        return node_list  
+        return node_list
 
     def get_all_dc_queue_entries(self):
         result = []
- 
+
         for item in self.get_all_queue_entries():
             if isinstance(item, queue_entry.DataCollectionQueueEntry):
                 result.append(item)
@@ -417,32 +421,36 @@ class QueueModel(HardwareObject):
            of dictionaries. Information about samples and baskets is not saved
         """
         if not filename:
-            filename = os.path.join(self.user_file_directory,
-                                    "queue_active.dat")
+            filename = os.path.join(self.user_file_directory, "queue_active.dat")
 
         items_to_save = []
 
-        selected_model = "" 
+        selected_model = ""
         for key in self._models:
             if self._selected_model == self._models[key]:
                 selected_model = key
 
         queue_entry_list = self.queue_hwobj.get_queue_entry_list()
         for item in queue_entry_list:
-            #On the top level is Sample or Basket
+            # On the top level is Sample or Basket
             if isinstance(item, queue_entry.SampleQueueEntry):
                 for task_item in item.get_queue_entry_list():
-                    task_item_dict = {"sample_location" : item.get_data_model().location,
-                                      "task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
+                    task_item_dict = {
+                        "sample_location": item.get_data_model().location,
+                        "task_group_entry": jsonpickle.encode(
+                            task_item.get_data_model()
+                        ),
+                    }
                     items_to_save.append(task_item_dict)
 
         save_file = None
         try:
-            save_file = open(filename, 'w')
+            save_file = open(filename, "w")
             save_file.write(repr((selected_model, items_to_save)))
         except:
-            logging.getLogger().exception("Unable to save queue " + \
-                                          "in file %s", filename)
+            logging.getLogger().exception(
+                "Unable to save queue " + "in file %s", filename
+            )
             if save_file:
                 save_file.close()
 
@@ -456,13 +464,15 @@ class QueueModel(HardwareObject):
 
         queue_entry_list = self.queue_hwobj.get_queue_entry_list()
         for item in queue_entry_list:
-            #On the top level is Sample or Basket
+            # On the top level is Sample or Basket
             if isinstance(item, queue_entry.SampleQueueEntry):
                 for task_item in item.get_queue_entry_list():
-                    task_item_dict = {"sample_location" : item.get_data_model().location,
-                                      #"task_group_entry": Serializer.serialize(task_item.get_data_model())}
-                                      #"task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
-                                      "task_group_entry" : json.dumps(task_item.get_data_model())}
+                    task_item_dict = {
+                        "sample_location": item.get_data_model().location,
+                        # "task_group_entry": Serializer.serialize(task_item.get_data_model())}
+                        # "task_group_entry" : jsonpickle.encode(task_item.get_data_model())}
+                        "task_group_entry": json.dumps(task_item.get_data_model()),
+                    }
                     items_to_save.append(task_item_dict)
 
         return selected_model, items_to_save
@@ -481,16 +491,16 @@ class QueueModel(HardwareObject):
         if len(queue_list) > 0:
             try:
                 for task_group_item in queue_list:
-                    task_group_entry = json.load(\
-                         task_group_item["task_group_entry"])
-                    self.add_child(sample_dict[task_group_item["sample_location"]],
-                                   task_group_entry)
+                    task_group_entry = json.load(task_group_item["task_group_entry"])
+                    self.add_child(
+                        sample_dict[task_group_item["sample_location"]],
+                        task_group_entry,
+                    )
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
                 logging.getLogger("HWR").info("Queue loading done")
             except:
                 logging.getLogger("HWR").exception("Unable to load queue")
-
 
     def load_queue_from_file(self, filename, snapshot=None):
         """Loads queue from file. The problem is snapshots that are 
@@ -498,13 +508,13 @@ class QueueModel(HardwareObject):
            the loading process
 
            :returns: model name 'free-pin', 'ispyb' or 'plate'
-        """        
+        """
 
         logging.getLogger("HWR").info("Loading queue from file %s" % filename)
         load_file = None
         try:
             # Read file and clear the model
-            load_file = open(filename, 'r')
+            load_file = open(filename, "r")
             decoded_file = eval(load_file.read())
             self.select_model(decoded_file[0])
 
@@ -514,17 +524,20 @@ class QueueModel(HardwareObject):
                 if isinstance(item, queue_entry.SampleQueueEntry):
                     sample_data_model = item.get_data_model()
                     sample_dict[sample_data_model.location] = sample_data_model
-                elif isinstance(item, queue_entry.BasketQueueEntry): 
+                elif isinstance(item, queue_entry.BasketQueueEntry):
                     for sample_item in item.get_queue_entry_list():
                         sample_data_model = sample_item.get_data_model()
-                        sample_dict[sample_data_model.location] = sample_data_model 
+                        sample_dict[sample_data_model.location] = sample_data_model
 
             if len(decoded_file[1]) > 0:
                 for task_group_item in decoded_file[1]:
-                    task_group_entry = jsonpickle.decode(\
-                        task_group_item["task_group_entry"])
-                    self.add_child(sample_dict[task_group_item["sample_location"]],
-                                   task_group_entry)
+                    task_group_entry = jsonpickle.decode(
+                        task_group_item["task_group_entry"]
+                    )
+                    self.add_child(
+                        sample_dict[task_group_item["sample_location"]],
+                        task_group_entry,
+                    )
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
                 logging.getLogger("HWR").info("Queue loading done")
@@ -532,7 +545,8 @@ class QueueModel(HardwareObject):
                 logging.getLogger("HWR").info("No queue content available in file")
             return decoded_file[0]
         except:
-            logging.getLogger("HWR").exception("Unable to load queue " + \
-                "from file %s", filename)
+            logging.getLogger("HWR").exception(
+                "Unable to load queue " + "from file %s", filename
+            )
             if load_file:
                 load_file.close()

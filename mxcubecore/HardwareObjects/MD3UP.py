@@ -14,39 +14,62 @@ class MD3UP(Microdiff.Microdiff):
         Microdiff.Microdiff.init(self)
         self.centringPhi = CentringMotor(self.phiMotor, direction=1)
         self.centringPhiz = CentringMotor(self.phizMotor)
-        self.centringPhiy = CentringMotor(self.phiyMotor, direction=-1,
-                                          reference_position=-0.3322)
+        self.centringPhiy = CentringMotor(
+            self.phiyMotor, direction=-1, reference_position=-0.3322
+        )
         self.centringSamplex = CentringMotor(self.sampleXMotor, direction=-1)
         self.centringSampley = CentringMotor(self.sampleYMotor)
         self.scan_nb_frames = 1
 
         # Raster scan attributes
-        self.nb_frames = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "nbframes"}, "ScanNumberOfFrames")
-        self.scan_range = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "scan_range"}, "ScanRange")
-        self.scan_exposure_time = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "exposure_time"}, "ScanExposureTime")
-        self.scan_start_angle = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "start_angle"}, "ScanStartAngle")
-        self.scan_detector_gate_pulse_enabled = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "detector_gate_pulse_enabled"},
-                            "DetectorGatePulseEnabled")
-        self.scan_detector_gate_pulse_readout_time = \
-            self.addChannel({"type": "exporter",
-                             "exporter_address": self.exporter_addr,
-                             "name": "detector_gate_pulse_readout_time"},
-                            "DetectorGatePulseReadoutTime")
+        self.nb_frames = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "nbframes",
+            },
+            "ScanNumberOfFrames",
+        )
+        self.scan_range = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "scan_range",
+            },
+            "ScanRange",
+        )
+        self.scan_exposure_time = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "exposure_time",
+            },
+            "ScanExposureTime",
+        )
+        self.scan_start_angle = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_angle",
+            },
+            "ScanStartAngle",
+        )
+        self.scan_detector_gate_pulse_enabled = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "detector_gate_pulse_enabled",
+            },
+            "DetectorGatePulseEnabled",
+        )
+        self.scan_detector_gate_pulse_readout_time = self.addChannel(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "detector_gate_pulse_readout_time",
+            },
+            "DetectorGatePulseReadoutTime",
+        )
 
     def getBeamPosX(self):
         return self.beam_info.get_beam_position()[0]
@@ -59,53 +82,59 @@ class MD3UP(Microdiff.Microdiff):
 
     def oscilScan(self, start, end, exptime, wait=False):
         if self.in_plate_mode():
-            scan_speed = math.fabs(end-start) / exptime
+            scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
-                raise ValueError(
-                    "Scan start below the allowed value %f" % low_lim)
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError(
-                    "Scan end abobe the allowed value %f" % hi_lim)
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
         self.nb_frames.setValue(self.scan_nb_frames)
 
-        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end-start), exptime)
+        params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
 
-        scan = self.addCommand({"type": "exporter",
-                                "exporter_address": self.exporter_addr,
-                                "name": "start_scan"}, "startScanEx")
+        scan = self.addCommand(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_scan",
+            },
+            "startScanEx",
+        )
         scan(params)
 
         if wait:
             # Timeout of 5 min
             self._wait_ready(300)
 
-    def oscilScan4d(self, start, end, exptime,  motors_pos, wait=False):
+    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
         if self.in_plate_mode():
-            scan_speed = math.fabs(end-start) / exptime
+            scan_speed = math.fabs(end - start) / exptime
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
             if start < low_lim:
-                raise ValueError(
-                    "Scan start below the allowed value %f" % low_lim)
+                raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
-                raise ValueError(
-                    "Scan end abobe the allowed value %f" % hi_lim)
+                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
         self.nb_frames.setValue(self.scan_nb_frames)
 
-        params = "%0.3f\t%0.3f\t%f\t" % (start, (end-start), exptime)
-        params += "%0.3f\t" % motors_pos['1']['phiz']
-        params += "%0.3f\t" % motors_pos['1']['phiy']
-        params += "%0.3f\t" % motors_pos['1']['sampx']
-        params += "%0.3f\t" % motors_pos['1']['sampy']
-        params += "%0.3f\t" % motors_pos['2']['phiz']
-        params += "%0.3f\t" % motors_pos['2']['phiy']
-        params += "%0.3f\t" % motors_pos['2']['sampx']
-        params += "%0.3f" % motors_pos['2']['sampy']
+        params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
+        params += "%0.3f\t" % motors_pos["1"]["phiz"]
+        params += "%0.3f\t" % motors_pos["1"]["phiy"]
+        params += "%0.3f\t" % motors_pos["1"]["sampx"]
+        params += "%0.3f\t" % motors_pos["1"]["sampy"]
+        params += "%0.3f\t" % motors_pos["2"]["phiz"]
+        params += "%0.3f\t" % motors_pos["2"]["phiy"]
+        params += "%0.3f\t" % motors_pos["2"]["sampx"]
+        params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand({"type": "exporter",
-                                "exporter_address": self.exporter_addr,
-                                "name": "start_scan4d"}, "startScan4DEx")
+        scan = self.addCommand(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_scan4d",
+            },
+            "startScan4DEx",
+        )
 
         scan(params)
 
@@ -113,9 +142,18 @@ class MD3UP(Microdiff.Microdiff):
             # Timeout of 15 min
             self._wait_ready(900)
 
-    def oscilScanMesh(self, start, end, exptime, dead_time, mesh_num_lines,
-                      mesh_total_nb_frames, mesh_center, mesh_range,
-                      wait=False):
+    def oscilScanMesh(
+        self,
+        start,
+        end,
+        exptime,
+        dead_time,
+        mesh_num_lines,
+        mesh_total_nb_frames,
+        mesh_center,
+        mesh_range,
+        wait=False,
+    ):
 
         self.scan_detector_gate_pulse_enabled.setValue(True)
 
@@ -124,21 +162,22 @@ class MD3UP(Microdiff.Microdiff):
         servo_time = 0.110
 
         self.scan_detector_gate_pulse_readout_time.setValue(
-            dead_time*1000 + servo_time)
+            dead_time * 1000 + servo_time
+        )
 
         # Prepositionning at the center of the grid
         self.moveMotors(mesh_center.as_dict())
 
         positions = self.getPositions()
 
-        params = "%0.3f\t" % (end-start)
-        params += "%0.3f\t" % mesh_range['vertical_range']
-        params += "%0.3f\t" % (-mesh_range['horizontal_range'])
+        params = "%0.3f\t" % (end - start)
+        params += "%0.3f\t" % mesh_range["vertical_range"]
+        params += "%0.3f\t" % (-mesh_range["horizontal_range"])
         params += "%0.3f\t" % start
-        params += "%0.3f\t" % positions['phiz']
-        params += "%0.3f\t" % positions['phiy']
-        params += "%0.3f\t" % positions['sampx']
-        params += "%0.3f\t" % positions['sampy']
+        params += "%0.3f\t" % positions["phiz"]
+        params += "%0.3f\t" % positions["phiy"]
+        params += "%0.3f\t" % positions["sampx"]
+        params += "%0.3f\t" % positions["sampy"]
         params += "%d\t" % mesh_num_lines
         params += "%d\t" % (mesh_total_nb_frames / mesh_num_lines)
         params += "%0.3f\t" % (exptime / mesh_num_lines)
@@ -146,10 +185,14 @@ class MD3UP(Microdiff.Microdiff):
         params += "%r\t" % True
         params += "%r\t" % True
 
-        scan = self.addCommand({"type": "exporter",
-                                "exporter_address": self.exporter_addr,
-                                "name": "start_raster_scan"},
-                               "startRasterScanEx")
+        scan = self.addCommand(
+            {
+                "type": "exporter",
+                "exporter_address": self.exporter_addr,
+                "name": "start_raster_scan",
+            },
+            "startRasterScanEx",
+        )
 
         scan(params)
 
@@ -159,7 +202,8 @@ class MD3UP(Microdiff.Microdiff):
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition())
+            self.zoomMotor.getPosition()
+        )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
@@ -168,7 +212,8 @@ class MD3UP(Microdiff.Microdiff):
         dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition())
+            self.centringPhi.direction * self.centringPhi.getPosition()
+        )
 
         sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
         sampy = self.centringSampley.direction * self.centringSampley.getPosition()
@@ -176,15 +221,23 @@ class MD3UP(Microdiff.Microdiff):
         phiy = -self.centringPhiy.direction * self.centringPhiy.getPosition()
         phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
 
-        rotMatrix = numpy.matrix([[math.cos(phi_angle), -math.sin(phi_angle)],
-                                  [math.sin(phi_angle), math.cos(phi_angle)]])
+        rotMatrix = numpy.matrix(
+            [
+                [math.cos(phi_angle), -math.sin(phi_angle)],
+                [math.sin(phi_angle), math.cos(phi_angle)],
+            ]
+        )
         invRotMatrix = numpy.array(rotMatrix.I)
 
         dsampx, dsampy = numpy.dot(numpy.array([dx, dy]), invRotMatrix)
 
         chi_angle = math.radians(-self.chiAngle)
-        chiRot = numpy.matrix([[math.cos(chi_angle), -math.sin(chi_angle)],
-                               [math.sin(chi_angle), math.cos(chi_angle)]])
+        chiRot = numpy.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
 
         sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
 
@@ -192,42 +245,60 @@ class MD3UP(Microdiff.Microdiff):
         sampy = sampy + sy
         phiz = phiz + dy
 
-        return {"phi": self.centringPhi.getPosition(),
-                "phiz": float(phiz),
-                "phiy": float(phiy),
-                "sampx": float(sampx),
-                "sampy": float(sampy)}
+        return {
+            "phi": self.centringPhi.getPosition(),
+            "phiz": float(phiz),
+            "phiy": float(phiy),
+            "sampx": float(sampx),
+            "sampy": float(sampy),
+        }
 
     def motor_positions_to_screen(self, centred_positions_dict):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition())
+            self.zoomMotor.getPosition()
+        )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
 
         phi_angle = math.radians(
-            self.centringPhi.direction*self.centringPhi.getPosition())
-        sampx = self.centringSamplex.direction * \
-            (centred_positions_dict["sampx"] -
-             self.centringSamplex.getPosition())
-        sampy = self.centringSampley.direction * \
-            (centred_positions_dict["sampy"] -
-             self.centringSampley.getPosition())
-        phiy = self.centringPhiy.direction * \
-            (centred_positions_dict["phiy"]-self.centringPhiy.getPosition())
-        phiz = self.centringPhiz.direction * \
-            (centred_positions_dict["phiz"]-self.centringPhiz.getPosition())
+            self.centringPhi.direction * self.centringPhi.getPosition()
+        )
+        sampx = self.centringSamplex.direction * (
+            centred_positions_dict["sampx"] - self.centringSamplex.getPosition()
+        )
+        sampy = self.centringSampley.direction * (
+            centred_positions_dict["sampy"] - self.centringSampley.getPosition()
+        )
+        phiy = self.centringPhiy.direction * (
+            centred_positions_dict["phiy"] - self.centringPhiy.getPosition()
+        )
+        phiz = self.centringPhiz.direction * (
+            centred_positions_dict["phiz"] - self.centringPhiz.getPosition()
+        )
 
-        rotMatrix = numpy.matrix([math.cos(phi_angle), -math.sin(phi_angle),
-                                  math.sin(phi_angle), math.cos(phi_angle)])
+        rotMatrix = numpy.matrix(
+            [
+                math.cos(phi_angle),
+                -math.sin(phi_angle),
+                math.sin(phi_angle),
+                math.cos(phi_angle),
+            ]
+        )
         rotMatrix.shape = (2, 2)
         invRotMatrix = numpy.array(rotMatrix.I)
 
         dsx, dsy = numpy.dot(numpy.array([sampx, sampy]), invRotMatrix)
 
         chi_angle = math.radians(self.chiAngle)
-        chiRot = numpy.matrix([math.cos(chi_angle), -math.sin(chi_angle),
-                               math.sin(chi_angle), math.cos(chi_angle)])
+        chiRot = numpy.matrix(
+            [
+                math.cos(chi_angle),
+                -math.sin(chi_angle),
+                math.sin(chi_angle),
+                math.cos(chi_angle),
+            ]
+        )
         chiRot.shape = (2, 2)
 
         sx, sy = numpy.dot(numpy.array([0, dsy]), numpy.array(chiRot))
@@ -242,7 +313,8 @@ class MD3UP(Microdiff.Microdiff):
 
     def moveToBeam(self, x, y):
         self.pixelsPerMmY, self.pixelsPerMmZ = self.getCalibrationData(
-            self.zoomMotor.getPosition())
+            self.zoomMotor.getPosition()
+        )
 
         if None in (self.pixelsPerMmY, self.pixelsPerMmZ):
             return 0, 0
@@ -251,21 +323,30 @@ class MD3UP(Microdiff.Microdiff):
         dy = (y - self.getBeamPosY()) / self.pixelsPerMmZ
 
         phi_angle = math.radians(
-            self.centringPhi.direction * self.centringPhi.getPosition())
+            self.centringPhi.direction * self.centringPhi.getPosition()
+        )
 
         sampx = -self.centringSamplex.direction * self.centringSamplex.getPosition()
         sampy = self.centringSampley.direction * self.centringSampley.getPosition()
         phiz = self.centringPhiz.direction * self.centringPhiz.getPosition()
 
-        rotMatrix = numpy.matrix([[math.cos(phi_angle), -math.sin(phi_angle)],
-                                  [math.sin(phi_angle), math.cos(phi_angle)]])
+        rotMatrix = numpy.matrix(
+            [
+                [math.cos(phi_angle), -math.sin(phi_angle)],
+                [math.sin(phi_angle), math.cos(phi_angle)],
+            ]
+        )
         invRotMatrix = numpy.array(rotMatrix.I)
 
         dsampx, dsampy = numpy.dot(numpy.array([dx, 0]), invRotMatrix)
 
         chi_angle = math.radians(-self.chiAngle)
-        chiRot = numpy.matrix([[math.cos(chi_angle), -math.sin(chi_angle)],
-                               [math.sin(chi_angle), math.cos(chi_angle)]])
+        chiRot = numpy.matrix(
+            [
+                [math.cos(chi_angle), -math.sin(chi_angle)],
+                [math.sin(chi_angle), math.cos(chi_angle)],
+            ]
+        )
 
         sx, sy = numpy.dot(numpy.array([dsampx, dsampy]), numpy.array(chiRot))
 

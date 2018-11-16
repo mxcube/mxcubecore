@@ -20,13 +20,14 @@ import traceback
 import queue_model_objects_v1 as queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
 if sys.version_info > (3, 0):
     from xmlrpc.server import SimpleXMLRPCRequestHandler
     from xmlrpc.server import SimpleXMLRPCServer
 else:
     from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
     from SimpleXMLRPCServer import SimpleXMLRPCServer
-    
+
 
 __author__ = "Marcus Oskarsson, Matias Guijarro"
 __copyright__ = "Copyright 2012, ESRF"
@@ -46,18 +47,18 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
     "Token" entry in the header. If this token doesn't correspond to a
     reference token the server sends a "401" (Unauthorized) reply. 
     """
+
     __referenceToken = None
-    
+
     @staticmethod
     def setReferenceToken(token):
         SecureXMLRpcRequestHandler.__referenceToken = token
-        
+
     def setup(self):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
-        
-    
+
     def do_POST(self):
         """
         Handles the HTTPS POST request.
@@ -70,13 +71,17 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
             return
 
         referenceToken = SecureXMLRpcRequestHandler.__referenceToken
-        if referenceToken is not None and "Token" in self.headers and referenceToken == self.headers["Token"]:
+        if (
+            referenceToken is not None
+            and "Token" in self.headers
+            and referenceToken == self.headers["Token"]
+        ):
             try:
                 # Get arguments by reading body of request.
                 # We read this in chunks to avoid straining
                 # socket.read(); around the 10 or 15Mb mark, some platforms
                 # begin to have problems (bug #792570).
-                max_chunk_size = 10*1024*1024
+                max_chunk_size = 10 * 1024 * 1024
                 size_remaining = int(self.headers["content-length"])
                 L = []
                 while size_remaining:
@@ -86,25 +91,27 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                         break
                     L.append(chunk)
                     size_remaining -= len(L[-1])
-                data = ''.join(L)
+                data = "".join(L)
                 # In previous versions of SimpleXMLRPCServer, _dispatch
                 # could be overridden in this class, instead of in
                 # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
                 # check to see if a subclass implements _dispatch and dispatch
                 # using that method if present.
                 response = self.server._marshaled_dispatch(
-                        data, getattr(self, '_dispatch', None)
-                    )
-            except Exception, e: # This should only happen if the module is buggy
+                    data, getattr(self, "_dispatch", None)
+                )
+            except Exception, e:  # This should only happen if the module is buggy
                 # internal error, report as HTTP server error
                 self.send_response(500)
-    
+
                 # Send information about the exception if requested
-                if hasattr(self.server, '_send_traceback_header') and \
-                        self.server._send_traceback_header:
+                if (
+                    hasattr(self.server, "_send_traceback_header")
+                    and self.server._send_traceback_header
+                ):
                     self.send_header("X-exception", str(e))
                     self.send_header("X-traceback", traceback.format_exc())
-    
+
                 self.end_headers()
             else:
                 # got a valid XML RPC response
@@ -113,12 +120,12 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                 self.send_header("Content-length", str(len(response)))
                 self.end_headers()
                 self.wfile.write(response)
-    
+
                 # shut down the connection
                 self.wfile.flush()
                 self.connection.shutdown(1)
         else:
-            #Unrecognized token - access unauthorized
+            # Unrecognized token - access unauthorized
             self.send_response(401)
             self.end_headers()
 
@@ -142,31 +149,32 @@ class XMLRPCServer(HardwareObject):
         self.doEnforceUseOfToken = False
 
         atexit.register(self.close)
-      
+
     def init(self):
         """
         Method inherited from HardwareObject, called by framework-2. 
         """
 
-        
-        self.all_interfaces = self.getProperty('all_interfaces')
+        self.all_interfaces = self.getProperty("all_interfaces")
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if hasattr(self, "all_interfaces") and self.all_interfaces.strip().lower() == "true":
-            host = ''
+        if (
+            hasattr(self, "all_interfaces")
+            and self.all_interfaces.strip().lower() == "true"
+        ):
+            host = ""
         else:
             host = socket.gethostname()
 
-        self.host = host    
-        self.port = self.getProperty('port')
+        self.host = host
+        self.port = self.getProperty("port")
 
-        self.doEnforceUseOfToken = self.getProperty('enforceUseOfToken', False)
+        self.doEnforceUseOfToken = self.getProperty("enforceUseOfToken", False)
 
         try:
             self.open()
         except:
             logging.getLogger("HWR").debug("Can't start XML-RPC server")
-        
 
     def close(self):
         try:
@@ -175,22 +183,28 @@ class XMLRPCServer(HardwareObject):
             del self._server
         except AttributeError:
             pass
-        logging.getLogger("HWR").info('XML-RPC server closed')
+        logging.getLogger("HWR").info("XML-RPC server closed")
 
     def open(self):
         # The value of the member self.port is set in the xml configuration
         # file. The initialization is done by the baseclass HardwareObject.
-        if hasattr(self, "_server" ):
+        if hasattr(self, "_server"):
             return
         self.xmlrpc_prefixes = set()
 
         if self.doEnforceUseOfToken:
-            self._server = SimpleXMLRPCServer((self.host, int(self.port)), requestHandler=SecureXMLRpcRequestHandler, 
-                                              logRequests = False, allow_none = True)
+            self._server = SimpleXMLRPCServer(
+                (self.host, int(self.port)),
+                requestHandler=SecureXMLRpcRequestHandler,
+                logRequests=False,
+                allow_none=True,
+            )
         else:
-            self._server = SimpleXMLRPCServer((self.host, int(self.port)), logRequests = False, allow_none = True)
+            self._server = SimpleXMLRPCServer(
+                (self.host, int(self.port)), logRequests=False, allow_none=True
+            )
 
-        msg = 'XML-RPC server listening on: %s:%s' % (self.host, self.port)
+        msg = "XML-RPC server listening on: %s:%s" % (self.host, self.port)
         logging.getLogger("HWR").info(msg)
 
         self._server.register_introspection_functions()
@@ -212,21 +226,21 @@ class XMLRPCServer(HardwareObject):
         self._server.register_function(self.get_aperture_list)
         self._server.register_function(self.get_cp)
         self._server.register_function(self.save_current_pos)
-        self._server.register_function(self.anneal) 
-        self._server.register_function(self.open_dialog) 
-        self._server.register_function(self.workflow_end) 
+        self._server.register_function(self.anneal)
+        self._server.register_function(self.open_dialog)
+        self._server.register_function(self.workflow_end)
         self._server.register_function(self.dozor_batch_processed)
         self._server.register_function(self.dozor_status_changed)
         self._server.register_function(self.processing_status_changed)
         self.image_num = 0
         self._server.register_function(self.get_image_num, "get_image_num")
-        self._server.register_function(self.set_zoom_level) 
-        self._server.register_function(self.get_zoom_level) 
-        self._server.register_function(self.get_available_zoom_levels) 
-        self._server.register_function(self.set_front_light_level) 
-        self._server.register_function(self.get_front_light_level) 
-        self._server.register_function(self.set_back_light_level) 
-        self._server.register_function(self.get_back_light_level) 
+        self._server.register_function(self.set_zoom_level)
+        self._server.register_function(self.get_zoom_level)
+        self._server.register_function(self.get_available_zoom_levels)
+        self._server.register_function(self.set_front_light_level)
+        self._server.register_function(self.get_front_light_level)
+        self._server.register_function(self.set_back_light_level)
+        self._server.register_function(self.get_back_light_level)
         self._server.register_function(self.centre_beam)
 
         # Register functions from modules specified in <apis> element
@@ -237,30 +251,31 @@ class XMLRPCServer(HardwareObject):
                 if recurse is None:
                     recurse = True
 
-                self._register_module_functions(api.getProperty('module'), recurse=recurse)
+                self._register_module_functions(
+                    api.getProperty("module"), recurse=recurse
+                )
 
         self.queue_hwobj = self.getObjectByRole("queue")
         self.queue_model_hwobj = self.getObjectByRole("queue_model")
         self.beamline_setup_hwobj = self.getObjectByRole("beamline_setup")
         self.shape_history_hwobj = self.beamline_setup_hwobj.shape_history_hwobj
         self.diffractometer_hwobj = self.beamline_setup_hwobj.diffractometer_hwobj
- 
+
         self.xmlrpc_server_task = gevent.spawn(self._server.serve_forever)
         self.workflow_hwobj = self.getObjectByRole("workflow")
         self.beamcmds_hwobj = self.getObjectByRole("beamcmds")
-               
+
     def anneal(self, time):
         cryoshutter_hwobj = self.getObjectByRole("cryoshutter")
         try:
             cryoshutter_hwobj.getCommandObject("anneal")(time)
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return True
 
-
-    def _add_to_queue(self, task, set_on = True):
+    def _add_to_queue(self, task, set_on=True):
         """
         Adds the TaskNode objects contained in the
         list of TaskNodes passed in <task>.
@@ -282,10 +297,10 @@ class XMLRPCServer(HardwareObject):
         # The exception is re raised so that it will
         # be sent to the client.
         try:
-            self.emit('add_to_queue', (task, None, set_on))
+            self.emit("add_to_queue", (task, None, set_on))
 
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return True
@@ -298,14 +313,14 @@ class XMLRPCServer(HardwareObject):
         :rtype: bool
         """
         try:
-            self.emit('start_queue')
+            self.emit("start_queue")
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return True
 
-    def log_message(self, message, level = 'info'):
+    def log_message(self, message, level="info"):
         """
         Logs a message in the user_level_log of MxCuBE,
         normally displayed at the bottom of the MxCuBE
@@ -323,12 +338,12 @@ class XMLRPCServer(HardwareObject):
         """
         status = True
 
-        if level == 'info':
-            logging.getLogger('user_level_log').info(message)
-        elif level == 'warning':
-            logging.getLogger('user_level_log').warning(message)
-        elif level == 'error':
-            logging.getLogger('user_level_log').error(message)
+        if level == "info":
+            logging.getLogger("user_level_log").info(message)
+        elif level == "warning":
+            logging.getLogger("user_level_log").warning(message)
+        elif level == "error":
+            logging.getLogger("user_level_log").error(message)
         else:
             status = False
 
@@ -350,7 +365,7 @@ class XMLRPCServer(HardwareObject):
         try:
             node_id = self.queue_model_hwobj.add_child_at_id(parent_id, child)
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return node_id
@@ -363,7 +378,7 @@ class XMLRPCServer(HardwareObject):
         try:
             node = self.queue_model_hwobj.get_node(node_id)
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return node
@@ -380,11 +395,10 @@ class XMLRPCServer(HardwareObject):
             entry = self.queue_hwobj.get_entry_with_model(model)
 
             if entry:
-                self.current_entry_task = self.queue_hwobj.\
-                                          execute_entry(entry)
+                self.current_entry_task = self.queue_hwobj.execute_entry(entry)
 
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
             return True
@@ -402,10 +416,10 @@ class XMLRPCServer(HardwareObject):
             model = self.queue_model_hwobj.get_node(node_id)
             model.lims_id = lims_id
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
         else:
-            return True        
+            return True
 
     def is_queue_executing(self, node_id=None):
         """
@@ -415,7 +429,7 @@ class XMLRPCServer(HardwareObject):
         try:
             return self.queue_hwobj.is_executing(node_id)
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
 
     def queue_status(self):
@@ -439,8 +453,8 @@ class XMLRPCServer(HardwareObject):
 
         """
         grid_dict = self.shape_history_hwobj.get_grid()
-        #self.shape_history_set_grid_data(grid_dict['id'], {})
-        
+        # self.shape_history_set_grid_data(grid_dict['id'], {})
+
         return grid_dict
 
     def shape_history_set_grid_data(self, key, result_data):
@@ -456,12 +470,12 @@ class XMLRPCServer(HardwareObject):
         :returns: a json encoded list with all centred positions
         """
         cplist = []
-        points  = self.shape_history_hwobj.get_points()
+        points = self.shape_history_hwobj.get_points()
 
         for point in points:
             cp = point.get_centred_positions()[0].as_dict()
             cplist.append(cp)
-        
+
         json_cplist = json.dumps(cplist)
 
         return json_cplist
@@ -470,7 +484,7 @@ class XMLRPCServer(HardwareObject):
         try:
             return self.beamline_setup_hwobj.read_value(path)
         except Exception as ex:
-            logging.getLogger('HWR').exception(str(ex))
+            logging.getLogger("HWR").exception(str(ex))
             raise
 
     def workflow_set_in_progress(self, state):
@@ -493,10 +507,12 @@ class XMLRPCServer(HardwareObject):
             if showScale:
                 self.diffractometer_hwobj.save_snapshot(imgpath)
             else:
-                self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(imgpath)
+                self.diffractometer_hwobj.getObjectByRole("camera").takeSnapshot(
+                    imgpath
+                )
         except Exception as ex:
-          logging.getLogger('HWR').exception("Could not take snapshot %s " % str(ex))
-          res = False
+            logging.getLogger("HWR").exception("Could not take snapshot %s " % str(ex))
+            res = False
 
         return res
 
@@ -516,20 +532,24 @@ class XMLRPCServer(HardwareObject):
             flux = 0
         return float(flux)
 
-    def set_aperture(self,pos_name, timeout=20):
+    def set_aperture(self, pos_name, timeout=20):
         self.diffractometer_hwobj.beam_info.aperture_hwobj.moveToPosition(pos_name)
-        t0=time.time()
-        while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == 'MOVING':
+        t0 = time.time()
+        while self.diffractometer_hwobj.beam_info.aperture_hwobj.getState() == "MOVING":
             time.sleep(0.1)
-            if time.time()-t0 > timeout:
+            if time.time() - t0 > timeout:
                 raise RuntimeError("Timeout waiting for aperture to move")
         return True
 
     def get_aperture(self):
-        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getCurrentPositionName()
+        return (
+            self.diffractometer_hwobj.beam_info.aperture_hwobj.getCurrentPositionName()
+        )
 
     def get_aperture_list(self):
-        return self.diffractometer_hwobj.beam_info.aperture_hwobj.getPredefinedPositionsList()
+        return (
+            self.diffractometer_hwobj.beam_info.aperture_hwobj.getPredefinedPositionsList()
+        )
 
     def open_dialog(self, dict_dialog):
         """
@@ -548,42 +568,45 @@ class XMLRPCServer(HardwareObject):
         """
         if self.workflow_hwobj is not None:
             self.workflow_hwobj.workflow_end()
-    
+
     def dozor_batch_processed(self, dozor_batch_dict):
-        self.beamline_setup_hwobj.parallel_processing_hwobj.batch_processed(dozor_batch_dict)
+        self.beamline_setup_hwobj.parallel_processing_hwobj.batch_processed(
+            dozor_batch_dict
+        )
 
     def dozor_status_changed(self, status):
-        self.beamline_setup_hwobj.parallel_processing_hwobj.\
-            set_processing_status(status)
+        self.beamline_setup_hwobj.parallel_processing_hwobj.set_processing_status(
+            status
+        )
 
-    def processing_status_changed(self, collection_id, method, status, msg=''):
+    def processing_status_changed(self, collection_id, method, status, msg=""):
         for queue_entry in self.queue_model_hwobj.get_all_dc_queue_entries():
             data_model = queue_entry.get_data_model()
             if data_model.id == collection_id:
                 prefix = data_model.acquisitions[0].path_template.get_image_file_name()
                 prefix = prefix.replace("%05d", "#####")
-                
-                if status in ('started', 'success'):
-                    logging.getLogger('user_level_log').info(\
-                        "EDNA | %s: processing of data collection %s %s %s" % \
-                        (method, prefix, status, msg))
-                elif status == 'failed':
-                    logging.getLogger('user_level_log').error(\
-                        "EDNA | %s: processing of data collection %s %s %s" % \
-                        (method, prefix, status, msg))
 
-                queue_entry.add_processing_msg(\
-                    str(time.strftime("%Y-%m-%d %H:%M:%S")),
-                    method,
-                    status,
-                    msg)
+                if status in ("started", "success"):
+                    logging.getLogger("user_level_log").info(
+                        "EDNA | %s: processing of data collection %s %s %s"
+                        % (method, prefix, status, msg)
+                    )
+                elif status == "failed":
+                    logging.getLogger("user_level_log").error(
+                        "EDNA | %s: processing of data collection %s %s %s"
+                        % (method, prefix, status, msg)
+                    )
+
+                queue_entry.add_processing_msg(
+                    str(time.strftime("%Y-%m-%d %H:%M:%S")), method, status, msg
+                )
 
     def image_taken(self, image_num):
         self.image_num = image_num
 
     def get_image_num(self):
         return self.image_num
-  
+
     def set_zoom_level(self, zoom_level):
         """
         Sets the zoom to a pre-defined level.
@@ -631,40 +654,52 @@ class XMLRPCServer(HardwareObject):
         Centers the beam using the beamcmds hardware object.
         """
         self.beamcmds_hwobj.centrebeam()
-        while self.beamcmds_hwobj.centrebeam._cmd_execution and not self.beamcmds_hwobj.centrebeam._cmd_execution.ready():
+        while (
+            self.beamcmds_hwobj.centrebeam._cmd_execution
+            and not self.beamcmds_hwobj.centrebeam._cmd_execution.ready()
+        ):
             time.sleep(1)
 
     def _register_module_functions(self, module_name, recurse=True, prefix=""):
         log = logging.getLogger("HWR")
-        log.info('Registering functions in module %s with XML-RPC server' %
-                            module_name)
+        log.info("Registering functions in module %s with XML-RPC server" % module_name)
 
         if not sys.modules.has_key(module_name):
             __import__(module_name)
         module = sys.modules[module_name]
 
-        if not hasattr(module, 'xmlrpc_prefix'):
-            log.error(('Module %s  has no attribute "xmlrpc_prefix": cannot ' + 
-                       'register its functions. Skipping') % module_name)
+        if not hasattr(module, "xmlrpc_prefix"):
+            log.error(
+                (
+                    'Module %s  has no attribute "xmlrpc_prefix": cannot '
+                    + "register its functions. Skipping"
+                )
+                % module_name
+            )
         else:
             prefix += module.xmlrpc_prefix
-            if len(prefix) > 0 and prefix[-1] != '_':
-                prefix += '_'
+            if len(prefix) > 0 and prefix[-1] != "_":
+                prefix += "_"
 
             if prefix in self.xmlrpc_prefixes:
-                msg = "Prefix %s already used: cannot register for module %s" % (prefix, module_name)
+                msg = "Prefix %s already used: cannot register for module %s" % (
+                    prefix,
+                    module_name,
+                )
                 log.error(msg)
                 raise Exception(msg)
             self.xmlrpc_prefixes.add(prefix)
 
             for f in inspect.getmembers(module, inspect.isfunction):
-                if f[0][0] != '_':
+                if f[0][0] != "_":
                     xmlrpc_name = prefix + f[0]
-                    log.info('Registering function %s.%s as XML-RPC function %s' %
-                        (module_name, f[1].__name__, xmlrpc_name) )
+                    log.info(
+                        "Registering function %s.%s as XML-RPC function %s"
+                        % (module_name, f[1].__name__, xmlrpc_name)
+                    )
 
                     # Bind method to this XMLRPCServer instance but don't set attribute
-                    # This is sufficient to register it as an xmlrpc function. 
+                    # This is sufficient to register it as an xmlrpc function.
                     bound_method = types.MethodType(f[1], self, self.__class__)
                     self._server.register_function(bound_method, xmlrpc_name)
 
@@ -674,8 +709,9 @@ class XMLRPCServer(HardwareObject):
                 sub_modules = pkgutil.walk_packages(module.__path__)
                 try:
                     sub_module = next(sub_modules)
-                    self._register_module_functions( module_name + '.' + sub_module[1],
-                        recurse=False, prefix=prefix)
+                    self._register_module_functions(
+                        module_name + "." + sub_module[1], recurse=False, prefix=prefix
+                    )
                 except StopIteration:
                     pass
 

@@ -11,50 +11,161 @@ from HardwareRepository.TaskUtils import *
 from AbstractEnergyScan import AbstractEnergyScan
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-scan_test_data = [(10841.0, 20.0), (10842.0, 20.0), (10843.0, 20.0), 
-(10844.0, 20.0), (10845.0, 20.0), (10846.0, 20.0), (10847.0, 20.0), 
-(10848.0, 20.0), (10849.0, 20.0), (10850.0, 20.0), (10851.0, 20.0), 
-(10852.0, 20.0), (10853.0, 20.0), (10854.0, 20.0), (10855.0, 20.0), 
-(10856.0, 20.0), (10857.0, 20.0), (10858.0, 20.00), (10859.0, 20.0),
-(10860.0, 20.0), (10861.0, 20.1), (10862.0, 21.4), (10863.0, 30.4), 
-(10864.9, 80.7), (10865.9, 299.0), (10866.7, 820.8), (10867.5, 2009.2), 
-(10868.2, 4305.5), (10869.0, 8070.2), (10869.8, 13246.7), (10870.6, 19124.1), 
-(10871.4, 24430.5), (10872.2, 27843.1), (10873.0, 28654.8), (10873.8, 27092.5), 
-(10874.6, 24138.5), (10875.4, 20957.3), (10876.0, 18373.6), (10877.0, 16373.8), 
-(10878.0, 15474.8), (10879.0, 15163.9), (10880.0, 15080.5), (10881.0, 15063.0), 
-(10882.0, 15060.3), (10883.0, 15059.8), (10884.0, 15059.7), (10885.0, 15059.0),
-(10886.0, 15059.0), (10887.0, 15059.0), (10888.0, 15059.0), (10889.0, 15059.0), 
-(10890.0, 15059.0), (10891.0, 15059.0), (10892.0, 15059.0), (10893.0, 15059.0), 
-(10894.0, 15059.0), (10895.0, 15059.0), (10896.0, 15059.0), (10897.0, 15059.0), 
-(10898.0, 15059.0), (10899.0, 15059.0), (10900.0, 15059.0), (10901.0, 15059.0), 
-(10902.0, 15059.0), (10903.0, 15059.0), (10904.0, 15059.0), (10905.0, 15059.0), 
-(10906.0, 15059.0), (10907.0, 15059.0), (10908.0, 15059.0), (10909.0, 15059.0), 
-(10910.0, 15059.0)]
+scan_test_data = [
+    (10841.0, 20.0),
+    (10842.0, 20.0),
+    (10843.0, 20.0),
+    (10844.0, 20.0),
+    (10845.0, 20.0),
+    (10846.0, 20.0),
+    (10847.0, 20.0),
+    (10848.0, 20.0),
+    (10849.0, 20.0),
+    (10850.0, 20.0),
+    (10851.0, 20.0),
+    (10852.0, 20.0),
+    (10853.0, 20.0),
+    (10854.0, 20.0),
+    (10855.0, 20.0),
+    (10856.0, 20.0),
+    (10857.0, 20.0),
+    (10858.0, 20.00),
+    (10859.0, 20.0),
+    (10860.0, 20.0),
+    (10861.0, 20.1),
+    (10862.0, 21.4),
+    (10863.0, 30.4),
+    (10864.9, 80.7),
+    (10865.9, 299.0),
+    (10866.7, 820.8),
+    (10867.5, 2009.2),
+    (10868.2, 4305.5),
+    (10869.0, 8070.2),
+    (10869.8, 13246.7),
+    (10870.6, 19124.1),
+    (10871.4, 24430.5),
+    (10872.2, 27843.1),
+    (10873.0, 28654.8),
+    (10873.8, 27092.5),
+    (10874.6, 24138.5),
+    (10875.4, 20957.3),
+    (10876.0, 18373.6),
+    (10877.0, 16373.8),
+    (10878.0, 15474.8),
+    (10879.0, 15163.9),
+    (10880.0, 15080.5),
+    (10881.0, 15063.0),
+    (10882.0, 15060.3),
+    (10883.0, 15059.8),
+    (10884.0, 15059.7),
+    (10885.0, 15059.0),
+    (10886.0, 15059.0),
+    (10887.0, 15059.0),
+    (10888.0, 15059.0),
+    (10889.0, 15059.0),
+    (10890.0, 15059.0),
+    (10891.0, 15059.0),
+    (10892.0, 15059.0),
+    (10893.0, 15059.0),
+    (10894.0, 15059.0),
+    (10895.0, 15059.0),
+    (10896.0, 15059.0),
+    (10897.0, 15059.0),
+    (10898.0, 15059.0),
+    (10899.0, 15059.0),
+    (10900.0, 15059.0),
+    (10901.0, 15059.0),
+    (10902.0, 15059.0),
+    (10903.0, 15059.0),
+    (10904.0, 15059.0),
+    (10905.0, 15059.0),
+    (10906.0, 15059.0),
+    (10907.0, 15059.0),
+    (10908.0, 15059.0),
+    (10909.0, 15059.0),
+    (10910.0, 15059.0),
+]
 
-chooch_graph_data = (\
-(12628, 0, -5), (12629, 0, -5), (12630, 0, -5), (12631, 0, -5), (12632, 0, -5),
-(12633, 0, -5), (12634, 0, -5), (12635, 0, -5), (12636, 0, -5), (12637, 0, -5),
-(12638, 0, -5), (12639, 0, -5), (12640, 0, -5), (12641, 0, -6), (12642, 0, -6),
-(12643, 0, -6), (12644, 0, -6), (12645, 0, -6), (12646, 0, -6), (12647, 0, -6),
-(12648, 0, -6), (12649, 0, -7), (12650, 0, -7), (12651, 0, -7), (12652, 0, -8),
-(12653, 0, -8), (12654, 0, -8), (12655, 1, -9), (12655, 2, -9), (12656, 3, -10),
-(12657, 4, -9), (12658, 5, -9), (12659, 6, -8), (12659, 6, -7), (12660, 6, -6),
-(12661, 5, -5), (12662, 4, -5), (12663, 4, -5), (12664, 3, -5), (12665, 3, -5),
-(12666, 3, -5), (12667, 3, -5), (12668, 3, -5), (12669, 3, -5), (12670, 3, -5),
-(12671, 3, -5), (12672, 3, -5), (12673, 3, -5), (12674, 3, -5), (12675, 3, -5),
-(12676, 3, -5), (12677, 3, -5), (12678, 3, -5), (12679, 3, -5), (12680, 3, -5),
-(12681, 3, -5), (12682, 3, -5), (12683, 3, -5), (12684, 3, -4), (12685, 3, -4),
-(12686, 3, -4), (12687, 3, -4), (12688, 3, -4), (12689, 3, -4), (12690, 3, -4),
-(12691, 3, -4), (12692, 3, -4), (12693, 3, -4), (12694, 3, -4),
-(12695, 3, -4), (12696, 3, -4))
+chooch_graph_data = (
+    (12628, 0, -5),
+    (12629, 0, -5),
+    (12630, 0, -5),
+    (12631, 0, -5),
+    (12632, 0, -5),
+    (12633, 0, -5),
+    (12634, 0, -5),
+    (12635, 0, -5),
+    (12636, 0, -5),
+    (12637, 0, -5),
+    (12638, 0, -5),
+    (12639, 0, -5),
+    (12640, 0, -5),
+    (12641, 0, -6),
+    (12642, 0, -6),
+    (12643, 0, -6),
+    (12644, 0, -6),
+    (12645, 0, -6),
+    (12646, 0, -6),
+    (12647, 0, -6),
+    (12648, 0, -6),
+    (12649, 0, -7),
+    (12650, 0, -7),
+    (12651, 0, -7),
+    (12652, 0, -8),
+    (12653, 0, -8),
+    (12654, 0, -8),
+    (12655, 1, -9),
+    (12655, 2, -9),
+    (12656, 3, -10),
+    (12657, 4, -9),
+    (12658, 5, -9),
+    (12659, 6, -8),
+    (12659, 6, -7),
+    (12660, 6, -6),
+    (12661, 5, -5),
+    (12662, 4, -5),
+    (12663, 4, -5),
+    (12664, 3, -5),
+    (12665, 3, -5),
+    (12666, 3, -5),
+    (12667, 3, -5),
+    (12668, 3, -5),
+    (12669, 3, -5),
+    (12670, 3, -5),
+    (12671, 3, -5),
+    (12672, 3, -5),
+    (12673, 3, -5),
+    (12674, 3, -5),
+    (12675, 3, -5),
+    (12676, 3, -5),
+    (12677, 3, -5),
+    (12678, 3, -5),
+    (12679, 3, -5),
+    (12680, 3, -5),
+    (12681, 3, -5),
+    (12682, 3, -5),
+    (12683, 3, -5),
+    (12684, 3, -4),
+    (12685, 3, -4),
+    (12686, 3, -4),
+    (12687, 3, -4),
+    (12688, 3, -4),
+    (12689, 3, -4),
+    (12690, 3, -4),
+    (12691, 3, -4),
+    (12692, 3, -4),
+    (12693, 3, -4),
+    (12694, 3, -4),
+    (12695, 3, -4),
+    (12696, 3, -4),
+)
 
 
 class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
-
     def __init__(self, name):
         AbstractEnergyScan.__init__(self)
         HardwareObject.__init__(self, name)
- 
+
     def init(self):
 
         self.ready_event = gevent.event.Event()
@@ -63,7 +174,7 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         self.scan_data = []
         self.thEdgeThreshold = 5
         self.energy2WavelengthConstant = 12.3980
-        self.defaultWavelength = 0.976 
+        self.defaultWavelength = 0.976
 
         self.energy_hwobj = self.getObjectByRole("energy")
         self.db_connection_hwobj = self.getObjectByRole("dbserver")
@@ -79,42 +190,54 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
                 # if point larger than previous point (for chooch)
                 if len(self.scan_data) > 0:
                     if x > self.scan_data[-1][0]:
-                        self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
+                        self.scan_data.append([(x < 1000 and x * 1000.0 or x), y])
                 else:
-                    self.scan_data.append([(x < 1000 and x*1000.0 or x), y])
-                self.emit('scanNewPoint', (x < 1000 and x*1000.0 or x), y)
+                    self.scan_data.append([(x < 1000 and x * 1000.0 or x), y])
+                self.emit("scanNewPoint", (x < 1000 and x * 1000.0 or x), y)
             time.sleep(0.05)
         self.scanCommandFinished()
 
-    def startEnergyScan(self, element, edge, directory, prefix,
-                        session_id=None, blsample_id=None, exptime=3):
+    def startEnergyScan(
+        self,
+        element,
+        edge,
+        directory,
+        prefix,
+        session_id=None,
+        blsample_id=None,
+        exptime=3,
+    ):
 
         self._element = element
         self._edge = edge
-        self.scan_info = {"sessionId": session_id, "blSampleId": blsample_id,
-                         "element": element,"edgeEnergy": edge}
-        self.scan_info['exposureTime'] = exptime
+        self.scan_info = {
+            "sessionId": session_id,
+            "blSampleId": blsample_id,
+            "element": element,
+            "edgeEnergy": edge,
+        }
+        self.scan_info["exposureTime"] = exptime
 
         if self.transmission_hwobj is not None:
-            self.scan_info['transmissionFactor'] = self.transmission_hwobj.get_value()
+            self.scan_info["transmissionFactor"] = self.transmission_hwobj.get_value()
         else:
-            self.scan_info['transmissionFactor'] = None
+            self.scan_info["transmissionFactor"] = None
         size_hor = None
         size_ver = None
         if self.beam_info_hwobj is not None:
             size_hor, size_ver = self.beam_info_hwobj.get_beam_size()
             size_hor = size_hor * 1000
             size_ver = size_ver * 1000
-        self.scan_info['beamSizeHorizontal'] = size_hor
-        self.scan_info['beamSizeVertical'] = size_ver
-        self.scan_info['startEnergy'] = 0
-        self.scan_info['endEnergy'] = 0
-        self.scan_info['fluorescenceDetector'] = "Mockup detector"
+        self.scan_info["beamSizeHorizontal"] = size_hor
+        self.scan_info["beamSizeVertical"] = size_ver
+        self.scan_info["startEnergy"] = 0
+        self.scan_info["endEnergy"] = 0
+        self.scan_info["fluorescenceDetector"] = "Mockup detector"
         self.scan_data = []
         self.scanCommandStarted()
         self.result_value_emitter = gevent.spawn(self.emit_result_values)
-        #self.emit('energyScanFinished', (self.scan_info,))
-        #self.ready_event.set()
+        # self.emit('energyScanFinished', (self.scan_info,))
+        # self.ready_event.set()
 
     def doChooch(self, elt, edge, scan_directory, archive_directory, prefix):
         """
@@ -126,8 +249,8 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
 
         if os.path.exists(scan_file_prefix + ".raw"):
             i = 1
-            while os.path.exists(scan_file_prefix + "%d.raw" %i):
-                  i = i + 1
+            while os.path.exists(scan_file_prefix + "%d.raw" % i):
+                i = i + 1
             scan_file_prefix += "_%d" % i
             archive_file_prefix += "_%d" % i
 
@@ -144,7 +267,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
         except:
-            logging.getLogger("HWR").exception("EnergyScan: could not create energy scan result directory.")
+            logging.getLogger("HWR").exception(
+                "EnergyScan: could not create energy scan result directory."
+            )
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
             return
@@ -153,7 +278,9 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
         except:
-            logging.getLogger("HWR").exception("EnergyScan: could not create energy scan result raw file")
+            logging.getLogger("HWR").exception(
+                "EnergyScan: could not create energy scan result raw file"
+            )
             self.store_energy_scan()
             self.emit("energyScanFailed", ())
             return
@@ -177,11 +304,14 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         fppPeak = 20.7
         fpInfl = -21.1
         fppInfl = 11.9
-        comm = "Mockup results" 
-        self.scan_info['edgeEnergy'] = 0.1
-        self.thEdge = self.scan_info['edgeEnergy']
-        logging.getLogger("HWR").info("th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f" % (self.thEdge, pk,ip,rm))
- 
+        comm = "Mockup results"
+        self.scan_info["edgeEnergy"] = 0.1
+        self.thEdge = self.scan_info["edgeEnergy"]
+        logging.getLogger("HWR").info(
+            "th. Edge %s ; chooch results are pk=%f, ip=%f, rm=%f"
+            % (self.thEdge, pk, ip, rm)
+        )
+
         self.scan_info["peakEnergy"] = pk
         self.scan_info["inflectionEnergy"] = ip
         self.scan_info["remoteEnergy"] = rm
@@ -199,13 +329,22 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         for i in range(len(chooch_graph_x)):
             chooch_graph_x[i] = chooch_graph_x[i] / 1000.0
 
-        title = "%s  %s  %s\n%.4f  %.2f  %.2f\n%.4f  %.2f  %.2f" % \
-              ("energy", "f'", "f''", pk, fpPeak, fppPeak, ip, fpInfl, fppInfl)
-        fig = Figure(figsize = (15, 11))
+        title = "%s  %s  %s\n%.4f  %.2f  %.2f\n%.4f  %.2f  %.2f" % (
+            "energy",
+            "f'",
+            "f''",
+            pk,
+            fpPeak,
+            fppPeak,
+            ip,
+            fpInfl,
+            fppInfl,
+        )
+        fig = Figure(figsize=(15, 11))
         ax = fig.add_subplot(211)
         ax.set_title("%s" % title)
         ax.grid(True)
-        ax.plot(*(zip(*self.scan_data)), **{"color": 'black'})
+        ax.plot(*(zip(*self.scan_data)), **{"color": "black"})
         ax.set_xlabel("Energy")
         ax.set_ylabel("MCA counts")
         ax2 = fig.add_subplot(212)
@@ -213,43 +352,72 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         ax2.set_xlabel("Energy")
         ax2.set_ylabel("")
         handles = []
-        handles.append(ax2.plot(chooch_graph_x, chooch_graph_y1, color = 'blue'))
-        handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color = 'red'))
+        handles.append(ax2.plot(chooch_graph_x, chooch_graph_y1, color="blue"))
+        handles.append(ax2.plot(chooch_graph_x, chooch_graph_y2, color="red"))
         canvas = FigureCanvasAgg(fig)
 
         self.scan_info["jpegChoochFileFullPath"] = str(archive_file_png_filename)
         try:
-            logging.getLogger("HWR").info("Rendering energy scan and Chooch " + \
-                 "graphs to PNG file : %s", scan_file_png_filename)
-            canvas.print_figure(scan_file_png_filename, dpi = 80)
+            logging.getLogger("HWR").info(
+                "Rendering energy scan and Chooch " + "graphs to PNG file : %s",
+                scan_file_png_filename,
+            )
+            canvas.print_figure(scan_file_png_filename, dpi=80)
         except:
             logging.getLogger("HWR").exception("could not print figure")
         try:
-            logging.getLogger("HWR").info("Saving energy scan to archive " +\
-                 "directory for ISPyB : %s", archive_file_png_filename)
-            canvas.print_figure(archive_file_png_filename, dpi = 80)
+            logging.getLogger("HWR").info(
+                "Saving energy scan to archive " + "directory for ISPyB : %s",
+                archive_file_png_filename,
+            )
+            canvas.print_figure(archive_file_png_filename, dpi=80)
         except:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()
 
-        logging.getLogger("HWR").info("<chooch> returning" )
-        self.emit('choochFinished', (pk, fppPeak, fpPeak, ip, fppInfl, fpInfl,
-                 rm, chooch_graph_x, chooch_graph_y1, chooch_graph_y2, title))
-        return pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, rm, chooch_graph_x, \
-                 chooch_graph_y1, chooch_graph_y2, title
+        logging.getLogger("HWR").info("<chooch> returning")
+        self.emit(
+            "choochFinished",
+            (
+                pk,
+                fppPeak,
+                fpPeak,
+                ip,
+                fppInfl,
+                fpInfl,
+                rm,
+                chooch_graph_x,
+                chooch_graph_y1,
+                chooch_graph_y2,
+                title,
+            ),
+        )
+        return (
+            pk,
+            fppPeak,
+            fpPeak,
+            ip,
+            fppInfl,
+            fpInfl,
+            rm,
+            chooch_graph_x,
+            chooch_graph_y1,
+            chooch_graph_y2,
+            title,
+        )
 
     def getElements(self):
-        elements=[]
+        elements = []
         try:
             for el in self["elements"]:
-                elements.append({"symbol":el.symbol, "energy":el.energy})
+                elements.append({"symbol": el.symbol, "energy": el.energy})
         except IndexError:
             pass
         return elements
 
     def getDefaultMadEnergies(self):
-        energies=[]
+        energies = []
         try:
             for el in self["mad"]:
                 energies.append([float(el.energy), el.directory])
@@ -257,10 +425,8 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
             pass
         return energies
 
-
     def canMoveEnergy(self):
         return False
-    
 
     def isConnected(self):
         return True
@@ -269,15 +435,21 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         """
         Descript. :
         """
-        title = "%s %s: %s %s" % (self.scan_info["sessionId"],
-            self.scan_info["blSampleId"], self.scan_info["element"], self.scan_info["edgeEnergy"])
-        dic = {'xlabel': 'energy',
-               'ylabel': 'counts',
-               'scaletype': 'normal',
-               'title': title}
-        self.emit('scanStart', dic)
-        self.emit('energyScanStarted', dic)
-        self.scan_info['startTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+        title = "%s %s: %s %s" % (
+            self.scan_info["sessionId"],
+            self.scan_info["blSampleId"],
+            self.scan_info["element"],
+            self.scan_info["edgeEnergy"],
+        )
+        dic = {
+            "xlabel": "energy",
+            "ylabel": "counts",
+            "scaletype": "normal",
+            "title": title,
+        }
+        self.emit("scanStart", dic)
+        self.emit("energyScanStarted", dic)
+        self.scan_info["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
 
     def scanCommandFinished(self, *args):
@@ -285,12 +457,12 @@ class EnergyScanMockup(AbstractEnergyScan, HardwareObject):
         Descript. :
         """
         with cleanup(self.ready_event.set):
-            self.scan_info['endTime'] = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.scan_info["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
             logging.getLogger("HWR").debug("Energy Scan: finished")
             self.scanning = False
-            self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.
-            self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.
-            self.emit('energyScanFinished', self.scan_info)
+            self.scan_info["startEnergy"] = self.scan_data[-1][0] / 1000.0
+            self.scan_info["endEnergy"] = self.scan_data[-1][1] / 1000.0
+            self.emit("energyScanFinished", self.scan_info)
 
     def get_scan_data(self):
         """

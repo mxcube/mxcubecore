@@ -57,9 +57,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
     def __getstate__(self):
         d = dict(self.__dict__)
-        d['_root_task'] = None
-        d['_paused_event'] = None  
-        return d      
+        d["_root_task"] = None
+        d["_paused_event"] = None
+        return d
 
     def __setstate__(self, d):
         self.__dict__.update(d)
@@ -94,11 +94,19 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         DataCollectionQueue entries
         """
         self.entry_list = []
+
         def get_data_collection_list(entry):
             for child in entry._queue_entry_list:
-                if ((isinstance(child, queue_entry.DataCollectionQueueEntry) or
-                     isinstance(child, queue_entry.CharacterisationGroupQueueEntry)) and
-                     not child.get_data_model().is_executed() and child.is_enabled()):
+                if (
+                    (
+                        isinstance(child, queue_entry.DataCollectionQueueEntry)
+                        or isinstance(
+                            child, queue_entry.CharacterisationGroupQueueEntry
+                        )
+                    )
+                    and not child.get_data_model().is_executed()
+                    and child.is_enabled()
+                ):
                     self.entry_list.append(child)
                 get_data_collection_list(child)
 
@@ -109,10 +117,10 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for index, entry in enumerate(self.entry_list[:-1]):
                 entry.in_queue = index + 1
 
-        #msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
-        #for entry in self.entry_list:
+        # msg = "Starting to execute queue with %d elements: " % len(self.entry_list)
+        # for entry in self.entry_list:
         #    msg += str(entry) + " (in_queue=%s) " % entry.in_queue
-        #logging.getLogger('queue_exec').info(msg)
+        # logging.getLogger('queue_exec').info(msg)
 
     def is_executing(self, node_id=None):
         """
@@ -136,47 +144,49 @@ class QueueManager(HardwareObject, QueueEntryContainer):
 
     def __execute_task(self):
         self._running = True
-        #self.emit('centringAllowed', (False, ))
+        # self.emit('centringAllowed', (False, ))
         try:
-          for qe in self._queue_entry_list:
-            try:
-                self.__execute_entry(qe)
-            except (queue_entry.QueueAbortedException, Exception) as ex:
+            for qe in self._queue_entry_list:
                 try:
-                    qe.handle_exception(ex)
-                    self.stop()
-                except gevent.GreenletExit:
-                    pass
+                    self.__execute_entry(qe)
+                except (queue_entry.QueueAbortedException, Exception) as ex:
+                    try:
+                        qe.handle_exception(ex)
+                        self.stop()
+                    except gevent.GreenletExit:
+                        pass
 
-                if isinstance(ex, queue_entry.QueueAbortedException):
-                    logging.getLogger('user_level_log').\
-                        warning('Queue execution was aborted, ' + str(ex))
-                else:
-                    logging.getLogger('user_level_log').\
-                        error('Queue execution failed with: ' + str(ex))
+                    if isinstance(ex, queue_entry.QueueAbortedException):
+                        logging.getLogger("user_level_log").warning(
+                            "Queue execution was aborted, " + str(ex)
+                        )
+                    else:
+                        logging.getLogger("user_level_log").error(
+                            "Queue execution failed with: " + str(ex)
+                        )
 
-                raise ex
+                    raise ex
         finally:
-          self._running = False
-          self.emit('queue_execution_finished', (None,))
-          #self.emit('centringAllowed', (True, ))
+            self._running = False
+            self.emit("queue_execution_finished", (None,))
+            # self.emit('centringAllowed', (True, ))
 
     def __execute_entry(self, entry):
         if not entry.is_enabled() or self._is_stopped:
             return
-        
+
         status = "Successful"
-        #self.emit('centringAllowed', (False, ))
-        self.emit('queue_entry_execute_started', (entry, ))
+        # self.emit('centringAllowed', (False, ))
+        self.emit("queue_entry_execute_started", (entry,))
         self.set_current_entry(entry)
         self._current_queue_entries.append(entry)
 
-        logging.getLogger('queue_exec').info('Calling execute on: ' + str(entry))
-        #logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
+        logging.getLogger("queue_exec").info("Calling execute on: " + str(entry))
+        # logging.getLogger('queue_exec').info('Using model: ' + str(entry.get_data_model()))
 
         if self.is_paused():
-            logging.getLogger('user_level_log').info('Queue paused, waiting ...')
-            entry.get_view().setText(1, 'Queue paused, waiting')
+            logging.getLogger("user_level_log").info("Queue paused, waiting ...")
+            entry.get_view().setText(1, "Queue paused, waiting")
 
         self.wait_for_pause_event()
 
@@ -192,31 +202,33 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             # This part should not be here
             # But somehow exception from collect_failed is not catched here
             if entry.is_failed():
-                self.emit('queue_entry_execute_finished', (entry, "Failed"))
-                self.emit('statusMessage', ("status", "Queue execution failed", "error"))
+                self.emit("queue_entry_execute_finished", (entry, "Failed"))
+                self.emit(
+                    "statusMessage", ("status", "Queue execution failed", "error")
+                )
             else:
-                self.emit('queue_entry_execute_finished', (entry, "Successful"))
-                self.emit('statusMessage', ("status", "", "ready"))
+                self.emit("queue_entry_execute_finished", (entry, "Successful"))
+                self.emit("statusMessage", ("status", "", "ready"))
         except queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
-            self.emit('queue_entry_execute_finished', (entry, "Skipped"))
+            self.emit("queue_entry_execute_finished", (entry, "Skipped"))
         except queue_entry.QueueExecutionException as ex:
-            self.emit('queue_entry_execute_finished', (entry, "Failed"))
-            self.emit('statusMessage', ("status", "Queue execution failed", "error"))
+            self.emit("queue_entry_execute_finished", (entry, "Failed"))
+            self.emit("statusMessage", ("status", "Queue execution failed", "error"))
         except (queue_entry.QueueAbortedException, Exception) as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:
             # Definetly not good state, but call post_execute
             # in anyways, there might be code that cleans up things
             # done in _pre_execute or before the exception in _execute.
-            self.emit('queue_entry_execute_finished', (entry, "Aborted"))
+            self.emit("queue_entry_execute_finished", (entry, "Aborted"))
             entry.post_execute()
             entry.handle_exception(ex)
             raise ex
         else:
             entry.post_execute()
         finally:
-            #self.emit('queue_entry_execute_finished', (entry, ))
+            # self.emit('queue_entry_execute_finished', (entry, ))
             self.set_current_entry(None)
             self._current_queue_entries.remove(entry)
 
@@ -230,7 +242,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         if self._queue_entry_list:
             for qe in self._current_queue_entries:
                 try:
-                    self.emit('queue_entry_execute_finished', (qe, "Aborted"))
+                    self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
                 except queue_entry.QueueAbortedException:
@@ -238,13 +250,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                 except:
                     pass
 
-        self._root_task.kill(block = False)
+        self._root_task.kill(block=False)
 
         # Reset the pause event, incase we were waiting.
         self.set_pause(False)
-        self.emit('queue_stopped', (None,))
-        self.emit('statusMessage', ("status", "", "Queue stoped"))
-        #self.emit('centringAllowed', (True, )) 
+        self.emit("queue_stopped", (None,))
+        self.emit("statusMessage", ("status", "", "Queue stoped"))
+        # self.emit('centringAllowed', (True, ))
         self._is_stopped = True
 
     def set_pause(self, state):
@@ -258,9 +270,9 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         :returns: None
         :rtype: NoneType
         """
-        self.emit('queue_paused', (state,))
-        self.emit('statusMessage', ("status", "Queue paused", "action_req"))
-        #self.emit('centringAllowed', (True, ))
+        self.emit("queue_paused", (state,))
+        self.emit("statusMessage", ("status", "Queue paused", "action_req"))
+        # self.emit('centringAllowed', (True, ))
         if state:
             self._paused_event.clear()
         else:
@@ -342,7 +354,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         return self._current_queue_entry
 
-    def get_entry_with_model(self, model, root_queue_entry = None):
+    def get_entry_with_model(self, model, root_queue_entry=None):
         """
         Find the entry with the data model model.
 
@@ -386,12 +398,12 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         self._queue_entry_list = []
 
     def show_workflow_tab(self):
-        self.emit('show_workflow_tab')
+        self.emit("show_workflow_tab")
 
     def __str__(self):
-        s = '['
+        s = "["
 
         for entry in self._queue_entry_list:
             s += str(entry)
 
-        return s + ']'
+        return s + "]"

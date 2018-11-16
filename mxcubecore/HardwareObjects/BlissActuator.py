@@ -18,23 +18,21 @@ class BlissActuator(AbstractActuator):
         AbstractActuator.__init__(self, name)
 
     def init(self):
-        self.username =  self.getProperty("username")
-        name =  self.getProperty("name")
+        self.username = self.getProperty("username")
+        name = self.getProperty("name")
         self._actuator = getattr(self.getObjectByRole("controller"), name)
-        self.states = {'IN': 'IN', 'OUT': 'OUT'}
+        self.states = {"IN": "IN", "OUT": "OUT"}
         self.value_changed(self._actuator.state())
 
     def get_actuator_state(self, read=False):
         if read is True:
             value = self._actuator.state()
-            self.actuator_state = \
-                self.states.get(value, AbstractActuator.UNKNOWN)
+            self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
         else:
             if self.actuator_state == AbstractActuator.UNKNOWN:
                 self.connectNotify("actuatorStateChanged")
 
-        logging.getLogger().debug("%s state: %s" %
-                                 (self.username, self.actuator_state))
+        logging.getLogger().debug("%s state: %s" % (self.username, self.actuator_state))
         return self.actuator_state
 
     @task

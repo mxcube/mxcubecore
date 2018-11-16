@@ -1,4 +1,4 @@
-'''Tango Shutter Hardware Object
+"""Tango Shutter Hardware Object
 Example XML::
 
   <device class="ALBAEpsActuator">
@@ -40,15 +40,22 @@ Public Interface:
    Signals:
        stateChanged
  
-'''
+"""
 
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 import logging
 import time
 
-STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
-         (0,1,9,11,13,23)
+STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
+    0,
+    1,
+    9,
+    11,
+    13,
+    23,
+)
+
 
 class ALBAFastShutter(BaseHardwareObjects.Device):
 
@@ -68,7 +75,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def init(self):
 
-        self.actuator_state = STATE_UNKNOWN  
+        self.actuator_state = STATE_UNKNOWN
         self.actuator_value = None
         self.motor_position = None
         self.motor_state = None
@@ -77,26 +84,27 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             self.nistart_cmd = self.getCommandObject("nistart")
             self.nistop_cmd = self.getCommandObject("nistop")
 
-            self.actuator_channel = self.getChannelObject('actuator')
-            self.motorpos_channel = self.getChannelObject('motorposition')
-            self.motorstate_channel = self.getChannelObject('motorstate')
+            self.actuator_channel = self.getChannelObject("actuator")
+            self.motorpos_channel = self.getChannelObject("motorposition")
+            self.motorstate_channel = self.getChannelObject("motorstate")
 
-            self.actuator_channel.connectSignal('update', self.stateChanged)
-            self.motorpos_channel.connectSignal('update', self.motorPositionChanged)
-            self.motorstate_channel.connectSignal('update', self.motorStateChanged)
+            self.actuator_channel.connectSignal("update", self.stateChanged)
+            self.motorpos_channel.connectSignal("update", self.motorPositionChanged)
+            self.motorstate_channel.connectSignal("update", self.motorStateChanged)
         except KeyError:
-            logging.getLogger().warning('%s: cannot report FrontEnd State', self.name())
+            logging.getLogger().warning("%s: cannot report FrontEnd State", self.name())
 
         try:
             state_string = self.getProperty("states")
             if state_string is None:
-                 self.state_strings = self.default_state_strings
+                self.state_strings = self.default_state_strings
             else:
-                 states = state_string.split(",")
-                 self.state_strings = states[1].strip(), states[0].strip()
+                states = state_string.split(",")
+                self.state_strings = states[1].strip(), states[0].strip()
         except:
             import traceback
-            logging.getLogger("HWR").warning( traceback.format_exc() )
+
+            logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -109,7 +117,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def update_state(self):
 
-        if None in [self.actuator_value, self.motor_position, self.motor_state]:  
+        if None in [self.actuator_value, self.motor_position, self.motor_state]:
             act_state = STATE_UNKNOWN
         elif str(self.motor_state) == "MOVING":
             act_state = STATE_MOVING
@@ -118,11 +126,11 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         else:
             state = self.actuator_value.lower()
 
-            if state == 'high':
+            if state == "high":
                 act_state = STATE_OUT
             else:
                 act_state = STATE_IN
-    
+
         if act_state != self.actuator_state:
             self.actuator_state = act_state
             self.emitStateChanged()
@@ -143,7 +151,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         #
         # emit signal
         #
-        self.emit('fastStateChanged', ((self.actuator_state),))
+        self.emit("fastStateChanged", ((self.actuator_state),))
 
     def getMotorPosition(self):
         if self.motor_position is None:
@@ -161,9 +169,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()  
+        state = self.getState()
 
-        if state in [STATE_OUT,STATE_IN]:
+        if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
         elif state in self.states:
             return self.states[state]
@@ -178,11 +186,11 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def close(self):
         self.motorpos_channel.setValue(0)
-        self.set_ttl('High')
+        self.set_ttl("High")
 
     def open(self):
         self.motorpos_channel.setValue(0)
-        self.set_ttl('Low')
+        self.set_ttl("Low")
 
     def set_ttl(self, value):
         self.nistop_cmd()
@@ -194,25 +202,26 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             return True
         else:
             return False
-            
+
     def is_close(self):
         if self.actuator_state == STATE_OUT:
             return True
         else:
             return False
 
+
 def test_hwo(hwo):
-    print "Name is: ",hwo.getUserName()
+    print "Name is: ", hwo.getUserName()
 
-    print "Shutter state is: ",hwo.getState()
-    print "Shutter status is: ",hwo.getStatus()
-    print "Motor position is: ",hwo.getMotorPosition()
-    print "Motor state is: ",hwo.getMotorState()
-    #hwo.open() 
-    #time.sleep(2)
-    #print "is_open?" , hwo.is_open()
-    #print "is_close?" , hwo.is_close()
+    print "Shutter state is: ", hwo.getState()
+    print "Shutter status is: ", hwo.getStatus()
+    print "Motor position is: ", hwo.getMotorPosition()
+    print "Motor state is: ", hwo.getMotorState()
+    # hwo.open()
+    # time.sleep(2)
+    # print "is_open?" , hwo.is_open()
+    # print "is_close?" , hwo.is_close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()
-

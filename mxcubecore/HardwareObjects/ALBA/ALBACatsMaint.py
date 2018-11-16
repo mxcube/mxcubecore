@@ -1,12 +1,11 @@
-
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
 from sample_changer.CatsMaint import CatsMaint
 import logging
 
-class ALBACatsMaint(CatsMaint):
 
+class ALBACatsMaint(CatsMaint):
     def __init__(self, *args):
         CatsMaint.__init__(self, *args)
 
@@ -25,7 +24,7 @@ class ALBACatsMaint(CatsMaint):
             self.super_abort_cmd()
         self._cmdAbort()
 
-    def _doResetMemory(self): 
+    def _doResetMemory(self):
         """
         Reset CATS memory.
         """
@@ -37,14 +36,14 @@ class ALBACatsMaint(CatsMaint):
         """
         Reset CATS system.
         """
-        self._cmdAbort()  
+        self._cmdAbort()
         self._cmdReset()
         self._doResetMemory()
 
     def _doOperationCommand(self, cmd, pars):
         """
         Send a CATS command
-        
+
         @cmd: command
         @pars: command arguments
         """
@@ -61,6 +60,7 @@ class ALBACatsMaint(CatsMaint):
         else:
             shifts = None
         return shifts
+
 
 def test_hwo(hwo):
     print hwo._get_shifts()

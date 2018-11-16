@@ -1,4 +1,5 @@
-import ID30BeamCmds 
+import ID30BeamCmds
+
 
 class ID30A1BeamCmds(ID30BeamCmds.ID30BeamCmds):
     def __init__(self, *args):
@@ -6,7 +7,9 @@ class ID30A1BeamCmds(ID30BeamCmds.ID30BeamCmds):
 
     def init(self):
         controller = self.getObjectByRole("controller")
-        self.centrebeam = ID30BeamCmds.ControllerCommand("Centre beam", controller.centrebeam)
+        self.centrebeam = ID30BeamCmds.ControllerCommand(
+            "Centre beam", controller.centrebeam
+        )
 
     def getCommands(self):
-        return [self.centrebeam] 
+        return [self.centrebeam]

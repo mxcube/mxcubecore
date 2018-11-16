@@ -3,15 +3,13 @@ from HardwareRepository.TaskUtils import *
 from MD2Motor import MD2Motor
 
 
-
 class MicrodiffFocusMotor(MD2Motor):
-
-    def __init__(self,name):
-        MD2Motor.__init__(self,name)
+    def __init__(self, name):
+        MD2Motor.__init__(self, name)
 
     def init(self):
 
-        diffractometer_hwobj = self.getObjectByRole("controller")      
+        diffractometer_hwobj = self.getObjectByRole("controller")
         if diffractometer_hwobj.in_plate_mode():
             self.motor_name = self.getProperty("centring_focus")
         else:

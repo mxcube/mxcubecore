@@ -147,6 +147,7 @@ except ImportError:
 from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 
+
 class MultiplePositions(Equipment):
     def init(self):
         try:
@@ -156,22 +157,22 @@ class MultiplePositions(Equipment):
 
         motors = self["motors"]
         self.roles = motors.getRoles()
-        
+
         self.deltas = {}
         try:
-            self.deltas = self['deltas'].getProperties()
+            self.deltas = self["deltas"].getProperties()
         except:
-            logging.getLogger().error('No deltas.')
+            logging.getLogger().error("No deltas.")
 
         self.positions = {}
         self.positionsIndex = []
         try:
-            positions = self['positions']
+            positions = self["positions"]
         except:
-            logging.getLogger().error('No positions.')
-        else: 
+            logging.getLogger().error("No positions.")
+        else:
             for position in positions:
-                name = position.getProperty('name')
+                name = position.getProperty("name")
                 if name is not None:
                     self.positionsIndex.append(name)
                     self.positions[name] = {}
@@ -180,10 +181,10 @@ class MultiplePositions(Equipment):
                     motroles = list(motpos.keys())
 
                     for role in self.roles:
-                        self.positions[name][role] = motpos[role] 
+                        self.positions[name][role] = motpos[role]
                 else:
-                    logging.getLogger().error('No name for position.')
-    
+                    logging.getLogger().error("No name for position.")
+
         self.motors = {}
         for mot in self["motors"]:
             self.motors[mot.getMotorMnemonic()] = mot
@@ -191,11 +192,10 @@ class MultiplePositions(Equipment):
             self.connect(mot, "positionChanged", self.checkPosition)
             self.connect(mot, "stateChanged", self.stateChanged)
 
-	
     def getState(self):
         if not self.isReady():
             return ""
-			
+
         state = "READY"
         for mot in self.motors.values():
             if mot.getState() == mot.MOVING:
@@ -205,19 +205,17 @@ class MultiplePositions(Equipment):
 
         return state
 
-    
     def stateChanged(self, state):
         self.emit("stateChanged", (self.getState(),))
         self.checkPosition()
 
- 
     def moveToPosition(self, name, wait=False):
         move_list = []
         for role in self.roles:
             device = self.getDeviceByRole(role)
             pos = self.positions[name][role]
             move_list.append((device, pos))
-    
+
         for mot, pos in move_list:
             if mot is not None:
                 mot.move(pos)
@@ -228,7 +226,7 @@ class MultiplePositions(Equipment):
         for mne,pos in self.positions[name].items():
         self.motors[mne].move(pos)
         """
-    
+
     def getPosition(self):
         if not self.isReady():
             return None
@@ -243,58 +241,58 @@ class MultiplePositions(Equipment):
                 if mot is not None:
                     motpos = mot.getPosition()
                     try:
-                        if motpos < pos + self.deltas[role] and \
-                           motpos > pos - self.deltas[role]:
+                        if (
+                            motpos < pos + self.deltas[role]
+                            and motpos > pos - self.deltas[role]
+                        ):
                             findPosition += 1
                     except:
                         continue
 
             if findPosition == len(self.roles):
                 return posName
-    
+
         return None
 
     def checkPosition(self, *args):
         if not self.isReady():
             return None
-            
+
         posName = self.getPosition()
 
         if posName == None:
-            self.emit("noPosition",())
+            self.emit("noPosition", ())
             return None
         else:
             self.emit("positionReached", (posName,))
             return posName
-            
+
     def setNewPositions(self, name, newPositions):
         position = self.__getPositionObject(name)
-    
+
         if position is None:
             self.checkPosition()
             return
-                	
+
         for role, pos in list(newPositions.items()):
             self.positions[name][role] = pos
             position.setProperty(role, pos)
 
         self.checkPosition()
         self.commitChanges()
-        
 
     def getPositionKeyValue(self, name, key):
         position = self.__getPositionObject(name)
-        
+
         if position is None:
             return None
 
-            
         return position.getProperty(key)
-    
+
     def setPositionKeyValue(self, name, key, value):
         xml_tree = cElementTree.fromstring(self.xml_source())
         positions = xml_tree.find("positions")
-        
+
         pos_list = positions.findall("position")
         for pos in pos_list:
             if pos.find("name").text == name:
@@ -309,31 +307,31 @@ class MultiplePositions(Equipment):
                     print(cElementTree.tostring(xml_tree))
                     self.rewrite_xml(cElementTree.tostring(xml_tree))
                     return True
-        
+
         return False
 
     def __getPositionObject(self, name):
         for position in self["positions"]:
             if position.getProperty("name") == name:
-                return(position)
-        
-        return(None)
-        
+                return position
+
+        return None
+
     def getRoles(self):
         return self.roles
-        
+
     def addPosition(self, el_dict):
         xml_tree = cElementTree.fromstring(self.xml_source())
         positions = xml_tree.find("positions")
-        
+
         pos = cElementTree.SubElement(positions, "position")
-        
-        for key,val in el_dict.items():
+
+        for key, val in el_dict.items():
             sel = cElementTree.SubElement(pos, key)
             sel.text = val
-            
+
         self.rewrite_xml(cElementTree.tostring(xml_tree))
-        
+
     def remPosition(self, name):
         xml_tree = cElementTree.fromstring(self.xml_source())
         positions = xml_tree.find("positions")
@@ -341,16 +339,17 @@ class MultiplePositions(Equipment):
         pos_list = positions.findall("position")
         for pos in pos_list:
             if pos.find("name").text == name:
-                positions.remove(pos)             
+                positions.remove(pos)
 
         self.rewrite_xml(cElementTree.tostring(xml_tree))
 
     def addField(self, name, key, val):
         pass
-        
+
     def remField(self, name, key):
         pass
-        
+
+
 """      
         xml_tree = cElementTree.fromstring(self.xml_source())
         for elt in xml_tree.findall(".//position"):
@@ -359,4 +358,4 @@ class MultiplePositions(Equipment):
              new_elt.text = "HELLO"
              elt.append(new_elt)
         self.rewrite_xml(cElementTree.tostring(xml_tree))
-"""        
+"""

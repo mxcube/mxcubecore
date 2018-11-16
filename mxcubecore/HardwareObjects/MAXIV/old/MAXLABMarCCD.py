@@ -2,19 +2,21 @@
 Detector hwobj maintains information about detector.
 """
 from HardwareRepository.BaseHardwareObjects import Equipment
-import logging 
+import logging
 
-class MAXLABMarCCD(Equipment):    
+
+class MAXLABMarCCD(Equipment):
     """
     Descript. : Detector class. Contains all information about detector
                 the states are 'OK', and 'BAD'
                 the status is busy, exposing, ready, etc.
                 the physical property is RH for pilatus, P for rayonix
     """
-    def __init__(self, name): 
+
+    def __init__(self, name):
         """
         Descript. :
-        """ 
+        """
         Equipment.__init__(self, name)
 
         self.detector_mode = 0
@@ -31,12 +33,11 @@ class MAXLABMarCCD(Equipment):
         """
         Descript. :
         """
-        
-        try:
-           self.detector_modes_dict = eval(self.getProperty("detectorModes"))
-        except:
-           pass
 
+        try:
+            self.detector_modes_dict = eval(self.getProperty("detectorModes"))
+        except:
+            pass
 
     def get_distance(self):
         """
@@ -65,9 +66,9 @@ class MAXLABMarCCD(Equipment):
         Descript. :
         """
         if self.detector_modes_dict is not None:
-            return self.detector_modes_dict.keys()	
+            return self.detector_modes_dict.keys()
         else:
-            return [] 
+            return []
 
     def has_shutterless(self):
         """

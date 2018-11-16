@@ -7,7 +7,7 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
     def __init__(self, *args):
         MicrodiffInOut.MicrodiffInOut.__init__(self, *args)
 
-    def init(self, *args): 
+    def init(self, *args):
         MicrodiffInOut.MicrodiffInOut.init(self)
         self.keep_polling = True
 

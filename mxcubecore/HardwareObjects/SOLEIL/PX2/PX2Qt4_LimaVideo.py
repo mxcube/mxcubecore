@@ -65,34 +65,35 @@ try:
 except ImportError, e:
     pass
 
+
 class PX2Qt4_LimaVideo(Qt4_LimaVideo):
     default_exposure_time = 0.5
-    
+
     def init(self):
         exposure_time = self.getProperty("exposure_time")
-        
+
         if exposure_time is not None:
             self.exposure_time = float(exposure_time)
         else:
             self.exposure_time = self.default_exposure_time
-        
+
         Qt4_LimaVideo.init(self)
-        
+
     def set_cam_encoding(self, set_cam_encoding):
-        if cam_encoding == 'yuv422p':
+        if cam_encoding == "yuv422p":
             self.video.setMode(Core.YUV422)
             self.decoder = self.yuv_2_rgb
-        elif cam_encoding == 'y8':
+        elif cam_encoding == "y8":
             self.video.setMode(Core.Y8)
             self.decoder = self.y8_2_rgb
-        elif cam_encoding == 'y16':
+        elif cam_encoding == "y16":
             self.video.setMode(Core.Y16)
-        
+
     def get_image(self):
         image = self.video.getLastImage()
         raw_buffer = image.buffer()
         return raw_buffer, image.width(), image.height()
-    
+
     def set_exposure_time(self, exposure_time):
         was_live = False
         print "Setting exposure to %s" % exposure_time
@@ -100,28 +101,31 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
             was_live = True
             self.set_video_live(False)
             print "Stopped"
-        
+
         self.video.setExposure(exposure_time)
-        
+
         if was_live:
             print "Starting"
             self.set_video_live(True)
-            
+
+
 def test_hwo():
     from QtImport import *
     import time
-    hwr_directory = os.environ['MXCUBE_XML_PATH']
-    print 'hwr_directory', hwr_directory
-    print 'abs.path hwr_directory', os.path.abspath(hwr_directory)
+
+    hwr_directory = os.environ["MXCUBE_XML_PATH"]
+    print "hwr_directory", hwr_directory
+    print "abs.path hwr_directory", os.path.abspath(hwr_directory)
     from HardwareRepository.HardwareRepository import HardwareRepository
+
     hwr = HardwareRepository(os.path.abspath(hwr_directory))
     hwr.connect()
-    
-    hwo = hwr.getHardwareObject('/singleton_objects/limavideo')
-    
-    print 'Image dimensions: ', hwo.get_image_dimensions()
-    print 'Live Mode: ', hwo.get_video_live()
-    
+
+    hwo = hwr.getHardwareObject("/singleton_objects/limavideo")
+
+    print "Image dimensions: ", hwo.get_image_dimensions()
+    print "Live Mode: ", hwo.get_video_live()
+
     app = QApplication([])
 
     win = QMainWindow()
@@ -141,8 +145,7 @@ def test_hwo():
     win.setCentralWidget(lab)
     win.show()
     app.exec_()
-    
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     test_hwo()
-    

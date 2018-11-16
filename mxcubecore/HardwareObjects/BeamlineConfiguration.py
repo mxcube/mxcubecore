@@ -22,26 +22,23 @@ class BeamlineConfiguration(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-
     def detector_has_shutterless(self):
         """
         :returns: True if the detector is capable of shuterless.
         :rtype: bool
         """
         shutter_less = False
-        
+
         try:
-            shutter_less = self["BCM_PARS"]['detector'].\
-                           getProperty('has_shutterless')
+            shutter_less = self["BCM_PARS"]["detector"].getProperty("has_shutterless")
 
             if shutter_less is None:
                 shutter_less = False
 
         except:
             shutter_less = False
-            
-        return shutter_less
 
+        return shutter_less
 
     def tunable_wavelength(self):
         """
@@ -49,14 +46,14 @@ class BeamlineConfiguration(HardwareObject):
         :rtype: bool
         """
         tw = False
-        
+
         try:
-            tw = self["BCM_PARS"].getProperty('tunable_wavelength')
-            
+            tw = self["BCM_PARS"].getProperty("tunable_wavelength")
+
             if tw is None:
                 tw = False
-                
+
         except:
             shutter_less = False
-        
+
         return tw

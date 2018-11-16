@@ -26,17 +26,19 @@ class ESRFBeamInfo(BeamInfo.BeamInfo):
         self.chan_beam_shape_ellipse = None
         BeamInfo.BeamInfo.init(self)
 
-        beam_size_slits = self.getProperty('beam_size_slits')
+        beam_size_slits = self.getProperty("beam_size_slits")
         if beam_size_slits:
             self.beam_size_slits = map(float, beam_size_slits.split())
         self.camera = self.getDeviceByRole("camera")
 
-        beam_position = self.getProperty('beam_position')
+        beam_position = self.getProperty("beam_position")
         if beam_position:
             self.beam_position = tuple(map(float, beam_position.split()))
         else:
-            self.beam_position = (self.camera.getWidth() / 2,
-                                  self.camera.getHeight() / 2)
+            self.beam_position = (
+                self.camera.getWidth() / 2,
+                self.camera.getHeight() / 2,
+            )
 
         self.flux = self.getObjectByRole("flux")
 

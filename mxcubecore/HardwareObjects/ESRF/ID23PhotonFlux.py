@@ -16,13 +16,13 @@ class ID23PhotonFlux(Equipment):
     def init(self):
         self.counter = DeviceProxy(self.getProperty("url"))
         try:
-            self.threshold = map(float,self.getProperty("threshold").split())
+            self.threshold = map(float, self.getProperty("threshold").split())
         except AttributeError:
             self.threshold = [0, 9999]
         self.shutter = self.getDeviceByRole("shutter")
         self.energy_motor = self.getObjectByRole("energy")
         self.aperture = self.getObjectByRole("aperture")
-        fname  = self.getProperty("calibrated_diodes_file")
+        fname = self.getProperty("calibrated_diodes_file")
 
         self.flux_calc = CalculateFlux()
         self.flux_calc.init(fname)
@@ -50,10 +50,10 @@ class ID23PhotonFlux(Equipment):
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-          egy = self.energy_motor.getCurrentEnergy()*1000.0
-          calib = self.flux_calc.calc_flux_coef(egy)
+            egy = self.energy_motor.getCurrentEnergy() * 1000.0
+            calib = self.flux_calc.calc_flux_coef(egy)
         except:
-          logging.getLogger("HWR").exception("%s: could not get energy", self.name())
+            logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
                 aperture_coef = 1
@@ -61,13 +61,13 @@ class ID23PhotonFlux(Equipment):
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
                 except:
-                    aperture_coef = 1.
-            counts = math.fabs(counts * calib[0] * aperture_coef)*10e6
+                    aperture_coef = 1.0
+            counts = math.fabs(counts * calib[0] * aperture_coef) * 10e6
         return counts
 
     def connectNotify(self, signal):
         if signal == "valueChanged":
-          self.emitValueChanged()
+            self.emitValueChanged()
 
     def shutterStateChanged(self, _):
         self.countsUpdated(self._get_counts())
@@ -84,8 +84,8 @@ class ID23PhotonFlux(Equipment):
 
     def emitValueChanged(self, flux=None):
         if flux is None:
-          self.current_flux = None
-          self.emit("valueChanged", ("?", ))
+            self.current_flux = None
+            self.emit("valueChanged", ("?",))
         else:
-          self.current_flux = flux
-          self.emit("valueChanged", (self.current_flux, ))
+            self.current_flux = flux
+            self.emit("valueChanged", (self.current_flux,))

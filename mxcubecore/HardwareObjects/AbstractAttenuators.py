@@ -39,26 +39,26 @@ class AbstractAttenuators(Device, object):
     @abc.abstractmethod
     def set_value(self, value, timeout=None):
         self._value = value
-        self.emit('valueChanged', self._value)
+        self.emit("valueChanged", self._value)
 
     def get_value(self):
         return self._value
 
     def set_limits(self, limits):
         self._limits = limits
-        self.emit('limitsChanged', (self._limits, )) 
+        self.emit("limitsChanged", (self._limits,))
 
     def get_limits(self):
         return self._limits
 
     def set_state(self, state):
         self._state = state
-        self.emit('stateChanged', self._state)
+        self.emit("stateChanged", self._state)
 
     def get_state(self):
         return self._state
 
     def update_values(self):
-        self.emit('valueChanged', self._value)
-        self.emit('limitsChanged', (self._limits, ))
-        self.emit('stateChanged', self._state)
+        self.emit("valueChanged", self._value)
+        self.emit("limitsChanged", (self._limits,))
+        self.emit("stateChanged", self._state)

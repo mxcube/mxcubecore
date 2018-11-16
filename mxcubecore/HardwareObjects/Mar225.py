@@ -1,10 +1,11 @@
 from HardwareRepository.BaseHardwareObjects import Device
 
-class Mar225(Device):      
+
+class Mar225(Device):
     def __init__(self, name):
         Device.__init__(self, name)
 
-    def init(self): 
+    def init(self):
         pass
 
     def has_shutterless(self):

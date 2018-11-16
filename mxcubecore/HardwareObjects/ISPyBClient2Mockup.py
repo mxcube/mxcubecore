@@ -17,6 +17,7 @@ from urlparse import urljoin
 # to simulate ispybDown, but ldap login succeeds, use "ispybDown" for password
 # to simulate no session scheduled, use "nosession" for password
 
+
 class ISPyBClient2Mockup(HardwareObject):
     """
     Web-service client for ISPyB.
@@ -34,15 +35,15 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         Init method declared by HardwareObject.
         """
-        self.authServerType = self.getProperty('authServerType') or "ldap"
+        self.authServerType = self.getProperty("authServerType") or "ldap"
         if self.authServerType == "ldap":
             # Initialize ldap
-            self.ldapConnection=self.getObjectByRole('ldapServer')
+            self.ldapConnection = self.getObjectByRole("ldapServer")
             if self.ldapConnection is None:
-                logging.getLogger("HWR").debug('LDAP Server is not available')
+                logging.getLogger("HWR").debug("LDAP Server is not available")
 
         self.loginType = self.getProperty("loginType") or "proposal"
-        self.session_hwobj = self.getObjectByRole('session')
+        self.session_hwobj = self.getObjectByRole("session")
         self.beamline_name = self.session_hwobj.beamline_name
 
         try:
@@ -50,194 +51,234 @@ class ISPyBClient2Mockup(HardwareObject):
         except AttributeError:
             pass
 
-        self.__test_proposal = {'status': {'code': 'ok'},
-                'Person': {'personId': 1,
-                           'laboratoryId': 1,
-                           'login': None,
-                           'familyName':'operator on IDTESTeh1'},
-                'Proposal': {'code': 'idtest',
-                             'title': 'operator on IDTESTeh1',
-                             'personId': 1,
-                             'number': '000',
-                             'proposalId': 1,
-                             'type': 'MX'},
-                'Session': [{'scheduled': 0,
-                             'startDate': '2013-06-11 00:00:00',
-                             'endDate': '2023-06-12 07:59:59',
-                             'beamlineName': self.beamline_name,
-                             'timeStamp': datetime.datetime(2013, 6, 11, 9, 40, 36),
-                             'comments': 'Session created by the BCM',
-                             'sessionId': 34591,
-                             'proposalId': 1, 'nbShifts': 3}],
-                'Laboratory': {'laboratoryId': 1,
-                               'name': 'TEST eh1'}}
+        self.__test_proposal = {
+            "status": {"code": "ok"},
+            "Person": {
+                "personId": 1,
+                "laboratoryId": 1,
+                "login": None,
+                "familyName": "operator on IDTESTeh1",
+            },
+            "Proposal": {
+                "code": "idtest",
+                "title": "operator on IDTESTeh1",
+                "personId": 1,
+                "number": "000",
+                "proposalId": 1,
+                "type": "MX",
+            },
+            "Session": [
+                {
+                    "scheduled": 0,
+                    "startDate": "2013-06-11 00:00:00",
+                    "endDate": "2023-06-12 07:59:59",
+                    "beamlineName": self.beamline_name,
+                    "timeStamp": datetime.datetime(2013, 6, 11, 9, 40, 36),
+                    "comments": "Session created by the BCM",
+                    "sessionId": 34591,
+                    "proposalId": 1,
+                    "nbShifts": 3,
+                }
+            ],
+            "Laboratory": {"laboratoryId": 1, "name": "TEST eh1"},
+        }
 
     def get_login_type(self):
         self.loginType = self.getProperty("loginType") or "proposal"
-        return self.loginType 
+        return self.loginType
 
-    def login (self,loginID, psd, ldap_connection=None):
+    def login(self, loginID, psd, ldap_connection=None):
 
         # to simulate wrong loginID
         if loginID != "idtest000":
-            return {'status':{ "code": "error", "msg": "loginID 'wrong' does not exist!" }, 'Proposal': None, 'Session': None}
+            return {
+                "status": {"code": "error", "msg": "loginID 'wrong' does not exist!"},
+                "Proposal": None,
+                "Session": None,
+            }
         # to simulate wrong psd
         if psd == "wrong":
-	    return {'status':{ "code": "error", "msg": "Wrong password!" }, 'Proposal': None, 'Session': None}
-        # to simulate ispybDown, but login succeed
+            return {
+                "status": {"code": "error", "msg": "Wrong password!"},
+                "Proposal": None,
+                "Session": None,
+            }
+            # to simulate ispybDown, but login succeed
         if psd == "ispybDown":
-	    return {'status':{ "code": "ispybDown", "msg": "ispyb is down" }, 'Proposal': None, 'Session': None}
+            return {
+                "status": {"code": "ispybDown", "msg": "ispyb is down"},
+                "Proposal": None,
+                "Session": None,
+            }
 
         new_session = False
         if psd == "nosession":
-	    new_session=True
-        prop=self.get_proposal(loginID,"")
-	return {'status':{ "code": "ok", "msg": "Successful login" }, 'Proposal': prop['Proposal'],
-                 'Session': {"session": prop['Session'],"new_session_flag":new_session, "is_inhouse": False},
-                 'local_contact': "BL Scientist",
-                 'Person': prop['Person'],
-                 'Laboratory': prop['Laboratory']}
+            new_session = True
+        prop = self.get_proposal(loginID, "")
+        return {
+            "status": {"code": "ok", "msg": "Successful login"},
+            "Proposal": prop["Proposal"],
+            "Session": {
+                "session": prop["Session"],
+                "new_session_flag": new_session,
+                "is_inhouse": False,
+            },
+            "local_contact": "BL Scientist",
+            "Person": prop["Person"],
+            "Laboratory": prop["Laboratory"],
+        }
 
     def get_todays_session(self, prop):
         try:
-            sessions=prop['Session']
+            sessions = prop["Session"]
         except KeyError:
-            sessions=None
+            sessions = None
         # Check if there are sessions in the proposal
-        todays_session=None
-        if sessions is None or len(sessions)==0:
+        todays_session = None
+        if sessions is None or len(sessions) == 0:
             pass
         else:
             # Check for today's session
             for session in sessions:
-                beamline=session['beamlineName']
-                start_date="%s 00:00:00" % session['startDate'].split()[0]
-                end_date="%s 23:59:59" % session['endDate'].split()[0]
+                beamline = session["beamlineName"]
+                start_date = "%s 00:00:00" % session["startDate"].split()[0]
+                end_date = "%s 23:59:59" % session["endDate"].split()[0]
                 try:
-                    start_struct=time.strptime(start_date,"%Y-%m-%d %H:%M:%S")
+                    start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
                 else:
                     try:
-                        end_struct=time.strptime(end_date,"%Y-%m-%d %H:%M:%S")
+                        end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
                     except ValueError:
                         pass
                     else:
-                        start_time=time.mktime(start_struct)
-                        end_time=time.mktime(end_struct)
-                        current_time=time.time()
+                        start_time = time.mktime(start_struct)
+                        end_time = time.mktime(end_struct)
+                        current_time = time.time()
                         # Check beamline name
-                        if beamline==self.beamline_name:
+                        if beamline == self.beamline_name:
                             # Check date
-                            if current_time>=start_time and current_time<=end_time:
-                                todays_session=session
+                            if current_time >= start_time and current_time <= end_time:
+                                todays_session = session
                                 break
-        new_session_flag= False
+        new_session_flag = False
         if todays_session is None:
             # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
-            new_session_flag= True
-            current_time=time.localtime()
-            start_time=time.strftime("%Y-%m-%d 00:00:00", current_time)
-            end_time=time.mktime(current_time)+60*60*24
-            tomorrow=time.localtime(end_time)
-            end_time=time.strftime("%Y-%m-%d 07:59:59", tomorrow)
+            new_session_flag = True
+            current_time = time.localtime()
+            start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
+            end_time = time.mktime(current_time) + 60 * 60 * 24
+            tomorrow = time.localtime(end_time)
+            end_time = time.strftime("%Y-%m-%d 07:59:59", tomorrow)
 
             # Create a session
-            new_session_dict={}
-            new_session_dict['proposalId']=prop['Proposal']['proposalId']
-            new_session_dict['startDate']=start_time
-            new_session_dict['endDate']=end_time
-            new_session_dict['beamlineName']=self.beamline_name
-            new_session_dict['scheduled']=0
-            new_session_dict['nbShifts']=3
-            new_session_dict['comments']="Session created by the BCM"
-            session_id=self.create_session(new_session_dict)
-            new_session_dict['sessionId']=session_id
+            new_session_dict = {}
+            new_session_dict["proposalId"] = prop["Proposal"]["proposalId"]
+            new_session_dict["startDate"] = start_time
+            new_session_dict["endDate"] = end_time
+            new_session_dict["beamlineName"] = self.beamline_name
+            new_session_dict["scheduled"] = 0
+            new_session_dict["nbShifts"] = 3
+            new_session_dict["comments"] = "Session created by the BCM"
+            session_id = self.create_session(new_session_dict)
+            new_session_dict["sessionId"] = session_id
 
-            todays_session=new_session_dict
-            localcontact=None
-            logging.getLogger('HWR').debug('create new session')
+            todays_session = new_session_dict
+            localcontact = None
+            logging.getLogger("HWR").debug("create new session")
 
         else:
-            session_id=todays_session['sessionId']
-            logging.getLogger('HWR').debug('getting local contact for %s' % session_id)
-            localcontact= self.get_session_local_contact(session_id)
+            session_id = todays_session["sessionId"]
+            logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
+            localcontact = self.get_session_local_contact(session_id)
 
-        is_inhouse = self.session_hwobj.is_inhouse(prop['Proposal']["code"], prop['Proposal']["number"])
-        return {"session": todays_session, "new_session_flag": new_session_flag, "is_inhouse": is_inhouse}
+        is_inhouse = self.session_hwobj.is_inhouse(
+            prop["Proposal"]["code"], prop["Proposal"]["number"]
+        )
+        return {
+            "session": todays_session,
+            "new_session_flag": new_session_flag,
+            "is_inhouse": is_inhouse,
+        }
 
     def echo(self):
         """Mockup for the echo method."""
         return True
 
-
     def get_todays_session(self, prop):
         try:
-            sessions=prop['Session']
+            sessions = prop["Session"]
         except KeyError:
-            sessions=None
+            sessions = None
         # Check if there are sessions in the proposal
-        todays_session=None
-        if sessions is None or len(sessions)==0:
+        todays_session = None
+        if sessions is None or len(sessions) == 0:
             pass
         else:
             # Check for today's session
             for session in sessions:
-                beamline=session['beamlineName']
-                start_date="%s 00:00:00" % session['startDate'].split()[0]
-                end_date="%s 23:59:59" % session['endDate'].split()[0]
+                beamline = session["beamlineName"]
+                start_date = "%s 00:00:00" % session["startDate"].split()[0]
+                end_date = "%s 23:59:59" % session["endDate"].split()[0]
                 try:
-                    start_struct=time.strptime(start_date,"%Y-%m-%d %H:%M:%S")
+                    start_struct = time.strptime(start_date, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
                 else:
                     try:
-                        end_struct=time.strptime(end_date,"%Y-%m-%d %H:%M:%S")
+                        end_struct = time.strptime(end_date, "%Y-%m-%d %H:%M:%S")
                     except ValueError:
                         pass
                     else:
-                        start_time=time.mktime(start_struct)
-                        end_time=time.mktime(end_struct)
-                        current_time=time.time()
+                        start_time = time.mktime(start_struct)
+                        end_time = time.mktime(end_struct)
+                        current_time = time.time()
                         # Check beamline name
-                        if beamline==self.beamline_name:
+                        if beamline == self.beamline_name:
                             # Check date
-                            if current_time>=start_time and current_time<=end_time:
-                                todays_session=session
+                            if current_time >= start_time and current_time <= end_time:
+                                todays_session = session
                                 break
-        new_session_flag= False
+        new_session_flag = False
         if todays_session is None:
             # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
-            new_session_flag= True
-            current_time=time.localtime()
-            start_time=time.strftime("%Y-%m-%d 00:00:00", current_time)
-            end_time=time.mktime(current_time)+60*60*24
-            tomorrow=time.localtime(end_time)
-            end_time=time.strftime("%Y-%m-%d 07:59:59", tomorrow)
+            new_session_flag = True
+            current_time = time.localtime()
+            start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
+            end_time = time.mktime(current_time) + 60 * 60 * 24
+            tomorrow = time.localtime(end_time)
+            end_time = time.strftime("%Y-%m-%d 07:59:59", tomorrow)
 
             # Create a session
-            new_session_dict={}
-            new_session_dict['proposalId']=prop['Proposal']['proposalId']
-            new_session_dict['startDate']=start_time
-            new_session_dict['endDate']=end_time
-            new_session_dict['beamlineName']=self.beamline_name
-            new_session_dict['scheduled']=0
-            new_session_dict['nbShifts']=3
-            new_session_dict['comments']="Session created by the BCM"
-            session_id=self.create_session(new_session_dict)
-            new_session_dict['sessionId']=session_id
+            new_session_dict = {}
+            new_session_dict["proposalId"] = prop["Proposal"]["proposalId"]
+            new_session_dict["startDate"] = start_time
+            new_session_dict["endDate"] = end_time
+            new_session_dict["beamlineName"] = self.beamline_name
+            new_session_dict["scheduled"] = 0
+            new_session_dict["nbShifts"] = 3
+            new_session_dict["comments"] = "Session created by the BCM"
+            session_id = self.create_session(new_session_dict)
+            new_session_dict["sessionId"] = session_id
 
-            todays_session=new_session_dict
-            localcontact=None
-            logging.getLogger('HWR').debug('create new session')
+            todays_session = new_session_dict
+            localcontact = None
+            logging.getLogger("HWR").debug("create new session")
 
         else:
-            session_id=todays_session['sessionId']
-            logging.getLogger('HWR').debug('getting local contact for %s' % session_id)
-            localcontact= self.get_session_local_contact(session_id)
+            session_id = todays_session["sessionId"]
+            logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
+            localcontact = self.get_session_local_contact(session_id)
 
-        is_inhouse = self.session_hwobj.is_inhouse(prop['Proposal']["code"], prop['Proposal']["number"])
-        return {"session": todays_session, "new_session_flag": new_session_flag, "is_inhouse": is_inhouse}
+        is_inhouse = self.session_hwobj.is_inhouse(
+            prop["Proposal"]["code"], prop["Proposal"]["number"]
+        )
+        return {
+            "session": todays_session,
+            "new_session_flag": new_session_flag,
+            "is_inhouse": is_inhouse,
+        }
 
     def get_proposal(self, proposal_code, proposal_number):
         """
@@ -259,11 +300,12 @@ class ISPyBClient2Mockup(HardwareObject):
         return [self.__test_proposal]
 
     def get_session_local_contact(self, session_id):
-        return  {'personId': 1,
-                 'laboratoryId': 1,
-                 'login': None,
-                 'familyName':'operator on ID14eh1'}
-
+        return {
+            "personId": 1,
+            "laboratoryId": 1,
+            "login": None,
+            "familyName": "operator on ID14eh1",
+        }
 
     def translate(self, code, what):
         """
@@ -276,7 +318,6 @@ class ISPyBClient2Mockup(HardwareObject):
             translated = code
 
         return translated
-
 
     def isInhouseUser(self, proposal_code, proposal_number):
         """
@@ -291,13 +332,11 @@ class ISPyBClient2Mockup(HardwareObject):
 
         :rtype: bool
         """
-        for proposal in self['inhouse']:
+        for proposal in self["inhouse"]:
             if proposal_code == proposal.code:
                 if str(proposal_number) == str(proposal.number):
                     return True
         return False
-
-
 
     def store_data_collection(self, mx_collection, beamline_setup=None):
         """
@@ -313,13 +352,14 @@ class ISPyBClient2Mockup(HardwareObject):
         :returns: None
 
         """
-        logging.getLogger("HWR").debug("Data collection parameters stored " + \
-                                       "in ISPyB: %s" % str(mx_collection))
-        logging.getLogger("HWR").debug("Beamline setup stored in ISPyB: %s" % \
-                                       str(beamline_setup))
+        logging.getLogger("HWR").debug(
+            "Data collection parameters stored " + "in ISPyB: %s" % str(mx_collection)
+        )
+        logging.getLogger("HWR").debug(
+            "Beamline setup stored in ISPyB: %s" % str(beamline_setup)
+        )
 
         return None, None
-
 
     def store_beamline_setup(self, session_id, beamline_setup):
         """
@@ -337,7 +377,6 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
     def update_data_collection(self, mx_collection, wait=False):
         """
         Updates the datacollction mx_collection, this requires that the
@@ -350,7 +389,6 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
     def update_bl_sample(self, bl_sample):
         """
         Creates or stos a BLSample entry.
@@ -359,7 +397,6 @@ class ISPyBClient2Mockup(HardwareObject):
         :type sample_dict: dict
         """
         pass
-
 
     def store_image(self, image_dict):
         """
@@ -372,8 +409,7 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
-    def __find_sample(self, sample_ref_list, code = None, location = None):
+    def __find_sample(self, sample_ref_list, code=None, location=None):
         """
         Returns the sample with the matching "search criteria" <code> and/or
         <location> with-in the list sample_ref_list.
@@ -391,191 +427,192 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
     def get_samples(self, proposal_id, session_id):
-        return [{"cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "1",
-      "crystalSpaceGroup": "P212121",
-      "diffractionPlan": {
-        "diffractionPlanId": 457980,
-        "experimentKind": "Default",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "Default",
-      "proteinAcronym": "A-TIM",
-      "sampleId": 515485,
-      "sampleLocation": "1",
-      "sampleName": "fghfg",
-      "smiles": None
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457833,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515419,
-      "sampleLocation": "1",
-      "sampleName": "sample"
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457834,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515420,
-      "sampleLocation": "2",
-      "sampleName": "sample"
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457835,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515421,
-      "sampleLocation": "3",
-      "sampleName": "sample"
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457836,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515422,
-      "sampleLocation": "5",
-      "sampleName": "sample"
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457837,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515423,
-      "sampleLocation": "6",
-      "sampleName": "sample"
-    },
-    {
-      "cellA": 0.0,
-      "cellAlpha": 0.0,
-      "cellB": 0.0,
-      "cellBeta": 0.0,
-      "cellC": 0.0,
-      "cellGamma": 0.0,
-      "containerSampleChangerLocation": "2",
-      "crystalSpaceGroup": "P2",
-      "diffractionPlan": {
-        "diffractionPlanId": 457838,
-        "experimentKind": "OSC",
-        "numberOfPositions": 0,
-        "observedResolution": 0.0,
-        "preferredBeamDiameter": 0.0,
-        "radiationSensitivity": 0.0,
-        "requiredCompleteness": 0.0,
-        "requiredMultiplicity": 0.0,
-        "requiredResolution": 0.0
-      },
-      "experimentType": "OSC",
-      "proteinAcronym": "B2 hexa",
-      "sampleId": 515424,
-      "sampleLocation": "7",
-      "sampleName": "sample"
-    }]
-
+        return [
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "1",
+                "crystalSpaceGroup": "P212121",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457980,
+                    "experimentKind": "Default",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "Default",
+                "proteinAcronym": "A-TIM",
+                "sampleId": 515485,
+                "sampleLocation": "1",
+                "sampleName": "fghfg",
+                "smiles": None,
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457833,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515419,
+                "sampleLocation": "1",
+                "sampleName": "sample",
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457834,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515420,
+                "sampleLocation": "2",
+                "sampleName": "sample",
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457835,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515421,
+                "sampleLocation": "3",
+                "sampleName": "sample",
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457836,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515422,
+                "sampleLocation": "5",
+                "sampleName": "sample",
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457837,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515423,
+                "sampleLocation": "6",
+                "sampleName": "sample",
+            },
+            {
+                "cellA": 0.0,
+                "cellAlpha": 0.0,
+                "cellB": 0.0,
+                "cellBeta": 0.0,
+                "cellC": 0.0,
+                "cellGamma": 0.0,
+                "containerSampleChangerLocation": "2",
+                "crystalSpaceGroup": "P2",
+                "diffractionPlan": {
+                    "diffractionPlanId": 457838,
+                    "experimentKind": "OSC",
+                    "numberOfPositions": 0,
+                    "observedResolution": 0.0,
+                    "preferredBeamDiameter": 0.0,
+                    "radiationSensitivity": 0.0,
+                    "requiredCompleteness": 0.0,
+                    "requiredMultiplicity": 0.0,
+                    "requiredResolution": 0.0,
+                },
+                "experimentType": "OSC",
+                "proteinAcronym": "B2 hexa",
+                "sampleId": 515424,
+                "sampleLocation": "7",
+                "sampleName": "sample",
+            },
+        ]
 
     def get_session_samples(self, proposal_id, session_id, sample_refs):
         """
@@ -618,18 +655,14 @@ class ISPyBClient2Mockup(HardwareObject):
     def create_session(self, session_dict):
         pass
 
-
     def update_session(self, session_dict):
         pass
-
 
     def store_energy_scan(self, energyscan_dict):
         pass
 
-
     def associate_bl_sample_and_energy_scan(self, entry_dict):
         pass
-
 
     def get_data_collection(self, data_collection_id):
         """
@@ -642,7 +675,6 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
     def get_data_collection_id(self, dc_dict):
         pass
 
@@ -653,15 +685,14 @@ class ISPyBClient2Mockup(HardwareObject):
         :param str did: Data collection ID
         :returns: The link to the data collection
         """
-        dc_url = 'ispyb/user/viewResults.do?reqCode=display&dataCollectionId=%s' % cid
+        dc_url = "ispyb/user/viewResults.do?reqCode=display&dataCollectionId=%s" % cid
         url = None
         if self.base_result_url is not None:
-           url = urljoin(self.base_result_url, dc_url)
+            url = urljoin(self.base_result_url, dc_url)
         return url
 
     def get_session(self, session_id):
         pass
-
 
     def store_xfe_spectrum(self, xfespectrum_dict):
         """
@@ -673,23 +704,18 @@ class ISPyBClient2Mockup(HardwareObject):
         """
         pass
 
-
     def disable(self):
         self.__disabled = True
-
 
     def enable(self):
         self.__disabled = False
 
-
-    def find_detector(self, type, manufacturer,
-                      model, mode):
+    def find_detector(self, type, manufacturer, model, mode):
         """
         Returns the Detector3VO object with the characteristics
         matching the ones given.
         """
         pass
-
 
     def store_data_collection_group(self, mx_collection):
         """

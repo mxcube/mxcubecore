@@ -12,6 +12,7 @@ __date__ = "04/11/16"
 
 
 import uuid
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -22,13 +23,13 @@ from collections import namedtuple
 
 # MessageIntents = ('INSTRUCTION', 'QUERY', 'RESPONSE', 'ACKNOWLEDGEMENT',
 #                   'INFO', )
-_MessageIntents = ['DOCUMENT', 'COMMAND', 'EVENT']
+_MessageIntents = ["DOCUMENT", "COMMAND", "EVENT"]
 
-MessageIntents = dict((x,x) for x in _MessageIntents)
+MessageIntents = dict((x, x) for x in _MessageIntents)
 
-IndexingFormats = ('IDXREF', )
+IndexingFormats = ("IDXREF",)
 
-AbsorptionEdges = ('K', 'LI', 'LII', 'LIII', 'MI', 'MII', 'MIII', 'MIV', 'MV')
+AbsorptionEdges = ("K", "LI", "LII", "LIII", "MI", "MII", "MIII", "MIV", "MV")
 # # Currently not used
 # WavelengthRoles = OrderedDict((('PEAK','Peak'),('REMOTE','Remote'),
 #                                ('RINF','Rising inflection'),
@@ -36,63 +37,157 @@ AbsorptionEdges = ('K', 'LI', 'LII', 'LIII', 'MI', 'MII', 'MIII', 'MIV', 'MV')
 #                                ('HREM','High-energy remote'),
 #                               ))
 
-ChemicalElements = OrderedDict((
-    ("H","hydrogen"), ("HE","helium"), ("LI","lithium"), ("BE","beryllium"),
-    ("B","boron"), ("C","carbon"), ("N","nitrogen"), ("O","oxygen"),
-    ("F","fluorine"), ("NE","neon"), ("NA","sodium"), ("MG","magnesium"),
-    ("AL","aluminium"), ("SI","silicon"), ("P","phosphorus"), ("S","sulfur"),
-    ("CL","chlorine"), ("AR","argon"), ("K","potassium"), ("CA","calcium"),
-    ("SC","scandium"), ("TI","titanium"), ("V","vanadium"), ("CR","chromium"),
-    ("MN","manganese"), ("FE","iron"), ("CO","cobalt"), ("NI","nickel"),
-    ("CU","copper"), ("ZN","zinc"), ("GA","gallium"), ("GE","germanium"),
-    ("AS","arsenic"), ("SE","selenium"), ("BR","bromine"), ("KR","krypton"),
-    ("RB","rubidium"), ("SR","strontium"), ("Y","yttrium"), ("ZR","zirconium"),
-    ("NB","niobium"), ("MO","molybdenum"), ("TC","technetium"),
-    ("RU","ruthenium"), ("RH","rhodium"), ("PD","palladium"), ("AG","silver"),
-    ("CD","cadmium"), ("IN","indium"), ("SN","tin"), ("SB","antimony"),
-    ("TE","tellurium"), ("I","iodine"), ("XE","xenon"), ("CS","caesium"),
-    ("BA","barium"), ("LA","lanthanum"), ("CE","cerium"),
-    ("PR","praseodymium"), ("ND","neodymium"), ("PM","promethium"),
-    ("SM","samarium"), ("EU","europium"), ("GD","gadolinium"),
-    ("TB","terbium"), ("DY","dysprosium"), ("HO","holmium"), ("ER","erbium"),
-    ("TM","thulium"), ("YB","ytterbium"), ("LU","lutetium"), ("HF","hafnium"),
-    ("TA","tantalum"), ("W","tungsten"), ("RE","rhenium"), ("OS","osmium"),
-    ("IR","iridium"), ("PT","platinum"), ("AU","gold"), ("HG","mercury"),
-    ("TL","thallium"), ("PB","lead"), ("BI","bismuth"), ("PO","polonium"),
-    ("AT","astatine"), ("RN","radon"), ("FR","francium"), ("RA","radium"),
-    ("AC","actinium"), ("TH","thorium"), ("PA","protactinium"),
-    ("U","uranium"),
+ChemicalElements = OrderedDict(
+    (
+        ("H", "hydrogen"),
+        ("HE", "helium"),
+        ("LI", "lithium"),
+        ("BE", "beryllium"),
+        ("B", "boron"),
+        ("C", "carbon"),
+        ("N", "nitrogen"),
+        ("O", "oxygen"),
+        ("F", "fluorine"),
+        ("NE", "neon"),
+        ("NA", "sodium"),
+        ("MG", "magnesium"),
+        ("AL", "aluminium"),
+        ("SI", "silicon"),
+        ("P", "phosphorus"),
+        ("S", "sulfur"),
+        ("CL", "chlorine"),
+        ("AR", "argon"),
+        ("K", "potassium"),
+        ("CA", "calcium"),
+        ("SC", "scandium"),
+        ("TI", "titanium"),
+        ("V", "vanadium"),
+        ("CR", "chromium"),
+        ("MN", "manganese"),
+        ("FE", "iron"),
+        ("CO", "cobalt"),
+        ("NI", "nickel"),
+        ("CU", "copper"),
+        ("ZN", "zinc"),
+        ("GA", "gallium"),
+        ("GE", "germanium"),
+        ("AS", "arsenic"),
+        ("SE", "selenium"),
+        ("BR", "bromine"),
+        ("KR", "krypton"),
+        ("RB", "rubidium"),
+        ("SR", "strontium"),
+        ("Y", "yttrium"),
+        ("ZR", "zirconium"),
+        ("NB", "niobium"),
+        ("MO", "molybdenum"),
+        ("TC", "technetium"),
+        ("RU", "ruthenium"),
+        ("RH", "rhodium"),
+        ("PD", "palladium"),
+        ("AG", "silver"),
+        ("CD", "cadmium"),
+        ("IN", "indium"),
+        ("SN", "tin"),
+        ("SB", "antimony"),
+        ("TE", "tellurium"),
+        ("I", "iodine"),
+        ("XE", "xenon"),
+        ("CS", "caesium"),
+        ("BA", "barium"),
+        ("LA", "lanthanum"),
+        ("CE", "cerium"),
+        ("PR", "praseodymium"),
+        ("ND", "neodymium"),
+        ("PM", "promethium"),
+        ("SM", "samarium"),
+        ("EU", "europium"),
+        ("GD", "gadolinium"),
+        ("TB", "terbium"),
+        ("DY", "dysprosium"),
+        ("HO", "holmium"),
+        ("ER", "erbium"),
+        ("TM", "thulium"),
+        ("YB", "ytterbium"),
+        ("LU", "lutetium"),
+        ("HF", "hafnium"),
+        ("TA", "tantalum"),
+        ("W", "tungsten"),
+        ("RE", "rhenium"),
+        ("OS", "osmium"),
+        ("IR", "iridium"),
+        ("PT", "platinum"),
+        ("AU", "gold"),
+        ("HG", "mercury"),
+        ("TL", "thallium"),
+        ("PB", "lead"),
+        ("BI", "bismuth"),
+        ("PO", "polonium"),
+        ("AT", "astatine"),
+        ("RN", "radon"),
+        ("FR", "francium"),
+        ("RA", "radium"),
+        ("AC", "actinium"),
+        ("TH", "thorium"),
+        ("PA", "protactinium"),
+        ("U", "uranium"),
+        ("NP", "neptunium"),
+        ("PU", "plutonium"),
+        ("AM", "americium"),
+        ("CM", "curium"),
+        ("BK", "berkelium"),
+        ("CF", "californium"),
+        ("ES", "einsteinium"),
+        ("FM", "fermium"),
+        ("MD", "mendelevium"),
+        ("NO", "nobelium"),
+        ("LR", "lawrencium"),
+        ("RF", "rutherfordium"),
+        ("DB", "dubnium"),
+        ("SG", "seaborgium"),
+        ("BH", "bohrium"),
+        ("HS", "hassium"),
+        ("MT", "meitnerium"),
+        ("DS", "darmstadtium"),
+        ("RG", "roentgenium"),
+        ("CN", "copernicium"),
+        ("UUT", "ununtrium"),
+        ("FL", "flerovium"),
+        ("UUP", "ununpentium"),
+        ("LV", "livermorium"),
+    )
+)
 
-    ("NP","neptunium"), ("PU","plutonium"), ("AM","americium"),
-    ("CM","curium"), ("BK","berkelium"), ("CF","californium"),
-    ("ES","einsteinium"), ("FM","fermium"), ("MD","mendelevium"),
-    ("NO","nobelium"), ("LR","lawrencium"), ("RF","rutherfordium"),
-    ("DB","dubnium"), ("SG","seaborgium"), ("BH","bohrium"), ("HS","hassium"),
-    ("MT","meitnerium"), ("DS","darmstadtium"), ("RG","roentgenium"),
-    ("CN","copernicium"), ("UUT","ununtrium"), ("FL","flerovium"),
-    ("UUP","ununpentium"), ("LV","livermorium"),
-))
+CentringStatus = ("NEXT", "DONE")
 
-CentringStatus = ('NEXT', 'DONE')
-
-CrystalSystems = ('TRICLINIC', 'MONOCLINIC', 'ORTHORHOMBIC', 'TETRAGONAL',
-                  'TRIGONAL', 'HEXAGONAL', 'CUBIC')
+CrystalSystems = (
+    "TRICLINIC",
+    "MONOCLINIC",
+    "ORTHORHOMBIC",
+    "TETRAGONAL",
+    "TRIGONAL",
+    "HEXAGONAL",
+    "CUBIC",
+)
 # Map from single letter code tro Crystal system name
 # # NB trigonal and hexagonal DO both have code 'h'
-crystalSystemMap = dict(zip('amothhc', CrystalSystems))
+crystalSystemMap = dict(zip("amothhc", CrystalSystems))
 
-PointGroups = ('1', '2', '222', '4', '422', '6', '622', '32',  '23',  '432')
+PointGroups = ("1", "2", "222", "4", "422", "6", "622", "32", "23", "432")
 
-ParsedMessage = namedtuple('ParsedMessage', ('message_type', 'payload',
-                                             'enactment_id', 'correlation_id'))
+ParsedMessage = namedtuple(
+    "ParsedMessage", ("message_type", "payload", "enactment_id", "correlation_id")
+)
 
 
 # Abstract classes
+
 
 class MessageData(object):
     """Topmost superclass for all message data objects
 
     Later to add e.g. stringification"""
+
 
 class Payload(MessageData):
     """Payload - top level message object"""
@@ -105,17 +200,13 @@ class Payload(MessageData):
         intent = self.__class__._intent
         if intent not in MessageIntents:
             if intent is None:
-                raise RuntimeError(
-                    "Attempt to instantiate abstract class Payload"
-                )
+                raise RuntimeError("Attempt to instantiate abstract class Payload")
             else:
                 raise RuntimeError(
                     "Programming error - "
                     "Payload subclass %s intent %s must be one of: %s"
-                    % (self.__class__.__name__, intent,
-                       sorted(MessageIntents.keys))
+                    % (self.__class__.__name__, intent, sorted(MessageIntents.keys))
                 )
-
 
     @property
     def intent(self):
@@ -129,7 +220,7 @@ class IdentifiedElement(MessageData):
     def __init__(self, id=None):
 
         # This class is abstract
-        if self.__class__.__name__ == 'IdentifiedElement':
+        if self.__class__.__name__ == "IdentifiedElement":
             raise RuntimeError(
                 "Attempt to instantiate abstract class IdentifiedElement"
             )
@@ -166,28 +257,40 @@ class IdentifiedElement(MessageData):
 
 # Simple payloads
 
+
 class RequestConfiguration(Payload):
     """Configuration request message"""
+
     _intent = "COMMAND"
+
 
 class ObtainPriorInformation(Payload):
     """Prior information request"""
+
     _intent = "COMMAND"
+
 
 class PrepareForCentring(Payload):
     """Prior information request"""
+
     _intent = "COMMAND"
+
 
 class ReadyForCentring(Payload):
     """Prior information request"""
+
     _intent = "DOCUMENT"
+
 
 class SubprocessStopped(Payload):
     """Subprocess Stopped request message"""
+
     _intent = "EVENT"
+
 
 class ConfigurationData(Payload):
     """Configuration Data message"""
+
     _intent = "DOCUMENT"
 
     # NB coded as mandatory, even if not explicitly non-null
@@ -202,8 +305,10 @@ class ConfigurationData(Payload):
         Generally an absolute file path."""
         return self._location
 
+
 class SubprocessStarted(Payload):
     """Subprocess Started message"""
+
     _intent = "EVENT"
 
     def __init__(self, name):
@@ -214,16 +319,20 @@ class SubprocessStarted(Payload):
         """name of subprocess"""
         return self._name
 
+
 class ChooseLattice(Payload):
     """Choose lattice instruction"""
+
     _intent = "COMMAND"
 
     def __init__(self, format, solutions, crystalSystem=None, lattices=None):
         if format in IndexingFormats:
             self._format = format
         else:
-            raise ValueError("Indexing format %s not in supported formats: %s"
-                             % (format, IndexingFormats))
+            raise ValueError(
+                "Indexing format %s not in supported formats: %s"
+                % (format, IndexingFormats)
+            )
         if not lattices:
             self._lattices = ()
         elif isinstance(lattices, str):
@@ -254,16 +363,20 @@ class ChooseLattice(Payload):
         """String containing proposed solutions"""
         return self._solutions
 
+
 class SelectedLattice(MessageData):
     """Lattice selected message"""
+
     _intent = "DOCUMENT"
 
     def __init__(self, format, solution):
         if format in IndexingFormats:
             self._format = format
         else:
-            raise ValueError("Indexing format %s not in supported formats: %s"
-                             % (format, IndexingFormats))
+            raise ValueError(
+                "Indexing format %s not in supported formats: %s"
+                % (format, IndexingFormats)
+            )
         self._solution = tuple(solution)
 
     @property
@@ -276,8 +389,10 @@ class SelectedLattice(MessageData):
         """Tuple of strings containing proposed solution"""
         return self._solution
 
+
 class CollectionDone(MessageData):
     """Collection Done message"""
+
     _intent = "EVENT"
 
     def __init__(self, proposalId, status, imageRoot=None):
@@ -301,38 +416,37 @@ class CollectionDone(MessageData):
         """Integer status code for collection result"""
         return self._status
 
+
 # Complex payloads
 class WorkflowDone(Payload):
     """End-of-workflow message"""
 
-    _intent = 'EVENT'
+    _intent = "EVENT"
 
     def __init__(self, issues=None):
 
         super(WorkflowDone, self).__init__()
 
-        if self.__class__.__name__ == 'WorkflowDone':
-            raise RuntimeError(
-                "Attempt to instantiate abstract class WorkflowDone"
-            )
+        if self.__class__.__name__ == "WorkflowDone":
+            raise RuntimeError("Attempt to instantiate abstract class WorkflowDone")
 
         if issues:
             ll = list(x for x in issues if not isinstance(x, Issue))
             if ll:
-                raise ValueError(
-                    "issues parameter contains non-issues: %s" % ll
-                )
+                raise ValueError("issues parameter contains non-issues: %s" % ll)
             else:
                 self._issues = tuple(issues)
+
 
 class WorkflowCompleted(WorkflowDone):
     pass
 
+
 class WorkflowAborted(WorkflowDone):
     pass
 
-class WorkflowFailed(WorkflowDone):
 
+class WorkflowFailed(WorkflowDone):
     def __init__(self, reason=None, issues=None):
 
         super(WorkflowFailed, self).__init__(issues=issues)
@@ -351,23 +465,19 @@ class BeamlineAbort(Payload):
 
 # Simple data objects
 
-class AnomalousScatterer(MessageData):
 
+class AnomalousScatterer(MessageData):
     def __init__(self, element, edge):
 
         if element in ChemicalElements:
             self._element = element
         else:
-            raise ValueError(
-                "Chemical element code %s not recognised" % element
-            )
+            raise ValueError("Chemical element code %s not recognised" % element)
 
         if edge in AbsorptionEdges:
             self._edge = edge
         else:
-            raise ValueError(
-                "Absorption edge code %s not recognised" % edge
-            )
+            raise ValueError("Absorption edge code %s not recognised" % edge)
 
     @property
     def element(self):
@@ -377,11 +487,12 @@ class AnomalousScatterer(MessageData):
     def edge(self):
         return self._edge
 
+
 class UnitCell(MessageData):
     """Unit cell data type"""
 
     def __init__(self, a, b, c, alpha, beta, gamma):
-        self._lengths = (a,b,c)
+        self._lengths = (a, b, c)
         self._angles = (alpha, beta, gamma)
 
     @property
@@ -416,6 +527,7 @@ class UnitCell(MessageData):
     def gamma(self):
         return self._angles[2]
 
+
 class Issue(IdentifiedElement):
     """Issue (status information returned with WorkflowDone messages)"""
 
@@ -439,6 +551,7 @@ class Issue(IdentifiedElement):
     def message(self):
         """Text providing specific details about this issue"""
         return self._message
+
 
 class PhasingWavelength(IdentifiedElement):
     """Phasing Wavelength"""
@@ -465,6 +578,7 @@ class PhasingWavelength(IdentifiedElement):
         """Wavelength setting for beam"""
         return self._wavelength
 
+
 class BeamSetting(IdentifiedElement):
     """Beam setting"""
 
@@ -476,6 +590,7 @@ class BeamSetting(IdentifiedElement):
     def wavelength(self):
         """Wavelength setting for beam"""
         return self._wavelength
+
 
 class ScanExposure(IdentifiedElement):
     """Scan Exposure"""
@@ -495,6 +610,7 @@ class ScanExposure(IdentifiedElement):
         """Scan exposure transmission"""
         return self._time
 
+
 class ScanWidth(IdentifiedElement):
     """Scan Width"""
 
@@ -513,6 +629,7 @@ class ScanWidth(IdentifiedElement):
         """Number of images"""
         return self._numImages
 
+
 class PositionerSetting(IdentifiedElement):
     """Positioner Setting object.
 
@@ -523,7 +640,7 @@ class PositionerSetting(IdentifiedElement):
 
         super(PositionerSetting, self).__init__(id=id)
 
-        if self.__class__.__name__ == 'PositionerSetting':
+        if self.__class__.__name__ == "PositionerSetting":
             # This class is abstract
             raise RuntimeError(
                 "Programming error - attempt to instantiate abstract class PositionerSetting"
@@ -537,13 +654,18 @@ class PositionerSetting(IdentifiedElement):
         modifying it does *not* modify the object internals."""
         return self._axisSettings.copy()
 
+
 class DetectorSetting(PositionerSetting):
     """Detector position setting"""
+
     pass
+
 
 class BeamstopSetting(PositionerSetting):
     """Beamstop position setting"""
+
     pass
+
 
 class GoniostatRotation(PositionerSetting):
     """Goniostat Rotation setting"""
@@ -559,6 +681,7 @@ class GoniostatRotation(PositionerSetting):
         NB This link can be set only by GoniostatTranslation.__init__"""
         return self._translation
 
+
 class GoniostatSweepSetting(GoniostatRotation):
     """Goniostat Sweep setting"""
 
@@ -570,6 +693,7 @@ class GoniostatSweepSetting(GoniostatRotation):
     def scanAxis(self):
         """Scanning axis"""
         return self._scanAxis
+
 
 class GoniostatTranslation(PositionerSetting):
     """Goniostat Translation setting
@@ -583,22 +707,19 @@ class GoniostatTranslation(PositionerSetting):
         self.requestedRotationId = rotation.id
         self.newRotation = None"""
 
-    def __init__(self, rotation=None, requestedRotationId=None, id=None,
-                 **axisSettings):
+    def __init__(
+        self, rotation=None, requestedRotationId=None, id=None, **axisSettings
+    ):
         PositionerSetting.__init__(self, id=id, **axisSettings)
 
         if rotation is None:
             if requestedRotationId is None:
-                raise ValueError(
-                    "rotation and requestedRotationId cannot both be None"
-                )
+                raise ValueError("rotation and requestedRotationId cannot both be None")
             else:
                 self._newRotation = None
                 self._requestedRotationId = requestedRotationId
         else:
-            if (requestedRotationId is None
-                or requestedRotationId == rotation.id
-                ):
+            if requestedRotationId is None or requestedRotationId == rotation.id:
                 self._newRotation = None
                 self._requestedRotationId = rotation.id
             else:
@@ -609,8 +730,6 @@ class GoniostatTranslation(PositionerSetting):
             # GoniostatRotation
             rotation._translation = self
 
-
-
     @property
     def newRotation(self):
         return self._newRotation
@@ -619,14 +738,24 @@ class GoniostatTranslation(PositionerSetting):
     def requestedRotationId(self):
         return self._requestedRotationId
 
+
 # Complex data objects
+
 
 class UserProvidedInfo(MessageData):
     """User-provided information"""
 
-    def __init__(self, scatterers=(), lattice=None, pointGroup=None,
-                 spaceGroup=None, cell=None, expectedResolution=None,
-                 isAnisotropic=None, phasingWavelengths=()):
+    def __init__(
+        self,
+        scatterers=(),
+        lattice=None,
+        pointGroup=None,
+        spaceGroup=None,
+        cell=None,
+        expectedResolution=None,
+        isAnisotropic=None,
+        phasingWavelengths=(),
+    ):
 
         self._scatterers = scatterers
         self._lattice = lattice
@@ -664,15 +793,26 @@ class UserProvidedInfo(MessageData):
     @property
     def isAnisotropic(self):
         return self._isAnisotropic
+
     @property
     def phasingWavelengths(self):
         return self._phasingWavelengths
 
+
 class Sweep(IdentifiedElement):
     """Geometric strategy Sweep"""
 
-    def __init__(self, goniostatSweepSetting, detectorSetting, beamSetting,
-                 start, width, beamstopSetting=None, sweepGroup=None, id=None):
+    def __init__(
+        self,
+        goniostatSweepSetting,
+        detectorSetting,
+        beamSetting,
+        start,
+        width,
+        beamstopSetting=None,
+        sweepGroup=None,
+        id=None,
+    ):
 
         super(Sweep, self).__init__(id=id)
 
@@ -726,11 +866,13 @@ class Sweep(IdentifiedElement):
         """Implementation method. *Only* to be called from Scan.__init__"""
         self._scans.add(scan)
 
+
 class Scan(IdentifiedElement):
     """Collection strategy Scan"""
 
-    def __init__(self, width, exposure, imageStartNum, start, sweep,
-                 filenameParams, id=None):
+    def __init__(
+        self, width, exposure, imageStartNum, start, sweep, filenameParams, id=None
+    ):
 
         super(Scan, self).__init__(id=id)
 
@@ -772,10 +914,17 @@ class Scan(IdentifiedElement):
 class GeometricStrategy(IdentifiedElement, Payload):
     """Geometric strategy """
 
-    _intent = 'COMMAND'
+    _intent = "COMMAND"
 
-    def __init__(self, isInterleaved, isUserModifiable, allowedWidths=(),
-                 defaultWidthIdx=None, sweeps=(), id=None):
+    def __init__(
+        self,
+        isInterleaved,
+        isUserModifiable,
+        allowedWidths=(),
+        defaultWidthIdx=None,
+        sweeps=(),
+        id=None,
+    ):
 
         super(GeometricStrategy, self).__init__(id=id)
 
@@ -812,11 +961,10 @@ class GeometricStrategy(IdentifiedElement, Payload):
         return self._sweeps
 
 
-
 class CollectionProposal(IdentifiedElement, Payload):
     """Collection proposal """
 
-    _intent = 'COMMAND'
+    _intent = "COMMAND"
 
     def __init__(self, relativeImageDir, strategy, scans, id=None):
 
@@ -841,10 +989,12 @@ class CollectionProposal(IdentifiedElement, Payload):
 
 class PriorInformation(Payload):
     """Prior information to workflow calculation"""
-    _intent = 'DOCUMENT'
 
-    def __init__(self, sampleId, sampleName=None,  rootDirectory=None,
-                 userProvidedInfo=None):
+    _intent = "DOCUMENT"
+
+    def __init__(
+        self, sampleId, sampleName=None, rootDirectory=None, userProvidedInfo=None
+    ):
 
         if isinstance(sampleId, uuid.UUID):
             self._sampleId = sampleId
@@ -880,10 +1030,10 @@ class PriorInformation(Payload):
 
 class RequestCentring(Payload):
     """Request for centering"""
-    _intent = 'COMMAND'
 
-    def __init__(self, currentSettingNo, totalRotations,
-                 goniostatRotation):
+    _intent = "COMMAND"
+
+    def __init__(self, currentSettingNo, totalRotations, goniostatRotation):
         self._currentSettingNo = currentSettingNo
         self._totalRotations = totalRotations
         self._goniostatRotation = goniostatRotation
@@ -903,7 +1053,8 @@ class RequestCentring(Payload):
 
 class CentringDone(Payload):
     """Centering-done message"""
-    _intent = 'DOCUMENT'
+
+    _intent = "DOCUMENT"
 
     def __init__(self, status, timestamp, goniostatTranslation):
         self._status = status
@@ -926,11 +1077,18 @@ class CentringDone(Payload):
 
 
 class SampleCentred(Payload):
-    _intent = 'DOCUMENT'
+    _intent = "DOCUMENT"
 
-    def __init__(self, imageWidth, transmission, exposure, interleaveOrder='',
-                 wedgeWidth=None, beamstopSetting=None,
-                 goniostatTranslations=()):
+    def __init__(
+        self,
+        imageWidth,
+        transmission,
+        exposure,
+        interleaveOrder="",
+        wedgeWidth=None,
+        beamstopSetting=None,
+        goniostatTranslations=(),
+    ):
 
         self._imageWidth = imageWidth
         self._transmission = transmission
@@ -938,9 +1096,7 @@ class SampleCentred(Payload):
         self._interleaveOrder = interleaveOrder
         self._wedgeWidth = wedgeWidth
         self._beamstopSetting = beamstopSetting
-        self._goniostatTranslations = frozenset(
-            goniostatTranslations
-        )
+        self._goniostatTranslations = frozenset(goniostatTranslations)
 
     @property
     def imageWidth(self):

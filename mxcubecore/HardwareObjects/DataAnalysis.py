@@ -26,8 +26,9 @@ from XSDataCommon import XSDataInteger
 from XSDataCommon import XSDataSize
 from XSDataCommon import XSDataString
 
-#from edna_test_data import EDNA_DEFAULT_INPUT
-#from edna_test_data import EDNA_TEST_DATA
+# from edna_test_data import EDNA_DEFAULT_INPUT
+# from edna_test_data import EDNA_TEST_DATA
+
 
 class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
@@ -42,10 +43,9 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.edna_default_file = self.getProperty("edna_default_file")
         fp = HardwareRepository().findInRepository(self.edna_default_file)
         if fp is None:
-            raise ValueError("File %s not found in repository"
-                             % self.edna_default_file)
-        with open(fp, 'r') as f:
-            self.edna_default_input = ''.join(f.readlines())
+            raise ValueError("File %s not found in repository" % self.edna_default_file)
+        with open(fp, "r") as f:
+            self.edna_default_input = "".join(f.readlines())
 
     def get_html_report(self, edna_result):
         html_report = None
@@ -65,9 +65,10 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         if diff_plan.getStrategyOption() is None:
             new_strategy_option = strategy_option
         else:
-            new_strategy_option = diff_plan.getStrategyOption().getValue() + ' ' + strategy_option
+            new_strategy_option = (
+                diff_plan.getStrategyOption().getValue() + " " + strategy_option
+            )
         diff_plan.setStrategyOption(XSDataString(new_strategy_option))
-
 
     def from_params(self, data_collection, char_params):
         edna_input = XSDataInputMXCuBE.parseString(self.edna_default_input)
@@ -75,7 +76,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         if data_collection.id:
             edna_input.setDataCollectionId(XSDataInteger(data_collection.id))
 
-        #Beam object
+        # Beam object
         beam = edna_input.getExperimentalCondition().getBeam()
 
         try:
@@ -83,6 +84,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             beam.setTransmission(XSDataDouble(transmission))
         except AttributeError:
             import traceback
+
             logging.getLogger("HWR").debug("DataAnalysis. transmission not saved ")
             logging.getLogger("HWR").debug(traceback.format_exc())
 
@@ -106,12 +108,16 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         try:
             beamsize = self.get_beam_size()
             if not None in beamsize:
-                beam.setSize(XSDataSize(x=XSDataLength(float(beamsize[0])),
-                                        y=XSDataLength(float(beamsize[1]))))
+                beam.setSize(
+                    XSDataSize(
+                        x=XSDataLength(float(beamsize[0])),
+                        y=XSDataLength(float(beamsize[1])),
+                    )
+                )
         except AttributeError:
             pass
 
-        #Optimization parameters
+        # Optimization parameters
         diff_plan = edna_input.getDiffractionPlan()
 
         aimed_i_sigma = XSDataDouble(char_params.aimed_i_sigma)
@@ -144,12 +150,12 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
             diff_plan.setUserDefinedRotationStart(permitted_phi_start)
             diff_plan.setUserDefinedRotationRange(rotation_range)
 
-        #Vertical crystal dimension
+        # Vertical crystal dimension
         sample = edna_input.getSample()
         sample.getSize().setY(XSDataLength(char_params.max_crystal_vdim))
         sample.getSize().setZ(XSDataLength(char_params.min_crystal_vdim))
 
-        #Radiation damage model
+        # Radiation damage model
         sample.setSusceptibility(XSDataDouble(char_params.rad_suscept))
         sample.setChemicalComposition(None)
         sample.setRadiationDamageModelBeta(XSDataDouble(char_params.beta / 1e6))
@@ -171,21 +177,22 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         # Characterisation type - SAD
         if char_params.opt_sad:
-          if char_params.auto_res: 
-            diff_plan.setAnomalousData(XSDataBoolean(True))
-          else:
-            diff_plan.setAnomalousData(XSDataBoolean(False))
-            self.modify_strategy_option(diff_plan, "-SAD yes")
-            diff_plan.setAimedResolution(XSDataDouble(char_params.sad_res))
+            if char_params.auto_res:
+                diff_plan.setAnomalousData(XSDataBoolean(True))
+            else:
+                diff_plan.setAnomalousData(XSDataBoolean(False))
+                self.modify_strategy_option(diff_plan, "-SAD yes")
+                diff_plan.setAimedResolution(XSDataDouble(char_params.sad_res))
         else:
             diff_plan.setAnomalousData(XSDataBoolean(False))
 
-        #Data set
+        # Data set
         data_set = XSDataMXCuBEDataSet()
         acquisition_parameters = data_collection.acquisitions[0].acquisition_parameters
         path_template = data_collection.acquisitions[0].path_template
-        path_str = os.path.join(path_template.directory,
-                                path_template.get_image_file_name())
+        path_str = os.path.join(
+            path_template.directory, path_template.get_image_file_name()
+        )
 
         for img_num in range(int(acquisition_parameters.num_images)):
             image_file = XSDataFile()
@@ -200,7 +207,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         return edna_input
 
     def characterise(self, edna_input):
-	self.prepare_edna_input(edna_input)
+        self.prepare_edna_input(edna_input)
         path = edna_input.process_directory
 
         # if there is no data collection id, the id will be a random number
@@ -238,8 +245,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         msg = "Starting EDNA characterisation using xml file %s" % input_file
         logging.getLogger("queue_exec").info(msg)
 
-        args = (self.start_edna_command, input_file,
-                results_file, process_directory)
+        args = (self.start_edna_command, input_file, results_file, process_directory)
         subprocess.call("%s %s %s %s" % args, shell=True)
 
         self.result = None

@@ -4,76 +4,85 @@ import urllib
 
 import xml.etree.cElementTree as et
 
+
 def getImage(url):
-    f = urllib.urlopen(url)           
-    img=f.read() 
+    f = urllib.urlopen(url)
+    img = f.read()
     return img
+
 
 class Xtal:
     def __init__(self, *args):
-        self.CrystalUUID=""
-        self.PinID=""
-        self.Login=""
-        self.Sample=""
-        self.Column=0
-        self.idSample=0
-        self.idTrial=0
-        self.Row=""
-        self.Shelf=0
-        self.Comments=""
-        self.offsetX=0.0
-        self.offsetY=0.0
-        self.IMG_URL=""
-        self.ImageRotation=0.0
-        self.SUMMARY_URL=""
-        
+        self.CrystalUUID = ""
+        self.PinID = ""
+        self.Login = ""
+        self.Sample = ""
+        self.Column = 0
+        self.idSample = 0
+        self.idTrial = 0
+        self.Row = ""
+        self.Shelf = 0
+        self.Comments = ""
+        self.offsetX = 0.0
+        self.offsetY = 0.0
+        self.IMG_URL = ""
+        self.ImageRotation = 0.0
+        self.SUMMARY_URL = ""
+
     def getAddress(self):
-        return "%s%02d-%d" % (self.Row,self.Column,self.Shelf)
+        return "%s%02d-%d" % (self.Row, self.Column, self.Shelf)
 
     def getImage(self):
         if len(self.IMG_URL) > 0:
             try:
-               if self.IMG_URL.startswith("http://"):
-                   self.IMG_URL = "https://" + self.IMG_URL[7];
-               image_string = urllib.urlopen(self.IMG_URL).read()           
-               return image_string
+                if self.IMG_URL.startswith("http://"):
+                    self.IMG_URL = "https://" + self.IMG_URL[7]
+                image_string = urllib.urlopen(self.IMG_URL).read()
+                return image_string
             except:
-               return 
+                return
 
     def getSummaryURL(self):
-        if (len(self.SUMMARY_URL)==0):
+        if len(self.SUMMARY_URL) == 0:
             return None
         return self.SUMMARY_URL
-        
+
+
 class Plate:
     def __init__(self, *args):
-        self.Barcode=""
-        self.PlateType=""
-        self.Xtal=[]
+        self.Barcode = ""
+        self.PlateType = ""
+        self.Xtal = []
+
 
 class ProcessingPlan:
     def __init__(self, *args):
-        self.Plate=Plate()
- 
+        self.Plate = Plate()
+
+
 def getProcessingPlan(barcode, crims_url):
-    try: 
-        url = crims_url + "/htxlab/index.php?option=com_crimswebservices" + \
-           "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
+    try:
+        url = (
+            crims_url
+            + "/htxlab/index.php?option=com_crimswebservices"
+            + "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
+        )
         f = urllib.urlopen(url)
         xml = f.read()
 
         import xml.etree.cElementTree as et
-        tree=et.fromstring(xml)
 
-        pp=ProcessingPlan()
+        tree = et.fromstring(xml)
+
+        pp = ProcessingPlan()
         plate = tree.findall("Plate")[0]
 
         pp.Plate.Barcode = plate.find("Barcode").text
         pp.Plate.PlateType = plate.find("PlateType").text
 
         for x in plate.findall("Xtal"):
-            xtal=Xtal()
-            xtal.CrystalUUID=x.find("CrystalUUID").text
+            xtal = Xtal()
+            xtal.CrystalUUID = x.find("CrystalUUID").text
             xtal.Label = x.find("Label").text
             xtal.Login = x.find("Login").text
             xtal.Sample = x.find("Sample").text
