@@ -10,9 +10,11 @@ from requests import post, get
 from urlparse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-_CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
-                        "the server is running and that your " + \
-                        "configuration is correct"
+_CONNECTION_ERROR_MSG = (
+    "Could not connect to ISPyB, please verify that "
+    + "the server is running and that your "
+    + "configuration is correct"
+)
 _NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."
 
 
@@ -29,24 +31,24 @@ class ISPyBRestClient(HardwareObject):
         self.__rest_root = None
         self.__rest_username = None
         self.__rest_token = None
-        self.__rest_token_timestamp = None 
+        self.__rest_token_timestamp = None
         self.base_result_url = None
 
     def init(self):
-        self.session_hwobj = self.getObjectByRole('session')
+        self.session_hwobj = self.getObjectByRole("session")
 
         if self.session_hwobj:
             self.beamline_name = self.session_hwobj.beamline_name
         else:
-            self.beamline_name = 'ID:TEST'
+            self.beamline_name = "ID:TEST"
 
         logging.getLogger("requests").setLevel(logging.WARNING)
 
-        self.__rest_root = self.getProperty('restRoot').strip()
-        self.__rest_username = self.getProperty('restUserName').strip()
-        self.__rest_password = self.getProperty('restPass').strip()
-        self.__site = self.getProperty('site').strip()
-        
+        self.__rest_root = self.getProperty("restRoot").strip()
+        self.__rest_username = self.getProperty("restUserName").strip()
+        self.__rest_password = self.getProperty("restPass").strip()
+        self.__site = self.getProperty("site").strip()
+
         try:
             self.base_result_url = self.getProperty("base_result_url").strip()
         except AttributeError:
@@ -62,13 +64,13 @@ class ISPyBRestClient(HardwareObject):
         """
         request_token = False
         if not self.__rest_token_timestamp:
-            request_token = True 
+            request_token = True
         else:
-           timedelta = datetime.now() - self.__rest_token_timestamp
-           if timedelta.seconds > (3 * 60 * 60):  
-               request_token = True
+            timedelta = datetime.now() - self.__rest_token_timestamp
+            if timedelta.seconds > (3 * 60 * 60):
+                request_token = True
 
-        if request_token: 
+        if request_token:
             self.authenticate(self.__rest_username, self.__rest_password)
 
     def authenticate(self, user, password):
@@ -84,20 +86,19 @@ class ISPyBRestClient(HardwareObject):
         auth_url = urljoin(self.__rest_root, "authenticate?site=" + self.__site)
 
         try:
-            data = {'login': str(user), "password": str(password)}
-            response = post(auth_url, data = data)
+            data = {"login": str(user), "password": str(password)}
+            response = post(auth_url, data=data)
 
-            self.__rest_token = response.json().get("token") 
+            self.__rest_token = response.json().get("token")
             self.__rest_token_timestamp = datetime.now()
             self.__rest_username = user
             self.__rest_password = password
         except Exception as ex:
-            msg = "POST to %s failed reason %s" % (auth_url, str(ex)) 
+            msg = "POST to %s failed reason %s" % (auth_url, str(ex))
             logging.getLogger("ispyb_client").exception(msg)
         else:
             msg = "Authenticated to LIMS token is: %s" % self.__rest_root
             logging.getLogger("ispyb_client").exception(msg)
-
 
     def sample_link(self):
         """
@@ -107,7 +108,6 @@ class ISPyBRestClient(HardwareObject):
         """
         self.__update_rest_token()
         return urljoin(self.__rest_root, "samples?token=%s" % self.__rest_token)
-
 
     def dc_link(self, did):
         """
@@ -120,9 +120,11 @@ class ISPyBRestClient(HardwareObject):
 
         if self.base_result_url is not None and did:
             path = "mx/#/mx/proposal/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
-            path = path.format(pcode = self.session_hwobj.proposal_code,
-                               pnumber = self.session_hwobj.proposal_number,
-                               did = did)
+            path = path.format(
+                pcode=self.session_hwobj.proposal_code,
+                pnumber=self.session_hwobj.proposal_number,
+                did=did,
+            )
 
             url = urljoin(self.base_result_url, path)
 
@@ -139,11 +141,13 @@ class ISPyBRestClient(HardwareObject):
 
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/datacollection/session/{sid}/list"
-        url = url.format(rest_root = self.__rest_root,
-                         token = str(self.__rest_token),
-                         pcode = self.session_hwobj.proposal_code,
-                         pnumber = self.session_hwobj.proposal_number,
-                         sid = self.session_hwobj.session_id)
+        url = url.format(
+            rest_root=self.__rest_root,
+            token=str(self.__rest_token),
+            pcode=self.session_hwobj.proposal_code,
+            pnumber=self.session_hwobj.proposal_number,
+            sid=self.session_hwobj.session_id,
+        )
 
         try:
             response = json.loads(get(url).text)
@@ -164,11 +168,13 @@ class ISPyBRestClient(HardwareObject):
 
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/datacollection/{dc_id}/list"
-        url = url.format(rest_root = self.__rest_root,
-                         token = str(self.__rest_token),
-                         pcode = self.session_hwobj.proposal_code,
-                         pnumber = self.session_hwobj.proposal_number,
-                         dc_id = dc_id)
+        url = url.format(
+            rest_root=self.__rest_root,
+            token=str(self.__rest_token),
+            pcode=self.session_hwobj.proposal_code,
+            pnumber=self.session_hwobj.proposal_number,
+            dc_id=dc_id,
+        )
         try:
             response = json.loads(get(url).text)[0]
         except Exception as ex:
@@ -180,16 +186,20 @@ class ISPyBRestClient(HardwareObject):
 
         try:
             if response and "WorkflowStep_workflowStepId" in response:
-                step_id_list = response["WorkflowStep_workflowStepId"].split(',')
+                step_id_list = response["WorkflowStep_workflowStepId"].split(",")
 
                 for step_id in step_id_list:
                     url = "{rest_root}{token}"
-                    url += "/proposal/{pcode}{pnumber}/mx/workflow/step/{step_id}/result"
-                    url = url.format(rest_root = self.__rest_root,
-                                     token = str(self.__rest_token),
-                                     pcode = self.session_hwobj.proposal_code,
-                                     pnumber = self.session_hwobj.proposal_number,
-                                     step_id = step_id)
+                    url += (
+                        "/proposal/{pcode}{pnumber}/mx/workflow/step/{step_id}/result"
+                    )
+                    url = url.format(
+                        rest_root=self.__rest_root,
+                        token=str(self.__rest_token),
+                        pcode=self.session_hwobj.proposal_code,
+                        pnumber=self.session_hwobj.proposal_number,
+                        step_id=step_id,
+                    )
 
                     lims_dc["workflow_result_url_list"].append(url)
         except Exception as ex:
@@ -197,16 +207,15 @@ class ISPyBRestClient(HardwareObject):
 
         if response:
             for key, value in response.iteritems():
-                if key.startswith('DataCollection_'):
-                    k = str(key.replace('DataCollection_', ''))
+                if key.startswith("DataCollection_"):
+                    k = str(key.replace("DataCollection_", ""))
                     lims_dc[k] = value
-                elif key == 'firstImageId':
-                    lims_dc['firstImageId'] = value
-                elif key == 'lastImageId':
-                    lims_dc['lastImageId'] = value
+                elif key == "firstImageId":
+                    lims_dc["firstImageId"] = value
+                elif key == "lastImageId":
+                    lims_dc["lastImageId"] = value
 
         return lims_dc
-
 
     def get_quality_indicator_plot(self, collection_id):
         """
@@ -217,15 +226,19 @@ class ISPyBRestClient(HardwareObject):
         :returns: tuple on the form (file name, base64 encoded data)
         """
         self.__update_rest_token()
-        fname, data = ('' ,'')
+        fname, data = ("", "")
 
         url = "{rest_root}{token}"
-        url += "/proposal/{pcode}{pnumber}/mx/datacollection/{dcid}/qualityindicatorplot"
-        url = url.format(rest_root = self.__rest_root,
-                         token = str(self.__rest_token),
-                         pcode = self.session_hwobj.proposal_code,
-                         pnumber = self.session_hwobj.proposal_number,
-                         dcid = collection_id)
+        url += (
+            "/proposal/{pcode}{pnumber}/mx/datacollection/{dcid}/qualityindicatorplot"
+        )
+        url = url.format(
+            rest_root=self.__rest_root,
+            token=str(self.__rest_token),
+            pcode=self.session_hwobj.proposal_code,
+            pnumber=self.session_hwobj.proposal_number,
+            dcid=collection_id,
+        )
 
         try:
             response = get(url)
@@ -236,7 +249,6 @@ class ISPyBRestClient(HardwareObject):
 
         return data
 
-
     def get_dc_thumbnail(self, image_id):
         """
         Get the image data for image with id <image_id>
@@ -246,21 +258,23 @@ class ISPyBRestClient(HardwareObject):
         """
 
         self.__update_rest_token()
-        fname, data = ('' ,'')
+        fname, data = ("", "")
 
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/image/{image_id}/thumbnail"
-        url = url.format(rest_root = self.__rest_root,
-                         token = str(self.__rest_token),
-                         pcode = self.session_hwobj.proposal_code,
-                         pnumber = self.session_hwobj.proposal_number,
-                         image_id = image_id)
+        url = url.format(
+            rest_root=self.__rest_root,
+            token=str(self.__rest_token),
+            pcode=self.session_hwobj.proposal_code,
+            pnumber=self.session_hwobj.proposal_number,
+            image_id=image_id,
+        )
 
         try:
             response = get(url)
             data = response.content
             value, params = cgi.parse_header(response.headers)
-            fname = params['filename']
+            fname = params["filename"]
 
         except Exception as ex:
             response = []
@@ -277,21 +291,23 @@ class ISPyBRestClient(HardwareObject):
         """
 
         self.__update_rest_token()
-        fname, data = ('' ,'')
+        fname, data = ("", "")
 
         url = "{rest_root}{token}"
         url += "/proposal/{pcode}{pnumber}/mx/image/{image_id}/get"
-        url = url.format(rest_root = self.__rest_root,
-                         token = str(self.__rest_token),
-                         pcode = self.session_hwobj.proposal_code,
-                         pnumber = self.session_hwobj.proposal_number,
-                         image_id = image_id)
+        url = url.format(
+            rest_root=self.__rest_root,
+            token=str(self.__rest_token),
+            pcode=self.session_hwobj.proposal_code,
+            pnumber=self.session_hwobj.proposal_number,
+            image_id=image_id,
+        )
 
         try:
             response = get(url)
             data = response.content
             value, params = cgi.parse_header(response.headers)
-            fname = params['filename']
+            fname = params["filename"]
 
         except Exception as ex:
             response = []
@@ -311,9 +327,11 @@ class ISPyBRestClient(HardwareObject):
         if self.__rest_token:
             try:
                 url = "{rest_root}{token}/proposal/{username}/list"
-                url = url.format(rest_root = self.__rest_root,
-                                 token = self.__rest_token,
-                                 username = user_name)
+                url = url.format(
+                    rest_root=self.__rest_root,
+                    token=self.__rest_token,
+                    username=user_name,
+                )
 
                 response = get(url)
                 proposal_list = json.loads(str(response.text))
@@ -322,36 +340,55 @@ class ISPyBRestClient(HardwareObject):
                     temp_proposal_dict = {}
                     # Backward compatability with webservices
                     # Could be removed if webservices disapear
-                    temp_proposal_dict['Proposal'] = {}
-                    temp_proposal_dict['Proposal']['type'] = str(proposal['Proposal_proposalType'])
+                    temp_proposal_dict["Proposal"] = {}
+                    temp_proposal_dict["Proposal"]["type"] = str(
+                        proposal["Proposal_proposalType"]
+                    )
 
-                    if temp_proposal_dict['Proposal']['type'] in ('MX', 'MB'):
-                        temp_proposal_dict['Proposal']['proposalId'] = proposal['Proposal_proposalId'] 
-                        temp_proposal_dict['Proposal']['code'] = str(proposal['Proposal_proposalCode'])
-                        temp_proposal_dict['Proposal']['number'] = proposal['Proposal_proposalNumber']
-                        temp_proposal_dict['Proposal']['title'] = proposal['Proposal_title']
-                        temp_proposal_dict['Proposal']['personId'] = proposal['Proposal_personId']
+                    if temp_proposal_dict["Proposal"]["type"] in ("MX", "MB"):
+                        temp_proposal_dict["Proposal"]["proposalId"] = proposal[
+                            "Proposal_proposalId"
+                        ]
+                        temp_proposal_dict["Proposal"]["code"] = str(
+                            proposal["Proposal_proposalCode"]
+                        )
+                        temp_proposal_dict["Proposal"]["number"] = proposal[
+                            "Proposal_proposalNumber"
+                        ]
+                        temp_proposal_dict["Proposal"]["title"] = proposal[
+                            "Proposal_title"
+                        ]
+                        temp_proposal_dict["Proposal"]["personId"] = proposal[
+                            "Proposal_personId"
+                        ]
 
-                        res_sessions = self.get_proposal_sessions(\
-                            temp_proposal_dict['Proposal']['proposalId'])
+                        res_sessions = self.get_proposal_sessions(
+                            temp_proposal_dict["Proposal"]["proposalId"]
+                        )
 
                         proposal_sessions = []
                         for session in res_sessions:
-                            date_object = datetime.strptime(session['startDate'], '%b %d, %Y %I:%M:%S %p')
-                            session['startDate'] = datetime.strftime(
-                                date_object, "%Y-%m-%d %H:%M:%S")
-                            date_object = datetime.strptime(session['endDate'], '%b %d, %Y %I:%M:%S %p')
-                            session['endDate'] = datetime.strftime(
-                                date_object, "%Y-%m-%d %H:%M:%S")
+                            date_object = datetime.strptime(
+                                session["startDate"], "%b %d, %Y %I:%M:%S %p"
+                            )
+                            session["startDate"] = datetime.strftime(
+                                date_object, "%Y-%m-%d %H:%M:%S"
+                            )
+                            date_object = datetime.strptime(
+                                session["endDate"], "%b %d, %Y %I:%M:%S %p"
+                            )
+                            session["endDate"] = datetime.strftime(
+                                date_object, "%Y-%m-%d %H:%M:%S"
+                            )
                             proposal_sessions.append(session)
 
-                            temp_proposal_dict['Sessions'] = proposal_sessions
+                            temp_proposal_dict["Sessions"] = proposal_sessions
 
                         result.append(temp_proposal_dict)
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
-             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
+            logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
         return result
 
     def get_proposal_sessions(self, proposal_id):
@@ -359,20 +396,23 @@ class ISPyBRestClient(HardwareObject):
         session_list = []
         if self.__rest_token:
             try:
-               response = get(self.__rest_root + self.__rest_token + \
-                    '/proposal/%s/session/list' % proposal_id)
-               session_list = response.json()
-               #for session in all_sessions:
-               #    if session['proposalVO']['proposalId'] == proposal_id:
-               #session_list.append(all_sessions)
+                response = get(
+                    self.__rest_root
+                    + self.__rest_token
+                    + "/proposal/%s/session/list" % proposal_id
+                )
+                session_list = response.json()
+                # for session in all_sessions:
+                #    if session['proposalVO']['proposalId'] == proposal_id:
+                # session_list.append(all_sessions)
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
-             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
+            logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
 
         return session_list
 
-    #@trace
+    # @trace
     def get_session_local_contact(self, session_id):
         """
         Descript. : Retrieves the person entry associated with the session
@@ -385,8 +425,11 @@ class ISPyBRestClient(HardwareObject):
         result = {}
 
         if self.__rest_token:
-             response = get(self.__rest_root + self.__rest_token + \
-                 "/proposal/session/%d/localcontact" % session_id)
+            response = get(
+                self.__rest_root
+                + self.__rest_token
+                + "/proposal/session/%d/localcontact" % session_id
+            )
         else:
             logging.getLogger("ispyb_client").exception(_NO_TOKEN_MSG)
         return result
@@ -403,8 +446,7 @@ class ISPyBRestClient(HardwareObject):
 
         return translated
 
-
-    def store_data_collection(self, mx_collection, beamline_setup = None):
+    def store_data_collection(self, mx_collection, beamline_setup=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -418,9 +460,8 @@ class ISPyBRestClient(HardwareObject):
         :returns: None
 
         """
-        print "store_data_collection..." , mx_collection
+        print "store_data_collection...", mx_collection
         return None, None
-
 
     def store_beamline_setup(self, session_id, beamline_setup):
         """
@@ -439,7 +480,6 @@ class ISPyBRestClient(HardwareObject):
         print "store_beamline_setup...", beamline_setup
         pass
 
-
     def update_data_collection(self, mx_collection, wait=False):
         """
         Updates the datacollction mx_collection, this requires that the
@@ -453,7 +493,6 @@ class ISPyBRestClient(HardwareObject):
         print "update_data_collection... ", mx_collection
         pass
 
-
     def store_image(self, image_dict):
         """
         Stores the image (image parameters) <image_dict>
@@ -466,7 +505,7 @@ class ISPyBRestClient(HardwareObject):
         print "store_image ", image_dict
         pass
 
-    def __find_sample(self, sample_ref_list, code = None, location = None):
+    def __find_sample(self, sample_ref_list, code=None, location=None):
         """
         Returns the sample with the matching "search criteria" <code> and/or
         <location> with-in the list sample_ref_list.
@@ -484,10 +523,8 @@ class ISPyBRestClient(HardwareObject):
         """
         pass
 
-
     def get_samples(self, proposal_id, session_id):
         pass
-
 
     def get_session_samples(self, proposal_id, session_id, sample_refs):
         """
@@ -514,7 +551,6 @@ class ISPyBRestClient(HardwareObject):
         """
         pass
 
-
     def get_bl_sample(self, bl_sample_id):
         """
         Fetch the BLSample entry with the id bl_sample_id
@@ -531,10 +567,8 @@ class ISPyBRestClient(HardwareObject):
     def disable(self):
         self.__disabled = True
 
-
     def enable(self):
         self.__disabled = False
-
 
     def store_data_collection_group(self, mx_collection):
         """
@@ -555,14 +589,18 @@ class ISPyBRestClient(HardwareObject):
         self.update_rest_token()
         if self.__rest_token:
             try:
-               response = get(self.__rest_root + self.__rest_token + '/proposal/%s/session/list' % self.__rest_username)
-               all_sessions = response.json()
-               for session in all_sessions:
-                   if session['proposalVO']['proposalId'] == proposal_id:
-                       session_list.append(session)
+                response = get(
+                    self.__rest_root
+                    + self.__rest_token
+                    + "/proposal/%s/session/list" % self.__rest_username
+                )
+                all_sessions = response.json()
+                for session in all_sessions:
+                    if session["proposalVO"]["proposalId"] == proposal_id:
+                        session_list.append(session)
             except:
-               logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+                logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
         else:
-             logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
+            logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
 
         return session_list

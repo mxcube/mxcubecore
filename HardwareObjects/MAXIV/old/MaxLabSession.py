@@ -22,20 +22,24 @@ class MaxLabSession(Session):
         :returns: The base data path.
         :rtype: str
         """
-        user_category = ''
-        directory = ''
+        user_category = ""
+        directory = ""
 
         if self.session_start_date:
-            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+            start_time = self.session_start_date.split(" ")[0].replace("-", "")
         else:
             start_time = time.strftime("%Y%m%d")
 
         if self.is_inhouse():
-            user_category = 'inhouse'
-            directory = os.path.join(self.base_directory, user_category, self.get_proposal(), start_time)
+            user_category = "inhouse"
+            directory = os.path.join(
+                self.base_directory, user_category, self.get_proposal(), start_time
+            )
         else:
-            user_category = 'visitor'
-            directory = os.path.join(self.base_directory, user_category, self.get_proposal(), start_time)
+            user_category = "visitor"
+            directory = os.path.join(
+                self.base_directory, user_category, self.get_proposal(), start_time
+            )
 
         return directory
 
@@ -44,16 +48,16 @@ class MaxLabSession(Session):
         :returns: The base path for images.
         :rtype: str
         """
-        return os.path.join(self.get_base_data_directory(),
-                            self.raw_data_folder_name)
+        return os.path.join(self.get_base_data_directory(), self.raw_data_folder_name)
 
     def get_base_process_directory(self):
         """
         :returns: The base path for procesed data.
         :rtype: str
         """
-        return os.path.join(self.get_base_data_directory(),
-                            self.processed_data_folder_name)
+        return os.path.join(
+            self.get_base_data_directory(), self.processed_data_folder_name
+        )
 
     def get_image_directory(self, sub_dir):
         """
@@ -71,8 +75,8 @@ class MaxLabSession(Session):
         directory = self.get_base_image_directory()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
-            directory = os.path.join(directory, sub_dir) + '/'
+            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
+            directory = os.path.join(directory, sub_dir) + "/"
 
         return directory
 
@@ -91,12 +95,12 @@ class MaxLabSession(Session):
         directory = self.get_base_process_directory()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
-            directory = os.path.join(directory, sub_dir) + '/'
+            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
+            directory = os.path.join(directory, sub_dir) + "/"
 
         return directory
 
-    def get_default_prefix(self, sample_data_node = None, generic_name = False):
+    def get_default_prefix(self, sample_data_node=None, generic_name=False):
         """
         Returns the default prefix, using sample data such as the
         acronym as parts in the prefix.
@@ -115,10 +119,13 @@ class MaxLabSession(Session):
 
         if sample_data_node:
             if sample_data_node.has_lims_data():
-                prefix = sample_data_node.crystals[0].protein_acronym + \
-                         '-' + sample_data_node.name
+                prefix = (
+                    sample_data_node.crystals[0].protein_acronym
+                    + "-"
+                    + sample_data_node.name
+                )
         elif generic_name:
-            prefix = '<acronym>-<name>'
+            prefix = "<acronym>-<name>"
 
         return prefix
 
@@ -127,38 +134,44 @@ class MaxLabSession(Session):
 
         logging.getLogger().info("In get_archive_directory")
         if not directory:
-           return directory
+            return directory
 
         try:
-           logging.getLogger().info("Getting archive directory name from %s", directory)
-           dirname = os.path.abspath(directory)
+            logging.getLogger().info(
+                "Getting archive directory name from %s", directory
+            )
+            dirname = os.path.abspath(directory)
 
-           if dirname[-1] != os.path.sep:
-              dirname += os.path.sep
+            if dirname[-1] != os.path.sep:
+                dirname += os.path.sep
 
-           parts = dirname.split(os.path.sep)
-           archive_dir_base = os.path.sep + os.path.join( *parts[1:-2] )
-           logging.getLogger().info("archive_dir_base:%s", archive_dir_base)
-           #Set up the archiving directory if the user is logged in 
-           #Check if the original path is /data/data1/visitor/mx... AN 25/03/2014
+            parts = dirname.split(os.path.sep)
+            archive_dir_base = os.path.sep + os.path.join(*parts[1:-2])
+            logging.getLogger().info("archive_dir_base:%s", archive_dir_base)
+            # Set up the archiving directory if the user is logged in
+            # Check if the original path is /data/data1/visitor/mx... AN 25/03/2014
 
-           if (archive_dir_base.startswith("/data/data1/visitor") ):
-               archive_dir_base = archive_dir_base.replace("/data/data1/visitor", "/data/ispyb/")
-           elif (archive_dir_base.startswith("/data/data1/inhouse")):
-               archive_dir_base = archive_dir_base.replace("/data/data1/inhouse", "/data/ispyb/")
+            if archive_dir_base.startswith("/data/data1/visitor"):
+                archive_dir_base = archive_dir_base.replace(
+                    "/data/data1/visitor", "/data/ispyb/"
+                )
+            elif archive_dir_base.startswith("/data/data1/inhouse"):
+                archive_dir_base = archive_dir_base.replace(
+                    "/data/data1/inhouse", "/data/ispyb/"
+                )
 
+            archive_dir = os.path.join(archive_dir_base, "archive")
+            # archive_dir = os.path.join(archive_dir_base, "archive")
+            logging.getLogger().info("archive_dir:%s", archive_dir)
 
-           archive_dir = os.path.join( archive_dir_base, "archive")
-           #archive_dir = os.path.join(archive_dir_base, "archive")
-           logging.getLogger().info("archive_dir:%s", archive_dir)
-
-           if not os.path.exists(archive_dir):
-               os.makedirs(archive_dir)
-           return archive_dir
+            if not os.path.exists(archive_dir):
+                os.makedirs(archive_dir)
+            return archive_dir
         except:
-           import traceback
-           traceback.print_exc()
-           return directory
+            import traceback
+
+            traceback.print_exc()
+            return directory
 
     def get_proposal(self):
         """
@@ -166,14 +179,13 @@ class MaxLabSession(Session):
                   available
         :rtype: str
         """
-        proposal = 'local-user'
+        proposal = "local-user"
 
         if self.proposal_code and self.proposal_number:
-            if self.proposal_code == 'ifx':
-                self.proposal_code = 'fx'
+            if self.proposal_code == "ifx":
+                self.proposal_code = "fx"
 
-            proposal = "%s%s" % (self.proposal_code,
-                                 self.proposal_number)
+            proposal = "%s%s" % (self.proposal_code, self.proposal_number)
 
         return proposal
 

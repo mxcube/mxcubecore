@@ -25,7 +25,6 @@ __credits__ = ["MXCuBE colaboration"]
 
 
 class SlitsMockup(AbstractSlits):
-
     def __init__(self, *args):
         AbstractSlits.__init__(self, *args)
 
@@ -36,11 +35,11 @@ class SlitsMockup(AbstractSlits):
 
     def set_horizontal_gap(self, value):
         self._value[0] = value
-        self.emit('valueChanged', self._value)
+        self.emit("valueChanged", self._value)
 
     def set_vertical_gap(self, value):
         self._value[1] = value
-        self.emit('valueChanged', self._value)
+        self.emit("valueChanged", self._value)
 
     def stop_horizontal_gap_move(self):
         return

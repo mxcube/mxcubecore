@@ -4,6 +4,7 @@
 
 import abc
 
+
 class AbstractShutter(object, metaclass=abc.ABCMeta):
     """
     Abstract base class for Shutter objects. The shutter has eight states 
@@ -20,7 +21,6 @@ class AbstractShutter(object, metaclass=abc.ABCMeta):
 
     """
 
-    
     @abc.abstractmethod
     def __init__(self, name):
         """
@@ -28,7 +28,6 @@ class AbstractShutter(object, metaclass=abc.ABCMeta):
         :type name: str
         """
         return
-
 
     @abc.abstractmethod
     def value_changed(self, device_name, value):
@@ -42,7 +41,6 @@ class AbstractShutter(object, metaclass=abc.ABCMeta):
         :type value: object
         """
         return
-
 
     @abc.abstractmethod
     def get_state(self):
@@ -64,18 +62,15 @@ class AbstractShutter(object, metaclass=abc.ABCMeta):
         """
         return
 
- 
     @abc.abstractmethod
     def is_ok(self):
         """ Checks if the shutter is in one of its predefined states """
         return
 
-
     @abc.abstractmethod
     def open(self):
         return
 
-    
     @abc.abstractmethod
     def close(self):
         return
@@ -86,11 +81,9 @@ class AbstractAttenuators(object, metaclass=abc.ABCMeta):
     Abstract Attenuators class.
     """
 
-    
     @abc.abstractmethod
     def __init__(self, name):
         return
-
 
     @abc.abstractmethod
     def get_state(self):
@@ -100,7 +93,6 @@ class AbstractAttenuators(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def get_factor(self):
         """
@@ -109,16 +101,13 @@ class AbstractAttenuators(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def connect(self):
         return
 
-
     @abc.abstractmethod
     def disconnect(self):
-       return
-
+        return
 
     @abc.abstractmethod
     def state_changed(self, value):
@@ -127,7 +116,6 @@ class AbstractAttenuators(object, metaclass=abc.ABCMeta):
         :type value: int
         """
         return
-
 
     @abc.abstractmethod
     def factor_changed(self, value):
@@ -154,11 +142,9 @@ class AbstractFrontend(object, metaclass=abc.ABCMeta):
 
     """
 
-
     @abc.abstractmethod
     def __init__(self, name):
         return
-
 
     @abc.abstractmethod
     def get_name(self):
@@ -167,7 +153,6 @@ class AbstractFrontend(object, metaclass=abc.ABCMeta):
         :rtype: str
         """
         return
-
 
     @abc.abstractmethod
     def value_changed(self, device_name, value):
@@ -182,7 +167,6 @@ class AbstractFrontend(object, metaclass=abc.ABCMeta):
         :type value: object
         """
         return
-
 
     @abc.abstractmethod
     def get_state(self):
@@ -202,7 +186,6 @@ class AbstractFrontend(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def get_automatic_method_time_left(self):
         """
@@ -211,11 +194,9 @@ class AbstractFrontend(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def open(self):
         return
-
 
     @abc.abstractmethod
     def close(self):
@@ -227,11 +208,9 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
     Abstract base class for hutch triggers.
     """
 
-
     @abc.abstractmethod
     def __init__(self, name):
         return
-
 
     @abc.abstractmethod
     def is_connected(self):
@@ -241,7 +220,6 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def connect(self):
         """
@@ -249,7 +227,6 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         Emits the signal 'connect'
         """
         return
-
 
     @abc.abstractmethod
     def disconnect(self):
@@ -259,14 +236,12 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def started(self):
         """
         Emits the signal 'macroStarted'
         """
         return
-
 
     @abc.abstractmethod
     def done(self):
@@ -275,7 +250,6 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def failed(self):
         """
@@ -283,11 +257,9 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def abort(self):
         return
-
 
     @abc.abstractmethod
     def msg_changed(self, msg):
@@ -299,7 +271,6 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def status_changed(self, status):
         """
@@ -309,7 +280,6 @@ class AbstractHutchTrigger(object, metaclass=abc.ABCMeta):
         :type status: object
         """
         return
-
 
     @abc.abstractmethod
     def value_changed(self, device_name, value):
@@ -321,7 +291,6 @@ class AbstractInOut(object, metaclass=abc.ABCMeta):
     Abstract base class for InOut objects. Can be any ojects that have the two
     states 'in' and 'out'.
     """
-
 
     @abc.abstractmethod
     def __init__(self, name):
@@ -347,21 +316,19 @@ class AbstractInOut(object, metaclass=abc.ABCMeta):
     def out(self):
         return
 
-    
 
 """
  Abstract base classes for instruments
 """
 
+
 class AbstractAdscTemperature(object, metaclass=abc.ABCMeta):
     """
     """
 
-
     @abc.abstractmethod
     def __init__(self, name):
         return
-
 
     @abc.abstractmethod
     def value_changed(self, device_name, value):
@@ -380,147 +347,118 @@ class AbstractCamera(object, metaclass=abc.ABCMeta):
     """
     """
 
-    
     @abc.abstractmethod
     def set_brightness(self, brightness):
         return
 
-    
     @abc.abstractmethod
     def get_brightness(self):
         return
 
-    
     @abc.abstractmethod
     def get_brightness_min_max(self):
         return
 
-
     @abc.abstractmethod
     def has_brightness(self):
         return
-        
 
     @abc.abstractmethod
     def has_gamma(self):
         return
-    
 
     @abc.abstractmethod
     def set_gamma(self, gamma):
         return
 
-
     @abc.abstractmethod
     def get_gamma(self):
         return
 
-    
     @abc.abstractmethod
     def set_roi(self, start_x, end_x, start_y, end_y):
         return
 
-    
     @abc.abstractmethod
     def get_bpm_state(self):
         return
 
-    
     @abc.abstractmethod
     def set_bpm(self, bpm_on):
         return
 
-    
     @abc.abstractmethod
     def get_bpm_values(self):
         return
-
 
     @abc.abstractmethod
     def set_live(self, mode):
         return
 
-    
     @abc.abstractmethod
     def set_exposure(self, exposure):
         return
-
 
     @abc.abstractmethod
     def set_size(self, width, height):
         return
 
-
     @abc.abstractmethod
     def get_height(self):
         return
-
 
     @abc.abstractmethod
     def get_width(self):
         return
 
-
     @abc.abstractmethod
     def set_threshold(self, threshold):
         return
-
 
     @abc.abstractmethod
     def get_contrast(self):
         return
 
-     
     @abc.abstractmethod
     def set_contrast(self, contrast):
         return
-
 
     @abc.abstractmethod
     def get_contrast_min_max(self):
         return
 
-
     @abc.abstractmethod
     def has_contrast(self):
         return
 
-    
     @abc.abstractmethod
     def set_gain(self, gain):
         return
-
 
     @abc.abstractmethod
     def get_gain(self):
         return
 
-    
     @abc.abstractmethod
     def get_gain_min_max(self):
         return
-    
 
     @abc.abstractmethod
     def has_gain(self):
         return
 
-
     @abc.abstractmethod
     def value_changed(self, device_name, value):
         return
-
 
     @abc.abstractmethod
     def image_type(self):
         return
 
-
     @abc.abstractmethod
     def take_snapshot(self, *args):
         return
 
-    
     @abc.abstractmethod
     def oprint(self, msg):
         return
@@ -530,27 +468,23 @@ class AbstractCryo(object, metaclass=abc.ABCMeta):
     """
     """
 
-
     @abc.abstractmethod
     def __init__(self, *args, **kwargs):
         return
-    
 
     @abc.abstractmethod
     def value_changed(self, device_name, values):
         return
 
-
     @abc.abstractmethod
     def set_n2_level(self, new_level):
         return
-    
+
 
 class AbstractCyberStar(object, metaclass=abc.ABCMeta):
     """
     """
 
-    
     @abc.abstractmethod
     def __init__(self, name):
         """
@@ -559,7 +493,6 @@ class AbstractCyberStar(object, metaclass=abc.ABCMeta):
         """
         return
 
-    
     @abc.abstractmethod
     def value_changed(self, device_name, values):
         """
@@ -589,7 +522,6 @@ class AbstractLakeshore(object, metaclass=abc.ABCMeta):
         """
         return
 
-
     @abc.abstractmethod
     def get_ident(self):
         """
@@ -601,8 +533,7 @@ class AbstractLakeshore(object, metaclass=abc.ABCMeta):
         """
         return
 
-
-    @abc.abstractmethod    
+    @abc.abstractmethod
     def get_channels_number(self):
         """
         Gets the number of channels available.
@@ -612,7 +543,6 @@ class AbstractLakeshore(object, metaclass=abc.ABCMeta):
 
         """
         return
-    
 
     @abc.abstractmethod
     def set_interval(self, new_interval):
@@ -626,31 +556,25 @@ class AbstractLakeshore(object, metaclass=abc.ABCMeta):
         """
         return
 
-
-    @abc.abstractmethod    
+    @abc.abstractmethod
     def connect_notify(self):
         return
-
 
     @abc.abstractmethod
     def disconnet_notify(self, signal):
         return
 
-
-    @abc.abstractmethod    
+    @abc.abstractmethod
     def putget(self, cmd, timeout):
         return
-
 
     @abc.abstractmethod
     def set_status(self, status):
         return
 
-
     @abc.abstractmethod
     def read_channels(self):
         return
-
 
     @abc.abstractmethod
     def reset(self):
@@ -661,36 +585,29 @@ class AbstractXCamera(object, metaclass=abc.ABCMeta):
     """
     """
 
-
     @abc.abstractmethod
     def value_changed(self, device_name, value):
         return
-
 
     @abc.abstractmethod
     def get_width(self):
         return
 
-
-    @abc.abstractmethod    
+    @abc.abstractmethod
     def get_height(self):
         return
-
 
     @abc.abstractmethod
     def set_size(self):
         return
 
-
     @abc.abstractmethod
     def statistics_changed(self, stats):
         return
 
-
     @abc.abstractmethod
     def statistics_timeout(self, stats):
         return
-
 
     @abc.abstractmethod
     def get_image_data(self, read):

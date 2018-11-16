@@ -33,88 +33,76 @@ import numpy
 # import DeviceProxy function and DevState:
 from PyTango import DevState
 from PyTango import DeviceProxy
- 
-last_centred_position = [200, 200]
 
+last_centred_position = [200, 200]
 
 
 class Centring(Device):
     """
     Description:     This class controls the operation of Tango Motor 
-    """    
+    """
 
     def __init__(self, *args):
         """
         Description:
-        """ 
+        """
         HardwareObject.__init__(self, *args)
-        self.proxyMotor = None  # Hardware object to change motor attributes            
+        self.proxyMotor = None  # Hardware object to change motor attributes
         self.motor_name = None  # Tango name of DeviceServer controlling the motor
-        
-        
-        
-    def init(self):
-        self.gonioAxes = []                                                                                 
 
-        #self.gonioAxes = []
-        #for axis in self['gonioAxes']:
+    def init(self):
+        self.gonioAxes = []
+
+        # self.gonioAxes = []
+        # for axis in self['gonioAxes']:
         #  self.gonioAxes.append({'type':axis.type,'direction':eval(axis.direction),\
         #                   'motor_name':axis.motorname,'motor_HO':
-        #                          HardwareRepository.HardwareRepository().getHardwareObject(axis.motorHO) })      
-        
-        print( 'Centring Init')
-        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        #                          HardwareRepository.HardwareRepository().getHardwareObject(axis.motorHO) })
 
-
+        print("Centring Init")
+        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
     def initCentringProcedure(self):
-        
+
         print("initCentringProcedure(self)")
         """
         Descript. : call before starting rotate-click sequence 
         """
-        self.centringDataTensor=[]
-        self.centringDataMatrix=[]
-        self.motorConstraints=[]
+        self.centringDataTensor = []
+        self.centringDataMatrix = []
+        self.motorConstraints = []
 
-        #self.centeingPoints = [Point(0.0,0.0), Point(0.0,0.0), Point(0.0,0.0)]  # array of 3 points, initial values - zeroes 
-        #print( "self.centeingPoints[0] = (", self.centeingPoints[0].x, ", ", self.centeingPoints[0].y, ")")
-        #print( "self.centeingPoints[1] = (", self.centeingPoints[1].x, ", ", self.centeingPoints[1].y, ")")        
-        #print( "self.centeingPoints[2] = (", self.centeingPoints[2].x, ", ", self.centeingPoints[2].y, ")")
-        
-        print( 'Centring initCentringProcedure')
-        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        # self.centeingPoints = [Point(0.0,0.0), Point(0.0,0.0), Point(0.0,0.0)]  # array of 3 points, initial values - zeroes
+        # print( "self.centeingPoints[0] = (", self.centeingPoints[0].x, ", ", self.centeingPoints[0].y, ")")
+        # print( "self.centeingPoints[1] = (", self.centeingPoints[1].x, ", ", self.centeingPoints[1].y, ")")
+        # print( "self.centeingPoints[2] = (", self.centeingPoints[2].x, ", ", self.centeingPoints[2].y, ")")
 
+        print("Centring initCentringProcedure")
+        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
-   
     def appendCentringDataPoint(self, camera_coordinates):
         """
         Descript. : call after each click and send click points - but relative in mm 
         """
-        #self.centringDataTensor.append(self.factor_matrix())
-        self.centringDataMatrix.append(self.camera_coordinates_to_vector(camera_coordinates))
-        
+        # self.centringDataTensor.append(self.factor_matrix())
+        self.centringDataMatrix.append(
+            self.camera_coordinates_to_vector(camera_coordinates)
+        )
+
         ll = len(self.centringDataMatrix)
-        print("len(self.centringDataMatrix) = ",  ll)
-        
-        print("self.centringDataMatrix = ",  self.centringDataMatrix[ll-1])
-         
+        print("len(self.centringDataMatrix) = ", ll)
 
+        print("self.centringDataMatrix = ", self.centringDataMatrix[ll - 1])
 
-
-        
         print("appendCentringDataPoint(self)")
-        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
-#    def setCentringDataPoint(self, i, camera_coordinates):
-#        print("camera_coordinates['X'] = ",  camera_coordinates['X'])
-#        print("camera_coordinates['Y'] = ",  camera_coordinates['Y'])
-#        #self.centeingPoints[i] =  point(camera_coordinates['X'], camera_coordinates['Y']])
-#        print("appendCentringDataPoint(self)")
-#        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
-
-
-
+    #    def setCentringDataPoint(self, i, camera_coordinates):
+    #        print("camera_coordinates['X'] = ",  camera_coordinates['X'])
+    #        print("camera_coordinates['Y'] = ",  camera_coordinates['Y'])
+    #        #self.centeingPoints[i] =  point(camera_coordinates['X'], camera_coordinates['Y']])
+    #        print("appendCentringDataPoint(self)")
+    #        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
 
     def centeredPosition(self, return_by_name=False):
         """
@@ -136,33 +124,32 @@ class Centring(Device):
         
         tau_cntrd = self.apply_constraints(M,tau_cntrd)
         """
-        #return self.vector_to_centred_positions( - tau_cntrd + self.translation_datum(), return_by_name)
+        # return self.vector_to_centred_positions( - tau_cntrd + self.translation_datum(), return_by_name)
         print("centeredPosition(self)")
-        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
         return self.vector_to_centred_positions(123, 456)
 
-    def vector_to_centred_positions(self,vector,return_by_name=False):
+    def vector_to_centred_positions(self, vector, return_by_name=False):
         dic = {}
         index = 0
-        #for axis in self.gonioAxes:
+        # for axis in self.gonioAxes:
         #  if axis['type'] == "translation":
         #     if return_by_name:
         #         dic[axis['motor_name']]=vector[index]
         #     else:
         #         dic[axis['motor_HO']]=vector[index]
         #     index += 1
-        
+
         print("vector_to_centred_positions(self)")
-        print( '-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
         return dic
 
+    def camera_coordinates_to_vector(self, camera_coordinates_dictionary):
+        vector = []
 
-    def camera_coordinates_to_vector(self,camera_coordinates_dictionary):
-        vector=[]
-        
-        vector.append(camera_coordinates_dictionary['X'])
-        vector.append(camera_coordinates_dictionary['Y'])
-        
+        vector.append(camera_coordinates_dictionary["X"])
+        vector.append(camera_coordinates_dictionary["Y"])
+
         return vector

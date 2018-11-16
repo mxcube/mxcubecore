@@ -12,17 +12,24 @@ import time
 from PyTango import DeviceProxy
 
 
-TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, \
-    TOOL_LASER, TOOL_DOUBLE_GRIPPER = (0,1,2,3,4,5)
+TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+)
 
 TOOL_TO_STR = {
-       "Flange": TOOL_FLANGE,
-       "Unipuck": TOOL_UNIPUCK,
-       "Rotat": TOOL_SPINE,
-       "Plate": TOOL_PLATE,
-       "Laser": TOOL_LASER,
-       "Double": TOOL_DOUBLE_GRIPPER,
-   }
+    "Flange": TOOL_FLANGE,
+    "Unipuck": TOOL_UNIPUCK,
+    "Rotat": TOOL_SPINE,
+    "Plate": TOOL_PLATE,
+    "Laser": TOOL_LASER,
+    "Double": TOOL_DOUBLE_GRIPPER,
+}
+
 
 class FlexHCDMaintenance(Equipment):
 
@@ -31,6 +38,7 @@ class FlexHCDMaintenance(Equipment):
 
     """
     """
+
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 
@@ -91,26 +99,23 @@ class FlexHCDMaintenance(Equipment):
 
     def _updateGlobalState(self):
         state_dict, cmd_state, message = self.get_global_state()
-        self.emit('globalStateChanged', (state_dict, cmd_state, message))
+        self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
         """
         """
         state = self._sc._readState()
         ready = self._sc._isDeviceBusy()
-        running = state in ("RUNNING", )
+        running = state in ("RUNNING",)
 
-        state_dict = {
-           "running": running,
-           "state": state,
-        }
+        state_dict = {"running": running, "state": state}
 
         cmd_state = {
-           "home": True,
-           "defreeze": True,
-           "reset_sample_number": True,
-           "change_gripper": True,
-           "abort": True,
+            "home": True,
+            "defreeze": True,
+            "reset_sample_number": True,
+            "change_gripper": True,
+            "abort": True,
         }
 
         message = ""
@@ -125,15 +130,17 @@ class FlexHCDMaintenance(Equipment):
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
         cmd_list = [
-              ["Actions",  [
-                   ["home", "Home", "Actions"],
-                   ["defreeze", "Defreeze gripper", "Actions"],
-                   ["reset_sample_number", "Reset sample number", "Actions"],                   
-                   ["change_gripper", "Change Gripper", "Actions"],
-                   ["abort", "Abort", "Actions"],
-                 ]
-              ],
-           ]
+            [
+                "Actions",
+                [
+                    ["home", "Home", "Actions"],
+                    ["defreeze", "Defreeze gripper", "Actions"],
+                    ["reset_sample_number", "Reset sample number", "Actions"],
+                    ["change_gripper", "Change Gripper", "Actions"],
+                    ["abort", "Abort", "Actions"],
+                ],
+            ]
+        ]
         return cmd_list
 
     def send_command(self, cmdname, args=None):

@@ -34,6 +34,7 @@ class ShapeHistoryMockup(HardwareObject):
     Keeps track of the current shapes the user has created. The
     shapes handled are any that inherits the Shape base class.
     """
+
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self._drawing = None
@@ -51,9 +52,9 @@ class ShapeHistoryMockup(HardwareObject):
         :returns: None
         """
         if self._drawing:
-            logging.getLogger('HWR').info('Setting previous drawing:' + \
-                                          str(self._drawing) + ' to ' + \
-                                          str(drawing))
+            logging.getLogger("HWR").info(
+                "Setting previous drawing:" + str(self._drawing) + " to " + str(drawing)
+            )
 
         self._drawing = drawing
 
@@ -63,7 +64,6 @@ class ShapeHistoryMockup(HardwareObject):
         :rtype: QubDrawing
         """
         return self._drawing
-
 
     def get_snapshot(self, qub_objects):
         """
@@ -76,14 +76,14 @@ class ShapeHistoryMockup(HardwareObject):
         :returns: The snapshot
         :rtype: QImage
         """
-	cwd = os.getcwd()
+        cwd = os.getcwd()
         path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
-	qimg_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
-        qimg = open (qimg_path,'rb').read()
+        qimg_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
+        qimg = open(qimg_path, "rb").read()
 
         return qimg
 
-    def get_qimage(self, image, canvas,  zoom = 1):
+    def get_qimage(self, image, canvas, zoom=1):
         """
         Gets the QImage from a parent widget.
 
@@ -102,7 +102,7 @@ class ShapeHistoryMockup(HardwareObject):
         cwd = os.getcwd()
         path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
         img_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
-        img = open (qimg_path,'rb').read()
+        img = open(qimg_path, "rb").read()
 
         return img
 
@@ -123,7 +123,7 @@ class ShapeHistoryMockup(HardwareObject):
                 current_points.append(shape)
 
         return current_points
-        
+
     def add_shape(self, shape):
         """
         Adds the shape <shape> to the list of handled objects.
@@ -137,7 +137,7 @@ class ShapeHistoryMockup(HardwareObject):
             shape.set_index(self.get_available_point_index())
 
         self.get_drawing_event_handler().de_select_all()
-        self.get_drawing_event_handler().set_selected(shape, True, call_cb = True)
+        self.get_drawing_event_handler().set_selected(shape, True, call_cb=True)
 
     def get_available_point_index(self):
         self.point_index += 1
@@ -167,12 +167,12 @@ class ShapeHistoryMockup(HardwareObject):
         """
         related_points = []
 
-        #If a point remove related line first
+        # If a point remove related line first
         if isinstance(shape, Point):
             for s in self.get_shapes():
                 if isinstance(s, Line):
                     for s_qub_obj in s.get_qub_objects():
-                        if  s_qub_obj in shape.get_qub_objects():
+                        if s_qub_obj in shape.get_qub_objects():
                             self._delete_shape(s)
                             related_points.append(s)
                             break
@@ -201,20 +201,20 @@ class ShapeHistoryMockup(HardwareObject):
         """
         Clear the shape history, remove all contents.
         """
-	return
+        return
 
     def de_select_all(self):
         return
 
     def select_shape_with_cpos(self, cpos):
-	return
-
+        return
 
 
 class Shape(object):
     """
     Base class for shapes.
     """
+
     def __init__(self):
         object.__init__(self)
         self._drawing = None
@@ -285,9 +285,8 @@ class Shape(object):
         pass
 
 
-class Line(Shape):    
-    def __init__(self, drawing, start_qub_p, end_qub_p, 
-                 start_cpos, end_cpos):
+class Line(Shape):
+    def __init__(self, drawing, start_qub_p, end_qub_p, start_cpos, end_cpos):
         object.__init__(self)
 
         self._drawing = drawing
@@ -296,7 +295,6 @@ class Line(Shape):
         self.start_cpos = start_cpos
         self.end_cpos = end_cpos
         self.qub_line = None
-
 
     def get_centred_positions(self):
         return [self.start_cpos, self.end_cpos]
@@ -316,14 +314,14 @@ class Line(Shape):
         self.qub_line.moveSecondPoint(new_positions[1][0], new_positions[1][1])
 
     def highlight(self):
-	return
+        return
 
     def unhighlight(self):
-	return
+        return
 
     def get_hit(self, x, y):
         return None
-        #return self.qub_line.getModifyClass(x, y)
+        # return self.qub_line.getModifyClass(x, y)
 
     def get_qub_objects(self):
         return [self.start_qub_p, self.end_qub_p, self.qub_line]
@@ -331,6 +329,7 @@ class Line(Shape):
     def get_points_index(self):
         if self.start_cpos and self.end_cpos:
             return (self.start_cpos.get_index(), self.end_cpos.get_index())
+
 
 class Point(Shape):
     def __init__(self, drawing, centred_position, screen_pos):
@@ -373,14 +372,13 @@ class Point(Shape):
         return
 
     def hide(self):
-	return
+        return
 
     def move(self, new_positions):
-	return
+        return
 
     def highlight(self):
-	return
+        return
 
     def unhighlight(self):
-	return
-
+        return

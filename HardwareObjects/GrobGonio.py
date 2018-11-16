@@ -1,7 +1,8 @@
 from HardwareRepository.BaseHardwareObjects import Device
 import GrobMotor
 
-class GrobGonio(GrobMotor.GrobMotor):      
+
+class GrobGonio(GrobMotor.GrobMotor):
     def __init__(self, name):
         GrobMotor.GrobMotor.__init__(self, name)
 

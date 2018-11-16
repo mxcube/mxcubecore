@@ -73,10 +73,12 @@ import PyTango
 
 from GenericVideoDevice import GenericVideoDevice
 
+
 class TangoLimaVideoDevice(GenericVideoDevice):
     """
     Descript. : 
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -109,20 +111,23 @@ class TangoLimaVideoDevice(GenericVideoDevice):
             self.device.video_mode = "YUV422"
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
-  
+
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
+
     def get_image_dimensions(self):
         return [self.device.image_width, self.device.image_height]
 
     def get_image(self):
         img_data = self.device.video_last_image
 
-        if img_data[0]=="VIDEO_IMAGE":
-            raw_fmt = img_data[1][:self.header_size]
-            raw_buffer = np.fromstring(img_data[1][self.header_size:], np.uint16)
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(self.header_fmt, img_data[1][:self.header_size])
+        if img_data[0] == "VIDEO_IMAGE":
+            raw_fmt = img_data[1][: self.header_size]
+            raw_buffer = np.fromstring(img_data[1][self.header_size :], np.uint16)
+            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
+                self.header_fmt, img_data[1][: self.header_size]
+            )
             return raw_buffer, width, height
         else:
             return None, 0, 0
@@ -144,9 +149,9 @@ class TangoLimaVideoDevice(GenericVideoDevice):
     def set_exposure_time(self, exposure_time_value):
         if self.get_cam_type() == "basler":
             self.device.video_exposure = exposure_time_value
-        
+
     def get_video_live(self):
-        return self.device.video_live 
+        return self.device.video_live
 
     def set_video_live(self, flag):
         self.device.video_live = flag

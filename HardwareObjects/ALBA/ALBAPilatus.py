@@ -30,6 +30,7 @@ __credits__ = ["ALBA"]
 __version__ = "2.3."
 __category__ = "General"
 
+
 class ALBAPilatus(AbstractDetector, HardwareObject):
     """Detector class. Contains all information about detector
        - states are 'OK', and 'BAD'
@@ -46,10 +47,10 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         self.default_distance_limits = None
 
         self.default_latency_time = 0.003
-        
+
         self.exp_time_limits = None
 
-        self.headers = {} 
+        self.headers = {}
 
     def init(self):
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
@@ -61,7 +62,10 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
             self.latency_time = None
 
         if self.latency_time is None:
-            logging.getLogger("HWR").debug("Cannot obtain latency time from Pilatus XML. Using %s" % self.default_latency_time)
+            logging.getLogger("HWR").debug(
+                "Cannot obtain latency time from Pilatus XML. Using %s"
+                % self.default_latency_time
+            )
             self.latency_time = self.default_latency_time
 
         self.devspecific = self.getProperty("device_specific")
@@ -85,11 +89,11 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def get_distance(self):
         """Returns detector distance in mm"""
         if self.distance_motor_hwobj is not None:
-            return float( self.distance_motor_hwobj.getPosition() )
+            return float(self.distance_motor_hwobj.getPosition())
         else:
             return self.default_distance
 
-    def move_distance(self,value):
+    def move_distance(self, value):
         if self.distance_motor_hwobj is not None:
             self.distance_motor_hwobj.move(value)
 
@@ -150,7 +154,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def get_pixel_size(self):
         return self.getProperty("px"), self.getProperty("py")
 
-    # methods for data collection    
+    # methods for data collection
     def set_energy_threshold(self):
         eugap_ch = self.getChannelObject("eugap")
 
@@ -167,78 +171,89 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         if round(currentenergy, 6) < 7.538:
             currentenergy = 7.538
 
-        kev_diff = abs(det_energy  - currentenergy)
+        kev_diff = abs(det_energy - currentenergy)
 
         if kev_diff > 1.2:
-            logging.getLogger("HWR").debug("programming energy_threshold on pilatus to: %s" % currentenergy)
-            #if self.wait_standby():
-                #self.device_specific.energy_threshold = currentenergy
+            logging.getLogger("HWR").debug(
+                "programming energy_threshold on pilatus to: %s" % currentenergy
+            )
+            # if self.wait_standby():
+            # self.device_specific.energy_threshold = currentenergy
 
     def get_latency_time(self):
         return self.latency_time
 
     def wait_standby(self, timeout=300):
         t0 = time.time()
-        while self.device_specific.cam_state  == 'STANDBY':
+        while self.device_specific.cam_state == "STANDBY":
             if time.time() - t0 > timeout:
-                print("timeout waiting for Pilatus to be on STANDBY")
-                return(False)
+                print ("timeout waiting for Pilatus to be on STANDBY")
+                return False
             time.sleep(0.1)
-        return(True)
+        return True
 
     def prepare_acquisition(self, dcpars):
 
         self.set_energy_threshold()
-        #self.wait_standby()
+        # self.wait_standby()
 
-        osc_seq = dcpars['oscillation_sequence'][0]
-        file_pars = dcpars['fileinfo']
+        osc_seq = dcpars["oscillation_sequence"][0]
+        file_pars = dcpars["fileinfo"]
 
-        basedir = file_pars['directory']
-        prefix  =  "%s_%s_" % (file_pars['prefix'], file_pars['run_number']) 
+        basedir = file_pars["directory"]
+        prefix = "%s_%s_" % (file_pars["prefix"], file_pars["run_number"])
 
-        first_img_no = osc_seq['start_image_number']
-        nb_frames =  osc_seq['number_of_images']
-        exp_time = osc_seq['exposure_time']
+        first_img_no = osc_seq["start_image_number"]
+        nb_frames = osc_seq["number_of_images"]
+        exp_time = osc_seq["exposure_time"]
 
-        fileformat =  "CBF"
+        fileformat = "CBF"
         trig_mode = "EXTERNAL_TRIGGER"
         # latency_time = 0.003
 
-        logging.getLogger("HWR").debug(" Preparing detector (dev=%s) for data collection" % self.devname)
+        logging.getLogger("HWR").debug(
+            " Preparing detector (dev=%s) for data collection" % self.devname
+        )
 
         logging.getLogger("HWR").debug("    /saving directory: %s" % basedir)
         logging.getLogger("HWR").debug("    /prefix          : %s" % prefix)
         logging.getLogger("HWR").debug("    /saving_format   : %s" % fileformat)
         logging.getLogger("HWR").debug("    /trigger_mode    : %s" % trig_mode)
         logging.getLogger("HWR").debug("    /acq_nb_frames   : %s" % nb_frames)
-        logging.getLogger("HWR").debug("    /acq_expo_time   : %s" % str(exp_time - self.latency_time))
+        logging.getLogger("HWR").debug(
+            "    /acq_expo_time   : %s" % str(exp_time - self.latency_time)
+        )
         logging.getLogger("HWR").debug("    /latency_time    : %s" % self.latency_time)
 
-        self.device.write_attribute('saving_mode', 'AUTO_FRAME')
-        self.device.write_attribute('saving_directory', basedir)
-        self.device.write_attribute('saving_prefix', prefix)
-        self.device.write_attribute('saving_format', fileformat)
+        self.device.write_attribute("saving_mode", "AUTO_FRAME")
+        self.device.write_attribute("saving_directory", basedir)
+        self.device.write_attribute("saving_prefix", prefix)
+        self.device.write_attribute("saving_format", fileformat)
 
         # set ROI and header in limaserver
         #  TODO
 
-        TrigList = ['INTERNAL_TRIGGER'
-            ,'EXTERNAL_TRIGGER'
-            ,'EXTERNAL_TRIGGER_MULTI'
-            ,'EXTERNAL_GATE'
-            ,'EXTERNAL_START_STOP']
+        TrigList = [
+            "INTERNAL_TRIGGER",
+            "EXTERNAL_TRIGGER",
+            "EXTERNAL_TRIGGER_MULTI",
+            "EXTERNAL_GATE",
+            "EXTERNAL_START_STOP",
+        ]
 
-        self.device.write_attribute('acq_trigger_mode', trig_mode)
-        self.device.write_attribute('acq_expo_time', exp_time - self.latency_time)
-        self.device.write_attribute('latency_time', self.latency_time)
+        self.device.write_attribute("acq_trigger_mode", trig_mode)
+        self.device.write_attribute("acq_expo_time", exp_time - self.latency_time)
+        self.device.write_attribute("latency_time", self.latency_time)
 
         return True
 
     def prepare_collection(self, nb_frames, first_img_no):
-        logging.getLogger("HWR").debug("ALBAPilatus. preparing collection. nb_images: %s, first_no: %s" % (nb_frames, first_img_no))
-        self.device.write_attribute('acq_nb_frames', nb_frames)
-        self.device.write_attribute('saving_next_number', first_img_no)
+        logging.getLogger("HWR").debug(
+            "ALBAPilatus. preparing collection. nb_images: %s, first_no: %s"
+            % (nb_frames, first_img_no)
+        )
+        self.device.write_attribute("acq_nb_frames", nb_frames)
+        self.device.write_attribute("saving_next_number", first_img_no)
         self.device.prepareAcq()
         return True
 
@@ -248,40 +263,43 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def stop_collection(self):
         self.stop_acquisition()
 
-    def set_image_headers(self,image_headers, angle_info):
+    def set_image_headers(self, image_headers, angle_info):
 
-        nb_images = image_headers['nb_images']
-        angle_inc = image_headers['Angle_increment']
-        start_angle = image_headers['Start_angle']
+        nb_images = image_headers["nb_images"]
+        angle_inc = image_headers["Angle_increment"]
+        start_angle = image_headers["Start_angle"]
 
         startangles_list = list()
         ang_start, ang_inc, spacing = angle_info
         for i in range(nb_images):
-            startangles_list.append("%0.4f deg." % (ang_start + spacing*i))
+            startangles_list.append("%0.4f deg." % (ang_start + spacing * i))
 
         headers = list()
         for i, sa in enumerate(startangles_list):
-            header = "_array_data.header_convention PILATUS_1.2\n" \
-                "# Detector: PILATUS 6M, S/N 60-0108, Alba\n" \
-                "# %s\n" \
-                "# Pixel_size 172e-6 m x 172e-6 m\n" \
-                "# Silicon sensor, thickness 0.000320 m\n" % time.strftime("%Y/%b/%d %T")
+            header = (
+                "_array_data.header_convention PILATUS_1.2\n"
+                "# Detector: PILATUS 6M, S/N 60-0108, Alba\n"
+                "# %s\n"
+                "# Pixel_size 172e-6 m x 172e-6 m\n"
+                "# Silicon sensor, thickness 0.000320 m\n"
+                % time.strftime("%Y/%b/%d %T")
+            )
 
             # Acquisition values (headers dictionary) but overwrites start angle
             image_headers["Start_angle"] = sa
             for key, value in image_headers.iteritems():
-                if key == 'nb_images':
+                if key == "nb_images":
                     continue
                 header += "# %s %s\n" % (key, value)
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
-        self.device.write_attribute('saving_header_delimiter', ["|", ";", ":"])
+        self.device.write_attribute("saving_header_delimiter", ["|", ";", ":"])
         self.device.resetCommonHeader()
         self.device.resetFrameHeaders()
         self.device.setImageHeader(headers)
 
+
 def test_hwo(hwo):
     print "Detector Distance is: ", hwo.get_distance()
     print "   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre()
-    #print "going to 490 : ", hwo.move_distance(490)
-
+    # print "going to 490 : ", hwo.move_distance(490)

@@ -28,9 +28,9 @@ import logging
 import tempfile
 
 try:
-   import pdfkit
+    import pdfkit
 except:
-   logging.getLogger("HWR").warning("pdfkit not available")
+    logging.getLogger("HWR").warning("pdfkit not available")
 
 from datetime import datetime
 
@@ -41,12 +41,14 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 __credits__ = ["MXCuBE colaboration"]
 
 
-TEST_DICT = {"example_one": "Beamline test example no 1.",
-             "example_two": "Beamline test example no 2.",
-             "file_system": "File system"}
+TEST_DICT = {
+    "example_one": "Beamline test example no 1.",
+    "example_two": "Beamline test example no 2.",
+    "file_system": "File system",
+}
 
-TEST_COLORS_TABLE = {False : '#FFCCCC', True : '#CCFFCC'}
-TEST_COLORS_FONT = {False : '#FE0000', True : '#007800'}
+TEST_COLORS_TABLE = {False: "#FFCCCC", True: "#CCFFCC"}
+TEST_COLORS_FONT = {False: "#FE0000", True: "#007800"}
 
 
 class BeamlineTestMockup(HardwareObject):
@@ -78,17 +80,20 @@ class BeamlineTestMockup(HardwareObject):
         self.ready_event = gevent.event.Event()
 
         self.bl_hwobj = self.getObjectByRole("beamline_setup")
-        self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name 
+        self.beamline_name = self.bl_hwobj.session_hwobj.beamline_name
 
         self.test_directory = self.getProperty("results_directory")
         if self.test_directory is None:
-            self.test_directory = os.path.join(\
-                tempfile.gettempdir(), "mxcube", "beamline_test")
-            logging.getLogger("HWR").debug("BeamlineTest: directory for test " \
-                "reports not defined. Set to: %s" % self.test_directory)
-        self.test_source_directory = os.path.join(\
-             self.test_directory,
-             datetime.now().strftime("%Y_%m_%d_%H") + "_source")
+            self.test_directory = os.path.join(
+                tempfile.gettempdir(), "mxcube", "beamline_test"
+            )
+            logging.getLogger("HWR").debug(
+                "BeamlineTest: directory for test "
+                "reports not defined. Set to: %s" % self.test_directory
+            )
+        self.test_source_directory = os.path.join(
+            self.test_directory, datetime.now().strftime("%Y_%m_%d_%H") + "_source"
+        )
 
         self.test_filename = "mxcube_test_report"
 
@@ -96,15 +101,17 @@ class BeamlineTestMockup(HardwareObject):
             for test in eval(self.getProperty("available_tests")):
                 self.available_tests_dict[test] = TEST_DICT[test]
         except:
-            logging.getLogger("HWR").debug("BeamlineTest: Available tests are " +\
-                "not defined in xml. Setting all tests as available.")
+            logging.getLogger("HWR").debug(
+                "BeamlineTest: Available tests are "
+                + "not defined in xml. Setting all tests as available."
+            )
         if self.available_tests_dict is None:
             self.available_tests_dict = TEST_DICT
 
         try:
             self.startup_test_list = eval(self.getProperty("startup_tests"))
         except:
-            logging.getLogger("HWR").debug('BeamlineTest: Test list not defined.')
+            logging.getLogger("HWR").debug("BeamlineTest: Test list not defined.")
 
         if self.getProperty("run_tests_at_startup") == True:
             self.start_test_queue(self.startup_test_list)
@@ -115,21 +122,23 @@ class BeamlineTestMockup(HardwareObject):
         """
         if create_report:
             try:
-                logging.getLogger("HWR").debug(\
-                    "BeamlineTest: Creating directory %s" % \
-                    self.test_directory)
+                logging.getLogger("HWR").debug(
+                    "BeamlineTest: Creating directory %s" % self.test_directory
+                )
                 if not os.path.exists(self.test_directory):
                     os.makedirs(self.test_directory)
-                
-                logging.getLogger("HWR").debug(\
-                    "BeamlineTest: Creating source directory %s" % \
-                    self.test_source_directory)
+
+                logging.getLogger("HWR").debug(
+                    "BeamlineTest: Creating source directory %s"
+                    % self.test_source_directory
+                )
                 if not os.path.exists(self.test_source_directory):
                     os.makedirs(self.test_source_directory)
             except:
-                logging.getLogger("HWR").warning(\
-                   "BeamlineTest: Unable to create test directories")
-                return 
+                logging.getLogger("HWR").warning(
+                    "BeamlineTest: Unable to create test directories"
+                )
+                return
 
         self.results_list = []
         self.results_html_list = []
@@ -137,56 +146,74 @@ class BeamlineTestMockup(HardwareObject):
             test_method_name = "test_" + test_name.lower()
             if hasattr(self, test_method_name):
                 if TEST_DICT.has_key(test_name):
-                    logging.getLogger("HWR").debug(\
-                         "BeamlineTest: Executing test %s (%s)" \
-                         % (test_name, TEST_DICT[test_name]))
+                    logging.getLogger("HWR").debug(
+                        "BeamlineTest: Executing test %s (%s)"
+                        % (test_name, TEST_DICT[test_name])
+                    )
 
-                    progress_info = {"progress_total": len(test_list),
-                                     "progress_msg": "executing %s" % TEST_DICT[test_name]}
+                    progress_info = {
+                        "progress_total": len(test_list),
+                        "progress_msg": "executing %s" % TEST_DICT[test_name],
+                    }
                     self.emit("testProgress", (test_index, progress_info))
 
-                    start_time =  datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.current_test_procedure = gevent.spawn(\
-                         getattr(self, test_method_name))
+                    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.current_test_procedure = gevent.spawn(
+                        getattr(self, test_method_name)
+                    )
                     test_result = self.current_test_procedure.get()
 
-                    #self.ready_event.wait()
-                    #self.ready_event.clear()
-                    end_time =  datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.results_list.append({"short_name": test_name,
-                                              "full_name": TEST_DICT[test_name],
-                                              "result_bit": test_result.get("result_bit", False),
-                                              "result_short": test_result.get("result_short", ""),
-                                              "start_time": start_time,
-                                              "end_time": end_time})
-                  
-                    self.results_html_list.append("<h2 id=%s>%s</h2>" % \
-                         (test_name, TEST_DICT[test_name]))
-                    self.results_html_list.append("Started: %s<br>" % \
-                         start_time)
-                    self.results_html_list.append("Ended: %s<br>" % \
-                         end_time)
+                    # self.ready_event.wait()
+                    # self.ready_event.clear()
+                    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.results_list.append(
+                        {
+                            "short_name": test_name,
+                            "full_name": TEST_DICT[test_name],
+                            "result_bit": test_result.get("result_bit", False),
+                            "result_short": test_result.get("result_short", ""),
+                            "start_time": start_time,
+                            "end_time": end_time,
+                        }
+                    )
+
+                    self.results_html_list.append(
+                        "<h2 id=%s>%s</h2>" % (test_name, TEST_DICT[test_name])
+                    )
+                    self.results_html_list.append("Started: %s<br>" % start_time)
+                    self.results_html_list.append("Ended: %s<br>" % end_time)
                     if test_result.get("result_short"):
-                        self.results_html_list.append(\
-                            "<h3><font color=%s>Result : %s</font></h3>" % \
-                            (TEST_COLORS_FONT[test_result["result_bit"]],
-                            test_result["result_short"]))
+                        self.results_html_list.append(
+                            "<h3><font color=%s>Result : %s</font></h3>"
+                            % (
+                                TEST_COLORS_FONT[test_result["result_bit"]],
+                                test_result["result_short"],
+                            )
+                        )
                     if len(test_result.get("result_details", [])) > 0:
                         self.results_html_list.append("<h3>Detailed results:</h3>")
-                        self.results_html_list.extend(test_result.get("result_details", []))
+                        self.results_html_list.extend(
+                            test_result.get("result_details", [])
+                        )
             else:
-                msg = "<h2><font color=%s>Execution method %s " + \
-                      "for the test %s does not exist</font></h3>"
-                self.results_html_list.append(msg %(TEST_COLORS_FONT[False], 
-                     test_method_name, TEST_DICT[test_name]))
-                logging.getLogger("HWR").error("BeamlineTest: Test method %s not available" % test_method_name)
+                msg = (
+                    "<h2><font color=%s>Execution method %s "
+                    + "for the test %s does not exist</font></h3>"
+                )
+                self.results_html_list.append(
+                    msg
+                    % (TEST_COLORS_FONT[False], test_method_name, TEST_DICT[test_name])
+                )
+                logging.getLogger("HWR").error(
+                    "BeamlineTest: Test method %s not available" % test_method_name
+                )
             self.results_html_list.append("</p>\n<hr>")
 
-        #html_filename = None
-        if create_report: 
+        # html_filename = None
+        if create_report:
             self.generate_html_report()
 
-        #self.emit('testFinished', html_filename) 
+        # self.emit('testFinished', html_filename)
 
     def test_example_one(self):
         """Text one"""
@@ -202,8 +229,6 @@ class BeamlineTestMockup(HardwareObject):
 
     def test_example_two(self):
         """Text one"""
-
-        
 
         result = {}
         result["result_bit"] = False
@@ -225,66 +250,70 @@ class BeamlineTestMockup(HardwareObject):
         test_list = []
         for test in self.startup_test_list:
             if TEST_DICT.get(test):
-                test_list.append(TEST_DICT[test]) 
+                test_list.append(TEST_DICT[test])
         return test_list
 
     def generate_html_report(self):
         """
         Descript. :
         """
-        html_filename = os.path.join(\
-           self.test_directory,
-           self.test_filename + ".html")
-        pdf_filename = os.path.join(\
-           self.test_directory,
-           self.test_filename + ".pdf")
-        archive_filename = os.path.join(\
-           self.test_directory,
-           datetime.now().strftime("%Y_%m_%d_%H") + "_" + \
-           self.test_filename)
+        html_filename = os.path.join(self.test_directory, self.test_filename + ".html")
+        pdf_filename = os.path.join(self.test_directory, self.test_filename + ".pdf")
+        archive_filename = os.path.join(
+            self.test_directory,
+            datetime.now().strftime("%Y_%m_%d_%H") + "_" + self.test_filename,
+        )
 
         try:
-            output_file = open(html_filename, "w") 
+            output_file = open(html_filename, "w")
             output_file.write(SimpleHTML.create_html_start("Beamline test summary"))
             output_file.write("<h1>Beamline %s Test results</h1>" % self.beamline_name)
 
             output_file.write("<h2>Executed tests:</h2>")
             table_cells = []
             for test in self.results_list:
-                table_cells.append(["bgcolor=%s" % TEST_COLORS_TABLE[test["result_bit"]],
-                                   "<a href=#%s>%s</a>" % (test["short_name"], test["full_name"]), 
-                                   test["result_short"],
-                                   test["start_time"],
-                                   test["end_time"]])
-           
-            table_rec = SimpleHTML.create_table(\
-                ["Name", "Result", "Start time", "End time"], 
-                table_cells)
+                table_cells.append(
+                    [
+                        "bgcolor=%s" % TEST_COLORS_TABLE[test["result_bit"]],
+                        "<a href=#%s>%s</a>" % (test["short_name"], test["full_name"]),
+                        test["result_short"],
+                        test["start_time"],
+                        test["end_time"],
+                    ]
+                )
+
+            table_rec = SimpleHTML.create_table(
+                ["Name", "Result", "Start time", "End time"], table_cells
+            )
             for row in table_rec:
                 output_file.write(row)
             output_file.write("\n<hr>\n")
-         
+
             for test_result in self.results_html_list:
                 output_file.write(test_result + "\n")
-      
+
             output_file.write(SimpleHTML.create_html_end())
             output_file.close()
- 
+
             self.emit("htmlGenerated", html_filename)
-            logging.getLogger("HWR").info(\
-               "BeamlineTest: Test result written in file %s" % html_filename)
+            logging.getLogger("HWR").info(
+                "BeamlineTest: Test result written in file %s" % html_filename
+            )
         except:
-            logging.getLogger("HWR").error(\
-               "BeamlineTest: Unable to generate html report file %s" % html_filename)
+            logging.getLogger("HWR").error(
+                "BeamlineTest: Unable to generate html report file %s" % html_filename
+            )
 
         try:
             pdfkit.from_url(html_filename, pdf_filename)
             logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
         except:
-            logging.getLogger("GUI").info("Unable to generate PDF report %s" % pdf_filename)
+            logging.getLogger("GUI").info(
+                "Unable to generate PDF report %s" % pdf_filename
+            )
 
-        self.emit('testFinished', html_filename)
-           
+        self.emit("testFinished", html_filename)
+
     def get_result_html(self):
         """
         Descript. :

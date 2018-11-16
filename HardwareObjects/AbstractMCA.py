@@ -1,6 +1,7 @@
 import abc
 from HardwareRepository.TaskUtils import *
 
+
 class AbstractMCA(object):
     __metaclass__ = abc.ABCMeta
 
@@ -46,7 +47,7 @@ class AbstractMCA(object):
         pass
 
     @task
-    def set_calibration(self, fname=None, calib_cf=[0,1,0]):
+    def set_calibration(self, fname=None, calib_cf=[0, 1, 0]):
         """Set the energy calibration. Give a filename or a list of calibration factors.
            
         Kwargs:
@@ -105,7 +106,6 @@ class AbstractMCA(object):
         """
         pass
 
-
     @task
     def clear_roi(self, **kwargs):
         """Clear ROI settings
@@ -117,7 +117,7 @@ class AbstractMCA(object):
             None
         """
         pass
-        
+
     @task
     def get_times(self):
         """Return a dictionary with the preset and elapsed real time [s], 
@@ -165,7 +165,7 @@ class AbstractMCA(object):
 
     @abc.abstractmethod
     @task
-    def start_acq (self, cnt_time=None):
+    def start_acq(self, cnt_time=None):
         """Start new acquisition. If cnt_time is not specified, counts for preset real time.
  
         Keyword Args:
@@ -178,11 +178,11 @@ class AbstractMCA(object):
 
     @abc.abstractmethod
     @task
-    def stop_acq (self):
+    def stop_acq(self):
         """Stop the running acquisition"""
         pass
 
     @task
-    def clear_spectrum (self):
+    def clear_spectrum(self):
         """Clear the acquired spectrum"""
         pass

@@ -1,5 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from BeamCmds import (ControllerCommand, HWObjActuatorCommand)
+from BeamCmds import ControllerCommand, HWObjActuatorCommand
+
 
 class ID232BeamCmds(HardwareObject):
     def __init__(self, *args):
@@ -12,8 +13,7 @@ class ID232BeamCmds(HardwareObject):
         hutchtrigger = self.getObjectByRole("hutchtrigger")
         cryo = self.getObjectByRole("cryo")
 
-        self.centrebeam = ControllerCommand("Centre beam",
-                                            controller.centrebeam)
+        self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
 
         self.detcover = HWObjActuatorCommand("Detector cover", detcover)
         self.scintillator = HWObjActuatorCommand("Scintillator", scintillator)
@@ -21,5 +21,10 @@ class ID232BeamCmds(HardwareObject):
         self.cryo = HWObjActuatorCommand("Cryo", cryo)
 
     def getCommands(self):
-        return [self.centrebeam, self.detcover, self.scintillator,
-                self.hutchtrigger, self.cryo]
+        return [
+            self.centrebeam,
+            self.detcover,
+            self.scintillator,
+            self.hutchtrigger,
+            self.cryo,
+        ]

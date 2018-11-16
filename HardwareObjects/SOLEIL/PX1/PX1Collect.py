@@ -1,4 +1,3 @@
-
 """
  File:  PX1Collect.py
 
@@ -22,14 +21,16 @@ __author__ = "Vicente Rey Bakaikoa"
 __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.3"
 
+
 class PX1Collect(AbstractCollect, HardwareObject):
     """Main data collection class. Inherited from AbstractMulticollect
        Collection is done by setting collection parameters and
        executing collect command
     """
-    adxv_host = '127.0.0.1'
+
+    adxv_host = "127.0.0.1"
     adxv_port = 8100
-    adxv_interval = 2.0 # minimum time (in seconds) between image refresh on adxv
+    adxv_interval = 2.0  # minimum time (in seconds) between image refresh on adxv
 
     goimg_dir = "/nfs/ruche/share-temp/Proxima/.goimgpx1"
     goimg_filename = "goimg.db"
@@ -107,40 +108,42 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.img2jpeg = self.getProperty("imgtojpeg")
         undulators = self.get_undulators()
 
-        self.exp_type_dict = {'Mesh': 'raster',
-                              'Helical': 'Helical'}
+        self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
         det_px, det_py = self.detector_hwobj.get_pixel_size()
 
-        self.set_beamline_configuration(\
-             synchrotron_name="SOLEIL",
-             directory_prefix=self.getProperty("directory_prefix"),
-             default_exposure_time=self.detector_hwobj.get_default_exposure_time(),
-             minimum_exposure_time=self.detector_hwobj.get_minimum_exposure_time(),
-             detector_fileext=self.detector_hwobj.get_file_suffix(),
-             detector_type=self.detector_hwobj.get_detector_type(),
-             detector_manufacturer=self.detector_hwobj.get_manufacturer(),
-             detector_model=self.detector_hwobj.get_model(),
-             detector_px=det_px,
-             detector_py=det_py,
-             undulators=undulators,
-             focusing_optic=self.getProperty('focusing_optic'),
-             monochromator_type=self.getProperty('monochromator'),
-             beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation=self.getProperty('polarisation'),
-             input_files_server=self.getProperty("input_files_server"))
+        self.set_beamline_configuration(
+            synchrotron_name="SOLEIL",
+            directory_prefix=self.getProperty("directory_prefix"),
+            default_exposure_time=self.detector_hwobj.get_default_exposure_time(),
+            minimum_exposure_time=self.detector_hwobj.get_minimum_exposure_time(),
+            detector_fileext=self.detector_hwobj.get_file_suffix(),
+            detector_type=self.detector_hwobj.get_detector_type(),
+            detector_manufacturer=self.detector_hwobj.get_manufacturer(),
+            detector_model=self.detector_hwobj.get_model(),
+            detector_px=det_px,
+            detector_py=det_py,
+            undulators=undulators,
+            focusing_optic=self.getProperty("focusing_optic"),
+            monochromator_type=self.getProperty("monochromator"),
+            beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
+            beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
+            polarisation=self.getProperty("polarisation"),
+            input_files_server=self.getProperty("input_files_server"),
+        )
 
         self.emit("collectConnected", (True,))
-        self.emit("collectReady", (True, ))
+        self.emit("collectReady", (True,))
 
     def data_collection_hook(self):
         """Main collection hook
         """
 
-        collection_type = self.current_dc_parameters['experiment_type']
+        collection_type = self.current_dc_parameters["experiment_type"]
 
-        logging.getLogger("HWR").info("PX1Collect: Running PX1 data collection hook. Type is %s" % collection_type )
+        logging.getLogger("HWR").info(
+            "PX1Collect: Running PX1 data collection hook. Type is %s" % collection_type
+        )
 
         if self.aborted_by_user:
             self.emit_collection_failed("Aborted by user")
@@ -154,16 +157,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
             self.stop_collect()
             return
 
-        if collection_type != 'Characterization':  # standard
+        if collection_type != "Characterization":  # standard
             prepare_ok = self.prepare_standard_collection()
         else:
             prepare_ok = self.prepare_characterization()
 
         self._collecting = True
 
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
         # for progressBar brick
-        self.emit("progressInit", "Collection", osc_seq['number_of_images'])
+        self.emit("progressInit", "Collection", osc_seq["number_of_images"])
 
         #
         # Run
@@ -171,7 +174,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         self.prepare_directories()
 
-        if collection_type != 'Characterization':  # standard
+        if collection_type != "Characterization":  # standard
             self.start_standard_collection()
             self.follow_collection_progress()
         else:
@@ -184,22 +187,24 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def prepare_standard_collection(self):
 
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
-        fileinfo = self.current_dc_parameters['fileinfo']
-        basedir = fileinfo['directory']
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
+        fileinfo = self.current_dc_parameters["fileinfo"]
+        basedir = fileinfo["directory"]
 
         logging.getLogger("HWR").info("PX1Collect: fileinfo is %s " % str(fileinfo))
-        imgname = fileinfo['template'] % osc_seq['start_image_number']
+        imgname = fileinfo["template"] % osc_seq["start_image_number"]
 
         # move omega to start angle
-        start_angle = osc_seq['start']
+        start_angle = osc_seq["start"]
 
-        nb_images = osc_seq['number_of_images']
-        osc_range = osc_seq['range']
-        exp_time = osc_seq['exposure_time'] 
+        nb_images = osc_seq["number_of_images"]
+        osc_range = osc_seq["range"]
+        exp_time = osc_seq["exposure_time"]
 
-        logging.getLogger("HWR").info("PX1Collect:  nb_images: %s / osc_range: %s / exp_time: %s" % \
-                  (nb_images, osc_range, exp_time))
+        logging.getLogger("HWR").info(
+            "PX1Collect:  nb_images: %s / osc_range: %s / exp_time: %s"
+            % (nb_images, osc_range, exp_time)
+        )
 
         self.collect_device.exposurePeriod = exp_time
         self.collect_device.numberOfImages = nb_images
@@ -209,15 +214,17 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         self.collect_device.startAngle = start_angle
         self.collect_device.triggerMode = 2
-  
+
         self.collect_device.imagePath = basedir
         self.collect_device.imageName = imgname
         time.sleep(0.2)
         self.collect_device.PrepareCollect()
-        ret = self.wait_collect_standby() 
+        ret = self.wait_collect_standby()
         if ret is False:
-              logging.getLogger("user_level_log").info("Collect server prepare error. Aborted") 
-              return False
+            logging.getLogger("user_level_log").info(
+                "Collect server prepare error. Aborted"
+            )
+            return False
 
         self.prepare_headers()
 
@@ -230,26 +237,26 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def follow_collection_progress(self):
 
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
-        fileinfo = self.current_dc_parameters['fileinfo']
-        basedir = fileinfo['directory']
-        archive_dir = fileinfo['archive_directory']
-        template = fileinfo['template']
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
+        fileinfo = self.current_dc_parameters["fileinfo"]
+        basedir = fileinfo["directory"]
+        archive_dir = fileinfo["archive_directory"]
+        template = fileinfo["template"]
 
         jpeg_template = os.path.splitext(template)[0] + ".jpeg"
         thumb_template = os.path.splitext(template)[0] + ".thumb.jpeg"
 
-        osc_range = osc_seq['range']
-        osc_start = osc_seq['start']
-        nb_images = osc_seq['number_of_images']
+        osc_range = osc_seq["range"]
+        osc_start = osc_seq["start"]
+        nb_images = osc_seq["number_of_images"]
 
-        first_imgno = osc_seq['start_image_number'] 
-        first_image_fullpath = os.path.join(basedir,template % first_imgno)
+        first_imgno = osc_seq["start_image_number"]
+        first_image_fullpath = os.path.join(basedir, template % first_imgno)
         first_image_jpegpath = os.path.join(archive_dir, jpeg_template % first_imgno)
         first_image_thumbpath = os.path.join(archive_dir, thumb_template % first_imgno)
 
-        last_imgno = first_imgno + nb_images -1
-        last_image_fullpath = os.path.join(basedir,template % last_imgno)
+        last_imgno = first_imgno + nb_images - 1
+        last_image_fullpath = os.path.join(basedir, template % last_imgno)
         last_image_jpegpath = os.path.join(archive_dir, jpeg_template % last_imgno)
         last_image_thumbpath = os.path.join(archive_dir, thumb_template % last_imgno)
 
@@ -257,9 +264,11 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.adxv_latest_refresh = 0
         self.is_firstimg = True
 
-        self.file_waiting_display = first_image_fullpath # for showing on adxv
+        self.file_waiting_display = first_image_fullpath  # for showing on adxv
         self.wait_image_on_disk(first_image_fullpath)
-        thumbs_up = self.generate_thumbnails(first_image_fullpath, first_image_jpegpath, first_image_thumbpath)
+        thumbs_up = self.generate_thumbnails(
+            first_image_fullpath, first_image_jpegpath, first_image_thumbpath
+        )
         if thumbs_up:
             self.store_image_in_lims(first_imgno)
 
@@ -270,21 +279,23 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         # wait for last image
         self.wait_image_on_disk(last_image_fullpath)
-        thumbs_up = self.generate_thumbnails(last_image_fullpath, last_image_jpegpath, last_image_thumbpath)
+        thumbs_up = self.generate_thumbnails(
+            last_image_fullpath, last_image_jpegpath, last_image_thumbpath
+        )
         self.adxv_sync_image(first_image_fullpath)
         if thumbs_up:
             self.store_image_in_lims(last_imgno)
 
     def prepare_characterization(self):
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
-        fileinfo = self.current_dc_parameters['fileinfo']
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
+        fileinfo = self.current_dc_parameters["fileinfo"]
 
-        basedir = fileinfo['directory']
+        basedir = fileinfo["directory"]
 
-        merged_images = self.characterization_nb_merged_images 
+        merged_images = self.characterization_nb_merged_images
 
-        osc_range = float( osc_seq['range'] )/ merged_images
-        exp_time = float( osc_seq['exposure_time'] )/ merged_images
+        osc_range = float(osc_seq["range"]) / merged_images
+        exp_time = float(osc_seq["exposure_time"]) / merged_images
 
         self.collect_device.numberOfImages = int(merged_images)
         self.collect_device.exposurePeriod = exp_time
@@ -297,17 +308,17 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def start_characterization(self):
 
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
-        fileinfo = self.current_dc_parameters['fileinfo']
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
+        fileinfo = self.current_dc_parameters["fileinfo"]
 
-        start_angle = osc_seq['start']
-        nb_images = osc_seq['number_of_images']
-        merged_images = self.characterization_nb_merged_images 
-        wedge_range = osc_seq['range'] / merged_images
+        start_angle = osc_seq["start"]
+        nb_images = osc_seq["number_of_images"]
+        merged_images = self.characterization_nb_merged_images
+        wedge_range = osc_seq["range"] / merged_images
 
-        image_template = fileinfo['template']
+        image_template = fileinfo["template"]
 
-        oscil_image_template = image_template[:3] + '_wdg' + image_template[3:]
+        oscil_image_template = image_template[:3] + "_wdg" + image_template[3:]
 
         start = start_angle
 
@@ -315,13 +326,22 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         for imgno in range(nb_images):
             image_filename = image_template % (imgno + 1)
-            image_fullpath = os.path.join(fileinfo['directory'], image_filename)
+            image_fullpath = os.path.join(fileinfo["directory"], image_filename)
 
-            series_first_image = oscil_image_template % ((start-start_angle)/wedge_range + 1)
-            series_last_image = oscil_image_template % ((start-start_angle)/wedge_range + merged_images)
-            series_last_fullpath = os.path.join( fileinfo['directory'], series_last_image )
+            series_first_image = oscil_image_template % (
+                (start - start_angle) / wedge_range + 1
+            )
+            series_last_image = oscil_image_template % (
+                (start - start_angle) / wedge_range + merged_images
+            )
+            series_last_fullpath = os.path.join(
+                fileinfo["directory"], series_last_image
+            )
 
-            logging.info("PX1Collect: start image series for angle %s - first image name is %s" % (start, series_first_image))
+            logging.info(
+                "PX1Collect: start image series for angle %s - first image name is %s"
+                % (start, series_first_image)
+            )
 
             self.collect_device.imageName = series_first_image
             self.collect_device.startAngle = start
@@ -336,19 +356,31 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
             # wait for completion
             self.wait_collect_ready()
-            logging.info("PX1Collect:   waiting to finish image series for angle %s - waiting for %s" % (start, series_last_fullpath))
+            logging.info(
+                "PX1Collect:   waiting to finish image series for angle %s - waiting for %s"
+                % (start, series_last_fullpath)
+            )
             self.wait_image_on_disk(series_last_fullpath)
             self.adxv_sync_image(series_last_fullpath)
 
             # merge images into one image
-            merge_images(series_first_image, image_filename, fileinfo['directory'],
-                       start, osc_seq['range'], osc_seq['exposure_time'])
+            merge_images(
+                series_first_image,
+                image_filename,
+                fileinfo["directory"],
+                start,
+                osc_seq["range"],
+                osc_seq["exposure_time"],
+            )
 
-            logging.info("PX1Collect:   waiting for merged image to appear on disk %s - waiting for %s" % (start, image_fullpath))
+            logging.info(
+                "PX1Collect:   waiting for merged image to appear on disk %s - waiting for %s"
+                % (start, image_fullpath)
+            )
             self.wait_image_on_disk(image_fullpath)
             self.adxv_sync_image(image_fullpath)
 
-            start += 90.
+            start += 90.0
 
     def data_collection_end(self):
         #
@@ -361,18 +393,28 @@ class PX1Collect(AbstractCollect, HardwareObject):
         self.emit("progressStop")
 
     def data_collection_failed(self):
-        logging.getLogger("HWR").info("PX1Collect: Data collection failed. recovering sequence should go here")
+        logging.getLogger("HWR").info(
+            "PX1Collect: Data collection failed. recovering sequence should go here"
+        )
 
     def collect_finished(self, green):
         logging.info("PX1Collect: Data collection finished")
 
     def collect_failed(self, par):
         logging.exception("PX1Collect: Data collection failed")
-        self.current_dc_parameters["status"] = 'failed'
+        self.current_dc_parameters["status"] = "failed"
         exc_type, exc_value, exc_tb = sys.exc_info()
-        failed_msg = 'Data collection failed!\n%s' % exc_value
-        self.emit("collectOscillationFailed", (self.owner, False, failed_msg,
-           self.current_dc_parameters.get('collection_id'), 1))
+        failed_msg = "Data collection failed!\n%s" % exc_value
+        self.emit(
+            "collectOscillationFailed",
+            (
+                self.owner,
+                False,
+                failed_msg,
+                self.current_dc_parameters.get("collection_id"),
+                1,
+            ),
+        )
 
         self.detector_hwobj.stop_collection()
         self.omega_hwobj.stop()
@@ -384,10 +426,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
         p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
         p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY
         """
-        self.helical_positions = [arg["1"]["phiy"],  arg["1"]["phiz"],
-                             arg["1"]["sampx"], arg["1"]["sampy"],
-                             arg["2"]["phiy"],  arg["2"]["phiz"],
-                             arg["2"]["sampx"], arg["2"]["sampy"]]
+        self.helical_positions = [
+            arg["1"]["phiy"],
+            arg["1"]["phiz"],
+            arg["1"]["sampx"],
+            arg["1"]["sampy"],
+            arg["2"]["phiy"],
+            arg["2"]["phiz"],
+            arg["2"]["sampx"],
+            arg["2"]["sampy"],
+        ]
 
     def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
         """
@@ -398,7 +446,6 @@ class PX1Collect(AbstractCollect, HardwareObject):
     def trigger_auto_processing(self, *args):
         pass
 
-
     ## generate snapshots and data thumbnails ##
     @task
     def _take_crystal_snapshot(self, filename):
@@ -407,16 +454,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
-            time.sleep(2) # allow time to refresh display after
+            time.sleep(2)  # allow time to refresh display after
 
-        self.lightarm_hwobj.adjustLightLevel() 
-        time.sleep(0.3) # allow time to refresh display after
+        self.lightarm_hwobj.adjustLightLevel()
+        time.sleep(0.3)  # allow time to refresh display after
 
         self.graphics_manager_hwobj.save_scene_snapshot(filename)
         logging.getLogger("HWR").debug("PX1Collect:  - snapshot saved to %s" % filename)
 
     def generate_thumbnails(self, filename, jpeg_filename, thumbnail_filename):
-        # 
+        #
         # write info on LIMS
 
         try:
@@ -425,15 +472,18 @@ class PX1Collect(AbstractCollect, HardwareObject):
             logging.info("PX1Collect:  thumbnail file: %s" % thumbnail_filename)
 
             self.wait_image_on_disk(filename)
-            if os.path.exists( filename ):
-                subprocess.Popen([ self.img2jpeg, filename, jpeg_filename, '0.4' ])
-                subprocess.Popen([ self.img2jpeg, filename, thumbnail_filename, '0.1' ])
+            if os.path.exists(filename):
+                subprocess.Popen([self.img2jpeg, filename, jpeg_filename, "0.4"])
+                subprocess.Popen([self.img2jpeg, filename, thumbnail_filename, "0.1"])
                 return True
             else:
-                logging.info("PX1Collect: Oopps.  Trying to generate thumbs but  image is not on disk")
+                logging.info(
+                    "PX1Collect: Oopps.  Trying to generate thumbs but  image is not on disk"
+                )
                 return False
         except:
             import traceback
+
             logging.error("PX1Collect: Cannot generate thumbnails for %s" % filename)
             logging.error(traceback.format_exc())
             return False
@@ -445,11 +495,14 @@ class PX1Collect(AbstractCollect, HardwareObject):
         start_wait = time.time()
         while not os.path.exists(filename):
             if time.time() - start_wait > timeout:
-               logging.info("PX1Collect: Giving up waiting for image. Timeout")
-               break
+                logging.info("PX1Collect: Giving up waiting for image. Timeout")
+                break
             time.sleep(0.1)
-        logging.info("PX1Collect: Waiting for image %s ended in  %3.2f secs" % (filename, time.time()-start_wait))
-        
+        logging.info(
+            "PX1Collect: Waiting for image %s ended in  %3.2f secs"
+            % (filename, time.time() - start_wait)
+        )
+
     def check_directory(self, basedir):
         if not os.path.exists(basedir):
             try:
@@ -459,17 +512,20 @@ class PX1Collect(AbstractCollect, HardwareObject):
                     raise
 
     def prepare_directories(self):
-        fileinfo = self.current_dc_parameters['fileinfo']
-        basedir = fileinfo['directory']
-        process_dir = basedir.replace('RAW_DATA','PROCESSED_DATA') 
+        fileinfo = self.current_dc_parameters["fileinfo"]
+        basedir = fileinfo["directory"]
+        process_dir = basedir.replace("RAW_DATA", "PROCESSED_DATA")
 
         try:
             os.chmod(process_dir, 0777)
         except:
             import traceback
-            logging.getLogger("HWR").error("PX1Collect: Error changing permissions for PROCESS directory")
+
+            logging.getLogger("HWR").error(
+                "PX1Collect: Error changing permissions for PROCESS directory"
+            )
             logging.getLogger("HWR").error(traceback.format_exc())
-            
+
         self.create_goimg_file(process_dir)
 
     def create_goimg_file(self, dirname):
@@ -487,15 +543,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
         Method create directories for raw files and processing files.
         Directorie for xds.input and auto_processing are created
         """
-        self.create_directories(\
-            self.current_dc_parameters['fileinfo']['directory'],
-            self.current_dc_parameters['fileinfo']['process_directory'])
+        self.create_directories(
+            self.current_dc_parameters["fileinfo"]["directory"],
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+        )
 
         """create processing directories and img links"""
-        xds_directory,auto_directory = self.prepare_input_files()
+        xds_directory, auto_directory = self.prepare_input_files()
         try:
-            #self.create_directories(xds_directory, auto_directory)
-            #os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
+            # self.create_directories(xds_directory, auto_directory)
+            # os.system("chmod -R 777 %s %s" % (xds_directory, auto_directory))
             """todo, create link of imgs for auto_processing
             try:
                 os.symlink(files_directory, os.path.join(process_directory, "img"))
@@ -504,7 +561,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
                     raise
             """
             pass
-            #os.symlink(files_directory, os.path.join(process_directory, "img"))
+            # os.symlink(files_directory, os.path.join(process_directory, "img"))
         except:
             logging.exception("PX1Collect: Could not create processing file directory")
             return
@@ -522,25 +579,29 @@ class PX1Collect(AbstractCollect, HardwareObject):
         i = 1
         log = logging.getLogger("user_level_log")
         while True:
-            xds_input_file_dirname = "xds_%s_%s_%d" % (\
-                self.current_dc_parameters['fileinfo']['prefix'],
-                self.current_dc_parameters['fileinfo']['run_number'],
-                i)
-            xds_directory = os.path.join(\
-                self.current_dc_parameters['fileinfo']['process_directory'],
-                xds_input_file_dirname)
+            xds_input_file_dirname = "xds_%s_%s_%d" % (
+                self.current_dc_parameters["fileinfo"]["prefix"],
+                self.current_dc_parameters["fileinfo"]["run_number"],
+                i,
+            )
+            xds_directory = os.path.join(
+                self.current_dc_parameters["fileinfo"]["process_directory"],
+                xds_input_file_dirname,
+            )
             if not os.path.exists(xds_directory):
                 break
             i += 1
         self.current_dc_parameters["xds_dir"] = xds_directory
 
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (\
-                self.current_dc_parameters['fileinfo']['prefix'],
-                self.current_dc_parameters['fileinfo']['run_number'],
-                i)
-        mosflm_directory = os.path.join(\
-                self.current_dc_parameters['fileinfo']['process_directory'],
-                mosflm_input_file_dirname)
+        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
+            self.current_dc_parameters["fileinfo"]["prefix"],
+            self.current_dc_parameters["fileinfo"]["run_number"],
+            i,
+        )
+        mosflm_directory = os.path.join(
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+            mosflm_input_file_dirname,
+        )
 
         log.info("  - xds: %s / mosflm: %s" % (xds_directory, mosflm_directory))
         return xds_directory, mosflm_directory
@@ -549,8 +610,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
     def prepare_devices_for_collection(self):
 
-        fileinfo = self.current_dc_parameters['fileinfo']
-        basedir = fileinfo['directory']
+        fileinfo = self.current_dc_parameters["fileinfo"]
+        basedir = fileinfo["directory"]
 
         self.check_directory(basedir)
 
@@ -559,19 +620,25 @@ class PX1Collect(AbstractCollect, HardwareObject):
         shutok = True
 
         if not shutok:
-            logging.getLogger("user_level_log").info(" Shutters not ready for collection. Aborted")
+            logging.getLogger("user_level_log").info(
+                " Shutters not ready for collection. Aborted"
+            )
             return False
 
         detok = self.detector_hwobj.prepare_collection(self.current_dc_parameters)
         if not detok:
-            logging.getLogger("user_level_log").info("Cannot prepare detector for collection. Aborted")
+            logging.getLogger("user_level_log").info(
+                "Cannot prepare detector for collection. Aborted"
+            )
             return False
 
         adxv_ok = self.adxv_connect()
 
         diff_ok = self.diffractometer_prepare_collection()
         if not diff_ok:
-            logging.getLogger("user_level_log").info("Cannot prepare diffractometer for collection. Aborted")
+            logging.getLogger("user_level_log").info(
+                "Cannot prepare diffractometer for collection. Aborted"
+            )
             return False
 
         return True
@@ -588,64 +655,72 @@ class PX1Collect(AbstractCollect, HardwareObject):
         return True
 
     def prepare_headers(self):
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+        osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
 
         ax, ay, bx, by = self.get_beam_configuration()
 
-        dist   = self.detector_hwobj.get_distance()
+        dist = self.detector_hwobj.get_distance()
         wavlen = self.energy_hwobj.get_wavelength()
 
-        start_angle = osc_seq['start']
-        nb_images = osc_seq['number_of_images']
-        img_range = osc_seq['range']
-        exp_time = osc_seq['exposure_time']
+        start_angle = osc_seq["start"]
+        nb_images = osc_seq["number_of_images"]
+        img_range = osc_seq["range"]
+        exp_time = osc_seq["exposure_time"]
 
         kappa_angle = self.kappa_hwobj.getPosition()
 
         _settings = [
-                  ["Wavelength %.5f", wavlen],
-                  ["Detector_distance %.4f", dist/1000.],
-                  ["Beam_x %.2f", ax*dist + bx],
-                  ["Beam_y %.2f", ay*dist + by],
-                  ["Alpha %.2f", 49.64],
-                  ["Start_angle %.4f", start_angle],
-                  ["Angle_increment %.4f", img_range],
-                  ["Oscillation_axis %s", "Omega"],
-                  ["Detector_2theta %.4f", 0.0],
-                  ["Polarization %.3f", 0.990],
-                  ["Kappa %.4f", kappa_angle]]
+            ["Wavelength %.5f", wavlen],
+            ["Detector_distance %.4f", dist / 1000.0],
+            ["Beam_x %.2f", ax * dist + bx],
+            ["Beam_y %.2f", ay * dist + by],
+            ["Alpha %.2f", 49.64],
+            ["Start_angle %.4f", start_angle],
+            ["Angle_increment %.4f", img_range],
+            ["Oscillation_axis %s", "Omega"],
+            ["Detector_2theta %.4f", 0.0],
+            ["Polarization %.3f", 0.990],
+            ["Kappa %.4f", kappa_angle],
+        ]
 
-        #if self.oscaxis == "Phi":
-            #_settings.append(["Chi %.4f", self.omega_hwo.getPosition()])
-            #_settings.append(["Phi %.4f", start])
-        #elif self.oscaxis == "Omega":
+        # if self.oscaxis == "Phi":
+        # _settings.append(["Chi %.4f", self.omega_hwo.getPosition()])
+        # _settings.append(["Phi %.4f", start])
+        # elif self.oscaxis == "Omega":
         _settings.append(["Phi %.4f", self.phi_hwobj.getPosition()])
         _settings.append(["Chi %.4f", start_angle])
         self.detector_hwobj.set_image_headers(_settings)
 
     def check_shutters(self):
         # Check safety shutter
-        if self.check_shutter_opened(self.safshut_hwobj, "Safety shutter") and \
-           self.check_shutter_opened(self.frontend_hwobj, "Front end"):
-              return True
+        if self.check_shutter_opened(
+            self.safshut_hwobj, "Safety shutter"
+        ) and self.check_shutter_opened(self.frontend_hwobj, "Front end"):
+            return True
         else:
-              return False
+            return False
 
     def check_shutter_opened(self, shut_hwo, shutter_name="shutter"):
         if shut_hwo.isShutterOpened():
             return True
 
-        if shut_hwo.getState() == 'disabled':
-            logging.getLogger("user_level_log").warning("%s disabled. Collect cancelled" % shutter_name)
+        if shut_hwo.getState() == "disabled":
+            logging.getLogger("user_level_log").warning(
+                "%s disabled. Collect cancelled" % shutter_name
+            )
             return False
-        elif shut_hwo.getState() in ['fault', 'alarm', 'error']:
-            logging.getLogger("user_level_log").warning("%s is in fault state. Collect cancelled" % shutter_name)
+        elif shut_hwo.getState() in ["fault", "alarm", "error"]:
+            logging.getLogger("user_level_log").warning(
+                "%s is in fault state. Collect cancelled" % shutter_name
+            )
             return False
         elif shut_hwo.isShutterClosed():
             shut_hwo.openShutter()
-            return shut_hwo.waitShutter('opened')
-        else: 
-            logging.getLogger("user_level_log").warning("%s is in an unhandled state. Collect cancelled" % shutter_name)
+            return shut_hwo.waitShutter("opened")
+        else:
+            logging.getLogger("user_level_log").warning(
+                "%s is in an unhandled state. Collect cancelled" % shutter_name
+            )
             return False
 
     def close_fast_shutter(self):
@@ -660,15 +735,15 @@ class PX1Collect(AbstractCollect, HardwareObject):
         while not self.is_standby():
             elapsed = time.time() - t0
             if elapsed > timeout:
-                 break
+                break
             time.sleep(0.1)
-        
+
     def wait_collect_moving(self, timeout=10):
         t0 = time.time()
         while not self.is_moving():
             elapsed = time.time() - t0
             if elapsed > timeout:
-                 break
+                break
             time.sleep(0.1)
 
     def wait_collect_ready(self, timeout=10):
@@ -676,9 +751,9 @@ class PX1Collect(AbstractCollect, HardwareObject):
         while self.is_moving():
             elapsed = time.time() - t0
             if elapsed > timeout:
-                 break
+                break
             time.sleep(0.1)
-        
+
     def is_standby(self):
         return str(self.collect_state_chan.getValue()) == "STANDBY"
 
@@ -701,7 +776,9 @@ class PX1Collect(AbstractCollect, HardwareObject):
             if env_state != "RUNNING" and self.is_collect_phase():
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug("PX1Collect: timeout sending supervisor to collect phase")
+                logging.getLogger("HWR").debug(
+                    "PX1Collect: timeout sending supervisor to collect phase"
+                )
                 break
             gevent.sleep(0.5)
 
@@ -721,11 +798,13 @@ class PX1Collect(AbstractCollect, HardwareObject):
             if env_state != "RUNNING" and self.is_sampleview_phase():
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug("PX1Collect: timeout sending supervisor to sample view phase")
+                logging.getLogger("HWR").debug(
+                    "PX1Collect: timeout sending supervisor to sample view phase"
+                )
                 break
             gevent.sleep(0.5)
 
-        self.lightarm_hwobj.adjustLightLevel() 
+        self.lightarm_hwobj.adjustLightLevel()
         return self.is_sampleview_phase()
 
     ## PX1 ENVIRONMENT PHASE HANDLING (END) ##
@@ -759,7 +838,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         return
         self.resolution_hwobj.move(value)
 
-    def move_detector(self,value):
+    def move_detector(self, value):
         self.detector_hwobj.move_distance(value)
 
     @task
@@ -809,7 +888,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if self.energy_hwobj:
             try:
                 u20_gap = self.energy_hwobj.getCurrentUndulatorGap()
-                return {'u20': u20_gap} 
+                return {"u20": u20_gap}
             except:
                 return {}
         else:
@@ -828,7 +907,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_slits_gap()
-        return None,None
+        return None, None
 
     def get_beam_shape(self):
         """
@@ -843,7 +922,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         """
         if self.flux_hwobj is not None:
             flux = self.flux_hwobj.getValue()
-        else:    
+        else:
             flux = 0.0
         return float("%.3e" % flux)
 
@@ -863,7 +942,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
         else:
-            return ''
+            return ""
 
     def get_machine_fill_mode(self):
         """
@@ -872,18 +951,18 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_fill_mode()
         else:
-            return ''
+            return ""
 
     def get_beam_configuration(self):
-        pars_beam = self.mxlocal_object['SPEC_PARS']['beam']
-        ax = pars_beam.getProperty('ax')
-        ay = pars_beam.getProperty('ay')
-        bx = pars_beam.getProperty('bx')
-        by = pars_beam.getProperty('by')
-        return [ax,ay,bx,by]
+        pars_beam = self.mxlocal_object["SPEC_PARS"]["beam"]
+        ax = pars_beam.getProperty("ax")
+        ay = pars_beam.getProperty("ay")
+        bx = pars_beam.getProperty("bx")
+        by = pars_beam.getProperty("by")
+        return [ax, ay, bx, by]
 
     def get_undulators(self):
-        return [U20(),]
+        return [U20()]
 
     def get_flux(self):
         """
@@ -898,7 +977,9 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         #  connect every time?? maybe we can do better
         try:
-            res = socket.getaddrinfo(self.adxv_host, self.adxv_port, 0, socket.SOCK_STREAM)
+            res = socket.getaddrinfo(
+                self.adxv_host, self.adxv_port, 0, socket.SOCK_STREAM
+            )
             af, socktype, proto, canonname, sa = res[0]
             self.adxv_socket = socket.socket(af, socktype, proto)
             self.adxv_socket.connect((self.adxv_host, self.adxv_port))
@@ -912,8 +993,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
         now = time.time()
         elapsed = now - self.adxv_latest_refresh
 
-        template = fileinfo['template']
-        basedir = fileinfo['directory']
+        template = fileinfo["template"]
+        basedir = fileinfo["directory"]
 
         if self.file_waiting_display is not None:
             if os.path.exists(self.file_waiting_display):
@@ -922,14 +1003,16 @@ class PX1Collect(AbstractCollect, HardwareObject):
                 self.is_firstimg = False
 
         # find next file to display
-        if elapsed >= self.adxv_interval and self.file_waiting_display is None: 
+        if elapsed >= self.adxv_interval and self.file_waiting_display is None:
             _current_img_no = self.collect_device.currentImageSpi
-            self.file_waiting_display = os.path.join(basedir, template % _current_img_no)
+            self.file_waiting_display = os.path.join(
+                basedir, template % _current_img_no
+            )
             self.adxv_last_refresh = time.time()
 
     def adxv_sync_image(self, filename):
 
-        adxv_send_cmd = "\nload_image %s\n"+ chr(32)
+        adxv_send_cmd = "\nload_image %s\n" + chr(32)
 
         try:
             if not self.adxv_socket:
@@ -937,38 +1020,41 @@ class PX1Collect(AbstractCollect, HardwareObject):
                     self.adxv_connect()
                 except Exception, err:
                     self.adxv_socket = None
-                    logging.info("PX1Collect: ADXV: Warning: Can't connect to adxv socket to follow collect.")
+                    logging.info(
+                        "PX1Collect: ADXV: Warning: Can't connect to adxv socket to follow collect."
+                    )
                     logging.error("PX1Collect: ADXV0: msg= %s" % err)
             else:
-                logging.info(("PX1Collect: ADXV: "+ adxv_send_cmd[1:-2]) % imgname)
+                logging.info(("PX1Collect: ADXV: " + adxv_send_cmd[1:-2]) % imgname)
                 self.adxv_socket.send(adxv_send_cmd % imgname)
         except:
             try:
-               del self.adxv_socket
-               self.adxv_connect()
+                del self.adxv_socket
+                self.adxv_connect()
             except Exception, err:
-               self.adxv_socket = None
-               logging.error("PX1Collect: ADXV1: msg= %s" % err)
+                self.adxv_socket = None
+                logging.error("PX1Collect: ADXV1: msg= %s" % err)
 
     ## ADXV display images (END) ##
 
 
 class U20(object):
     def __init__(self):
-        self.type = 'u20'
+        self.type = "u20"
+
 
 def test_hwo(hwo):
-    print "Energy: ",hwo.get_energy()
-    print "Transm: ",hwo.get_transmission()
-    print "Resol: ",hwo.get_resolution()
+    print "Energy: ", hwo.get_energy()
+    print "Transm: ", hwo.get_transmission()
+    print "Resol: ", hwo.get_resolution()
     print "PX1Environemnt (collect phase): ", hwo.is_collect_phase()
-    print "Shutters (ready for collect): ",hwo.check_shutters()
-    print "Flux: ",hwo.get_measured_intensity()
+    print "Shutters (ready for collect): ", hwo.check_shutters()
+    print "Flux: ", hwo.get_measured_intensity()
     print "is collect? ", hwo.is_collect_phase()
     print "is samplevisu? ", hwo.is_sampleview_phase()
     print "goint to sample visu"
     hwo.go_to_sampleview()
-    #print "goint to collect"
-    #hwo.go_to_collect()
+    # print "goint to collect"
+    # hwo.go_to_collect()
     print "is collect? ", hwo.is_collect_phase()
     print "is samplevisu? ", hwo.is_sampleview_phase()

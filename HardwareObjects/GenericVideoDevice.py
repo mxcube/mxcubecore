@@ -44,7 +44,7 @@ try:
 except:
     pass
 
-modulenames = ['qt', 'PyQt5', 'PyQt4']
+modulenames = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in modulenames):
     USEQT = True
@@ -55,6 +55,7 @@ else:
 
 from HardwareRepository.BaseHardwareObjects import Device
 
+
 class GenericVideoDevice(Device):
 
     default_cam_encoding = "yuv422p"
@@ -63,7 +64,7 @@ class GenericVideoDevice(Device):
     default_scale_factor = 1.0
 
     def __init__(self, name):
-        Device.__init__(self,name)
+        Device.__init__(self, name)
 
         self.cam_mirror = None
         self.cam_encoding = None
@@ -74,10 +75,10 @@ class GenericVideoDevice(Device):
         self.cam_scale_factor = None
         self.cam_name = None
 
-        self.raw_image_dimensions = [None,None]
-        self.image_dimensions = [None,None]
+        self.raw_image_dimensions = [None, None]
+        self.image_dimensions = [None, None]
         self.image_polling = None
-        self.image_format = None # not used
+        self.image_format = None  # not used
         self.default_cam_encoding = None
         self.default_poll_interval = None
 
@@ -94,17 +95,18 @@ class GenericVideoDevice(Device):
         except:
             pass
 
-        scale =  self.getProperty("scale")
+        scale = self.getProperty("scale")
         if scale is None:
             self.cam_scale_factor = self.default_scale_factor
         else:
             try:
                 self.cam_scale_factor = eval(scale)
             except:
-                logging.getLogger().warning('%s: failed to interpret scale factor for camera.'
-                                            'Using default.', self.name())
+                logging.getLogger().warning(
+                    "%s: failed to interpret scale factor for camera." "Using default.",
+                    self.name(),
+                )
                 self.cam_scale_factor = self.default_scale_factor
-  
 
         try:
             self.poll_interval = self.getProperty("interval")
@@ -136,12 +138,12 @@ class GenericVideoDevice(Device):
             self.poll_interval = self.default_poll_interval
 
         if self.cam_exposure is None:
-            self.cam_exposure = self.poll_interval/1000.0
+            self.cam_exposure = self.poll_interval / 1000.0
 
         if self.cam_type is None:
             self.cam_type = self.default_cam_type
 
-        # Apply values	
+        # Apply values
 
         self.set_video_live(False)
         time.sleep(0.1)
@@ -158,9 +160,10 @@ class GenericVideoDevice(Device):
             self.set_video_live(True)
             self.change_owner()
 
-            logging.getLogger("HWR").info('Starting polling for camera')
-            self.image_polling = gevent.spawn(self.do_image_polling,
-                                              self.poll_interval/1000.0)
+            logging.getLogger("HWR").info("Starting polling for camera")
+            self.image_polling = gevent.spawn(
+                self.do_image_polling, self.poll_interval / 1000.0
+            )
             self.image_polling.link_exception(self.polling_ended_exc)
             self.image_polling.link(self.polling_ended)
 
@@ -170,12 +173,13 @@ class GenericVideoDevice(Device):
         return self.cam_name
 
     def polling_ended(self, gl=None):
-        logging.getLogger("HWR").info('Polling ended for qt4 camera')
+        logging.getLogger("HWR").info("Polling ended for qt4 camera")
 
     def polling_ended_exc(self, gl=None):
-        logging.getLogger("HWR").info('Polling ended exception for qt4 camera')
+        logging.getLogger("HWR").info("Polling ended exception for qt4 camera")
 
     """ Generic methods """
+
     def get_new_image(self):
         """
         Descript. :
@@ -185,19 +189,18 @@ class GenericVideoDevice(Device):
         if raw_buffer is not None and raw_buffer.any():
             if self.cam_type == "basler":
                 raw_buffer = self.decoder(raw_buffer)
-                qimage = QImage(raw_buffer, width, height,
-                                width * 3,
-                                QImage.Format_RGB888)
+                qimage = QImage(
+                    raw_buffer, width, height, width * 3, QImage.Format_RGB888
+                )
             else:
-                qimage = QImage(raw_buffer, width, height,
-                                QImage.Format_RGB888)
+                qimage = QImage(raw_buffer, width, height, QImage.Format_RGB888)
 
             if self.cam_mirror is not None:
-                qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])     
+                qimage = qimage.mirrored(self.cam_mirror[0], self.cam_mirror[1])
 
             if self.scale != 1:
-               dims = self.get_image_dimensions()  #  should be already scaled
-               qimage = qimage.scaled(QSize(dims[0], dims[1]))
+                dims = self.get_image_dimensions()  #  should be already scaled
+                qimage = qimage.scaled(QSize(dims[0], dims[1]))
 
             qpixmap = QPixmap(qimage)
             self.emit("imageReceived", qpixmap)
@@ -213,6 +216,7 @@ class GenericVideoDevice(Device):
         if raw_buffer is not None and raw_buffer.any():
             image = Image.frombytes("RGB", (width, height), raw_buffer)
             from cStringIO import StringIO
+
             strbuf = StringIO()
             image.save(strbuf, "JPEG")
             jpgimg_str = strbuf.getvalue()
@@ -237,13 +241,13 @@ class GenericVideoDevice(Device):
         image.resize(raw_dims[1], raw_dims[0], 2)
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
 
-    def save_snapshot(self, filename, image_type='PNG'):
+    def save_snapshot(self, filename, image_type="PNG"):
         if USEQT:
-            qimage = self.get_new_image() 
-            qimage.save(filename, image_type) 
+            qimage = self.get_new_image()
+            qimage.save(filename, image_type)
         else:
             jpgstr = self.get_jpg_image()
-            open(filename,"w").write(jpgstr)
+            open(filename, "w").write(jpgstr)
 
     def get_snapshot(self, bw=None, return_as_array=True):
         if not USEQT:
@@ -255,13 +259,12 @@ class GenericVideoDevice(Device):
             qimage = qimage.convertToFormat(4)
             ptr = qimage.bits()
             ptr.setsize(qimage.byteCount())
-            image_array = np.array(ptr).reshape(qimage.height(),
-                                                qimage.width(), 4)
+            image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
             if bw:
-                return np.dot(image_array[...,:3],[0.299, 0.587, 0.144])
+                return np.dot(image_array[..., :3], [0.299, 0.587, 0.144])
             else:
-                return image_array 
-            
+                return image_array
+
         else:
             if bw:
                 return qimage.convertToFormat(QImage.Format_Mono)
@@ -272,10 +275,10 @@ class GenericVideoDevice(Device):
         """
         Descript. :
         Returns   : Scaling factor in float. None if does not exists
-        """ 
+        """
         return self.cam_scale_factor
 
-    get_image_zoom = get_scaling_factor 
+    get_image_zoom = get_scaling_factor
 
     def imageType(self):
         """
@@ -284,7 +287,7 @@ class GenericVideoDevice(Device):
         return self.image_format
 
     def start_camera(self):
-        return 
+        return
 
     def setLive(self, mode):
         """
@@ -296,7 +299,7 @@ class GenericVideoDevice(Device):
             self.change_owner()
         else:
             self.set_video_live(False)
-    
+
     def change_owner(self):
         """LIMA specific, because it has to be root at startup
            move this to Qt4_LimaVideo
@@ -306,9 +309,10 @@ class GenericVideoDevice(Device):
                 os.setgid(int(os.getenv("SUDO_GID")))
                 os.setuid(int(os.getenv("SUDO_UID")))
             except:
-                logging.getLogger().warning('%s: failed to change the process'
-                                            'ownership.', self.name())
- 
+                logging.getLogger().warning(
+                    "%s: failed to change the process" "ownership.", self.name()
+                )
+
     def getWidth(self):
         """
         Descript. :
@@ -347,7 +351,7 @@ class GenericVideoDevice(Device):
         Descript. :
         """
         pass
- 
+
     def set_cam_encoding(self, cam_encoding):
         if cam_encoding == "yuv422p":
             self.decoder = self.yuv_2_rgb
@@ -357,13 +361,14 @@ class GenericVideoDevice(Device):
     def get_image_dimensions(self):
         raw_width, raw_height = self.get_raw_image_size()
         width = raw_width * self.scale
-        height =  raw_height * self.scale
+        height = raw_height * self.scale
         return [width, height]
 
     """  Methods to be implemented by the implementing class """
+
     def get_raw_image_size(self):
         # Must return a two-value list necessary to avoid breaking e.g. ViideoMockup
-        return [None,None]
+        return [None, None]
 
     @abc.abstractmethod
     def get_image(self):
@@ -386,7 +391,7 @@ class GenericVideoDevice(Device):
     @abc.abstractmethod
     def set_exposure_time(self, exposure_time_value):
         pass
-        
+
     @abc.abstractmethod
     def get_video_live(self):
         pass

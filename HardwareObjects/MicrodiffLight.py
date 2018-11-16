@@ -1,15 +1,15 @@
 from AbstractMotor import AbstractMotor
 
-class MicrodiffLight(AbstractMotor):
 
+class MicrodiffLight(AbstractMotor):
     def __init__(self, name):
         AbstractMotor.__init__(self, name)
 
-    def init(self): 
+    def init(self):
         try:
-           self.set_limits(eval(self.getProperty("limits")))
+            self.set_limits(eval(self.getProperty("limits")))
         except:
-           self.set_limits((0, 2))
+            self.set_limits((0, 2))
 
         self.chan_value = self.getChannelObject("chanLightValue")
         self.chan_value.connectSignal("update", self.value_changed)
@@ -20,24 +20,24 @@ class MicrodiffLight(AbstractMotor):
 
     def connectNotify(self, signal):
         if self.chan_value.isConnected():
-            if signal == 'positionChanged':
-                self.emit('positionChanged', (self.get_position(), ))
-            elif signal == 'limitsChanged':
-                self.limits_changed()  
+            if signal == "positionChanged":
+                self.emit("positionChanged", (self.get_position(),))
+            elif signal == "limitsChanged":
+                self.limits_changed()
 
     def limits_changed(self):
-        self.emit('limitsChanged', (self.get_limits(), ))
-                     
+        self.emit("limitsChanged", (self.get_limits(),))
+
     def value_changed(self, position, private={}):
         self.set_position(position)
-        self.emit('positionChanged', (self.get_position(), ))
+        self.emit("positionChanged", (self.get_position(),))
 
     def move(self, position, wait=False, timeout=None):
         self.chan_value.setValue(position)
 
     def stop(self):
         pass
-    
+
     def light_is_out(self):
         return self.chan_light_is_on.getValue()
 

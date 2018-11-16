@@ -39,25 +39,25 @@ DEFAULT_DIAMETER_SIZE_LIST = (5, 10, 20, 30, 50, 100)
 
 
 class ApertureMockup(AbstractAperture):
-
     def __init__(self, name):
         AbstractAperture.__init__(self, name)
 
     def init(self):
         try:
-            self._diameter_size_list = \
-                eval(self.getProperty("diameter_size_list"))
+            self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
         except:
             self._diameter_size_list = DEFAULT_DIAMETER_SIZE_LIST
-            logging.getLogger("HWR").error(\
-                "Aperture: no diameter size list defined, using default list")
+            logging.getLogger("HWR").error(
+                "Aperture: no diameter size list defined, using default list"
+            )
 
         try:
             self._position_list = eval(self.getProperty("position_list"))
         except:
             self._position_list = DEFAULT_POSITION_LIST
-            logging.getLogger("HWR").error(\
-                "Aperture: no position list defined, using default list")
+            logging.getLogger("HWR").error(
+                "Aperture: no position list defined, using default list"
+            )
 
         self.set_position_index(0)
         self.set_diameter_index(0)

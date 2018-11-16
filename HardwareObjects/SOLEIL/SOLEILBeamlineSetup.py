@@ -10,11 +10,11 @@ import queue_model_enumerables_v1 as queue_model_enumerables
 from HardwareRepository.HardwareRepository import HardwareRepository
 from BeamlineSetup import BeamlineSetup
 
+
 class SOLEILBeamlineSetup(BeamlineSetup):
-    
     def __init__(self):
         BeamlineSetup.__init__(self, name)
-    
+
     def get_default_char_acq_parameters(self):
         """
         :returns: A AcquisitionParameters object with all default parameters.
@@ -22,18 +22,18 @@ class SOLEILBeamlineSetup(BeamlineSetup):
         acq_parameters = queue_model_objects.AcquisitionParameters()
         parent_key = "default_characterisation_values"
 
-        img_start_num = self[parent_key].getProperty('start_image_number')
-        num_images = self[parent_key].getProperty('number_of_images')
-        num_wedges = self[parent_key].getProperty('number_of_wedges')
-        osc_range = round(float(self[parent_key].getProperty('range')), 2)
-        overlap = round(float(self[parent_key].getProperty('overlap')), 2)
-        exp_time = round(float(self[parent_key].getProperty('exposure_time')), 4)
-        num_passes = int(self[parent_key].getProperty('number_of_passes'))
-        wedge_size = int(self[parent_key].getProperty('wedge_size'))
+        img_start_num = self[parent_key].getProperty("start_image_number")
+        num_images = self[parent_key].getProperty("number_of_images")
+        num_wedges = self[parent_key].getProperty("number_of_wedges")
+        osc_range = round(float(self[parent_key].getProperty("range")), 2)
+        overlap = round(float(self[parent_key].getProperty("overlap")), 2)
+        exp_time = round(float(self[parent_key].getProperty("exposure_time")), 4)
+        num_passes = int(self[parent_key].getProperty("number_of_passes"))
+        wedge_size = int(self[parent_key].getProperty("wedge_size"))
         shutterless = self.detector_has_shutterless()
-        
+
         try:
-            detector_mode = self.detector_hwobj.default_mode() 
+            detector_mode = self.detector_hwobj.default_mode()
         except AttributeError:
             detector_mode = None
 

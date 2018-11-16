@@ -12,6 +12,7 @@ POLLERS = {}
 class _NotInitializedValue:
     pass
 
+
 NotInitializedValue = _NotInitializedValue()
 
 
@@ -25,7 +26,16 @@ def get_poller(poller_id):
     return POLLERS.get(poller_id)
 
 
-def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True, start_delay=0, start_value=NotInitializedValue):
+def poll(
+    polled_call,
+    polled_call_args=(),
+    polling_period=1000,
+    value_changed_callback=None,
+    error_callback=None,
+    compare=True,
+    start_delay=0,
+    start_value=NotInitializedValue,
+):
     # logging.info(">>>> %s", POLLERS)
     for _, poller in POLLERS.items():
         poller_polled_call = poller.polled_call_ref()
@@ -35,7 +45,14 @@ def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_ca
             return poller
 
     # logging.info(">>>>> CREATING NEW POLLER for cmd %r, args=%s, polling time=%d", polled_call, polled_call_args, polling_period)
-    poller = _Poller(polled_call, polled_call_args, polling_period, value_changed_callback, error_callback, compare)
+    poller = _Poller(
+        polled_call,
+        polled_call_args,
+        polling_period,
+        value_changed_callback,
+        error_callback,
+        compare,
+    )
     poller.old_res = start_value
     POLLERS[poller.get_id()] = poller
     poller.start_delayed(start_delay)
@@ -43,7 +60,15 @@ def poll(polled_call, polled_call_args=(), polling_period=1000, value_changed_ca
 
 
 class _Poller:
-    def __init__(self, polled_call, polled_call_args=(), polling_period=1000, value_changed_callback=None, error_callback=None, compare=True):
+    def __init__(
+        self,
+        polled_call,
+        polled_call_args=(),
+        polling_period=1000,
+        value_changed_callback=None,
+        error_callback=None,
+        compare=True,
+    ):
         self.polled_call_ref = saferef.safe_ref(polled_call)
         self.args = polled_call_args
         self.polling_period = polling_period
@@ -84,7 +109,16 @@ class _Poller:
         value_changed_cb = self.value_changed_callback_ref()
         error_cb = self.error_callback_ref()
         if polled_call is not None:
-            return poll(polled_call, self.args, self.polling_period, value_changed_cb, error_cb, self.compare, delay, start_value=self.old_res)
+            return poll(
+                polled_call,
+                self.args,
+                self.polling_period,
+                value_changed_cb,
+                error_cb,
+                self.compare,
+                delay,
+                start_value=self.old_res,
+            )
 
     def new_event(self):
         while True:

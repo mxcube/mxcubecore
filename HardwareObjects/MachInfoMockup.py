@@ -39,11 +39,12 @@ import time
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
 
+
 class MachInfoMockup(Equipment):
-    default_current = 200 # milliamps
-    default_lifetime = 45 # hours Lifetime
+    default_current = 200  # milliamps
+    default_lifetime = 45  # hours Lifetime
     default_message = "Beam Delivered"
-    default_topup_remaining = 70 # seconds
+    default_topup_remaining = 70  # seconds
 
     def __init__(self, *args):
         Equipment.__init__(self, *args)
@@ -65,22 +66,26 @@ class MachInfoMockup(Equipment):
         while True:
             gevent.sleep(5)
             elapsed = time.time() - self.t0
-            self.topup_remaining =  abs((self.default_topup_remaining - elapsed) % 300)
+            self.topup_remaining = abs((self.default_topup_remaining - elapsed) % 300)
             if self.topup_remaining < 60:
-                self.message = "ATTENTION: topup in %3d secs" % int(self.topup_remaining)
+                self.message = "ATTENTION: topup in %3d secs" % int(
+                    self.topup_remaining
+                )
                 self.attention = True
             else:
                 self.message = self.default_message
                 self.attention = False
-            self.current = "%3.2f mA" % (self.default_current -  (3-self.topup_remaining/100.0) * 5)
+            self.current = "%3.2f mA" % (
+                self.default_current - (3 - self.topup_remaining / 100.0) * 5
+            )
             values = dict()
-            values['current'] = self.current
-            values['message'] = self.message
-            values['lifetime'] = "%3.2f hours" % self.lifetime
-            values['topup_remaining'] = "%3.0f secs" % self.topup_remaining
-            values['attention'] = self.attention
+            values["current"] = self.current
+            values["message"] = self.message
+            values["lifetime"] = "%3.2f hours" % self.lifetime
+            values["topup_remaining"] = "%3.0f secs" % self.topup_remaining
+            values["attention"] = self.attention
 
-            self.emit('machInfoChanged',values)
+            self.emit("machInfoChanged", values)
 
     def getCurrent(self):
         return self.current
@@ -112,8 +117,8 @@ def test():
     print "Message: ", conn.getMessage()
 
     while True:
-       gevent.wait(timeout=0.1)
-       
+        gevent.wait(timeout=0.1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()

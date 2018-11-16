@@ -70,14 +70,13 @@ except ImportError:
     except ImportError:
         pass
 
-#import AutoMesh
+# import AutoMesh
 import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 class Qt4_GraphicsManager(HardwareObject):
-
     def __init__(self, name):
         """
         :param name: name
@@ -88,7 +87,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.diffractometer_hwobj = None
         self.beam_info_hwobj = None
         self.camera_hwobj = None
-    
+
         self.graphics_config_filename = None
         self.omega_angle = 0
         self.pixels_per_mm = [0, 0]
@@ -96,7 +95,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.beam_info_dict = {}
         self.graphics_scene_size = None
         self.mouse_position = [0, 0]
-        self.image_scale = None 
+        self.image_scale = None
         self.image_scale_list = []
         self.auto_grid = None
         self.auto_grid_size_mm = (0, 0)
@@ -145,7 +144,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_move_down_item = None
         self.graphics_move_left_item = None
         self.graphics_magnification_item = None
- 
+
     def init(self):
         """Main init function. Initiates all graphics items, hwobjs and 
            connects all qt signals to slots.
@@ -156,48 +155,43 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
         self.graphics_histogram_item = GraphicsLib.GraphicsItemHistogram(self)
         self.graphics_histogram_item.hide()
-        self.graphics_omega_reference_item = \
-             GraphicsLib.GraphicsItemOmegaReference(self)
+        self.graphics_omega_reference_item = GraphicsLib.GraphicsItemOmegaReference(
+            self
+        )
         self.graphics_beam_item = GraphicsLib.GraphicsItemBeam(self)
         self.graphics_info_item = GraphicsLib.GraphicsItemInfo(self)
         self.graphics_info_item.hide()
-        self.graphics_move_beam_mark_item = \
-             GraphicsLib.GraphicsItemMoveBeamMark(self)
+        self.graphics_move_beam_mark_item = GraphicsLib.GraphicsItemMoveBeamMark(self)
         self.graphics_move_beam_mark_item.hide()
-        self.graphics_centring_lines_item = \
-             GraphicsLib.GraphicsItemCentringLines(self)
+        self.graphics_centring_lines_item = GraphicsLib.GraphicsItemCentringLines(self)
         self.graphics_centring_lines_item.hide()
-        self.graphics_measure_distance_item = \
-             GraphicsLib.GraphicsItemMeasureDistance(self)
+        self.graphics_measure_distance_item = GraphicsLib.GraphicsItemMeasureDistance(
+            self
+        )
         self.graphics_measure_distance_item.hide()
-        self.graphics_measure_angle_item = \
-             GraphicsLib.GraphicsItemMeasureAngle(self)
+        self.graphics_measure_angle_item = GraphicsLib.GraphicsItemMeasureAngle(self)
         self.graphics_measure_angle_item.hide()
-        self.graphics_measure_area_item = \
-             GraphicsLib.GraphicsItemMeasureArea(self)
+        self.graphics_measure_area_item = GraphicsLib.GraphicsItemMeasureArea(self)
         self.graphics_measure_area_item.hide()
         self.graphics_select_tool_item = GraphicsLib.GraphicsSelectTool(self)
         self.graphics_select_tool_item.hide()
         self.graphics_beam_define_item = GraphicsLib.GraphicsItemBeamDefine(self)
         self.graphics_beam_define_item.hide()
-        self.graphics_move_up_item = \
-             GraphicsLib.GraphicsItemMoveButton(self, "up")
-        self.graphics_move_right_item = \
-             GraphicsLib.GraphicsItemMoveButton(self, "right")
-        self.graphics_move_down_item = \
-             GraphicsLib.GraphicsItemMoveButton(self, "down")
-        self.graphics_move_left_item = \
-             GraphicsLib.GraphicsItemMoveButton(self, "left")
-        self.graphics_magnification_item = \
-             GraphicsLib.GraphicsMagnificationItem(self)
+        self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
+        self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
+            self, "right"
+        )
+        self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
+        self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
+        self.graphics_magnification_item = GraphicsLib.GraphicsMagnificationItem(self)
         self.graphics_magnification_item.hide()
-         
-        self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame) 
+
+        self.graphics_view.graphics_scene.addItem(self.graphics_camera_frame)
         self.graphics_view.graphics_scene.addItem(self.graphics_omega_reference_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_info_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_move_beam_mark_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_centring_lines_item) 
+        self.graphics_view.graphics_scene.addItem(self.graphics_centring_lines_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_histogram_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_scale_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_distance_item)
@@ -211,18 +205,16 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_magnification_item)
 
-        self.graphics_view.scene().mouseClickedSignal.connect(\
-             self.mouse_clicked)
-        self.graphics_view.scene().mouseDoubleClickedSignal.connect(\
-             self.mouse_double_clicked)
-        self.graphics_view.scene().mouseReleasedSignal.connect(\
-             self.mouse_released)
-        self.graphics_view.scene().itemClickedSignal.connect(\
-             self.item_clicked)
-        self.graphics_view.scene().itemDoubleClickedSignal.connect(\
-             self.item_double_clicked)
-        self.graphics_view.scene().moveItemClickedSignal.connect(\
-             self.move_item_clicked)
+        self.graphics_view.scene().mouseClickedSignal.connect(self.mouse_clicked)
+        self.graphics_view.scene().mouseDoubleClickedSignal.connect(
+            self.mouse_double_clicked
+        )
+        self.graphics_view.scene().mouseReleasedSignal.connect(self.mouse_released)
+        self.graphics_view.scene().itemClickedSignal.connect(self.item_clicked)
+        self.graphics_view.scene().itemDoubleClickedSignal.connect(
+            self.item_double_clicked
+        )
+        self.graphics_view.scene().moveItemClickedSignal.connect(self.move_item_clicked)
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
         self.graphics_view.keyPressedSignal.connect(self.key_pressed)
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
@@ -230,62 +222,94 @@ class Qt4_GraphicsManager(HardwareObject):
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
         if self.diffractometer_hwobj is not None:
             pixels_per_mm = self.diffractometer_hwobj.get_pixels_per_mm()
-            self.diffractometer_pixels_per_mm_changed(pixels_per_mm)             
-            GraphicsLib.GraphicsItemGrid.set_grid_direction(\
-                   self.diffractometer_hwobj.get_grid_direction())
+            self.diffractometer_pixels_per_mm_changed(pixels_per_mm)
+            GraphicsLib.GraphicsItemGrid.set_grid_direction(
+                self.diffractometer_hwobj.get_grid_direction()
+            )
 
-            self.connect(self.diffractometer_hwobj, "minidiffStateChanged", 
-                         self.diffractometer_state_changed)
-            self.connect(self.diffractometer_hwobj, "centringStarted",
-                         self.diffractometer_centring_started)
-            self.connect(self.diffractometer_hwobj, "centringAccepted", 
-                         self.create_centring_point)
-            self.connect(self.diffractometer_hwobj, "centringSuccessful", 
-                         self.diffractometer_centring_successful)
-            self.connect(self.diffractometer_hwobj, "centringFailed", 
-                         self.diffractometer_centring_failed)
-            self.connect(self.diffractometer_hwobj, "pixelsPerMmChanged", 
-                         self.diffractometer_pixels_per_mm_changed) 
-            self.connect(self.diffractometer_hwobj, "omegaReferenceChanged", 
-                         self.diffractometer_omega_reference_changed)
-            self.connect(self.diffractometer_hwobj, "phiMotorMoved",
-                         self.diffractometer_phi_motor_moved)
-            self.connect(self.diffractometer_hwobj, "minidiffPhaseChanged",
-                         self.diffractometer_phase_changed)
+            self.connect(
+                self.diffractometer_hwobj,
+                "minidiffStateChanged",
+                self.diffractometer_state_changed,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "centringStarted",
+                self.diffractometer_centring_started,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "centringAccepted",
+                self.create_centring_point,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "centringSuccessful",
+                self.diffractometer_centring_successful,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "centringFailed",
+                self.diffractometer_centring_failed,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "pixelsPerMmChanged",
+                self.diffractometer_pixels_per_mm_changed,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "omegaReferenceChanged",
+                self.diffractometer_omega_reference_changed,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "phiMotorMoved",
+                self.diffractometer_phi_motor_moved,
+            )
+            self.connect(
+                self.diffractometer_hwobj,
+                "minidiffPhaseChanged",
+                self.diffractometer_phase_changed,
+            )
         else:
-            logging.getLogger("HWR").error("GraphicsManager: Diffractometer hwobj not defined")
+            logging.getLogger("HWR").error(
+                "GraphicsManager: Diffractometer hwobj not defined"
+            )
 
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         if self.beam_info_hwobj is not None:
             self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
             self.beam_position = self.beam_info_hwobj.get_beam_position()
-            self.connect(self.beam_info_hwobj, 
-                         "beamPosChanged", 
-                         self.beam_position_changed)
-            self.connect(self.beam_info_hwobj, 
-                         "beamInfoChanged",
-                         self.beam_info_changed)
+            self.connect(
+                self.beam_info_hwobj, "beamPosChanged", self.beam_position_changed
+            )
+            self.connect(
+                self.beam_info_hwobj, "beamInfoChanged", self.beam_info_changed
+            )
 
             self.beam_info_changed(self.beam_info_dict)
             self.beam_position_changed(self.beam_info_hwobj.get_beam_position())
         else:
-            logging.getLogger("HWR").error("GraphicsManager: BeamInfo hwobj not defined")
+            logging.getLogger("HWR").error(
+                "GraphicsManager: BeamInfo hwobj not defined"
+            )
 
-        self.camera_hwobj = self.getObjectByRole(self.getProperty("camera_name", "camera"))
+        self.camera_hwobj = self.getObjectByRole(
+            self.getProperty("camera_name", "camera")
+        )
         if self.camera_hwobj is not None:
             graphics_scene_size = self.camera_hwobj.get_image_dimensions()
             self.set_graphics_scene_size(graphics_scene_size, False)
             self.camera_hwobj.start_camera()
-            self.connect(self.camera_hwobj, 
-                         "imageReceived", 
-                         self.camera_image_received) 
-        else:         
+            self.connect(self.camera_hwobj, "imageReceived", self.camera_image_received)
+        else:
             logging.getLogger("HWR").error("GraphicsManager: Camera hwobj not defined")
 
         try:
             self.image_scale_list = eval(self.getProperty("image_scale_list", "[]"))
             if len(self.image_scale_list) > 0:
-                self.image_scale = self.getProperty("default_image_scale") 
+                self.image_scale = self.getProperty("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
         except:
             pass
@@ -302,40 +326,43 @@ class Qt4_GraphicsManager(HardwareObject):
         """
 
         try:
-           self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
+            self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
         except:
-           self.auto_grid_size_mm = (0.2, 0.2)
+            self.auto_grid_size_mm = (0.2, 0.2)
 
-        self.graphics_move_up_item.setVisible(\
-             self.getProperty("enable_move_buttons") == True)
-        self.graphics_move_right_item.setVisible(\
-             self.getProperty("enable_move_buttons") == True)
-        self.graphics_move_down_item.setVisible(\
-             self.getProperty("enable_move_buttons") == True)
-        self.graphics_move_left_item.setVisible(\
-             self.getProperty("enable_move_buttons") == True)
+        self.graphics_move_up_item.setVisible(
+            self.getProperty("enable_move_buttons") == True
+        )
+        self.graphics_move_right_item.setVisible(
+            self.getProperty("enable_move_buttons") == True
+        )
+        self.graphics_move_down_item.setVisible(
+            self.getProperty("enable_move_buttons") == True
+        )
+        self.graphics_move_left_item.setVisible(
+            self.getProperty("enable_move_buttons") == True
+        )
 
-        #self.set_scrollbars_off(\
+        # self.set_scrollbars_off(\
         #     self.getProperty("scrollbars_always_off") == True)
 
         try:
-            self.graphics_magnification_item.set_properties(\
-                 eval(self.getProperty("magnification_tool")))
+            self.graphics_magnification_item.set_properties(
+                eval(self.getProperty("magnification_tool"))
+            )
         except:
             pass
 
-        #try:
+        # try:
         #    self.set_view_scale(self.getProperty("view_scale"))
-        #except:
+        # except:
         #    pass
 
-        self.temp_animation_dir = os.path.join(\
-            self.user_file_directory,
-            "animation")
+        self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.getProperty("omega_move_delta", 10)
 
-        custom_cursor_filename = self.getProperty("custom_cursor","")
+        custom_cursor_filename = self.getProperty("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
             self.cursor = QCursor(QPixmap(custom_cursor_filename), 0, 0)
             self.set_cursor_busy(False)
@@ -386,65 +413,82 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         if os.path.exists(self.graphics_config_filename):
             try:
-               logging.getLogger("HWR").debug("GraphicsManager: Loading graphics " + \
-                  "from configuration file %s" % self.graphics_config_filename)
-               graphics_config_file = open(self.graphics_config_filename)
-               graphics_config = eval(graphics_config_file.read())
-               for graphics_item in graphics_config:
-                   if graphics_item["type"] == "point":
-                       point = self.create_centring_point(\
-                          None, {"motors": graphics_item["cpos"]})
-                       point.index = graphics_item["index"]
-                       cpos = point.get_centred_position()
-                       cpos.set_index(graphics_item["cpos_index"])
-               for graphics_item in graphics_config:
-                   if graphics_item["type"] == "line":
-                       start_point = self.get_point_by_index(\
-                          graphics_item["start_point_index"])
-                       end_point = self.get_point_by_index(\
-                          graphics_item["end_point_index"])
-                       self.create_line(start_point, end_point)
-               self.de_select_all()
-               graphics_config_file.close()
+                logging.getLogger("HWR").debug(
+                    "GraphicsManager: Loading graphics "
+                    + "from configuration file %s" % self.graphics_config_filename
+                )
+                graphics_config_file = open(self.graphics_config_filename)
+                graphics_config = eval(graphics_config_file.read())
+                for graphics_item in graphics_config:
+                    if graphics_item["type"] == "point":
+                        point = self.create_centring_point(
+                            None, {"motors": graphics_item["cpos"]}
+                        )
+                        point.index = graphics_item["index"]
+                        cpos = point.get_centred_position()
+                        cpos.set_index(graphics_item["cpos_index"])
+                for graphics_item in graphics_config:
+                    if graphics_item["type"] == "line":
+                        start_point = self.get_point_by_index(
+                            graphics_item["start_point_index"]
+                        )
+                        end_point = self.get_point_by_index(
+                            graphics_item["end_point_index"]
+                        )
+                        self.create_line(start_point, end_point)
+                self.de_select_all()
+                graphics_config_file.close()
             except:
-               logging.getLogger("HWR").error("GraphicsManager: Unable to load " + \
-                  "graphics from configuration file %s" % self.graphics_config_filename)
+                logging.getLogger("HWR").error(
+                    "GraphicsManager: Unable to load "
+                    + "graphics from configuration file %s"
+                    % self.graphics_config_filename
+                )
 
     def dump_shapes(self):
         graphics_config = []
         for shape in self.get_shapes():
             if isinstance(shape, GraphicsLib.GraphicsItemPoint):
                 cpos = shape.get_centred_position()
-                graphics_config.append({"type" : "point",
-                                        "index": shape.index,
-                                        "pos_x": shape.start_coord,
-                                        "pos_y": shape.end_coord,
-                                        "cpos": cpos.as_dict(),
-                                        "cpos_index": cpos.get_index()})
+                graphics_config.append(
+                    {
+                        "type": "point",
+                        "index": shape.index,
+                        "pos_x": shape.start_coord,
+                        "pos_y": shape.end_coord,
+                        "cpos": cpos.as_dict(),
+                        "cpos_index": cpos.get_index(),
+                    }
+                )
             elif isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point_index, end_point_index) = shape.get_points_index()
-                graphics_config.append({"type" : "line",
-                                        "index": shape.index,
-                                        "start_point_index": start_point_index,
-                                        "end_point_index": end_point_index,})
+                graphics_config.append(
+                    {
+                        "type": "line",
+                        "index": shape.index,
+                        "start_point_index": start_point_index,
+                        "end_point_index": end_point_index,
+                    }
+                )
 
         return graphics_config
 
     def load_shapes(self, graphics_config):
         for graphics_item in graphics_config:
             if graphics_item["type"] == "point":
-                point = self.create_centring_point(\
-                    None, {"motors": graphics_item["cpos"]}, emit=False)
+                point = self.create_centring_point(
+                    None, {"motors": graphics_item["cpos"]}, emit=False
+                )
                 point.index = graphics_item["index"]
                 cpos = point.get_centred_position()
                 cpos.set_index(graphics_item["cpos_index"])
         for graphics_item in graphics_config:
             if graphics_item["type"] == "line":
-               start_point = self.get_point_by_index(\
-                    graphics_item["start_point_index"])
-               end_point = self.get_point_by_index(\
-                    graphics_item["end_point_index"])
-               self.create_line(start_point, end_point, emit=False)
+                start_point = self.get_point_by_index(
+                    graphics_item["start_point_index"]
+                )
+                end_point = self.get_point_by_index(graphics_item["end_point_index"])
+                self.create_line(start_point, end_point, emit=False)
         self.de_select_all()
 
     def camera_image_received(self, pixmap_image):
@@ -455,9 +499,12 @@ class Qt4_GraphicsManager(HardwareObject):
         :type pixmap_image: QtGui.QPixmapImage
         """
         if self.image_scale:
-            pixmap_image = pixmap_image.scaled(QSize(\
-               pixmap_image.width() * self.image_scale,
-               pixmap_image.height() * self.image_scale))
+            pixmap_image = pixmap_image.scaled(
+                QSize(
+                    pixmap_image.width() * self.image_scale,
+                    pixmap_image.height() * self.image_scale,
+                )
+            )
         self.graphics_camera_frame.setPixmap(pixmap_image)
 
         if self.in_magnification_mode:
@@ -492,19 +539,20 @@ class Qt4_GraphicsManager(HardwareObject):
            Updates point screen coordinates and grid coorner coordinates.
            If diffractometer not ready then hides all shapes.
         """
-        if self.diffractometer_hwobj.is_ready() and \
-           not self.in_centring_state:
+        if self.diffractometer_hwobj.is_ready() and not self.in_centring_state:
             for shape in self.get_shapes():
                 if isinstance(shape, GraphicsLib.GraphicsItemPoint):
-                    cpos =  shape.get_centred_position()
-                    new_x, new_y = self.diffractometer_hwobj.\
-                        motor_positions_to_screen(cpos.as_dict())
+                    cpos = shape.get_centred_position()
+                    new_x, new_y = self.diffractometer_hwobj.motor_positions_to_screen(
+                        cpos.as_dict()
+                    )
                     shape.set_start_position(new_x, new_y)
                 elif isinstance(shape, GraphicsLib.GraphicsItemGrid):
                     grid_cpos = shape.get_centred_position()
                     if grid_cpos is not None:
-                        current_cpos = queue_model_objects.CentredPosition(\
-                            self.diffractometer_hwobj.get_positions())
+                        current_cpos = queue_model_objects.CentredPosition(
+                            self.diffractometer_hwobj.get_positions()
+                        )
 
                         current_cpos.set_motor_pos_delta(0.1)
                         grid_cpos.set_motor_pos_delta(0.1)
@@ -512,20 +560,26 @@ class Qt4_GraphicsManager(HardwareObject):
                         if hasattr(grid_cpos, "zoom"):
                             current_cpos.zoom = grid_cpos.zoom
 
-                        center_coord = self.diffractometer_hwobj.\
-                            motor_positions_to_screen(grid_cpos.as_dict())
+                        center_coord = self.diffractometer_hwobj.motor_positions_to_screen(
+                            grid_cpos.as_dict()
+                        )
                         if center_coord:
                             shape.set_center_coord(center_coord)
 
                             corner_coord = []
                             for motor_pos in shape.get_motor_pos_corner():
-                                corner_coord.append((self.diffractometer_hwobj.\
-                                    motor_positions_to_screen(motor_pos)))
+                                corner_coord.append(
+                                    (
+                                        self.diffractometer_hwobj.motor_positions_to_screen(
+                                            motor_pos
+                                        )
+                                    )
+                                )
                             shape.set_corner_coord(corner_coord)
-      
+
                             if current_cpos == grid_cpos:
                                 shape.set_projection_mode(False)
-                            else:    
+                            else:
                                 shape.set_projection_mode(True)
 
             self.show_all_items()
@@ -535,13 +589,14 @@ class Qt4_GraphicsManager(HardwareObject):
         else:
             self.hide_all_items()
             self.emit("diffractometerReady", False)
-      
+
     def diffractometer_phase_changed(self, phase):
         """Phase changed event.
            If PHASE_BEAM then displays a grid on the screen
-        """  
-        self.graphics_scale_item.set_display_grid(\
-             phase == self.diffractometer_hwobj.PHASE_BEAM)
+        """
+        self.graphics_scale_item.set_display_grid(
+            phase == self.diffractometer_hwobj.PHASE_BEAM
+        )
         self.emit("diffractometerPhaseChanged", phase)
 
     def diffractometer_centring_started(self, centring_method, flexible):
@@ -554,8 +609,8 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: centringStarted
         """
         self.current_centring_method = centring_method
-        self.set_centring_state(True) 
-        self.emit("centringStarted")  
+        self.set_centring_state(True)
+        self.emit("centringStarted")
 
     def create_centring_point(self, centring_state, centring_status, emit=True):
         """Creates a new centring position and adds it to graphics point.
@@ -568,22 +623,22 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         p_dict = {}
 
-        if 'motors' in centring_status and \
-                'extraMotors' in centring_status:
+        if "motors" in centring_status and "extraMotors" in centring_status:
 
-            p_dict = dict(centring_status['motors'],
-                          **centring_status['extraMotors'])
-        elif 'motors' in centring_status:
-            p_dict = dict(centring_status['motors'])
+            p_dict = dict(centring_status["motors"], **centring_status["extraMotors"])
+        elif "motors" in centring_status:
+            p_dict = dict(centring_status["motors"])
 
         self.emit("centringInProgress", False)
 
         if p_dict:
             cpos = queue_model_objects.CentredPosition(p_dict)
-            screen_pos = self.diffractometer_hwobj.\
-                    motor_positions_to_screen(cpos.as_dict())
-            point = GraphicsLib.GraphicsItemPoint(cpos, True, 
-                    screen_pos[0], screen_pos[1])
+            screen_pos = self.diffractometer_hwobj.motor_positions_to_screen(
+                cpos.as_dict()
+            )
+            point = GraphicsLib.GraphicsItemPoint(
+                cpos, True, screen_pos[0], screen_pos[1]
+            )
             self.add_shape(point, emit)
             cpos.set_index(point.index)
             return point
@@ -602,8 +657,10 @@ class Qt4_GraphicsManager(HardwareObject):
         self.set_centring_state(False)
         self.diffractometer_state_changed()
         self.emit("centringSuccessful", method, centring_status)
-        self.emit("infoMsg", "Click Save to store the centred point "+\
-                  "or start a new centring")
+        self.emit(
+            "infoMsg",
+            "Click Save to store the centred point " + "or start a new centring",
+        )
 
     def diffractometer_centring_failed(self, method, centring_status):
         """CleanUp method after centring failed
@@ -616,7 +673,7 @@ class Qt4_GraphicsManager(HardwareObject):
                 - infoMsg
         """
         self.set_cursor_busy(False)
-        self.set_centring_state(False) 
+        self.set_centring_state(False)
         self.emit("centringFailed", method, centring_status)
         self.emit("infoMsg", "")
 
@@ -651,7 +708,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         self.omega_angle = position
         self.graphics_omega_reference_item.set_phi_position(position)
-        
+
     def mouse_clicked(self, pos_x, pos_y, left_click=True):
         """Method when mouse clicked on GraphicsScene
 
@@ -699,24 +756,26 @@ class Qt4_GraphicsManager(HardwareObject):
             self.stop_move_beam_mark()
         elif self.in_beam_define_state:
             self.stop_beam_define()
-            #self.graphics_beam_define_item.store_coord(pos_x, pos_y)
+            # self.graphics_beam_define_item.store_coord(pos_x, pos_y)
         elif self.in_one_click_centering:
             self.diffractometer_hwobj.start_move_to_beam(pos_x, pos_y)
         else:
             self.emit("pointSelected", None)
             self.emit("infoMsg", "")
-            if left_click: 
+            if left_click:
                 self.graphics_select_tool_item.set_start_position(pos_x, pos_y)
                 self.graphics_select_tool_item.set_end_position(pos_x, pos_y)
                 self.graphics_select_tool_item.show()
                 self.in_select_items_state = True
             for graphics_item in self.graphics_view.scene().items():
                 graphics_item.setSelected(False)
-                if type(graphics_item) in [GraphicsLib.GraphicsItemPoint, 
-                                           GraphicsLib.GraphicsItemLine, 
-                                           GraphicsLib.GraphicsItemGrid]:
-                    self.emit("shapeSelected", graphics_item, False)  
-                    #if isinstance(graphics_item, GraphicsLib.GraphicsItemPoint):
+                if type(graphics_item) in [
+                    GraphicsLib.GraphicsItemPoint,
+                    GraphicsLib.GraphicsItemLine,
+                    GraphicsLib.GraphicsItemGrid,
+                ]:
+                    self.emit("shapeSelected", graphics_item, False)
+                    # if isinstance(graphics_item, GraphicsLib.GraphicsItemPoint):
                     #    self.emit("pointSelected", graphics_item)
 
     def mouse_double_clicked(self, pos_x, pos_y):
@@ -736,9 +795,9 @@ class Qt4_GraphicsManager(HardwareObject):
             self.stop_measure_area()
         elif self.in_beam_define_state:
             self.stop_beam_define()
-        else: 
+        else:
             self.diffractometer_hwobj.move_to_beam(pos_x, pos_y)
-        self.emit('imageDoubleClicked', pos_x, pos_y)
+        self.emit("imageDoubleClicked", pos_x, pos_y)
 
     def mouse_released(self, pos_x, pos_y):
         """Mouse release method. Used to finish grid drawing and item 
@@ -760,8 +819,9 @@ class Qt4_GraphicsManager(HardwareObject):
             self.emit("shapeCreated", self.graphics_grid_draw_item, "Grid")
             self.graphics_grid_draw_item.setSelected(True)
             self.graphics_grid_draw_item.update_coordinate_map()
-            self.shape_dict[self.graphics_grid_draw_item.get_display_name()] = \
-                 self.graphics_grid_draw_item
+            self.shape_dict[
+                self.graphics_grid_draw_item.get_display_name()
+            ] = self.graphics_grid_draw_item
         elif self.in_beam_define_state:
             self.stop_beam_define()
         elif self.in_select_items_state:
@@ -773,7 +833,7 @@ class Qt4_GraphicsManager(HardwareObject):
                     self.emit("pointSelected", point)
             """
             self.select_lines_and_grids()
-           
+
     def mouse_moved(self, pos_x, pos_y):
         """Executed when mouse moved. Used in all measure methods, centring
            procedure and item selection procedure.
@@ -787,8 +847,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("mouseMoved", pos_x, pos_y)
         self.mouse_position[0] = pos_x
         self.mouse_position[1] = pos_y
-        if self.in_centring_state or \
-           self.in_one_click_centering:
+        if self.in_centring_state or self.in_one_click_centering:
             self.graphics_centring_lines_item.set_start_position(pos_x, pos_y)
         elif self.in_grid_drawing_state:
             if self.graphics_grid_draw_item.is_draw_mode():
@@ -800,23 +859,26 @@ class Qt4_GraphicsManager(HardwareObject):
         elif self.in_measure_area_state:
             self.graphics_measure_area_item.set_coord(self.mouse_position)
         elif self.in_move_beam_mark_state:
-            self.graphics_move_beam_mark_item.set_end_position(\
-                self.mouse_position[0], self.mouse_position[1])
+            self.graphics_move_beam_mark_item.set_end_position(
+                self.mouse_position[0], self.mouse_position[1]
+            )
         elif self.in_beam_define_state:
-            self.graphics_beam_define_item.set_end_position(\
-                self.mouse_position[0], self.mouse_position[1])
+            self.graphics_beam_define_item.set_end_position(
+                self.mouse_position[0], self.mouse_position[1]
+            )
         elif self.in_select_items_state:
-             
+
             self.graphics_select_tool_item.set_end_position(pos_x, pos_y)
             select_start_x = self.graphics_select_tool_item.start_coord[0]
             select_start_y = self.graphics_select_tool_item.start_coord[1]
-            if abs(select_start_x - pos_x) > 5 and \
-               abs(select_start_y - pos_y) > 5:
+            if abs(select_start_x - pos_x) > 5 and abs(select_start_y - pos_y) > 5:
                 painter_path = QPainterPath()
-                painter_path.addRect(min(select_start_x, pos_x),
-                                     min(select_start_y, pos_y),
-                                     abs(select_start_x - pos_x),
-                                     abs(select_start_y - pos_y))
+                painter_path.addRect(
+                    min(select_start_x, pos_x),
+                    min(select_start_y, pos_y),
+                    abs(select_start_x - pos_x),
+                    abs(select_start_y - pos_y),
+                )
                 self.graphics_view.graphics_scene.setSelectionArea(painter_path)
                 """
                 for point in self.get_points():
@@ -827,8 +889,8 @@ class Qt4_GraphicsManager(HardwareObject):
         elif self.in_magnification_mode:
             self.graphics_magnification_item.set_end_position(pos_x, pos_y)
 
-        #TODO add grid commands
-        #else:
+        # TODO add grid commands
+        # else:
         #    for shape in self.get_selected_shapes():
         #        if isinstance(shape, GraphicsLib.GraphicsItemGrid):
         #            print shape
@@ -848,7 +910,7 @@ class Qt4_GraphicsManager(HardwareObject):
         elif key_event == "Escape":
             self.stop_measure_distance()
             self.stop_measure_angle()
-            self.stop_measure_area() 
+            self.stop_measure_area()
             self.stop_one_click_centring()
             if self.in_beam_define_state:
                 self.stop_beam_define()
@@ -856,13 +918,13 @@ class Qt4_GraphicsManager(HardwareObject):
                 self.set_magnification_mode(False)
             self.in_move_beam_mark_state = False
             self.graphics_move_beam_mark_item.hide()
-            #self.graphics_beam_item.set_detected_beam_position(None, None)
+            # self.graphics_beam_item.set_detected_beam_position(None, None)
 
-        #elif key_event == "Up":
+        # elif key_event == "Up":
         #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
         #                                           self.beam_position[1] - 50)
-        #elif key_event == "Down":
-        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0], 
+        # elif key_event == "Down":
+        #    self.diffractometer_hwobj.move_to_beam(self.beam_position[0],
         #                                           self.beam_position[1] + 50)
         elif key_event == "Plus":
             self.diffractometer_hwobj.zoom_in()
@@ -876,8 +938,8 @@ class Qt4_GraphicsManager(HardwareObject):
         if delta > 0:
             self.diffractometer_hwobj.move_omega_relative(self.omega_move_delta)
         else:
-            self.diffractometer_hwobj.move_omega_relative(- self.omega_move_delta)
- 
+            self.diffractometer_hwobj.move_omega_relative(-self.omega_move_delta)
+
     def item_clicked(self, item, state):
         """Item clicked event
 
@@ -888,9 +950,11 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: - pointsSelected
                 - infoMsg
         """
-        if type(item) in [GraphicsLib.GraphicsItemPoint, 
-                          GraphicsLib.GraphicsItemLine, 
-                          GraphicsLib.GraphicsItemGrid]: 
+        if type(item) in [
+            GraphicsLib.GraphicsItemPoint,
+            GraphicsLib.GraphicsItemLine,
+            GraphicsLib.GraphicsItemGrid,
+        ]:
             self.emit("shapeSelected", item, state)
             if isinstance(item, GraphicsLib.GraphicsItemPoint):
                 self.emit("pointSelected", item)
@@ -903,15 +967,16 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :param item: double clicked item
         :type item: QGraphicsLib.GraphicsItem
-        """ 
+        """
         if isinstance(item, GraphicsLib.GraphicsItemPoint):
-            self.diffractometer_hwobj.move_to_centred_position(\
-                 item.get_centred_position())
+            self.diffractometer_hwobj.move_to_centred_position(
+                item.get_centred_position()
+            )
 
     def move_item_clicked(self, direction):
         """Moves sample
         """
-        #TODO Not implemented yet
+        # TODO Not implemented yet
         print "Move screen: ", direction
 
     def set_cursor_busy(self, state):
@@ -919,7 +984,7 @@ class Qt4_GraphicsManager(HardwareObject):
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         else:
             QApplication.setOverrideCursor(self.cursor)
-    
+
     def get_graphics_view(self):
         """Rturns current GraphicsView
      
@@ -932,7 +997,7 @@ class Qt4_GraphicsManager(HardwareObject):
      
         :returns: GraphicsCameraFrame
         """
-        return self.graphics_camera_frame 
+        return self.graphics_camera_frame
 
     def set_graphics_scene_size(self, size, fixed):
         """Sets fixed size of scene
@@ -946,7 +1011,7 @@ class Qt4_GraphicsManager(HardwareObject):
             self.graphics_scene_size = size
             self.graphics_scale_item.set_start_position(size[0], size[1])
             self.graphics_view.scene().setSceneRect(0, 0, size[0], size[1])
-            #self.graphics_view.setFixedSize(size[0] + 2, size[1] + 2)
+            # self.graphics_view.setFixedSize(size[0] + 2, size[1] + 2)
 
     def set_centring_state(self, state):
         """Sets centrin state
@@ -967,10 +1032,12 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         shapes_list = []
         for shape in self.graphics_view.graphics_scene.items():
-            if type(shape) in (GraphicsLib.GraphicsItemPoint, 
-                               GraphicsLib.GraphicsItemLine, 
-                               GraphicsLib.GraphicsItemGrid):
-                shapes_list.append(shape)                 
+            if type(shape) in (
+                GraphicsLib.GraphicsItemPoint,
+                GraphicsLib.GraphicsItemLine,
+                GraphicsLib.GraphicsItemGrid,
+            ):
+                shapes_list.append(shape)
         return shapes_list
 
     def get_points(self):
@@ -995,8 +1062,8 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         for point in self.get_points():
             if point.index == index:
-                return point 
-        
+                return point
+
     def add_shape(self, shape, emit=True):
         """Adds the shape <shape> to the list of handled objects.
 
@@ -1060,7 +1127,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :type shape_name: str
         :returns: GraphicsLib.GraphicsItem
         """
-        return self.shape_dict.get(shape_name)            
+        return self.shape_dict.get(shape_name)
 
     def clear_all(self):
         """Clear the shape history, remove all contents.
@@ -1096,7 +1163,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         self.de_select_all()
         for shape in self.get_points():
-            shape.setSelected(True) 
+            shape.setSelected(True)
         self.graphics_view.graphics_scene.update()
 
     def select_shape_with_cpos(self, cpos):
@@ -1109,7 +1176,7 @@ class Qt4_GraphicsManager(HardwareObject):
         for shape in self.get_points():
             if shape.get_centred_position() == cpos:
                 shape.setSelected(True)
-        #self.graphics_view.graphics_scene.update()
+        # self.graphics_view.graphics_scene.update()
 
     def get_selected_shapes(self):
         """Returns selected shapes
@@ -1119,11 +1186,16 @@ class Qt4_GraphicsManager(HardwareObject):
 
         selected_shapes = []
         for item in self.graphics_view.graphics_scene.items():
-            if (type(item) in (GraphicsLib.GraphicsItemPoint, 
-                               GraphicsLib.GraphicsItemLine,
-                               GraphicsLib.GraphicsItemGrid) and
-                item.isSelected()):
-                selected_shapes.append(item) 
+            if (
+                type(item)
+                in (
+                    GraphicsLib.GraphicsItemPoint,
+                    GraphicsLib.GraphicsItemLine,
+                    GraphicsLib.GraphicsItemGrid,
+                )
+                and item.isSelected()
+            ):
+                selected_shapes.append(item)
         return selected_shapes
 
     def get_selected_points(self):
@@ -1137,7 +1209,7 @@ class Qt4_GraphicsManager(HardwareObject):
         for shape in selected_shapes:
             if isinstance(shape, GraphicsLib.GraphicsItemPoint):
                 selected_points.append(shape)
-        return sorted(selected_points, key = lambda x : x.index, reverse = False)
+        return sorted(selected_points, key=lambda x: x.index, reverse=False)
 
     def hide_all_items(self):
         """Hides all items
@@ -1151,7 +1223,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         for shape in self.get_shapes():
             if shape != self.auto_grid:
-               shape.show()
+                shape.show()
 
     def inc_used_for_collection(self, cpos):
         for shape in self.get_points():
@@ -1172,14 +1244,16 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         if shape:
             self.hide_all_items()
-            #self.de_select_all()
+            # self.de_select_all()
             shape.show()
-            #shape.setSelected(True)
-            #self.select_shape_with_cpos(shape.get_centred_position())
-        #self.graphics_omega_reference_item.hide() 
+            # shape.setSelected(True)
+            # self.select_shape_with_cpos(shape.get_centred_position())
+        # self.graphics_omega_reference_item.hide()
 
-        image = QImage(self.graphics_view.graphics_scene.sceneRect().\
-            size().toSize(), QImage.Format_ARGB32)
+        image = QImage(
+            self.graphics_view.graphics_scene.sceneRect().size().toSize(),
+            QImage.Format_ARGB32,
+        )
         image.fill(Qt.transparent)
         image_painter = QPainter(image)
         self.graphics_view.render(image_painter)
@@ -1189,9 +1263,7 @@ class Qt4_GraphicsManager(HardwareObject):
         if return_as_array:
             ptr = image.bits()
             ptr.setsize(image.byteCount())
-            return np.array(ptr).reshape(image.height(),
-                                         image.width(),
-                                         4)
+            return np.array(ptr).reshape(image.height(), image.width(), 4)
         else:
             return image
 
@@ -1207,42 +1279,41 @@ class Qt4_GraphicsManager(HardwareObject):
                 os.makedirs(os.path.dirname(filename))
             snapshot = self.get_scene_snapshot()
             snapshot.save(filename)
-            
+
             if not os.path.exists(filename):
                 raise Exception("Unable to save snapshot to %s" % filename)
         except:
-            logging.getLogger("user_level_log").error(\
-                 "Unable to save snapshot: %s" % filename)
+            logging.getLogger("user_level_log").error(
+                "Unable to save snapshot: %s" % filename
+            )
 
     def save_scene_animation(self, filename, duration_sec=1):
         """Saves animated gif of a rotating sample"""
         """Save animation task"""
 
-        #self.diffractometer_hwobj.set_ready(False)
-        gevent.spawn(self.diffractometer_hwobj.move_omega_relative,
-                     180)
-        gevent.spawn(self.save_scene_animation_task,
-                     filename,
-                     duration_sec)
+        # self.diffractometer_hwobj.set_ready(False)
+        gevent.spawn(self.diffractometer_hwobj.move_omega_relative, 180)
+        gevent.spawn(self.save_scene_animation_task, filename, duration_sec)
 
     def save_scene_animation_task(self, filename, duration_sec):
 
         from array2gif import write_gif
+
         image_list = []
 
-        #while not self.diffractometer_hwobj.is_ready():
+        # while not self.diffractometer_hwobj.is_ready():
         for i in range(4):
             arr = self.get_scene_snapshot(return_as_array=True)
             width = arr.shape[0]
-            height = arr.shape[1] 
+            height = arr.shape[1]
             r = np.ravel(arr)[::3]
             g = np.ravel(arr)[1::3]
             b = np.ravel(arr)[2::3]
-            image_list.append(np.append(np.append(r,g), b).reshape(3, width, height))
+            image_list.append(np.append(np.append(r, g), b).reshape(3, width, height))
             gevent.sleep(0.04)
 
         tt = image_list[0]
-        write_gif(image_list, '/tmp/test_anim.gif', fps=15)
+        write_gif(image_list, "/tmp/test_anim.gif", fps=15)
 
     def get_raw_snapshot(self, bw=False, return_as_array=False):
         """Returns a raw snapshot from camera
@@ -1254,7 +1325,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         return self.camera_hwobj.get_snapshot(bw, return_as_array)
 
-    def save_raw_snapshot(self, filename, bw=False, image_type='PNG'):
+    def save_raw_snapshot(self, filename, bw=False, image_type="PNG"):
         """Save raw image from camera in file
 
         :param filename: filename
@@ -1265,11 +1336,14 @@ class Qt4_GraphicsManager(HardwareObject):
         :type image_type: str         
         """
         try:
-            logging.getLogger("user_level_log").debug("Saving raw snapshot: %s" % filename)
+            logging.getLogger("user_level_log").debug(
+                "Saving raw snapshot: %s" % filename
+            )
             self.camera_hwobj.save_snapshot(filename, image_type)
         except:
-            logging.getLogger("HWR").exception(\
-                 "Unable to save raw image: %s" % filename)
+            logging.getLogger("HWR").exception(
+                "Unable to save raw image: %s" % filename
+            )
 
     def save_beam_profile(self, profile_filename):
         image_array = self.get_raw_snapshot(bw=True, return_as_array=True)
@@ -1277,32 +1351,39 @@ class Qt4_GraphicsManager(HardwareObject):
             hor_sum = image_array.sum(axis=0)
             ver_sum = image_array.sum(axis=1)
 
-            fig, axarr = plt.subplots(1, 2) 
-  
+            fig, axarr = plt.subplots(1, 2)
+
             axarr[0].plot(np.arange(0, hor_sum.size, 1), hor_sum)
             axarr[1].plot(ver_sum[::-1], np.arange(0, ver_sum.size, 1))
 
-            fig.savefig(profile_filename, dpi=300, bbox_inches='tight')
+            fig.savefig(profile_filename, dpi=300, bbox_inches="tight")
         except:
-            logging.getLogger("HWR").exception(\
-                 "Unable to save beam profile image: %s" % profile_filename)
+            logging.getLogger("HWR").exception(
+                "Unable to save beam profile image: %s" % profile_filename
+            )
 
     def open_beam_profile_view(self):
         """Opens new dialog with 3D beam profile"""
         image_array = self.get_raw_snapshot(bw=True, return_as_array=True)
         fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.set_axis_bgcolor('gray')
+        ax = fig.gca(projection="3d")
+        ax.set_axis_bgcolor("gray")
 
         X = np.arange(0, image_array.shape[0])
         Y = np.arange(0, image_array.shape[1])
         X, Y = np.meshgrid(X, Y)
 
-        surf = ax.plot_surface(X, Y, np.transpose(image_array), cmap=cm.gnuplot,
-                         linewidth=0, antialiased=False)
+        surf = ax.plot_surface(
+            X,
+            Y,
+            np.transpose(image_array),
+            cmap=cm.gnuplot,
+            linewidth=0,
+            antialiased=False,
+        )
 
-        #fig.colorbar(surf, shrink=0.5, aspect=5) 
-        plt.show()        
+        # fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.show()
 
     def start_measure_distance(self, wait_click=False):
         """Distance measuring method
@@ -1310,11 +1391,12 @@ class Qt4_GraphicsManager(HardwareObject):
         :param wait_click: wait for first click to start
         :type wait_click: bool
         :emits: infoMsg
-        """ 
+        """
         self.set_cursor_busy(True)
         if wait_click:
-            logging.getLogger("user_level_log").info("Click to start " + \
-                    "distance  measuring (Double click stops)")  
+            logging.getLogger("user_level_log").info(
+                "Click to start " + "distance  measuring (Double click stops)"
+            )
             self.wait_measure_distance_click = True
             self.emit("infoMsg", "Distance measurement")
         else:
@@ -1322,7 +1404,7 @@ class Qt4_GraphicsManager(HardwareObject):
             self.in_measure_distance_state = True
             self.start_graphics_item(self.graphics_measure_distance_item)
 
-    def start_measure_angle(self, wait_click = False):
+    def start_measure_angle(self, wait_click=False):
         """Angle measuring method
 
         :param wait_click: wait for first click to start
@@ -1331,16 +1413,17 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         self.set_cursor_busy(True)
         if wait_click:
-            logging.getLogger("user_level_log").info("Click to start " + \
-                 "angle measuring (Double click stops)")
+            logging.getLogger("user_level_log").info(
+                "Click to start " + "angle measuring (Double click stops)"
+            )
             self.wait_measure_angle_click = True
             self.emit("infoMsg", "Angle measurement")
         else:
             self.wait_measure_angle_click = False
             self.in_measure_angle_state = True
             self.start_graphics_item(self.graphics_measure_angle_item)
-            
-    def start_measure_area(self, wait_click = False):
+
+    def start_measure_area(self, wait_click=False):
         """Area measuring method
 
         :param wait_click: wait for first click to start
@@ -1349,8 +1432,9 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         self.set_cursor_busy(True)
         if wait_click:
-            logging.getLogger("user_level_log").info("Click to start area " + \
-                    "measuring (Double click stops)")
+            logging.getLogger("user_level_log").info(
+                "Click to start area " + "measuring (Double click stops)"
+            )
             self.wait_measure_area_click = True
             self.emit("infoMsg", "Area measurement")
         else:
@@ -1366,11 +1450,11 @@ class Qt4_GraphicsManager(HardwareObject):
         self.set_cursor_busy(True)
         self.emit("infoMsg", "Move beam mark")
         self.in_move_beam_mark_state = True
-        self.start_graphics_item(\
-             self.graphics_move_beam_mark_item,
-             start_pos=self.beam_position)
-        #self.graphics_move_beam_mark_item.set_beam_mark(\
-        #     self.beam_info_dict, self.pixels_per_mm) 
+        self.start_graphics_item(
+            self.graphics_move_beam_mark_item, start_pos=self.beam_position
+        )
+        # self.graphics_move_beam_mark_item.set_beam_mark(\
+        #     self.beam_info_dict, self.pixels_per_mm)
 
     def start_define_beam(self):
         """Method to define beam size. 
@@ -1379,8 +1463,9 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: infoMsg as str
         """
         self.set_cursor_busy(True)
-        logging.getLogger("user_level_log").info("Select an area to " + \
-                 "define beam size")
+        logging.getLogger("user_level_log").info(
+            "Select an area to " + "define beam size"
+        )
         self.wait_beam_define_click = True
         self.emit("infoMsg", "Define beam size")
 
@@ -1448,9 +1533,10 @@ class Qt4_GraphicsManager(HardwareObject):
         self.in_move_beam_mark_state = False
         self.graphics_move_beam_mark_item.hide()
         self.graphics_view.graphics_scene.update()
-        self.beam_info_hwobj.set_beam_position(\
-             self.graphics_move_beam_mark_item.end_coord[0],
-             self.graphics_move_beam_mark_item.end_coord[1])
+        self.beam_info_hwobj.set_beam_position(
+            self.graphics_move_beam_mark_item.end_coord[0],
+            self.graphics_move_beam_mark_item.end_coord[1],
+        )
         self.emit("infoMsg", "")
 
     def stop_beam_define(self):
@@ -1464,12 +1550,14 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_beam_define_item.hide()
         self.graphics_view.graphics_scene.update()
         self.emit("infoMsg", "")
-        self.beam_info_hwobj.set_slits_gap(\
-             self.graphics_beam_define_item.width_microns,
-             self.graphics_beam_define_item.height_microns)
-        self.diffractometer_hwobj.move_to_beam(\
-             self.graphics_beam_define_item.center_coord[0],
-             self.graphics_beam_define_item.center_coord[1])
+        self.beam_info_hwobj.set_slits_gap(
+            self.graphics_beam_define_item.width_microns,
+            self.graphics_beam_define_item.height_microns,
+        )
+        self.diffractometer_hwobj.move_to_beam(
+            self.graphics_beam_define_item.center_coord[0],
+            self.graphics_beam_define_item.center_coord[1],
+        )
 
     def start_centring(self, tree_click=None):
         """Starts centring procedure
@@ -1478,19 +1566,21 @@ class Qt4_GraphicsManager(HardwareObject):
         :type tree_click: bool
         :emits: - centringInProgress as bool
                 - infoMsg: as str
-        """ 
+        """
         self.emit("centringInProgress", True)
         if tree_click:
             self.hide_all_items()
             self.set_cursor_busy(True)
-            self.set_centring_state(True) 
-            self.diffractometer_hwobj.start_centring_method(\
-                 self.diffractometer_hwobj.CENTRING_METHOD_MANUAL)
+            self.set_centring_state(True)
+            self.diffractometer_hwobj.start_centring_method(
+                self.diffractometer_hwobj.CENTRING_METHOD_MANUAL
+            )
             self.emit("infoMsg", "3 click centring")
         else:
-            #self.accept_centring()
+            # self.accept_centring()
             self.diffractometer_hwobj.start_move_to_beam(
-                 self.beam_position[0], self.beam_position[1])
+                self.beam_position[0], self.beam_position[1]
+            )
 
     def accept_centring(self):
         """Accepts centring
@@ -1504,10 +1594,10 @@ class Qt4_GraphicsManager(HardwareObject):
         """Rejects centring
         """
         self.set_cursor_busy(False)
-        self.diffractometer_hwobj.reject_centring()  
+        self.diffractometer_hwobj.reject_centring()
         self.show_all_items()
 
-    def cancel_centring(self, reject=False): 
+    def cancel_centring(self, reject=False):
         """Cancels centring
 
         :param reject: reject position
@@ -1522,7 +1612,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("infoMsg", "Click on the screen to create centring points")
         self.in_one_click_centering = True
         self.graphics_centring_lines_item.setVisible(True)
-    
+
     def stop_one_click_centring(self):
         self.set_cursor_busy(False)
         self.emit("infoMsg", "")
@@ -1537,28 +1627,30 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         selected_points = self.get_selected_points()
         if len(selected_points) == 2:
-            self.diffractometer_hwobj.visual_align(\
-                 selected_points[0].get_centred_position(),
-                 selected_points[1].get_centred_position())
+            self.diffractometer_hwobj.visual_align(
+                selected_points[0].get_centred_position(),
+                selected_points[1].get_centred_position(),
+            )
             self.emit("infoMsg", "Visual align")
         else:
             msg = "Select two centred position (CTRL click) to continue"
-            logging.getLogger("user_level_log").error(msg)  
+            logging.getLogger("user_level_log").error(msg)
 
     def create_line(self, start_point=None, end_point=None, emit=True):
         """Creates helical line if two centring points selected
         """
-        selected_points = (start_point, end_point) 
+        selected_points = (start_point, end_point)
         if None in selected_points:
             selected_points = self.get_selected_points()
         if len(selected_points) > 1:
-            line = GraphicsLib.GraphicsItemLine(selected_points[0],
-                                                selected_points[1])
+            line = GraphicsLib.GraphicsItemLine(selected_points[0], selected_points[1])
             self.add_shape(line, emit)
             return line
         else:
-            msg = "Please select two points (with same kappa and phi) " + \
-                  "to create a helical line"
+            msg = (
+                "Please select two points (with same kappa and phi) "
+                + "to create a helical line"
+            )
             logging.getLogger("GUI").error(msg)
 
     def create_auto_line(self, cpos=None):
@@ -1567,29 +1659,37 @@ class Qt4_GraphicsManager(HardwareObject):
         if cpos is None:
             point_one_motor_pos = self.diffractometer_hwobj.get_positions()
         else:
-            point_one_motor_pos = cpos            
+            point_one_motor_pos = cpos
 
         point_two_motor_pos = deepcopy(point_one_motor_pos)
 
-        #TODO
-        #This is for MD2, add MD3 and move to diffractometer
+        # TODO
+        # This is for MD2, add MD3 and move to diffractometer
 
         ver_range = -0.1
-        omega_ref = 0.0  
-        point_one_motor_pos['sampx'] = point_one_motor_pos['sampx'] + ver_range * \
-                                 math.sin(math.pi * (point_one_motor_pos['phi'] - \
-                                 omega_ref) / 180.0)
-        point_one_motor_pos['sampy'] = point_one_motor_pos['sampy'] - ver_range  * \
-                                 math.cos(math.pi * (point_one_motor_pos['phi'] - \
-                                 omega_ref) / 180.0)
+        omega_ref = 0.0
+        point_one_motor_pos["sampx"] = point_one_motor_pos[
+            "sampx"
+        ] + ver_range * math.sin(
+            math.pi * (point_one_motor_pos["phi"] - omega_ref) / 180.0
+        )
+        point_one_motor_pos["sampy"] = point_one_motor_pos[
+            "sampy"
+        ] - ver_range * math.cos(
+            math.pi * (point_one_motor_pos["phi"] - omega_ref) / 180.0
+        )
 
         ver_range = 0.1
-        point_two_motor_pos['sampx'] = point_two_motor_pos['sampx'] + ver_range * \
-                                 math.sin(math.pi * (point_one_motor_pos['phi'] - \
-                                 omega_ref) / 180.0)
-        point_two_motor_pos['sampy'] = point_two_motor_pos['sampy'] - ver_range  * \
-                                 math.cos(math.pi * (point_one_motor_pos['phi'] - \
-                                 omega_ref) / 180.0)
+        point_two_motor_pos["sampx"] = point_two_motor_pos[
+            "sampx"
+        ] + ver_range * math.sin(
+            math.pi * (point_one_motor_pos["phi"] - omega_ref) / 180.0
+        )
+        point_two_motor_pos["sampy"] = point_two_motor_pos[
+            "sampy"
+        ] - ver_range * math.cos(
+            math.pi * (point_one_motor_pos["phi"] - omega_ref) / 180.0
+        )
 
         cpos_one = queue_model_objects.CentredPosition(point_one_motor_pos)
         point_one = GraphicsLib.GraphicsItemPoint(cpos_one)
@@ -1601,7 +1701,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.add_shape(point_two)
         cpos_two.set_index(point_two.index)
 
-        line = self.create_line(point_one, point_two)  
+        line = self.create_line(point_one, point_two)
         self.diffractometer_state_changed()
 
         return line, cpos_one, cpos_two
@@ -1611,45 +1711,47 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :param spacing: spacing between beams
         :type spacing: list with two floats (can be negative)        
-        """ 
-        if not self.wait_grid_drawing_click: 
+        """
+        if not self.wait_grid_drawing_click:
             self.set_cursor_busy(True)
-            self.graphics_grid_draw_item = GraphicsLib.GraphicsItemGrid(self, 
-                 self.beam_info_dict, spacing, self.pixels_per_mm)
-            self.graphics_grid_draw_item.set_draw_mode(True) 
+            self.graphics_grid_draw_item = GraphicsLib.GraphicsItemGrid(
+                self, self.beam_info_dict, spacing, self.pixels_per_mm
+            )
+            self.graphics_grid_draw_item.set_draw_mode(True)
             self.graphics_grid_draw_item.index = self.grid_count
             self.grid_count += 1
             self.graphics_view.graphics_scene.addItem(self.graphics_grid_draw_item)
-            self.wait_grid_drawing_click = True 
+            self.wait_grid_drawing_click = True
 
     def create_auto_grid(self):
         self.start_auto_centring(wait=True)
         grid_size = (0.6, 0.6)
-        grid_spacing = (self.beam_info_dict["size_x"] / 2,
-                        self.beam_info_dict["size_y"] / 2)
+        grid_spacing = (
+            self.beam_info_dict["size_x"] / 2,
+            self.beam_info_dict["size_y"] / 2,
+        )
 
         GraphicsLib.GraphicsItemGrid.set_auto_grid_size(grid_size)
-        temp_grid = GraphicsLib.GraphicsItemGrid(\
-            self, self.beam_info_dict, (0, 0), self.pixels_per_mm)
+        temp_grid = GraphicsLib.GraphicsItemGrid(
+            self, self.beam_info_dict, (0, 0), self.pixels_per_mm
+        )
         self.graphics_view.graphics_scene.addItem(temp_grid)
         temp_grid.index = self.grid_count
-        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(\
-            self.beam_position[0],
-            self.beam_position[1],
-            return_by_names=True)
-        temp_grid.set_centred_position(queue_model_objects.\
-            CentredPosition(motor_pos))
-        temp_grid.update_auto_grid(self.beam_info_dict,
-                                   self.beam_position,
-                                   grid_spacing)
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
+            self.beam_position[0], self.beam_position[1], return_by_names=True
+        )
+        temp_grid.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
+        temp_grid.update_auto_grid(
+            self.beam_info_dict, self.beam_position, grid_spacing
+        )
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
         self.grid_count += 1
 
         return temp_grid
- 
-        #spawn(self.auto_grid_procedure)
+
+        # spawn(self.auto_grid_procedure)
 
     def auto_grid_procedure(self):
         logging.getLogger("user_level_log").info("Auto grid procedure started...")
@@ -1658,45 +1760,53 @@ class Qt4_GraphicsManager(HardwareObject):
         self.diffractometer_hwobj.move_sample_out()
         background_image = self.get_raw_snapshot(bw=True, return_as_array=True)
         self.diffractometer_hwobj.move_sample_in()
-        
 
         number_of_snapshots = 6
         snapshot_list = []
 
         for index in range(number_of_snapshots):
-            (info, x, y) = lucid.find_loop(self.get_raw_snapshot(bw=False, return_as_array=True))
-            snapshot_list.append({"omega": index * 360 / number_of_snapshots,
-                                  "image": self.get_raw_snapshot(bw=True, return_as_array=True),
-                                  "optical_x": x,
-                                  "optical_y": y})
+            (info, x, y) = lucid.find_loop(
+                self.get_raw_snapshot(bw=False, return_as_array=True)
+            )
+            snapshot_list.append(
+                {
+                    "omega": index * 360 / number_of_snapshots,
+                    "image": self.get_raw_snapshot(bw=True, return_as_array=True),
+                    "optical_x": x,
+                    "optical_y": y,
+                }
+            )
             self.diffractometer_hwobj.move_omega_relative(360 / number_of_snapshots)
 
-        auto_mesh = AutoMesh.getAutoMesh(background_image,
-                                         snapshot_list,
-                                         (self.beam_info_dict["size_x"],
-                                          self.beam_info_dict["size_y"]),
-                                         self.pixels_per_mm)
+        auto_mesh = AutoMesh.getAutoMesh(
+            background_image,
+            snapshot_list,
+            (self.beam_info_dict["size_x"], self.beam_info_dict["size_y"]),
+            self.pixels_per_mm,
+        )
 
         self.diffractometer_hwobj.move_omega(auto_mesh["angle"])
 
-        grid_spacing = (self.beam_info_dict["size_x"] / 2,
-                        self.beam_info_dict["size_y"] / 2)
+        grid_spacing = (
+            self.beam_info_dict["size_x"] / 2,
+            self.beam_info_dict["size_y"] / 2,
+        )
 
-        GraphicsLib.GraphicsItemGrid.set_auto_grid_size(\
-            (auto_mesh["dx_mm"], auto_mesh["dy_mm"]))
-        temp_grid = GraphicsLib.GraphicsItemGrid(\
-            self, self.beam_info_dict, (0, 0), self.pixels_per_mm)
+        GraphicsLib.GraphicsItemGrid.set_auto_grid_size(
+            (auto_mesh["dx_mm"], auto_mesh["dy_mm"])
+        )
+        temp_grid = GraphicsLib.GraphicsItemGrid(
+            self, self.beam_info_dict, (0, 0), self.pixels_per_mm
+        )
         self.graphics_view.graphics_scene.addItem(temp_grid)
         temp_grid.index = self.grid_count
-        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(\
-            auto_mesh["center_x"],
-            auto_mesh["center_y"],
-            return_by_names=True)
-        temp_grid.set_centred_position(queue_model_objects.\
-            CentredPosition(motor_pos))
-        temp_grid.update_auto_grid(self.beam_info_dict,
-                                   self.beam_position,
-                                   grid_spacing)
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
+            auto_mesh["center_x"], auto_mesh["center_y"], return_by_names=True
+        )
+        temp_grid.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
+        temp_grid.update_auto_grid(
+            self.beam_info_dict, self.beam_position, grid_spacing
+        )
 
         self.emit("shapeCreated", temp_grid, "Grid")
         self.shape_dict[temp_grid.get_display_name()] = temp_grid
@@ -1711,24 +1821,25 @@ class Qt4_GraphicsManager(HardwareObject):
         """Updates grid corner positions
         """
         grid_center_x, grid_center_y = grid_object.get_center_coord()
-        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(\
-            grid_center_x, grid_center_y, return_by_names=True)
-        grid_object.set_centred_position(queue_model_objects.\
-            CentredPosition(motor_pos))
+        motor_pos = self.diffractometer_hwobj.get_centred_point_from_coord(
+            grid_center_x, grid_center_y, return_by_names=True
+        )
+        grid_object.set_centred_position(queue_model_objects.CentredPosition(motor_pos))
 
         motor_pos_corner = []
         for index, corner_coord in enumerate(grid_object.get_corner_coord()):
-            motor_pos_corner.append(self.diffractometer_hwobj.\
-                 get_centred_point_from_coord(corner_coord.x(),
-                                              corner_coord.y(),
-                                              return_by_names=True))
+            motor_pos_corner.append(
+                self.diffractometer_hwobj.get_centred_point_from_coord(
+                    corner_coord.x(), corner_coord.y(), return_by_names=True
+                )
+            )
         grid_object.set_motor_pos_corner(motor_pos_corner)
 
     def refresh_camera(self):
         """Not called, To be deleted
         """
         self.beam_info_dict = self.beam_info_hwobj.get_beam_info()
-        self.beam_info_changed(self.beam_info_dict) 
+        self.beam_info_changed(self.beam_info_dict)
 
     def select_lines_and_grids(self):
         """Selects all lines and grids that are in the rectangle of
@@ -1738,27 +1849,26 @@ class Qt4_GraphicsManager(HardwareObject):
         select_end_coord = self.graphics_select_tool_item.end_coord
         select_middle_x = (select_start_coord[0] + select_end_coord[0]) / 2.0
         select_middle_y = (select_start_coord[1] + select_end_coord[1]) / 2.0
- 
+
         for shape in self.shape_dict.values():
             if isinstance(shape, GraphicsLib.GraphicsItemLine):
                 (start_point, end_point) = shape.get_graphics_points()
-                if min(start_point.start_coord[0], 
-                       end_point.start_coord[0]) \
-                   < select_middle_x  < \
-                   max(start_point.start_coord[0], \
-                       end_point.start_coord[0]) and \
-                   min(start_point.start_coord[1], \
-                       end_point.start_coord[1]) < \
-                   select_middle_y < \
-                   max(start_point.start_coord[1],
-                       end_point.start_coord[1]):
+                if min(
+                    start_point.start_coord[0], end_point.start_coord[0]
+                ) < select_middle_x < max(
+                    start_point.start_coord[0], end_point.start_coord[0]
+                ) and min(
+                    start_point.start_coord[1], end_point.start_coord[1]
+                ) < select_middle_y < max(
+                    start_point.start_coord[1], end_point.start_coord[1]
+                ):
                     shape.setSelected(True)
 
     def get_image_scale_list(self):
         """Returns list with available image scales
 
         :returns: list with floats
-        """ 
+        """
         return self.image_scale_list
 
     def set_view_scale(self, view_scale):
@@ -1776,22 +1886,22 @@ class Qt4_GraphicsManager(HardwareObject):
         :emits: imageScaleChanged
         """
         self.graphics_view.scale(image_scale, image_scale)
-        return 
+        return
         scene_size = self.graphics_scene_size
         if image_scale == 1:
             use_scale = False
         if use_scale:
             self.image_scale = image_scale
-            scene_size = [scene_size[0] * image_scale,
-                          scene_size[1] * image_scale]
-        else: 
+            scene_size = [scene_size[0] * image_scale, scene_size[1] * image_scale]
+        else:
             self.image_scale = 1
         self.graphics_view.graphics_scene.image_scale = self.image_scale
-        
-        self.graphics_view.scene().setSceneRect(0, 0, \
-             scene_size[0] - 10, scene_size[1] - 10)
+
+        self.graphics_view.scene().setSceneRect(
+            0, 0, scene_size[0] - 10, scene_size[1] - 10
+        )
         self.graphics_view.toggle_scrollbars_enable(self.image_scale > 1)
-        self.emit('imageScaleChanged', self.image_scale)
+        self.emit("imageScaleChanged", self.image_scale)
 
     def get_image_scale(self):
         """Returns current scale factor of image
@@ -1808,11 +1918,12 @@ class Qt4_GraphicsManager(HardwareObject):
     def start_auto_centring(self, wait=False):
         """Starts auto centring
         """
-        #self.display_info_msg(["Auto centring in progress...",
+        # self.display_info_msg(["Auto centring in progress...",
         #                       "Please wait."])
         self.emit("centringInProgress", True)
-        self.diffractometer_hwobj.start_centring_method(\
-             self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=wait)
+        self.diffractometer_hwobj.start_centring_method(
+            self.diffractometer_hwobj.CENTRING_METHOD_AUTO, wait=wait
+        )
         self.emit("infoMsg", "Automatic centring")
 
     def move_beam_mark_auto(self):
@@ -1820,10 +1931,10 @@ class Qt4_GraphicsManager(HardwareObject):
            beam info.
         """
         beam_shape_dict = self.detect_object_shape()
-        self.beam_info_hwobj.set_beam_position(\
-             beam_shape_dict["center"][0],
-             beam_shape_dict["center"][1])
-        #self.graphics_beam_item.set_detected_beam_position(beam_shape_dict)
+        self.beam_info_hwobj.set_beam_position(
+            beam_shape_dict["center"][0], beam_shape_dict["center"][1]
+        )
+        # self.graphics_beam_item.set_detected_beam_position(beam_shape_dict)
 
     def detect_object_shape(self):
         """Method used to detect a shape on the image.
@@ -1833,27 +1944,29 @@ class Qt4_GraphicsManager(HardwareObject):
                  - width: estimated beam width
                  - height: estimated beam height 
         """
-        object_shape_dict = {"center" : (0, 0),
-                             "width": -1,
-                             "height": -1}
+        object_shape_dict = {"center": (0, 0), "width": -1, "height": -1}
         image_array = self.camera_hwobj.get_snapshot(bw=True, return_as_array=True)
 
-        #TODO filter the image
+        # TODO filter the image
         image_array[image_array < 30] = 0
 
         hor_sum = image_array.sum(axis=0)
         ver_sum = image_array.sum(axis=1)
- 
+
         beam_x = None
         beam_y = None
 
         try:
             half_max = hor_sum.max() / 2.0
-            s = interpolate.splrep(np.linspace(0, hor_sum.size, hor_sum.size), hor_sum - half_max)
+            s = interpolate.splrep(
+                np.linspace(0, hor_sum.size, hor_sum.size), hor_sum - half_max
+            )
             hor_roots = interpolate.sproot(s)
 
             half_max = ver_sum.max() / 2.0
-            s = interpolate.splrep(np.linspace(0, ver_sum.size, ver_sum.size), ver_sum - half_max)
+            s = interpolate.splrep(
+                np.linspace(0, ver_sum.size, ver_sum.size), ver_sum - half_max
+            )
             ver_roots = interpolate.sproot(s)
 
             if len(hor_roots) and len(ver_roots):
@@ -1863,27 +1976,29 @@ class Qt4_GraphicsManager(HardwareObject):
             beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
             beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except:
-            logging.getLogger("user_level_log").debug("Qt4_GraphicsManager: " +\
-                "Unable to detect object shape")
+            logging.getLogger("user_level_log").debug(
+                "Qt4_GraphicsManager: " + "Unable to detect object shape"
+            )
             beam_spl_x = 0
             beam_spl_y = 0
-        
+
         f = interpolate.interp1d(np.arange(0, hor_sum.size, 1), hor_sum)
         xx = np.arange(0, hor_sum.size, 1)
         yy = f(xx)
         window = signal.gaussian(200, 60)
-        smoothed = signal.convolve(yy, window/window.sum(), mode='same')
+        smoothed = signal.convolve(yy, window / window.sum(), mode="same")
         beam_x = xx[np.argmax(smoothed)]
 
         f = interpolate.interp1d(np.arange(0, ver_sum.size, 1), ver_sum)
         xx = np.arange(0, ver_sum.size, 1)
         yy = f(xx)
         window = signal.gaussian(200, 60)
-        smoothed = signal.convolve(yy, window/window.sum(), mode='same')
+        smoothed = signal.convolve(yy, window / window.sum(), mode="same")
         beam_y = xx[np.argmax(smoothed)]
 
-        beam_mass_x, beam_mass_y = ndimage.measurements.\
-            center_of_mass(np.transpose(image_array))
+        beam_mass_x, beam_mass_y = ndimage.measurements.center_of_mass(
+            np.transpose(image_array)
+        )
 
         """
         logging.getLogger("user_level_log").info(\
@@ -1898,10 +2013,10 @@ class Qt4_GraphicsManager(HardwareObject):
         """
 
         if None in (beam_x, beam_y):
-            #image_array = np.transpose(image_array)
+            # image_array = np.transpose(image_array)
             beam_x = beam_mass_x
             beam_y = beam_mass_y
-        #else:
+        # else:
         #    beam_x = int((beam_x + beam_mass_x) / 2)
         #    beam_y = int((beam_y + beam_mass_y) / 2)
 
@@ -1922,32 +2037,40 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         beam_shape_dict = self.detect_object_shape()
 
-        if None or 0 in beam_shape_dict['center'] or \
-           (beam_shape_dict['width'] < 1 and \
-            beam_shape_dict['height'] < 1):
+        if (
+            None
+            or 0 in beam_shape_dict["center"]
+            or (beam_shape_dict["width"] < 1 and beam_shape_dict["height"] < 1)
+        ):
             return (None, None)
         else:
-            if reference == "beam": 
-                return ((self.beam_position[0] - beam_shape_dict['center'][0]) /\
-                         self.pixels_per_mm[0],
-                        (self.beam_position[1] - beam_shape_dict['center'][1]) / \
-                         self.pixels_per_mm[1])
+            if reference == "beam":
+                return (
+                    (self.beam_position[0] - beam_shape_dict["center"][0])
+                    / self.pixels_per_mm[0],
+                    (self.beam_position[1] - beam_shape_dict["center"][1])
+                    / self.pixels_per_mm[1],
+                )
             elif reference == "screen":
                 # Displacement from the screen center
-                return ((self.graphics_scene_size[0] / 2 - beam_shape_dict['center'][0]) / \
-                         self.pixels_per_mm[0],
-                        (self.graphics_scene_size[1] / 2 - beam_shape_dict['center'][1]) / \
-                         self.pixels_per_mm[1])
+                return (
+                    (self.graphics_scene_size[0] / 2 - beam_shape_dict["center"][0])
+                    / self.pixels_per_mm[0],
+                    (self.graphics_scene_size[1] / 2 - beam_shape_dict["center"][1])
+                    / self.pixels_per_mm[1],
+                )
             else:
-                return ((reference[0] - beam_shape_dict['center'][0]) / \
-                         self.pixels_per_mm[0],
-                        (reference[1] - beam_shape_dict['center'][1]) / \
-                         self.pixels_per_mm[1])  
+                return (
+                    (reference[0] - beam_shape_dict["center"][0])
+                    / self.pixels_per_mm[0],
+                    (reference[1] - beam_shape_dict["center"][1])
+                    / self.pixels_per_mm[1],
+                )
 
     def display_grid(self, state):
         """Display a grid on the screen
         """
-        self.graphics_scale_item.set_display_grid(state) 
+        self.graphics_scale_item.set_display_grid(state)
 
     def display_histogram(self, state):
         self.graphics_histogram_item.setVisible(state)
@@ -1956,8 +2079,9 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def update_histogram(self):
         image_array = self.camera_hwobj.get_snapshot(bw=True, return_as_array=True)
-        self.graphics_histogram_item.update_histogram(image_array.sum(axis=0),
-                                                      image_array.sum(axis=1))
+        self.graphics_histogram_item.update_histogram(
+            image_array.sum(axis=0), image_array.sum(axis=1)
+        )
 
     def create_automatic_line(self):
         """Create automatic line for xray centring
@@ -1979,11 +2103,11 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         if pos_x is None:
             pos_x = 10
-            #pos_x = self.beam_position[0]
+            # pos_x = self.beam_position[0]
         if pos_y is None:
             pos_y = 50
-            #pos_y = self.beam_position[1]
-        self.graphics_info_item.display_info(msg, pos_x, pos_y, hide_msg) 
+            # pos_y = self.beam_position[1]
+        self.graphics_info_item.display_info(msg, pos_x, pos_y, hide_msg)
 
     def hide_info_msg(self):
         """Hides info message"""
@@ -2000,7 +2124,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def display_beam_size(self, state):
         """Enables or disables displaying the beam size"""
-        self.graphics_beam_item.enable_beam_size(state) 
+        self.graphics_beam_item.enable_beam_size(state)
 
     def set_magnification_mode(self, mode):
         """Display or hide magnification tool"""
@@ -2010,11 +2134,9 @@ class Qt4_GraphicsManager(HardwareObject):
             self.set_cursor_busy(False)
         self.graphics_magnification_item.setVisible(mode)
         self.in_magnification_mode = mode
-  
+
     def set_scrollbars_off(self, state):
         """Enables or disables scrollbars"""
         if state:
-            self.graphics_view.setHorizontalScrollBarPolicy(\
-                 Qt.ScrollBarAlwaysOff)
-            self.graphics_view.setVerticalScrollBarPolicy(\
-                 Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

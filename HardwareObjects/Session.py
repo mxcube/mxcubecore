@@ -16,7 +16,8 @@ import queue_model_objects_v1 as queue_model_objects
 
 # Configuration file used to override base_directory paths.
 # Will be ignored if not found
-parameter_override_file = 'session_parameter_override.xml'
+parameter_override_file = "session_parameter_override.xml"
+
 
 class Session(HardwareObject):
 
@@ -35,111 +36,123 @@ class Session(HardwareObject):
         self.in_house_users = []
         self.endstation_name = None
         self.session_start_date = None
-        self.user_group = ''
+        self.user_group = ""
         self.email_extension = None
         self.template = None
 
-        self.default_precision = '05'
+        self.default_precision = "05"
         self.suffix = None
 
         self.base_directory = None
         self.base_process_directory = None
         self.base_archive_directory = None
 
-        self.raw_data_folder_name = 'RAW_DATA'
-        self.processed_data_folder_name = 'PROCESS_DATA'
-        self.archive_folder_name = 'ARCHIVE'
+        self.raw_data_folder_name = "RAW_DATA"
+        self.processed_data_folder_name = "PROCESS_DATA"
+        self.archive_folder_name = "ARCHIVE"
 
     # Framework-2 method, inherited from HardwareObject and called
     # by the framework after the object has been initialized.
     def init(self):
 
-        self.synchrotron_name = self.getProperty('synchrotron_name')
-        self.beamline_name = self.getProperty('beamline_name')
-        self.endstation_name = self.getProperty('endstation_name').lower()
+        self.synchrotron_name = self.getProperty("synchrotron_name")
+        self.beamline_name = self.getProperty("beamline_name")
+        self.endstation_name = self.getProperty("endstation_name").lower()
 
-        self.suffix = self["file_info"].getProperty('file_suffix')
-        self.template = self["file_info"].getProperty('file_template')
+        self.suffix = self["file_info"].getProperty("file_suffix")
+        self.template = self["file_info"].getProperty("file_template")
 
         # Override directory names, if parameter_override_file exists.
         # Intended to allow resetting directories in mock mode,
         # while keeping the session/xml used for the mocked beamline.
-        override_file = HardwareRepository().findInRepository(
-            parameter_override_file
+        override_file = HardwareRepository().findInRepository(parameter_override_file)
+        logging.getLogger("HWR").info(
+            "Reading override directory names from %s" % override_file
         )
-        logging.getLogger('HWR').info('Reading override directory names from %s' % override_file)
         if override_file:
-            parameters =  ET.parse(override_file).getroot()
+            parameters = ET.parse(override_file).getroot()
             for elem in parameters:
                 tag = elem.tag
-                if tag in ('base_directory', 'processed_data_base_directory',
-                           'archive_base_directory'):
+                if tag in (
+                    "base_directory",
+                    "processed_data_base_directory",
+                    "archive_base_directory",
+                ):
                     val = elem.text.strip()
                     if val is not None:
                         self["file_info"].setProperty(tag, val)
 
-        base_directory = self["file_info"].\
-                              getProperty('base_directory')
+        base_directory = self["file_info"].getProperty("base_directory")
 
-        base_process_directory = self["file_info"].\
-            getProperty('processed_data_base_directory')
+        base_process_directory = self["file_info"].getProperty(
+            "processed_data_base_directory"
+        )
 
-        base_archive_directory = self['file_info'].\
-            getProperty('archive_base_directory')
+        base_archive_directory = self["file_info"].getProperty("archive_base_directory")
 
-        raw_folder = self["file_info"].\
-            getProperty('raw_data_folder_name')
+        raw_folder = self["file_info"].getProperty("raw_data_folder_name")
 
         if raw_folder is None or (not raw_folder.strip()):
-            raw_folder = Session.default_raw_data_folder 
+            raw_folder = Session.default_raw_data_folder
 
-        process_folder = self["file_info"].\
-            getProperty('processed_data_folder_name')
+        process_folder = self["file_info"].getProperty("processed_data_folder_name")
 
-        archive_folder = self['file_info'].\
-            getProperty('archive_folder')
+        archive_folder = self["file_info"].getProperty("archive_folder")
 
         try:
             inhouse_proposals = self["inhouse_users"]["proposal"]
             for prop in inhouse_proposals:
-                self.in_house_users.append((prop.getProperty('code'),
-                                            str(prop.getProperty('number'))))
+                self.in_house_users.append(
+                    (prop.getProperty("code"), str(prop.getProperty("number")))
+                )
         except KeyError:
             pass
 
-        email_extension = self.getProperty('email_extension')
+        email_extension = self.getProperty("email_extension")
         if email_extension:
             self.email_extension = email_extension
         else:
             try:
-                domain = socket.getfqdn().split('.')
-                self.email_extension = '.'.join((domain[-2], domain[-1]))
+                domain = socket.getfqdn().split(".")
+                self.email_extension = ".".join((domain[-2], domain[-1]))
             except (TypeError, IndexError):
                 pass
 
-        archive_base_directory = self['file_info'].getProperty('archive_base_directory')
+        archive_base_directory = self["file_info"].getProperty("archive_base_directory")
         if archive_base_directory:
-            queue_model_objects.PathTemplate.set_archive_path(archive_base_directory,
-                                                              self['file_info'].getProperty('archive_folder'))
+            queue_model_objects.PathTemplate.set_archive_path(
+                archive_base_directory, self["file_info"].getProperty("archive_folder")
+            )
 
-        self.set_base_data_directories( base_directory, 
-                                        base_process_directory, 
-                                        base_archive_directory, 
-                                        raw_folder=raw_folder, 
-                                        process_folder=process_folder, 
-                                        archive_folder=archive_folder)
+        self.set_base_data_directories(
+            base_directory,
+            base_process_directory,
+            base_archive_directory,
+            raw_folder=raw_folder,
+            process_folder=process_folder,
+            archive_folder=archive_folder,
+        )
 
         precision = self.default_precision
-                
+
         try:
-            precision = eval(self["file_info"].getProperty('precision', self.default_precision))
+            precision = eval(
+                self["file_info"].getProperty("precision", self.default_precision)
+            )
         except:
             pass
 
         queue_model_objects.PathTemplate.set_precision(precision)
 
-    def set_base_data_directories(self, base_directory, base_process_directory, base_archive_directory,
-              raw_folder="RAW_DATA", process_folder="PROCESS_DATA", archive_folder="ARCHIVE"):
+    def set_base_data_directories(
+        self,
+        base_directory,
+        base_process_directory,
+        base_archive_directory,
+        raw_folder="RAW_DATA",
+        process_folder="PROCESS_DATA",
+        archive_folder="ARCHIVE",
+    ):
 
         self.base_directory = base_directory
         self.base_process_directory = base_process_directory
@@ -148,13 +161,14 @@ class Session(HardwareObject):
         self.raw_data_folder_name = raw_folder
         self.process_data_folder_name = process_folder
         self.archive_data_folder_name = archive_folder
-    
+
         if self.base_directory is not None:
             queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
 
         if self.base_archive_directory is not None:
             queue_model_objects.PathTemplate.set_archive_path(
-               self.base_archive_directory, self.archive_folder_name)
+                self.base_archive_directory, self.archive_folder_name
+            )
 
     def get_base_data_directory(self):
         """
@@ -165,11 +179,11 @@ class Session(HardwareObject):
         :returns: The base data path.
         :rtype: str
         """
-        user_category = ''
-        directory = ''
+        user_category = ""
+        directory = ""
 
         if self.session_start_date:
-            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+            start_time = self.session_start_date.split(" ")[0].replace("-", "")
         else:
             start_time = time.strftime("%Y%m%d")
 
@@ -178,19 +192,31 @@ class Session(HardwareObject):
                 user = os.getenv("SUDO_USER")
             else:
                 user = os.getenv("USER")
-            directory = os.path.join(self.base_directory, str(os.getuid()) + '_'\
-                                     + str(os.getgid()), user, start_time)
-        else: 
+            directory = os.path.join(
+                self.base_directory,
+                str(os.getuid()) + "_" + str(os.getgid()),
+                user,
+                start_time,
+            )
+        else:
             if self.is_inhouse():
-                user_category = 'inhouse'
-                directory = os.path.join(self.base_directory, self.endstation_name,
-                                         user_category, self.get_proposal(),
-                                         start_time)
+                user_category = "inhouse"
+                directory = os.path.join(
+                    self.base_directory,
+                    self.endstation_name,
+                    user_category,
+                    self.get_proposal(),
+                    start_time,
+                )
             else:
-                user_category = 'visitor'
-                directory = os.path.join(self.base_directory, user_category,
-                                         self.get_proposal(), self.endstation_name,
-                                         start_time)
+                user_category = "visitor"
+                directory = os.path.join(
+                    self.base_directory,
+                    user_category,
+                    self.get_proposal(),
+                    self.endstation_name,
+                    start_time,
+                )
 
         return directory
 
@@ -199,16 +225,16 @@ class Session(HardwareObject):
         :returns: The base path for images.
         :rtype: str
         """
-        return os.path.join(self.get_base_data_directory(),
-                            self.raw_data_folder_name)
+        return os.path.join(self.get_base_data_directory(), self.raw_data_folder_name)
 
     def get_base_process_directory(self):
         """
         :returns: The base path for procesed data.
         :rtype: str
         """
-        return os.path.join(self.get_base_data_directory(),
-                            self.processed_data_folder_name)
+        return os.path.join(
+            self.get_base_data_directory(), self.processed_data_folder_name
+        )
 
     def get_image_directory(self, sub_dir=None):
         """
@@ -226,9 +252,9 @@ class Session(HardwareObject):
         directory = self.get_base_image_directory()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
+            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
             directory = os.path.join(directory, sub_dir) + os.path.sep
-            
+
         return directory
 
     def get_process_directory(self, sub_dir=None):
@@ -246,12 +272,12 @@ class Session(HardwareObject):
         directory = self.get_base_process_directory()
 
         if sub_dir:
-            sub_dir = sub_dir.replace(' ', '').replace(':', '-')
-            directory = os.path.join(directory, sub_dir) + '/'
+            sub_dir = sub_dir.replace(" ", "").replace(":", "-")
+            directory = os.path.join(directory, sub_dir) + "/"
 
         return directory
 
-    def get_default_prefix(self, sample_data_node = None, generic_name = False):
+    def get_default_prefix(self, sample_data_node=None, generic_name=False):
         """
         Returns the default prefix, using sample data such as the
         acronym as parts in the prefix.
@@ -270,26 +296,29 @@ class Session(HardwareObject):
 
         if sample_data_node:
             if sample_data_node.has_lims_data():
-                prefix = sample_data_node.crystals[0].protein_acronym + \
-                         '-' + sample_data_node.name
+                prefix = (
+                    sample_data_node.crystals[0].protein_acronym
+                    + "-"
+                    + sample_data_node.name
+                )
         elif generic_name:
-            prefix = '<acronym>-<name>'
+            prefix = "<acronym>-<name>"
 
         return prefix
 
     def get_archive_directory(self):
-        archive_directory = os.path.join(self['file_info'].getProperty('archive_base_directory'),
-                                         self['file_info'].getProperty('archive_folder'))
+        archive_directory = os.path.join(
+            self["file_info"].getProperty("archive_base_directory"),
+            self["file_info"].getProperty("archive_folder"),
+        )
 
         if self.synchrotron_name == "EMBL-HH":
-            folders = self.get_base_data_directory().split('/')
-            archive_directory = os.path.join(archive_directory,
-                                             *folders[4:])
+            folders = self.get_base_data_directory().split("/")
+            archive_directory = os.path.join(archive_directory, *folders[4:])
         else:
             archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
 
         return archive_directory
-        
 
     def get_proposal(self):
         """
@@ -297,14 +326,13 @@ class Session(HardwareObject):
                   available
         :rtype: str
         """
-        proposal = 'local-user'
+        proposal = "local-user"
 
         if self.proposal_code and self.proposal_number:
-            if self.proposal_code == 'ifx':
-                self.proposal_code = 'fx'
+            if self.proposal_code == "ifx":
+                self.proposal_code = "fx"
 
-            proposal = "%s%s" % (self.proposal_code,
-                                 self.proposal_number)
+            proposal = "%s%s" % (self.proposal_code, self.proposal_number)
 
         return proposal
 

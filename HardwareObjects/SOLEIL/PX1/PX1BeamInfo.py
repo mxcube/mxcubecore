@@ -22,101 +22,110 @@ import logging
 
 from HardwareRepository.BaseHardwareObjects import Equipment
 
-class PX1BeamInfo(Equipment):
 
+class PX1BeamInfo(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
 
-	self.beam_position = [None, None]
-	self.beam_size     = [100, 100]
-        self.shape         = 'rectangular'
+        self.beam_position = [None, None]
+        self.beam_size = [100, 100]
+        self.shape = "rectangular"
 
         self.beam_size_slits = [9999, 9999]
 
-        self.beam_info_dict  = {}
-        self.beam_info_dict['size_x'] = self.beam_size[0]
-        self.beam_info_dict['size_y'] = self.beam_size[1]
-        self.beam_info_dict['shape'] = self.shape
+        self.beam_info_dict = {}
+        self.beam_info_dict["size_x"] = self.beam_size[0]
+        self.beam_info_dict["size_y"] = self.beam_size[1]
+        self.beam_info_dict["shape"] = self.shape
 
         # Zoom motor
         self.zoomMotor = None
-       
+
     def init(self):
 
         try:
-            self.beamx_chan = self.getChannelObject('beamsizex')
+            self.beamx_chan = self.getChannelObject("beamsizex")
         except KeyError:
-            logging.getLogger().warning('%s: cannot connect to beamsize x channel ', self.name())
+            logging.getLogger().warning(
+                "%s: cannot connect to beamsize x channel ", self.name()
+            )
 
         try:
-            self.beamy_chan = self.getChannelObject('beamsizey')
-            self.beamy_chan.connectSignal('update', self.beamsize_x_changed)
+            self.beamy_chan = self.getChannelObject("beamsizey")
+            self.beamy_chan.connectSignal("update", self.beamsize_x_changed)
         except KeyError:
-            logging.getLogger().warning('%s: cannot connect to beamsize y channel ', self.name())
+            logging.getLogger().warning(
+                "%s: cannot connect to beamsize y channel ", self.name()
+            )
 
         self.zoomMotor = self.getDeviceByRole("zoom")
 
         if self.beamx_chan is not None:
-            self.beamx_chan.connectSignal('update', self.beamsize_x_changed)
+            self.beamx_chan.connectSignal("update", self.beamsize_x_changed)
         else:
-           logging.getLogger().info("BeamSize X channel not defined")
+            logging.getLogger().info("BeamSize X channel not defined")
 
         if self.beamy_chan is not None:
-            self.beamy_chan.connectSignal('update', self.beamsize_y_changed)
+            self.beamy_chan.connectSignal("update", self.beamsize_y_changed)
         else:
-           logging.getLogger().info("BeamSize Y channel not defined")
+            logging.getLogger().info("BeamSize Y channel not defined")
 
         if self.zoomMotor is not None:
-           self.connect(self.zoomMotor, 'predefinedPositionChanged', self.zoomPositionChanged)
-           self.zoomPositionChanged()
+            self.connect(
+                self.zoomMotor, "predefinedPositionChanged", self.zoomPositionChanged
+            )
+            self.zoomPositionChanged()
         else:
-           logging.getLogger().info("Zoom motor not defined")
+            logging.getLogger().info("Zoom motor not defined")
 
-        if None in [ self.beamy_chan, self.beamx_chan ] :
+        if None in [self.beamy_chan, self.beamx_chan]:
             try:
                 beam_size = self.getProperty("beam_size")
                 if beam_size is not None:
                     beamx, beamy = beam_size.split(",")
-                    self.beam_info_dict['size_x'] = self.beam_size[0] = float(beamx)
-                    self.beam_info_dict['size_y'] = self.beam_size[1] = float(beamy)
+                    self.beam_info_dict["size_x"] = self.beam_size[0] = float(beamx)
+                    self.beam_info_dict["size_y"] = self.beam_size[1] = float(beamy)
             except:
                 pass
 
     def connectNotify(self, signal):
-        if signal == 'beamInfoChanged':
+        if signal == "beamInfoChanged":
             self.sizeUpdated()
-        elif signal == 'position_changed':
+        elif signal == "position_changed":
             self.positionUpdated()
 
     def zoomPositionChanged(self, name=None, offset=None):
         zoom_props = self.zoomMotor.getCurrentPositionProperties()
-        if 'beamPositionX' in zoom_props:
-            self.beam_position = [ zoom_props['beamPositionX'] , zoom_props['beamPositionY'] ]  
+        if "beamPositionX" in zoom_props:
+            self.beam_position = [
+                zoom_props["beamPositionX"],
+                zoom_props["beamPositionY"],
+            ]
             self.positionUpdated()
 
     def positionUpdated(self):
-	self.emit("beamPosChanged", (self.beam_position, ))
+        self.emit("beamPosChanged", (self.beam_position,))
         self.sizeUpdated()
 
     def sizeUpdated(self):
         if None not in [self.beamx_chan, self.beamy_chan]:
             x_beam = self.beamx_chan.getValue()
             y_beam = self.beamy_chan.getValue()
-            self.beam_info_dict['size_x'] = x_beam
-            self.beam_info_dict['size_y'] = y_beam
-        self.emit("beamInfoChanged", (self.beam_info_dict, ))
+            self.beam_info_dict["size_x"] = x_beam
+            self.beam_info_dict["size_y"] = y_beam
+        self.emit("beamInfoChanged", (self.beam_info_dict,))
 
     def get_beam_info(self):
         return self.beam_info_dict
-        
+
     def get_beam_position(self):
-	return self.beam_position	
+        return self.beam_position
 
     def get_beam_size(self):
-	return self.beam_size	
+        return self.beam_size
 
     def get_beam_shape(self):
-	return self.shape
+        return self.shape
 
     def get_slits_gap(self):
         return self.beam_size_slits
@@ -132,6 +141,7 @@ class PX1BeamInfo(Equipment):
 
     def beamsize_y_changed(self, value=None):
         self.sizeUpdated()
+
 
 def test_hwo(hwo):
     print "BEAM info: ", hwo.get_beam_info()

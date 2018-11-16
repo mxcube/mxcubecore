@@ -1,5 +1,6 @@
 from ESRFMultiCollect import *
 
+
 class ID144MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, CcdDetector(), TunableEnergy())
@@ -21,4 +22,6 @@ class ID144MultiCollect(ESRFMultiCollect):
         self.bl_control.resolution.move(new_resolution)
 
     def get_detector_distance(self):
-        return self.bl_control.resolution.res2dist(self.bl_control.resolution.getPosition())
+        return self.bl_control.resolution.res2dist(
+            self.bl_control.resolution.getPosition()
+        )

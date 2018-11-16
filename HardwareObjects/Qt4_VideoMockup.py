@@ -31,6 +31,7 @@ class Qt4_VideoMockup(GenericVideoDevice):
     """
     Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -43,7 +44,7 @@ class Qt4_VideoMockup(GenericVideoDevice):
     def init(self):
         """
         Descript. :
-        """ 
+        """
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-1])
 
@@ -67,16 +68,13 @@ class Qt4_VideoMockup(GenericVideoDevice):
         GenericVideoDevice.init(self)
 
     def get_new_image(self):
-        self.painter.drawRect(self.image.width() - 75,
-                              self.image.height() - 30,
-                              70,
-                              20)
-        self.painter.drawText(self.image.width() - 70, 
-                              self.image.height() - 15,
-                              time.strftime("%H:%M:%S"))
-        self.emit("imageReceived", self.image) 
+        self.painter.drawRect(self.image.width() - 75, self.image.height() - 30, 70, 20)
+        self.painter.drawText(
+            self.image.width() - 70, self.image.height() - 15, time.strftime("%H:%M:%S")
+        )
+        self.emit("imageReceived", self.image)
 
-    def save_snapshot(self, filename, image_type='PNG'):
+    def save_snapshot(self, filename, image_type="PNG"):
         qimage = QImage(self.image)
         qimage.save(filename, image_type)
 
@@ -89,7 +87,7 @@ class Qt4_VideoMockup(GenericVideoDevice):
 
             image_array = np.array(ptr).reshape(qimage.height(), qimage.width(), 4)
             if bw:
-                return np.dot(image_array[...,:3], [0.299, 0.587, 0.144])
+                return np.dot(image_array[..., :3], [0.299, 0.587, 0.144])
             else:
                 return image_array
         else:
@@ -109,10 +107,10 @@ class Qt4_VideoMockup(GenericVideoDevice):
 
     def set_brightness(self, brightness_value):
         return
-  
+
     def get_gain(self):
         return 32
-  
+
     def set_gain(self, gain_value):
         return
 

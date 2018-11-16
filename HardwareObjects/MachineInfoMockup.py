@@ -39,71 +39,68 @@ class MachineInfoMockup(HardwareObject):
         """
         Descript. : 
         """
-        #Parameters
-        #Intensity current ranges
+        # Parameters
+        # Intensity current ranges
         self.values_list = []
         temp_dict = {}
-        temp_dict['value'] = 90.1
-        temp_dict['value_str'] = "90.1 mA"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Machine current"
-        temp_dict['bold'] = True
-        temp_dict['font'] = 14
-        temp_dict['history'] = True
+        temp_dict["value"] = 90.1
+        temp_dict["value_str"] = "90.1 mA"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Machine current"
+        temp_dict["bold"] = True
+        temp_dict["font"] = 14
+        temp_dict["history"] = True
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = "Test message"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Machine state"
+        temp_dict["value"] = "Test message"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Machine state"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = 24.4
-        temp_dict['value_str'] = "24.4 C"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Hutch temperature"
+        temp_dict["value"] = 24.4
+        temp_dict["value_str"] = "24.4 C"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Hutch temperature"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = 64.4
-        temp_dict['value_str'] = "64.4 %"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Hutch humidity"
+        temp_dict["value"] = 64.4
+        temp_dict["value_str"] = "64.4 %"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Hutch humidity"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = 4e11
-        temp_dict['value_str'] = "4e+11 ph/s"
-        temp_dict['in_range'] = False
-        temp_dict['title'] = "Flux"
+        temp_dict["value"] = 4e11
+        temp_dict["value_str"] = "4e+11 ph/s"
+        temp_dict["in_range"] = False
+        temp_dict["title"] = "Flux"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
-        temp_dict['value'] = "-"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Disk space"
-        temp_dict['align'] = "left"
+        temp_dict["value"] = "-"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Disk space"
+        temp_dict["align"] = "left"
         self.values_list.append(temp_dict)
 
     def init(self):
         """
         Descript.
         """
-        self.min_current = self.getProperty('min_current', 80.1)
-        self.min_current = self.getProperty('max_current', 90.1)
+        self.min_current = self.getProperty("min_current", 80.1)
+        self.min_current = self.getProperty("max_current", 90.1)
 
         self.flux_hwobj = self.getObjectByRole("flux")
-        self.connect(self.flux_hwobj,
-                     "fluxValueChanged",
-                     self.flux_changed)
+        self.connect(self.flux_hwobj, "fluxValueChanged", self.flux_changed)
 
         self.session_hwobj = self.getObjectByRole("session")
 
         self.update_values()
         spawn(self.change_mach_current)
 
-       
     def update_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
@@ -112,28 +109,27 @@ class MachineInfoMockup(HardwareObject):
         Arguments : -
         Return    : -
         """
-        self.emit('valuesChanged', self.values_list)
+        self.emit("valuesChanged", self.values_list)
 
     def get_current(self):
-        return self.values_list[0]['value']
- 
+        return self.values_list[0]["value"]
+
     def get_current_value(self):
         """
         Descript. :
-        """     
-        return self.values_list[0]['value']
+        """
+        return self.values_list[0]["value"]
 
-    def	get_message(self):
+    def get_message(self):
         """
         Descript :
-        """  
-        return self.values_list[1]['value']
+        """
+        return self.values_list[1]["value"]
 
     def change_mach_current(self):
         while True:
-            self.values_list[0]['value'] = uniform(self.min_current, self.min_current)
-            self.values_list[0]['value_str'] = "%.1f mA" % \
-                 self.values_list[0]['value']
+            self.values_list[0]["value"] = uniform(self.min_current, self.min_current)
+            self.values_list[0]["value_str"] = "%.1f mA" % self.values_list[0]["value"]
 
             self.update_disk_space()
             self.update_values()
@@ -154,33 +150,35 @@ class MachineInfoMockup(HardwareObject):
             total = st.f_blocks * st.f_frsize
             free = st.f_bavail * st.f_frsize
             perc = st.f_bavail / float(st.f_blocks)
-            txt = 'Total: %s\nFree:  %s (%s)' % (self.sizeof_fmt(total),
-                                                 self.sizeof_fmt(free),
-                                                 '{0:.0%}'.format(perc))
-            #if free / 2 ** 30 > self['diskThreshold']:
+            txt = "Total: %s\nFree:  %s (%s)" % (
+                self.sizeof_fmt(total),
+                self.sizeof_fmt(free),
+                "{0:.0%}".format(perc),
+            )
+            # if free / 2 ** 30 > self['diskThreshold']:
             #        Qt4_widget_colors.set_widget_color(self.disc_value_label,
             #                                       STATES['ready'])
             #    else:
             #        Qt4_widget_colors.set_widget_color(self.disc_value_label,
         else:
-            txt = 'Not available'
+            txt = "Not available"
         self.values_list[5]["value_str"] = txt
 
     def sizeof_fmt(self, num):
         """Returns disk space formated in string"""
 
-        for x in ['bytes', 'KB', 'MB', 'GB']:
+        for x in ["bytes", "KB", "MB", "GB"]:
             if num < 1024.0:
                 return "%3.1f%s" % (num, x)
             num /= 1024.0
-        return "%3.1f%s" % (num, 'TB')
+        return "%3.1f%s" % (num, "TB")
 
     def sizeof_num(self, num):
         """Returns disk space formated in exp value"""
 
-        for x in ['m', unichr(181), 'n']:
+        for x in ["m", unichr(181), "n"]:
             if num > 0.001:
                 num *= 1000.0
                 return "%0.1f%s" % (num, x)
             num *= 1000.0
-        return "%3.1f%s" % (num, ' n')
+        return "%3.1f%s" % (num, " n")

@@ -30,7 +30,7 @@ __category__ = "General"
 class EMBLExporterClient(HardwareObject):
     """
     Description:
-    """  	
+    """
 
     def __init__(self, *args):
         """
@@ -46,7 +46,6 @@ class EMBLExporterClient(HardwareObject):
         for client in Exporter.exporter_clients:
             self.exporter_client = Exporter.exporter_clients[client]
             return
-        
 
     def get_client_info(self):
         for exporter_client in Exporter.exporter_clients:

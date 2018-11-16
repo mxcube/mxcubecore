@@ -27,7 +27,8 @@ import gevent
 import httplib
 import json
 import logging
-#from PyQt4.QtGui import QImage, QPixmap
+
+# from PyQt4.QtGui import QImage, QPixmap
 from QtImport import QImage, QPixmap
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
@@ -240,7 +241,6 @@ class MjpgStreamVideo(GenericVideoDevice):
     IN_CMD_AVT_WHITEBAL_VALUE_RED = (1, IN_CMD_GROUP_AVT_WHITE_BALANCE)
     IN_CMD_AVT_WIDTH = (5, IN_CMD_GROUP_AVT_IMAGE_FORMAT)
 
-
     def __init__(self, name):
         """
         Descript. :
@@ -281,10 +281,10 @@ class MjpgStreamVideo(GenericVideoDevice):
         if self.input_avt:
             sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_WIDTH)
             if sensor_info:
-                sensor_width = int(sensor_info['value'])
+                sensor_width = int(sensor_info["value"])
             sensor_info = self.get_cmd_info(self.IN_CMD_AVT_SENSOR_HEIGHT)
             if sensor_info:
-                sensor_height = int(sensor_info['value'])
+                sensor_height = int(sensor_info["value"])
             self.sensor_dimensions = (sensor_width, sensor_height)
         self.setIsReady(True)
 
@@ -301,23 +301,30 @@ class MjpgStreamVideo(GenericVideoDevice):
         the HTTP answer content or None on error
         
         """
-        if host is None: host = self.host
-        if port is None: port = self.port
-        if path is None: path = self.path
+        if host is None:
+            host = self.host
+        if port is None:
+            port = self.port
+        if path is None:
+            path = self.path
         # send get request and return response
         http = httplib.HTTPConnection(host, port, timeout=3)
         try:
-            http.request("GET", path+query)
+            http.request("GET", path + query)
             response = http.getresponse()
         except:
-            logging.getLogger().error( \
-                    "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused"
-                    .format(host, port, path, query))
+            logging.getLogger().error(
+                "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
+                    host, port, path, query
+                )
+            )
             return None
         if response.status != 200:
-            logging.getLogger().error( \
-                    "MjpgStreamVideo: Error {0}, {1}"
-                    .format(response.status, response.reason))
+            logging.getLogger().error(
+                "MjpgStreamVideo: Error {0}, {1}".format(
+                    response.status, response.reason
+                )
+            )
             return None
         data = response.read()
         http.close()
@@ -334,12 +341,12 @@ class MjpgStreamVideo(GenericVideoDevice):
         dest -- command destination  (default MjpgStream.DEST_INPUT)
         
         """
-        if(isinstance(cmd, tuple) and group is None):
+        if isinstance(cmd, tuple) and group is None:
             group = cmd[1]
             cmd = cmd[0]
-        elif(isinstance(cmd, tuple)):
+        elif isinstance(cmd, tuple):
             cmd = cmd[0]
-        if(group is None):
+        if group is None:
             return None
         cmd = str(int(cmd))
         group = str(int(group))
@@ -348,22 +355,35 @@ class MjpgStreamVideo(GenericVideoDevice):
         except:
             option = value
             value = None
-            if(type(option) is str):
+            if type(option) is str:
                 info = self.get_cmd_info(cmd, group)
-                if(info and "menu" in info and option in info["menu"].values()):
-                    value = str([k for k, v in info["menu"].iteritems() if(v == option)][0])
-            if(value is None):
+                if info and "menu" in info and option in info["menu"].values():
+                    value = str(
+                        [k for k, v in info["menu"].iteritems() if (v == option)][0]
+                    )
+            if value is None:
                 return None
-        if(plugin is None):
+        if plugin is None:
             plugin = str(self.plugin)
         else:
             plugin = str(int(plugin))
-        if(dest is None):
+        if dest is None:
             dest = str(self.DEST_INPUT)
         else:
             dest = str(int(dest))
         # send request
-        self.http_get("?action=command&id="+cmd+"&dest="+dest+"&group="+group+"&value="+value+"&plugin="+plugin)
+        self.http_get(
+            "?action=command&id="
+            + cmd
+            + "&dest="
+            + dest
+            + "&group="
+            + group
+            + "&value="
+            + value
+            + "&plugin="
+            + plugin
+        )
 
     def has_cmd(self, cmd, group=None, plugin=None, dest=None):
         """Checks whether a command with the given id and group is known by the specified plugin.
@@ -379,7 +399,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         
         """
         data = self.get_cmd_info(cmd, group, plugin, dest)
-        if(not data is None):
+        if not data is None:
             return True
         return False
 
@@ -398,26 +418,26 @@ class MjpgStreamVideo(GenericVideoDevice):
         or None on error
         
         """
-        if(isinstance(cmd, tuple) and group is None):
+        if isinstance(cmd, tuple) and group is None:
             group = cmd[1]
             cmd = cmd[0]
-        elif(isinstance(cmd, tuple)):
+        elif isinstance(cmd, tuple):
             cmd = cmd[0]
-        if(group is None):
+        if group is None:
             return None
-        if(plugin is None):
+        if plugin is None:
             plugin = self.plugin
         else:
             plugin = str(int(plugin))
-        if(dest is None or (dest != self.DEST_INPUT and dest != self.DEST_OUTPUT)):
+        if dest is None or (dest != self.DEST_INPUT and dest != self.DEST_OUTPUT):
             dest = self.DEST_INPUT
-        if(self.update_controls):
+        if self.update_controls:
             self.send_cmd(group, self.IN_CMD_UPDATE_CONTROLS, plugin, dest)
         # get list of controls and search for the matching one
         data = self.get_controls(plugin, dest)
-        if(data != None):
+        if data != None:
             for info in data:
-                if(int(info["group"]) == int(group) and int(info["id"]) == int(cmd)):
+                if int(info["group"]) == int(group) and int(info["id"]) == int(cmd):
                     return info
         return None
 
@@ -435,27 +455,27 @@ class MjpgStreamVideo(GenericVideoDevice):
         supported by the connected camera is returned - q.v. get_cmd_info().
         
         """
-        if(plugin is None):
+        if plugin is None:
             plugin = str(self.plugin)
         else:
             plugin = str(int(plugin))
-        if(dest is None):
+        if dest is None:
             dest = self.DEST_INPUT
         else:
             dest = int(dest)
         query = None
-        if(dest == self.DEST_INPUT):
-            query = "input_"+plugin+".json"
-        elif(dest == self.DEST_OUTPUT):
-            query = "output_"+plugin+".json"
-        elif(dest == self.DEST_PROGRAM):
+        if dest == self.DEST_INPUT:
+            query = "input_" + plugin + ".json"
+        elif dest == self.DEST_OUTPUT:
+            query = "output_" + plugin + ".json"
+        elif dest == self.DEST_PROGRAM:
             query = "program.json"
         # fetch json from server, decode it into a python object and return it
-        if(query is not None):
+        if query is not None:
             data = self.http_get(query)
-            if(data is not None):
+            if data is not None:
                 data = json.loads(data)
-                if(dest != self.DEST_PROGRAM and "controls" in data):
+                if dest != self.DEST_PROGRAM and "controls" in data:
                     data = data["controls"]
                 return data
         return None
@@ -468,9 +488,9 @@ class MjpgStreamVideo(GenericVideoDevice):
         
         """
         data = self.get_cmd_info(self.IN_CMD_UPDATE_CONTROLS)
-        if(data is None):
+        if data is None:
             return None
-        if(data["name"] == "UpdateControls"):
+        if data["name"] == "UpdateControls":
             return True
         return False
 
@@ -482,17 +502,19 @@ class MjpgStreamVideo(GenericVideoDevice):
         
         """
         data = self.get_controls(0, self.DEST_PROGRAM)
-        if(data is None):
+        if data is None:
             return None
-        if(data.has_key("inputs")):
+        if data.has_key("inputs"):
             for info in data["inputs"]:
-                if(info["name"][-12:] == "input_avt.so"):
+                if info["name"][-12:] == "input_avt.so":
                     return True
         return False
 
     def start_camera(self):
         if self.image_polling is None:
-            self.image_polling = gevent.spawn(self._do_imagePolling, 1.0 / self.sleep_time)
+            self.image_polling = gevent.spawn(
+                self._do_imagePolling, 1.0 / self.sleep_time
+            )
 
     def get_image_dimensions(self):
         return self.image_dimensions
@@ -519,7 +541,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        return 
+        return
 
     def set_contrast_auto(self, state=True):
         """
@@ -531,13 +553,13 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        return 
+        return
 
     def get_contrast_min_max(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def brightnessExists(self):
         """
@@ -554,8 +576,8 @@ class MjpgStreamVideo(GenericVideoDevice):
     def get_brightness(self):
         """
         Descript. :
-        """ 
-        return 
+        """
+        return
 
     def set_brightness_auto(self, state=True):
         """
@@ -567,13 +589,13 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        return 
+        return
 
     def get_brightness_min_max(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def gain_exists(self):
         """
@@ -585,7 +607,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        #self.send_cmd("Manual", self.IN_CMD_AVT_GAIN_MODE) # gain mode manual
+        # self.send_cmd("Manual", self.IN_CMD_AVT_GAIN_MODE) # gain mode manual
         self.send_cmd(gain, self.IN_CMD_AVT_GAIN_VALUE)
 
     def get_gain(self):
@@ -623,7 +645,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         info = self.get_cmd_info(self.IN_CMD_AVT_GAIN_VALUE)
         if info is not None:
             return (float(info["min"]), float(info["max"]))
-        return 
+        return
 
     def gamma_exists(self):
         """
@@ -641,7 +663,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        return 
+        return
 
     def set_gamma_auto(self, state=True):
         """
@@ -653,12 +675,12 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        return 
+        return
 
     def get_gamma_min_max(self):
         """
         Descript. :
-        """ 
+        """
         return (0, 1)
 
     def exposure_time_exists(self):
@@ -671,7 +693,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        #self.send_cmd("Manual", self.IN_CMD_AVT_EXPOSURE_MODE) # gain mode manual
+        # self.send_cmd("Manual", self.IN_CMD_AVT_EXPOSURE_MODE) # gain mode manual
         self.send_cmd(gain, self.IN_CMD_AVT_EXPOSURE_VALUE)
 
     def get_exposure_time(self):
@@ -709,7 +731,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         info = self.get_cmd_info(self.IN_CMD_AVT_EXPOSURE_VALUE)
         if info is not None:
             return (float(info["min"]), float(info["max"]))
-        return 
+        return
 
     def zoom_exists(self):
         """
@@ -756,7 +778,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         Descript. :
         """
         return
-    
+
     def getWidth(self):
         """
         Descript. :
@@ -793,19 +815,21 @@ class MjpgStreamVideo(GenericVideoDevice):
         """
         Descript. : calls get_new_image() and saves the result
         """
-        try:   
+        try:
             qimage = self.get_new_image()
-            #TODO convert to grayscale
-            #if bw:
+            # TODO convert to grayscale
+            # if bw:
             #    qimage.setNumColors(0)
-            qimage.save(filename, 'PNG')
+            qimage.save(filename, "PNG")
         except:
-            logging.getLogger().error("MjpgStreamVideo: unable to save snapshot: %s" %filename)
+            logging.getLogger().error(
+                "MjpgStreamVideo: unable to save snapshot: %s" % filename
+            )
 
     def _do_imagePolling(self, sleep_time):
         """
         Descript. : worker method
-        """ 
+        """
         while True:
             image = self.get_new_image()
             if image is not None:
