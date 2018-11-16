@@ -32,9 +32,6 @@ class BIOMAXPatches(HardwareObject):
             self.dtox_hwobj.syncMove(self.safe_position, timeout = 30)
         except Exception:
             logging.getLogger("HWR").warning("Cannot move detector")
-        finally:
-            logging.getLogger("HWR").info("Detector in safe position, position: %s" %self.dtox_hwobj.getPosition())
-            logging.getLogger("user_level_log").info("Detector in safe position, position: %s" %self.dtox_hwobj.getPosition())
         else:
             logging.getLogger("HWR").info("Detector already in safe position.")
             logging.getLogger("user_level_log").info("Detector already in safe position.")
