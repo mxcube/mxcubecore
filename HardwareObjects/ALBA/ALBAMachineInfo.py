@@ -85,48 +85,53 @@ class ALBAMachineInfo(Equipment):
         """
         Descript. : 
         """
-        #Parameters values
+        # Parameters values
         self.values_dict = {}
-        self.values_dict['mach_current'] = None
-        self.values_dict['mach_status'] = ""
-        self.values_dict['topup_remaining'] = ""
-        #Dictionary for booleans indicating if values are in range
-#        self.values_in_range_dict = {}
+        self.values_dict["mach_current"] = None
+        self.values_dict["mach_status"] = ""
+        self.values_dict["topup_remaining"] = ""
+        # Dictionary for booleans indicating if values are in range
+        #        self.values_in_range_dict = {}
         self.chan_mach_current = None
         self.chan_mach_status = None
-	self.chan_topup_remaining = None
-	
+        self.chan_topup_remaining = None
+
     def init(self):
         """
         Descript. : Inits channels from xml configuration. 
         """
-	try:
-	    self.chan_mach_current = self.getChannelObject('MachCurrent')
-	    if self.chan_mach_current is not None: 
-	        self.chan_mach_current.connectSignal('update', self.mach_current_changed)
+        try:
+            self.chan_mach_current = self.getChannelObject("MachCurrent")
+            if self.chan_mach_current is not None:
+                self.chan_mach_current.connectSignal(
+                    "update", self.mach_current_changed
+                )
 
-	    self.chan_mach_status = self.getChannelObject('MachStatus')
-	    if self.chan_mach_status is not None:
-	        self.chan_mach_status.connectSignal('update', self.mach_status_changed)
+            self.chan_mach_status = self.getChannelObject("MachStatus")
+            if self.chan_mach_status is not None:
+                self.chan_mach_status.connectSignal("update", self.mach_status_changed)
 
-	    self.chan_topup_remaining = self.getChannelObject('TopUpRemaining')
-	    if self.chan_topup_remaining is not None:
-	        self.chan_topup_remaining.connectSignal('update', self.topup_remaining_changed)
+            self.chan_topup_remaining = self.getChannelObject("TopUpRemaining")
+            if self.chan_topup_remaining is not None:
+                self.chan_topup_remaining.connectSignal(
+                    "update", self.topup_remaining_changed
+                )
         except KeyError:
-            self.logger.warning('%s: cannot read machine info', self.name())
+            self.logger.warning("%s: cannot read machine info", self.name())
 
-            
     def mach_current_changed(self, value):
         """
         Descript. : Function called if the machine current is changed
         Arguments : new machine current (float)
         Return    : -
         """
-        if self.values_dict['mach_current'] is None \
-        or abs(self.values_dict['mach_current'] - value) > 0.10:
-            self.values_dict['mach_current'] = value
+        if (
+            self.values_dict["mach_current"] is None
+            or abs(self.values_dict["mach_current"] - value) > 0.10
+        ):
+            self.values_dict["mach_current"] = value
             self.update_values()
-            self.logger.debug('New machine current value=%smA' % value)
+            self.logger.debug("New machine current value=%smA" % value)
 
     def mach_status_changed(self, status):
         """
@@ -134,10 +139,9 @@ class ALBAMachineInfo(Equipment):
         Arguments : new machine status (string)  
         Return    : -
         """
-        self.values_dict['mach_status'] = str(status)
+        self.values_dict["mach_status"] = str(status)
         self.update_values()
-        self.logger.debug('New machine status=%s' % status)
-
+        self.logger.debug("New machine status=%s" % status)
 
     def topup_remaining_changed(self, value):
         """
@@ -145,57 +149,60 @@ class ALBAMachineInfo(Equipment):
         Arguments : new topup remainin (float)  
         Return    : -
         """
-        self.values_dict['topup_remaining'] = value
+        self.values_dict["topup_remaining"] = value
         self.update_values()
-        self.logger.debug('New top-up remaining time=%ss' % value)
-  
+        self.logger.debug("New top-up remaining time=%ss" % value)
 
     def update_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
-		    and storage space is in limits, forms a value list 
-		    and value in range list, both emited by qt as lists
+                    and storage space is in limits, forms a value list 
+                    and value in range list, both emited by qt as lists
         Arguments : -
         Return    : -
         """
 
         values_to_send = []
-        values_to_send.append(self.values_dict['mach_current'])
-        values_to_send.append(self.values_dict['mach_status'])
-        values_to_send.append(self.values_dict['topup_remaining'])
+        values_to_send.append(self.values_dict["mach_current"])
+        values_to_send.append(self.values_dict["mach_status"])
+        values_to_send.append(self.values_dict["topup_remaining"])
 
-        self.emit('valuesChanged', values_to_send)
+        self.emit("valuesChanged", values_to_send)
         self.logger.debug("SIGNAL valuesChanged emitted")
-        
+
     def get_mach_current(self):
         try:
             value = self.chan_mach_current.getValue()
         except Exception as e:
-            self.logger.error('Cannot read machine current value, returning 0')
-	    value = 0
+            self.logger.error("Cannot read machine current value, returning 0")
+            value = 0
         finally:
-	    return value
-        #return self.values_dict['mach_current']
- 
+            return value
+            # return self.values_dict['mach_current']
+
     def get_current(self):
         return self.get_mach_current()
 
     def get_message(self):
         return "Machinfo status: %s" % self.get_mach_status()
 
-#    def get_current_value(self):
-#        """
-#        Descript. :
-#        """     
-#        return self.values_dict['current']
+    #    def get_current_value(self):
+    #        """
+    #        Descript. :
+    #        """
+    #        return self.values_dict['current']
 
     def get_mach_status(self):
         return self.chan_mach_status.getValue()
-#        return self.values_dict['mach_status']
+
+    #        return self.values_dict['mach_status']
 
     def get_topup_remaining(self):
         return self.chan_topup_remaining.getValue()
+
+
 #        return self.values_dict['remaining']
+
 
 def test_hwo(hwo):
     print "Current is", hwo.get_current()

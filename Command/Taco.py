@@ -7,10 +7,13 @@ from .. import Poller
 from ..CommandContainer import CommandObject, ChannelObject
 from .. import TacoDevice_MTSafe as TacoDevice
 
+
 class TacoCommand(CommandObject):
-    def __init__(self, name, command, taconame = None, username = None, args=None, dc=False, **kwargs):
+    def __init__(
+        self, name, command, taconame=None, username=None, args=None, dc=False, **kwargs
+    ):
         CommandObject.__init__(self, name, username, **kwargs)
-        
+
         self.command = command
         self.deviceName = taconame
         self.dataCollector = dc
@@ -24,44 +27,50 @@ class TacoCommand(CommandObject):
             # not very nice...
             args = str(args)
             if not args.endswith(","):
-              args+=","
-            self.arglist = eval("("+args+")")
+                args += ","
+            self.arglist = eval("(" + args + ")")
 
         self.connectDevice()
-       
+
     def connectDevice(self):
         try:
             self.device = TacoDevice.TacoDevice(self.deviceName, dc=self.dataCollector)
         except:
-            logging.getLogger('HWR').exception('Problem with Taco ; could not open Device %s', self.deviceName)
+            logging.getLogger("HWR").exception(
+                "Problem with Taco ; could not open Device %s", self.deviceName
+            )
             self.device = None
 
-
     def __call__(self, *args, **kwargs):
-        self.emit('commandBeginWaitReply', (str(self.name()), ))
-       
+        self.emit("commandBeginWaitReply", (str(self.name()),))
+
         if len(args) > 0 and len(self.arglist) > 0:
-            logging.getLogger("HWR").error("%s: cannot execute command with arguments when 'args' is defined from XML", str(self.name()))
-            self.emit('commandFailed', (-1, str(self.name()), ))
+            logging.getLogger("HWR").error(
+                "%s: cannot execute command with arguments when 'args' is defined from XML",
+                str(self.name()),
+            )
+            self.emit("commandFailed", (-1, str(self.name())))
             return
-        elif len(args)==0 and len(self.arglist) > 0:
-            args = self.arglist 
+        elif len(args) == 0 and len(self.arglist) > 0:
+            args = self.arglist
 
         if self.device is not None and self.device.imported:
             try:
-                ret = eval('self.device.%s(*%s)' % (self.command, args))
+                ret = eval("self.device.%s(*%s)" % (self.command, args))
             except:
-                logging.getLogger('HWR').error("%s: an error occured when calling Taco command %s", str(self.name()), self.command)
+                logging.getLogger("HWR").error(
+                    "%s: an error occured when calling Taco command %s",
+                    str(self.name()),
+                    self.command,
+                )
             else:
-                self.emit('commandReplyArrived', (ret, str(self.name())))
+                self.emit("commandReplyArrived", (ret, str(self.name())))
                 return ret
-        
-        self.emit('commandFailed', (-1, str(self.name()), ))
 
+        self.emit("commandFailed", (-1, str(self.name())))
 
     def _valueChanged(self, value):
         self.valueChanged(self.deviceName, value)
-       
 
     def valueChanged(self, deviceName, value):
         try:
@@ -71,7 +80,6 @@ class TacoCommand(CommandObject):
         else:
             if callback is not None:
                 callback(deviceName, value)
-                    
 
     def onPollingError(self, exception, poller_id):
         self.connectDevice()
@@ -81,23 +89,34 @@ class TacoCommand(CommandObject):
                 poller.restart(1000)
             except:
                 pass
-        
 
-    def poll(self, pollingTime=500, argumentsList=(), valueChangedCallback=None, timeoutCallback=None, direct=True, compare=True):
+    def poll(
+        self,
+        pollingTime=500,
+        argumentsList=(),
+        valueChangedCallback=None,
+        timeoutCallback=None,
+        direct=True,
+        compare=True,
+    ):
         self.__valueChangedCallbackRef = saferef.safe_ref(valueChangedCallback)
-        
+
         poll_cmd = getattr(self.device, self.command)
 
-        Poller.poll(poll_cmd, copy.deepcopy(argumentsList), pollingTime, self._valueChanged, self.onPollingError, compare)
-                
+        Poller.poll(
+            poll_cmd,
+            copy.deepcopy(argumentsList),
+            pollingTime,
+            self._valueChanged,
+            self.onPollingError,
+            compare,
+        )
 
     def stopPolling(self):
         pass
 
-
     def abort(self):
         pass
-        
 
     def isConnected(self):
         return self.device is not None and self.device.imported
@@ -105,30 +124,35 @@ class TacoCommand(CommandObject):
 
 class TacoChannel(ChannelObject):
     """Emulation of a 'Taco channel' = a Taco command + polling"""
-    def __init__(self, name, command, taconame = None, username = None, polling=None, args=None, **kwargs):
+
+    def __init__(
+        self,
+        name,
+        command,
+        taconame=None,
+        username=None,
+        polling=None,
+        args=None,
+        **kwargs
+    ):
         ChannelObject.__init__(self, name, username, **kwargs)
- 
-        self.command = TacoCommand(name+"_internalCmd", command, taconame, username, args, False, **kwargs)
-        
+
+        self.command = TacoCommand(
+            name + "_internalCmd", command, taconame, username, args, False, **kwargs
+        )
+
         try:
             self.polling = int(polling)
         except:
             self.polling = None
         else:
             self.command.poll(self.polling, self.command.arglist, self.valueChanged)
-                
 
     def valueChanged(self, deviceName, value):
         self.emit("update", value)
 
-
     def getValue(self):
         return self.command()
-      
- 
+
     def isConnected(self):
         return self.command.isConnected()
-
-
-
-

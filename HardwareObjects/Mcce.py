@@ -16,23 +16,24 @@ import logging
 import os
 import time
 
+
 class Mcce(Equipment):
     def init(self):
 
-        self.mcce_freq  = None
-        self.mcce_gain  = None
-        self.mcce_pol   = None
+        self.mcce_freq = None
+        self.mcce_gain = None
+        self.mcce_pol = None
         self.mcce_range = None
-        self.mcce_name  = None
-        self.mcce_type  = None
-        self.mcce_dev   = None
+        self.mcce_name = None
+        self.mcce_type = None
+        self.mcce_dev = None
 
         # print "MCCE-HWO--self.device_number=" , self.device_number
         self.mcce_number = self.device_number
 
-        '''
+        """
         Connection of channels (monitored variables)
-        '''
+        """
         #  channel(update) ----> functions to emit sig.
         self.mcceDevChan = self.getChannelObject("mcce_dev")
         if self.mcceDevChan is not None:
@@ -62,24 +63,22 @@ class Mcce(Equipment):
         if self.mcceNameChan is not None:
             self.mcceNameChan.connectSignal("update", self.updateMcceName)
 
-
-        '''
+        """
         HWO -> SPEC
         Conections to spec commands
-        '''
+        """
         # <command type="spec" name="mccerange_cmd"   >mccerange</command>
         # <command type="spec" name="mccepolarity_cmd">mccepolarity</command>
         # <command type="spec" name="mccefreq_cmd"    >mccefreq</command>
         # <command type="spec" name="mccegain_cmd"    >mccegain</command>
 
         self.mcceRangeCmd = self.getCommandObject("mccerange_cmd")
-        self.mcceFreqCmd  = self.getCommandObject("mccefreq_cmd")
-        self.mcceGainCmd  = self.getCommandObject("mccegain_cmd")
-        self.mccePolCmd   = self.getCommandObject("mccepolarity_cmd")
+        self.mcceFreqCmd = self.getCommandObject("mccefreq_cmd")
+        self.mcceGainCmd = self.getCommandObject("mccegain_cmd")
+        self.mccePolCmd = self.getCommandObject("mccepolarity_cmd")
 
-
-    ################################################3
-    ### EMIT SIGNALS    :  HWO   --->   GUI
+    # 3
+    # EMIT SIGNALS    :  HWO   --->   GUI
     #######################
 
     def updateMcceDev(self, device):
@@ -98,25 +97,22 @@ class Mcce(Equipment):
         self.mcce_type = mtype
         self.emit("updateType", (mtype,))
 
-    def updateMcceRange (self, range):
+    def updateMcceRange(self, range):
         print("--McceHwObj--updateMcceRange-- ", range, " number=", self.mcce_number)
         self.mcce_range = range
         self.emit("updateRange", (range,))
 
-    def updateMcceFreq (self, freq):
+    def updateMcceFreq(self, freq):
         print("--McceHwObj--updateMcceFreq-- ", freq, " number=", self.mcce_number)
         self.mcce_freq = freq
         self.emit("updateFreq", (freq,))
 
-    def updateMcceGain (self, gain):
+    def updateMcceGain(self, gain):
         print("--McceHwObj--updateMcceGain-- ", gain, " number=", self.mcce_number)
         self.mcce_gain = gain
         self.emit("updateGain", (gain,))
 
-    def updateMccePol (self, pol):
+    def updateMccePol(self, pol):
         print("--McceHwObj--updateMccePol-- ", pol, " number=", self.mcce_number)
         self.mcce_pol = pol
         self.emit("updatePol", (pol,))
-
-
-

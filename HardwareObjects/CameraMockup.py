@@ -9,10 +9,10 @@ import numpy
 from PIL import Image
 import cStringIO
 
-class CameraMockup(BaseHardwareObjects.Device):
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+class CameraMockup(BaseHardwareObjects.Device):
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
         self.liveState = False
 
     def _init(self):
@@ -22,23 +22,25 @@ class CameraMockup(BaseHardwareObjects.Device):
         self.imagegen = None
 
     def imageGenerator(self, delay):
-        while True: 
+        while True:
             newImage = self.getOneImage()
             self.emit("imageReceived", newImage, 650, 485)
             time.sleep(delay)
 
     def getOneImage(self):
 
-        a = numpy.random.rand(485,650) * 255
-        im_out = Image.fromarray(a.astype('uint8')).convert('RGBA')
+        a = numpy.random.rand(485, 650) * 255
+        im_out = Image.fromarray(a.astype("uint8")).convert("RGBA")
         buf = cStringIO.StringIO()
-        im_out.save(buf,"JPEG")
+        im_out.save(buf, "JPEG")
         return buf
 
     def contrastExists(self):
         return False
+
     def brightnessExists(self):
         return False
+
     def gainExists(self):
         return False
 
@@ -46,9 +48,11 @@ class CameraMockup(BaseHardwareObjects.Device):
         print "Setting camera live ", live
         if live and self.liveState == live:
             return
-        
+
         if live:
-            self.imagegen = gevent.spawn(self.imageGenerator,  (self.getProperty("interval") or 500)/1000.0 )
+            self.imagegen = gevent.spawn(
+                self.imageGenerator, (self.getProperty("interval") or 500) / 1000.0
+            )
             self.liveState = live
         else:
             self.imagegen.kill()
@@ -59,7 +63,7 @@ class CameraMockup(BaseHardwareObjects.Device):
         return None
 
     def takeSnapshot(self, *args):
-      jpeg_data=self.getOneImage()
-      f = open(*(args + ("w",)))
-      f.write("".join(map(chr, jpeg_data)))
-      f.close()       
+        jpeg_data = self.getOneImage()
+        f = open(*(args + ("w",)))
+        f.write("".join(map(chr, jpeg_data)))
+        f.close()

@@ -4,11 +4,9 @@ import logging
 import time
 import gevent
 
+
 class ID30Cryo(Device):
-    states = {
-      0:   "out",
-      1:   "in",
-    }
+    states = {0: "out", 1: "in"}
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -16,27 +14,27 @@ class ID30Cryo(Device):
     def init(self):
         controller = self.getObjectByRole("controller")
 
-	self._state = None
+        self._state = None
         self.username = self.name()
         self.wago_controller = getattr(controller, self.wago)
         self.command_key = self.getProperty("cmd")
         self.in_key = self.getProperty("is_in")
         self.out_key = self.getProperty("is_out")
-        self.wago_polling = self._wago_polling(self.command_key,wait=False)
+        self.wago_polling = self._wago_polling(self.command_key, wait=False)
         self.setIsReady(True)
-     
-    @task 
+
+    @task
     def _wago_polling(self, key):
         while True:
             try:
-              reading = int(self.wago_controller.get(key))
+                reading = int(self.wago_controller.get(key))
             except:
-              time.sleep(1)
-              continue
+                time.sleep(1)
+                continue
             if self._state != reading:
                 self._state = reading
-                self.emit("wagoStateChanged", (self.getWagoState(), ))
-                self.emit("actuatorStateChanged", (self.getWagoState(), ))
+                self.emit("wagoStateChanged", (self.getWagoState(),))
+                self.emit("actuatorStateChanged", (self.getWagoState(),))
             time.sleep(1)
 
     def getWagoState(self):
@@ -61,7 +59,7 @@ class ID30Cryo(Device):
         return self.wagoIn()
 
     def actuatorOut(self):
-         return self.wagoOut()
+        return self.wagoOut()
 
     def getState(self):
         return ID30Cryo.READY

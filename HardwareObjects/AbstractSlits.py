@@ -110,7 +110,7 @@ class AbstractSlits(HardwareObject, object):
         """
         if new_limits is not None:
             self._min_limits = new_limits
-            self.emit('minLimitsChanged', self._min_limits)
+            self.emit("minLimitsChanged", self._min_limits)
 
     def get_max_limits(self):
         """
@@ -127,14 +127,14 @@ class AbstractSlits(HardwareObject, object):
         """
         if new_limits is not None:
             self._max_limits = new_limits
-            self.emit('maxLimitsChanged', self._max_limits)
+            self.emit("maxLimitsChanged", self._max_limits)
 
     def update_values(self):
         """
         Reemits all signals
         :return:
         """
-        self.emit('valueChanged', self._value)
-        self.emit('minLimitsChanged', self._min_limits)
-        self.emit('maxLimitsChanged', self._max_limits)
-        self.emit('statusChanged', self._status)
+        self.emit("valueChanged", self._value)
+        self.emit("minLimitsChanged", self._min_limits)
+        self.emit("maxLimitsChanged", self._max_limits)
+        self.emit("statusChanged", self._status)

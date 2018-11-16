@@ -15,10 +15,10 @@ class TransmissionMockup(Device):
         pass
 
     def getAtteConfig(self):
-        self.attno = len(self['atte'])
+        self.attno = len(self["atte"])
 
         for att_i in range(self.attno):
-            obj = self['atte'][att_i]
+            obj = self["atte"][att_i]
             self.labels.append(obj.label)
             self.bits.append(obj.bits)
 

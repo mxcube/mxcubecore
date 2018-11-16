@@ -4,6 +4,7 @@ from HardwareRepository.TaskUtils import *
 from sample_changer import SC3
 import ESRFSC3
 
+
 class Command:
     def __init__(self, cmd):
         self.cmd = cmd
@@ -24,17 +25,16 @@ class ID30SC3(ESRFSC3.ESRFSC3):
         controller = self.getObjectByRole("controller")
 
         SC3.SC3.init(self)
-        self.prepareCentringAfterLoad=True
-    
+        self.prepareCentringAfterLoad = True
+
         self.prepareCentring = Command(controller.prepare_centring)
-        self._moveToLoadingPosition = Command(controller.move_to_sample_loading_position)
-        self._moveToUnloadingPosition = Command(controller.move_to_sample_loading_position)   
-    
+        self._moveToLoadingPosition = Command(
+            controller.move_to_sample_loading_position
+        )
+        self._moveToUnloadingPosition = Command(
+            controller.move_to_sample_loading_position
+        )
+
     @task
     def unlockMinidiffMotors(self):
         pass
-
-    
-
-  
-

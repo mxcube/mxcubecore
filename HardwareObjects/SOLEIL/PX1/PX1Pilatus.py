@@ -28,6 +28,7 @@ __credits__ = ["SOLEIL"]
 __version__ = "2.3."
 __category__ = "General"
 
+
 class PX1Pilatus(AbstractDetector, HardwareObject):
     """Detector class. Contains all information about detector
        - states are 'OK', and 'BAD'
@@ -64,10 +65,10 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         self.exp_time_limits = map(float, exp_time_limits.strip().split(","))
 
     def state_changed(self, state):
-        self.current_state = state 
+        self.current_state = state
 
     def threshold_changed(self, threshold):
-        self.current_threshold = threshold 
+        self.current_threshold = threshold
 
     def prepare_acquisition(self):
         pass
@@ -88,7 +89,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         else:
             return self.default_distance
 
-    def move_distance(self,value):
+    def move_distance(self, value):
         if self.distance_motor_hwobj is not None:
             self.distance_motor_hwobj.move(value)
 
@@ -106,7 +107,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         return str(self.get_state())
 
     def is_fault_state(self):
-        return ( str(self.get_state()) == 'FAULT' )
+        return str(self.get_state()) == "FAULT"
 
     def get_threshold(self):
         return self.threshold_chan.getValue()
@@ -166,17 +167,17 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
 
         # basedir = file_pars['directory']
         # prefix  =  "%s_%s_" % (file_pars['prefix'], file_pars['run_number'])
-# 
+        #
         # first_img_no = osc_seq['start_image_number']
         # nb_frames =  osc_seq['number_of_images']
         # exp_time = osc_seq['exposure_time']
-# 
+        #
         # fileformat =  "CBF"
         # trig_mode = "EXTERNAL_TRIGGER"
         # latency_time = 0.023
-# 
+        #
         # logging.getLogger("HWR").debug(" Preparing detector (dev=%s) for data collection" % self.devname)
-# 
+        #
         # logging.getLogger("HWR").debug("    /saving directory: %s" % basedir)
         # logging.getLogger("HWR").debug("    /prefix          : %s" % prefix)
         # logging.getLogger("HWR").debug("    /saving_format   : %s" % fileformat)
@@ -184,7 +185,7 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
         # logging.getLogger("HWR").debug("    /acq_nb_frames   : %s" % nb_frames)
         # logging.getLogger("HWR").debug("    /acq_expo_time   : %s" % exp_time)
         # logging.getLogger("HWR").debug("    /latency_time    : %s" % latency_time)
-# 
+        #
         # self.device.write_attribute('saving_mode', 'AUTO_FRAME')
         # self.device.write_attribute('saving_directory', basedir)
         # self.device.write_attribute('saving_prefix', prefix)
@@ -200,45 +201,56 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
     def stop_collection(self):
         self.stop_acquisition()
 
-    def set_image_headers(self,image_headers):
+    def set_image_headers(self, image_headers):
         for _header in image_headers:
             try:
-               _str_header = _header[0] % _header[1]
+                _str_header = _header[0] % _header[1]
             except:
-               _str_header = _header[0] 
+                _str_header = _header[0]
 
             self.set_header_cmd(_str_header)
-
 
     def do_energy_calibration(self, energy):
         energy = float(energy)
         logging.info("<PX1Pilatus> do_energy_calibration for %.4f KeV" % energy)
-        
-        PILATUS_THRESHOLD_MIN = 3774. # en eV
+
+        PILATUS_THRESHOLD_MIN = 3774.0  # en eV
         ENERGY_CALIBRATION_MIN = 7.6  # en keV
 
         current_threshold = self.threshold_chan.getValue()
 
-        energy_diff = energy - 2*current_threshold/1000.
+        energy_diff = energy - 2 * current_threshold / 1000.0
 
-        if (current_threshold == PILATUS_THRESHOLD_MIN and energy < ENERGY_CALIBRATION_MIN):
-            logging.warning("PX1Pilatus. Re-calibration of Pilatus detector not possible: THRESHOLD_MIN condition.")
+        if (
+            current_threshold == PILATUS_THRESHOLD_MIN
+            and energy < ENERGY_CALIBRATION_MIN
+        ):
+            logging.warning(
+                "PX1Pilatus. Re-calibration of Pilatus detector not possible: THRESHOLD_MIN condition."
+            )
             return False
 
-        if ( energy_diff < (-0.08*(2*current_threshold/1000.)) or \
-             energy_diff > (0.05*(2*current_threshold/1000.))):
+        if energy_diff < (-0.08 * (2 * current_threshold / 1000.0)) or energy_diff > (
+            0.05 * (2 * current_threshold / 1000.0)
+        ):
 
             if self.read_state() != "STANDBY":
-                logging.getLogger("user_level_log").error("Re-calibration of Pilatus detector not possible.")
+                logging.getLogger("user_level_log").error(
+                    "Re-calibration of Pilatus detector not possible."
+                )
                 return False
 
-            logging.info("<PX1Pilatus> sending energy value of %5d KeV" % int(energy*1000))
-            self.set_energy_cmd(int(energy*1000))
+            logging.info(
+                "<PX1Pilatus> sending energy value of %5d KeV" % int(energy * 1000)
+            )
+            self.set_energy_cmd(int(energy * 1000))
 
             time.sleep(1)
 
             if self.read_state() != "STANDBY":
-                logging.getLogger("user_level_log").info("Calibration of Pilatus detector in progress (takes about 1 minute).")
+                logging.getLogger("user_level_log").info(
+                    "Calibration of Pilatus detector in progress (takes about 1 minute)."
+                )
 
     def wait_energy_calibration(self):
         _state = self.read_state()
@@ -249,15 +261,18 @@ class PX1Pilatus(AbstractDetector, HardwareObject):
             time.sleep(2)
             elapsed = time.time() - t0
             _state = self.read_state()
-            if elapsed - last_msg_time > 10.0 :
-                logging.getLogger("user_level_log").info("   -  calibration in progress (elapsed time %s)." % elapsed)
+            if elapsed - last_msg_time > 10.0:
+                logging.getLogger("user_level_log").info(
+                    "   -  calibration in progress (elapsed time %s)." % elapsed
+                )
                 last_msg_time = elapsed
-            logging.info("    -  <PX1Pilatus>  waiting for energy calibration: %s" % _state)
+            logging.info(
+                "    -  <PX1Pilatus>  waiting for energy calibration: %s" % _state
+            )
+
 
 def test_hwo(hwo):
     print "Detector Distance is: ", hwo.get_distance()
     print "         state is: ", hwo.get_state(), type(hwo.get_state())
     print "      is in fault: ", hwo.is_fault_state()
-    #print "going to 490 : ", hwo.move_distance(490)
-
-
+    # print "going to 490 : ", hwo.move_distance(490)

@@ -55,10 +55,10 @@ class GphlWorkflow(HardwareObject, object):
 
     # object states
     valid_states = [
-        States.OFF,     # Not active
-        States.ON,      # Active, awaiting execution order
-        States.OPEN,    # Active, awaiting input
-        States.RUNNING, # Active, executing workflow
+        States.OFF,  # Not active
+        States.ON,  # Active, awaiting execution order
+        States.OPEN,  # Active, awaiting input
+        States.RUNNING,  # Active, executing workflow
     ]
 
     def __init__(self, name):
@@ -100,36 +100,36 @@ class GphlWorkflow(HardwareObject, object):
 
         # Set up processing functions map
         self._processor_functions = {
-            'String':self.echo_info_string,
-            'SubprocessStarted':self.echo_subprocess_started,
-            'SubprocessStopped':self.echo_subprocess_stopped,
-            'RequestConfiguration':self.get_configuration_data,
-            'GeometricStrategy':self.setup_data_collection,
-            'CollectionProposal':self.collect_data,
-            'ChooseLattice':self.select_lattice,
-            'RequestCentring':self.process_centring_request,
-            'PrepareForCentring':self.prepare_for_centring,
-            'ObtainPriorInformation':self.obtain_prior_information,
-            'WorkflowAborted':self.workflow_aborted,
-            'WorkflowCompleted':self.workflow_completed,
-            'WorkflowFailed':self.workflow_failed,
+            "String": self.echo_info_string,
+            "SubprocessStarted": self.echo_subprocess_started,
+            "SubprocessStopped": self.echo_subprocess_stopped,
+            "RequestConfiguration": self.get_configuration_data,
+            "GeometricStrategy": self.setup_data_collection,
+            "CollectionProposal": self.collect_data,
+            "ChooseLattice": self.select_lattice,
+            "RequestCentring": self.process_centring_request,
+            "PrepareForCentring": self.prepare_for_centring,
+            "ObtainPriorInformation": self.obtain_prior_information,
+            "WorkflowAborted": self.workflow_aborted,
+            "WorkflowCompleted": self.workflow_completed,
+            "WorkflowFailed": self.workflow_failed,
         }
 
-        workflow_connection = HardwareRepository().getHardwareObject('/gphl-setup')
+        workflow_connection = HardwareRepository().getHardwareObject("/gphl-setup")
         self._workflow_connection = workflow_connection
 
         # Set standard configurable file paths
         file_paths = self.file_paths
-        ss = workflow_connection.software_paths['gphl_beamline_config']
-        file_paths['gphl_beamline_config'] = ss
-        file_paths['transcal_file'] = os.path.join(ss, 'transcal.nml')
-        file_paths['diffractcal_file'] = os.path.join(ss, 'diffractcal.nml')
-        file_paths['instrumentation_file'] = fp = os.path.join(
-            ss, 'instrumentation.nml'
+        ss = workflow_connection.software_paths["gphl_beamline_config"]
+        file_paths["gphl_beamline_config"] = ss
+        file_paths["transcal_file"] = os.path.join(ss, "transcal.nml")
+        file_paths["diffractcal_file"] = os.path.join(ss, "diffractcal.nml")
+        file_paths["instrumentation_file"] = fp = os.path.join(
+            ss, "instrumentation.nml"
         )
-        dd = f90nml.read(fp)['sdcp_instrument_list']
-        self.rotation_axis_roles = dd['gonio_axis_names']
-        self.translation_axis_roles = dd['gonio_centring_axis_names']
+        dd = f90nml.read(fp)["sdcp_instrument_list"]
+        self.rotation_axis_roles = dd["gonio_axis_names"]
+        self.translation_axis_roles = dd["gonio_centring_axis_names"]
 
     def pre_execute(self, queue_entry):
 
@@ -148,88 +148,84 @@ class GphlWorkflow(HardwareObject, object):
             workflow_connection._workflow_ended()
             workflow_connection._close_connection()
 
-
     def get_available_workflows(self):
         """Get list of workflow description dictionaries."""
 
         # TODO this could be cached for speed
 
-
-        instcfgout_dir = self.getProperty('instcfgout_dir')
+        instcfgout_dir = self.getProperty("instcfgout_dir")
 
         result = OrderedDict()
-        if self.hasObject('workflow_properties'):
-            properties = self['workflow_properties'].getProperties()
+        if self.hasObject("workflow_properties"):
+            properties = self["workflow_properties"].getProperties()
         else:
             properties = {}
 
-        if self.hasObject('workflow_options'):
-            options = self['workflow_options'].getProperties()
-            if 'beamline' in options:
+        if self.hasObject("workflow_options"):
+            options = self["workflow_options"].getProperties()
+            if "beamline" in options:
                 pass
-            elif self._workflow_connection.hasObject('ssh_options'):
+            elif self._workflow_connection.hasObject("ssh_options"):
                 # We are running workflow through ssh - set beamline url
-                options['beamline'] = 'py4j:%s:' % socket.gethostname()
+                options["beamline"] = "py4j:%s:" % socket.gethostname()
             else:
-                options['beamline'] = 'py4j::'
+                options["beamline"] = "py4j::"
         else:
             options = {}
-        if self.hasObject('invocation_options'):
-            invocation_options = self['invocation_options'].getProperties()
+        if self.hasObject("invocation_options"):
+            invocation_options = self["invocation_options"].getProperties()
         else:
             invocation_options = {}
-        if self.hasObject('invocation_properties'):
-            invocation_properties = self['invocation_properties'].getProperties()
+        if self.hasObject("invocation_properties"):
+            invocation_properties = self["invocation_properties"].getProperties()
         else:
             invocation_properties = {}
 
         # Add options for target directories:
         # There should be a better way, but apparently there isn't
-        session_hwobj = HardwareRepository().getHardwareObject('session')
+        session_hwobj = HardwareRepository().getHardwareObject("session")
         process_root = session_hwobj.get_base_process_directory()
-        options['appdir'] = process_root
+        options["appdir"] = process_root
 
-        for wf_node in self['workflows']:
+        for wf_node in self["workflows"]:
             name = wf_node.name()
-            wf_dict = {'name':name,
-                       'strategy_type':wf_node.getProperty('strategy_type'),
-                       'application':wf_node.getProperty('application'),
-                       'documentation':wf_node.getProperty('documentation',
-                                                           default_value=''),
-                       'interleaveOrder':wf_node.getProperty('interleave_order',
-                                                             default_value=''),
+            wf_dict = {
+                "name": name,
+                "strategy_type": wf_node.getProperty("strategy_type"),
+                "application": wf_node.getProperty("application"),
+                "documentation": wf_node.getProperty("documentation", default_value=""),
+                "interleaveOrder": wf_node.getProperty(
+                    "interleave_order", default_value=""
+                ),
             }
             result[name] = wf_dict
-            wf_dict['options'] = dd = options.copy()
-            if wf_node.hasObject('options'):
-                dd.update(wf_node['options'].getProperties())
-                relative_file_path = dd.get('file')
+            wf_dict["options"] = dd = options.copy()
+            if wf_node.hasObject("options"):
+                dd.update(wf_node["options"].getProperties())
+                relative_file_path = dd.get("file")
                 if relative_file_path is not None:
                     # Special case - this option must be modified before use
-                    dd['file'] = os.path.join(
-                        self.file_paths['gphl_beamline_config'],
-                        relative_file_path
+                    dd["file"] = os.path.join(
+                        self.file_paths["gphl_beamline_config"], relative_file_path
                     )
-                instcfgout = dd.get('instcfgout')
+                instcfgout = dd.get("instcfgout")
                 if instcfgout is not None and instcfgout_dir is not None:
                     # Special case - this option must be modified before use
-                    dd['instcfgout'] = os.path.join(instcfgout_dir, instcfgout)
-            wf_dict['properties'] = dd = properties.copy()
-            if wf_node.hasObject('properties'):
-                dd.update(wf_node['properties'].getProperties())
-            wf_dict['invocation_properties'] = dd = invocation_properties.copy()
-            if wf_node.hasObject('invocation_properties'):
-                dd.update(wf_node['invocation_properties'].getProperties())
-            wf_dict['invocation_options'] = dd = invocation_options.copy()
-            if wf_node.hasObject('invocation_options'):
-                dd.update(wf_node['invocation_options'].getProperties())
+                    dd["instcfgout"] = os.path.join(instcfgout_dir, instcfgout)
+            wf_dict["properties"] = dd = properties.copy()
+            if wf_node.hasObject("properties"):
+                dd.update(wf_node["properties"].getProperties())
+            wf_dict["invocation_properties"] = dd = invocation_properties.copy()
+            if wf_node.hasObject("invocation_properties"):
+                dd.update(wf_node["invocation_properties"].getProperties())
+            wf_dict["invocation_options"] = dd = invocation_options.copy()
+            if wf_node.hasObject("invocation_options"):
+                dd.update(wf_node["invocation_options"].getProperties())
 
-            if wf_node.hasObject('beam_energies'):
-                wf_dict['beam_energies'] = dd = OrderedDict()
-                for wavelength in wf_node['beam_energies']:
-                    dd[wavelength.getProperty('role')] = (
-                        wavelength.getProperty('value')
-                    )
+            if wf_node.hasObject("beam_energies"):
+                wf_dict["beam_energies"] = dd = OrderedDict()
+                for wavelength in wf_node["beam_energies"]:
+                    dd[wavelength.getProperty("role")] = wavelength.getProperty("value")
         #
         return result
 
@@ -239,10 +235,9 @@ class GphlWorkflow(HardwareObject, object):
     def set_state(self, value):
         if value in self.valid_states:
             self._state = value
-            self.emit('stateChanged', (value, ))
+            self.emit("stateChanged", (value,))
         else:
-            raise RuntimeError("GphlWorlflow set to invalid state: s"
-                               % value)
+            raise RuntimeError("GphlWorlflow set to invalid state: s" % value)
 
     def workflow_end(self):
         """
@@ -258,9 +253,8 @@ class GphlWorkflow(HardwareObject, object):
         if workflow_connection is not None:
             workflow_connection._workflow_ended()
 
-
     def abort(self, message=None):
-        logging.getLogger("HWR").info('MXCuBE aborting current GPhL workflow')
+        logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
         workflow_connection = self._workflow_connection
         if workflow_connection is not None:
             workflow_connection.abort_workflow(message=message)
@@ -295,8 +289,9 @@ class GphlWorkflow(HardwareObject, object):
                     )
                     break
                 else:
-                    logging.getLogger("HWR").info("GPhL queue processing %s"
-                                                  % message_type)
+                    logging.getLogger("HWR").info(
+                        "GPhL queue processing %s" % message_type
+                    )
                     response = func(payload, correlation_id)
                     if result_list is not None:
                         result_list.append((response, correlation_id))
@@ -304,39 +299,31 @@ class GphlWorkflow(HardwareObject, object):
         except:
             self.workflow_end()
             logging.getLogger("HWR").error(
-                "Uncaught error during GPhL workflow execution",
-                exc_info=True
+                "Uncaught error during GPhL workflow execution", exc_info=True
             )
             raise
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         # There should be a better way, but apparently there isn't
-        qmo = HardwareRepository().getHardwareObject('/queue-model')
+        qmo = HardwareRepository().getHardwareObject("/queue-model")
         qmo.add_child(parent_model_obj, child_model_obj)
-
 
     # Message handlers:
 
     def workflow_aborted(self, payload, correlation_id):
-        logging.getLogger("user_level_log").info(
-            "GPhL Workflow aborted."
-        )
+        logging.getLogger("user_level_log").info("GPhL Workflow aborted.")
 
     def workflow_completed(self, payload, correlation_id):
-        logging.getLogger("user_level_log").info(
-            "GPhL Workflow completed."
-        )
+        logging.getLogger("user_level_log").info("GPhL Workflow completed.")
 
     def workflow_failed(self, payload, correlation_id):
-        logging.getLogger("user_level_log").info(
-            "GPhL Workflow failed."
-        )
+        logging.getLogger("user_level_log").info("GPhL Workflow failed.")
 
     def echo_info_string(self, payload, correlation_id=None):
         """Print text info to console,. log etc."""
         subprocess_name = self._server_subprocess_names.get(correlation_id)
         if subprocess_name:
-            logging.info ('%s: %s' % (subprocess_name, payload))
+            logging.info("%s: %s" % (subprocess_name, payload))
         else:
             logging.info(payload)
 
@@ -344,18 +331,18 @@ class GphlWorkflow(HardwareObject, object):
         name = payload.name
         if correlation_id:
             self._server_subprocess_names[correlation_id] = name
-        logging.info('%s : STARTING' % name)
+        logging.info("%s : STARTING" % name)
 
     def echo_subprocess_stopped(self, payload, correlation_id):
         try:
             name = self._server_subprocess_names.pop(correlation_id)
         except KeyError:
-            name = 'Unknown process'
-        logging.info('%s : FINISHED' % name)
+            name = "Unknown process"
+        logging.info("%s : FINISHED" % name)
 
     def get_configuration_data(self, payload, correlation_id):
         return self.GphlMessages.ConfigurationData(
-            self.file_paths['gphl_beamline_config']
+            self.file_paths["gphl_beamline_config"]
         )
 
     def query_collection_strategy(self, geometric_strategy):
@@ -369,13 +356,15 @@ class GphlWorkflow(HardwareObject, object):
         if allowed_widths:
             default_width_index = geometric_strategy.defaultWidthIdx or 0
         else:
-            allowed_widths = [float(x) for x in
-                              self.getProperty('default_image_widths').split()]
+            allowed_widths = [
+                float(x) for x in self.getProperty("default_image_widths").split()
+            ]
             val = allowed_widths[0]
             allowed_widths.sort()
             default_width_index = allowed_widths.index(val)
-            logging.getLogger('HWR').info(
-                "No allowed image widths returned by strategy - use defaults")
+            logging.getLogger("HWR").info(
+                "No allowed image widths returned by strategy - use defaults"
+            )
 
         # NBNB TODO userModifiable
 
@@ -409,120 +398,130 @@ class GphlWorkflow(HardwareObject, object):
             beam_energies = data_model.get_beam_energies()
             for tag, energy in beam_energies.items():
                 # NB beam_energies is an ordered dictionary
-                lines.append("- %-18s %6.1f degrees at %s keV"
-                             % (tag, strategy_length, energy))
+                lines.append(
+                    "- %-18s %6.1f degrees at %s keV" % (tag, strategy_length, energy)
+                )
                 total_width += strategy_length
-            lines.append("%-18s:  %6.1f degrees" % ("Total rotation",
-                                                    total_width))
+            lines.append("%-18s:  %6.1f degrees" % ("Total rotation", total_width))
         else:
             # Charcterisation TODO: Use workflow info to distinguish
-            lines.append("    - Beam Energy    : %7.1f keV"
-                         % (ConvertUtils.h_over_e / beamSetting.wavelength))
-            lines.append("    - Total rotation : %7.1f degrees"
-                         % strategy_length)
-
+            lines.append(
+                "    - Beam Energy    : %7.1f keV"
+                % (ConvertUtils.h_over_e / beamSetting.wavelength)
+            )
+            lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
 
         for rotation_id, sweeps in sorted(orientations.items()):
             goniostatRotation = sweeps[0].goniostatSweepSetting
             axis_settings = goniostatRotation.axisSettings
             scan_axis = goniostatRotation.scanAxis
-            ss = ("\nOrientation: "
-                  + ', '.join('%s= %6.1f' % (x, axis_settings.get(x))
-                              for x in axis_names if x != scan_axis)
-                  )
+            ss = "\nOrientation: " + ", ".join(
+                "%s= %6.1f" % (x, axis_settings.get(x))
+                for x in axis_names
+                if x != scan_axis
+            )
             lines.append(ss)
             for sweep in sweeps:
                 start = sweep.start
                 width = sweep.width
-                ss = ("    - sweep %s=%8.1f, width= %s degrees"
-                      % (scan_axis, start, width))
+                ss = "    - sweep %s=%8.1f, width= %s degrees" % (
+                    scan_axis,
+                    start,
+                    width,
+                )
                 lines.append(ss)
-        info_text = '\n'.join(lines)
+        info_text = "\n".join(lines)
 
         acq_parameters = (
             self._queue_entry.beamline_setup.get_default_acquisition_parameters()
         )
         # For now return default values
         field_list = [
-            {'variableName':'_info',
-             'uiLabel':'Data collection plan',
-             'type':'textarea',
-             'defaultValue':info_text,
-             },
-            {'variableName':'imageWidth',
-             'uiLabel':'Oscillation range',
-             'type':'combo',
-             'defaultValue':str(allowed_widths[default_width_index]),
-             'textChoices':[str(x) for x in allowed_widths],
-             },
-
+            {
+                "variableName": "_info",
+                "uiLabel": "Data collection plan",
+                "type": "textarea",
+                "defaultValue": info_text,
+            },
+            {
+                "variableName": "imageWidth",
+                "uiLabel": "Oscillation range",
+                "type": "combo",
+                "defaultValue": str(allowed_widths[default_width_index]),
+                "textChoices": [str(x) for x in allowed_widths],
+            },
             # NB Transmission is in % in UI, but in 0-1 in workflow
-            {'variableName':'transmission',
-             'uiLabel':'Transmission',
-             'type':'text',
-             'defaultValue':str(acq_parameters.transmission),
-             'unit':'%',
-             'lowerBound':0.0,
-             'upperBound':100.0,
-             },
-            {'variableName':'exposure',
-             'uiLabel':'Exposure Time',
-             'type':'text',
-             'defaultValue':str(acq_parameters.exp_time),
-             'unit':'s',
-             # NBNB TODO fill in from config
-             'lowerBound':0.003,
-             'upperBound':6000,
-             },
+            {
+                "variableName": "transmission",
+                "uiLabel": "Transmission",
+                "type": "text",
+                "defaultValue": str(acq_parameters.transmission),
+                "unit": "%",
+                "lowerBound": 0.0,
+                "upperBound": 100.0,
+            },
+            {
+                "variableName": "exposure",
+                "uiLabel": "Exposure Time",
+                "type": "text",
+                "defaultValue": str(acq_parameters.exp_time),
+                "unit": "s",
+                # NBNB TODO fill in from config
+                "lowerBound": 0.003,
+                "upperBound": 6000,
+            },
         ]
-
 
         # First set beam_energy and give it time to settle,
         # so detector distance will trigger correct resolution later
-        collect_hwobj = self._queue_entry.beamline_setup.getObjectByRole(
-            'collect'
-        )
+        collect_hwobj = self._queue_entry.beamline_setup.getObjectByRole("collect")
         collect_hwobj.set_wavelength(beamSetting.wavelength)
 
-        detectorDistance = detectorSetting.axisSettings.get('Distance')
+        detectorDistance = detectorSetting.axisSettings.get("Distance")
         if detectorDistance:
             # NBNB If this is ever set to editable, distance and resolution
             # must be varied in sync
             collect_hwobj.move_detector(detectorDistance)
             resolution = collect_hwobj.get_resolution()
             field_list.append(
-                {'variableName':'detector_distance',
-                 'uiLabel':'Detector distance',
-                 'type':'text',
-                 'defaultValue':str(detectorDistance),
-                 'readOnly':True,
-                 }
+                {
+                    "variableName": "detector_distance",
+                    "uiLabel": "Detector distance",
+                    "type": "text",
+                    "defaultValue": str(detectorDistance),
+                    "readOnly": True,
+                }
             )
             field_list.append(
-                {'variableName':'detector_resolution',
-                 'uiLabel':'Equivalent detector resolution (A)',
-                 'type':'text',
-                 'defaultValue':str(resolution),
-                 'readOnly':True,
-                 }
+                {
+                    "variableName": "detector_resolution",
+                    "uiLabel": "Equivalent detector resolution (A)",
+                    "type": "text",
+                    "defaultValue": str(resolution),
+                    "readOnly": True,
+                }
             )
         else:
-            logging.getLogger('HWR').warning(
+            logging.getLogger("HWR").warning(
                 "Detector distance not set by workflow runner"
             )
 
         if isInterleaved:
-            field_list.append({'variableName':'wedgeWidth',
-                              'uiLabel':'Images per wedge',
-                              'type':'text',
-                              'defaultValue':'10',
-                              'unit':'',
-                              'lowerBound':0,
-                              'upperBound':1000,}
-                          )
+            field_list.append(
+                {
+                    "variableName": "wedgeWidth",
+                    "uiLabel": "Images per wedge",
+                    "type": "text",
+                    "defaultValue": "10",
+                    "unit": "",
+                    "lowerBound": 0,
+                    "upperBound": 1000,
+                }
+            )
         self._return_parameters = gevent.event.AsyncResult()
-        responses = dispatcher.send('gphlParametersNeeded', self,
-                                    field_list, self._return_parameters)
+        responses = dispatcher.send(
+            "gphlParametersNeeded", self, field_list, self._return_parameters
+        )
         if not responses:
             self._return_parameters.set_exception(
                 RuntimeError("Signal 'gphlParametersNeeded' is not connected")
@@ -531,32 +530,32 @@ class GphlWorkflow(HardwareObject, object):
         params = self._return_parameters.get()
         self._return_parameters = None
         result = {}
-        tag = 'imageWidth'
+        tag = "imageWidth"
         value = params.get(tag)
         if value:
             result[tag] = float(value)
-        tag = 'exposure'
+        tag = "exposure"
         value = params.get(tag)
         if value:
             result[tag] = float(value)
-        tag = 'transmission'
+        tag = "transmission"
         value = params.get(tag)
         if value:
             # Convert from % to fraction
-            result[tag] = float(value)/100
-        tag = 'wedgeWidth'
+            result[tag] = float(value) / 100
+        tag = "wedgeWidth"
         value = params.get(tag)
         if value:
             result[tag] = int(value)
         # TODO NBNB must be modified if we make distance/resolution editable
-        tag = 'detector_distance'
+        tag = "detector_distance"
         value = params.get(tag)
         if value:
             collect_hwobj.move_detector(float(value))
             resolution = collect_hwobj.get_resolution()
-            result['resolution'] = resolution
+            result["resolution"] = resolution
         if isInterleaved:
-            result['interleaveOrder'] = data_model.get_interleave_order()
+            result["interleaveOrder"] = data_model.get_interleave_order()
 
         return result
 
@@ -566,12 +565,12 @@ class GphlWorkflow(HardwareObject, object):
         parameters = self.query_collection_strategy(geometric_strategy)
         # Put resolution value in workflow model object
         gphl_workflow_model = self._queue_entry.get_data_model()
-        gphl_workflow_model.set_detector_resolution(parameters.pop('resolution'))
+        gphl_workflow_model.set_detector_resolution(parameters.pop("resolution"))
 
         user_modifiable = geometric_strategy.isUserModifiable
         if user_modifiable:
             # Query user for new rotationSetting and make it,
-            logging.getLogger('HWR').warning(
+            logging.getLogger("HWR").warning(
                 "User modification of sweep settings not implemented. Ignored"
             )
 
@@ -588,27 +587,24 @@ class GphlWorkflow(HardwareObject, object):
                 # Do first centring, by itself, so you can use the result for recen
                 startloop = 1
                 goniostatSweepSettings[sweepSetting.id] = sweepSetting
-                qe = self.enqueue_sample_centring(
-                    goniostatRotation=sweepSetting)
+                qe = self.enqueue_sample_centring(goniostatRotation=sweepSetting)
                 translation = self.execute_sample_centring(
-                        qe, sweepSetting, sweepSetting.id
-                    )
+                    qe, sweepSetting, sweepSetting.id
+                )
                 goniostatTranslations.append(translation)
-                recen_parameters['ref_xyz'] = tuple(
-                    translation.axisSettings[x]
-                    for x in self.translation_axis_roles
+                recen_parameters["ref_xyz"] = tuple(
+                    translation.axisSettings[x] for x in self.translation_axis_roles
                 )
-                recen_parameters['ref_okp'] = tuple(
-                    sweepSetting.axisSettings[x]
-                    for x in self.rotation_axis_roles
+                recen_parameters["ref_okp"] = tuple(
+                    sweepSetting.axisSettings[x] for x in self.rotation_axis_roles
                 )
-                logging.getLogger('HWR').debug(
+                logging.getLogger("HWR").debug(
                     "Recentring set-up. Parameters are: %s"
                     % sorted(recen_parameters.items())
                 )
 
             else:
-                logging.getLogger('HWR').info(
+                logging.getLogger("HWR").info(
                     "transcal.nml file not found - Automatic recentering skipped"
                 )
 
@@ -617,85 +613,74 @@ class GphlWorkflow(HardwareObject, object):
             sweepSetting = sweep.goniostatSweepSetting
             requestedRotationId = sweepSetting.id
             if requestedRotationId not in goniostatSweepSettings:
-                okp = tuple(sweepSetting.axisSettings[x]
-                            for x in self.rotation_axis_roles
-                            )
+                okp = tuple(
+                    sweepSetting.axisSettings[x] for x in self.rotation_axis_roles
+                )
                 if recen_parameters and sweepSetting.translation is None:
                     dd = self.calculate_recentring(okp, **recen_parameters)
 
                     # Creating the Translation adds it to the Rotation
                     GphlMessages.GoniostatTranslation(
                         rotation=sweepSetting,
-                        requestedRotationId=requestedRotationId, **dd
+                        requestedRotationId=requestedRotationId,
+                        **dd
                     )
-                    logging.getLogger('HWR').debug("Recentring. okp=%s, %s"
-                                                   % (okp, sorted(dd.items())))
+                    logging.getLogger("HWR").debug(
+                        "Recentring. okp=%s, %s" % (okp, sorted(dd.items()))
+                    )
                 else:
                     if sweepSetting.translation is None:
                         xx = "No translation settings."
                     else:
-                        xx = sorted(
-                            sweepSetting.translation.axisSettings.items()
-                        )
-                    logging.getLogger('HWR').debug(
+                        xx = sorted(sweepSetting.translation.axisSettings.items())
+                    logging.getLogger("HWR").debug(
                         "No recentring. okp=%s, %s" % (okp, xx)
                     )
 
                 goniostatSweepSettings[requestedRotationId] = sweepSetting
                 # NB there is no provision for NOT making a new translation
                 # object if you are making no changes
-                qe = self.enqueue_sample_centring(
-                    goniostatRotation=sweepSetting)
-                queue_entries.append(
-                    (qe, sweepSetting, requestedRotationId)
-                )
+                qe = self.enqueue_sample_centring(goniostatRotation=sweepSetting)
+                queue_entries.append((qe, sweepSetting, requestedRotationId))
 
         # NB, split in two loops to get all centrings on queue (and so visible) before execution
 
         for qe, goniostatRotation, requestedRotationId in queue_entries:
             goniostatTranslations.append(
-                self.execute_sample_centring(
-                    qe, goniostatRotation, requestedRotationId
-                )
+                self.execute_sample_centring(qe, goniostatRotation, requestedRotationId)
             )
 
         sampleCentred = self.GphlMessages.SampleCentred(
-            goniostatTranslations=goniostatTranslations,
-            **parameters
+            goniostatTranslations=goniostatTranslations, **parameters
         )
         return sampleCentred
 
     def load_transcal_parameters(self):
         """Load home_position and cross_sec_of_soc from transcal.nml"""
-        fp = self.file_paths.get('transcal_file')
+        fp = self.file_paths.get("transcal_file")
         if os.path.isfile(fp):
             try:
-                transcal_data = f90nml.read(fp)['sdcp_instrument_list']
+                transcal_data = f90nml.read(fp)["sdcp_instrument_list"]
             except:
-                logging.getLogger('HWR').error(
+                logging.getLogger("HWR").error(
                     "Error reading transcal.nml file: %s" % fp
                 )
             else:
                 result = {}
-                result['home_position'] = transcal_data.get('trans_home')
-                result['cross_sec_of_soc'] = transcal_data.get(
-                    'trans_cross_sec_of_soc'
-                )
+                result["home_position"] = transcal_data.get("trans_home")
+                result["cross_sec_of_soc"] = transcal_data.get("trans_cross_sec_of_soc")
                 if None in result.values():
-                    logging.getLogger('HWR').warning(
-                        "load_transcal_parameters failed"
-                    )
+                    logging.getLogger("HWR").warning("load_transcal_parameters failed")
                 else:
                     return result
         else:
-            logging.getLogger('HWR').warning(
-                "transcal.nml file not found: %s" % fp
-            )
+            logging.getLogger("HWR").warning("transcal.nml file not found: %s" % fp)
         # If we get here reading failed
         return {}
 
-    def calculate_recentring(self, okp, home_position, cross_sec_of_soc,
-                             ref_okp, ref_xyz):
+    def calculate_recentring(
+        self, okp, home_position, cross_sec_of_soc, ref_okp, ref_xyz
+    ):
         """Add predicted traslation values using recen
         okp is the omega,gamma,phi tuple of the target position,
         home_position is the translation calibration home position,
@@ -706,62 +691,67 @@ class GphlWorkflow(HardwareObject, object):
         # Make input file
         gphl_workflow_model = self._queue_entry.get_data_model()
         infile = os.path.join(
-            gphl_workflow_model.path_template.process_directory,
-            'temp_recen.in'
+            gphl_workflow_model.path_template.process_directory, "temp_recen.in"
         )
         recen_data = OrderedDict()
-        indata = {'recen_list':recen_data}
+        indata = {"recen_list": recen_data}
 
-        fp = self.file_paths.get('instrumentation_file')
-        instrumentation_data = f90nml.read(fp)['sdcp_instrument_list']
+        fp = self.file_paths.get("instrumentation_file")
+        instrumentation_data = f90nml.read(fp)["sdcp_instrument_list"]
         diffractcal_data = instrumentation_data
 
-        fp = self.file_paths.get('diffractcal_file')
+        fp = self.file_paths.get("diffractcal_file")
         try:
-            diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
+            diffractcal_data = f90nml.read(fp)["sdcp_instrument_list"]
         except:
-            logging.getLogger('HWR').debug(
-                "diffractcal file not present - using instrumentation.nml %s"
-                % fp
+            logging.getLogger("HWR").debug(
+                "diffractcal file not present - using instrumentation.nml %s" % fp
             )
-        ll = diffractcal_data['gonio_axis_dirs']
-        recen_data['omega_axis'] = ll[:3]
-        recen_data['kappa_axis'] = ll[3:6]
-        recen_data['phi_axis'] = ll[6:]
-        ll = instrumentation_data['gonio_centring_axis_dirs']
-        recen_data['trans_1_axis'] = ll[:3]
-        recen_data['trans_2_axis'] = ll[3:6]
-        recen_data['trans_3_axis'] = ll[6:]
-        recen_data['cross_sec_of_soc'] = cross_sec_of_soc
-        recen_data['home'] = home_position
+        ll = diffractcal_data["gonio_axis_dirs"]
+        recen_data["omega_axis"] = ll[:3]
+        recen_data["kappa_axis"] = ll[3:6]
+        recen_data["phi_axis"] = ll[6:]
+        ll = instrumentation_data["gonio_centring_axis_dirs"]
+        recen_data["trans_1_axis"] = ll[:3]
+        recen_data["trans_2_axis"] = ll[3:6]
+        recen_data["trans_3_axis"] = ll[6:]
+        recen_data["cross_sec_of_soc"] = cross_sec_of_soc
+        recen_data["home"] = home_position
         #
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
-        recen_executable = self._workflow_connection.get_executable('recen')
+        recen_executable = self._workflow_connection.get_executable("recen")
         # Get environmental variables
-        envs = {'BDG_home':
-                    self._workflow_connection.software_paths['BDG_home']
-                }
+        envs = {"BDG_home": self._workflow_connection.software_paths["BDG_home"]}
         # Run recen
-        command_list = [recen_executable,
-                        '--input', infile,
-                        '--init-xyz', "%s %s %s" % ref_xyz,
-                        '--init-okp', "%s %s %s" % ref_okp,
-                        '--okp', "%s %s %s" % okp,
-                        ]
-        #NB the universal_newlines has the NECESSARY side effect of converting
+        command_list = [
+            recen_executable,
+            "--input",
+            infile,
+            "--init-xyz",
+            "%s %s %s" % ref_xyz,
+            "--init-okp",
+            "%s %s %s" % ref_okp,
+            "--okp",
+            "%s %s %s" % okp,
+        ]
+        # NB the universal_newlines has the NECESSARY side effect of converting
         # output from bytes to string (with default encoding),
         # avoiding an explicit decoding step.
         result = {}
-        logging.getLogger('HWR').debug("Running Recen command: %s"
-                                       % ' '.join(command_list))
+        logging.getLogger("HWR").debug(
+            "Running Recen command: %s" % " ".join(command_list)
+        )
         try:
-            output = subprocess.check_output(command_list, env=envs,
-                                             stderr=subprocess.STDOUT,
-                                             universal_newlines=True)
+            output = subprocess.check_output(
+                command_list,
+                env=envs,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
         except subprocess.CalledProcessError as err:
-            logging.getLogger('HWR').error(
+            logging.getLogger("HWR").error(
                 "Recen failed with returncode %s. Output was:\n%s"
                 % (err.returncode, err.output)
             )
@@ -771,18 +761,17 @@ class GphlWorkflow(HardwareObject, object):
         for line in reversed(output.splitlines()):
             ss = line.strip()
             if terminated_ok:
-                if 'X,Y,Z' in ss:
+                if "X,Y,Z" in ss:
                     ll = ss.split()[-3:]
                     for ii, tag in enumerate(self.translation_axis_roles):
                         result[tag] = float(ll[ii])
                     break
 
-            elif ss == 'NORMAL termination':
+            elif ss == "NORMAL termination":
                 terminated_ok = True
         else:
-            logging.getLogger('HWR').error(
-                "Recen failed with normal termination=%s. Output was:\n"
-                % terminated_ok
+            logging.getLogger("HWR").error(
+                "Recen failed with normal termination=%s. Output was:\n" % terminated_ok
                 + output
             )
         #
@@ -799,7 +788,7 @@ class GphlWorkflow(HardwareObject, object):
         master_path_template = gphl_workflow_model.path_template
         relative_image_dir = collection_proposal.relativeImageDir
 
-        new_dcg_name = 'GPhL Data Collection'
+        new_dcg_name = "GPhL Data Collection"
         new_dcg_model = queue_model_objects.TaskGroup()
         new_dcg_model.set_enabled(True)
         new_dcg_model.set_name(new_dcg_name)
@@ -818,19 +807,21 @@ class GphlWorkflow(HardwareObject, object):
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
-            acq_parameters = (
-                beamline_setup_hwobj.get_default_acquisition_parameters()
-            )
+            acq_parameters = beamline_setup_hwobj.get_default_acquisition_parameters()
             acq.acquisition_parameters = acq_parameters
 
             acq_parameters.first_image = scan.imageStartNum
             acq_parameters.num_images = scan.width.numImages
             acq_parameters.osc_start = scan.start
             acq_parameters.osc_range = scan.width.imageWidth
-            logging.getLogger('HWR').info(
+            logging.getLogger("HWR").info(
                 "Scan: %s images of %s deg. starting at %s (%s deg)"
-                % (acq_parameters.num_images, acq_parameters.osc_range,
-                   acq_parameters.first_image, acq_parameters.osc_start)
+                % (
+                    acq_parameters.num_images,
+                    acq_parameters.osc_range,
+                    acq_parameters.first_image,
+                    acq_parameters.osc_start,
+                )
             )
             # acq_parameters.kappa = self._get_kappa_axis_position()
             # acq_parameters.kappa_phi = self._get_kappa_phi_axis_position()
@@ -838,8 +829,7 @@ class GphlWorkflow(HardwareObject, object):
             acq_parameters.exp_time = scan.exposure.time
             acq_parameters.num_passes = 1
             acq_parameters.resolution = gphl_workflow_model.get_detector_resolution()
-            acq_parameters.energy = (ConvertUtils.h_over_e
-                                     / sweep.beamSetting.wavelength)
+            acq_parameters.energy = ConvertUtils.h_over_e / sweep.beamSetting.wavelength
             acq_parameters.transmission = scan.exposure.transmission * 100
             # acq_parameters.shutterless = self._has_shutterless()
             # acq_parameters.detector_mode = self._get_roi_modes()
@@ -856,8 +846,9 @@ class GphlWorkflow(HardwareObject, object):
 
             goniostatRotation = sweep.goniostatSweepSetting
             goniostatTranslation = goniostatRotation.translation
-            dd = dict((x, goniostatRotation.axisSettings[x])
-                      for x in self.rotation_axis_roles)
+            dd = dict(
+                (x, goniostatRotation.axisSettings[x]) for x in self.rotation_axis_roles
+            )
 
             if goniostatTranslation is not None:
                 for tag in self.translation_axis_roles:
@@ -865,9 +856,7 @@ class GphlWorkflow(HardwareObject, object):
                     if val is not None:
                         dd[tag] = val
             dd[goniostatRotation.scanAxis] = scan.start
-            acq_parameters.centred_position = (
-                queue_model_objects.CentredPosition(dd)
-            )
+            acq_parameters.centred_position = queue_model_objects.CentredPosition(dd)
 
             # Path_template
             path_template = queue_model_objects.PathTemplate()
@@ -883,29 +872,25 @@ class GphlWorkflow(HardwareObject, object):
                 )
             acq.path_template = path_template
             filename_params = scan.filenameParams
-            subdir = filename_params.get('subdir')
+            subdir = filename_params.get("subdir")
             if subdir:
-                path_template.directory = os.path.join(path_template.directory,
-                                                       subdir)
+                path_template.directory = os.path.join(path_template.directory, subdir)
                 path_template.process_directory = os.path.join(
                     path_template.process_directory, subdir
                 )
-            ss = filename_params.get('run')
+            ss = filename_params.get("run")
             path_template.run_number = int(ss) if ss else 1
-            prefix = filename_params.get('prefix', '')
-            ib_component = filename_params.get('inverse_beam_component_sign',
-                                               '')
+            prefix = filename_params.get("prefix", "")
+            ib_component = filename_params.get("inverse_beam_component_sign", "")
             ll = []
             if prefix:
                 ll.append(prefix)
             if ib_component:
                 ll.append(ib_component)
-            path_template.base_prefix = '_'.join(ll)
-            path_template.mad_prefix = (
-                filename_params.get('beam_setting_index') or ''
-            )
+            path_template.base_prefix = "_".join(ll)
+            path_template.mad_prefix = filename_params.get("beam_setting_index") or ""
             path_template.wedge_prefix = (
-                filename_params.get('gonio_setting_index') or ''
+                filename_params.get("gonio_setting_index") or ""
             )
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
@@ -918,9 +903,7 @@ class GphlWorkflow(HardwareObject, object):
             data_collection.set_number(path_template.run_number)
             self._add_to_queue(new_dcg_model, data_collection)
 
-        data_collection_entry = queue_manager.get_entry_with_model(
-            new_dcg_model
-        )
+        data_collection_entry = queue_manager.get_entry_with_model(new_dcg_model)
         queue_manager.execute_entry(data_collection_entry)
 
         if data_collection_entry.status == QUEUE_ENTRY_STATUS.FAILED:
@@ -952,17 +935,17 @@ class GphlWorkflow(HardwareObject, object):
         # Color green (figuratively) if matches lattices,
         # or otherwise if matches crystalSystem
 
-        dd = self.parse_indexing_solution(solution_format,
-                                          choose_lattice.solutions)
+        dd = self.parse_indexing_solution(solution_format, choose_lattice.solutions)
 
         field_list = [
-            {'variableName':'_cplx',
-             'uiLabel':'Select indexing solution:',
-             'type':'selection_table',
-             'header':dd['header'],
-             'colours':None,
-             'defaultValue':(dd['solutions'],),
-             },
+            {
+                "variableName": "_cplx",
+                "uiLabel": "Select indexing solution:",
+                "type": "selection_table",
+                "header": dd["header"],
+                "colours": None,
+                "defaultValue": (dd["solutions"],),
+            }
         ]
 
         # colour matching lattices green
@@ -970,28 +953,28 @@ class GphlWorkflow(HardwareObject, object):
         if crystal_system and not colour_check:
             colour_check = (crystal_system,)
         if colour_check:
-            colours = [None] * len(dd['solutions'])
-            for ii, line in enumerate(dd['solutions']):
+            colours = [None] * len(dd["solutions"])
+            for ii, line in enumerate(dd["solutions"]):
                 if any(x in line for x in colour_check):
-                    colours[ii] = 'LIGHT_GREEN'
-            field_list[0]['colours'] = colours
+                    colours[ii] = "LIGHT_GREEN"
+            field_list[0]["colours"] = colours
 
         self._return_parameters = gevent.event.AsyncResult()
-        responses = dispatcher.send('gphlParametersNeeded', self,
-                                    field_list, self._return_parameters)
+        responses = dispatcher.send(
+            "gphlParametersNeeded", self, field_list, self._return_parameters
+        )
         if not responses:
             self._return_parameters.set_exception(
                 RuntimeError("Signal 'gphlParametersNeeded' is not connected")
             )
 
         params = self._return_parameters.get()
-        ll = str(params['_cplx'][0]).split()
-        if ll[0] == '*':
+        ll = str(params["_cplx"][0]).split()
+        if ll[0] == "*":
             del ll[0]
         #
         self._queue_entry.get_data_model().lattice_selected = True
-        return  self.GphlMessages.SelectedLattice(format=solution_format,
-                                                  solution=ll)
+        return self.GphlMessages.SelectedLattice(format=solution_format, solution=ll)
 
     def parse_indexing_solution(self, solution_format, text):
 
@@ -1063,23 +1046,22 @@ class GphlWorkflow(HardwareObject, object):
 
         # find headers lines
         solutions = []
-        if solution_format == 'IDXREF':
+        if solution_format == "IDXREF":
             lines = text.splitlines()
             for indx in range(len(lines)):
-                if 'BRAVAIS-' in lines[indx]:
+                if "BRAVAIS-" in lines[indx]:
                     # Used as marker for first header line
-                    header = ['%s\n%s' % (lines[indx], lines[indx + 1])]
+                    header = ["%s\n%s" % (lines[indx], lines[indx + 1])]
                     break
             else:
-                raise ValueError(
-                    "Substring 'BRAVAIS-' missing in %s indexing solution")
+                raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
 
             for indx in range(indx, len(lines)):
                 line = lines[indx]
                 ss = line.strip()
                 if ss:
                     # we are skipping blank line at the start
-                    if solutions or ss[0] == '*':
+                    if solutions or ss[0] == "*":
                         # First real line will start with a '*
                         # Subsequent non=-empty lines will also be used
                         solutions.append(line)
@@ -1088,20 +1070,22 @@ class GphlWorkflow(HardwareObject, object):
                     break
 
             #
-            return {'header':header, 'solutions':solutions}
+            return {"header": header, "solutions": solutions}
         else:
-            raise ValueError("GPhL: Indexing format %s is not known"
-                             % repr(solution_format))
+            raise ValueError(
+                "GPhL: Indexing format %s is not known" % repr(solution_format)
+            )
 
     def process_centring_request(self, payload, correlation_id):
         # Used for transcal only - anything else is data collection related
         request_centring = payload
 
-        logging.getLogger('user_level_log').info ('Start centring no. %s of %s'
-                      % (request_centring.currentSettingNo,
-                         request_centring.totalRotations))
+        logging.getLogger("user_level_log").info(
+            "Start centring no. %s of %s"
+            % (request_centring.currentSettingNo, request_centring.totalRotations)
+        )
 
-        ## Rotate sample to RotationSetting
+        # Rotate sample to RotationSetting
         goniostatRotation = request_centring.goniostatRotation
         # goniostatTranslation = goniostatRotation.translation
         #
@@ -1109,38 +1093,41 @@ class GphlWorkflow(HardwareObject, object):
         if request_centring.currentSettingNo < 2:
             # Start without fine zoom setting
             self._use_fine_zoom = False
-        elif (not self._use_fine_zoom
-              and goniostatRotation.translation is not None):
+        elif not self._use_fine_zoom and goniostatRotation.translation is not None:
             # We are moving to having recentered positions -
             # Set or prompt for fine zoom
             self._use_fine_zoom = True
             # TODO Check correct way to get hold of zoom motor
-            zoom_motor = self._queue_entry.beamline_setup.getObjectByRole('zoom')
+            zoom_motor = self._queue_entry.beamline_setup.getObjectByRole("zoom")
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification
                 ll = zoom_motor.getPredefinedPositionsList()
                 if ll:
-                    logging.getLogger('user_level_log').info (
-                        'Sample re-centering now active - Zooming in.')
+                    logging.getLogger("user_level_log").info(
+                        "Sample re-centering now active - Zooming in."
+                    )
                     zoom_motor.moveToPosition(ll[-1])
                 else:
-                    logging.getLogger('HWR').warning (
-                        'No predefined positions for zoom motor.')
+                    logging.getLogger("HWR").warning(
+                        "No predefined positions for zoom motor."
+                    )
             else:
                 # Ask user to zoom
                 info_text = """Automatic sample re-centering is now active
     Switch to maximum zoom before continuing"""
                 field_list = [
-                    {'variableName':'_info',
-                     'uiLabel':'Data collection plan',
-                     'type':'textarea',
-                     'defaultValue':info_text,
-                     },
+                    {
+                        "variableName": "_info",
+                        "uiLabel": "Data collection plan",
+                        "type": "textarea",
+                        "defaultValue": info_text,
+                    }
                 ]
                 self._return_parameters = gevent.event.AsyncResult()
-                responses = dispatcher.send('gphlParametersNeeded', self,
-                                            field_list, self._return_parameters)
+                responses = dispatcher.send(
+                    "gphlParametersNeeded", self, field_list, self._return_parameters
+                )
                 if not responses:
                     self._return_parameters.set_exception(
                         RuntimeError("Signal 'gphlParametersNeeded' is not connected")
@@ -1150,18 +1137,19 @@ class GphlWorkflow(HardwareObject, object):
                 self._return_parameters = None
 
         centring_queue_entry = self.enqueue_sample_centring(goniostatRotation)
-        goniostatTranslation = self.execute_sample_centring(centring_queue_entry,
-                                                            goniostatRotation)
+        goniostatTranslation = self.execute_sample_centring(
+            centring_queue_entry, goniostatRotation
+        )
 
-        if (request_centring.currentSettingNo >=
-                request_centring.totalRotations):
-            returnStatus = 'DONE'
+        if request_centring.currentSettingNo >= request_centring.totalRotations:
+            returnStatus = "DONE"
         else:
-            returnStatus = 'NEXT'
+            returnStatus = "NEXT"
         #
         return self.GphlMessages.CentringDone(
-            returnStatus, timestamp=time.time(),
-            goniostatTranslation=goniostatTranslation
+            returnStatus,
+            timestamp=time.time(),
+            goniostatTranslation=goniostatTranslation,
         )
 
     def enqueue_sample_centring(self, goniostatRotation):
@@ -1170,8 +1158,9 @@ class GphlWorkflow(HardwareObject, object):
 
         goniostatTranslation = goniostatRotation.translation
 
-        dd = dict((x, goniostatRotation.axisSettings[x])
-                  for x in self.rotation_axis_roles)
+        dd = dict(
+            (x, goniostatRotation.axisSettings[x]) for x in self.rotation_axis_roles
+        )
         if goniostatTranslation is not None:
             for tag in self.translation_axis_roles:
                 val = goniostatTranslation.axisSettings.get(tag)
@@ -1184,8 +1173,9 @@ class GphlWorkflow(HardwareObject, object):
 
         return centring_entry
 
-    def execute_sample_centring(self, centring_entry, goniostatRotation,
-                                requestedRotationId=None):
+    def execute_sample_centring(
+        self, centring_entry, goniostatRotation, requestedRotationId=None
+    ):
 
         queue_manager = self._queue_entry.get_queue_controller()
         queue_manager.execute_entry(centring_entry)
@@ -1193,11 +1183,11 @@ class GphlWorkflow(HardwareObject, object):
         centring_result = centring_entry.get_data_model().get_centring_result()
         if centring_result:
             positionsDict = centring_result.as_dict()
-            dd = dict((x, positionsDict[x])
-                      for x in self.translation_axis_roles)
+            dd = dict((x, positionsDict[x]) for x in self.translation_axis_roles)
             return self.GphlMessages.GoniostatTranslation(
                 rotation=goniostatRotation,
-                requestedRotationId=requestedRotationId, **dd
+                requestedRotationId=requestedRotationId,
+                **dd
             )
         else:
             self.abort("No Centring result found")
@@ -1219,8 +1209,9 @@ class GphlWorkflow(HardwareObject, object):
             for role, value in beam_energies.items():
                 wavelength = ConvertUtils.h_over_e / value
                 wavelengths.append(
-                    self.GphlMessages.PhasingWavelength(wavelength=wavelength,
-                                                        role=role)
+                    self.GphlMessages.PhasingWavelength(
+                        wavelength=wavelength, role=role
+                    )
                 )
         else:
             wavelengths.append(
@@ -1250,19 +1241,25 @@ class GphlWorkflow(HardwareObject, object):
             cell=unitCell,
             expectedResolution=workflow_model.get_expected_resolution(),
             isAnisotropic=None,
-            phasingWavelengths=wavelengths
+            phasingWavelengths=wavelengths,
         )
-        ll = ['PriorInformation']
-        for tag in ('expectedResolution', 'isAnisotropic', 'lattice',
-                    'pointGroup', 'scatterers', 'spaceGroup'):
+        ll = ["PriorInformation"]
+        for tag in (
+            "expectedResolution",
+            "isAnisotropic",
+            "lattice",
+            "pointGroup",
+            "scatterers",
+            "spaceGroup",
+        ):
             val = getattr(userProvidedInfo, tag)
             if val:
-                ll.append('%s=%s' % (tag, val))
+                ll.append("%s=%s" % (tag, val))
         if beam_energies:
-            ll.extend('%s=%s' % (x.role, x.wavelength) for x in wavelengths)
+            ll.extend("%s=%s" % (x.role, x.wavelength) for x in wavelengths)
         if cell_params:
-            ll.append('cell_parameters=%s' % (cell_params,))
-        logging.getLogger('HWR').debug(', '.join(ll))
+            ll.append("cell_parameters=%s" % (cell_params,))
+        logging.getLogger("HWR").debug(", ".join(ll))
 
         # Look for existing uuid
         for text in sample_model.lims_code, sample_model.code, sample_model.name:
@@ -1279,7 +1276,7 @@ class GphlWorkflow(HardwareObject, object):
         else:
             sampleId = uuid.uuid1()
 
-        session_hwobj = HardwareRepository().getHardwareObject('session')
+        session_hwobj = HardwareRepository().getHardwareObject("session")
         image_root = session_hwobj.get_base_image_directory()
 
         if not os.path.isdir(image_root):
@@ -1288,18 +1285,21 @@ class GphlWorkflow(HardwareObject, object):
                 os.makedirs(image_root)
             except:
                 # No need to raise error - program will fail downstream
-                logging.getLogger('HWR').error(
+                logging.getLogger("HWR").error(
                     "Could not create image root directory: %s" % image_root
                 )
 
         priorInformation = self.GphlMessages.PriorInformation(
             sampleId=sampleId,
-            sampleName=(sample_model.name or sample_model.code
-                        or sample_model.lims_code or
-                        workflow_model.path_template.get_prefix()
-                        or str(sampleId)),
+            sampleName=(
+                sample_model.name
+                or sample_model.code
+                or sample_model.lims_code
+                or workflow_model.path_template.get_prefix()
+                or str(sampleId)
+            ),
             rootDirectory=image_root,
-            userProvidedInfo=userProvidedInfo
+            userProvidedInfo=userProvidedInfo,
         )
         #
         return priorInformation

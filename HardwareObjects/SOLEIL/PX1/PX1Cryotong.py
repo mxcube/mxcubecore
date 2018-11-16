@@ -1,4 +1,3 @@
-
 import logging
 import gevent
 import time
@@ -11,6 +10,7 @@ from Cats90 import BASKET_UNIPUCK
 
 from PX1Environment import EnvironmentPhase
 
+
 class PX1Cryotong(Cats90):
 
     __TYPE__ = "CATS"
@@ -22,7 +22,7 @@ class PX1Cryotong(Cats90):
 
     def __init__(self, *args, **kwargs):
 
-        super(PX1Cryotong, self).__init__( *args, **kwargs)
+        super(PX1Cryotong, self).__init__(*args, **kwargs)
 
         self._safeNeeded = None
         self._homeOpened = None
@@ -34,36 +34,43 @@ class PX1Cryotong(Cats90):
 
     def init(self):
 
-        super(PX1Cryotong,self).init()
-      
+        super(PX1Cryotong, self).init()
+
         self.cats_device = DeviceProxy(self.getProperty("cats_device"))
 
         self.environment = self.getObjectByRole("environment")
 
         if self.environment is None:
-            logging.error("PX1Cats. environment object not available. Sample changer cannot operate. Info.mode only")
+            logging.error(
+                "PX1Cats. environment object not available. Sample changer cannot operate. Info.mode only"
+            )
             self.infomode = True
         else:
             self.infomode = False
 
-        for channel_name in ("_chnSoftAuth","_chnHomeOpened", \
-                            "_chnDryAndSoakNeeded", "_chnIncoherentGonioSampleState",
-                            "_chnSampleIsDetected", "_chnCountDown"): 
-           setattr(self, channel_name, self.getChannelObject(channel_name))
+        for channel_name in (
+            "_chnSoftAuth",
+            "_chnHomeOpened",
+            "_chnDryAndSoakNeeded",
+            "_chnIncoherentGonioSampleState",
+            "_chnSampleIsDetected",
+            "_chnCountDown",
+        ):
+            setattr(self, channel_name, self.getChannelObject(channel_name))
 
         self._chnSoftAuth.connectSignal("update", self._softwareAuthorization)
         self._chnHomeOpened.connectSignal("update", self._updateHomeOpened)
-        self._chnIncoherentGonioSampleState.connectSignal("update", self._updateAckSampleMemory)
-        self._chnDryAndSoakNeeded.connectSignal("update",self._dryAndSoakNeeded)
-        self._chnSampleIsDetected.connectSignal("update",self._updateSampleIsDetected)
+        self._chnIncoherentGonioSampleState.connectSignal(
+            "update", self._updateAckSampleMemory
+        )
+        self._chnDryAndSoakNeeded.connectSignal("update", self._dryAndSoakNeeded)
+        self._chnSampleIsDetected.connectSignal("update", self._updateSampleIsDetected)
         self._chnCountDown.connectSignal("update", self._updateCountDown)
 
-        self._cmdDrySoak = self.addCommand({
-                    "type": "tango",
-                    "name": "_cmdDrySoak",
-                    "tangoname": self.tangoname,
-                }, "DryAndSoak")
-
+        self._cmdDrySoak = self.addCommand(
+            {"type": "tango", "name": "_cmdDrySoak", "tangoname": self.tangoname},
+            "DryAndSoak",
+        )
 
     ### CRYOTONG SPECIFIC METHODS ###
     def _softwareAuthorization(self, value):
@@ -73,11 +80,11 @@ class PX1Cryotong(Cats90):
 
     def _updateHomeOpened(self, value=None):
         if self._homeOpened != value:
-             self._homeOpened = value
-             self.emit('homeOpened', (value, ))
+            self._homeOpened = value
+            self.emit("homeOpened", (value,))
 
     def _updateSampleIsDetected(self, value):
-        self.emit('sampleIsDetected', (value, ))
+        self.emit("sampleIsDetected", (value,))
 
     def _updateAckSampleMemory(self, value=None):
         if value is None:
@@ -86,8 +93,10 @@ class PX1Cryotong(Cats90):
         if value != self.incoherent_state:
             # automatically acknowledge the error. send a warning to the GUI
             if self.incoherent_state is not None:
-                logging.getLogger('user_level_log').warning("CATS: Requested Sample could not be loaded.")
-                self.emit('loadError', value)
+                logging.getLogger("user_level_log").warning(
+                    "CATS: Requested Sample could not be loaded."
+                )
+                self.emit("loadError", value)
                 try:
                     self._cmdAckSampleMemory()
                 except:
@@ -104,17 +113,20 @@ class PX1Cryotong(Cats90):
         if not homeOpened:
             self._doDrySoak()
         else:
-            logging.getLogger('user_level_log').warning("CATS: You must Dry_and_Soak the gripper.")
+            logging.getLogger("user_level_log").warning(
+                "CATS: You must Dry_and_Soak the gripper."
+            )
 
     def _updateCountDown(self, value=None):
         if value is None:
             value = self._chnCountDown.getValue()
-            
+
         if value != self.count_down:
-            logging.getLogger("HWR").info("PX1Cats. CountDown changed. Now is: %s" % value)
+            logging.getLogger("HWR").info(
+                "PX1Cats. CountDown changed. Now is: %s" % value
+            )
             self.count_down = value
             self.emit("countdownSignal", value)
-
 
     def _doDrySoak(self):
         """
@@ -137,16 +149,26 @@ class PX1Cryotong(Cats90):
         :rtype: None
         """
         if self.infomode:
-            logging.warning("PX1Cryotong. It is in info mode only. Command 'safe' ignored" )
+            logging.warning(
+                "PX1Cryotong. It is in info mode only. Command 'safe' ignored"
+            )
             return
 
         ret = self.env_send_transfer()
 
         if not ret:
-            logging.getLogger("user_level_log").error("PX1 Environment cannot set transfer phase") 
-            raise Exception("Cryotong cannot get to transfer phase. Aborting sample changer operation")
- 
-        self._executeServerTask(self._cmdSafe, "Safe", states=[SampleChangerState.Ready, SampleChangerState.Alarm])
+            logging.getLogger("user_level_log").error(
+                "PX1 Environment cannot set transfer phase"
+            )
+            raise Exception(
+                "Cryotong cannot get to transfer phase. Aborting sample changer operation"
+            )
+
+        self._executeServerTask(
+            self._cmdSafe,
+            "Safe",
+            states=[SampleChangerState.Ready, SampleChangerState.Alarm],
+        )
 
     ### (END) CRYOTONG SPECIFIC METHODS ###
 
@@ -160,50 +182,68 @@ class PX1Cryotong(Cats90):
 
         ret = self.check_power_on()
         if ret is False:
-            logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered") 
-            raise Exception("CRYOTONG Cannot be powered. Aborting sample changer operation")
+            logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered")
+            raise Exception(
+                "CRYOTONG Cannot be powered. Aborting sample changer operation"
+            )
 
         ret = self.check_drysoak()
         if ret is False:
-            logging.getLogger("user_level_log").error("CRYOTONG Home Open / DryAndSoak not valid for loading") 
-            raise Exception("CRYOTONG Home Open / DryAndSoak not valid for loading") 
+            logging.getLogger("user_level_log").error(
+                "CRYOTONG Home Open / DryAndSoak not valid for loading"
+            )
+            raise Exception("CRYOTONG Home Open / DryAndSoak not valid for loading")
 
         ret = self.env_send_transfer()
         if ret is False:
-            logging.getLogger("user_level_log").error("PX1 Environment cannot set transfer phase") 
-            raise Exception("Cryotong cannot get to transfer phase. Aborting sample changer operation")
+            logging.getLogger("user_level_log").error(
+                "PX1 Environment cannot set transfer phase"
+            )
+            raise Exception(
+                "Cryotong cannot get to transfer phase. Aborting sample changer operation"
+            )
 
         self._doLoadOperation(sample)
 
         # Check the value of the CATSCRYOTONG attribute dryAndSoakNeeded to warn user if it is True
         dryAndSoak = self._chnDryAndSoakNeeded.getValue()
         if dryAndSoak:
-            logging.getLogger('user_level_log').warning("CATS: It is recommended to Dry_and_Soak the gripper.")
+            logging.getLogger("user_level_log").warning(
+                "CATS: It is recommended to Dry_and_Soak the gripper."
+            )
 
         incoherentSample = self._chnIncoherentGonioSampleState.getValue()
         if incoherentSample:
-            logging.getLogger("user_level_log").info("CATS: Load/Unload Error. Please try again.")
-            self.emit('loadError', incoherentSample)
+            logging.getLogger("user_level_log").info(
+                "CATS: Load/Unload Error. Please try again."
+            )
+            self.emit("loadError", incoherentSample)
 
-    def _doUnload(self,sample=None,wash=None):
+    def _doUnload(self, sample=None, wash=None):
 
         ret = self.check_power_on()
         if ret is False:
-            logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered") 
-            raise Exception("CRYOTONG Cannot be powered. Aborting sample changer operation")
+            logging.getLogger("user_level_log").error("CRYOTONG Cannot be powered")
+            raise Exception(
+                "CRYOTONG Cannot be powered. Aborting sample changer operation"
+            )
 
         ret = self.env_send_transfer()
 
         if ret is False:
-            logging.getLogger("user_level_log").error("PX1 Environment cannot set transfer phase") 
-            raise Exception("Cryotong cannot get to transfer phase. Aborting sample changer operation")
+            logging.getLogger("user_level_log").error(
+                "PX1 Environment cannot set transfer phase"
+            )
+            raise Exception(
+                "Cryotong cannot get to transfer phase. Aborting sample changer operation"
+            )
 
         self._doUnloadOperation(sample)
 
     def check_power_on(self):
         if self._chnPowered.getValue():
             return True
- 
+
         self._cmdPowerOn()
 
         timeout = 3
@@ -212,19 +252,21 @@ class PX1Cryotong(Cats90):
         while not self._chnPowered.getValue():
             gevent.sleep(0.3)
             if time.time() - t0 > timeout:
-                logging.getLogger('HWR').warning("CRYOTONG: timeout waiting for power on")
+                logging.getLogger("HWR").warning(
+                    "CRYOTONG: timeout waiting for power on"
+                )
                 break
-               
+
         if self._chnPowered.getValue():
             return False
-        
+
         return True
 
     def check_drysoak(self):
         if self._chnHomeOpened.getValue() is False:
             return True
 
-        #  
+        #
         self._cmdDrySoak()
 
         time.sleep(3)
@@ -232,7 +274,9 @@ class PX1Cryotong(Cats90):
         wait_n = 0
         while self._isDeviceBusy():
             if wait_n % 10 == 3:
-                logging.getLogger('HWR').warning("CRYOTONG: waiting for dry and soak to complete")
+                logging.getLogger("HWR").warning(
+                    "CRYOTONG: waiting for dry and soak to complete"
+                )
             gevent.sleep(0.3)
             wait_n += 1
 
@@ -245,7 +289,9 @@ class PX1Cryotong(Cats90):
         if self.environment.readyForTransfer():
             return True
 
-        logging.getLogger('user_level_log').warning("CRYOTONG: Not ready for transfer. sending it")
+        logging.getLogger("user_level_log").warning(
+            "CRYOTONG: Not ready for transfer. sending it"
+        )
         self.environment.setPhase(EnvironmentPhase.TRANSFER)
 
         timeout = 10
@@ -253,26 +299,29 @@ class PX1Cryotong(Cats90):
         while not self.environment.readyForTransfer():
             gevent.sleep(0.3)
             if time.time() - t0 > timeout:
-                logging.getLogger('HWR').warning("CRYOTONG: timeout waiting for transfer phase")
+                logging.getLogger("HWR").warning(
+                    "CRYOTONG: timeout waiting for transfer phase"
+                )
                 break
-            logging.getLogger('HWR').warning("CRYOTONG: waiting for transfer phase to be set")
-               
+            logging.getLogger("HWR").warning(
+                "CRYOTONG: waiting for transfer phase to be set"
+            )
+
         if not self.environment.readyForTransfer():
             return False
-       
-        logging.getLogger('HWR').warning("CRYOTONG: ready for transfer now")
-        return True
 
+        logging.getLogger("HWR").warning("CRYOTONG: ready for transfer now")
+        return True
 
     ### (END) OVERLOADED CATS90 methods ####
 
-  
+
 def test_hwo(hwo):
     import gevent
 
     basket_list = hwo.getBasketList()
     sample_list = hwo.getSampleList()
-    print("Baskets/Samples in CATS: %s/%s" % ( len(basket_list), len(sample_list)))
+    print ("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
     gevent.sleep(2)
     sample_list = hwo.getSampleList()
     print "No of samples is ", len(sample_list)
@@ -283,7 +332,10 @@ def test_hwo(hwo):
             break
 
     if hwo.hasLoadedSample():
-        print "Currently loaded (%s): %s" % (hwo.hasLoadedSample(),hwo.getLoadedSample().getAddress())
+        print "Currently loaded (%s): %s" % (
+            hwo.hasLoadedSample(),
+            hwo.getLoadedSample().getAddress(),
+        )
 
     print "\nCATS model is: ", hwo.cats_model
     print "CATS state is: ", hwo.state
@@ -292,6 +344,5 @@ def test_hwo(hwo):
 
     print "Sample Changer State is: ", hwo.getStatus()
     for basketno in range(hwo.number_of_baskets):
-        no = basketno +1
+        no = basketno + 1
         print "Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no))
-

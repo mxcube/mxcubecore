@@ -94,9 +94,11 @@ os.chdir(baseDir)
 edPlugin.executeSynchronous()   
 """
 
-class EdnaProcLauncher:
 
-    def __init__(self, path, mode, datacollectionID, residues, anomalous, cell, spacegroup):
+class EdnaProcLauncher:
+    def __init__(
+        self, path, mode, datacollectionID, residues, anomalous, cell, spacegroup
+    ):
         self.autoprocessingPath = path
         self.mode = mode
         self.dataCollectionId = datacollectionID
@@ -118,23 +120,43 @@ class EdnaProcLauncher:
         # parse the input file to find the first image
         self.xdsAppeared = False
         self.waitXdsStart = time.time()
-        logging.getLogger('HWR').info("EDNA_proc launcher: waiting for XDS.INP file: %s" %self.xdsInputFile)
-        while not self.xdsAppeared and (time.time() - self.waitXdsStart < WAIT_XDS_TIMEOUT):
+        logging.getLogger("HWR").info(
+            "EDNA_proc launcher: waiting for XDS.INP file: %s" % self.xdsInputFile
+        )
+        while not self.xdsAppeared and (
+            time.time() - self.waitXdsStart < WAIT_XDS_TIMEOUT
+        ):
             time.sleep(1)
-            if os.path.exists(self.xdsInputFile) and os.stat(self.xdsInputFile).st_size > 0:
+            if (
+                os.path.exists(self.xdsInputFile)
+                and os.stat(self.xdsInputFile).st_size > 0
+            ):
                 time.sleep(1)
                 self.xdsAppeared = True
-                logging.getLogger('HWR').info("EDNA_proc launcher: XDS.INP file is there, size=%s" % os.stat(self.xdsInputFile).st_size)
+                logging.getLogger("HWR").info(
+                    "EDNA_proc launcher: XDS.INP file is there, size=%s"
+                    % os.stat(self.xdsInputFile).st_size
+                )
         if not self.xdsAppeared:
-            logging.getLogger('HWR').error("XDS.INP file ({0}) failed to appear after {1} seconds".format(self.xdsInputFile, WAIT_XDS_TIMEOUT))
-        self.ednaOutputFilePath = os.path.join(self.ednaProcPath, self.ednaOutputFileName)
+            logging.getLogger("HWR").error(
+                "XDS.INP file ({0}) failed to appear after {1} seconds".format(
+                    self.xdsInputFile, WAIT_XDS_TIMEOUT
+                )
+            )
+        self.ednaOutputFilePath = os.path.join(
+            self.ednaProcPath, self.ednaOutputFileName
+        )
         if os.path.exists(self.ednaOutputFilePath):
-            self.ednaOutputFile = tempfile.NamedTemporaryFile(suffix=".xml",
-                                                             prefix="EDNA_proc_ispyb-",
-                                                             dir=self.ednaProcPath,
-                                                             delete=False)
+            self.ednaOutputFile = tempfile.NamedTemporaryFile(
+                suffix=".xml",
+                prefix="EDNA_proc_ispyb-",
+                dir=self.ednaProcPath,
+                delete=False,
+            )
 
-            self.ednaOutputFilePath = os.path.join(self.ednaProcPath, self.ednaOutputFile.name)
+            self.ednaOutputFilePath = os.path.join(
+                self.ednaProcPath, self.ednaOutputFile.name
+            )
             self.ednaOutputFile.close()
         else:
             open(self.ednaOutputFilePath, "w").write("")
@@ -144,48 +166,57 @@ class EdnaProcLauncher:
         if self.nres is not None and self.nres != 0:
             nresFragment = """  <nres>
             <value>{0}</value>
-          </nres>""".format(self.nres)
+          </nres>""".format(
+                self.nres
+            )
         else:
             nresFragment = ""
 
         if self.spacegroup is not None:
             spacegroupFragment = """  <spacegroup>
             <value>{0}</value>
-          </spacegroup>""".format(self.spacegroup)
+          </spacegroup>""".format(
+                self.spacegroup
+            )
         else:
             spacegroupFragment = ""
 
         if self.cell is not None:
             cellFragment = """  <unit_cell>
             <value>{0}</value>
-          </unit_cell>""".format(self.cell)
+          </unit_cell>""".format(
+                self.cell
+            )
         else:
             cellFragment = ""
 
         # the other parameters are not used right now
-        self.inputXml = INPUT_TEMPLATE.format(xdsInputFile=self.xdsInputFile,
-                                        dataCollectionId=self.dataCollectionId,
-                                        output_path=self.ednaOutputFilePath,
-                                        nresFragment=nresFragment,
-                                        cellFragment=cellFragment,
-                                        spacegroupFragment=spacegroupFragment)
+        self.inputXml = INPUT_TEMPLATE.format(
+            xdsInputFile=self.xdsInputFile,
+            dataCollectionId=self.dataCollectionId,
+            output_path=self.ednaOutputFilePath,
+            nresFragment=nresFragment,
+            cellFragment=cellFragment,
+            spacegroupFragment=spacegroupFragment,
+        )
 
         # we now need a temp file in the data dir to write the data model to
         ednaInputFileName = "EDNA_proc_input.xml"
         ednaInputFilePath = os.path.join(self.ednaProcPath, ednaInputFileName)
         if os.path.exists(ednaInputFilePath):
             # Create unique file name
-            ednaInputFile = tempfile.NamedTemporaryFile(suffix=".xml",
-                                                        prefix="EDNA_proc_input-",
-                                                        dir=self.ednaProcPath,
-                                                        delete=False)
+            ednaInputFile = tempfile.NamedTemporaryFile(
+                suffix=".xml",
+                prefix="EDNA_proc_input-",
+                dir=self.ednaProcPath,
+                delete=False,
+            )
             ednaInputFilePath = os.path.join(self.ednaProcPath, ednaInputFile.name)
             ednaInputFile.file.write(self.inputXml)
             ednaInputFile.close()
         else:
             open(ednaInputFilePath, "w").write(self.inputXml)
         os.chmod(ednaInputFilePath, 0o755)
-        
 
         directories = self.autoprocessingPath.split(os.path.sep)
         try:
@@ -196,22 +227,28 @@ class EdnaProcLauncher:
             proposal = "unknown"
 
         template = string.Template(SCRIPT_TEMPLATE)
-        self.script = template.substitute(beamline=beamline,
-                                     proposal=proposal,
-                                     ednaProcDirectory=self.ednaProcPath,
-                                     dataCollectionId=self.dataCollectionId,
-                                     inputFile=ednaInputFilePath)
+        self.script = template.substitute(
+            beamline=beamline,
+            proposal=proposal,
+            ednaProcDirectory=self.ednaProcPath,
+            dataCollectionId=self.dataCollectionId,
+            inputFile=ednaInputFilePath,
+        )
 
         # we also need some kind of script to run edna-plugin-launcher
         ednaScriptFileName = "EDNA_proc_launcher.sh"
         self.ednaScriptFilePath = os.path.join(self.ednaProcPath, ednaScriptFileName)
         if os.path.exists(self.ednaScriptFilePath):
             # Create unique file name
-            ednaScriptFile = tempfile.NamedTemporaryFile(suffix=".sh",
-                                                         prefix="EDNA_proc_launcher-",
-                                                         dir=self.ednaProcPath,
-                                                         delete=False)
-            self.ednaScriptFilePath = os.path.join(self.ednaProcPath, ednaScriptFile.name)
+            ednaScriptFile = tempfile.NamedTemporaryFile(
+                suffix=".sh",
+                prefix="EDNA_proc_launcher-",
+                dir=self.ednaProcPath,
+                delete=False,
+            )
+            self.ednaScriptFilePath = os.path.join(
+                self.ednaProcPath, ednaScriptFile.name
+            )
             ednaScriptFile.file.write(self.script)
             ednaScriptFile.close()
         else:
@@ -219,24 +256,34 @@ class EdnaProcLauncher:
         os.chmod(self.ednaScriptFilePath, 0o755)
 
     def execute(self):
-        cmd = "echo 'cd %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.ednaProcPath, self.ednaScriptFilePath, HPC_HOST)
+        cmd = (
+            "echo 'cd %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile"
+            % (self.ednaProcPath, self.ednaScriptFilePath, HPC_HOST)
+        )
 
         # for test
-        #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
-        #print cmd
-        logging.getLogger('HWR').info("EDNA_proc launcher: command gonna be launched: %s" % cmd)
-        p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        # cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
+        # print cmd
+        logging.getLogger("HWR").info(
+            "EDNA_proc launcher: command gonna be launched: %s" % cmd
+        )
+        p = subprocess.Popen(
+            cmd, shell=True
+        )  # , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
     def parse_and_execute(self):
         self.parse_input_file()
         self.execute()
 
+
 if __name__ == "__main__":
     args = sys.argv[1:]
 
     if (len(args) % 2) != 0:
-        logging.error("the argument list is not well formed (odd number of args/options)")
+        logging.error(
+            "the argument list is not well formed (odd number of args/options)"
+        )
         sys.exit()
 
     # do the arg parsing by hand since neither getopt nor optparse support
@@ -254,5 +301,13 @@ if __name__ == "__main__":
     dataCollectionId = options["-datacollectionID"]
     mode = options.get("-mode")
 
-    edna = EdnaProcLauncher(autoprocessingPath, mode, dataCollectionId, residues, anomalous, cell, spacegroup)
+    edna = EdnaProcLauncher(
+        autoprocessingPath,
+        mode,
+        dataCollectionId,
+        residues,
+        anomalous,
+        cell,
+        spacegroup,
+    )
     edna.parse_and_execute()
