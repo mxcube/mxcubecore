@@ -40,7 +40,6 @@ Dev_deb = [0]
 Dev_Exception = RuntimeError
 
 
-# --------------------------------------------------------------
 # Tab_dev:
 # dictionnary indexed with devices names (in lower case)
 #
@@ -62,7 +61,6 @@ Dev_Exception = RuntimeError
 
 Tab_dev = {}
 
-# --------------------------------------------------------------
 # Tab_devC:
 # dictionnary indexed with data collector devices names (in lower case)
 #
@@ -120,8 +118,6 @@ Tab_dev_type_unk = "<unknown>                    "
 Tab_dev_head = "INPUT:                        OUTPUT:                       COMMAND:"
 Tab_devC_head = "OUTPUT:                       COMMAND:"
 
-# --------------------------------------------------------------
-
 
 def dev_debug(flag):
     #  input:
@@ -159,7 +155,7 @@ def dev_init(mdevname):
     #  try to find in Tab_dev list if name already
     #  found
 
-    if not locname in Tab_dev:
+    if locname not in Tab_dev:
         #     have to import the device and create place in dict
         try:
             mpt = esrf_import(locname)
@@ -181,7 +177,6 @@ def dev_init(mdevname):
     return locname, Tab_dev[locname]["cobj"]
 
 
-# --------------------------------------------------------------
 def dev_initC(mdevname):
     #  input:
     #     mdevname: device name
@@ -197,7 +192,7 @@ def dev_initC(mdevname):
 
     #  try to find in Tab_dev list if name already
     #  found
-    if not locname in Tab_dev:
+    if locname not in Tab_dev:
         #     have to import the device and create place in dict
         try:
             mpt = esrf_dc_import(locname)
@@ -222,17 +217,17 @@ def dev_initC(mdevname):
 
 def dev_query(mdevname):
     """
-      input:
-      mdevname: device name in lower case
+    input:
+    mdevname: device name in lower case
 
-      returns dictionnary:
-      - {} if error
-      -{cmd_name:[cmd,in_type,out_type], ...}
+    returns dictionnary:
+    - {} if error
+    -{cmd_name:[cmd,in_type,out_type], ...}
 
-      cmd_name: command string
-      cmd: command numeric value
-      in_type: input type
-      out_type: output type"""
+    cmd_name: command string
+    cmd: command numeric value
+    in_type: input type
+    out_type: output type"""
     if mdevname in Tab_dev:
         loc_c_pt = Tab_dev[mdevname]["cobj"]
 
@@ -247,7 +242,6 @@ def dev_query(mdevname):
     return {}
 
 
-# --------------------------------------------------------------
 def dev_queryC(mdevname):
     #   input:
     #      mdevname: device name in lower case
@@ -269,7 +263,6 @@ def dev_queryC(mdevname):
     return locdict
 
 
-# --------------------------------------------------------------
 def dev_tcpudp(mdevname, mode):
     #   input:
     #      	mdevname: device name in lower case
@@ -300,7 +293,6 @@ def dev_tcpudp(mdevname, mode):
     return 1
 
 
-# --------------------------------------------------------------
 def dev_timeout(mdevname, *mtime):
     #   input:
     #      	mdevname: device name in lower case
@@ -339,7 +331,6 @@ def dev_timeout(mdevname, *mtime):
         return 0
 
 
-# --------------------------------------------------------------
 def dev_getresource(mdevname, resname):
     #   input:
     #      	mdevname: device name
@@ -361,7 +352,6 @@ def dev_getresource(mdevname, resname):
     return ret
 
 
-# --------------------------------------------------------------
 def dev_putresource(mdevname, resname, value):
     #   Sets a device resource
     #   input:
@@ -385,7 +375,6 @@ def dev_putresource(mdevname, resname, value):
     return 1
 
 
-# --------------------------------------------------------------
 def dev_delresource(mdevname, resname):
     #   removes a device resource
     #   input:
@@ -475,7 +464,6 @@ def dev_io(mdevname, mdevcommand, *parin, **kw):
                 return ret
 
 
-# --------------------------------------------------------------
 def dev_ioC(mdevname, mdevcommand, **kw):
     #   input:
     #      	mdevname: device name in lower case
@@ -604,7 +592,6 @@ def TacoDevice(name, dc=False):
         return dev
 
 
-# --------------------------------------------------------------
 class _TacoDevice(object):
     __metaclass__ = ThreadSafeMethodsMetaClass
 

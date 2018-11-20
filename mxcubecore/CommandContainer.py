@@ -7,13 +7,13 @@ for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
 
-__author__ = "Matias Guijarro"
-__version__ = 1.0
-
 import types
 import weakref
 import logging
 from dispatcher import *
+
+__author__ = "Matias Guijarro"
+__version__ = 1.0
 
 
 class ConnectionError(Exception):
@@ -175,7 +175,7 @@ class CommandContainer:
             return self.__channels[channelName]
 
         if channelType.lower() == "spec":
-            if not "version" in attributesDict:
+            if "version" not in attributesDict:
                 try:
                     attributesDict["version"] = self.specversion
                 except AttributeError:
@@ -192,7 +192,7 @@ class CommandContainer:
                     channelName,
                 )
         elif channelType.lower() == "taco":
-            if not "taconame" in attributesDict:
+            if "taconame" not in attributesDict:
                 try:
                     attributesDict["taconame"] = self.taconame
                 except AttributeError:
@@ -209,7 +209,7 @@ class CommandContainer:
                     channelName,
                 )
         elif channelType.lower() == "tango":
-            if not "tangoname" in attributesDict:
+            if "tangoname" not in attributesDict:
                 try:
                     attributesDict["tangoname"] = self.tangoname
                 except AttributeError:
@@ -233,7 +233,7 @@ class CommandContainer:
                     channelName,
                 )
         elif channelType.lower() == "exporter":
-            if not "exporter_address" in attributesDict:
+            if "exporter_address" not in attributesDict:
                 try:
                     attributesDict["exporter_address"] = self.exporter_address
                 except AttributeError:
@@ -266,7 +266,7 @@ class CommandContainer:
                     channelName,
                 )
         elif channelType.lower() == "tine":
-            if not "tinename" in attributesDict:
+            if "tinename" not in attributesDict:
                 try:
                     attributesDict["tinename"] = self.tinename
                 except AttributeError:
@@ -285,7 +285,7 @@ class CommandContainer:
 
         elif channelType.lower() == "sardana":
 
-            if not "taurusname" in attributesDict:
+            if "taurusname" not in attributesDict:
                 try:
                     attributesDict["taurusname"] = self.taurusname
                 except AttributeError:
@@ -389,7 +389,7 @@ class CommandContainer:
                 del attributesDict["toexecute"]
 
         if cmdType.lower() == "spec":
-            if not "version" in attributesDict:
+            if "version" not in attributesDict:
                 try:
                     attributesDict["version"] = self.specversion
                 except AttributeError:
@@ -406,7 +406,7 @@ class CommandContainer:
                     cmdName,
                 )
         elif cmdType.lower() == "taco":
-            if not "taconame" in attributesDict:
+            if "taconame" not in attributesDict:
                 try:
                     attributesDict["taconame"] = self.taconame
                 except AttributeError:
@@ -423,7 +423,7 @@ class CommandContainer:
                     cmdName,
                 )
         elif cmdType.lower() == "tango":
-            if not "tangoname" in attributesDict:
+            if "tangoname" not in attributesDict:
                 try:
                     attributesDict["tangoname"] = self.tangoname
                 except AttributeError:
@@ -447,7 +447,7 @@ class CommandContainer:
                 )
 
         elif cmdType.lower() == "exporter":
-            if not "exporter_address" in attributesDict:
+            if "exporter_address" not in attributesDict:
                 try:
                     attributesDict["exporter_address"] = self.exporter_address
                 except AttributeError:
@@ -488,7 +488,7 @@ class CommandContainer:
             door_first = False
             tango_first = False
 
-            if not "doorname" in attributesDict:
+            if "doorname" not in attributesDict:
                 try:
                     attributesDict["doorname"] = self.doorname
                     doorname = self.doorname
@@ -498,7 +498,7 @@ class CommandContainer:
                 door_first = True
                 doorname = attributesDict["doorname"]
 
-            if not "taurusname" in attributesDict:
+            if "taurusname" not in attributesDict:
                 try:
                     attributesDict["taurusname"] = self.taurusname
                     taurusname = self.taurusname
@@ -570,7 +570,7 @@ class CommandContainer:
                 )
 
         elif cmdType.lower() == "pool":
-            if not "tangoname" in attributesDict:
+            if "tangoname" not in attributesDict:
                 try:
                     attributesDict["tangoname"] = self.tangoname
                 except AttributeError:
@@ -593,7 +593,7 @@ class CommandContainer:
                     cmdName,
                 )
         elif cmdType.lower() == "tine":
-            if not "tinename" in attributesDict:
+            if "tinename" not in attributesDict:
                 try:
                     attributesDict["tinename"] = self.tinename
                 except AttributeError:

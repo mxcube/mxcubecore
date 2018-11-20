@@ -5,10 +5,7 @@ and procedures on a beamline. Each XML file represent a Hardware Object.
 The Hardware Repository module provides access to these Hardware Objects, and manages
 connections to the Control Software (Spec or Taco Device Servers).
 """
-
-__author__ = "Matias Guijarro"
-__version__ = 1.3
-
+from __future__ import print_function
 import logging
 import gevent
 import weakref
@@ -32,6 +29,9 @@ import HardwareObjectFileParser
 import BaseHardwareObjects
 from dispatcher import *
 
+__author__ = "Matias Guijarro"
+__version__ = 1.3
+
 _instance = None
 _hwrserver = None
 
@@ -41,7 +41,7 @@ def addHardwareObjectsDirs(hoDirs):
         newHoDirs = list(filter(os.path.isdir, list(map(os.path.abspath, hoDirs))))
 
         for newHoDir in reversed(newHoDirs):
-            if not newHoDir in sys.path:
+            if newHoDir not in sys.path:
                 sys.path.insert(0, newHoDir)
 
 
@@ -710,13 +710,13 @@ class __HardwareRepositoryClient:
             ["{:<" + str(longest_col) + "}" for longest_col in longest_cols]
         )
 
-        print "+", "=" * (sum(longest_cols) + 5), "+"
-        print "| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment"))
-        print "+", "=" * (sum(longest_cols) + 5), "+"
+        print("+", "=" * (sum(longest_cols) + 5), "+")
+        print("| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment")))
+        print("+", "=" * (sum(longest_cols) + 5), "+")
 
         for row in sorted(self.hwobj_info_list):
-            print "| %s|" % row_format.format(*row)
-        print "+", "=" * (sum(longest_cols) + 4), "+"
+            print("| %s|" % row_format.format(*row))
+        print("+", "=" * (sum(longest_cols) + 4), "+")
 
     def reloadHardwareObjects(self):
         """

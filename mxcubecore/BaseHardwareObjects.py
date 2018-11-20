@@ -91,7 +91,7 @@ class HardwareObjectNode:
 
     def __setattr__(self, attr, value):
         try:
-            if not attr in self.__dict__ and attr in self._propertySet:
+            if attr not in self.__dict__ and attr in self._propertySet:
                 self.setProperty(attr, value)
             else:
                 self.__dict__[attr] = value
@@ -99,9 +99,6 @@ class HardwareObjectNode:
             self.__dict__[attr] = value
 
     def __getitem__(self, key):
-        # python2.7
-        # if type(key) == types.StringType:
-        # python3.4
         if isinstance(key, str):
             objectName = key
 
@@ -115,9 +112,6 @@ class HardwareObjectNode:
                     return obj[0]
                 else:
                     return obj
-        # python2.7
-        # elif type(key) == types.IntType:
-        # python3.4
         elif isinstance(key, int):
             i = key
 
@@ -344,8 +338,6 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def connect(self, sender, signal, slot=None):
         if slot is None:
-            # TODO 2to3
-
             # if type(sender) == bytes:
             if isinstance(sender, str):
                 # provides syntactic sugar ; for
