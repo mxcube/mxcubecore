@@ -12,10 +12,7 @@ RETRIES = 1
 
 
 class MDClient(ExporterClient):
-    ##########################################################################
     # Constants
-    ##########################################################################
-
     STATE_READY = "Ready"
     STATE_INITIALIZING = "Initializing"
     STATE_STARTING = "Starting"
@@ -167,9 +164,7 @@ class MDClient(ExporterClient):
     MONITORING_INTERVAL = 0.1
     DEFAULT_TASK_TIMEOUT = 60.0
 
-    ##########################################################################
     # Event receiving callback
-    ##########################################################################
 
     STATE_EVENT = "State"
     STATUS_EVENT = "Status"
@@ -214,11 +209,12 @@ class MDClient(ExporterClient):
     def onDevicePositionEvent(self, device, position):
         pass
 
-    ##########################################################################
     # Overall application state
-    ##########################################################################
 
-    # STATE_INITIALIZING, STATE_STARTING, STATE_READY, STATE_RUNNING, STATE_CLOSING, STATE_STOPPED, STATE_COMMUNICATION_ERROR, STATE_ALARM or STATE_FAULT
+    # STATE_INITIALIZING, STATE_STARTING, STATE_READY, STATE_RUNNING,
+    # STATE_CLOSING, STATE_STOPPED, STATE_COMMUNICATION_ERROR, STATE_ALARM or
+    # STATE_FAULT
+
     def getState(self):
         return self.readPropertyAsString("State")
 
@@ -231,15 +227,13 @@ class MDClient(ExporterClient):
     def abort(self):
         return self.execute("abort")
 
-    ##########################################################################
     # Task synchronization
-    ##########################################################################
 
     def waitReady(self, timeout=0):
         start = time.clock()
         while True:
             state = self.getState()
-            if self.isBusy(state) == False:
+            if self.isBusy(state) is False:
                 return
             if (timeout > 0) and ((time.clock() - start) > timeout):
                 raise "Timeout waiting microdiff ready"
@@ -307,9 +301,7 @@ class MDClient(ExporterClient):
                 raise "Timeout waiting motor ready"
             time.sleep(self.MONITORING_INTERVAL)
 
-    ##########################################################################
     # Asynchronous tasks
-    ##########################################################################
     def execTask(self, task_name, pars=None, sync=False, timeout=DEFAULT_TASK_TIMEOUT):
         task_id = self.execute(task_name, pars)
         if sync:
@@ -431,9 +423,7 @@ class MDClient(ExporterClient):
             timeout,
         )
 
-    ##########################################################################
     # Syncronous methods
-    ##########################################################################
     def setScanParameters(self, start, range, time, passes):
         self.writeProperty("ScanStartAngle", start)
         self.writeProperty("ScanRange", range)
@@ -522,9 +512,7 @@ class MDClient(ExporterClient):
             ret[tokens[0]] = tokens[1]
         return ret
 
-    ##########################################################################
     # Properties
-    ##########################################################################
     def getAlarmList(self):
         return self.readPropertyAsStringArray(self.PROPERTY_ALARM_LIST)
 
@@ -691,10 +679,6 @@ class MDClient(ExporterClient):
         # TODO: OPTIMIZE
         return self.readPropertyAsStringArray(self.PROPERTY_IMAGE_JPG)
 
-    ##########################################################################
-    # Testing
-    ##########################################################################
-
 
 if __name__ == "__main__":
 
@@ -703,48 +687,48 @@ if __name__ == "__main__":
         task_finished = False
 
         def onConnected(self):
-            print "     ******   CONNECTED   *******"
+            print("     ******   CONNECTED   *******")
 
         def onDisconnected(self):
-            print "     ******  DISCONNECTED  ******"
+            print("     ******  DISCONNECTED  ******")
 
         def onEvent(self, name, value, timestamp):
             if name == self.STATE_EVENT:
                 if self.state != value:
                     self.state = value
-                    if self.isBusy(self.state) == False:
+                    if self.isBusy(self.state) is False:
                         self.task_finished = True
             elif name == self.MOTOR_STATES_EVENT:
                 array = self.parseArray(value)
                 value = self.createDictFromStringList(array)
-            print "     Event: " + name + " = " + str(value)
+            print("     Event: " + name + " = " + str(value))
 
     md = Microdiff(SERVER_ADDRESS, SERVER_PORT, PROTOCOL.STREAM, TIMEOUT, RETRIES)
 
     methods = md.getMethodList()
-    print "--------------   Listing methods  ------------------"
-    print "Methods:"
+    print("--------------   Listing methods  ------------------")
+    print("Methods:")
     for method in methods:
-        print method
+        print(method)
 
-    print "--------------   Listing properties  ------------------"
+    print("--------------   Listing properties  ------------------")
     properties = md.getPropertyList()
-    print "Properties:"
+    print("Properties:")
     for property in properties:
-        print property
-    print property
+        print(property)
 
     # Example recovering conection after a MD restart
-    # It is not needed to call connect explicitly. Connectiong is set with any command/attributr access.
+    # It is not needed to call connect explicitly.
+    # Connectiong is set with any command/attributr access.
     # Connection may be explicitly restored though to for receiving events
-    if md.isConnected() == False:
+    if md.isConnected() is False:
         md.connect()
 
-    # print"--------------   Just waiting  events  ------------------"
+    # print("--------------   Just waiting  events  ------------------")
     # while True:
     #    time.sleep(md.MONITORING_INTERVAL)
 
-    print "--------------   Calling a async task  ------------------"
+    print("--------------   Calling a async task  ------------------")
 
     # Setting transfer phase synchronously (blocking)
     # md.setTransferPhase(sync=True)
@@ -765,29 +749,29 @@ if __name__ == "__main__":
 
     task_result_code = md.getLastTaskResultCode()
     if task_result_code is None:
-        print "Task still running"
+        print("Task still running")
     elif task_result_code > 0:
-        print "Task succeeded"
+        print("Task succeeded")
     elif task_result_code < 0:
-        print "Task failed" + md.getLastTaskException()
+        print("Task failed" + md.getLastTaskException())
     elif task_result_code == 0:
-        print "Task aborted"
+        print("Task aborted")
 
-    print "--------------   Executing a scan  --------------------"
+    print("--------------   Executing a scan  --------------------")
     scan_time = 3.0
     md.setScanParameters(0.0, 1.0, 3.0, 1)
     md.scan(sync=True, timeout=(scan_time + md.DEFAULT_TASK_TIMEOUT))
     md.waitReady()
     task_result_code = md.getLastTaskResultCode()
     if task_result_code is None:
-        print "Scan still running"
+        print("Scan still running")
     elif task_result_code > 0:
-        print "Scan succeeded"
+        print("Scan succeeded")
     elif task_result_code < 0:
-        print "Scan failed" + md.getLastTaskException()
+        print("Scan failed" + md.getLastTaskException())
     elif task_result_code == 0:
-        print "Scan aborted"
-    print "--------------   Directly accessing motors --------------------"
+        print("Scan aborted")
+    print("--------------   Directly accessing motors --------------------")
     md.setMotorPosition(md.MOTOR_OMEGA, 10.0)
     md.setMotorPosition(md.MOTOR_PHI, 5.0)
     md.waitMotorReady(md.MOTOR_OMEGA)
@@ -795,7 +779,7 @@ if __name__ == "__main__":
     motor_position_dict = {md.MOTOR_OMEGA: 0.0, md.MOTOR_PHI: 0.0}
     md.simultaneousMoveMotors(motor_position_dict, sync=True)
 
-    print "--------------   Reading all properties --------------------"
+    print("--------------   Reading all properties --------------------")
     # Reading all properties
     for property in properties:
         property_info = property.split(" ")
@@ -811,128 +795,130 @@ if __name__ == "__main__":
                 value = md.readProperty(property_name)
                 if property_type.endswith("[]"):
                     value = md.parseArray(value)
-                print property_name + " = " + str(value)
+                print(property_name + " = " + str(value))
             except BaseException:
-                print "Error reading " + property_name + ": " + str(sys.exc_info()[1])
+                print("Error reading " + property_name + ": " + str(sys.exc_info()[1]))
 
-    print "--------------   Reading/Writing all properties by their get/set methods --------------------"
-    print "State: " + md.getState()
-    print "State: " + md.getStatus()
-    print "Alarms"
-    print md.getAlarmList()
-    print "Motor states:"
-    print md.getMotorStates()
-    print "Motor positions:"
-    print md.getMotorPositions()
-    print "Version: " + md.getVersion()
-    print "Uptime: " + md.getUptime()
-    print "ScanSpeed: " + str(md.getScanSpeed())
-    print "ScanPassDuration: " + str(md.getScanPassDuration())
-    print "SampleLoaded: " + str(md.isSampleLoaded())
-    print "isSampleCentred: " + str(md.isSampleCentred())
-    print "isSampleChangerUsed: " + str(md.isSampleChangerUsed())
-    print "Scale X: " + str(md.getScaleX())
-    print "Scale Y: " + str(md.getScaleY())
+    print(
+        "--------------   Reading/Writing all properties by their get/set methods --------------------"
+    )
+    print("State: " + md.getState())
+    print("State: " + md.getStatus())
+    print("Alarms")
+    print(md.getAlarmList())
+    print("Motor states:")
+    print(md.getMotorStates())
+    print("Motor positions:")
+    print(md.getMotorPositions())
+    print("Version: " + md.getVersion())
+    print("Uptime: " + md.getUptime())
+    print("ScanSpeed: " + str(md.getScanSpeed()))
+    print("ScanPassDuration: " + str(md.getScanPassDuration()))
+    print("SampleLoaded: " + str(md.isSampleLoaded()))
+    print("isSampleCentred: " + str(md.isSampleCentred()))
+    print("isSampleChangerUsed: " + str(md.isSampleChangerUsed()))
+    print("Scale X: " + str(md.getScaleX()))
+    print("Scale Y: " + str(md.getScaleY()))
 
     val = md.isGUILocked()
-    print "GUI locked: " + str(val)
+    print("GUI locked: " + str(val))
     md.setGUILocked(val)
 
     val = md.isKappaEnabled()
-    print "Kappa Enabled: " + str(val)
+    print("Kappa Enabled: " + str(val))
     md.setKappaEnabled(val)
 
     val = md.isFastShutterOpen()
-    print "Fast Shutter Open: " + str(val)
+    print("Fast Shutter Open: " + str(val))
     md.setFastShutterOpen(val)
 
     val = md.isFluoDetectorBack()
-    print "Fluo Detector Back: " + str(val)
+    print("Fluo Detector Back: " + str(val))
     md.setFluoDetectorBack(val)
 
     val = md.isCryoBack()
-    print "Cryo Back: " + str(val)
+    print("Cryo Back: " + str(val))
     md.setCryoBack(val)
 
     val = md.isInterlockEnabled()
-    print "Interlock Enabled: " + str(val)
+    print("Interlock Enabled: " + str(val))
     md.setInterlockEnabled(val)
 
     val = md.getScanNumberOfPasses()
-    print "Scan Number Of Passes: " + str(val)
+    print("Scan Number Of Passes: " + str(val))
     md.setScanNumberOfPasses(val)
 
     val = md.getScanFrameNumber()
-    print "Scan Frame Number: " + str(val)
+    print("Scan Frame Number: " + str(val))
     md.setScanFrameNumber(val)
 
     val = md.getScanStartAngle()
-    print "Scan Start Angle: " + str(val)
+    print("Scan Start Angle: " + str(val))
     md.setScanStartAngle(val)
 
     val = md.getScanExposureTime()
-    print "Scan Exposure Time: " + str(val)
+    print("Scan Exposure Time: " + str(val))
     md.setScanExposureTime(val)
 
     val = md.getScanRange()
-    print "Scan Range: " + str(val)
+    print("Scan Range: " + str(val))
     md.setScanRange(val)
 
     val = md.getBeamSizeHorizontal()
-    print "Beam Size Horizontal: " + str(val)
+    print("Beam Size Horizontal: " + str(val))
     md.setBeamSizeHorizontal(val)
 
     val = md.getBeamSizeVertical()
-    print "Beam Size Vertical: " + str(val)
+    print("Beam Size Vertical: " + str(val))
     md.setBeamSizeVertical(val)
 
     val = md.getFrontLightLevel()
-    print "Front Light Level: " + str(val)
+    print("Front Light Level: " + str(val))
     md.setFrontLightLevel(val)
 
     val = md.getBackLightLevel()
-    print "Back Light Level: " + str(val)
+    print("Back Light Level: " + str(val))
     md.setBackLightLevel(val)
 
     val = md.getBackLightLevel()
-    print "Back Light Level: " + str(val)
+    print("Back Light Level: " + str(val))
     md.setBackLightLevel(val)
 
     val = md.getSampleLoopSize()
-    print "Sample Loop Size: " + str(val)
+    print("Sample Loop Size: " + str(val))
     md.setSampleLoopSize(val)
 
     val = md.getSampleHolderLength()
-    print "Sample Holder Length: " + str(val)
+    print("Sample Holder Length: " + str(val))
     md.setSampleHolderLength(val)
 
     val = md.getSampleUID()
-    print "Sample UID: " + val
+    print("Sample UID: " + val)
     md.setSampleUID(val)
 
     val = md.getSampleLoopType()
-    print "Sample Loop Type: " + val
+    print("Sample Loop Type: " + val)
     md.setSampleLoopType(val)
 
     val = md.getSampleImageName()
-    print "Sample Image Name: " + val
+    print("Sample Image Name: " + val)
     md.setSampleImageName(val)
 
     snapshot = md.getImageJPG()
 
     # Calling sync methods
-    print "Pmac State: " + md.getDeviceState(md.DEVICE_PMAC)
-    print "Omega State: " + md.getMotorState(md.MOTOR_OMEGA)
-    print "Omega Position: " + str(md.getMotorPosition(md.MOTOR_OMEGA))
-    print "Organ Positions: " + str(md.getOrganDevicesPositions())
+    print("Pmac State: " + md.getDeviceState(md.DEVICE_PMAC))
+    print("Omega State: " + md.getMotorState(md.MOTOR_OMEGA))
+    print("Omega Position: " + str(md.getMotorPosition(md.MOTOR_OMEGA)))
+    print("Organ Positions: " + str(md.getOrganDevicesPositions()))
     md.checkSyncMoveSafety({md.MOTOR_OMEGA: 180.0, md.MOTOR_KAPPA: 180.0})
     md.checkPositionSafety({md.MOTOR_OMEGA: 180.0, md.MOTOR_KAPPA: 180.0})
     md.setStartScan4D()
     md.setStopScan4D()
     md.setMotorPosition(md.MOTOR_PHI, 0.0, sync=False)
-    print "Motor Y limits: " + str(md.getMotorLimits(md.MOTOR_Y))
-    print "Motor Y dynamic limits: " + str(md.getMotorDynamicLimits(md.MOTOR_Y))
-    print "Photodiode 0: " + str(md.readPhotodiodeSignal(0))
-    print "Photodiode 1: " + str(md.readPhotodiodeSignal(1))
+    print("Motor Y limits: " + str(md.getMotorLimits(md.MOTOR_Y)))
+    print("Motor Y dynamic limits: " + str(md.getMotorDynamicLimits(md.MOTOR_Y)))
+    print("Photodiode 0: " + str(md.readPhotodiodeSignal(0)))
+    print("Photodiode 1: " + str(md.readPhotodiodeSignal(1)))
 
     md.disconnect()

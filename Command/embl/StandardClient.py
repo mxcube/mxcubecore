@@ -78,9 +78,8 @@ class StandardClient:
         self._isConnected = True
         self.error = None
         self.received_msg = None
-        self.receiving_greenlet = gevent.spawn(
-            self.recv_thread
-        )  # thread.start_new_thread(self.recv_thread,())
+        # thread.start_new_thread(self.recv_thread,())
+        self.receiving_greenlet = gevent.spawn(self.recv_thread)
 
     def isConnected(self):
         if self.protocol == PROTOCOL.DATAGRAM:
@@ -96,7 +95,7 @@ class StandardClient:
 
     def __sendReceiveDatagramSingle__(self, cmd):
         try:
-            if self.__CONSTANT_LOCAL_PORT__ == False or self.__sock__ == None:
+            if self.__CONSTANT_LOCAL_PORT__ is False or self.__sock__ is None:
                 self.__createSocket__()
             msg_number = "%04d " % self.__msg_index__
             msg = msg_number + cmd
@@ -105,7 +104,7 @@ class StandardClient:
             except BaseException:
                 raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
-            while received == False:
+            while received is False:
                 try:
                     ret = self.__sock__.recv(4096)
                 except socket.timeout:
@@ -119,10 +118,10 @@ class StandardClient:
             self.__closeSocket__()
             raise
         except BaseException:
-            if self.__CONSTANT_LOCAL_PORT__ == False:
+            if self.__CONSTANT_LOCAL_PORT__ is False:
                 self.__closeSocket__()
             raise
-        if self.__CONSTANT_LOCAL_PORT__ == False:
+        if self.__CONSTANT_LOCAL_PORT__ is False:
             self.__closeSocket__()
         return ret
 
@@ -187,12 +186,12 @@ class StandardClient:
                     buffer = ""
                     mReceivedSTX = True
                 elif b == ETX:
-                    if mReceivedSTX == True:
+                    if mReceivedSTX is True:
                         self.onMessageReceived(buffer)
                         mReceivedSTX = False
                         buffer = ""
                 else:
-                    if mReceivedSTX == True:
+                    if mReceivedSTX is True:
                         buffer = buffer + b
 
             if len(buffer) > MAX_SIZE_STREAM_MSG:
@@ -224,7 +223,7 @@ class StandardClient:
 
         with gevent.Timeout(self.timeout, TimeoutError):
             while self.received_msg is None:
-                if not self.error is None:
+                if self.error is not None:
                     raise SocketError("Socket error:" + str(self.error))
                 self.msg_received_event.wait()
             return self.received_msg

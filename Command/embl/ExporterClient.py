@@ -24,8 +24,7 @@ RET_NULL = "NULL"
 EVENT = "EVT:"
 
 PARAMETER_SEPARATOR = "\t"
-ARRAY_SEPARATOR = ""
-# 0x001F
+ARRAY_SEPARATOR = ""  # 0x001F
 
 
 class ExporterClient(StandardClient):
@@ -137,7 +136,7 @@ class ExporterClient(StandardClient):
 
     def parseArray(self, value):
         value = str(value)
-        if value.startswith(ARRAY_SEPARATOR) == False:
+        if value.startswith(ARRAY_SEPARATOR) is False:
             return None
         if value == ARRAY_SEPARATOR:
             return []
@@ -146,7 +145,7 @@ class ExporterClient(StandardClient):
 
     def createArrayParameter(self, value):
         ret = "" + ARRAY_SEPARATOR
-        if not value is None:
+        if value is not None:
             if isinstance(value, list) or isinstance(value, tuple):
                 for item in value:
                     ret = ret + str(item)
