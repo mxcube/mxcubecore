@@ -252,7 +252,7 @@ class GenericDiffractometer(HardwareObject):
         if ss:
             try:
                 self.used_channels_list = eval(ss)
-            except:
+            except BaseException:
                 pass  # used the default value
 
         for channel_name in self.used_channels_list:
@@ -281,7 +281,7 @@ class GenericDiffractometer(HardwareObject):
         # Commands -----------------------------------------------------------
         try:
             self.used_commands_list = eval(self.getProperty("used_commands", "[]"))
-        except:
+        except BaseException:
             pass  # used the default value
         for command_name in self.used_commands_list:
             self.command_dict[command_name] = self.getCommandObject(command_name)
@@ -289,7 +289,7 @@ class GenericDiffractometer(HardwareObject):
         # Centring motors ----------------------------------------------------
         try:
             self.centring_motors_list = eval(self.getProperty("centring_motors"))
-        except:
+        except BaseException:
             self.centring_motors_list = GenericDiffractometer.CENTRING_MOTORS_NAME
 
         queue_model_objects.CentredPosition.set_diffractometer_motor_names(
@@ -363,18 +363,18 @@ class GenericDiffractometer(HardwareObject):
                 self.centring_sampy = sample_centring.CentringMotor(
                     self.motor_hwobj_dict["sampy"]
                 )
-        except:
+        except BaseException:
             pass  # used the default value
 
         try:
             self.delay_state_polling = self.getProperty("delay_state_polling")
-        except:
+        except BaseException:
             pass
 
         # Other parameters ---------------------------------------------------
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
-        except:
+        except BaseException:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {
                     "x": self.image_width / 2,
@@ -398,7 +398,7 @@ class GenericDiffractometer(HardwareObject):
             # 'fast' is collection direction and 'slow' describes
             # move to the next collection line
             self.grid_direction = eval(self.getProperty("grid_direction"))
-        except:
+        except BaseException:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0), "omega_ref": 0}
             logging.getLogger("HWR").warning(
                 "Diffractometer: Grid " + "direction is not defined. Using default."
@@ -406,7 +406,7 @@ class GenericDiffractometer(HardwareObject):
 
         try:
             self.phase_list = eval(self.getProperty("phase_list"))
-        except:
+        except BaseException:
             self.phase_list = [
                 GenericDiffractometer.PHASE_TRANSFER,
                 GenericDiffractometer.PHASE_CENTRING,
@@ -471,7 +471,7 @@ class GenericDiffractometer(HardwareObject):
         :param method: method to be executed
         :type method: instance
         :param timeout: timeout in seconds
-        :type timeout: seconds 
+        :type timeout: seconds
         """
         # self.ready_event.clear()
         self.current_state = DiffractometerState.tostring(DiffractometerState.Busy)
@@ -661,7 +661,7 @@ class GenericDiffractometer(HardwareObject):
         else:
             try:
                 centring_method(sample_info, wait_result=wait)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem while centring"
                 )
@@ -678,7 +678,7 @@ class GenericDiffractometer(HardwareObject):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Diffractometer: problem aborting the centring method"
                 )
@@ -691,7 +691,7 @@ class GenericDiffractometer(HardwareObject):
             else:
                 try:
                     fun()
-                except:
+                except BaseException:
                     self.emit_centring_failed()
         else:
             self.emit_centring_failed()
@@ -791,7 +791,7 @@ class GenericDiffractometer(HardwareObject):
             self.accept_centring()
             self.current_centring_method = None
             self.current_centring_procedure = None
-        except:
+        except BaseException:
             logging.exception("Diffractometer: Could not complete 2D centring")
 
     def centring_done(self, centring_procedure):
@@ -802,7 +802,7 @@ class GenericDiffractometer(HardwareObject):
             motor_pos = centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except:
+        except BaseException:
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
@@ -814,7 +814,7 @@ class GenericDiffractometer(HardwareObject):
                     "Centring finished. Moving motoros to position %s" % str(motor_pos)
                 )
                 self.move_to_motors_positions(motor_pos, wait=True)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -931,17 +931,17 @@ class GenericDiffractometer(HardwareObject):
         """
         Moves diffractometer motors to the requested positions
 
-        :param motors_dict: dictionary with motor names or hwobj 
+        :param motors_dict: dictionary with motor names or hwobj
                             and target values.
         :type motors_dict: dict
         """
-        if not type(motor_positions) is dict:
+        if not isinstance(motor_positions, dict):
             motor_positions = motor_positions.as_dict()
 
         self.wait_device_ready(timeout)
         for motor in motor_positions.keys():
             position = motor_positions[motor]
-            if type(motor) == str:
+            if isinstance(motor, str):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
             else:
                 logging.getLogger("HWR").debug(
@@ -981,7 +981,7 @@ class GenericDiffractometer(HardwareObject):
             if omega is not None:
                 pos["phiMotor"] = omega
             self.move_to_motors_positions(pos)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Diffractometer: could not center to beam, aborting"
             )
@@ -1154,7 +1154,7 @@ class GenericDiffractometer(HardwareObject):
 
     def set_phase(self, phase, timeout=None):
         """Sets diffractometer to selected phase
-           By default available phase is Centring, BeamLocation, 
+           By default available phase is Centring, BeamLocation,
            DataCollection, Transfer
 
         :param phase: phase
@@ -1206,7 +1206,7 @@ class GenericDiffractometer(HardwareObject):
 
     """
     def state_changed(self, state):
-        logging.getLogger("HWR").debug("State changed %s" % str(state))  
+        logging.getLogger("HWR").debug("State changed %s" % str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
     """
@@ -1252,7 +1252,7 @@ class GenericDiffractometer(HardwareObject):
                 "update",
                 self.sample_is_loaded_changed,
             )
-        except:
+        except BaseException:
             pass
 
         if (

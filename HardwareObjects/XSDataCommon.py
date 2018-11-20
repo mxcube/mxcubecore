@@ -28,7 +28,7 @@ def showIndent(outfile, level):
 
 def checkType(_strClassName, _strMethodName, _value, _strExpectedType):
     if not _strExpectedType in ["float", "double", "string", "boolean", "integer"]:
-        if _value != None:
+        if _value is not None:
             if _value.__class__.__name__ != _strExpectedType:
                 strMessage = "ERROR! %s.%s argument is not %s but %s" % (
                     _strClassName,

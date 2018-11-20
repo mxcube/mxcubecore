@@ -41,7 +41,7 @@ class EdnaWorkflow(HardwareObject):
     This HO acts as a interface to the Passerelle EDM workflow engine.
 
     The previous version of this HO was a Tango client. In order to avoid
-    too many changes this version of the HO is a drop-in replacement of the 
+    too many changes this version of the HO is a drop-in replacement of the
     previous version, hence the "State" object which mimics the PyTango state.
 
     Example of a corresponding XML file (currently called "ednaparams.xml"):
@@ -53,11 +53,11 @@ class EdnaWorkflow(HardwareObject):
     <workflow>
         <title>MXPressA</title>
         <path>MXPressA</path>
-    </workflow>    
+    </workflow>
     <workflow>
         <title>...</title>
         <path>...</path>
-    </workflow>    
+    </workflow>
     """
 
     def __init__(self, name):

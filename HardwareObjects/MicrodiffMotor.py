@@ -170,7 +170,7 @@ class MicrodiffMotor(AbstractMotor):
 
     def motorStateChanged(self, state):
         self.updateState()
-        if type(state) is not int:
+        if not isinstance(state, int):
             state = self.get_state()
         self.emit("stateChanged", (state,))
 
@@ -199,7 +199,7 @@ class MicrodiffMotor(AbstractMotor):
                 if low_lim == float(1e999) or hi_lim == float(1e999):
                     raise ValueError
                 return low_lim, hi_lim
-            except:
+            except BaseException:
                 return (-1e4, 1e4)
 
     def getDynamicLimits(self):
@@ -208,7 +208,7 @@ class MicrodiffMotor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except:
+        except BaseException:
             return (-1e4, 1e4)
 
     def getMaxSpeed(self):
@@ -252,7 +252,7 @@ class MicrodiffMotor(AbstractMotor):
         self.move(position)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError
 
     def motorIsMoving(self):
@@ -269,5 +269,5 @@ class MicrodiffMotor(AbstractMotor):
         self.home_cmd(self.motor_name)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError

@@ -40,7 +40,7 @@ class WagoPneu(TacoDevice.TacoDevice):
 
                 if self.readmode == WagoPneu.READ_OUT:
                     self.wagokyout = self.device.DevName2Key(self.wagoidout)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: cannot find id for wago", self.name()
                 )

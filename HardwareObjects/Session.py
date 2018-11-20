@@ -139,7 +139,7 @@ class Session(HardwareObject):
             precision = eval(
                 self["file_info"].getProperty("precision", self.default_precision)
             )
-        except:
+        except BaseException:
             pass
 
         queue_model_objects.PathTemplate.set_precision(precision)

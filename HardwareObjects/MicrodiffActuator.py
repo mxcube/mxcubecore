@@ -105,7 +105,7 @@ class MicrodiffActuator(AbstractActuator):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
-            except Exception, e:
+            except Exception as e:
                 print e
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
@@ -124,7 +124,7 @@ class MicrodiffActuator(AbstractActuator):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
-            except Exception, e:
+            except Exception as e:
                 print e
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username

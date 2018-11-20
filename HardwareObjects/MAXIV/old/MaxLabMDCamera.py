@@ -34,7 +34,7 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
 
         try:
             self.device = PyTango.DeviceProxy(self.tangoname)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             print "last error ", str(last_error)
             logging.getLogger("HWR").error(
@@ -83,7 +83,7 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
         except PyTango.ConnectionFailed:
             print "Microdiff DS not running or bad name in config"
             self.connected = False
-        except:
+        except BaseException:
             self.connected = False
 
         if "getImageJPG" in cmds:
@@ -123,7 +123,7 @@ class MaxLabMDCamera(BaseHardwareObjects.Device):
         except PyTango.ConnectionFailed:
             self.connected = False
             return
-        except:
+        except BaseException:
             import traceback
 
             traceback.print_exc()

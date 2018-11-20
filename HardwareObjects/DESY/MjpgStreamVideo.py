@@ -312,7 +312,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         try:
             http.request("GET", path + query)
             response = http.getresponse()
-        except:
+        except BaseException:
             logging.getLogger().error(
                 "MjpgStreamVideo: Connection to http://{0}:{1}{2}{3} refused".format(
                     host, port, path, query
@@ -352,10 +352,10 @@ class MjpgStreamVideo(GenericVideoDevice):
         group = str(int(group))
         try:
             value = str(int(value))
-        except:
+        except BaseException:
             option = value
             value = None
-            if type(option) is str:
+            if isinstance(option, str):
                 info = self.get_cmd_info(cmd, group)
                 if info and "menu" in info and option in info["menu"].values():
                     value = str(
@@ -413,7 +413,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         dest -- command destination  (default MjpgStream.DEST_INPUT)
 
         Return value:
-        dictionary containing the following items ("menu" only for menu commands): 
+        dictionary containing the following items ("menu" only for menu commands):
         "name", "id", "type", "min", "max", "step", "default", "value", "dest", "flags", "group", "menu"
         or None on error
 
@@ -435,15 +435,15 @@ class MjpgStreamVideo(GenericVideoDevice):
             self.send_cmd(group, self.IN_CMD_UPDATE_CONTROLS, plugin, dest)
         # get list of controls and search for the matching one
         data = self.get_controls(plugin, dest)
-        if data != None:
+        if data is not None:
             for info in data:
                 if int(info["group"]) == int(group) and int(info["id"]) == int(cmd):
                     return info
         return None
 
     def get_controls(self, plugin=None, dest=None):
-        """Returns a list with information on all commands supported by the 
-        plugin. If DEST_PROGRAM is given for dest, a list with information on 
+        """Returns a list with information on all commands supported by the
+        plugin. If DEST_PROGRAM is given for dest, a list with information on
         all loaded plugins is returned.
 
         Keyword arguments:
@@ -451,7 +451,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         dest -- command destination  (default MjpgStream.DEST_INPUT)
 
         Return value:
-        depends on destination plugin. For input_avt.so a list with all commands 
+        depends on destination plugin. For input_avt.so a list with all commands
         supported by the connected camera is returned - q.v. get_cmd_info().
 
         """
@@ -504,7 +504,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         data = self.get_controls(0, self.DEST_PROGRAM)
         if data is None:
             return None
-        if data.has_key("inputs"):
+        if "inputs" in data:
             for info in data["inputs"]:
                 if info["name"][-12:] == "input_avt.so":
                     return True
@@ -821,7 +821,7 @@ class MjpgStreamVideo(GenericVideoDevice):
             # if bw:
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
-        except:
+        except BaseException:
             logging.getLogger().error(
                 "MjpgStreamVideo: unable to save snapshot: %s" % filename
             )

@@ -18,6 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 from HardwareRepository.BaseHardwareObjects import Device
+
 """
 [Name]
 GenericVideo
@@ -25,7 +26,7 @@ GenericVideo
 [Description]
 This module declares class GenericVideo.
 
-This class is not meant to be instanced directly but as 
+This class is not meant to be instanced directly but as
 the base class for classes providing access to Video in MXCuBE
 
 
@@ -42,7 +43,7 @@ import numpy as np
 
 try:
     import cv2
-except:
+except BaseException:
     pass
 
 modulenames = ["qt", "PyQt5", "PyQt4"]
@@ -86,12 +87,12 @@ class GenericVideoDevice(Device):
 
         try:
             self.cam_mirror = eval(self.getProperty("mirror"))
-        except:
+        except BaseException:
             self.cam_mirror = [False, False]
 
         try:
             self.cam_encoding = self.getProperty("encoding").lower()
-        except:
+        except BaseException:
             pass
 
         scale = self.getProperty("scale")
@@ -100,7 +101,7 @@ class GenericVideoDevice(Device):
         else:
             try:
                 self.cam_scale_factor = eval(scale)
-            except:
+            except BaseException:
                 logging.getLogger().warning(
                     "%s: failed to interpret scale factor for camera." "Using default.",
                     self.name(),
@@ -109,24 +110,24 @@ class GenericVideoDevice(Device):
 
         try:
             self.poll_interval = self.getProperty("interval")
-        except:
+        except BaseException:
             self.poll_interval = 1
 
         try:
             self.cam_gain = float(self.getProperty("gain"))
-        except:
+        except BaseException:
             pass
 
         try:
             self.cam_exposure = float(self.getProperty("exposure"))
-        except:
+        except BaseException:
             pass
 
         self.scale = self.getProperty("scale", 1.0)
 
         try:
             self.cam_type = self.getProperty("type").lower()
-        except:
+        except BaseException:
             pass
 
         # Apply defaults if necessary
@@ -208,7 +209,7 @@ class GenericVideoDevice(Device):
     def get_jpg_image(self):
         """ for now this function allows to deal with prosilica or any RGB encoded video data"""
         """
-           the signal imageReceived is as expected by mxcube3 
+           the signal imageReceived is as expected by mxcube3
         """
         raw_buffer, width, height = self.get_image()
 
@@ -307,7 +308,7 @@ class GenericVideoDevice(Device):
             try:
                 os.setgid(int(os.getenv("SUDO_GID")))
                 os.setuid(int(os.getenv("SUDO_UID")))
-            except:
+            except BaseException:
                 logging.getLogger().warning(
                     "%s: failed to change the process" "ownership.", self.name()
                 )

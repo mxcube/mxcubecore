@@ -37,7 +37,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 try:
     import pdfkit
-except:
+except BaseException:
     logging.getLogger("HWR").warning("pdfkit not available")
 
 import SimpleHTML
@@ -281,7 +281,7 @@ class EMBLBeamlineTest(HardwareObject):
         try:
             for test in eval(self.getProperty("available_tests", "[]")):
                 self.available_tests_dict[test] = TEST_DICT[test]
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug(
                 "BeamlineTest: No test define in xml. "
                 + "Setting all tests as available."
@@ -338,7 +338,7 @@ class EMBLBeamlineTest(HardwareObject):
                 )
                 if not os.path.exists(self.test_directory):
                     os.makedirs(self.test_directory)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
@@ -349,7 +349,7 @@ class EMBLBeamlineTest(HardwareObject):
         for test_index, test_name in enumerate(test_list):
             test_method_name = "test_" + test_name.lower()
             if hasattr(self, test_method_name):
-                if TEST_DICT.has_key(test_name):
+                if test_name in TEST_DICT:
                     logging.getLogger("HWR").debug(
                         "BeamlineTest: Executing test %s (%s)"
                         % (test_name, TEST_DICT[test_name])
@@ -505,7 +505,7 @@ class EMBLBeamlineTest(HardwareObject):
             try:
                 if not 0 <= int(item) <= 255:
                     return False
-            except:
+            except BaseException:
                 return False
         return True
 
@@ -856,7 +856,7 @@ class EMBLBeamlineTest(HardwareObject):
                 ping_result = os.system("ping -W 2 -c 2 " + device[1]) == 0
                 device_result[0] = "bgcolor=%s" % TEST_COLORS_TABLE[ping_result]
                 device_result[1] = str(ping_result)
-            except:
+            except BaseException:
                 ping_result = False
             table_cells.append(device_result)
 
@@ -1833,7 +1833,7 @@ class EMBLBeamlineTest(HardwareObject):
             logging.getLogger("HWR").info(
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
@@ -1841,7 +1841,7 @@ class EMBLBeamlineTest(HardwareObject):
         try:
             pdfkit.from_url(html_filename, pdf_filename)
             logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
             )

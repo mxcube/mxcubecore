@@ -94,7 +94,7 @@ class GrobSampleChanger(Equipment):
         if callable(self._successCallback):
             try:
                 self._successCallback()
-            except:
+            except BaseException:
                 logging.exception(
                     "%s: exception while calling success callback", self.name()
                 )
@@ -103,7 +103,7 @@ class GrobSampleChanger(Equipment):
         if callable(self._failureCallback):
             try:
                 self._failureCallback()
-            except:
+            except BaseException:
                 logging.exception(
                     "%s: exception while calling failure callback", self.name()
                 )

@@ -259,7 +259,7 @@ class SC3(SampleChanger):
             )
         else:
             if sample is None:
-                if selected == None:
+                if selected is None:
                     raise Exception("No sample selected")
                 else:
                     sample = selected
@@ -298,7 +298,7 @@ class SC3(SampleChanger):
     def _updateState(self):
         try:
             state = self._readState()
-        except:
+        except BaseException:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return
@@ -351,7 +351,7 @@ class SC3(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
@@ -407,5 +407,5 @@ if __name__ == "__main__":
             sc.scan("2:02", wait=True)
             sc.scan("3", wait=True)
             sc.scan("4", recursive=True, wait=True)
-        except:
+        except BaseException:
             print(sys.exc_info()[1])

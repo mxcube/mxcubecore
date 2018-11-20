@@ -358,7 +358,7 @@ if __name__ == "__main__":
 
     """
     print "Before"
-    
+
     sample = sc.getSampleList()[0]
     sample._setHolderLength(22.0)
     sc.updateInfo()
@@ -375,5 +375,5 @@ if __name__ == "__main__":
         sc.select(sc.getComponentByAddress("C12:1-0"), wait=True)
         # sc.select(sc.getComponentByAddress('C12:1'), wait=True)
         # sc.select(sc.getComponentByAddress('C12'), wait=True)
-    except:
+    except BaseException:
         print sys.exc_info()[1]

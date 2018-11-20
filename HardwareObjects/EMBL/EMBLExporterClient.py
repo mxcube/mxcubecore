@@ -41,7 +41,7 @@ class EMBLExporterClient(HardwareObject):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         for client in Exporter.exporter_clients:
             self.exporter_client = Exporter.exporter_clients[client]

@@ -47,7 +47,7 @@ class TacoHutchTrigger(TacoDevice.TacoDevice):
         PSSinfo = self.getProperty("pss")
         try:
             card, channel = list(map(int, PSSinfo.split("/")))
-        except:
+        except BaseException:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
         else:
@@ -155,7 +155,7 @@ class TangoHutchTrigger(BaseHardwareObjects.Device):
         PSSinfo = self.getProperty("pss")
         try:
             self.card, self.channel = list(map(int, PSSinfo.split("/")))
-        except:
+        except BaseException:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 

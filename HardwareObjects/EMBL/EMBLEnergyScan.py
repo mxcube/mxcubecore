@@ -211,7 +211,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
             log.debug("EnergyScan: creating directory %s" % directory)
             try:
                 os.makedirs(directory)
-            except OSError, diag:
+            except OSError as diag:
                 log.error(
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(diag))
@@ -347,7 +347,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 os.makedirs(scan_directory)
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results directory."
             )
@@ -358,7 +358,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         try:
             scan_file_raw = open(scan_file_raw_filename, "w")
             archive_file_raw = open(archive_file_raw_filename, "w")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results raw file"
             )
@@ -394,7 +394,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 float, chooch_results_list[-2].split(" ")
             )
             chooch_graph_data = eval(chooch_results_list[-1])
-        except:
+        except BaseException:
             self.store_energy_scan()
 
             logging.getLogger("GUI").error("Energy scan: Chooch failed")
@@ -414,7 +414,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
         try:
             fi = open(scan_file_efs_filename)
             fo = open(archive_file_efs_filename, "w")
-        except:
+        except BaseException:
             pass
             # self.store_energy_scan()
             # self.emit("energyScanFailed", ())
@@ -496,7 +496,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -504,7 +504,7 @@ class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()

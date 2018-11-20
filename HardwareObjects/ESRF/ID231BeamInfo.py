@@ -13,7 +13,7 @@ beamInfoChanged
 | name            | signals          | functions
 -----------------------------------------------------------------------
  aperture_HO	    apertureChanged
- slits_HO	    	
+ slits_HO
  beam_definer_HO
 -----------------------------------------------------------------------
 """
@@ -43,14 +43,14 @@ class BeamInfo(Equipment):
                 self.getProperty("aperture")
             )
             self.connect(self.aperture_HO, "apertureChanged", self.aperture_pos_changed)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: aperture not defined correctly")
         try:
             self.slits_HO = HardwareRepository.HardwareRepository().getHardwareObject(
                 self.getProperty("slits")
             )
             self.connect(self.slits_HO, "gapSizeChanged", self.slits_gap_changed)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("BeamInfo: slits not defined correctly")
         try:
             self.beam_definer_HO = HardwareRepository.HardwareRepository().getHardwareObject(
@@ -59,7 +59,7 @@ class BeamInfo(Equipment):
             self.connect(
                 self.beam_definer_HO, "definerPosChanged", self.definer_pos_changed
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug(
                 "BeamInfo: beam definer not defined correctly"
             )
@@ -152,8 +152,8 @@ class BeamInfo(Equipment):
 
     def emit_beam_info_change(self):
         if (
-            self.beam_info_dict["size_x"] <> 9999
-            and self.beam_info_dict["size_y"] <> 9999
+            self.beam_info_dict["size_x"] != 9999
+            and self.beam_info_dict["size_y"] != 9999
         ):
             self.emit(
                 "beamSizeChanged",

@@ -72,7 +72,7 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                 self.stopper = True
                 logging.getLogger("HWR").info("poll images stopped")
                 return
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):

@@ -8,8 +8,8 @@ import logging
 import ldap
 
 """
-ldapou is optional, if ldapou is not defined, 
-the bind_str (simple_bind) will be "uid=xxx,dc=xx,dc=xx", 
+ldapou is optional, if ldapou is not defined,
+the bind_str (simple_bind) will be "uid=xxx,dc=xx,dc=xx",
 otherwise it is uid=xxx,ou=xxx,dc=xx,dc=xx
 
 <procedure class="LdapLogin">
@@ -162,7 +162,7 @@ class LdapLogin(Procedure):
             handle = self.ldapConnection.simple_bind(bind_str, password)
             try:
                 result = self.ldapConnection.result(handle)
-            except:
+            except BaseException:
                 return self.cleanup(msg="invalid password for %s" % username)
         except ldap.LDAPError as err:
             if retry:

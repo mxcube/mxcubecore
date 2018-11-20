@@ -12,9 +12,9 @@ RETRIES = 1
 
 
 class MDClient(ExporterClient):
-    ##############################################################################################################
+    ##########################################################################
     # Constants
-    ##############################################################################################################
+    ##########################################################################
 
     STATE_READY = "Ready"
     STATE_INITIALIZING = "Initializing"
@@ -167,9 +167,9 @@ class MDClient(ExporterClient):
     MONITORING_INTERVAL = 0.1
     DEFAULT_TASK_TIMEOUT = 60.0
 
-    ##############################################################################################################
+    ##########################################################################
     # Event receiving callback
-    ##############################################################################################################
+    ##########################################################################
 
     STATE_EVENT = "State"
     STATUS_EVENT = "Status"
@@ -214,9 +214,9 @@ class MDClient(ExporterClient):
     def onDevicePositionEvent(self, device, position):
         pass
 
-    ##############################################################################################################
+    ##########################################################################
     # Overall application state
-    ##############################################################################################################
+    ##########################################################################
 
     # STATE_INITIALIZING, STATE_STARTING, STATE_READY, STATE_RUNNING, STATE_CLOSING, STATE_STOPPED, STATE_COMMUNICATION_ERROR, STATE_ALARM or STATE_FAULT
     def getState(self):
@@ -231,9 +231,9 @@ class MDClient(ExporterClient):
     def abort(self):
         return self.execute("abort")
 
-    ##############################################################################################################
+    ##########################################################################
     # Task synchronization
-    ##############################################################################################################
+    ##########################################################################
 
     def waitReady(self, timeout=0):
         start = time.clock()
@@ -307,9 +307,9 @@ class MDClient(ExporterClient):
                 raise "Timeout waiting motor ready"
             time.sleep(self.MONITORING_INTERVAL)
 
-    ##############################################################################################################
+    ##########################################################################
     # Asynchronous tasks
-    ##############################################################################################################
+    ##########################################################################
     def execTask(self, task_name, pars=None, sync=False, timeout=DEFAULT_TASK_TIMEOUT):
         task_id = self.execute(task_name, pars)
         if sync:
@@ -431,9 +431,9 @@ class MDClient(ExporterClient):
             timeout,
         )
 
-    ##############################################################################################################
+    ##########################################################################
     # Syncronous methods
-    ##############################################################################################################
+    ##########################################################################
     def setScanParameters(self, start, range, time, passes):
         self.writeProperty("ScanStartAngle", start)
         self.writeProperty("ScanRange", range)
@@ -449,7 +449,9 @@ class MDClient(ExporterClient):
     def getDeviceState(self, device_name):
         return self.execute("getDeviceState", (device_name,))
 
-    # Motors Returns STATE_READY,STATE_INVALID(not referenced),STATE_INITIALIZING(referencing),STATE_MOVING,STATE_OFFLINE, STATE_FAULT
+    # Motors Returns STATE_READY,STATE_INVALID(not
+    # referenced),STATE_INITIALIZING(referencing),STATE_MOVING,STATE_OFFLINE,
+    # STATE_FAULT
     def getMotorState(self, motor_name):
         return self.execute("getMotorState", (motor_name,))
 
@@ -520,9 +522,9 @@ class MDClient(ExporterClient):
             ret[tokens[0]] = tokens[1]
         return ret
 
-    ##############################################################################################################
+    ##########################################################################
     # Properties
-    ##############################################################################################################
+    ##########################################################################
     def getAlarmList(self):
         return self.readPropertyAsStringArray(self.PROPERTY_ALARM_LIST)
 
@@ -689,9 +691,9 @@ class MDClient(ExporterClient):
         # TODO: OPTIMIZE
         return self.readPropertyAsStringArray(self.PROPERTY_IMAGE_JPG)
 
-    ##############################################################################################################
+    ##########################################################################
     # Testing
-    ##############################################################################################################
+    ##########################################################################
 
 
 if __name__ == "__main__":
@@ -762,7 +764,7 @@ if __name__ == "__main__":
     #    time.sleep(md.MONITORING_INTERVAL)
 
     task_result_code = md.getLastTaskResultCode()
-    if task_result_code == None:
+    if task_result_code is None:
         print "Task still running"
     elif task_result_code > 0:
         print "Task succeeded"
@@ -777,7 +779,7 @@ if __name__ == "__main__":
     md.scan(sync=True, timeout=(scan_time + md.DEFAULT_TASK_TIMEOUT))
     md.waitReady()
     task_result_code = md.getLastTaskResultCode()
-    if task_result_code == None:
+    if task_result_code is None:
         print "Scan still running"
     elif task_result_code > 0:
         print "Scan succeeded"
@@ -810,7 +812,7 @@ if __name__ == "__main__":
                 if property_type.endswith("[]"):
                     value = md.parseArray(value)
                 print property_name + " = " + str(value)
-            except:
+            except BaseException:
                 print "Error reading " + property_name + ": " + str(sys.exc_info()[1])
 
     print "--------------   Reading/Writing all properties by their get/set methods --------------------"

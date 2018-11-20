@@ -357,7 +357,7 @@ class GraphicsItemInfo(GraphicsItem):
             painter.drawRoundedRect(self.__draw_rect, 10, 10)
             self.custom_pen.setColor(Qt.black)
             painter.setPen(self.custom_pen)
-            if type(self.__msg) == str:
+            if isinstance(self.__msg, str):
                 painter.drawText(self.__pos_x + 5, self.__pos_y + 10, self.__msg)
             else:
                 for index, text_line in enumerate(self.__msg):
@@ -381,7 +381,7 @@ class GraphicsItemInfo(GraphicsItem):
             self.__created_time = datetime.now()
         else:
             self.__created_time = None
-        if type(msg) == str:
+        if isinstance(msg, str):
             height = 25
         else:
             height = 20 * len(msg)
@@ -450,7 +450,7 @@ class GraphicsItemPoint(GraphicsItem):
                 self.__centred_position.kappa,
                 self.__centred_position.kappa_phi,
             )
-        except:
+        except BaseException:
             pass
         return full_name
 
@@ -577,7 +577,7 @@ class GraphicsItemLine(GraphicsItem):
                 start_cpos.kappa,
                 start_cpos.kappa_phi,
             )
-        except:
+        except BaseException:
             pass
         # self.setToolTip(full_name)
         return full_name

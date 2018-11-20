@@ -48,7 +48,7 @@ class PoolCommand(CommandObject):
 
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -74,11 +74,11 @@ class PoolCommand(CommandObject):
                 ret = tangoCmdObject(
                     args
                 )  # eval('self.device.%s(*%s)' % (self.command, args))
-            except PyTango.DevFailed, error_dict:
+            except PyTango.DevFailed as error_dict:
                 logging.getLogger("HWR").error(
                     "%s: Tango, %s", str(self.name()), error_dict
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: an error occured when calling Tango command %s",
                     str(self.name()),
@@ -161,7 +161,7 @@ class PoolChannel(ChannelObject):
 
         try:
             self.device = PyTango.DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -175,7 +175,7 @@ class PoolChannel(ChannelObject):
             else:
                 self.device.set_timeout_millis(self.timeout)
 
-                if type(polling) == types.IntType:
+                if isinstance(polling, types.IntType):
                     self.pollingTimer = qt.QTimer()
                     self.pollingTimer.connect(
                         self.pollingTimer, qt.SIGNAL("timeout()"), self.poll
@@ -198,7 +198,7 @@ class PoolChannel(ChannelObject):
     def poll(self):
         try:
             value = self.device.read_attribute(self.attributeName).value
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "%s: could not poll attribute %s", str(self.name()), self.attributeName
             )
@@ -221,7 +221,7 @@ class PoolChannel(ChannelObject):
         """Called when polling has failed"""
         try:
             s = self.device.State()
-        except:
+        except BaseException:
             pass
             # logging.getLogger("HWR").exception("Could not read State attribute")
         else:

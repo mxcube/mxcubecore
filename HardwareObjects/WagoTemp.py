@@ -18,7 +18,7 @@ class WagoTemp(TacoDevice.TacoDevice):
         if self.device.imported:
             try:
                 self.wagoid = self.device.DevName2Key(self.wagoname)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot find id for wago %s", str(self.name()), self.wagoname
                 )

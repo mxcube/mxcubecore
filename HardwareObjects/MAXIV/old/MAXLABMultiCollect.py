@@ -326,7 +326,7 @@ class PixelDetector:
                     self.oscillation_task.get(block=False)
                 except gevent.Timeout:
                     pass  # no result yet, it is normal
-                except:
+                except BaseException:
                     # an exception occured in task! Pilatus server died?
                     raise
         else:
@@ -582,7 +582,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             self.xds_template_buf = open(self.xds_template).read()
             self.mosflm_template_buf = open(self.mosflm_template).read()
             self.write_files = True
-        except:
+        except BaseException:
             print "Cannot find template for xds and mosflm input files "
             self.write_files = False
 
@@ -608,19 +608,19 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         for dir in (self.raw_data_input_file_dir, xds_directory):
             self.create_directories(dir)
             logging.info("Creating XDS processing input file directory: %s", dir)
-            os.chmod(dir, 0777)
+            os.chmod(dir, 0o777)
         for dir in (self.mosflm_raw_data_input_file_dir, mosflm_directory):
             self.create_directories(dir)
             logging.info("Creating MOSFLM processing input file directory: %s", dir)
-            os.chmod(dir, 0777)
+            os.chmod(dir, 0o777)
 
         try:
             try:
                 os.symlink(files_directory, os.path.join(process_directory, "links"))
-            except os.error, e:
+            except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
-        except:
+        except BaseException:
             logging.exception("Could not create processing file directory")
 
         return xds_directory, mosflm_directory
@@ -649,7 +649,8 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         bcm_pars = mxlocalHO["BCM_PARS"]
         spec_pars = mxlocalHO["SPEC_PARS"]
 
-        # prepare / calculate some values (configured in mxlocal.xml - updated with lab6calibrate script)
+        # prepare / calculate some values (configured in mxlocal.xml - updated
+        # with lab6calibrate script)
 
         AXBeam = spec_pars["beam"].getProperty("ax")
         AYBeam = spec_pars["beam"].getProperty("ay")
@@ -746,14 +747,14 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                     "detectorPixelSizeHorizontal": pixsize_y,
                     "detectorPixelSizeVertical": pixsize_x,
                 }
-            except:
+            except BaseException:
                 import traceback
 
                 traceback.print_exc()
 
             try:
                 xds_buf = self.xds_template_buf % valdict
-            except:
+            except BaseException:
                 import traceback
 
                 traceback.print_exc()
@@ -761,7 +762,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             xds_file.write(xds_buf)
             xds_file.close()
 
-            os.chmod(xds_input_file, 0666)
+            os.chmod(xds_input_file, 0o666)
 
         for input_file_dir, file_prefix in (
             (self.mosflm_raw_data_input_file_dir, "../.."),
@@ -790,14 +791,14 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
             try:
                 mosflm_buf = self.mosflm_template_buf % valdict
-            except:
+            except BaseException:
                 import traceback
 
                 traceback.print_exc()
 
             mosflm_file.write(mosflm_buf)
             mosflm_file.close()
-            os.chmod(mosflm_input_file, 0666)
+            os.chmod(mosflm_input_file, 0o666)
 
             # write input file for STAC, JN,20140709
         stac_template = (
@@ -805,7 +806,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         )
         try:
             stac_template_buf = open(stac_template).read()
-        except:
+        except BaseException:
             print "Cannot find template for stac input files "
             return
 
@@ -849,14 +850,14 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
             }
             try:
                 stac_buf = stac_template_buf % valdict
-            except:
+            except BaseException:
                 import traceback
 
                 traceback.print_exc()
 
             stac_om_file.write(stac_buf)
             stac_om_file.close()
-            os.chmod(stac_om_input_file, 0666)
+            os.chmod(stac_om_input_file, 0o666)
 
     def get_wavelength(self):
         return self._tunable_bl.get_wavelength()
@@ -900,7 +901,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             val = self.getChannelObject("image_intensity").getValue()
             return float(val)
-        except:
+        except BaseException:
             return 0
 
     def get_machine_current(self):
@@ -928,7 +929,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             val = self.bl_control.cryo_stream.getTemperature()
             return float(val)
-        except:
+        except BaseException:
             return 0
 
     def getCurrentEnergy(self):
@@ -1046,7 +1047,8 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
             return archive_dir
 
-    # JN, 20140904, save snapshot in the RAW_DATA folder in the end of the data collection
+    # JN, 20140904, save snapshot in the RAW_DATA folder in the end of the
+    # data collection
     def do_collect(self, owner, data_collect_parameters):
         if self.__safety_shutter_close_task is not None:
             self.__safety_shutter_close_task.kill()
@@ -1143,7 +1145,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
                 data_collect_parameters["actualSampleSlotInContainer"] = vial
                 data_collect_parameters["actualContainerSlotInSC"] = basket
-            except:
+            except BaseException:
                 data_collect_parameters["actualSampleBarcode"] = None
                 data_collect_parameters["actualContainerBarcode"] = None
         else:
@@ -1154,7 +1156,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             logging.getLogger("user_level_log").info("Getting centring status")
             centring_status = self.diffractometer().getCentringStatus()
-        except:
+        except BaseException:
             pass
         else:
             centring_info = dict(centring_status)
@@ -1192,7 +1194,8 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         ###
         self.move_motors(motors_to_move_before_collect)
 
-        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        # take snapshots, then assign centring status (which contains images) to
+        # centring_info variable
         self._take_crystal_snapshots(
             data_collect_parameters.get("take_snapshots", False)
         )
@@ -1201,7 +1204,8 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
         self.move_motors(motors_to_move_before_collect)
 
         self.move_motors(motors_to_move_before_collect)
-        # take snapshots, then assign centring status (which contains images) to centring_info variable
+        # take snapshots, then assign centring status (which contains images) to
+        # centring_info variable
         logging.getLogger("user_level_log").info("Taking sample snapshosts")
         self._take_crystal_snapshots(
             data_collect_parameters.get("take_snapshots", False)
@@ -1223,7 +1227,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                         "Updating sample information in LIMS"
                     )
                     self.bl_control.lims.update_bl_sample(self.current_lims_sample)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not update sample information in LIMS"
                 )
@@ -1239,7 +1243,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                     "Creating snapshosts directory: %r", snapshot_directory
                 )
                 self.create_directories(snapshot_directory)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("Error creating snapshot directory")
             else:
                 snapshot_i = 1
@@ -1260,11 +1264,11 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                             "Saving snapshot %d", snapshot_i
                         )
                         f.write(img_data)
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception("Could not save snapshot!")
                         try:
                             f.close()
-                        except:
+                        except BaseException:
                             pass
                     else:
                         f.close()
@@ -1278,7 +1282,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
             try:
                 data_collect_parameters["centeringMethod"] = centring_info["method"]
-            except:
+            except BaseException:
                 data_collect_parameters["centeringMethod"] = None
 
         if self.bl_control.lims:
@@ -1287,7 +1291,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                     "Updating data collection in LIMS"
                 )
                 self.bl_control.lims.update_data_collection(data_collect_parameters)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
                 )
@@ -1409,7 +1413,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                     i = 1
                     for jj in self.bl_config.undulators:
                         key = jj.type
-                        if und.has_key(key):
+                        if key in und:
                             data_collect_parameters["undulatorGap%d" % (i)] = und[key]
                             i += 1
                     data_collect_parameters[
@@ -1432,7 +1436,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                     logging.getLogger("user_level_log").info(
                         "Done updating data collection in LIMS"
                     )
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception(
                         "Could not store data collection into LIMS"
                     )
@@ -1490,7 +1494,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
                             jpeg_thumbnail_full_path = (
                                 jpeg_thumbnail_file_template % frame
                             )
-                        except:
+                        except BaseException:
                             jpeg_full_path = None
                             jpeg_thumbnail_full_path = None
                         file_location = file_parameters["directory"]
@@ -1537,7 +1541,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
 
                                     try:
                                         self.bl_control.lims.store_image(lims_image)
-                                    except:
+                                    except BaseException:
                                         logging.getLogger("HWR").exception(
                                             "Could not store store image in LIMS"
                                         )

@@ -14,7 +14,7 @@ beamPosChanged
 | name            | signals          | functions
 -----------------------------------------------------------------------
  aperture_hwobj	    apertureChanged
- slits_hwobj	    	
+ slits_hwobj
  beam_definer_hwobj
 -----------------------------------------------------------------------
 """
@@ -50,7 +50,7 @@ class BeamInfo(Equipment):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
@@ -89,7 +89,7 @@ class BeamInfo(Equipment):
             default_beam_divergence_horizontal = int(
                 self.getProperty("beam_divergence_horizontal")
             )
-        except:
+        except BaseException:
             pass
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,
@@ -102,7 +102,7 @@ class BeamInfo(Equipment):
 
     def get_beam_divergence_hor(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_definer_hwobj is not None:
             return self.beam_definer_hwobj.get_divergence_hor()
@@ -111,7 +111,7 @@ class BeamInfo(Equipment):
 
     def get_beam_divergence_ver(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_definer_hwobj is not None:
             return self.beam_definer_hwobj.get_divergence_ver()

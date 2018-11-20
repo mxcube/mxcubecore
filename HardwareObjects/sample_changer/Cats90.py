@@ -8,10 +8,10 @@ Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
 Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
 
 Known sites using cats90
-   BESSY - 
-       BL14. (CATS) 3lid * 3puck (SPINE) * 10 = 90 samples  
-   ALBA - 
-       XALOC. (CATS) 3lid * 3puck (UNIPUCK) * 16 = 144 samples 
+   BESSY -
+       BL14. (CATS) 3lid * 3puck (SPINE) * 10 = 90 samples
+   ALBA -
+       XALOC. (CATS) 3lid * 3puck (UNIPUCK) * 16 = 144 samples
    MAXIV -
        BIOMAX. (ISARA) 1 lid * 10puck (SPINE) * 10 + 19puck (UNIPUCK) * 16 = 404 samples
    SOLEIL
@@ -411,7 +411,8 @@ class Cats90(SampleChanger):
         except PyTango.DevFailed:
             self.cats_model = "CATS"
 
-        # see if the device server can return CassetteTypes (and then number of cassettes/baskets)
+        # see if the device server can return CassetteTypes (and then number of
+        # cassettes/baskets)
         try:
             self.basket_types = self.cats_device.read_attribute("CassetteType").value
             self.number_of_baskets = len(self.basket_types)
@@ -421,7 +422,8 @@ class Cats90(SampleChanger):
         # find number of baskets and number of samples per basket
         if self.number_of_baskets is not None:
             if self.is_cats():
-                # if CATS... uniform type of baskets. the first number in CassetteType is used for all
+                # if CATS... uniform type of baskets. the first number in CassetteType
+                # is used for all
                 basket_type = self.basket_types[0]
                 if basket_type is BASKET_UNIPUCK:
                     self.samples_per_basket = SAMPLES_UNIPUCK
@@ -430,7 +432,8 @@ class Cats90(SampleChanger):
             else:
                 self.samples_per_basket = None
         else:
-            # ok. it does not. use good old way (xml or default) to find nb baskets and samples
+            # ok. it does not. use good old way (xml or default) to find nb baskets
+            # and samples
             no_of_baskets = self.getProperty("no_of_baskets")
             samples_per_basket = self.getProperty("samples_per_basket")
 
@@ -523,7 +526,7 @@ class Cats90(SampleChanger):
             unipuck_tool = int(unipuck_tool)
             if unipuck_tool:
                 self.setUnipuckTool(unipuck_tool)
-        except:
+        except BaseException:
             pass
 
         self.updateInfo()
@@ -671,7 +674,7 @@ class Cats90(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
@@ -748,8 +751,8 @@ class Cats90(SampleChanger):
 
     def load(self, sample=None, wait=True):
         """
-        Load a sample. 
-            overwrite original load() from GenericSampleChanger to allow finer decision 
+        Load a sample.
+            overwrite original load() from GenericSampleChanger to allow finer decision
             on command to use (with or without barcode / or allow for wash in some cases)
             Implement that logic in _doLoad()
             Add initial verification about the Powered:
@@ -773,7 +776,7 @@ class Cats90(SampleChanger):
 
     def _doLoad(self, sample=None, shifts=None):
         """
-        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
+        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
 
         :returns: None
@@ -806,7 +809,8 @@ class Cats90(SampleChanger):
         tool = self.tool_for_basket(basketno)
         stype = self.get_cassette_type(basketno)
 
-        # we should now check basket type on diffr to see if tool is different... then decide what to do
+        # we should now check basket type on diffr to see if tool is different...
+        # then decide what to do
 
         if shifts is None:
             xshift, yshift, zshift = ["0", "0", "0"]
@@ -1069,7 +1073,7 @@ class Cats90(SampleChanger):
         self._waitDeviceReady(3.0)
         try:
             task_id = method(*args)
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").debug(
@@ -1250,7 +1254,7 @@ class Cats90(SampleChanger):
     def _doUpdateLoadedSample(self):
         """
         Reads the currently mounted sample basket and pin indices from the CATS Tango DS,
-        translates the lid/sample notation into the basket/sample notation and marks the 
+        translates the lid/sample notation into the basket/sample notation and marks the
         respective sample as loaded.
 
         :returns: None

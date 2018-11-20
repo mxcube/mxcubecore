@@ -22,19 +22,19 @@
 ALBAMachineInfo
 
 [Description]
-Hardware Object is used to get relevant machine information 
-(machine current, time to next injection, status, etc) 
+Hardware Object is used to get relevant machine information
+(machine current, time to next injection, status, etc)
 Based on EMBL HwObj
 
 [Channels]
 - MachineCurrent
 - TopUpRemaining
-- State 
+- State
 
 [Commands]
 
 [Emited signals]
-- valuesChanged 
+- valuesChanged
 
 [Functions]
 - None
@@ -83,7 +83,7 @@ class ALBAMachineInfo(Equipment):
         self.logger.info("__init__()")
 
         """
-        Descript. : 
+        Descript. :
         """
         # Parameters values
         self.values_dict = {}
@@ -98,7 +98,7 @@ class ALBAMachineInfo(Equipment):
 
     def init(self):
         """
-        Descript. : Inits channels from xml configuration. 
+        Descript. : Inits channels from xml configuration.
         """
         try:
             self.chan_mach_current = self.getChannelObject("MachCurrent")
@@ -136,7 +136,7 @@ class ALBAMachineInfo(Equipment):
     def mach_status_changed(self, status):
         """
         Descript. : Function called if machine status is changed
-        Arguments : new machine status (string)  
+        Arguments : new machine status (string)
         Return    : -
         """
         self.values_dict["mach_status"] = str(status)
@@ -146,7 +146,7 @@ class ALBAMachineInfo(Equipment):
     def topup_remaining_changed(self, value):
         """
         Descript. : Function called if topup ramaining is changed
-        Arguments : new topup remainin (float)  
+        Arguments : new topup remainin (float)
         Return    : -
         """
         self.values_dict["topup_remaining"] = value
@@ -156,7 +156,7 @@ class ALBAMachineInfo(Equipment):
     def update_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
-                    and storage space is in limits, forms a value list 
+                    and storage space is in limits, forms a value list
                     and value in range list, both emited by qt as lists
         Arguments : -
         Return    : -

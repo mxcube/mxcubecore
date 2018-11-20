@@ -164,7 +164,8 @@ class ISPyBClient2Mockup(HardwareObject):
                                 break
         new_session_flag = False
         if todays_session is None:
-            # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
+            # a newSession will be created, UI (Qt, web) can decide to accept the
+            # newSession or not
             new_session_flag = True
             current_time = time.localtime()
             start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
@@ -242,7 +243,8 @@ class ISPyBClient2Mockup(HardwareObject):
                                 break
         new_session_flag = False
         if todays_session is None:
-            # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
+            # a newSession will be created, UI (Qt, web) can decide to accept the
+            # newSession or not
             new_session_flag = True
             current_time = time.localtime()
             start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)

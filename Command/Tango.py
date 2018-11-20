@@ -30,7 +30,7 @@ class TangoCommand(CommandObject):
     def init_device(self):
         try:
             self.device = DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -56,11 +56,11 @@ class TangoCommand(CommandObject):
             ret = tangoCmdObject(
                 *args
             )  # eval('self.device.%s(*%s)' % (self.command, args))
-        except PyTango.DevFailed, error_dict:
+        except PyTango.DevFailed as error_dict:
             logging.getLogger("HWR").error(
                 "%s: Tango, %s", str(self.name()), error_dict
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "%s: an error occured when calling Tango command %s",
                 str(self.name()),
@@ -167,7 +167,7 @@ class TangoChannel(ChannelObject):
     def continue_init(self, _):
         # self.init_poller.stop()
 
-        if type(self.polling) == types.IntType:
+        if isinstance(self.polling, types.IntType):
             self.raw_device = RawDeviceProxy(self.deviceName)
             Poller.poll(
                 self.poll,
@@ -190,14 +190,14 @@ class TangoChannel(ChannelObject):
                     )
                     # except PyTango.EventSystemFailed:
                     #   pass
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception("could not subscribe event")
         self._device_initialized.set()
 
     def init_device(self):
         try:
             self.device = DeviceProxy(self.deviceName)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             self.imported = False
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
@@ -265,7 +265,7 @@ class TangoChannel(ChannelObject):
             self.init_device()
         except:
             pass
-       
+
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             poller.restart(1000)
@@ -275,7 +275,7 @@ class TangoChannel(ChannelObject):
         except:
           logging.exception("%s: Exception happened while polling %s", self.name(), self.attributeName)
 
-        if emit_update: 
+        if emit_update:
           # emit at the end => can raise exceptions in callbacks
           self.emit('update', None)
         """
@@ -287,7 +287,7 @@ class TangoChannel(ChannelObject):
     def update(self, value=Poller.NotInitializedValue):
         if value == Poller.NotInitializedValue:
             value = self.getValue()
-        if type(value) == types.TupleType:
+        if isinstance(value, types.TupleType):
             value = list(value)
 
         self.value = value

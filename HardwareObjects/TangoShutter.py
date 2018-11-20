@@ -12,7 +12,7 @@ Two possible situations are supported by this hardware object:
     - One state attribute
     - Two action commands (in/out, open/close, insert/extract..)
 
- or 
+ or
     - One read/write attribute with two states
 
 Signals
@@ -37,7 +37,7 @@ The `new_state` will be one string out of:
     'insert',
     'extract',
 
-The state strings will be converted from the state reported by the hardware by a conversion 
+The state strings will be converted from the state reported by the hardware by a conversion
 table detailed below. This table is inspired in the Tango.DevState possible values, but also
 in other cases like for example an attribute being True/False or other known real cases.
 
@@ -49,7 +49,7 @@ Methods
 Hardware to Shutter State conversion
 ---------------------------------------------------------------
 
-The following table details the conversion to shutter states from 
+The following table details the conversion to shutter states from
 hardware state::
 
   --------- --------------- ---------------
@@ -58,8 +58,8 @@ hardware state::
     False    'closed'
     True     'opened'
     0        'closed'
-    1        'opened'       
-    4        'insert'       
+    1        'opened'
+    4        'insert'
     5        'extract'
     6        'moving'
     7        'standby'
@@ -71,7 +71,7 @@ hardware state::
    13        'unknown'
    -1        'fault'
    None      'unknown'
-  '_'        'automatic' 
+  '_'        'automatic'
   'UNKNOWN'  'unknown'        UNKNOWN
   'CLOSE'    'closed'         CLOSE
   'OPEN'     'opened'         OPEN

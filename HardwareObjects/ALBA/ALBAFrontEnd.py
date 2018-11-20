@@ -1,6 +1,6 @@
 """
 The ALBAFastShutter hardware object is a variation of the ALBAEpsActuator
-where the command to open/close is done on a different channel than the 
+where the command to open/close is done on a different channel than the
 reading of the shutter state.
 
 The interface is otherwise exactly the same as the ALBAEpsActuator

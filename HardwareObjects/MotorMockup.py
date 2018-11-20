@@ -34,7 +34,7 @@ Example of xml config file
 <device class="MotorMockup">
   <start_position>500</start_position>
   <velocity>100</velocity>
-  <default_limits>[-360, 360]</default_limits>  
+  <default_limits>[-360, 360]</default_limits>
 </device>
 """
 
@@ -53,12 +53,12 @@ class MotorMockup(AbstractMotor):
     def init(self):
         try:
             self.set_velocity(float(self.getProperty("velocity")))
-        except:
+        except BaseException:
             self.set_velocity(DEFAULT_VELOCITY)
 
         try:
             self.set_limits(eval(self.getProperty("default_limits")))
-        except:
+        except BaseException:
             self.set_limits(DEFAULT_LIMITS)
 
         self.set_state(self.motor_states.READY)

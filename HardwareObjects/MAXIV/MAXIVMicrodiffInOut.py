@@ -27,7 +27,7 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
         while self.keep_polling:
             try:
                 state = self.getActuatorState()
-            except:
+            except BaseException:
                 time.sleep(1)
                 continue
             if state != old_state:

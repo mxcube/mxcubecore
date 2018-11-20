@@ -62,7 +62,7 @@ __version__ = ".4.1"
 try:
     # Python 2.4 has a deque
     from collections import deque
-except:
+except BaseException:
     # Python 2.3 and earlier don't
     #
     # limited deque, trimmed version of Raymond Hettinger's recipe:
@@ -141,7 +141,7 @@ class writewrapper(object):
                 xtra = len(data) % BS + BS
             buf = self.d
             for i in xrange(0, len(data) - xtra, BS):
-                buf.append(data[i: i + BS])
+                buf.append(data[i : i + BS])
             if xtra:
                 buf.append(data[-xtra:])
 
@@ -232,7 +232,7 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
         # Check for query string in URL
         qspos = self.path.find("?")
         if qspos >= 0:
-            self.body = cgi.parse_qs(self.path[qspos + 1:], keep_blank_values=1)
+            self.body = cgi.parse_qs(self.path[qspos + 1 :], keep_blank_values=1)
             self.path = self.path[:qspos]
 
         self.handle_data()
@@ -360,7 +360,7 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
                 else:
                     O.appendleft(a[num_sent:])
 
-        except socket.error, why:
+        except socket.error as why:
             if isinstance(why, (str, unicode)):
                 self.log_error(why)
             elif isinstance(why, tuple) and isinstance(why[-1], (str, unicode)):
@@ -512,7 +512,7 @@ class to_logfile:
 
 
 if __name__ == "__main__":
-    usage = "usage: \%prog -r<root> [-p<port>] [-0|-1|-2]"
+    usage = r"usage: \%prog -r<root> [-p<port>] [-0|-1|-2]"
 
     parser = optparse.OptionParser(usage)
     parser.add_option(

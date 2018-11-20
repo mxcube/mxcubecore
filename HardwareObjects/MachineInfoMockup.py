@@ -37,7 +37,7 @@ class MachineInfoMockup(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         """
-        Descript. : 
+        Descript. :
         """
         # Parameters
         # Intensity current ranges
@@ -104,7 +104,7 @@ class MachineInfoMockup(HardwareObject):
     def update_values(self):
         """
         Descript. : Updates storage disc information, detects if intensity
-                    and storage space is in limits, forms a value list 
+                    and storage space is in limits, forms a value list
                     and value in range list, both emited by qt as lists
         Arguments : -
         Return    : -

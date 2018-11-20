@@ -47,7 +47,7 @@ class ID30BPhotonFlux(Equipment):
         try:
             egy = self.energy_motor.getCurrentEnergy() * 1000.0
             calib = self.flux_calc.calc_flux_factor(egy)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         try:
             aperture_factor = self.aperture.getApertureCoef()

@@ -144,10 +144,10 @@ class QueueModel(HardwareObject):
 
     def add_child(self, parent, child):
         """
-        Adds the child node <child>. Raises the exception TypeError 
+        Adds the child node <child>. Raises the exception TypeError
         if child is not of type TaskNode.
 
-        Moves the child (reparents it) if it already has a parent. 
+        Moves the child (reparents it) if it already has a parent.
 
         :param child: TaskNode to add
         :type child: TaskNode
@@ -447,7 +447,7 @@ class QueueModel(HardwareObject):
         try:
             save_file = open(filename, "w")
             save_file.write(repr((selected_model, items_to_save)))
-        except:
+        except BaseException:
             logging.getLogger().exception(
                 "Unable to save queue " + "in file %s", filename
             )
@@ -499,12 +499,12 @@ class QueueModel(HardwareObject):
                     for child in task_group_entry.get_children():
                         child.set_snapshot(snapshot)
                 logging.getLogger("HWR").info("Queue loading done")
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("Unable to load queue")
 
     def load_queue_from_file(self, filename, snapshot=None):
-        """Loads queue from file. The problem is snapshots that are 
-           not stored in the file, so we have to add new ones in 
+        """Loads queue from file. The problem is snapshots that are
+           not stored in the file, so we have to add new ones in
            the loading process
 
            :returns: model name 'free-pin', 'ispyb' or 'plate'
@@ -544,7 +544,7 @@ class QueueModel(HardwareObject):
             else:
                 logging.getLogger("HWR").info("No queue content available in file")
             return decoded_file[0]
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Unable to load queue " + "from file %s", filename
             )

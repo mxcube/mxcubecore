@@ -63,7 +63,7 @@ class StandardClient:
     def __closeSocket__(self):
         try:
             self.__sock__.close()
-        except:
+        except BaseException:
             pass
         self._isConnected = False
         self.__sock__ = None
@@ -102,23 +102,23 @@ class StandardClient:
             msg = msg_number + cmd
             try:
                 self.__sock__.sendto(msg, (self.server_ip, self.server_port))
-            except:
-                raise SocketError, "Socket error:" + str(sys.exc_info()[1])
+            except BaseException:
+                raise SocketError("Socket error:" + str(sys.exc_info()[1]))
             received = False
             while received == False:
                 try:
                     ret = self.__sock__.recv(4096)
                 except socket.timeout:
-                    raise TimeoutError, "Timeout error:" + str(sys.exc_info()[1])
-                except:
-                    raise SocketError, "Socket error:" + str(sys.exc_info()[1])
+                    raise TimeoutError("Timeout error:" + str(sys.exc_info()[1]))
+                except BaseException:
+                    raise SocketError("Socket error:" + str(sys.exc_info()[1]))
                 if ret[0:5] == msg_number:
                     received = True
             ret = ret[5:]
         except SocketError:
             self.__closeSocket__()
             raise
-        except:
+        except BaseException:
             if self.__CONSTANT_LOCAL_PORT__ == False:
                 self.__closeSocket__()
             raise
@@ -143,13 +143,13 @@ class StandardClient:
             except SocketError:
                 if i >= self.retries - 1:
                     raise
-            except:
+            except BaseException:
                 raise
 
     def setTimeout(self, timeout):
         self.timeout = timeout
         if self.protocol == PROTOCOL.DATAGRAM:
-            if self.__sock__ != None:
+            if self.__sock__ is not None:
                 self.__sock__.settimeout(self.timeout)
 
     def restoreTimeout(self):
@@ -171,7 +171,7 @@ class StandardClient:
     def recv_thread(self):
         try:
             self.onConnected()
-        except:
+        except BaseException:
             pass
         buffer = ""
         mReceivedSTX = False
@@ -200,7 +200,7 @@ class StandardClient:
                 buffer = ""
         try:
             self.onDisconnected()
-        except:
+        except BaseException:
             pass
 
     def __sendStream__(self, cmd):
@@ -225,7 +225,7 @@ class StandardClient:
         with gevent.Timeout(self.timeout, TimeoutError):
             while self.received_msg is None:
                 if not self.error is None:
-                    raise SocketError, "Socket error:" + str(self.error)
+                    raise SocketError("Socket error:" + str(self.error))
                 self.msg_received_event.wait()
             return self.received_msg
 
@@ -247,7 +247,9 @@ class StandardClient:
 
     def send(self, cmd):
         if self.protocol == PROTOCOL.DATAGRAM:
-            raise ProtocolError, "Protocol error: send command not support in datagram clients"
+            raise ProtocolError(
+                "Protocol error: send command not support in datagram clients"
+            )
         else:
             return self.__sendStream__(cmd)
 

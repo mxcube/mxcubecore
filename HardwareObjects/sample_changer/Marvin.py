@@ -359,7 +359,7 @@ class Marvin(SampleChanger):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
     def _doUpdateInfo(self):
-        """Updates the sample changers status: mounted pucks, state, 
+        """Updates the sample changers status: mounted pucks, state,
            currently loaded sample
         """
         pass
@@ -387,7 +387,7 @@ class Marvin(SampleChanger):
 
     def _doSelect(self, component):
         """Selects a new component (basket or sample).
-           Uses method >_directlyUpdateSelectedComponent< to actually 
+           Uses method >_directlyUpdateSelectedComponent< to actually
            search and select the corrected positions.
         """
         if type(component) in (Pin, Sample):
@@ -402,7 +402,7 @@ class Marvin(SampleChanger):
         self._directlyUpdateSelectedComponent(selected_basket_no, selected_sample_no)
 
     def _doScan(self, component, recursive):
-        """Scans the barcode of a single sample, puck or recursively even the 
+        """Scans the barcode of a single sample, puck or recursively even the
            complete sample changer.
            Not implemented
         """
@@ -410,8 +410,8 @@ class Marvin(SampleChanger):
 
     def _doLoad(self, sample=None):
         """Loads a sample on the diffractometer. Performs a simple put operation
-           if the diffractometer is empty, and a sample exchange (unmount of 
-           old + mount of  new sample) if a sample is already mounted on 
+           if the diffractometer is empty, and a sample exchange (unmount of
+           old + mount of  new sample) if a sample is already mounted on
            the diffractometer.
         """
         # self._setState(SampleChangerState.Ready)
@@ -545,7 +545,7 @@ class Marvin(SampleChanger):
                 log_msg += ",Success\n"
             log_file.write(log_msg)
             log_file.close()
-        except:
+        except BaseException:
             pass
 
         if self.is_sample_on_gonio():
@@ -674,7 +674,7 @@ class Marvin(SampleChanger):
                 log_msg += ",Success\n"
             log_file.write(log_msg)
             log_file.close()
-        except:
+        except BaseException:
             pass
 
         if self.is_sample_on_gonio():
@@ -702,7 +702,7 @@ class Marvin(SampleChanger):
         return
 
     def _doReset(self):
-        """Clean all sample info, move sample to his position and move puck 
+        """Clean all sample info, move sample to his position and move puck
            from center to base"""
         self._setState(SampleChangerState.Ready)
         self._initSCContents()
@@ -815,7 +815,7 @@ class Marvin(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
@@ -859,7 +859,7 @@ class Marvin(SampleChanger):
 
     def _updateSampleBarcode(self, sample):
         """
-        Updates the barcode of >sample< in the local database 
+        Updates the barcode of >sample< in the local database
         after scanning with the barcode reader.
         """
         datamatrix = "NotAvailable"
@@ -976,7 +976,7 @@ class Marvin(SampleChanger):
                         self._progress = int(prop_value)
                         self.emit("progressStep", self._progress)
                         self._info_dict["progress"] = self._progress
-                except:
+                except BaseException:
                     pass
             elif prop_name == "CPuck":
                 if prop_value == "1":

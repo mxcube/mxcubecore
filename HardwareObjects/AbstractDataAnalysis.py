@@ -25,7 +25,7 @@ class AbstractDataAnalysis(object):
         """Return xml input file for EDNA
 
         :param ref_parameters: A named tuple or object with following fields:
-              'id', 
+              'id',
               'prefix',
               'run_number',
               'template',
@@ -46,7 +46,7 @@ class AbstractDataAnalysis(object):
               'inverse_beam',
               'screening_id'
 
-         :param char_params: A named tuple or object with following fields:  
+         :param char_params: A named tuple or object with following fields:
               # Optimisation parameters
               'aimed_resolution'
               'aimed_multiplicity'
@@ -80,7 +80,7 @@ class AbstractDataAnalysis(object):
               # Radiation damage model
               'rad_suscept'
               'beta'
-              'sigma'  
+              'sigma'
 
           :param path_str: Template string representing path to each image
         """
@@ -104,7 +104,7 @@ def dc_from_edna_output(edna_output, sample, dcg, session, char_params=None):
         edna_strategy = char_results.getStrategyResult()
         collection_plan = edna_strategy.getCollectionPlan()[0]
         wedges = collection_plan.getCollectionStrategy().getSubWedge()
-    except:
+    except BaseException:
         pass
     else:
         try:

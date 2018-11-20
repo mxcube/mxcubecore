@@ -28,7 +28,7 @@ class Oxford700Mockup(HardwareObject):
         while True:
             try:
                 self.value_changed()
-            except:
+            except BaseException:
                 sys.excepthook(*sys.exc_info())
             gevent.sleep(self.interval)
 

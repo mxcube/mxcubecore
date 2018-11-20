@@ -104,22 +104,23 @@ def start(programs, processEvent, paramsDict):
                     logging.getLogger().error(
                         "No program to execute found (%s)", executable
                     )
-        except:
+        except BaseException:
             logging.exception("autoprocessing: an error occurred")
 
 
 def startInducedRadDam(datacollect_params, old={"xds_dir": None}):
     if not datacollect_params["xds_dir"] == old["xds_dir"]:
         old["xds_dir"] = datacollect_params["xds_dir"]
-        eda_dirs = filter(
-            os.path.isdir,
-            [
-                os.path.join(datacollect_params["EDNA_files_dir"], x)
-                for x in os.listdir(datacollect_params["EDNA_files_dir"])
-                if x.startswith("EDA")
-            ],
+        eda_dirs = sorted(
+            filter(
+                os.path.isdir,
+                [
+                    os.path.join(datacollect_params["EDNA_files_dir"], x)
+                    for x in os.listdir(datacollect_params["EDNA_files_dir"])
+                    if x.startswith("EDA")
+                ],
+            )
         )
-        eda_dirs.sort()
         EDApplication = eda_dirs[-1]
         os.system(
             "export TCL_LIBRARY=/usr/share/tcl8.4;/opt/pxsoft/bin/InducedRadDam.py -i -e %s -p %s &"

@@ -8,6 +8,7 @@ from SpecClient.SpecCommand import SpecCommand
 from SpecClient import SpecClientError
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Procedure
+
 print "Custom ElementAnalysis loaded"
 
 
@@ -210,7 +211,8 @@ class ElementAnalysis(Procedure):
         return state
 
     def startScan(self, minE, maxE, expTime):
-        # print "starting startSan with minE %f, maxE %f and Time%f"% (minE,maxE,expTime,)
+        # print "starting startSan with minE %f, maxE %f and Time%f"%
+        # (minE,maxE,expTime,)
         if minE == maxE:
             s = "Min energy and max energy are equal"
             return s
@@ -262,11 +264,12 @@ class ElementAnalysis(Procedure):
     def setCLFluor(self, state):
         if not state:
             self.detectorInCmd()
-            # print "-------------ElementAnalysis:  self.detectorInCmd() ", self.detectorInCmd
+            # print "-------------ElementAnalysis:  self.detectorInCmd() ",
+            # self.detectorInCmd
         else:
             self.detectorOutCmd()
             # print "-------------ElementAnalysis:  self.detectorOutCmd() ", self.detectorOutCmd
-        ##print "clfluorStateChannel", self.clfluorStateChannel
+        # print "clfluorStateChannel", self.clfluorStateChannel
         self.clfluorStateUpdate(state)
 
     def getElementEdges(self, element):

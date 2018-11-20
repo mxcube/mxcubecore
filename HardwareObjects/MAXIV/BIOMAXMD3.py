@@ -72,11 +72,11 @@ class BIOMAXMD3(GenericDiffractometer):
         self.sample_y_motor_hwobj = self.motor_hwobj_dict["sampy"]
         try:
             self.kappa_motor_hwobj = self.motor_hwobj_dict["kappa"]
-        except:
+        except BaseException:
             self.kappa_motor_hwobj = None
         try:
             self.kappa_phi_motor_hwobj = self.motor_hwobj_dict["kappa_phi"]
-        except:
+        except BaseException:
             self.kappa_phi_motor_hwobj = None
 
         self.cent_vertical_pseudo_motor = None
@@ -89,7 +89,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 self.connect(
                     self.cent_vertcial_pseudo_motor, "update", self.centring_motor_moved
                 )
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "Cannot initialize CentringTableVerticalPosition"
             )
@@ -97,7 +97,7 @@ class BIOMAXMD3(GenericDiffractometer):
         try:
             use_sc = self.getProperty("use_sc")
             self.set_use_sc(use_sc)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
         try:
@@ -108,7 +108,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
             self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
             self.beam_info_hwobj.beam_position = self.beam_position
-        except:
+        except BaseException:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {
                     "x": self.image_width / 2,
@@ -146,7 +146,8 @@ class BIOMAXMD3(GenericDiffractometer):
         :returns: list with two floats
         """
         zoom = self.camera_hwobj.get_image_zoom()
-        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
+        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(),
+        # 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
         return (
             zoom / self.channel_dict["CoaxCamScaleX"].getValue(),
             1 / self.channel_dict["CoaxCamScaleY"].getValue(),
@@ -301,7 +302,7 @@ class BIOMAXMD3(GenericDiffractometer):
                 np.array(img_rot, order="C"), IterationClosing=6
             )
             x = self.camera.getWidth() - x
-        except:
+        except BaseException:
             return -1, -1, 0
         if info == "Coord":
             surface_score = 10
@@ -366,7 +367,8 @@ class BIOMAXMD3(GenericDiffractometer):
         #        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
         #         and self.minikappa_correction_hwobj is not None:
         #            c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
-        #            c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
+        # c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa,
+        # phi)
         xy = self.centring_hwobj.centringToScreen(c)
         # x = (xy['X'] + c['beam_x']) * self.pixels_per_mm_x + \
         x = xy["X"] * self.pixels_per_mm_x + self.zoom_centre["x"]
@@ -548,7 +550,7 @@ class BIOMAXMD3(GenericDiffractometer):
                     current_positions[motor] = self.motor_hwobj_dict[
                         motor
                     ].getPosition()
-                except:
+                except BaseException:
                     pass
         try:
             self.wait_device_ready(10)
@@ -613,7 +615,7 @@ class BIOMAXMD3(GenericDiffractometer):
             )
             self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
             self.wait_device_ready(5)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("MD3: could not move to beam.")
 
     def get_centred_point_from_coord(self, x, y, return_by_names=None):

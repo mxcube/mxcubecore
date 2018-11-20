@@ -79,7 +79,7 @@ class MicrodiffAperture(MicrodiffMotor):
             for positionName in self.predefinedPositions:
                 if math.fabs(self.predefinedPositions[positionName] - pos) <= 1e-3:
                     return positionName
-        except:
+        except BaseException:
             return ""
 
     def moveToPosition(self, positionName):
@@ -96,7 +96,7 @@ class MicrodiffAperture(MicrodiffMotor):
         else:
             try:
                 self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Cannot move motor %s: invalid position name.", str(self.userName())
                 )

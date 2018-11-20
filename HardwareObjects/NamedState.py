@@ -62,16 +62,17 @@ class NamedState(Device):
 
     def _getStateList(self):
         if self.stateListChannel is not None:
-            # This is the case for ApertureDiameterList *configured as statelist channel in xml
+            # This is the case for ApertureDiameterList *configured as statelist
+            # channel in xml
             statelist = self.stateListChannel.getValue()
             for statename in statelist:
-                # cenvert in str because statename is numpy.int32 from Tango and deosn't work in QCombox !!!!!!
+                # cenvert in str because statename is numpy.int32 from Tango and deosn't
                 self.stateList.append(str(statename))
         else:
             # This is the case where state names are listed in xml
             try:
                 states = self["states"]
-            except:
+            except BaseException:
                 logging.getLogger().error(
                     "%s does not define named states.", str(self.name())
                 )
@@ -86,7 +87,7 @@ class NamedState(Device):
     def getUserName(self):
         try:
             name = self.getProperty("username")
-        except:
+        except BaseException:
             name = None
 
         if name is None:
@@ -100,12 +101,13 @@ class NamedState(Device):
         try:
             stateValue = self.stateChan.getValue()
             if self.commandtype is not None and self.commandtype == "index":
-                # this is the case of aperture diameters. the state channel gives only the index in the list
+                # this is the case of aperture diameters. the state channel gives only
+                # the index in the list
                 listvalue = self.stateList[int(stateValue)]
                 return listvalue
             else:
                 return stateValue
-        except:
+        except BaseException:
             import traceback
 
             logging.debug(traceback.format_exc())
@@ -127,7 +129,7 @@ class NamedState(Device):
                     "   this is index mode. setting actual value s to ws: %s."
                     % (statevalue)
                 )
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "changing state for %s to ws: %s.failed. not such state"
                     % (self.getUserName(), statename)
@@ -150,11 +152,11 @@ class NamedState(Device):
                 try:
                     # probleme de unicode tester en mettant un unicode
                     self.stateChan.setValue(statevalue)
-                except:
+                except BaseException:
                     logging.getLogger().exception("cannot write attribute")
                     self.emit("stateChanged", (self.getState(),))
                     self.emit("hardwareStateChanged", ("ERROR",))
-        except:
+        except BaseException:
             logging.getLogger().exception(
                 "Cannot change state for %s to %s: " % (self.getUserName(), statevalue)
             )

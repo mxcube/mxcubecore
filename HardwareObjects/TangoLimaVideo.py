@@ -54,7 +54,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             # try a first call to get an exception if the device
             # is not exported
             self.device.ping()
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error("%s: %s", str(self.name()), last_error.desc)
 
@@ -150,7 +150,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         qimage = self._get_last_image()
         try:
             qimage.save(args[0], "PNG")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "%s: could not save snapshot", self.name()
             )

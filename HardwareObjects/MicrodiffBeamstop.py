@@ -92,7 +92,7 @@ class MicrodiffBeamstop(Equipment):
             pos = self.beamstop.getActuatorState()
         try:
             pos = self.beamstop.states[pos]
-        except:
+        except BaseException:
             pass
 
         if not noEmit:

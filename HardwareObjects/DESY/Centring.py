@@ -39,7 +39,7 @@ last_centred_position = [200, 200]
 
 class Centring(Device):
     """
-    Description:     This class controls the operation of Tango Motor 
+    Description:     This class controls the operation of Tango Motor
     """
 
     def __init__(self, *args):
@@ -57,7 +57,8 @@ class Centring(Device):
         # for axis in self['gonioAxes']:
         #  self.gonioAxes.append({'type':axis.type,'direction':eval(axis.direction),\
         #                   'motor_name':axis.motorname,'motor_HO':
-        #                          HardwareRepository.HardwareRepository().getHardwareObject(axis.motorHO) })
+        # HardwareRepository.HardwareRepository().getHardwareObject(axis.motorHO)
+        # })
 
         print("Centring Init")
         print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
@@ -66,7 +67,7 @@ class Centring(Device):
 
         print("initCentringProcedure(self)")
         """
-        Descript. : call before starting rotate-click sequence 
+        Descript. : call before starting rotate-click sequence
         """
         self.centringDataTensor = []
         self.centringDataMatrix = []
@@ -82,7 +83,7 @@ class Centring(Device):
 
     def appendCentringDataPoint(self, camera_coordinates):
         """
-        Descript. : call after each click and send click points - but relative in mm 
+        Descript. : call after each click and send click points - but relative in mm
         """
         # self.centringDataTensor.append(self.factor_matrix())
         self.centringDataMatrix.append(
@@ -106,7 +107,7 @@ class Centring(Device):
 
     def centeredPosition(self, return_by_name=False):
         """
-        Descript. : call after appending the last click. 
+        Descript. : call after appending the last click.
         Return    : {motorHO:position} dictionary.
 
         M=numpy.zeros(shape=(self.translationAxesCount,self.translationAxesCount))
@@ -124,7 +125,8 @@ class Centring(Device):
 
         tau_cntrd = self.apply_constraints(M,tau_cntrd)
         """
-        # return self.vector_to_centred_positions( - tau_cntrd + self.translation_datum(), return_by_name)
+        # return self.vector_to_centred_positions( - tau_cntrd +
+        # self.translation_datum(), return_by_name)
         print("centeredPosition(self)")
         print("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 

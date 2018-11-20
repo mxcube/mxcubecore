@@ -94,7 +94,7 @@ class PX2Energy(EnergyMockup):
                 self.current_wavelength = 12.3984 / energy
                 if self.current_wavelength is not None:
                     self.update_values()
-        except:
+        except BaseException:
             logging.getLogger("HWR").info(
                 "energy_changed: error occured during an energy update"
             )

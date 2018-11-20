@@ -154,7 +154,7 @@ class MiniDiff(Equipment):
 
         try:
             phiz_ref = self["centringReferencePosition"].getProperty("phiz")
-        except:
+        except BaseException:
             phiz_ref = None
 
         self.phiMotor = self.getDeviceByRole("phi")
@@ -186,19 +186,19 @@ class MiniDiff(Equipment):
         if sc_prop is not None:
             try:
                 self.sampleChanger = hwr.getHardwareObject(sc_prop)
-            except:
+            except BaseException:
                 pass
         wl_prop = self.getProperty("wagolight")
         if wl_prop is not None:
             try:
                 self.lightWago = hwr.getHardwareObject(wl_prop)
-            except:
+            except BaseException:
                 pass
         aperture_prop = self.getProperty("aperture")
         if aperture_prop is not None:
             try:
                 self.aperture = hwr.getHardwareObject(aperture_prop)
-            except:
+            except BaseException:
                 pass
 
         if self.phiMotor is not None:
@@ -291,7 +291,7 @@ class MiniDiff(Equipment):
                     "sampleIsLoaded",
                     self.sampleChangerSampleIsLoaded,
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: could not connect to sample changer smart magnet"
                 )
@@ -499,7 +499,7 @@ class MiniDiff(Equipment):
             self.centringSamplex.move(-sampx)
             self.centringSampley.move(sampy)
             self.centringPhiy.move(-phiy)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )
@@ -531,7 +531,7 @@ class MiniDiff(Equipment):
 
         try:
             fun = self.centringMethods[method]
-        except KeyError, diag:
+        except KeyError as diag:
             logging.getLogger("HWR").error(
                 "MiniDiff: unknown centring method (%s)" % str(diag)
             )
@@ -539,7 +539,7 @@ class MiniDiff(Equipment):
         else:
             try:
                 fun(sample_info)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("MiniDiff: problem while centring")
                 self.emitCentringFailed()
 
@@ -547,18 +547,18 @@ class MiniDiff(Equipment):
         if self.currentCentringProcedure is not None:
             try:
                 self.currentCentringProcedure.kill()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "MiniDiff: problem aborting the centring method"
                 )
             try:
                 fun = self.cancelCentringMethods[self.currentCentringMethod]
-            except KeyError, diag:
+            except KeyError as diag:
                 self.emitCentringFailed()
             else:
                 try:
                     fun()
-                except:
+                except BaseException:
                     self.emitCentringFailed()
         else:
             self.emitCentringFailed()
@@ -699,7 +699,7 @@ class MiniDiff(Equipment):
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except:
+        except BaseException:
             logging.exception("Could not complete manual centring")
             self.emitCentringFailed()
         else:
@@ -707,7 +707,7 @@ class MiniDiff(Equipment):
             self.emitCentringMoving()
             try:
                 sample_centring.end()
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
                 self.emitCentringFailed()
 
@@ -892,7 +892,7 @@ class MiniDiff(Equipment):
 
         try:
             self.centringStatus["images"] = snapshotsProcedure.get()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not take crystal snapshots"
             )

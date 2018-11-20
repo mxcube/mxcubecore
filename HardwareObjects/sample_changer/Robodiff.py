@@ -121,7 +121,7 @@ class Robodiff(SampleChanger):
             try:
                 logging.info("Datamatrix reader: Scanning barcodes")
                 barcodes = self.dm_reader.get_barcode()
-            except:
+            except BaseException:
                 saved["barcodes"] = [[None] * 11] * 3
             else:
                 saved["barcodes"] = barcodes
@@ -277,7 +277,7 @@ class Robodiff(SampleChanger):
     def _updateState(self):
         try:
             state = self._readState()
-        except:
+        except BaseException:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return

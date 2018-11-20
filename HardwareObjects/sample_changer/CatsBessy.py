@@ -242,7 +242,7 @@ class CatsBessy(SampleChanger):
             self._executeServerTask(self._chained_load, argin)
         else:
             if sample is None:
-                if selected == None:
+                if selected is None:
                     raise Exception("No sample selected")
                 else:
                     sample = selected
@@ -295,7 +295,7 @@ class CatsBessy(SampleChanger):
     def _updateState(self):
         try:
             state = self._readState()
-        except:
+        except BaseException:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             return
@@ -359,7 +359,7 @@ class CatsBessy(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)

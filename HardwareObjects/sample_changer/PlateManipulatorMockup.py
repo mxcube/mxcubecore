@@ -3,7 +3,7 @@
 
 [Description]
 Plate manipulator hardware object is used to use diffractometer in plate mode.
-It is compatable with md2, md3 diffractometers. Class is based on 
+It is compatable with md2, md3 diffractometers. Class is based on
 SampleChanger, so it has all the sample changed functionalities, like
 mount, unmount sample (in this case move to plate position).
 Plate is organized in rows and columns. Each cell (Cell) contains drop (Drop).
@@ -16,7 +16,7 @@ each drop could have several crystals.
 
 [Emited signals]
 
- - emited signals defined in SampleChanger class 
+ - emited signals defined in SampleChanger class
 
 [Included Hardware Objects]
 -----------------------------------------------------------------------
@@ -120,7 +120,7 @@ class Drop(Container):
 
     def isLoaded(self):
         """
-        Returns if the sample is currently loaded for data collection 
+        Returns if the sample is currently loaded for data collection
         :rtype: bool
         """
         sample = self.getSample()
