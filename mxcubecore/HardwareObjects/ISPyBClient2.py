@@ -1,3 +1,4 @@
+from __future__ import print_function
 import traceback
 from pprint import pformat
 from collections import namedtuple
@@ -533,7 +534,7 @@ class ISPyBClient2(HardwareObject):
                     sessions = []
 
             except URLError:
-                print traceback.print_exc()
+                print(traceback.print_exc())
                 logging.getLogger("ispyb_client").exception(_CONNECTION_ERROR_MSG)
                 return {
                     "Proposal": {},
@@ -2625,4 +2626,4 @@ class ISPyBArgumentError(Exception):
 
 def test_hwo(hwo):
     info = hwo.login("20100023", "tisabet")
-    print "Logging through ISPyB. Proposals for 201000223 are:", str(info)
+    print("Logging through ISPyB. Proposals for 201000223 are:", str(info))

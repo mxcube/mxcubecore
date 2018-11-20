@@ -17,8 +17,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.BaseHardwareObjects import Device
-
 """
 [Name]
 GenericVideo
@@ -32,8 +30,8 @@ the base class for classes providing access to Video in MXCuBE
 
 """
 
+from __future__ import print_function
 import abc
-
 import os
 import sys
 import time
@@ -45,6 +43,9 @@ try:
     import cv2
 except BaseException:
     pass
+
+from HardwareRepository.BaseHardwareObjects import Device
+
 
 modulenames = ["qt", "PyQt5", "PyQt4"]
 
@@ -251,7 +252,7 @@ class GenericVideoDevice(Device):
 
     def get_snapshot(self, bw=None, return_as_array=True):
         if not USEQT:
-            print "get snapshot not implemented yet for non-qt mode"
+            print("get snapshot not implemented yet for non-qt mode")
             return None
 
         qimage = self.get_new_image()
@@ -329,7 +330,7 @@ class GenericVideoDevice(Device):
         """
         Descript. :
         """
-        while self.get_video_live() == True:
+        while self.get_video_live() is True:
             if USEQT:
                 self.get_new_image()
             else:
@@ -421,5 +422,5 @@ class GenericVideoDevice(Device):
 
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print("Image dimensions: ", hwo.get_image_dimensions())
+    print("Live Mode: ", hwo.get_video_live())

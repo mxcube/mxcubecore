@@ -1,3 +1,4 @@
+from __future__ import print_function
 import logging
 import gevent
 import time
@@ -72,7 +73,8 @@ class PX1Cryotong(Cats90):
             "DryAndSoak",
         )
 
-    ### CRYOTONG SPECIFIC METHODS ###
+    # ## CRYOTONG SPECIFIC METHODS ###
+
     def _softwareAuthorization(self, value):
         if value != self.soft_auth:
             self.soft_auth = value
@@ -170,9 +172,9 @@ class PX1Cryotong(Cats90):
             states=[SampleChangerState.Ready, SampleChangerState.Alarm],
         )
 
-    ### (END) CRYOTONG SPECIFIC METHODS ###
+    # ## (END) CRYOTONG SPECIFIC METHODS ###
 
-    ### OVERLOADED CATS90 methods ####
+    # ## OVERLOADED CATS90 methods ####
     def cats_pathrunning_changed(self, value):
         Cats90.cats_pathrunning_changed(self, value)
         if self.cats_running is False and self.dry_and_soak_needed:
@@ -314,7 +316,7 @@ class PX1Cryotong(Cats90):
         logging.getLogger("HWR").warning("CRYOTONG: ready for transfer now")
         return True
 
-    ### (END) OVERLOADED CATS90 methods ####
+    # ## (END) OVERLOADED CATS90 methods ####
 
 
 def test_hwo(hwo):
@@ -322,28 +324,28 @@ def test_hwo(hwo):
 
     basket_list = hwo.getBasketList()
     sample_list = hwo.getSampleList()
-    print ("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
+    print("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
     gevent.sleep(2)
     sample_list = hwo.getSampleList()
-    print "No of samples is ", len(sample_list)
+    print("No of samples is ", len(sample_list))
 
     for s in sample_list:
         if s.isLoaded():
-            print "Sample %s loaded" % s.getAddress()
+            print("Sample %s loaded" % s.getAddress())
             break
 
     if hwo.hasLoadedSample():
-        print "Currently loaded (%s): %s" % (
-            hwo.hasLoadedSample(),
-            hwo.getLoadedSample().getAddress(),
+        print(
+            "Currently loaded (%s): %s"
+            % (hwo.hasLoadedSample(), hwo.getLoadedSample().getAddress())
         )
 
-    print "\nCATS model is: ", hwo.cats_model
-    print "CATS state is: ", hwo.state
-    print "Sample on Magnet : ", hwo.cats_sample_on_diffr()
-    print "All lids closed: ", hwo._chnAllLidsClosed.getValue()
+    print("\nCATS model is: ", hwo.cats_model)
+    print("CATS state is: ", hwo.state)
+    print("Sample on Magnet : ", hwo.cats_sample_on_diffr())
+    print("All lids closed: ", hwo._chnAllLidsClosed.getValue())
 
-    print "Sample Changer State is: ", hwo.getStatus()
+    print("Sample Changer State is: ", hwo.getStatus())
     for basketno in range(hwo.number_of_baskets):
         no = basketno + 1
-        print "Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no))
+        print("Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no)))

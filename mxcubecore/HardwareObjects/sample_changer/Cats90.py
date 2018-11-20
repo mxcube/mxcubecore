@@ -18,11 +18,13 @@ Known sites using cats90
        PX1. (CATS)
        PX2. (CATS)
 """
-from GenericSampleChanger import *
 
+from __future__ import print_function
 import time
 import PyTango
 import logging
+
+from GenericSampleChanger import *
 
 __author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
 __credits__ = ["The MXCuBE collaboration"]
@@ -629,7 +631,7 @@ class Cats90(SampleChanger):
                 % (value, TOOL_UNIPUCK, TOOL_DOUBLE_GRIPPER)
             )
 
-    #########################           TASKS           #########################
+    # ########################           TASKS           #########################
 
     def _doUpdateInfo(self):
         """
@@ -936,7 +938,7 @@ class Cats90(SampleChanger):
     def clearBasketInfo(self, basket):
         pass
 
-    ################################################################################
+    # ###############################################################################
 
     def _doAbort(self):
         """
@@ -951,7 +953,7 @@ class Cats90(SampleChanger):
     def _doReset(self):
         pass
 
-    #########################           CATS EVENTS           #########################
+    # ########################           CATS EVENTS           #########################
 
     def cats_state_changed(self, value):
 
@@ -1061,7 +1063,7 @@ class Cats90(SampleChanger):
         else:
             return 0
 
-    #########################           PRIVATE           #########################
+    # ########################           PRIVATE           #########################
 
     def _executeServerTask(self, method, *args, **kwargs):
         """
@@ -1486,25 +1488,27 @@ class Cats90(SampleChanger):
 def test_hwo(hwo):
     basket_list = hwo.getBasketList()
     sample_list = hwo.getSampleList()
-    print ("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
+    print("Baskets/Samples in CATS: %s/%s" % (len(basket_list), len(sample_list)))
     gevent.sleep(2)
     sample_list = hwo.getSampleList()
 
     for s in sample_list:
         if s.isLoaded():
-            print "Sample %s loaded" % s.getAddress()
+            print("Sample %s loaded" % s.getAddress())
             break
 
     if hwo.hasLoadedSample():
-        print "Currently loaded (%s): %s" % (
-            hwo.hasLoadedSample(),
-            hwo.getLoadedSample().getAddress(),
+        print(
+            (
+                "Currently loaded (%s): %s"
+                % (hwo.hasLoadedSample(), hwo.getLoadedSample().getAddress())
+            )
         )
-    print "CATS state is: ", hwo.state
-    print "Sample on Magnet : ", hwo.cats_sample_on_diffr()
-    print "All lids closed: ", hwo._chnAllLidsClosed.getValue()
+    print("CATS state is: ", hwo.state)
+    print("Sample on Magnet : ", hwo.cats_sample_on_diffr())
+    print("All lids closed: ", hwo._chnAllLidsClosed.getValue())
 
-    print "Sample Changer State is: ", hwo.getStatus()
+    print("Sample Changer State is: ", hwo.getStatus())
     for basketno in range(hwo.number_of_baskets):
         no = basketno + 1
-        print "Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no))
+        print("Tool for basket %d is: %d" % (no, hwo.tool_for_basket(no)))
