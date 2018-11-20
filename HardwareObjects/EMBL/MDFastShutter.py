@@ -27,11 +27,7 @@ __category__ = "General"
 
 
 class MDFastShutter(Device):
-    shutterState = {
-        3: 'unknown',
-        1: 'closed',
-        0: 'opened',
-        46: 'disabled'} 
+    shutterState = {3: "unknown", 1: "closed", 0: "opened", 46: "disabled"}
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -40,11 +36,10 @@ class MDFastShutter(Device):
 
         self.states_dict = None
         self.state = None
-        self.current_phase = None 
+        self.current_phase = None
 
     def init(self):
-        self.states_dict = {False: "closed",
-                            True: "opened"}
+        self.states_dict = {False: "closed", True: "opened"}
 
         self.chan_current_phase = self.getChannelObject("chanCurrentPhase")
         if self.chan_current_phase is not None:
@@ -61,22 +56,22 @@ class MDFastShutter(Device):
             self.state = self.states_dict.get(value, "unknown")
         else:
             self.state = "disabled"
-        self.emit('shutterStateChanged', (self.state, self.state.title()))
+        self.emit("shutterStateChanged", (self.state, self.state.title()))
 
     def current_phase_changed(self, value):
         self.current_phase = value
-        if self.chan_shutter_state: 
-            self.shutter_state_changed(self.chan_shutter_state.getValue()) 
-    
+        if self.chan_shutter_state:
+            self.shutter_state_changed(self.chan_shutter_state.getValue())
+
     def getShutterState(self):
         self.shutter_state_changed(self.chan_shutter_state.getValue())
         return self.state
 
     def openShutter(self, wait=True):
-        self.chan_shutter_state.setValue(True) 
+        self.chan_shutter_state.setValue(True)
         with gevent.Timeout(10, Exception("Timeout waiting for fast shutter open")):
-               while not self.state_bit:
-                     gevent.sleep(0.1)
+            while not self.state_bit:
+                gevent.sleep(0.1)
 
     def is_opened(self):
         return self.chan_shutter_state.getValue()
@@ -86,7 +81,8 @@ class MDFastShutter(Device):
 
         if self.is_opened():
             self.chan_shutter_state.setValue(False)
-            with gevent.Timeout(10, Exception("Timeout waiting for fast shutter close")):
-                   while self.state_bit:
-                         gevent.sleep(0.1)
-
+            with gevent.Timeout(
+                10, Exception("Timeout waiting for fast shutter close")
+            ):
+                while self.state_bit:
+                    gevent.sleep(0.1)

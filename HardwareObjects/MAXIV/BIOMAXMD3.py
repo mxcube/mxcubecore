@@ -10,6 +10,7 @@ import gevent
 import lucid2 as lucid
 import numpy as np
 from PIL import Image
+
 # import lucid
 import io
 import math
@@ -19,16 +20,17 @@ from GenericDiffractometer import *
 
 class BIOMAXMD3(GenericDiffractometer):
 
-    MOTOR_TO_EXPORTER_NAME = {"focus": "AlignmentX",
-                              "kappa": "Kappa",
-                              "kappa_phi": "Phi",
-                              "phi": "Omega",
-                              "phiy": "AlignmentY",
-                              "phiz": "AlignmentZ",
-                              "sampx": "CentringX",
-                              "sampy": "CentringY",
-                              "zoom": "Zoom"
-                              }
+    MOTOR_TO_EXPORTER_NAME = {
+        "focus": "AlignmentX",
+        "kappa": "Kappa",
+        "kappa_phi": "Phi",
+        "phi": "Omega",
+        "phiy": "AlignmentY",
+        "phiz": "AlignmentZ",
+        "sampx": "CentringX",
+        "sampy": "CentringY",
+        "zoom": "Zoom",
+    }
 
     AUTOMATIC_CENTRING_IMAGES = 6
 
@@ -37,7 +39,7 @@ class BIOMAXMD3(GenericDiffractometer):
         Description:
         """
         GenericDiffractometer.__init__(self, *args)
-        #Compatibility line
+        # Compatibility line
         self.C3D_MODE = GenericDiffractometer.CENTRING_METHOD_AUTO
         self.MANUAL3CLICK_MODE = "Manual 3-click"
 
@@ -45,14 +47,14 @@ class BIOMAXMD3(GenericDiffractometer):
 
         GenericDiffractometer.init(self)
 
-        self.front_light = self.getObjectByRole('frontlight')
-        self.back_light = self.getObjectByRole('backlight')
-        self.back_light_switch = self.getObjectByRole('backlightswitch')
-        self.front_light_switch = self.getObjectByRole('frontlightswitch')
+        self.front_light = self.getObjectByRole("frontlight")
+        self.back_light = self.getObjectByRole("backlight")
+        self.back_light_switch = self.getObjectByRole("backlightswitch")
+        self.front_light_switch = self.getObjectByRole("frontlightswitch")
 
-        self.centring_hwobj = self.getObjectByRole('centring')
+        self.centring_hwobj = self.getObjectByRole("centring")
         if self.centring_hwobj is None:
-            logging.getLogger("HWR").debug('EMBLMinidiff: Centring math is not defined')
+            logging.getLogger("HWR").debug("EMBLMinidiff: Centring math is not defined")
 
         # to make it comaptible
         self.camera = self.camera_hwobj
@@ -61,66 +63,76 @@ class BIOMAXMD3(GenericDiffractometer):
         self.image_width = self.camera.getWidth()
         self.image_height = self.camera.getHeight()
 
-        self.phi_motor_hwobj = self.motor_hwobj_dict['phi']
-        self.phiz_motor_hwobj = self.motor_hwobj_dict['phiz']
-        self.phiy_motor_hwobj = self.motor_hwobj_dict['phiy']
-        self.zoom_motor_hwobj = self.motor_hwobj_dict['zoom']
-        self.focus_motor_hwobj = self.motor_hwobj_dict['focus']
-        self.sample_x_motor_hwobj = self.motor_hwobj_dict['sampx']
-        self.sample_y_motor_hwobj = self.motor_hwobj_dict['sampy']
+        self.phi_motor_hwobj = self.motor_hwobj_dict["phi"]
+        self.phiz_motor_hwobj = self.motor_hwobj_dict["phiz"]
+        self.phiy_motor_hwobj = self.motor_hwobj_dict["phiy"]
+        self.zoom_motor_hwobj = self.motor_hwobj_dict["zoom"]
+        self.focus_motor_hwobj = self.motor_hwobj_dict["focus"]
+        self.sample_x_motor_hwobj = self.motor_hwobj_dict["sampx"]
+        self.sample_y_motor_hwobj = self.motor_hwobj_dict["sampy"]
         try:
-            self.kappa_motor_hwobj = self.motor_hwobj_dict['kappa']
+            self.kappa_motor_hwobj = self.motor_hwobj_dict["kappa"]
         except:
             self.kappa_motor_hwobj = None
         try:
-            self.kappa_phi_motor_hwobj = self.motor_hwobj_dict['kappa_phi']
+            self.kappa_phi_motor_hwobj = self.motor_hwobj_dict["kappa_phi"]
         except:
             self.kappa_phi_motor_hwobj = None
 
         self.cent_vertical_pseudo_motor = None
         try:
-            self.cent_vertical_pseudo_motor = self.addChannel({"type": "exporter",
-                                                               "name": "CentringTableVerticalPositionPosition"
-                                                               },
-                                                              "CentringTableVerticalPosition"
-                                                              )
+            self.cent_vertical_pseudo_motor = self.addChannel(
+                {"type": "exporter", "name": "CentringTableVerticalPositionPosition"},
+                "CentringTableVerticalPosition",
+            )
             if self.cent_vertical_pseudo_motor is not None:
-                self.connect(self.cent_vertcial_pseudo_motor, "update",
-                             self.centring_motor_moved)
+                self.connect(
+                    self.cent_vertcial_pseudo_motor, "update", self.centring_motor_moved
+                )
         except:
-            logging.getLogger("HWR").warning('Cannot initialize CentringTableVerticalPosition')
+            logging.getLogger("HWR").warning(
+                "Cannot initialize CentringTableVerticalPosition"
+            )
 
         try:
             use_sc = self.getProperty("use_sc")
             self.set_use_sc(use_sc)
         except:
-                logging.getLogger("HWR").debug('Cannot set sc mode, use_sc: ', str(use_sc))
+            logging.getLogger("HWR").debug("Cannot set sc mode, use_sc: ", str(use_sc))
 
         try:
             self.zoom_centre = eval(self.getProperty("zoom_centre"))
             zoom = self.camera_hwobj.get_image_zoom()
             if zoom is not None:
-                self.zoom_centre['x'] = self.zoom_centre['x'] * zoom
-                self.zoom_centre['y'] = self.zoom_centre['y'] * zoom
-            self.beam_position = [self.zoom_centre['x'], self.zoom_centre['y']]
+                self.zoom_centre["x"] = self.zoom_centre["x"] * zoom
+                self.zoom_centre["y"] = self.zoom_centre["y"] * zoom
+            self.beam_position = [self.zoom_centre["x"], self.zoom_centre["y"]]
             self.beam_info_hwobj.beam_position = self.beam_position
         except:
             if self.image_width is not None and self.image_height is not None:
-                self.zoom_centre = {'x': self.image_width / 2, 'y': self.image_height / 2}
+                self.zoom_centre = {
+                    "x": self.image_width / 2,
+                    "y": self.image_height / 2,
+                }
                 self.beam_position = [self.image_width / 2, self.image_height / 2]
-                logging.getLogger("HWR").warning("Diffractometer: Zoom center is ' +\
-                       'not defined. Continuing with the middle: %s" % self.zoom_centre)
+                logging.getLogger("HWR").warning(
+                    "Diffractometer: Zoom center is ' +\
+                       'not defined. Continuing with the middle: %s"
+                    % self.zoom_centre
+                )
             else:
-                logging.getLogger("HWR").warning("Diffractometer: Neither zoom centre nor camera size are defined")
-      
+                logging.getLogger("HWR").warning(
+                    "Diffractometer: Neither zoom centre nor camera size are defined"
+                )
+
     def current_phase_changed(self, current_phase):
         """
         Descript. :
         """
         self.current_phase = current_phase
         logging.getLogger("HWR").info("MD3 phase changed to %s" % current_phase)
-        self.emit('phaseChanged', (current_phase, ))
- 
+        self.emit("phaseChanged", (current_phase,))
+
     def start3ClickCentring(self):
         self.start_centring_method(self.CENTRING_METHOD_MANUAL)
 
@@ -134,17 +146,20 @@ class BIOMAXMD3(GenericDiffractometer):
         :returns: list with two floats
         """
         zoom = self.camera_hwobj.get_image_zoom()
-        #return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
-        return (zoom/self.channel_dict["CoaxCamScaleX"].getValue(), 1/self.channel_dict["CoaxCamScaleY"].getValue())
+        # return (0.5/self.channel_dict["CoaxCamScaleX"].getValue(), 0.5/self.channel_dict["CoaxCamScaleY"].getValue())
+        return (
+            zoom / self.channel_dict["CoaxCamScaleX"].getValue(),
+            1 / self.channel_dict["CoaxCamScaleY"].getValue(),
+        )
 
     def update_zoom_calibration(self):
         """
         """
-        #self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
-        #self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
+        # self.pixels_per_mm_x = 0.5/self.channel_dict["CoaxCamScaleX"].getValue()
+        # self.pixels_per_mm_y = 0.5/self.channel_dict["CoaxCamScaleY"].getValue()
         zoom = self.camera_hwobj.get_image_zoom()
-        self.pixels_per_mm_x = zoom/self.channel_dict["CoaxCamScaleX"].getValue()
-        self.pixels_per_mm_y = zoom/self.channel_dict["CoaxCamScaleY"].getValue()
+        self.pixels_per_mm_x = zoom / self.channel_dict["CoaxCamScaleX"].getValue()
+        self.pixels_per_mm_y = zoom / self.channel_dict["CoaxCamScaleY"].getValue()
 
     def manual_centring(self):
         """
@@ -155,8 +170,11 @@ class BIOMAXMD3(GenericDiffractometer):
             self.user_clicked_event = gevent.event.AsyncResult()
             x, y = self.user_clicked_event.get()
             self.centring_hwobj.appendCentringDataPoint(
-                 {"X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                  "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+                {
+                    "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                    "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                }
+            )
             if self.in_plate_mode():
                 dynamic_limits = self.phi_motor_hwobj.getDynamicLimits()
                 if click == 0:
@@ -182,10 +200,15 @@ class BIOMAXMD3(GenericDiffractometer):
             x, y, score = self.find_loop()
             if x > -1 and y > -1:
                 self.centring_hwobj.appendCentringDataPoint(
-                    {"X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                     "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+                    {
+                        "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                        "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                    }
+                )
             surface_score_list.append(score)
-            self.phi_motor_hwobj.moveRelative(360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES)
+            self.phi_motor_hwobj.moveRelative(
+                360.0 / BIOMAXMD3.AUTOMATIC_CENTRING_IMAGES
+            )
             self.wait_device_ready(5)
         self.omega_reference_add_constraint()
         return self.centring_hwobj.centeredPosition(return_by_name=False)
@@ -222,26 +245,39 @@ class BIOMAXMD3(GenericDiffractometer):
                         if -1 in (x, y):
                             continue
                         if y >= 0:
-                            if x < self.camera.getWidth()/2:
+                            if x < self.camera.getWidth() / 2:
                                 x = 0
                                 self.centring_hwobj.appendCentringDataPoint(
-                                    {"X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                                     "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+                                    {
+                                        "X": (x - self.beam_position[0])
+                                        / self.pixels_per_mm_x,
+                                        "Y": (y - self.beam_position[1])
+                                        / self.pixels_per_mm_y,
+                                    }
+                                )
                                 break
                             else:
                                 x = self.camera.getWidth()
                                 self.centring_hwobj.appendCentringDataPoint(
-                                    {"X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                                     "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+                                    {
+                                        "X": (x - self.beam_position[0])
+                                        / self.pixels_per_mm_x,
+                                        "Y": (y - self.beam_position[1])
+                                        / self.pixels_per_mm_y,
+                                    }
+                                )
                                 break
                     if -1 in (x, y):
                         raise RuntimeError("Could not centre sample automatically.")
-                    self.phi_motor_hwobj.moveRelative(-i*10)
+                    self.phi_motor_hwobj.moveRelative(-i * 10)
                     self.wait_device_ready(5)
                 else:
                     self.centring_hwobj.appendCentringDataPoint(
-                        {"X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                         "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+                        {
+                            "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                            "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                        }
+                    )
                 self.phi_motor_hwobj.moveRelative(90)
                 self.wait_device_ready(5)
 
@@ -261,7 +297,9 @@ class BIOMAXMD3(GenericDiffractometer):
         try:
             img = np.array(image)
             img_rot = np.rot90(img, 1)
-            info, y, x = lucid.find_loop(np.array(img_rot, order='C'), IterationClosing=6)
+            info, y, x = lucid.find_loop(
+                np.array(img_rot, order="C"), IterationClosing=6
+            )
             x = self.camera.getWidth() - x
         except:
             return -1, -1, 0
@@ -278,13 +316,19 @@ class BIOMAXMD3(GenericDiffractometer):
         if self.omega_reference_par is None or self.beam_position is None:
             return
         if self.omega_reference_par["camera_axis"].lower() == "x":
-            on_beam = (self.beam_position[0] - self.zoom_centre['x']) * \
-                      self.omega_reference_par["direction"] / self.pixels_per_mm_x + \
-                      self.omega_reference_par["position"]
+            on_beam = (
+                (self.beam_position[0] - self.zoom_centre["x"])
+                * self.omega_reference_par["direction"]
+                / self.pixels_per_mm_x
+                + self.omega_reference_par["position"]
+            )
         else:
-            on_beam = (self.beam_position[1] - self.zoom_centre['y']) * \
-                      self.omega_reference_par["direction"] / self.pixels_per_mm_y + \
-                      self.omega_reference_par["position"]
+            on_beam = (
+                (self.beam_position[1] - self.zoom_centre["y"])
+                * self.omega_reference_par["direction"]
+                / self.pixels_per_mm_y
+                + self.omega_reference_par["position"]
+            )
         self.centring_hwobj.appendMotorConstraint(self.omega_reference_motor, on_beam)
 
     def omega_reference_motor_moved(self, pos):
@@ -292,16 +336,22 @@ class BIOMAXMD3(GenericDiffractometer):
         Descript. :
         """
         if self.omega_reference_par["camera_axis"].lower() == "x":
-            pos = self.omega_reference_par["direction"] * \
-                  (pos - self.omega_reference_par["position"]) * \
-                  self.pixels_per_mm_x + self.zoom_centre['x']
+            pos = (
+                self.omega_reference_par["direction"]
+                * (pos - self.omega_reference_par["position"])
+                * self.pixels_per_mm_x
+                + self.zoom_centre["x"]
+            )
             self.reference_pos = (pos, -10)
         else:
-            pos = self.omega_reference_par["direction"] * \
-                  (pos - self.omega_reference_par["position"]) * \
-                  self.pixels_per_mm_y + self.zoom_centre['y']
+            pos = (
+                self.omega_reference_par["direction"]
+                * (pos - self.omega_reference_par["position"])
+                * self.pixels_per_mm_y
+                + self.zoom_centre["y"]
+            )
             self.reference_pos = (-10, pos)
-        self.emit('omegaReferenceChanged', (self.reference_pos,))
+        self.emit("omegaReferenceChanged", (self.reference_pos,))
 
     def motor_positions_to_screen(self, centred_positions_dict):
         """
@@ -313,22 +363,20 @@ class BIOMAXMD3(GenericDiffractometer):
             kappa = self.motor_hwobj_dict["kappa"]
             phi = self.motor_hwobj_dict["kappa_phi"]
 
-#        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
-#         and self.minikappa_correction_hwobj is not None:
-#            c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
-#            c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
+        #        if (c['kappa'], c['kappa_phi']) != (kappa, phi) \
+        #         and self.minikappa_correction_hwobj is not None:
+        #            c['sampx'], c['sampy'], c['phiy'] = self.minikappa_correction_hwobj.shift(
+        #            c['kappa'], c['kappa_phi'], [c['sampx'], c['sampy'], c['phiy']], kappa, phi)
         xy = self.centring_hwobj.centringToScreen(c)
         # x = (xy['X'] + c['beam_x']) * self.pixels_per_mm_x + \
-        x = xy['X'] * self.pixels_per_mm_x + \
-            self.zoom_centre['x']
+        x = xy["X"] * self.pixels_per_mm_x + self.zoom_centre["x"]
         # y = (xy['Y'] + c['beam_y']) * self.pixels_per_mm_y + \
-        y = xy['Y'] * self.pixels_per_mm_y + \
-            self.zoom_centre['y']
+        y = xy["Y"] * self.pixels_per_mm_y + self.zoom_centre["y"]
         return x, y
 
     def osc_scan(self, start, end, exptime, wait=False):
         if self.in_plate_mode():
-            scan_speed = math.fabs(end-start) / exptime
+            scan_speed = math.fabs(end - start) / exptime
             # todo, JN, get scan_speed limit
             """
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -337,21 +385,28 @@ class BIOMAXMD3(GenericDiffractometer):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
             """
-        scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end-start), exptime)
+        scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
         scan = self.command_dict["startScanEx"]
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, waiting device ready..., params "+str(scan_params))
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 oscillation requested, waiting device ready..., params "
+            + str(scan_params)
+        )
         self.wait_device_ready(200)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation requested, device ready.")
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 oscillation requested, device ready."
+        )
         scan(scan_params)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation launched, waiting for device ready.")
-        #if wait:
-        time.sleep(0.1) 
-        self.wait_device_ready(exptime+30)  # timeout of 5 min
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 oscillation launched, waiting for device ready."
+        )
+        # if wait:
+        time.sleep(0.1)
+        self.wait_device_ready(exptime + 30)  # timeout of 5 min
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 oscillation, device ready.")
 
     def osc_scan_4d(self, start, end, exptime, helical_pos, wait=False):
         if self.in_plate_mode():
-            scan_speed = math.fabs(end-start) / exptime
+            scan_speed = math.fabs(end - start) / exptime
             # todo, JN, get scan_speed limit
             """
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -360,26 +415,42 @@ class BIOMAXMD3(GenericDiffractometer):
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
             """
-        scan_params = "%0.3f\t%0.3f\t%0.4f\t" % (start, (end-start), exptime)
-        scan_params += "%0.3f\t" % helical_pos['1']['phiy']
-        scan_params += "%0.3f\t" % helical_pos['1']['phiz']
-        scan_params += "%0.3f\t" % helical_pos['1']['sampx']
-        scan_params += "%0.3f\t" % helical_pos['1']['sampy']
-        scan_params += "%0.3f\t" % helical_pos['2']['phiy']
-        scan_params += "%0.3f\t" % helical_pos['2']['phiz']
-        scan_params += "%0.3f\t" % helical_pos['2']['sampx']
-        scan_params += "%0.3f\t" % helical_pos['2']['sampy']
+        scan_params = "%0.3f\t%0.3f\t%0.4f\t" % (start, (end - start), exptime)
+        scan_params += "%0.3f\t" % helical_pos["1"]["phiy"]
+        scan_params += "%0.3f\t" % helical_pos["1"]["phiz"]
+        scan_params += "%0.3f\t" % helical_pos["1"]["sampx"]
+        scan_params += "%0.3f\t" % helical_pos["1"]["sampy"]
+        scan_params += "%0.3f\t" % helical_pos["2"]["phiy"]
+        scan_params += "%0.3f\t" % helical_pos["2"]["phiz"]
+        scan_params += "%0.3f\t" % helical_pos["2"]["sampx"]
+        scan_params += "%0.3f\t" % helical_pos["2"]["sampy"]
 
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, waiting device ready..., params "+str(scan_params))
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 helical oscillation requested, waiting device ready..., params "
+            + str(scan_params)
+        )
         scan = self.command_dict["startScan4DEx"]
-        time.sleep(0.1) 
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 helical oscillation requested, device ready.")
+        time.sleep(0.1)
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 helical oscillation requested, device ready."
+        )
         scan(scan_params)
-        self.wait_device_ready(exptime+30)
+        self.wait_device_ready(exptime + 30)
         if wait:
             self.wait_device_ready(900)  # timeout of 5 min
 
-    def raster_scan(self, start, end, exptime, vertical_range, horizontal_range, nlines, nframes, invert_direction=1, wait=False):
+    def raster_scan(
+        self,
+        start,
+        end,
+        exptime,
+        vertical_range,
+        horizontal_range,
+        nlines,
+        nframes,
+        invert_direction=1,
+        wait=False,
+    ):
         """
            raster_scan: snake scan by default
            start, end, exptime are the parameters per line
@@ -387,7 +458,7 @@ class BIOMAXMD3(GenericDiffractometer):
            example, raster_scan(20, 22, 5, 0.1, 0.1, 10, 10)
         """
         if self.in_plate_mode():
-            scan_speed = math.fabs(end-start) / exptime
+            scan_speed = math.fabs(end - start) / exptime
             # todo, JN, get scan_speed limit
             """
             low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
@@ -399,35 +470,49 @@ class BIOMAXMD3(GenericDiffractometer):
 
         logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation requested")
         msg = "[BIOMAXMD3] MD3 raster scan params:"
-        msg += " start: %s, end: %s, exptime: %s, range: %s, nframes: %s" % (start,
-                                                                             end,
-                                                                             exptime,
-                                                                             end-start,
-                                                                             nframes)
+        msg += " start: %s, end: %s, exptime: %s, range: %s, nframes: %s" % (
+            start,
+            end,
+            exptime,
+            end - start,
+            nframes,
+        )
         logging.getLogger("HWR").info(msg)
 
         self.channel_dict["ScanStartAngle"].setValue(start)
         self.channel_dict["ScanExposureTime"].setValue(exptime)
-        self.channel_dict["ScanRange"].setValue(end-start)
+        self.channel_dict["ScanRange"].setValue(end - start)
         self.channel_dict["ScanNumberOfFrames"].setValue(nframes)
 
-        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (vertical_range,
-                                                      horizontal_range,
-                                                      nlines,
-                                                      nframes,
-                                                      invert_direction)
+        raster_params = "%0.5f\t%0.5f\t%i\t%i\t%i" % (
+            vertical_range,
+            horizontal_range,
+            nlines,
+            nframes,
+            invert_direction,
+        )
 
         raster = self.command_dict["startRasterScan"]
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation requested, params: %s" % (raster_params))
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation requested, waiting device ready")
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 raster oscillation requested, params: %s" % (raster_params)
+        )
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 raster oscillation requested, waiting device ready"
+        )
 
         self.wait_device_ready(200)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation requested, device ready.")
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 raster oscillation requested, device ready."
+        )
         raster(raster_params)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 raster oscillation launched, waiting for device ready.")
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 raster oscillation launched, waiting for device ready."
+        )
         time.sleep(0.1)
-        self.wait_device_ready(exptime*nlines+30)
-        logging.getLogger("HWR").info("[BIOMAXMD3] MD3 finish raster scan, device ready.")
+        self.wait_device_ready(exptime * nlines + 30)
+        logging.getLogger("HWR").info(
+            "[BIOMAXMD3] MD3 finish raster scan, device ready."
+        )
 
     def keep_position_after_phase_change(self, new_phase):
         """
@@ -437,28 +522,44 @@ class BIOMAXMD3(GenericDiffractometer):
         if current_phase == "DataCollection" and new_phase == "Centring":
             return True
 
-        #Probably not needed
-        #if current_phase == "Centring" and new_phase == "DataCollection":
+        # Probably not needed
+        # if current_phase == "Centring" and new_phase == "DataCollection":
         #    return True
-           
+
         return False
 
     def set_phase(self, phase, wait=False, timeout=None):
         keep_position = self.keep_position_after_phase_change(phase)
         current_positions = {}
-        motors = ["phi","focus","phiz","phiy","sampx","sampy","kappa","kappa_phi"]
+        motors = [
+            "phi",
+            "focus",
+            "phiz",
+            "phiy",
+            "sampx",
+            "sampy",
+            "kappa",
+            "kappa_phi",
+        ]
         motors_dict = {}
         if keep_position:
             for motor in motors:
                 try:
-                    current_positions[motor] = self.motor_hwobj_dict[motor].getPosition()
+                    current_positions[motor] = self.motor_hwobj_dict[
+                        motor
+                    ].getPosition()
                 except:
                     pass
         try:
             self.wait_device_ready(10)
         except Exception as ex:
-            logging.getLogger('HWR').error('[BIOMAXMD3] Cannot change phase to %s, timeout waiting for MD3 ready, %s' %(phase, ex))
-            logging.getLogger('user_log').error('[MD3] Cannot change phase to %s, timeout waiting for MD3 ready' %phase)
+            logging.getLogger("HWR").error(
+                "[BIOMAXMD3] Cannot change phase to %s, timeout waiting for MD3 ready, %s"
+                % (phase, ex)
+            )
+            logging.getLogger("user_log").error(
+                "[MD3] Cannot change phase to %s, timeout waiting for MD3 ready" % phase
+            )
         else:
             self.command_dict["startSetPhase"](phase)
             if keep_position:
@@ -472,12 +573,17 @@ class BIOMAXMD3(GenericDiffractometer):
     def move_sync_motors(self, motors_dict, wait=True, timeout=30):
         argin = ""
         try:
-            motors_dict.pop('kappa')
-            motors_dict.pop('kappa_phi')
-            logging.getLogger('HWR').info('[BIOMAXMD3] Removing kappa and kappa_phi motors.')
+            motors_dict.pop("kappa")
+            motors_dict.pop("kappa_phi")
+            logging.getLogger("HWR").info(
+                "[BIOMAXMD3] Removing kappa and kappa_phi motors."
+            )
         except Exception as ex:
             print ex
-        logging.getLogger("HWR").debug("BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s " %(wait, motors_dict, time.time()))
+        logging.getLogger("HWR").debug(
+            "BIOMAXMD3: in move_sync_motors, wait: %s, motors: %s, tims: %s "
+            % (wait, motors_dict, time.time())
+        )
         for motor in motors_dict.keys():
             position = motors_dict[motor]
             if position is None:
@@ -497,10 +603,14 @@ class BIOMAXMD3(GenericDiffractometer):
             self.beam_position = self.beam_info_hwobj.get_beam_position()
             beam_xc = self.beam_position[0]
             beam_yc = self.beam_position[1]
-            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue()-(x-beam_xc)/float(self.pixelsPerMmY)
+            cent_vertical_to_move = self.cent_vertical_pseudo_motor.getValue() - (
+                x - beam_xc
+            ) / float(self.pixelsPerMmY)
             self.emit_progress_message("")
 
-            self.phiy_motor_hwobj.moveRelative(-1*(y-beam_yc)/float(self.pixelsPerMmZ))
+            self.phiy_motor_hwobj.moveRelative(
+                -1 * (y - beam_yc) / float(self.pixelsPerMmZ)
+            )
             self.cent_vertical_pseudo_motor.setValue(cent_vertical_to_move)
             self.wait_device_ready(5)
         except:
@@ -511,9 +621,12 @@ class BIOMAXMD3(GenericDiffractometer):
         Descript. :
         """
         self.centring_hwobj.initCentringProcedure()
-        self.centring_hwobj.appendCentringDataPoint({
-                   "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                   "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y})
+        self.centring_hwobj.appendCentringDataPoint(
+            {
+                "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
+                "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+            }
+        )
         self.omega_reference_add_constraint()
         pos = self.centring_hwobj.centeredPosition()
         if return_by_names:
@@ -538,17 +651,24 @@ class BIOMAXMD3(GenericDiffractometer):
         """
         Detects if device is ready
         """
-        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(\
-        #return self.current_state == DiffractometerState.tostring(\
-                    DiffractometerState.Ready)
+        return self.channel_dict["State"].getValue() == DiffractometerState.tostring(
+            # return self.current_state == DiffractometerState.tostring(\
+            DiffractometerState.Ready
+        )
 
     def get_positions(self):
-      return { "phi": float(self.phi_motor_hwobj.getPosition()),
-               "focus": float(self.focus_motor_hwobj.getPosition()),
-               "phiy": float(self.phiy_motor_hwobj.getPosition()),
-               "phiz": float(self.phiz_motor_hwobj.getPosition()),
-               "sampx": float(self.sample_x_motor_hwobj.getPosition()),
-               "sampy": float(self.sample_y_motor_hwobj.getPosition()),
-               "kappa": float(self.kappa_motor_hwobj.getPosition()) if self.kappa_motor_hwobj else None,
-               "kappa_phi": float(self.kappa_phi_motor_hwobj.getPosition()) if self.kappa_phi_motor_hwobj else None,
-               "zoom": float(self.zoom_motor_hwobj.getPosition())}
+        return {
+            "phi": float(self.phi_motor_hwobj.getPosition()),
+            "focus": float(self.focus_motor_hwobj.getPosition()),
+            "phiy": float(self.phiy_motor_hwobj.getPosition()),
+            "phiz": float(self.phiz_motor_hwobj.getPosition()),
+            "sampx": float(self.sample_x_motor_hwobj.getPosition()),
+            "sampy": float(self.sample_y_motor_hwobj.getPosition()),
+            "kappa": float(self.kappa_motor_hwobj.getPosition())
+            if self.kappa_motor_hwobj
+            else None,
+            "kappa_phi": float(self.kappa_phi_motor_hwobj.getPosition())
+            if self.kappa_phi_motor_hwobj
+            else None,
+            "zoom": float(self.zoom_motor_hwobj.getPosition()),
+        }

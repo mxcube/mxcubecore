@@ -10,7 +10,7 @@ from HardwareRepository.TaskUtils import *
 
 class AbstractActuator(Device):
 
-    (UNKNOWN, IN, OUT, MOVING) = ('unknown', 'in', 'out', 'moving')
+    (UNKNOWN, IN, OUT, MOVING) = ("unknown", "in", "out", "moving")
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -18,15 +18,15 @@ class AbstractActuator(Device):
         self.username = "unknown"
         # default timeout - 3 sec
         self._timeout = 3
-        self.states = {True: 'IN', False: 'OUT'}
+        self.states = {True: "IN", False: "OUT"}
 
     def connectNotify(self, signal):
-        if signal == 'actuatorStateChanged':
+        if signal == "actuatorStateChanged":
             self.value_changed(self.get_actuator_state(read=True))
 
     def value_changed(self, value):
         self.actuator_state = self.states.get(value, AbstractActuator.UNKNOWN)
-        self.emit('actuatorStateChanged', (self.actuator_state.lower(), ))
+        self.emit("actuatorStateChanged", (self.actuator_state.lower(),))
 
     def get_actuator_state(self, read=False):
         """Return the state value
@@ -35,8 +35,7 @@ class AbstractActuator(Device):
            Returns:
              (string): the state
         """
-        logging.getLogger().info("%s state: %r" %
-                                 (self.username, self.actuator_state))
+        logging.getLogger().info("%s state: %r" % (self.username, self.actuator_state))
         return self.actuator_state
 
     @task
@@ -70,16 +69,16 @@ class AbstractActuator(Device):
             self.actuator_in(wait, timeout)
 
     def getActuatorState(self, read=False):
-        warn("getActuatorState method is deprecated, use get_actuator_state",
-             DeprecationWarning)
+        warn(
+            "getActuatorState method is deprecated, use get_actuator_state",
+            DeprecationWarning,
+        )
         return self.get_actuator_state(read)
 
     def actuatorIn(self, wait=True, timeout=3):
-        warn("actuatorIn method is deprecated, use actuator_in",
-             DeprecationWarning)
+        warn("actuatorIn method is deprecated, use actuator_in", DeprecationWarning)
         self.actuator_in(wait, timeout)
 
     def actuatorOut(self, wait=True, timeout=3):
-        warn("actuatorOut method is deprecated, use actuator_out",
-             DeprecationWarning)
+        warn("actuatorOut method is deprecated, use actuator_out", DeprecationWarning)
         self.actuator_out(wait, timeout)

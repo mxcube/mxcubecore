@@ -48,7 +48,7 @@ class StateMachine(HardwareObject):
     def __init__(self, name):
 
         HardwareObject.__init__(self, name)
-        
+
         self.state_list = []
         self.condition_list = None
         self.transition_list = None
@@ -56,10 +56,9 @@ class StateMachine(HardwareObject):
         self.previous_state = ""
         self.history_state_list = []
 
-
     def init(self):
-        with open(self.getProperty("structure_file"), 'r') as stream:
-              data_loaded = yaml.load(stream)
+        with open(self.getProperty("structure_file"), "r") as stream:
+            data_loaded = yaml.load(stream)
 
         self.state_list = data_loaded["states"]
         self.condition_list = data_loaded["conditions"]
@@ -68,21 +67,21 @@ class StateMachine(HardwareObject):
         self.previous_state = data_loaded["initial_state"]
 
         for condition in self.condition_list:
-            condition['value'] = False
+            condition["value"] = False
             if not condition.has_key("desc"):
                 condition["desc"] = condition["name"].title().replace("_", " ")
 
         for transition in self.transition_list:
             if not self.get_state_by_name(transition["source"]):
-                logging.getLogger("HWR").error(\
-                  "Transition %s " % str(transition) + \
-                  "has a none existing source state: %s" % \
-                  transition["source"])
+                logging.getLogger("HWR").error(
+                    "Transition %s " % str(transition)
+                    + "has a none existing source state: %s" % transition["source"]
+                )
             if not self.get_state_by_name(transition["dest"]):
-                logging.getLogger("HWR").error(\
-                  "Transition %s " % str(transition) + \
-                  "has a none existing destination state: %s" % \
-                  transition["dest"])
+                logging.getLogger("HWR").error(
+                    "Transition %s " % str(transition)
+                    + "has a none existing destination state: %s" % transition["dest"]
+                )
 
             if not transition.has_key("conditions_true"):
                 transition["conditions_true"] = []
@@ -93,33 +92,35 @@ class StateMachine(HardwareObject):
 
             for condition_name in transition["conditions_true"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(\
-                      "Transition %s " % str(transition) + \
-                      "has a none existing condition: %s" % \
-                      condition_name)
+                    logging.getLogger("HWR").error(
+                        "Transition %s " % str(transition)
+                        + "has a none existing condition: %s" % condition_name
+                    )
             for condition_name in transition["conditions_false"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(\
-                      "Transition %s " % str(transition) + \
-                      "has a none existing condition: %s" % \
-                      condition_name)
+                    logging.getLogger("HWR").error(
+                        "Transition %s " % str(transition)
+                        + "has a none existing condition: %s" % condition_name
+                    )
             for condition_name in transition["conditions_false_or"]:
                 if not self.get_condition_by_name(condition_name):
-                    logging.getLogger("HWR").error(\
-                      "Transition %s " % str(transition) + \
-                      "has a none existing condition: %s" % \
-                      condition_name)
+                    logging.getLogger("HWR").error(
+                        "Transition %s " % str(transition)
+                        + "has a none existing condition: %s" % condition_name
+                    )
 
         self.update_fsm_state()
 
         self.bl_setup_hwobj = self.getObjectByRole("beamline_setup")
         for hwobj_name in dir(self.bl_setup_hwobj):
             if hwobj_name.endswith("hwobj"):
-                #logging.getLogger("HWR").debug(\
+                # logging.getLogger("HWR").debug(\
                 #     "StateMachine: Attaching hwobj: %s " % hwobj_name)
-                self.connect(getattr(self.bl_setup_hwobj, hwobj_name),
-                             "fsmConditionChanged",
-                             self.condition_changed)
+                self.connect(
+                    getattr(self.bl_setup_hwobj, hwobj_name),
+                    "fsmConditionChanged",
+                    self.condition_changed,
+                )
                 getattr(self.bl_setup_hwobj, hwobj_name).update_values()
 
     def get_state_by_name(self, state_name):
@@ -137,18 +138,19 @@ class StateMachine(HardwareObject):
 
         condition = self.get_condition_by_name(condition_name)
         if condition:
-            #logging.getLogger("HWR").debug(\
+            # logging.getLogger("HWR").debug(\
             #  "StateMachine: condition '%s' changed to '%s'" \
-            #   % (condition_name, value)) 
-     
+            #   % (condition_name, value))
+
             if condition["value"] != value:
                 condition["value"] = value
                 self.emit("conditionChanged", self.condition_list)
                 self.update_fsm_state()
         else:
-            logging.getLogger("HWR").debug(\
-              "StateMachine: condition '%s' not in the condition list" \
-               % condition_name)
+            logging.getLogger("HWR").debug(
+                "StateMachine: condition '%s' not in the condition list"
+                % condition_name
+            )
 
     def update_fsm_state(self):
         """Updates state machine
@@ -171,7 +173,6 @@ class StateMachine(HardwareObject):
                     cond = self.get_condition_by_name(cond_name)
                     if cond["value"] == False:
                         allow_transition = True
- 
 
                 if allow_transition:
                     self.current_state = transition["dest"]
@@ -179,24 +180,32 @@ class StateMachine(HardwareObject):
 
         if self.previous_state != self.current_state:
             if self.history_state_list:
-                self.history_state_list[-1]["end_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
-                self.history_state_list[-1]["total_time"] = str(\
-                    datetime.strptime(self.history_state_list[-1]["end_time"],
-                                      "%Y-%m-%d %H:%M:%S") -\
-                    datetime.strptime(self.history_state_list[-1]["start_time"],
-                                      "%Y-%m-%d %H:%M:%S"))
+                self.history_state_list[-1]["end_time"] = time.strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                self.history_state_list[-1]["total_time"] = str(
+                    datetime.strptime(
+                        self.history_state_list[-1]["end_time"], "%Y-%m-%d %H:%M:%S"
+                    )
+                    - datetime.strptime(
+                        self.history_state_list[-1]["start_time"], "%Y-%m-%d %H:%M:%S"
+                    )
+                )
 
-            history_state_item = {"current_state": self.current_state,
-                                  "previous_state": self.previous_state,
-                                  "start_time": time.strftime("%Y-%m-%d %H:%M:%S"),
-                                  "end_time": "... ",
-                                  "total_time": ""}
+            history_state_item = {
+                "current_state": self.current_state,
+                "previous_state": self.previous_state,
+                "start_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "end_time": "... ",
+                "total_time": "",
+            }
             self.history_state_list.append(history_state_item)
             self.previous_state = self.current_state
-            logging.getLogger("HWR").debug("StateMachine: current state "  + \
-                                           "changed to : %s" % self.current_state)
+            logging.getLogger("HWR").debug(
+                "StateMachine: current state " + "changed to : %s" % self.current_state
+            )
             self.emit("stateChanged", self.history_state_list)
-         
+
             self.update_fsm_state()
 
     def get_condition_list(self):
@@ -213,6 +222,6 @@ class StateMachine(HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-       
+
         if len(self.history_state_list):
             self.emit("stateChanged", (self.history_state_list))

@@ -27,31 +27,31 @@ class Attenuators(AbstractAttenuators):
         AbstractAttenuators.__init__(self, name)
 
         self.chan_att_value = None
-        self.chan_att_state = None 
+        self.chan_att_state = None
         self.chan_att_limits = None
 
     def init(self):
-        self.chan_att_value = self.getChannelObject('chanAttValue')
-        self.chan_att_value.connectSignal('update', self.value_changed)
+        self.chan_att_value = self.getChannelObject("chanAttValue")
+        self.chan_att_value.connectSignal("update", self.value_changed)
         self.value_changed(self.chan_att_value.getValue())
-        self.chan_att_state = self.getChannelObject('chanAttState')
-        self.chan_att_state.connectSignal('update', self.state_changed)
-        self.chan_att_limits = self.getChannelObject('chanAttLimits')
-        self.chan_att_limits.connectSignal('update', self.limits_changed)
+        self.chan_att_state = self.getChannelObject("chanAttState")
+        self.chan_att_state.connectSignal("update", self.state_changed)
+        self.chan_att_limits = self.getChannelObject("chanAttLimits")
+        self.chan_att_limits.connectSignal("update", self.limits_changed)
 
         self.update_values()
 
     def state_changed(self, state):
         self._state = state
-        self.emit('stateChanged', self._state)
+        self.emit("stateChanged", self._state)
 
     def value_changed(self, value):
-  	self._value = value
-        self.emit('valueChanged', self._value) 
+        self._value = value
+        self.emit("valueChanged", self._value)
 
     def limits_changed(self, value):
         self._limits = value
-        self.emit('limitsChanged', (self._limits, ))
+        self.emit("limitsChanged", (self._limits,))
 
     def set_value(self, value, timeout=None):
         if timeout is not None:
@@ -59,6 +59,6 @@ class Attenuators(AbstractAttenuators):
             self.chan_att_value.setValue(value)
             with gevent.Timeout(timeout, Exception("Timeout waiting for state ready")):
                 while self._state != "ready":
-                      gevent.sleep(0.1)
+                    gevent.sleep(0.1)
         else:
             self.chan_att_value.setValue(value)

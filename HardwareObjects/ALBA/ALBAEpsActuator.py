@@ -1,4 +1,4 @@
-'''Tango Shutter Hardware Object
+"""Tango Shutter Hardware Object
 Example XML::
 
   <device class="ALBAEpsActuator">
@@ -40,14 +40,21 @@ Public Interface:
    Signals:
        stateChanged
  
-'''
+"""
 
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 import logging
 
-STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
-         (0,1,9,11,13,23)
+STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = (
+    0,
+    1,
+    9,
+    11,
+    13,
+    23,
+)
+
 
 class ALBAEpsActuator(BaseHardwareObjects.Device):
 
@@ -66,24 +73,27 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         BaseHardwareObjects.Device.__init__(self, name)
 
     def init(self):
-        self.actuator_state = STATE_UNKNOWN  
+        self.actuator_state = STATE_UNKNOWN
 
         try:
-            self.actuator_channel = self.getChannelObject('actuator')
-            self.actuator_channel.connectSignal('update', self.stateChanged)
+            self.actuator_channel = self.getChannelObject("actuator")
+            self.actuator_channel.connectSignal("update", self.stateChanged)
         except KeyError:
-            logging.getLogger().warning('%s: cannot report EPS Actuator State', self.name())
+            logging.getLogger().warning(
+                "%s: cannot report EPS Actuator State", self.name()
+            )
 
         try:
             state_string = self.getProperty("states")
             if state_string is None:
-                 self.state_strings = self.default_state_strings
+                self.state_strings = self.default_state_strings
             else:
-                 states = state_string.split(",")
-                 self.state_strings = states[1].strip(), states[0].strip()
+                states = state_string.split(",")
+                self.state_strings = states[1].strip(), states[0].strip()
         except:
             import traceback
-            logging.getLogger("HWR").warning( traceback.format_exc() )
+
+            logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -91,7 +101,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
 
-    def convert_state(self,state):
+    def convert_state(self, state):
         if state == 0:
             act_state = STATE_OUT
         elif state == 1:
@@ -105,7 +115,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         # emit signal
         #
         self.actuator_state = self.convert_state(value)
-        self.emit('stateChanged', ((self.actuator_state),))
+        self.emit("stateChanged", ((self.actuator_state),))
 
     def getUserName(self):
         return self.username
@@ -113,9 +123,9 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()  
+        state = self.getState()
 
-        if state in [STATE_OUT,STATE_IN]:
+        if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
         elif state in self.states:
             return self.states[state]
@@ -124,6 +134,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
     def open(self):
         self.cmdIn()
+
     def close(self):
         self.cmdOut()
 
@@ -133,13 +144,13 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def cmdOut(self):
         self.actuator_channel.setValue(0)
 
+
 def test_hwo(hwo):
-    print "Name is: ",hwo.getUserName()
-    print "Shutter state is: ",hwo.getState()
-    print "Shutter status is: ",hwo.getStatus()
+    print "Name is: ", hwo.getUserName()
+    print "Shutter state is: ", hwo.getState()
+    print "Shutter status is: ", hwo.getStatus()
 
-    #print "Opening it"
-    #print hwo.open()
-    #print "Closing it"
-    #print hwo.close()
-
+    # print "Opening it"
+    # print hwo.open()
+    # print "Closing it"
+    # print hwo.close()

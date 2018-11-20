@@ -1,6 +1,7 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from PyTransmission import matt_control
 
+
 class Transmission(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
@@ -14,21 +15,28 @@ class Transmission(HardwareObject):
         self.setTransmission = self.set_value
 
     def init(self):
-        self.energy = self.getObjectByRole('energy')
+        self.energy = self.getObjectByRole("energy")
 
-        self.__matt = matt_control.MattControl(self.getProperty("wago_ip"), len(self['filter']), 0, self.getProperty('type'),
-                                   self.getProperty('alternate'), self.getProperty('status_module'),
-                                   self.getProperty('control_module'),self.getProperty('datafile'))
+        self.__matt = matt_control.MattControl(
+            self.getProperty("wago_ip"),
+            len(self["filter"]),
+            0,
+            self.getProperty("type"),
+            self.getProperty("alternate"),
+            self.getProperty("status_module"),
+            self.getProperty("control_module"),
+            self.getProperty("datafile"),
+        )
         self.__matt.connect()
 
     def isReady(self):
         return True
 
     def getAtteConfig(self):
-        self.attno = len(self['filter'])
+        self.attno = len(self["filter"])
 
         for att_i in range(self.attno):
-            obj = self['filter'][att_i]
+            obj = self["filter"][att_i]
             self.labels.append(obj.label)
             self.indexes.append(obj.index)
 
@@ -59,4 +67,4 @@ class Transmission(HardwareObject):
     def is_in(self, attenuator_index):
         curr_bits = self.getAttState()
         idx = self.indexes[attenuator_index]
-        return bool((1<<idx) & curr_bits)
+        return bool((1 << idx) & curr_bits)

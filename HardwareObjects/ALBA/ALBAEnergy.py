@@ -1,13 +1,12 @@
-
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
 import logging
 
-class ALBAEnergy(Device):
 
-    def __init__(self,*args):
-        Device.__init__(self,*args)
+class ALBAEnergy(Device):
+    def __init__(self, *args):
+        Device.__init__(self, *args)
         self.energy_position = None
         self.wavelength_position = None
 
@@ -16,11 +15,13 @@ class ALBAEnergy(Device):
         self.wavelength_hwobj = self.getObjectByRole("wavelength")
 
         self.energy_hwobj.connect("positionChanged", self.energy_position_changed)
-        self.wavelength_hwobj.connect("positionChanged", self.wavelength_position_changed)
+        self.wavelength_hwobj.connect(
+            "positionChanged", self.wavelength_position_changed
+        )
 
     def isReady(self):
         return True
- 
+
     def can_move_energy(self):
         return True
 
@@ -41,18 +42,20 @@ class ALBAEnergy(Device):
 
     def energy_position_changed(self, value):
         self.energy_position = value
-        if None not in [self.energy_position, self.wavelength_position]: 
-            self.emit('energyChanged', self.energy_position, self.wavelength_position)
+        if None not in [self.energy_position, self.wavelength_position]:
+            self.emit("energyChanged", self.energy_position, self.wavelength_position)
 
     def wavelength_position_changed(self, value):
         self.wavelength_position = value
-        if None not in [self.energy_position, self.wavelength_position]: 
-            self.emit('energyChanged', self.energy_position, self.wavelength_position)
+        if None not in [self.energy_position, self.wavelength_position]:
+            self.emit("energyChanged", self.energy_position, self.wavelength_position)
 
     def move_energy(self, value):
         current_egy = self.get_energy()
-         
-        logging.getLogger("HWR").debug("moving energy to %s. now is %s" % (value, current_egy))
+
+        logging.getLogger("HWR").debug(
+            "moving energy to %s. now is %s" % (value, current_egy)
+        )
         self.energy_hwobj.move(value)
 
     def wait_move_energy_done(self):
@@ -66,16 +69,18 @@ class ALBAEnergy(Device):
 
     def getEnergyLimits(self):
         return self.get_energy_limits()
- 
+
     def get_wavelength_limits(self):
         return self.wavelength_hwobj.getLimits()
- 
+
+
 def test_hwo(hwo):
 
-    print "Energy is: ",hwo.get_energy()
-    print "Wavelength is: ",hwo.get_wavelength()
-    print "Energy limits are: ",hwo.get_energy_limits()
-    print "Wavelength limits are: ",hwo.get_wavelength_limits()
+    print "Energy is: ", hwo.get_energy()
+    print "Wavelength is: ", hwo.get_wavelength()
+    print "Energy limits are: ", hwo.get_energy_limits()
+    print "Wavelength limits are: ", hwo.get_wavelength_limits()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()

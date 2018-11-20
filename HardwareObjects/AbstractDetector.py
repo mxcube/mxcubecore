@@ -1,13 +1,13 @@
-import abc 
+import abc
 
 
-class AbstractDetector(object):    
+class AbstractDetector(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self): 
+    def __init__(self):
         """
         Descript. : 
-        """ 
+        """
 
         # self.distance = None
         self.temperature = None
@@ -23,7 +23,7 @@ class AbstractDetector(object):
         self.binding_mode = None
         self.roi_mode = None
         self.roi_modes_list = []
-        self.status = None        
+        self.status = None
 
         self.distance_motor_hwobj = None
 
@@ -39,7 +39,7 @@ class AbstractDetector(object):
         """
         Descript. : 
         """
-        return 
+        return
 
     @abc.abstractmethod
     def has_shutterless(self):
@@ -93,7 +93,18 @@ class AbstractDetector(object):
         """
         self.binding_mode = value
 
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still):
+    def prepare_acquisition(
+        self,
+        take_dark,
+        start,
+        osc_range,
+        exptime,
+        npass,
+        number_of_images,
+        comment,
+        energy,
+        still,
+    ):
         """
         Descript. :
         """
@@ -105,7 +116,9 @@ class AbstractDetector(object):
         """
         return
 
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
+    def set_detector_filenames(
+        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+    ):
         """
         Descript. :
         """

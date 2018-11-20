@@ -38,7 +38,7 @@ class BeamstopMockup(HardwareObject):
 
         self.default_size = None
         self.default_distance = None
-        self.default_direction = None 
+        self.default_direction = None
 
     def init(self):
         """
@@ -47,7 +47,7 @@ class BeamstopMockup(HardwareObject):
         self.default_size = self.getProperty("defaultBeamstopSize")
         self.default_distance = self.getProperty("defaultBeamstopDistance")
         self.default_direction = self.getProperty("defaultBeamstopDirection")
- 
+
     def get_size(self):
         """
         Descrip. :
@@ -70,4 +70,4 @@ class BeamstopMockup(HardwareObject):
         return self.default_direction
 
     def update_values(self):
-        self.emit('beamstopDistanceChanged', (self.default_distance))
+        self.emit("beamstopDistanceChanged", (self.default_distance))

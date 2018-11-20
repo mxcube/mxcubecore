@@ -164,7 +164,7 @@ class Shapes(HardwareObject):
         self.shapes = {}
         Grid.SHAPE_COUNT = 0
         Line.SHAPE_COUNT = 0
-        Point.SHAPE_COUNT =0
+        Point.SHAPE_COUNT = 0
 
     def get_selected_shapes(self):
         """
@@ -245,10 +245,9 @@ class Shapes(HardwareObject):
         for shape in self.get_shapes():
             if isinstance(shape, Grid):
                 grid = shape.as_dict()
-                break;
+                break
 
         return grid
-
 
     def set_grid_data(self, sid, result_data):
         shape = self.get_shape(sid)
@@ -268,6 +267,7 @@ class Shape(object):
     """
     Base class for shapes.
     """
+
     SHAPE_COUNT = 0
 
     def __init__(self, mpos_list=[], screen_coord=(-1, -1)):
@@ -446,8 +446,10 @@ class Grid(Shape):
         return self.cp_list[0]
 
     def get_grid_range(self):
-        return (float(self.cell_width * (self.num_cols - 1)), \
-                float(self.cell_height * (self.num_rows - 1)))
+        return (
+            float(self.cell_width * (self.num_cols - 1)),
+            float(self.cell_height * (self.num_rows - 1)),
+        )
 
     def get_num_lines(self):
         if self.cell_count_fun == "zig-zag":
@@ -473,8 +475,12 @@ class Grid(Shape):
         d["motor_positions"] = self.cp_list[0].as_dict()
 
         # MXCuBE - 2 WF compatability
-        d["x1"] = -float((self.beam_pos[0] - d["screen_coord"][0]) / self.pixels_per_mm[0])
-        d["y1"] = -float((self.beam_pos[1] - d["screen_coord"][1]) / self.pixels_per_mm[1])
+        d["x1"] = -float(
+            (self.beam_pos[0] - d["screen_coord"][0]) / self.pixels_per_mm[0]
+        )
+        d["y1"] = -float(
+            (self.beam_pos[1] - d["screen_coord"][1]) / self.pixels_per_mm[1]
+        )
         d["steps_x"] = d["num_cols"]
         d["steps_y"] = d["num_rows"]
         d["dx_mm"] = d["width"] / self.pixels_per_mm[0]

@@ -16,35 +16,42 @@ when enter (1) or interlock (0) the hutch.
       detecto to a safe position, set MD2 to sample Transfer.
 """
 
+
 class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
     def __init__(self, name):
         BaseHardwareObjects.HardwareObject.__init__(self, name)
         self._enabled = True
 
     def _do_polling(self):
-        while True: 
-          try:
-              self.poll()
-          except:
-              sys.excepthook(*sys.exc_info())
-          time.sleep(self.getProperty("interval")/1000.0 or 1)
+        while True:
+            try:
+                self.poll()
+            except:
+                sys.excepthook(*sys.exc_info())
+            time.sleep(self.getProperty("interval") / 1000.0 or 1)
 
     def init(self):
         try:
             self.device = PyTango.gevent.DeviceProxy(self.getProperty("tangoname"))
         except PyTango.DevFailed, traceback:
             last_error = traceback[-1]
-            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
+            logging.getLogger("HWR").error(
+                "%s: %s", str(self.name()), last_error["desc"]
+            )
             self.device = None
 
         try:
-            self.flex_device = PyTango.gevent.DeviceProxy(self.getProperty("flex_tangoname"))
+            self.flex_device = PyTango.gevent.DeviceProxy(
+                self.getProperty("flex_tangoname")
+            )
         except PyTango.DevFailed, traceback:
             last_error = traceback[-1]
-            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
+            logging.getLogger("HWR").error(
+                "%s: %s", str(self.name()), last_error["desc"]
+            )
             self.flex_device = None
 
-        self.pollingTask=None
+        self.pollingTask = None
         self.initialized = False
         self.__oldValue = None
         self.card = None
@@ -60,27 +67,26 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         if self.device is not None:
             self.pollingTask = gevent.spawn(self._do_polling)
         self.connected()
- 
+
     def hutchIsOpened(self):
         return self.hutch_opened
 
     def isConnected(self):
         return True
 
-        
     def connected(self):
-        self.emit('connected')
-        
-        
-    def disconnected(self):
-        self.emit('disconnected')
+        self.emit("connected")
 
+    def disconnected(self):
+        self.emit("disconnected")
 
     def abort(self):
         pass
-    
-    def macro(self, entering_hutch, old={"dtox":None}):
-        logging.info("%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving")
+
+    def macro(self, entering_hutch, old={"dtox": None}):
+        logging.info(
+            "%s: %s hutch", self.name(), "entering" if entering_hutch else "leaving"
+        )
         dtox = self.getObjectByRole("detector_distance")
         udiff_ctrl = self.getObjectByRole("predefined")
         ctrl_obj = self.getObjectByRole("controller")
@@ -90,18 +96,20 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
                 dtox.move(old["dtox"])
             self.flex_device.eval("flex.user_port(0)")
             self.flex_device.eval("flex.robot_port(1)")
-            udiff_ctrl.moveToPhase(phase="Centring",wait=True)
+            udiff_ctrl.moveToPhase(phase="Centring", wait=True)
         else:
             old["dtox"] = dtox.getPosition()
             self.flex_device.eval("flex.robot_port(0)")
             ctrl_obj.detcover.set_in()
             dtox.move(700)
-            udiff_ctrl.moveToPhase(phase="Transfer",wait=True)
+            udiff_ctrl.moveToPhase(phase="Transfer", wait=True)
 
     def poll(self):
-        a=self.device.GetInterlockState([self.card-1, 2*(self.channel-1)])[0]
-        b=self.device.GetInterlockState([self.card-1, 2*(self.channel-1)+1])[0]
-        value = a&b
+        a = self.device.GetInterlockState([self.card - 1, 2 * (self.channel - 1)])[0]
+        b = self.device.GetInterlockState([self.card - 1, 2 * (self.channel - 1) + 1])[
+            0
+        ]
+        value = a & b
 
         if value == self.__oldValue:
             return
@@ -113,12 +121,12 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
     def valueChanged(self, value, *args):
         if value == 0:
             if self.initialized:
-                self.emit('hutchTrigger', (1, ))
+                self.emit("hutchTrigger", (1,))
         elif value == 1 and self.initialized:
-            self.emit('hutchTrigger', (0, ))
+            self.emit("hutchTrigger", (0,))
 
-        self.hutch_opened = 1-value
-	self.initialized = True
+        self.hutch_opened = 1 - value
+        self.initialized = True
 
         if self._enabled:
             self.macro(self.hutch_opened)

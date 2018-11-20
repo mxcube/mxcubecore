@@ -9,20 +9,20 @@ class ID30BPhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.controller = self.getObjectByRole('controller')
-        self.shutter = self.getDeviceByRole('shutter')
-        self.energy_motor = self.getObjectByRole('energy')
-        self.aperture = self.getObjectByRole('aperture')
+        self.controller = self.getObjectByRole("controller")
+        self.shutter = self.getDeviceByRole("shutter")
+        self.energy_motor = self.getObjectByRole("energy")
+        self.aperture = self.getObjectByRole("aperture")
         self.flux_calc = self.controller.CalculateFlux()
-        fname = self.getProperty('calibrated_diodes_file')
+        fname = self.getProperty("calibrated_diodes_file")
         if fname:
             self.flux_calc.init(fname)
-        counter = self.getProperty('counter_name')
+        counter = self.getProperty("counter_name")
         if counter:
             self.counter = getattr(self.controller, counter)
         else:
-            self.counter = self.getObjectByRole('counter')
-        self.shutter.connect('shutterStateChanged', self.shutterStateChanged)
+            self.counter = self.getObjectByRole("counter")
+        self.shutter.connect("shutterStateChanged", self.shutterStateChanged)
 
         self.counts_reading_task = self._read_counts_task(wait=False)
 
@@ -43,14 +43,12 @@ class ID30BPhotonFlux(Equipment):
                 counts = 0
         except Exception:
             counts = 0
-            logging.getLogger('HWR').exception("%s: could not get counts",
-                                               self.name())
+            logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
-            egy = self.energy_motor.getCurrentEnergy()*1000.0
+            egy = self.energy_motor.getCurrentEnergy() * 1000.0
             calib = self.flux_calc.calc_flux_factor(egy)
         except:
-            logging.getLogger('HWR').exception("%s: could not get energy",
-                                               self.name())
+            logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         try:
             aperture_factor = self.aperture.getApertureCoef()
         except AttributeError:
@@ -76,13 +74,13 @@ class ID30BPhotonFlux(Equipment):
         self.emitValueChanged("%1.3g" % flux)
 
     def getCurrentFlux(self):
-        self.updateFlux('dummy')
+        self.updateFlux("dummy")
         return self.current_flux
 
     def emitValueChanged(self, flux=None):
         if flux is None:
             self.current_flux = None
-            self.emit('valueChanged', ("?", ))
+            self.emit("valueChanged", ("?",))
         else:
             self.current_flux = flux
-            self.emit('valueChanged', (self.current_flux, ))
+            self.emit("valueChanged", (self.current_flux,))
