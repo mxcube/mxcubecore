@@ -25,7 +25,7 @@ class MicrodiffAperture(MicrodiffMotor):
                     i = "Outbeam"
                 self.predefinedPositions[str(i)] = j
                 j = j + 1
-        if not "Outbeam" in self.predefinedPositions:
+        if "Outbeam" not in self.predefinedPositions:
             self.predefinedPositions["Outbeam"] = self.predefinedPositions.__len__()
         self.predefinedPositions.pop("Outbeam")
         self.sortPredefinedPositionsList()
@@ -77,7 +77,7 @@ class MicrodiffAperture(MicrodiffMotor):
 
         try:
             for positionName in self.predefinedPositions:
-                if math.fabs(self.predefinedPositions[positionName] - pos) <= 1e-3:
+                if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
                     return positionName
         except BaseException:
             return ""

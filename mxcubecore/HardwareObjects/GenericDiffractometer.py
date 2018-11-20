@@ -576,7 +576,7 @@ class GenericDiffractometer(HardwareObject):
     def is_reversing_rotation(self):
         """
         """
-        return self.reversing_rotation == True
+        return self.reversing_rotation is True
 
     def beam_position_changed(self, value):
         """
@@ -667,9 +667,8 @@ class GenericDiffractometer(HardwareObject):
                 )
                 self.emit_centring_failed()
 
-    startCentringMethod = (
-        start_centring_method
-    )  # ensure backward compatibility with queue_entry.py
+    # ensure backward compatibility with queue_entry.py
+    startCentringMethod = start_centring_method
 
     def cancel_centring_method(self, reject=False):
         """

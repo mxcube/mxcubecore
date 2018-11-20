@@ -17,32 +17,32 @@ EDNA_TEST_DATA = """<?xml version="1.0" ?>
   <experimentalCondition>
     <beam>
       <flux>
-	<value>2.710000e+12</value>
+        <value>2.710000e+12</value>
       </flux>
       <minExposureTimePerImage>
-	<value>8.000000e-02</value>
+        <value>8.000000e-02</value>
       </minExposureTimePerImage>
       <size>
-	<x>
-	  <value>5.000000e-02</value>
-	</x>
-	<y>
-	  <value>3.000000e-02</value>
-	</y>
+        <x>
+          <value>5.000000e-02</value>
+        </x>
+        <y>
+          <value>3.000000e-02</value>
+        </y>
       </size>
       <transmission>
-	<value>1.000000e+02</value>
+        <value>1.000000e+02</value>
       </transmission>
       <wavelength>
-	<value>9.136656e-01</value>
+        <value>9.136656e-01</value>
       </wavelength>
     </beam>
     <goniostat>
       <maxOscillationSpeed>
-	<value>3.600000e+02</value>
+        <value>3.600000e+02</value>
       </maxOscillationSpeed>
       <minOscillationWidth>
-	<value>5.000000e-02</value>
+        <value>5.000000e-02</value>
       </minOscillationWidth>
     </goniostat>
   </experimentalCondition>
@@ -52,13 +52,13 @@ EDNA_TEST_DATA = """<?xml version="1.0" ?>
     </shape>
     <size>
       <x>
-	<value>1.000000e-01</value>
+        <value>1.000000e-01</value>
       </x>
       <y>
-	<value>1.000000e-01</value>
+        <value>1.000000e-01</value>
       </y>
       <z>
-	<value>1.000000e-01</value>
+        <value>1.000000e-01</value>
       </z>
     </size>
     <susceptibility>
@@ -68,22 +68,22 @@ EDNA_TEST_DATA = """<?xml version="1.0" ?>
   <dataSet>
     <imageFile>
       <path>
-	<value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0001.cbf</value>
+        <value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0001.cbf</value>
       </path>
     </imageFile>
     <imageFile>
       <path>
-	<value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0002.cbf</value>
+        <value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0002.cbf</value>
       </path>
     </imageFile>
     <imageFile>
       <path>
-	<value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0003.cbf</value>
+        <value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0003.cbf</value>
       </path>
     </imageFile>
     <imageFile>
       <path>
-	<value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0004.cbf</value>
+        <value>/data/id29/inhouse/DAS/RAW_DATA/ref-4ESR372D11_1_0004.cbf</value>
       </path>
     </imageFile>
   </dataSet>

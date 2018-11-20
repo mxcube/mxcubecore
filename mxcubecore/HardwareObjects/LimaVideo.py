@@ -131,7 +131,7 @@ class LimaVideo(Device):
         """
         return self.image_format
 
-    #############   CONTRAST   #################
+    # ############   CONTRAST   #################
     def contrastExists(self):
         """
         Descript. :
@@ -156,7 +156,7 @@ class LimaVideo(Device):
         """
         return
 
-    #############   BRIGHTNESS   #################
+    # ############   BRIGHTNESS   #################
     def brightnessExists(self):
         """
         Descript. :
@@ -181,7 +181,7 @@ class LimaVideo(Device):
         """
         return
 
-    #############   GAIN   #################
+    # ############   GAIN   #################
     def gainExists(self):
         """
         Descript. :
@@ -193,8 +193,7 @@ class LimaVideo(Device):
         Descript. :
         """
         return
-
-    # self.video.setGain(gain)
+        # self.video.setGain(gain)
 
     def getGain(self):
         """
@@ -208,7 +207,7 @@ class LimaVideo(Device):
         """
         return
 
-    #############   GAMMA   #################
+    # ############   GAMMA   #################
     def gammaExists(self):
         """
         Descript. :

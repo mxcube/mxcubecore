@@ -1,12 +1,6 @@
 # encoding: utf-8
 """"Global Phasing py4j workflow server connection"""
 
-__copyright__ = """
-  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
-"""
-__author__ = "rhfogh"
-__date__ = "04/11/16"
-
 import logging
 import os
 import socket
@@ -48,6 +42,14 @@ except ImportError:
 
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply
+
+
+__copyright__ = """
+  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
+"""
+
+__author__ = "rhfogh"
+__date__ = "04/11/16"
 
 
 class GphlWorkflowConnection(HardwareObject, object):
@@ -303,7 +305,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         for ss in command_list:
             ss = ss.split("=")[-1]
-            if ss.startswith("/") and not "*" in ss and not os.path.exists(ss):
+            if ss.startswith("/") and "*" not in ss and not os.path.exists(ss):
                 logging.getLogger("HWR").warning("File does not exist : %s" % ss)
 
         logging.getLogger("HWR").info("GPhL execute :\n%s" % " ".join(command_list))

@@ -148,7 +148,7 @@ class MicrodiffMotor(AbstractMotor):
         self.setIsReady(self._get_state() > MicrodiffMotor.UNUSABLE)
 
     def setIsReady(self, value):
-        if value == True:
+        if value is True:
             self.set_ready()
 
     def updateMotorState(self, motor_states):
@@ -215,7 +215,7 @@ class MicrodiffMotor(AbstractMotor):
         return self.get_max_speed_cmd(self.motor_name)
 
     def motorPositionChanged(self, absolute_position, private={}):
-        if not None in (absolute_position, self.position):
+        if None not in (absolute_position, self.position):
             if abs(absolute_position - self.position) <= self.motor_resolution:
                 return
         self.position = absolute_position

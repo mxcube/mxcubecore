@@ -91,31 +91,31 @@ class ExporterMotor(AbstractMotor):
 
     def get_limits(self):
         dynamic_limits = self.get_dynamic_limits()
-        if dynamic_limits != (-1e4, 1e4):
+        if dynamic_limits != (-1E4, 1E4):
             return dynamic_limits
         else:
             try:
                 low_lim, hi_lim = map(float, self.cmd_get_limits(self.motor_name))
-                if low_lim == float(1e999) or hi_lim == float(1e999):
+                if low_lim == float(1E999) or hi_lim == float(1E999):
                     raise ValueError
                 return low_lim, hi_lim
             except BaseException:
-                return (-1e4, 1e4)
+                return (-1E4, 1E4)
 
     def get_dynamic_limits(self):
         try:
             low_lim, hi_lim = map(float, self.cmd_get_dynamic_limits(self.motor_name))
-            if low_lim == float(1e999) or hi_lim == float(1e999):
+            if low_lim == float(1E999) or hi_lim == float(1E999):
                 raise ValueError
             return low_lim, hi_lim
         except BaseException:
-            return (-1e4, 1e4)
+            return (-1E4, 1E4)
 
     def get_max_speed(self):
         return self.cmd_get_max_speed(self.motor_name)
 
     def position_changed(self, position, private={}):
-        if not None in (position, self.get_position()):
+        if None not in (position, self.get_position()):
             if abs(position - self.get_position()) <= self.motor_resolution:
                 return
         self.set_position(position)

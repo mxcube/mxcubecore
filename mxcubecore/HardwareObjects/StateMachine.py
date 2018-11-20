@@ -163,15 +163,15 @@ class StateMachine(HardwareObject):
                 allow_transition = True
                 for cond_name in transition["conditions_true"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == False:
+                    if cond["value"] is False:
                         allow_transition = False
                 for cond_name in transition["conditions_false"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == True:
+                    if cond["value"] is True:
                         allow_transition = False
                 for cond_name in transition["conditions_false_or"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == False:
+                    if cond["value"] is False:
                         allow_transition = True
 
                 if allow_transition:

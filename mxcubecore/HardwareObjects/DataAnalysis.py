@@ -107,7 +107,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         try:
             beamsize = self.get_beam_size()
-            if not None in beamsize:
+            if None not in beamsize:
                 beam.setSize(
                     XSDataSize(
                         x=XSDataLength(float(beamsize[0])),
