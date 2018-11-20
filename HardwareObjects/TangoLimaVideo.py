@@ -112,23 +112,24 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                     self._do_polling, self.device.video_exposure
                 )
 
-    #############   CONTRAST   #################
+    # ############   CONTRAST   #################
+
     def contrastExists(self):
         return self.__contrastExists
 
-    #############   BRIGHTNESS   #################
+    # ############   BRIGHTNESS   #################
     def brightnessExists(self):
         return self.__brightnessExists
 
-    #############   GAIN   #################
+    # ############   GAIN   #################
     def gainExists(self):
         return self.__gainExists
 
-    #############   GAMMA   #################
+    # ############   GAMMA   #################
     def gammaExists(self):
         return self.__gammaExists
 
-    #############   WIDTH   #################
+    # ############   WIDTH   #################
     def getWidth(self):
         """tango"""
         return self.device.image_width

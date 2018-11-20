@@ -36,12 +36,7 @@ example xml:
 </object>
 """
 
-
-__credits__ = ["MXCuBE colaboration"]
-__version__ = "2.3"
-__category__ = "Graphics"
-
-
+from __future__ import print_function
 import os
 import math
 import gevent
@@ -74,6 +69,10 @@ except ImportError:
 import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+__credits__ = ["MXCuBE colaboration"]
+__version__ = "2.3"
+__category__ = "Graphics"
 
 
 class Qt4_GraphicsManager(HardwareObject):
@@ -331,20 +330,20 @@ class Qt4_GraphicsManager(HardwareObject):
             self.auto_grid_size_mm = (0.2, 0.2)
 
         self.graphics_move_up_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_right_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_down_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_left_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
 
         # self.set_scrollbars_off(\
-        #     self.getProperty("scrollbars_always_off") == True)
+        #     self.getProperty("scrollbars_always_off") is True)
 
         try:
             self.graphics_magnification_item.set_properties(
@@ -893,7 +892,7 @@ class Qt4_GraphicsManager(HardwareObject):
         # else:
         #    for shape in self.get_selected_shapes():
         #        if isinstance(shape, GraphicsLib.GraphicsItemGrid):
-        #            print shape
+        #            print(shape)
 
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
@@ -977,7 +976,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """Moves sample
         """
         # TODO Not implemented yet
-        print "Move screen: ", direction
+        print("Move screen: ", direction)
 
     def set_cursor_busy(self, state):
         if state:

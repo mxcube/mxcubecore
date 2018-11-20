@@ -285,7 +285,7 @@ class GraphicsItemBeam(GraphicsItem):
                 "%d x %d %sm"
                 % (self.beam_size_mm[0] * 1000, self.beam_size_mm[1] * 1000, u"\u00B5"),
             )
-        if not None in self.detected_beam_info_dict:
+        if None not in self.detected_beam_info_dict:
             painter.drawLine(
                 self.detected_beam_info_dict[0] - 10,
                 self.detected_beam_info_dict[1] - 10,
@@ -2116,26 +2116,26 @@ class GraphicsView(QGraphicsView):
         """
         //Get the original screen centerpoint
         QPointF screenCenter = GetCenter(); //CurrentCenterPoint; //(visRect.center());
-	ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnde rMouse);
-	//Scale the view ie. do the zoom
-	double scaleFactor = 1.15; //How fast we zoom
-	if(event->delta() > 0) {
-	//Zoom in
-	ui->graphicsView->scale(scaleFactor, scaleFactor);
-	} else {
-	//Zooming out
-	ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
-	}
-	ui->graphicsView->setTransformationAnchor(QGraphicsView::NoAnchor );
-	//Get the position after scaling, in scene coords
-	QPointF pointAfterScale(ui->graphicsView->mapToScene(event->pos()));
+        ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnde rMouse);
+        //Scale the view ie. do the zoom
+        double scaleFactor = 1.15; //How fast we zoom
+        if(event->delta() > 0) {
+        //Zoom in
+        ui->graphicsView->scale(scaleFactor, scaleFactor);
+        } else {
+        //Zooming out
+        ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
+        }
+        ui->graphicsView->setTransformationAnchor(QGraphicsView::NoAnchor );
+        //Get the position after scaling, in scene coords
+        QPointF pointAfterScale(ui->graphicsView->mapToScene(event->pos()));
 
-	//Get the offset of how the screen moved
-	QPointF offset = pointBeforeScale - pointAfterScale;
+        //Get the offset of how the screen moved
+        QPointF offset = pointBeforeScale - pointAfterScale;
 
-	//Adjust to the new center for correct zooming
-	QPointF newCenter = screenCenter + offset;
-	SetCenter(newCenter);
+        //Adjust to the new center for correct zooming
+        QPointF newCenter = screenCenter + offset;
+        SetCenter(newCenter);
         """
 
 

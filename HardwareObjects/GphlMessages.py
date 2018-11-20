@@ -3,14 +3,6 @@
 """ Abstract beamline interface message classes
 """
 
-
-__copyright__ = """
-  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
-"""
-__author__ = "rhfogh"
-__date__ = "04/11/16"
-
-
 import uuid
 
 try:
@@ -18,6 +10,14 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 from collections import namedtuple
+
+
+__copyright__ = """
+  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
+"""
+__author__ = "rhfogh"
+__date__ = "04/11/16"
+
 
 # Enumerations
 
@@ -418,6 +418,8 @@ class CollectionDone(MessageData):
 
 
 # Complex payloads
+
+
 class WorkflowDone(Payload):
     """End-of-workflow message"""
 

@@ -299,7 +299,8 @@ class Camera(BaseHardwareObjects.Device):
                             except BaseException:
                                 pass
 
-                #############   CONTRAST   #################
+                # ############   CONTRAST   #################
+
                 def contrastExists(self):
                     return self.__contrastExists
 
@@ -331,7 +332,8 @@ class Camera(BaseHardwareObjects.Device):
                     _config = self.device.get_attribute_config("contrast")
                     return (_config.min_value, _config.max_value)
 
-                #############   BRIGHTNESS   #################
+                # ############   BRIGHTNESS   #################
+
                 def brightnessExists(self):
                     return self.__brightnessExists
 
@@ -362,7 +364,8 @@ class Camera(BaseHardwareObjects.Device):
                     _config = self.device.get_attribute_config("brightness")
                     return (_config.min_value, _config.max_value)
 
-                #############   GAIN   #################
+                # ############   GAIN   #################
+
                 def gainExists(self):
                     return self.__gainExists
 
@@ -395,7 +398,8 @@ class Camera(BaseHardwareObjects.Device):
                     _config = self.device.get_attribute_config("gain")
                     return (_config.min_value, _config.max_value)
 
-                #############   GAMMA   #################
+                # ############   GAMMA   #################
+
                 def gammaExists(self):
                     return self.__gammaExists
 
@@ -426,7 +430,8 @@ class Camera(BaseHardwareObjects.Device):
                     _config = self.device.get_attribute_config("gamma")
                     return (_config.min_value, _config.max_value)
 
-                #############   WIDTH   #################
+                # ############   WIDTH   #################
+
                 def getWidth(self):
                     """tango"""
                     width = self.getChannelObject("width")

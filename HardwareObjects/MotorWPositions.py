@@ -17,16 +17,14 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+from HardwareRepository.BaseHardwareObjects import Device
+from AbstractMotor import AbstractMotor
 
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 __copyright__ = "(c)2016 DESY, FS-PE, P11"
 __license__ = "GPL"
-
-
-import logging
-from HardwareRepository.BaseHardwareObjects import Device
-from AbstractMotor import AbstractMotor
 
 
 class MotorWPositions(AbstractMotor, Device):

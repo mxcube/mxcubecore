@@ -113,7 +113,7 @@ class BeamlineTestMockup(HardwareObject):
         except BaseException:
             logging.getLogger("HWR").debug("BeamlineTest: Test list not defined.")
 
-        if self.getProperty("run_tests_at_startup") == True:
+        if self.getProperty("run_tests_at_startup") is True:
             self.start_test_queue(self.startup_test_list)
 
     def start_test_queue(self, test_list, create_report=True):

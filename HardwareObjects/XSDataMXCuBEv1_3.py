@@ -87,7 +87,7 @@ def showIndent(outfile, level):
 
 
 def checkType(_strClassName, _strMethodName, _value, _strExpectedType):
-    if not _strExpectedType in ["float", "double", "string", "boolean", "integer"]:
+    if _strExpectedType not in ["float", "double", "string", "boolean", "integer"]:
         if _value is not None:
             if _value.__class__.__name__ != _strExpectedType:
                 strMessage = "ERROR! %s.%s argument is not %s but %s" % (
@@ -107,7 +107,7 @@ def checkType(_strClassName, _strMethodName, _value, _strExpectedType):
 
 
 def warnEmptyAttribute(_strName, _strTypeName):
-    if not _strTypeName in ["float", "double", "string", "boolean", "integer"]:
+    if _strTypeName not in ["float", "double", "string", "boolean", "integer"]:
         print(
             "Warning! Non-optional attribute %s of type %s is None!"
             % (_strName, _strTypeName)
@@ -239,7 +239,8 @@ class XSDataMXCuBEDataSet(object):
             obj_ = XSDataFile()
             obj_.build(child_)
             self.imageFile.append(obj_)
-            # Method for marshalling an object
+
+    # Method for marshalling an object
 
     def marshal(self):
         oStreamString = StringIO()
@@ -248,25 +249,29 @@ class XSDataMXCuBEDataSet(object):
         oStringXML = oStreamString.getvalue()
         oStreamString.close()
         return oStringXML
-        # Only to export the entire XML tree to a file stream on disk
+
+    # Only to export the entire XML tree to a file stream on disk
 
     def exportToFile(self, _outfileName):
         outfile = open(_outfileName, "w")
         outfile.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(outfile, 0, name_="XSDataMXCuBEDataSet")
         outfile.close()
-        # Deprecated method, replaced by exportToFile
+
+    # Deprecated method, replaced by exportToFile
 
     def outputFile(self, _outfileName):
         print(
             "WARNING: Method outputFile in class XSDataMXCuBEDataSet is deprecated, please use instead exportToFile!"
         )
         self.exportToFile(_outfileName)
-        # Method for making a copy in a new instance
+
+    # Method for making a copy in a new instance
 
     def copy(self):
         return XSDataMXCuBEDataSet.parseString(self.marshal())
-        # Static method for parsing a string
+
+    # Static method for parsing a string
 
     def parseString(_inString):
         doc = minidom.parseString(_inString)
@@ -1900,7 +1905,8 @@ class XSDataMXCuBEParameters(XSData):
                     )
                 self._transmission = fval_
         XSData.buildChildren(self, child_, nodeName_)
-        # Method for marshalling an object
+
+    # Method for marshalling an object
 
     def marshal(self):
         oStreamString = StringIO()
@@ -1909,25 +1915,29 @@ class XSDataMXCuBEParameters(XSData):
         oStringXML = oStreamString.getvalue()
         oStreamString.close()
         return oStringXML
-        # Only to export the entire XML tree to a file stream on disk
+
+    # Only to export the entire XML tree to a file stream on disk
 
     def exportToFile(self, _outfileName):
         outfile = open(_outfileName, "w")
         outfile.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(outfile, 0, name_="XSDataMXCuBEParameters")
         outfile.close()
-        # Deprecated method, replaced by exportToFile
+
+    # Deprecated method, replaced by exportToFile
 
     def outputFile(self, _outfileName):
         print(
             "WARNING: Method outputFile in class XSDataMXCuBEParameters is deprecated, please use instead exportToFile!"
         )
         self.exportToFile(_outfileName)
-        # Method for making a copy in a new instance
+
+    # Method for making a copy in a new instance
 
     def copy(self):
         return XSDataMXCuBEParameters.parseString(self.marshal())
-        # Static method for parsing a string
+
+    # Static method for parsing a string
 
     def parseString(_inString):
         doc = minidom.parseString(_inString)
@@ -2240,7 +2250,8 @@ class XSDataInputMXCuBE(XSDataInput):
             obj_.build(child_)
             self.dataSet.append(obj_)
         XSDataInput.buildChildren(self, child_, nodeName_)
-        # Method for marshalling an object
+
+    # Method for marshalling an object
 
     def marshal(self):
         oStreamString = StringIO()
@@ -2249,25 +2260,29 @@ class XSDataInputMXCuBE(XSDataInput):
         oStringXML = oStreamString.getvalue()
         oStreamString.close()
         return oStringXML
-        # Only to export the entire XML tree to a file stream on disk
+
+    # Only to export the entire XML tree to a file stream on disk
 
     def exportToFile(self, _outfileName):
         outfile = open(_outfileName, "w")
         outfile.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(outfile, 0, name_="XSDataInputMXCuBE")
         outfile.close()
-        # Deprecated method, replaced by exportToFile
+
+    # Deprecated method, replaced by exportToFile
 
     def outputFile(self, _outfileName):
         print(
             "WARNING: Method outputFile in class XSDataInputMXCuBE is deprecated, please use instead exportToFile!"
         )
         self.exportToFile(_outfileName)
-        # Method for making a copy in a new instance
+
+    # Method for making a copy in a new instance
 
     def copy(self):
         return XSDataInputMXCuBE.parseString(self.marshal())
-        # Static method for parsing a string
+
+    # Static method for parsing a string
 
     def parseString(_inString):
         doc = minidom.parseString(_inString)
@@ -2586,7 +2601,8 @@ class XSDataResultMXCuBE(XSDataResult):
             obj_.build(child_)
             self.setScreeningId(obj_)
         XSDataResult.buildChildren(self, child_, nodeName_)
-        # Method for marshalling an object
+
+    # Method for marshalling an object
 
     def marshal(self):
         oStreamString = StringIO()
@@ -2595,25 +2611,29 @@ class XSDataResultMXCuBE(XSDataResult):
         oStringXML = oStreamString.getvalue()
         oStreamString.close()
         return oStringXML
-        # Only to export the entire XML tree to a file stream on disk
+
+    # Only to export the entire XML tree to a file stream on disk
 
     def exportToFile(self, _outfileName):
         outfile = open(_outfileName, "w")
         outfile.write(unicode('<?xml version="1.0" ?>\n'))
         self.export(outfile, 0, name_="XSDataResultMXCuBE")
         outfile.close()
-        # Deprecated method, replaced by exportToFile
+
+    # Deprecated method, replaced by exportToFile
 
     def outputFile(self, _outfileName):
         print(
             "WARNING: Method outputFile in class XSDataResultMXCuBE is deprecated, please use instead exportToFile!"
         )
         self.exportToFile(_outfileName)
-        # Method for making a copy in a new instance
+
+    # Method for making a copy in a new instance
 
     def copy(self):
         return XSDataResultMXCuBE.parseString(self.marshal())
-        # Static method for parsing a string
+
+    # Static method for parsing a string
 
     def parseString(_inString):
         doc = minidom.parseString(_inString)

@@ -366,13 +366,13 @@ class Sample(TaskNode):
                     lims_sample.containerSampleChangerLocation
                 )
 
-                l = (
+                _lims = (
                     int(lims_sample.containerSampleChangerLocation),
                     int(lims_sample.sampleLocation),
                 )
 
-                self.lims_location = l
-                self.location = l
+                self.lims_location = _lims
+                self.location = _lims
 
                 self.loc_str = str(
                     str(self.lims_location[0]) + ":" + str(self.lims_location[1])
@@ -667,7 +667,7 @@ class DataCollection(TaskNode):
         """
         if self.is_helical():
             start_index, end_index = self.get_helical_point_index()
-            if not None in (start_index, end_index):
+            if None not in (start_index, end_index):
                 display_name = "%s (Line %d:%d)" % (
                     self.get_name(),
                     start_index,
@@ -1601,7 +1601,7 @@ class CentredPosition(object):
     their corresponding values.
     """
 
-    MOTOR_POS_DELTA = 1e-4
+    MOTOR_POS_DELTA = 1E-4
     DIFFRACTOMETER_MOTOR_NAMES = []
 
     @staticmethod
@@ -1860,6 +1860,8 @@ class XrayImaging(TaskNode):
 #
 # Collect hardware object utility function.
 #
+
+
 def to_collect_dict(data_collection, session, sample, centred_pos=None):
     """ return [{'comment': '',
           'helical': 0,

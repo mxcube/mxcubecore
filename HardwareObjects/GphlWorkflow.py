@@ -3,12 +3,6 @@
 """Global phasing workflow runner
 """
 
-__copyright__ = """
-  * Copyright © 2016 - 2017 by Global Phasing Ltd.
-"""
-__author__ = "rhfogh"
-__date__ = "06/04/17"
-
 import logging
 import uuid
 import time
@@ -36,6 +30,14 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+
+__copyright__ = """
+  * Copyright © 2016 - 2017 by Global Phasing Ltd.
+"""
+__author__ = "rhfogh"
+__date__ = "06/04/17"
+
 
 States = queue_model_enumerables.States
 

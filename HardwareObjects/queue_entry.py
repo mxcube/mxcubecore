@@ -2215,7 +2215,7 @@ def mount_sample(
                 sample_mount_device.load_sample(
                     holder_length, sample_location=loc, wait=True
                 )
-                == False
+                is False
             ):
                 # WARNING: explicit test of False return value.
                 # This is to preserve backward compatibility (load_sample was supposed to return None);
