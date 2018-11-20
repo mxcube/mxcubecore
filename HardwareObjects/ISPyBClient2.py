@@ -613,7 +613,7 @@ class ISPyBClient2(HardwareObject):
         # to do, check how it is done in EMBL
         return True, "True"
 
-    def login (self,loginID, psd, ldap_connection=None):
+    def login(self, loginID, psd, ldap_connection=None, create_session=True):
         if ldap_connection is None:
             ldap_connection = self.ldapConnection
         login_name=loginID
@@ -666,84 +666,98 @@ class ISPyBClient2(HardwareObject):
 #        logging.getLogger('HWR').debug('Proposal is fine, get sessions from ISPyB...')
 #        logging.getLogger('HWR').debug(prop)
 
-        proposal=prop['Proposal']
-        todays_session=self.get_todays_session(prop)
+        proposal = prop['Proposal']
+        todays_session = self.get_todays_session(prop, create_session)
+        local_contact = {}
 
-        logging.getLogger('HWR').debug('LOGGED IN and todays session: ' + str(todays_session))
-        return {'status':{ "code": "ok", "msg": msg }, 'Proposal': proposal,
-        'Session': todays_session,
-        "local_contact": self.get_session_local_contact(todays_session['session']['sessionId']),
-        "Person": prop['Person'],
-        "Laboratory": prop['Laboratory']}
+        if todays_session['session']:
+            local_contact = self.get_session_local_contact(
+                todays_session['session']['sessionId']),
 
-    def get_todays_session(self, prop):
+        logging.getLogger('HWR').debug(
+            'LOGGED IN and todays session: ' + str(todays_session))
+        return {'status': {"code": "ok", "msg": msg}, 'Proposal': proposal,
+                'Session': todays_session,
+                "local_contact": local_contact,
+                "Person": prop['Person'],
+                "Laboratory": prop['Laboratory']}
+
+    def get_todays_session(self, prop, create_session=True):
         try:
-            sessions=prop['Session']
+            sessions = prop['Session']
         except KeyError:
-            sessions=None
+            sessions = None
+
         # Check if there are sessions in the proposal
-        todays_session=None
-        if sessions is None or len(sessions)==0:
+        todays_session = None
+
+        if sessions is None or len(sessions) == 0:
             pass
         else:
             # Check for today's session
             for session in sessions:
-                beamline=session['beamlineName']
-                start_date="%s 00:00:00" % session['startDate'].split()[0]
-                end_date="%s 23:59:59" % session['endDate'].split()[0]
+                beamline = session['beamlineName']
+                start_date = "%s 00:00:00" % session['startDate'].split()[0]
+                end_date = "%s 23:59:59" % session['endDate'].split()[0]
                 try:
-                    start_struct=time.strptime(start_date,"%Y-%m-%d %H:%M:%S")
+                    start_struct = time.strptime(
+                        start_date, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
                 else:
                     try:
-                        end_struct=time.strptime(end_date,"%Y-%m-%d %H:%M:%S")
+                        end_struct = time.strptime(
+                            end_date, "%Y-%m-%d %H:%M:%S")
                     except ValueError:
                         pass
                     else:
-                        start_time=time.mktime(start_struct)
-                        end_time=time.mktime(end_struct)
-                        current_time=time.time()
+                        start_time = time.mktime(start_struct)
+                        end_time = time.mktime(end_struct)
+                        current_time = time.time()
                         # Check beamline name
-                        if beamline==self.beamline_name:
+                        if beamline == self.beamline_name:
                             # Check date
-                            if current_time>=start_time and current_time<=end_time:
-                                todays_session=session
+                            if current_time >= start_time and current_time <= end_time:
+                                todays_session = session
                                 break
-        new_session_flag= False
-        if todays_session is None:
+
+        new_session_flag = False
+
+        if todays_session is None and create_session:
             # a newSession will be created, UI (Qt, web) can decide to accept the newSession or not
-            new_session_flag= True
-            current_time=time.localtime()
-            start_time=time.strftime("%Y-%m-%d 00:00:00", current_time)
-            end_time=time.mktime(current_time)+60*60*24
-            tomorrow=time.localtime(end_time)
-            end_time=time.strftime("%Y-%m-%d 07:59:59", tomorrow)
+            new_session_flag = True
+            current_time = time.localtime()
+            start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
+            end_time = time.mktime(current_time)+60*60*24
+            tomorrow = time.localtime(end_time)
+            end_time = time.strftime("%Y-%m-%d 07:59:59", tomorrow)
 
             # Create a session
-            new_session_dict={}
-            new_session_dict['proposalId']=prop['Proposal']['proposalId']
-            new_session_dict['startDate']=start_time
-            new_session_dict['endDate']=end_time
-            new_session_dict['beamlineName']=self.beamline_name
-            new_session_dict['scheduled']=0
-            new_session_dict['nbShifts']=3
-            new_session_dict['comments']="Session created by the BCM"
-            session_id=self.create_session(new_session_dict)
-            new_session_dict['sessionId']=session_id
+            new_session_dict = {}
+            new_session_dict['proposalId'] = prop['Proposal']['proposalId']
+            new_session_dict['startDate'] = start_time
+            new_session_dict['endDate'] = end_time
+            new_session_dict['beamlineName'] = self.beamline_name
+            new_session_dict['scheduled'] = 0
+            new_session_dict['nbShifts'] = 3
+            new_session_dict['comments'] = "Session created by the BCM"
+            session_id = self.create_session(new_session_dict)
+            new_session_dict['sessionId'] = session_id
 
-            todays_session=new_session_dict
-            localcontact=None
+            todays_session = new_session_dict
+            localcontact = None
             logging.getLogger('HWR').debug('create new session')
-
+        elif todays_session:
+            session_id = todays_session['sessionId']
+            logging.getLogger('HWR').debug(
+                'getting local contact for %s' % session_id)
+            localcontact = self.get_session_local_contact(session_id)
         else:
-            session_id=todays_session['sessionId']
-            logging.getLogger('HWR').debug('getting local contact for %s' % session_id)
-            localcontact=self.get_session_local_contact(session_id)
+            todays_session = {}
 
-        is_inhouse = self.session_hwobj.is_inhouse(prop['Proposal']["code"], prop['Proposal']["number"])
-        return {"session": todays_session,"new_session_flag":new_session_flag, "is_inhouse": is_inhouse}
-
+        is_inhouse = self.session_hwobj.is_inhouse(
+            prop['Proposal']["code"], prop['Proposal']["number"])
+        return {"session": todays_session, "new_session_flag": new_session_flag, "is_inhouse": is_inhouse}
 
     @trace
     def store_data_collection(self, *args, **kwargs):
