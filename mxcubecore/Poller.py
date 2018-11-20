@@ -1,8 +1,10 @@
 import logging
 import saferef
-from gevent import _threading
 import gevent
 import gevent.monkey
+from gevent import _threading
+from gevent.queue import Queue, Empty
+from gevent.event import Event
 import numpy
 import types
 
@@ -78,7 +80,7 @@ class _Poller:
         self.old_res = NotInitializedValue
         self.queue = _threading.Queue()  # Queue.Queue()
         self.delay = 0
-        self.stop_event = _threading.Event()
+        self.stop_event = Event()
         self.async_watcher = gevent.get_hub().loop.async()
 
     def start_delayed(self, delay):
@@ -123,8 +125,8 @@ class _Poller:
     def new_event(self):
         while True:
             try:
-                res = self.queue.get_nowait()
-            except _threading.Empty:
+                res = Queue().get_nowait()
+            except Empty:
                 break
 
             if isinstance(res, PollingException):
