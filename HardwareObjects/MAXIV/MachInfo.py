@@ -8,8 +8,8 @@ control system.
 This is a mockup hardware object, it simulates the behaviour of an accelerator
 information by :
 
-    - produces a current value that varies with time 
-    - simulates a control room message that changes with some condition 
+    - produces a current value that varies with time
+    - simulates a control room message that changes with some condition
       ()
     - simulates
 
@@ -19,25 +19,27 @@ machInfoChanged
 
    mandatory fields:
      values['current']  type: str; desc: synchrotron radiation current in milli-amps
-     values['message']  type: str; desc: message from control room 
+     values['message']  type: str; desc: message from control room
      values['attention'] type: boolean; desc: False (if no special attention is required)
                                             True (if attention should be raised to the user)
 
-   optional fields: 
+   optional fields:
       any number of optional fields can be sent over with this signal by adding them in the
       values dictionary
-      
+
       for example:
-         values['lifetime'] 
-         values['topup_remaining'] 
+         values['lifetime']
+         values['topup_remaining']
 """
 
+from __future__ import print_function
 import logging
 import gevent
 import time
 import PyTango
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
+
 
 class MachInfo(Equipment):
     default_current = 0
@@ -60,17 +62,17 @@ class MachInfo(Equipment):
 
     def init(self):
         try:
-            #self.mach_info_channel =  self.getChannelObject("mach_info")
-	    channel = self.getProperty('mach_info')
-	    self.mach_info_channel = PyTango.DeviceProxy(channel)
-	    self.message = self.mach_info_channel.OperatorMessage
-	    self.message += '\n' + self.mach_info_channel.R3NextInjection
+            # self.mach_info_channel =  self.getChannelObject("mach_info")
+            channel = self.getProperty("mach_info")
+            self.mach_info_channel = PyTango.DeviceProxy(channel)
+            self.message = self.mach_info_channel.OperatorMessage
+            self.message += "\n" + self.mach_info_channel.R3NextInjection
         except Exception as ex:
-            logging.getLogger("HWR").warning('Error initializing machine info channel')
-	
+            logging.getLogger("HWR").warning("Error initializing machine info channel")
+
         try:
-            #self.curr_info_channel =  self.getChannelObject("curr_info")
-            channel_current = self.getProperty('current')
+            # self.curr_info_channel =  self.getChannelObject("curr_info")
+            channel_current = self.getProperty("current")
             self.curr_info_channel = PyTango.DeviceProxy(channel_current)
             # why twice??
             # why hwr channel does not work?? why??
@@ -80,10 +82,12 @@ class MachInfo(Equipment):
             if curr < 0:
                 self.current = 0.00
             else:
-            	self.current = "{:.2f}".format(curr * 1000)
-            self.lifetime = float("{:.2f}".format(self.curr_info_channel.Lifetime / 3600))
+                self.current = "{:.2f}".format(curr * 1000)
+            self.lifetime = float(
+                "{:.2f}".format(self.curr_info_channel.Lifetime / 3600)
+            )
         except Exception as ex:
-            logging.getLogger("HWR").warning('Error initializing current info channel')
+            logging.getLogger("HWR").warning("Error initializing current info channel")
 
         self._run()
 
@@ -96,23 +100,25 @@ class MachInfo(Equipment):
         while True:
             gevent.sleep(2)
             self.message = self.mach_info_channel.OperatorMessage
-            self.message += '\n' + self.mach_info_channel.R3NextInjection
+            self.message += "\n" + self.mach_info_channel.R3NextInjection
             curr = self.curr_info_channel.Current
             if curr < 0:
                 self.current = 0.00
             else:
                 self.current = "{:.2f}".format(curr * 1000)
 
-            self.lifetime = float("{:.2f}".format(self.curr_info_channel.Lifetime / 3600))
-            
+            self.lifetime = float(
+                "{:.2f}".format(self.curr_info_channel.Lifetime / 3600)
+            )
+
             self.attention = False
             values = dict()
-            values['current'] = self.current
-            values['message'] = self.message
-            values['lifetime'] = self.lifetime
-            values['attention'] = self.attention
-            self.emit('machInfoChanged',values)
-            self.emit('valueChanged',values)
+            values["current"] = self.current
+            values["message"] = self.message
+            values["lifetime"] = self.lifetime
+            values["attention"] = self.attention
+            self.emit("machInfoChanged", values)
+            self.emit("valueChanged", values)
 
     def getCurrent(self):
         return self.current
@@ -138,14 +144,14 @@ def test():
 
     conn = hwr.getHardwareObject(sys.argv[1])
 
-    print "Machine current: ", conn.getCurrent()
-    print "Life time: ", conn.getLifeTime()
-    print "TopUp remaining: ", conn.getTopUpRemaining()
-    print "Message: ", conn.getMessage()
+    print("Machine current: ", conn.getCurrent())
+    print("Life time: ", conn.getLifeTime())
+    print("TopUp remaining: ", conn.getTopUpRemaining())
+    print("Message: ", conn.getMessage())
 
     while True:
-       gevent.wait(timeout=0.1)
-       
+        gevent.wait(timeout=0.1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()

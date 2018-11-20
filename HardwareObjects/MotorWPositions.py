@@ -28,6 +28,7 @@ import logging
 from HardwareRepository.BaseHardwareObjects import Device
 from AbstractMotor import AbstractMotor
 
+
 class MotorWPositions(AbstractMotor, Device):
     """
     <device class="MotorWPositions">
@@ -67,21 +68,19 @@ class MotorWPositions(AbstractMotor, Device):
             role = roles[0]
             self.motor = self.getObjectByRole(role)
         except KeyError:
-            logging.getLogger("HWR").error(
-                    "MotorWPositions: motor not defined")
+            logging.getLogger("HWR").error("MotorWPositions: motor not defined")
             return
         try:
-            self.delta = self['deltas'].getProperty(role)
-        except:
+            self.delta = self["deltas"].getProperty(role)
+        except BaseException:
             logging.getLogger().info(
-                    "MotorWPositions: no delta defined, setting to %f",
-                    self.delta)
+                "MotorWPositions: no delta defined, setting to %f", self.delta
+            )
         try:
-            positions = self['positions']
-        except:
-            logging.getLogger().error(
-                    "MotorWPositions: no positions defined")
-        else: 
+            positions = self["positions"]
+        except BaseException:
+            logging.getLogger().error("MotorWPositions: no positions defined")
+        else:
             for position in positions:
                 name = position.getProperty("name")
                 pos = position.getProperty(role)
@@ -95,7 +94,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def getPredefinedPositionsList(self):
         return sorted(self.predefined_positions.keys())
-        #return self.predefined_positions
+        # return self.predefined_positions
 
     def getCurrentPositionName(self, pos=None):
         if pos is None:
@@ -108,9 +107,8 @@ class MotorWPositions(AbstractMotor, Device):
     def moveToPosition(self, position_name):
         try:
             self.motor.move(self.predefined_positions[position_name])
-        except:
-            logging.getLogger("HWR").exception(
-                    "MotorWPositions: invalid position name")
+        except BaseException:
+            logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
 
     def setNewPredefinedPosition(self, positionName, positionOffset):
         raise NotImplementedError
@@ -123,7 +121,7 @@ class MotorWPositions(AbstractMotor, Device):
 
     def motor_state_changed(self, state):
         self.updateState(state)
-        self.emit("stateChanged", (state, ))
+        self.emit("stateChanged", (state,))
 
     def motor_position_changed(self, absolute_position=None):
         if absolute_position is None:
@@ -131,8 +129,11 @@ class MotorWPositions(AbstractMotor, Device):
         position_name = self.getCurrentPositionName(absolute_position)
         if self._last_position_name != position_name:
             self._last_position_name = position_name
-            self.emit('predefinedPositionChanged', (position_name, position_name and absolute_position or None, ))
-        self.emit("positionChanged", (absolute_position, ))
+            self.emit(
+                "predefinedPositionChanged",
+                (position_name, position_name and absolute_position or None),
+            )
+        self.emit("positionChanged", (absolute_position,))
 
     def updateState(self, state=None):
         """
@@ -147,7 +148,7 @@ class MotorWPositions(AbstractMotor, Device):
         Descript. : return motor state
         """
         return self.motor.getState()
-    
+
     def getPosition(self):
         """
         Descript. :
@@ -195,5 +196,3 @@ class MotorWPositions(AbstractMotor, Device):
         Descript. : True if the motor is currently moving
         """
         return self.motor.is_moving()
-
-

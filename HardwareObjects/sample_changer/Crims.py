@@ -3,10 +3,12 @@ import urllib
 
 import xml.etree.cElementTree as et
 
+
 def get_image(url):
-    f = urllib.urlopen(url)           
-    img = f.read() 
+    f = urllib.urlopen(url)
+    img = f.read()
     return img
+
 
 class CrimsXtal:
     def __init__(self, *args):
@@ -25,43 +27,50 @@ class CrimsXtal:
         self.image_url = ""
         self.image_rotation = 0.0
         self.summary_url = ""
-        
+
     def get_address(self):
         return "%s%02d-%d" % (self.row, self.column, self.shelf)
 
     def get_image(self):
         if len(self.image_url) > 0:
             try:
-               if self.image_url.startswith("http://"):
-                   self.image_url = "https://" + self.image_url[7]
-               image_string = urllib.urlopen(self.image_url).read()           
-               return image_string
-            except:
-               return 
+                if self.image_url.startswith("http://"):
+                    self.image_url = "https://" + self.image_url[7]
+                image_string = urllib.urlopen(self.image_url).read()
+                return image_string
+            except BaseException:
+                return
 
     def get_summary_url(self):
-        if (len(self.summary_url == 0)):
+        if len(self.summary_url == 0):
             return None
         return self.summary_url
-        
+
+
 class Plate:
     def __init__(self, *args):
         self.barcode = ""
         self.plate_type = ""
         self.xtal_list = []
 
+
 class ProcessingPlan:
     def __init__(self, *args):
         self.plate = Plate()
- 
+
+
 def get_processing_plan(barcode, crims_url):
-    try: 
-        url = crims_url + "/htxlab/index.php?option=com_crimswebservices" + \
-           "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
+    try:
+        url = (
+            crims_url
+            + "/htxlab/index.php?option=com_crimswebservices"
+            + "&format=raw&task=getbarcodextalinfos&barcode=%s&action=insitu" % barcode
+        )
         f = urllib.urlopen(url)
         xml = f.read()
 
         import xml.etree.cElementTree as et
+
         tree = et.fromstring(xml)
 
         processing_plan = ProcessingPlan()
@@ -89,5 +98,5 @@ def get_processing_plan(barcode, crims_url):
             xtal.summary_url = x.find("SUMMARY_URL").text
             processing_plan.plate.xtal_list.append(xtal)
         return processing_plan
-    except:
+    except BaseException:
         return

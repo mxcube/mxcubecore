@@ -48,55 +48,62 @@ class ParallelProcessingMockup(GenericParallelProcessing):
         self.data_collection = data_collection
         self.prepare_processing()
 
-        self.emit("paralleProcessingResults",
-                  (self.results_aligned,
-                   self.params_dict,
-                   False))
+        self.emit(
+            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
+        )
 
-        index = 0 
+        index = 0
         for key in self.results_raw.keys():
             if self.result_type == "first":
                 self.results_raw[key][0] = 1
             elif self.result_type == "last":
                 self.results_raw[key][self.params_dict["images_num"] - 1] = 1
             elif self.result_type == "middle":
-                self.results_raw[key][self.params_dict["images_num"]  / 2 - 1] = 1
-                self.results_raw[key][self.params_dict["images_num"]  / 2] = 3
-                self.results_raw[key][self.params_dict["images_num"]  / 2 + 1] = 2.5
+                self.results_raw[key][self.params_dict["images_num"] / 2 - 1] = 1
+                self.results_raw[key][self.params_dict["images_num"] / 2] = 3
+                self.results_raw[key][self.params_dict["images_num"] / 2 + 1] = 2.5
             elif self.result_type == "linear":
-                self.results_raw[key] = numpy.linspace(\
-                   0,
-                   self.params_dict["images_num"],
-                   self.params_dict["images_num"]) + index
+                self.results_raw[key] = (
+                    numpy.linspace(
+                        0,
+                        self.params_dict["images_num"],
+                        self.params_dict["images_num"],
+                    )
+                    + index
+                )
             elif self.result_type == "random":
-                self.results_raw[key] = numpy.random.randint(\
-                   1, self.params_dict["images_num"], self.params_dict["images_num"])
+                self.results_raw[key] = numpy.random.randint(
+                    1, self.params_dict["images_num"], self.params_dict["images_num"]
+                )
 
             if key == "spots_resolution":
-                self.results_raw[key] = self.results_raw[key] / \
-                                        float(self.params_dict["images_num"]) * \
-                                        self.params_dict["resolution"] + \
-                                        self.params_dict["resolution"]
+                self.results_raw[key] = (
+                    self.results_raw[key]
+                    / float(self.params_dict["images_num"])
+                    * self.params_dict["resolution"]
+                    + self.params_dict["resolution"]
+                )
                 self.results_raw[key] = 1. / self.results_raw[key]
 
             index += 1
- 
 
         for index in range(self.params_dict["images_num"]):
             if not index % 10:
                 self.align_processing_results(index - 10, index)
                 gevent.sleep(0.1)
-                self.emit("paralleProcessingResults",
-                          (self.results_aligned,
-                           self.params_dict,
-                           False))
-                self.print_log("GUI", "info", 
-                    "Parallel processing: Frame %d/%d done" % \
-                    (index + 1, self.params_dict["images_num"]))
-        self.align_processing_results(0, self.params_dict["images_num"]-1)
-        self.emit("paralleProcessingResults",
-                  (self.results_aligned,
-                   self.params_dict,
-                   False))
+                self.emit(
+                    "paralleProcessingResults",
+                    (self.results_aligned, self.params_dict, False),
+                )
+                self.print_log(
+                    "GUI",
+                    "info",
+                    "Parallel processing: Frame %d/%d done"
+                    % (index + 1, self.params_dict["images_num"]),
+                )
+        self.align_processing_results(0, self.params_dict["images_num"] - 1)
+        self.emit(
+            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
+        )
 
         self.set_processing_status("Success")

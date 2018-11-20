@@ -25,10 +25,10 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         detector = self.detector
         if detector is not None:
             # Calculate detector radius
-            px = float(detector.getProperty('px', default_value=0))
-            py = float(detector.getProperty('py', default_value=0))
-            width = float(detector.getProperty('width', default_value=0))
-            height = float(detector.getProperty('height', default_value=0))
+            px = float(detector.getProperty("px", default_value=0))
+            py = float(detector.getProperty("py", default_value=0))
+            width = float(detector.getProperty("width", default_value=0))
+            height = float(detector.getProperty("height", default_value=0))
             det_radius = 0.5 * min(px * width, py * height)
             if det_radius > 0:
                 self.det_radius = det_radius
@@ -56,12 +56,12 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         try:
             ttheta = 2 * math.asin(self.getWavelength() / (2 * res))
             return self.det_radius / math.tan(ttheta)
-        except:
+        except BaseException:
             return None
 
     def dist2res(self, dist=None):
         if dist is None:
-            logging.getLogger('HWR').error(
+            logging.getLogger("HWR").error(
                 "Refusing to calculate resolution from distance 'None'"
             )
             return
@@ -69,7 +69,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             ttheta = math.atan(self.det_radius / dist)
             if ttheta != 0:
                 return self.getWavelength() / (2 * math.sin(ttheta / 2))
-        except:
+        except BaseException:
             logging.getLogger().exception("error while calculating resolution")
             return None
 
@@ -93,8 +93,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def newResolution(self, res):
         if res:
             self.currentResolution = res
-            self.emit("positionChanged", (res, ))
-            self.emit('valueChanged', (res, ))
+            self.emit("positionChanged", (res,))
+            self.emit("valueChanged", (res,))
 
     def getState(self):
         return self.state

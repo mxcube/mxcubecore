@@ -11,28 +11,27 @@ def safe_ref(target, on_delete=None):
     - ``target``: The object to be weakly referenced, if it's a bound
       method reference, will create a BoundMethodWeakref, otherwise
       creates a simple weakref.
-        
+
     - ``on_delete``: If provided, will have a hard reference stored to
       the callable to be called after the safe reference goes out of
       scope with the reference object, (either a weakref or a
       BoundMethodWeakref) as argument.
     """
-    if hasattr(target, 'im_self'):
+    if hasattr(target, "im_self"):
         if target.__self__ is not None:
             # Turn a bound method into a BoundMethodWeakref instance.
             # Keep track of these instances for lookup by disconnect().
-            assert hasattr(target, 'im_func'), (
+            assert hasattr(target, "im_func"), (
                 "safe_ref target %r has im_self, but no im_func, "
-                "don't know how to create reference"
-                % target
-                )
+                "don't know how to create reference" % target
+            )
             reference = BoundMethodWeakref(target=target, on_delete=on_delete)
             return reference
     if isinstance(on_delete, collections.Callable):
         return weakref.ref(target, on_delete)
     else:
         return weakref.ref(target)
-    
+
 
 class BoundMethodWeakref(object):
     """'Safe' and reusable weak references to instance methods.
@@ -44,7 +43,7 @@ class BoundMethodWeakref(object):
     object and the function which together define the instance method.
 
     Attributes:
-    
+
     - ``key``: The identity key for the reference, calculated by the
       class's calculate_key method applied to the target instance method.
 
@@ -59,7 +58,7 @@ class BoundMethodWeakref(object):
     - ``weak_func``: Weak reference to the target function.
 
     Class Attributes:
-        
+
     - ``_all_instances``: Class attribute pointing to all live
       BoundMethodWeakref objects indexed by the class's
       calculate_key(target) method applied to the target objects.
@@ -67,9 +66,9 @@ class BoundMethodWeakref(object):
       that multiple references to the same (object, function) pair
       produce the same BoundMethodWeakref instance.
     """
-    
+
     _all_instances = weakref.WeakValueDictionary()
-    
+
     def __new__(cls, target, on_delete=None, *arguments, **named):
         """Create new instance or return current instance.
 
@@ -99,7 +98,7 @@ class BoundMethodWeakref(object):
           must have im_self and im_func attributes and be
           reconstructable via the following, which is true of built-in
           instance methods::
-            
+
             target.im_func.__get__( target.im_self )
 
         - ``on_delete``: Optional callback which will be called when
@@ -108,6 +107,7 @@ class BoundMethodWeakref(object):
           single argument, which will be passed a pointer to this
           object.
         """
+
         def remove(weak, self=self):
             """Set self.isDead to True when method or instance is destroyed."""
             methods = self.deletion_methods[:]
@@ -124,15 +124,20 @@ class BoundMethodWeakref(object):
                     try:
                         traceback.print_exc()
                     except AttributeError as e:
-                        print(('Exception during saferef %s '
-                               'cleanup function %s: %s' % (self, function, e)))
+                        print(
+                            (
+                                "Exception during saferef %s "
+                                "cleanup function %s: %s" % (self, function, e)
+                            )
+                        )
+
         self.deletion_methods = [on_delete]
         self.key = self.calculate_key(target)
         self.weak_self = weakref.ref(target.__self__, remove)
         self.weak_func = weakref.ref(target.__func__, remove)
         self.self_name = str(target.__self__)
         self.__name__ = str(target.__func__.__name__)
-        
+
     def calculate_key(cls, target):
         """Calculate the reference key for this reference.
 
@@ -140,18 +145,15 @@ class BoundMethodWeakref(object):
         object and the target function respectively.
         """
         return (id(target.__self__), id(target.__func__))
+
     calculate_key = classmethod(calculate_key)
-    
+
     def __str__(self):
         """Give a friendly representation of the object."""
-        return "%s(%s.%s)" % (
-            self.__class__.__name__,
-            self.self_name,
-            self.__name__,
-            )
-    
+        return "%s(%s.%s)" % (self.__class__.__name__, self.self_name, self.__name__)
+
     __repr__ = __str__
-    
+
     def __bool__(self):
         """Whether we are still a valid reference."""
         return self() is not None

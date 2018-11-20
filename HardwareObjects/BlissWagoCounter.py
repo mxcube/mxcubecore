@@ -9,8 +9,8 @@ class BlissWagoCounter(HardwareObject):
         HardwareObject.__init__(self, name)
 
     def init(self):
-        self.gainfactor = self.getProperty('gainfactor')
-        self.wagoname = self.getProperty('wagoname')
+        self.gainfactor = self.getProperty("gainfactor")
+        self.wagoname = self.getProperty("wagoname")
         self.controller = self.getObjectByRole("controller")
 
     def getGain(self):
@@ -26,7 +26,7 @@ class BlissWagoCounter(HardwareObject):
             # invalid gain
             return -9999
         counter = operator.attrgetter(self.wagoname)(self.controller)
-        return counter.read()*math.pow(self.gainfactor, gn)
+        return counter.read() * math.pow(self.gainfactor, gn)
 
     def getCorrectedPhysValue(self):
         return self.getValue()

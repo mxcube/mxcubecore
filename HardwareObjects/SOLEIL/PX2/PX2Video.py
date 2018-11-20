@@ -52,32 +52,34 @@ from camera import camera
 
 from QtImport import QImage, QPixmap
 
+
 class PX2Video(GenericVideoDevice, camera):
     """
-    Descript. : 
+    Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
         """
         GenericVideoDevice.__init__(self, name)
         camera.__init__(self)
-        self.log = logging.getLogger('user_level_log')
+        self.log = logging.getLogger("user_level_log")
         self.device = name
         self.camera = camera()
         self.width = 1360
         self.height = 1024
-        
+
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
-        #tangoname = self.getProperty("tangoname")
-        
-        self.log.info('PX2Video init')
-        
+        # tangoname = self.getProperty("tangoname")
+
+        self.log.info("PX2Video init")
+
         self.device = self.prosilica
-        
+
         GenericVideoDevice.init(self)
 
     def set_cam_encoding(self, cam_encoding):
@@ -85,7 +87,7 @@ class PX2Video(GenericVideoDevice, camera):
             self.device.video_mode = "YUV422"
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
-  
+
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     def get_video_live(self):
@@ -97,10 +99,10 @@ class PX2Video(GenericVideoDevice, camera):
 
     def get_image_dimensions(self):
         return self.camera.get_image_dimensions()
-    
+
     def get_image(self):
         return self.camera.get_image(), self.width, self.height
-    
+
     def get_new_image(self):
         """
         Descript. :
@@ -114,13 +116,12 @@ class PX2Video(GenericVideoDevice, camera):
             self.emit("imageReceived", qpixmap)
             return qimage
 
-   
-    #def get_jpg_image(self):
-        #image = self.camera.get_image()
-        
-        #self.emit("imageReceived", qpixmap)
-        #return qimage
-    
+    # def get_jpg_image(self):
+    # image = self.camera.get_image()
+
+    # self.emit("imageReceived", qpixmap)
+    # return qimage
+
     def do_image_polling(self, sleep_time=1):
         """
         Descript. :
@@ -128,7 +129,7 @@ class PX2Video(GenericVideoDevice, camera):
         while self.get_video_live() == True:
             self.get_new_image()
             gevent.sleep(1)
-            
+
     """ END Overloading of GenericVideoDevice methods """
 
 

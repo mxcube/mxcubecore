@@ -4,8 +4,8 @@ import os
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
-class PX1Configuration(Device):
 
+class PX1Configuration(Device):
     def init(self):
         self.use_edna_value = self.getProperty("use_edna")
         self.pin_length = self.getProperty("pin_length")
@@ -18,43 +18,48 @@ class PX1Configuration(Device):
 
     def getUseEDNA(self):
         return self.use_edna_value
-    def setUseEDNA(self,value):
+
+    def setUseEDNA(self, value):
         if value is True or value == "True":
             self.use_edna_value = True
-            self.setProperty("use_edna",True)
+            self.setProperty("use_edna", True)
         else:
             self.use_edna_value = False
         self.setProperty("use_edna", self.use_edna_value)
 
     def getPinLength(self):
         return self.pin_length
-    def setPinLength(self,value):
+
+    def setPinLength(self, value):
         self.pin_length = value
-        self.setProperty("pin_length",value)
+        self.setProperty("pin_length", value)
 
     def getCentringPoints(self):
         return int(self.centring_points)
-    def setCentringPoints(self,value):
+
+    def setCentringPoints(self, value):
         self.centring_points = int(value)
-        self.setProperty("centring_points",value)
+        self.setProperty("centring_points", value)
 
     def getCentringPhiIncrement(self):
         return float(self.centring_phi_incr)
-    def setCentringPhiIncrement(self,value):
+
+    def setCentringPhiIncrement(self, value):
         self.centring_phi_incr = float(value)
-        self.setProperty("centring_phi_increment",value)
+        self.setProperty("centring_phi_increment", value)
 
     def getCentringSampleType(self):
         return self.centring_sample_type
+
     def setCentringSampleType(self, value):
         self.centring_sample_type = value
-        self.setProperty("centring_sample_type",value)
+        self.setProperty("centring_sample_type", value)
 
     def save(self):
         self.commitChanges()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     hwr_directory = os.environ["XML_FILES_PATH"]
     hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
     hwr.connect()
@@ -73,6 +78,4 @@ if __name__ == '__main__':
     env.setPinLength("10")
     print "    use_edna %s " % env.getUseEDNA()
     print "    pin_length", env.getPinLength()
-    #env.save()
-
-
+    # env.save()

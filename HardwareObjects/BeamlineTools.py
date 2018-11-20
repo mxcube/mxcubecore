@@ -28,25 +28,26 @@ __version__ = "2.2."
 
 
 class BeamlineTools(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.tools_list = []
 
     def init(self):
-        for tool in self['tools']:
-            if tool.getProperty('separator'):
+        for tool in self["tools"]:
+            if tool.getProperty("separator"):
                 self.tools_list.append("separator")
             else:
-                tool_dict = {'hwobj': self.getObjectByRole(tool.getProperty('hwobj')),
-                             'display': tool.getProperty('display'),
-                             'method': tool.getProperty('method')}
+                tool_dict = {
+                    "hwobj": self.getObjectByRole(tool.getProperty("hwobj")),
+                    "display": tool.getProperty("display"),
+                    "method": tool.getProperty("method"),
+                }
                 if tool.getProperty("icon"):
-                    tool_dict['icon'] = tool.getProperty('icon')
+                    tool_dict["icon"] = tool.getProperty("icon")
                 if tool.getProperty("confirmation"):
-                    tool_dict['confirmation'] = tool.getProperty('confirmation')
+                    tool_dict["confirmation"] = tool.getProperty("confirmation")
                 if tool.getProperty("expertMode"):
-                    tool_dict['expertMode'] = tool.getProperty('expertMode')
+                    tool_dict["expertMode"] = tool.getProperty("expertMode")
                 self.tools_list.append(tool_dict)
 
     def get_tools_list(self):

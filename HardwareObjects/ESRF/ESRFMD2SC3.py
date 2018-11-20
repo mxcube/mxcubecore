@@ -4,6 +4,7 @@ from HardwareRepository.TaskUtils import *
 from sample_changer import SC3
 import ESRF.ESRFSC3 as ESRFSC3
 
+
 class Command:
     def __init__(self, cmd):
         self.cmd = cmd
@@ -19,33 +20,32 @@ class Command:
 class ESRFMD2SC3(ESRFSC3.ESRFSC3):
     def __init__(self, *args, **kwargs):
         ESRFSC3.ESRFSC3.__init__(self, *args, **kwargs)
-        
 
     def init(self):
         self.controller = self.getObjectByRole("controller")
         SC3.SC3.init(self)
-        self.prepareCentringAfterLoad=True
-        #self.prepareCentring = Command(controller.moveToPhase("Centring"))
-        #self._moveToLoadingPosition = Command(controller.moveToPhase("Transfer"))
-        #self._moveToUnloadingPosition = Command(controller.moveToPhase("Transfer"))
-    
+        self.prepareCentringAfterLoad = True
+        # self.prepareCentring = Command(controller.moveToPhase("Centring"))
+        # self._moveToLoadingPosition = Command(controller.moveToPhase("Transfer"))
+        # self._moveToUnloadingPosition = Command(controller.moveToPhase("Transfer"))
+
     @task
     def unlockMinidiffMotors(self):
         pass
 
     @task
     def prepareCentring(self, *args, **kwargs):
-        #self.controller.moveToPhase("Centring", wait=True, timeout=1000)
+        # self.controller.moveToPhase("Centring", wait=True, timeout=1000)
         pass
 
     @task
     def _moveToLoadingPosition(self, *args, **kwargs):
-        #self.controller.moveToPhase("Transfer", wait=True, timeout=10000)
+        # self.controller.moveToPhase("Transfer", wait=True, timeout=10000)
         pass
 
     @task
     def _moveToUnloadingPosition(self, *args, **kwargs):
-        #self.controller.moveToPhase("Transfer", wait=True, timeout=10000)
+        # self.controller.moveToPhase("Transfer", wait=True, timeout=10000)
         pass
 
     def _getLoadingState(self):

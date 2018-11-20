@@ -11,22 +11,25 @@ class SampleChangerMockup(SampleChanger):
     __TYPE__ = "Mockup"
     NO_OF_BASKETS = 17
     NO_OF_SAMPLES_IN_BASKET = 10
-    
+
     def __init__(self, *args, **kwargs):
-        super(SampleChangerMockup, self).__init__(
-            self.__TYPE__, False, *args, **kwargs)
+        super(SampleChangerMockup, self).__init__(self.__TYPE__, False, *args, **kwargs)
 
     def init(self):
         self._selected_sample = -1
         self._selected_basket = -1
         self._scIsCharging = None
-    
-        self.no_of_baskets = self.getProperty('no_of_baskets', SampleChangerMockup.NO_OF_BASKETS)
-        
-        self.no_of_samples_in_basket = self.getProperty('no_of_samples_in_basket', SampleChangerMockup.NO_OF_SAMPLES_IN_BASKET)
-        
+
+        self.no_of_baskets = self.getProperty(
+            "no_of_baskets", SampleChangerMockup.NO_OF_BASKETS
+        )
+
+        self.no_of_samples_in_basket = self.getProperty(
+            "no_of_samples_in_basket", SampleChangerMockup.NO_OF_SAMPLES_IN_BASKET
+        )
+
         for i in range(self.no_of_baskets):
-            basket = Basket(self, i+1, samples_num=self.no_of_samples_in_basket)
+            basket = Basket(self, i + 1, samples_num=self.no_of_samples_in_basket)
             self._addComponent(basket)
 
         self._initSCContents()
@@ -53,16 +56,19 @@ class SampleChangerMockup(SampleChanger):
         self._selected_basket = basket
         self._selected_sample = sample
 
-        msg = "Loading sample %d:%d" %(int(basket), int(sample))
-        logging.getLogger("user_level_log").info(\
-            "Sample changer: %s. Please wait..." % msg)
+        msg = "Loading sample %d:%d" % (int(basket), int(sample))
+        logging.getLogger("user_level_log").info(
+            "Sample changer: %s. Please wait..." % msg
+        )
 
         self.emit("progressInit", (msg, 100))
         for step in range(2 * 100):
             self.emit("progressStep", int(step / 2.))
             time.sleep(0.01)
 
-        mounted_sample = self.getComponentByAddress(Pin.getSampleAddress(basket, sample))
+        mounted_sample = self.getComponentByAddress(
+            Pin.getSampleAddress(basket, sample)
+        )
         mounted_sample._setLoaded(True, False)
         self._setState(SampleChangerState.Ready)
 
@@ -84,15 +90,17 @@ class SampleChangerMockup(SampleChanger):
         self._selected_sample = -1
         self._triggerLoadedSampleChangedEvent(self.getLoadedSample())
         self.emit("fsmConditionChanged", "sample_is_loaded", False)
- 
+
     def getLoadedSample(self):
-        return self.getComponentByAddress(Pin.getSampleAddress(\
-             self._selected_basket, self._selected_sample))
+        return self.getComponentByAddress(
+            Pin.getSampleAddress(self._selected_basket, self._selected_sample)
+        )
 
     def is_mounted_sample(self, sample):
-        return self.getComponentByAddress(\
-                  Pin.getSampleAddress(sample[0], sample[1]))== \
-                  self.getLoadedSample()
+        return (
+            self.getComponentByAddress(Pin.getSampleAddress(sample[0], sample[1]))
+            == self.getLoadedSample()
+        )
 
     def _doAbort(self):
         return
@@ -126,28 +134,30 @@ class SampleChangerMockup(SampleChanger):
         :rtype: None
         """
         named_samples = {}
-        if self.hasObject('test_sample_names'):
-            for tag, val in self['test_sample_names'].getProperties().items():
+        if self.hasObject("test_sample_names"):
+            for tag, val in self["test_sample_names"].getProperties().items():
                 named_samples[val] = tag
 
         for basket_index in range(self.no_of_baskets):
-            basket=self.getComponents()[basket_index]
+            basket = self.getComponents()[basket_index]
             datamatrix = None
             present = True
             scanned = False
             basket._setInfo(present, datamatrix, scanned)
 
-        sample_list=[]
+        sample_list = []
         for basket_index in range(self.no_of_baskets):
             for sample_index in range(self.no_of_samples_in_basket):
-                sample_list.append(("", basket_index+1, sample_index+1, 1, Pin.STD_HOLDERLENGTH))
+                sample_list.append(
+                    ("", basket_index + 1, sample_index + 1, 1, Pin.STD_HOLDERLENGTH)
+                )
         for spl in sample_list:
             address = Pin.getSampleAddress(spl[1], spl[2])
             sample = self.getComponentByAddress(address)
             sample_name = named_samples.get(address)
             if sample_name is not None:
                 sample._name = sample_name
-            datamatrix = "matr%d_%d" %(spl[1], spl[2])
+            datamatrix = "matr%d_%d" % (spl[1], spl[2])
             present = scanned = loaded = has_been_loaded = False
             sample._setInfo(present, datamatrix, scanned)
             sample._setLoaded(loaded, has_been_loaded)

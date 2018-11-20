@@ -5,6 +5,7 @@ import time
 import logging
 from PyTango.gevent import DeviceProxy
 
+
 class ID30A3PhotonFlux(Equipment):
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
@@ -33,19 +34,19 @@ class ID30A3PhotonFlux(Equipment):
 
     def _get_counts(self):
         """gain = 20 #20uA
-        keithley_voltage = 2 
+        keithley_voltage = 2
         musst_voltage = int("".join([x for x in self.musst.putget("#?CHCFG CH5") if x.isdigit()]))
         musst_fs = float(0x7FFFFFFF)
         counts = abs((gain/keithley_voltage)*musst_voltage*int(self.musst.putget("#?VAL CH5"))/musst_fs)
         """
-        #try:
+        # try:
         self.tg_device.MeasureSingle()
-        counts = abs(self.tg_device.ReadData)*1E6
+        counts = abs(self.tg_device.ReadData) * 1E6
         return counts
 
     def connectNotify(self, signal):
         if signal == "valueChanged":
-          self.emitValueChanged()
+            self.emitValueChanged()
 
     def shutterStateChanged(self, _):
         self.countsUpdated(self._get_counts())
@@ -54,13 +55,13 @@ class ID30A3PhotonFlux(Equipment):
         self.countsUpdated(self._get_counts(), ignore_shutter_state=True)
 
     def countsUpdated(self, counts, ignore_shutter_state=False):
-        if not ignore_shutter_state and self.shutter.getShutterState()!="opened":
-          self.emitValueChanged(0)
-          return
+        if not ignore_shutter_state and self.shutter.getShutterState() != "opened":
+            self.emitValueChanged(0)
+            return
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 
-        """ 
+        """
         try:
           counts = counts[self.index]
         except TypeError:
@@ -102,8 +103,8 @@ class ID30A3PhotonFlux(Equipment):
 
     def emitValueChanged(self, flux=None):
         if flux is None:
-          self.current_flux = None
-          self.emit("valueChanged", ("?", ))
+            self.current_flux = None
+            self.emit("valueChanged", ("?",))
         else:
-          self.current_flux = flux
-          self.emit("valueChanged", (self.current_flux, ))
+            self.current_flux = flux
+            self.emit("valueChanged", (self.current_flux,))

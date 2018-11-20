@@ -7,6 +7,7 @@ import ConvertUtils
 from CollectMockup import CollectMockup
 from HardwareRepository.HardwareRepository import HardwareRepository
 from TaskUtils import task
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -15,7 +16,8 @@ except ImportError:
 
 class CollectEmulator(CollectMockup):
 
-    TEST_SAMPLE_PREFIX = 'emulate-'
+    TEST_SAMPLE_PREFIX = "emulate-"
+
     def __init__(self, name):
         CollectMockup.__init__(self, name)
         self.gphl_connection_hwobj = None
@@ -31,59 +33,79 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
-
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
 
         # Set up and add crystal data
         result = OrderedDict()
-        setup_data = result['setup_list'] = crystal_data
+        setup_data = result["setup_list"] = crystal_data
 
         # update with instrument data
-        fp = self.gphl_workflow_hwobj.file_paths.get('instrumentation_file')
+        fp = self.gphl_workflow_hwobj.file_paths.get("instrumentation_file")
         instrument_input = f90nml.read(fp)
 
-        instrument_data = instrument_input['sdcp_instrument_list']
-        segments = instrument_input['segment_list']
+        instrument_data = instrument_input["sdcp_instrument_list"]
+        segments = instrument_input["segment_list"]
         if isinstance(segments, dict):
             segment_count = 1
         else:
             segment_count = len(segments)
 
-        sweep_count = len(data_collect_parameters['oscillation_sequence'])
+        sweep_count = len(data_collect_parameters["oscillation_sequence"])
 
         # Move beamstop settings to top level
-        ll = instrument_data.get('beamstop_param_names')
-        ll2 = instrument_data.get('beamstop_param_vals')
+        ll = instrument_data.get("beamstop_param_names")
+        ll2 = instrument_data.get("beamstop_param_vals")
         if ll and ll2:
             for tag, val in zip(ll, ll2):
                 instrument_data[tag.lower()] = val
 
         # Setting parameters in order (may not be necessary, but ...)
         # Misssing: *mu*
-        remap = {'beam':'nominal_beam_dir', 'det_coord_def':'det_org_dist',
-                 'cone_s_height':'cone_height'}
-        tags = ('lambda_sd', 'beam', 'beam_sd_deg', 'pol_plane_n', 'pol_frac',
-                'd_sensor',
-                'min_zeta', 'det_name', 'det_x_axis', 'det_y_axis', 'det_qx',
-                'det_qy', 'det_nx', 'det_ny', 'det_org_x', 'det_org_y',
-                'det_coord_def'
-                )
+        remap = {
+            "beam": "nominal_beam_dir",
+            "det_coord_def": "det_org_dist",
+            "cone_s_height": "cone_height",
+        }
+        tags = (
+            "lambda_sd",
+            "beam",
+            "beam_sd_deg",
+            "pol_plane_n",
+            "pol_frac",
+            "d_sensor",
+            "min_zeta",
+            "det_name",
+            "det_x_axis",
+            "det_y_axis",
+            "det_qx",
+            "det_qy",
+            "det_nx",
+            "det_ny",
+            "det_org_x",
+            "det_org_y",
+            "det_coord_def",
+        )
         for tag in tags:
             val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
                 setup_data[tag] = val
 
-        ll = instrument_data['gonio_axis_dirs']
-        setup_data['omega_axis'] = ll[:3]
-        setup_data['kappa_axis'] = ll[3:6]
-        setup_data['phi_axis'] = ll[6:]
-        ll = instrument_data['gonio_centring_axis_dirs']
-        setup_data['trans_x_axis'] = ll[:3]
-        setup_data['trans_y_axis'] = ll[3:6]
-        setup_data['trans_z_axis'] = ll[6:]
-        tags = ('cone_radius', 'cone_s_height', 'beam_stop_radius',
-                'beam_stop_s_length', 'beam_stop_s_distance',)
+        ll = instrument_data["gonio_axis_dirs"]
+        setup_data["omega_axis"] = ll[:3]
+        setup_data["kappa_axis"] = ll[3:6]
+        setup_data["phi_axis"] = ll[6:]
+        ll = instrument_data["gonio_centring_axis_dirs"]
+        setup_data["trans_x_axis"] = ll[:3]
+        setup_data["trans_y_axis"] = ll[3:6]
+        setup_data["trans_z_axis"] = ll[6:]
+        tags = (
+            "cone_radius",
+            "cone_s_height",
+            "beam_stop_radius",
+            "beam_stop_s_length",
+            "beam_stop_s_distance",
+        )
         for tag in tags:
             val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
@@ -91,82 +113,82 @@ class CollectEmulator(CollectMockup):
 
         # Add/overwrite parameters from emulator configuration
         conv = ConvertUtils.convert_string_value
-        for key, val in self['simcal_parameters'].getProperties().items():
+        for key, val in self["simcal_parameters"].getProperties().items():
             setup_data[key] = conv(val)
 
-        setup_data['n_vertices'] = 0
-        setup_data['n_triangles'] = 0
-        setup_data['n_segments'] = segment_count
-        setup_data['n_orients'] = 0
-        setup_data['n_sweeps'] = sweep_count
+        setup_data["n_vertices"] = 0
+        setup_data["n_triangles"] = 0
+        setup_data["n_segments"] = segment_count
+        setup_data["n_orients"] = 0
+        setup_data["n_sweeps"] = sweep_count
 
         # Add segments
-        result['segment_list'] = segments
+        result["segment_list"] = segments
 
         # Adjustments
-        val = instrument_data.get('beam')
+        val = instrument_data.get("beam")
         if val:
-            setup_data['beam'] = val
+            setup_data["beam"] = val
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp = self.gphl_workflow_hwobj.file_paths.get('diffractcal_file')
+        fp = self.gphl_workflow_hwobj.file_paths.get("diffractcal_file")
         if os.path.isfile(fp):
-            diffractcal_data = f90nml.read(fp)['sdcp_instrument_list']
+            diffractcal_data = f90nml.read(fp)["sdcp_instrument_list"]
             for tag in setup_data.keys():
                 val = diffractcal_data.get(tag)
                 if val is not None:
                     setup_data[tag] = val
-            ll = diffractcal_data['gonio_axis_dirs']
-            setup_data['omega_axis'] = ll[:3]
-            setup_data['kappa_axis'] = ll[3:6]
-            setup_data['phi_axis'] = ll[6:]
+            ll = diffractcal_data["gonio_axis_dirs"]
+            setup_data["omega_axis"] = ll[:3]
+            setup_data["kappa_axis"] = ll[3:6]
+            setup_data["phi_axis"] = ll[6:]
 
         # Add sweeps
         sweeps = []
-        for osc in data_collect_parameters['oscillation_sequence']:
-            motors = data_collect_parameters['motors']
+        for osc in data_collect_parameters["oscillation_sequence"]:
+            motors = data_collect_parameters["motors"]
             # get resolution limit and detector distance
-            resolution = data_collect_parameters['resolution']['upper']
+            resolution = data_collect_parameters["resolution"]["upper"]
             self.set_resolution(resolution)
             sweep = OrderedDict()
 
-            sweep['lambda'] = (ConvertUtils.h_over_e
-                               / data_collect_parameters['energy'])
-            sweep['res_limit'] = resolution
-            sweep['exposure'] = osc['exposure_time']
-            ll =  self.gphl_workflow_hwobj.translation_axis_roles
-            sweep['trans_xyz'] = list(motors.get(x) or 0.0 for x in ll)
-            sweep['det_coord'] = self.get_detector_distance()
+            sweep["lambda"] = ConvertUtils.h_over_e / data_collect_parameters["energy"]
+            sweep["res_limit"] = resolution
+            sweep["exposure"] = osc["exposure_time"]
+            ll = self.gphl_workflow_hwobj.translation_axis_roles
+            sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll)
+            sweep["det_coord"] = self.get_detector_distance()
             # NBNB hardwired for omega scan TODO
-            sweep['axis_no'] = 3
-            sweep['omega_deg'] = osc['start']
+            sweep["axis_no"] = 3
+            sweep["omega_deg"] = osc["start"]
             # NB kappa and phi are overwritten from the motors dict, if set there
-            sweep['kappa_deg'] = osc['kappaStart']
-            sweep['phi_deg'] = osc['phiStart']
-            sweep['step_deg'] = osc['range']
-            sweep['n_frames'] = osc['number_of_images']
-            sweep['image_no'] = osc['start_image_number']
+            sweep["kappa_deg"] = osc["kappaStart"]
+            sweep["phi_deg"] = osc["phiStart"]
+            sweep["step_deg"] = osc["range"]
+            sweep["n_frames"] = osc["number_of_images"]
+            sweep["image_no"] = osc["start_image_number"]
             # self.make_image_file_template(data_collect_parameters, suffix='cbf')
 
             # Extract format statement from template,
             # and convert to fortran format
-            template = data_collect_parameters['fileinfo']['template']
-            ss = str(re.search('(%[0-9]+d)', template).group(0))
-            template = template.replace(ss, '?' * int(ss[1:-1]))
+            template = data_collect_parameters["fileinfo"]["template"]
+            ss = str(re.search("(%[0-9]+d)", template).group(0))
+            template = template.replace(ss, "?" * int(ss[1:-1]))
             name_template = os.path.join(
-                data_collect_parameters['fileinfo']['directory'], template
+                data_collect_parameters["fileinfo"]["directory"],
+                template
                 # data_collect_parameters['fileinfo']['template']
             )
-            sweep['name_template'] = ConvertUtils.to_ascii(name_template)
+            sweep["name_template"] = ConvertUtils.to_ascii(name_template)
 
             # Overwrite kappa and phi from motors - if set
-            val = motors.get('kappa')
+            val = motors.get("kappa")
             if val is not None:
-                sweep['kappa_deg'] = val
-            val = motors.get('kappa_phi')
+                sweep["kappa_deg"] = val
+            val = motors.get("kappa_phi")
             if val is not None:
-                sweep['phi_deg'] = val
+                sweep["phi_deg"] = val
 
             # Skipped: spindle_deg=0.0, two_theta_deg=0.0, mu_air=-1, mu_sensor=-1
 
@@ -175,9 +197,9 @@ class CollectEmulator(CollectMockup):
         if sweep_count == 1:
             # NBNB in current code we can have only one sweep here,
             # but it will work for multiple
-            result['sweep_list'] = sweep
+            result["sweep_list"] = sweep
         else:
-            result['sweep_list'] = sweeps
+            result["sweep_list"] = sweeps
         #
         return result
 
@@ -187,23 +209,27 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        logging.getLogger('HWR').debug("Emulator: nominal position "
-            + ', '.join('%s=%s' % (tt)
-                        for tt in sorted(data_collect_parameters['motors'].items())
-                        if tt[1] is not None)
+        logging.getLogger("HWR").debug(
+            "Emulator: nominal position "
+            + ", ".join(
+                "%s=%s" % (tt)
+                for tt in sorted(data_collect_parameters["motors"].items())
+                if tt[1] is not None
+            )
         )
 
-        logging.getLogger('HWR').debug("Emulator:  actual position "
-             + ', '.join('%s=%s' % tt
-                         for tt in sorted(self.diffractometer_hwobj.get_positions().items())
-                         if tt[1] is not None)
+        logging.getLogger("HWR").debug(
+            "Emulator:  actual position "
+            + ", ".join(
+                "%s=%s" % tt
+                for tt in sorted(self.diffractometer_hwobj.get_positions().items())
+                if tt[1] is not None
+            )
         )
 
         # Done here as there are what-happens-first conflicts
         # if you put it in init
-        bl_setup_hwobj = HardwareRepository().getHardwareObject(
-            'beamline-setup'
-        )
+        bl_setup_hwobj = HardwareRepository().getHardwareObject("beamline-setup")
         if self.gphl_workflow_hwobj is None:
             self.gphl_workflow_hwobj = bl_setup_hwobj.gphl_workflow_hwobj
         if not self.gphl_workflow_hwobj:
@@ -214,88 +240,90 @@ class CollectEmulator(CollectMockup):
             raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
-        simcal_executive = self.gphl_connection_hwobj.get_executable('simcal')
+        simcal_executive = self.gphl_connection_hwobj.get_executable("simcal")
         # Get environmental variables
-        envs = {'BDG_home':
-                    self.gphl_connection_hwobj.software_paths['BDG_home'],
-                'GPHL_INSTALLATION':
-                    self.gphl_connection_hwobj.software_paths['GPHL_INSTALLATION']
-                }
-        for tag, val in self['environment_variables'].getProperties().items():
+        envs = {
+            "BDG_home": self.gphl_connection_hwobj.software_paths["BDG_home"],
+            "GPHL_INSTALLATION": self.gphl_connection_hwobj.software_paths[
+                "GPHL_INSTALLATION"
+            ],
+        }
+        for tag, val in self["environment_variables"].getProperties().items():
             envs[str(tag)] = str(val)
 
         # get crystal data
-        sample_name = self.getProperty('default_sample_name')
+        sample_name = self.getProperty("default_sample_name")
         sample = self.sample_changer_hwobj.getLoadedSample()
         if sample:
             ss = sample.getName()
             if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name  = ss[len(self.TEST_SAMPLE_PREFIX):]
+                sample_name = ss[len(self.TEST_SAMPLE_PREFIX) :]
 
-        sample_dir = self.gphl_connection_hwobj.software_paths.get(
-            'gphl_test_samples'
-        )
+        sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
         if not sample_dir:
-            raise ValueError(
-                "Emulator requires gphl_test_samples dir specified"
-            )
+            raise ValueError("Emulator requires gphl_test_samples dir specified")
         sample_dir = os.path.join(sample_dir, sample_name)
         if not os.path.isdir(sample_dir):
-            raise ValueError(
-                "Sample data directory %s does not exist" % sample_dir
-            )
-        crystal_file = os.path.join(sample_dir, 'crystal.nml')
+            raise ValueError("Sample data directory %s does not exist" % sample_dir)
+        crystal_file = os.path.join(sample_dir, "crystal.nml")
         if not os.path.isfile(crystal_file):
             raise ValueError(
                 "Emulator crystal data file %s does not exist" % crystal_file
             )
         # in spite of the simcal_crystal_list name this returns an OrderdDict
-        crystal_data = f90nml.read(crystal_file)['simcal_crystal_list']
+        crystal_data = f90nml.read(crystal_file)["simcal_crystal_list"]
 
-        input_data = self._get_simcal_input(data_collect_parameters,
-                                            crystal_data)
+        input_data = self._get_simcal_input(data_collect_parameters, crystal_data)
 
         # NB outfile is the echo output of the input file;
         # image files templates are set in the input file
-        file_info = data_collect_parameters['fileinfo']
-        if not os.path.exists(file_info['directory']):
-            os.makedirs(file_info['directory'])
-        if not os.path.exists(file_info['directory']):
-            os.makedirs(file_info['directory'])
-        infile = os.path.join(file_info['directory'],
-                              'simcal_in_%s.nml' % self._counter)
+        file_info = data_collect_parameters["fileinfo"]
+        if not os.path.exists(file_info["directory"]):
+            os.makedirs(file_info["directory"])
+        if not os.path.exists(file_info["directory"]):
+            os.makedirs(file_info["directory"])
+        infile = os.path.join(
+            file_info["directory"], "simcal_in_%s.nml" % self._counter
+        )
 
         f90nml.write(input_data, infile, force=True)
-        outfile = os.path.join(file_info['directory'],
-                               'simcal_out_%s.nml' % self._counter)
-        logfile = os.path.join(file_info['directory'],
-                               'simcal_log_%s.txt' % self._counter)
+        outfile = os.path.join(
+            file_info["directory"], "simcal_out_%s.nml" % self._counter
+        )
+        logfile = os.path.join(
+            file_info["directory"], "simcal_log_%s.txt" % self._counter
+        )
         self._counter += 1
-        hklfile = os.path.join(sample_dir, 'sample.hkli')
+        hklfile = os.path.join(sample_dir, "sample.hkli")
         if not os.path.isfile(hklfile):
-            raise ValueError(
-                "Emulator hkli file %s does not exist" % hklfile
-            )
-        command_list = [simcal_executive, '--input', infile, '--output', outfile,
-                        '--hkl', hklfile]
+            raise ValueError("Emulator hkli file %s does not exist" % hklfile)
+        command_list = [
+            simcal_executive,
+            "--input",
+            infile,
+            "--output",
+            outfile,
+            "--hkl",
+            hklfile,
+        ]
 
-        for tag, val in self['simcal_options'].getProperties().items():
-            command_list.extend(ConvertUtils.command_option(tag, val,
-                                                            prefix='--'))
-        logging.getLogger('HWR').info("Executing command: %s" % command_list)
-        logging.getLogger('HWR').info("Executing environment: %s"
-                                      % sorted(envs.items()))
+        for tag, val in self["simcal_options"].getProperties().items():
+            command_list.extend(ConvertUtils.command_option(tag, val, prefix="--"))
+        logging.getLogger("HWR").info("Executing command: %s" % command_list)
+        logging.getLogger("HWR").info(
+            "Executing environment: %s" % sorted(envs.items())
+        )
 
-
-        fp1 = open(logfile, 'w')
+        fp1 = open(logfile, "w")
         fp2 = subprocess.STDOUT
         # resource.setrlimit(resource.RLIMIT_STACK, (-1,-1))
 
         try:
-            running_process = subprocess.Popen(command_list, stdout=fp1,
-                                               stderr=fp2, env=envs)
-        except:
-            logging.getLogger('HWR').error('Error in spawning workflow application')
+            running_process = subprocess.Popen(
+                command_list, stdout=fp1, stderr=fp2, env=envs
+            )
+        except BaseException:
+            logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
         finally:
             fp1.close()
@@ -303,18 +331,15 @@ class CollectEmulator(CollectMockup):
         # This does waiting, so we want to collect the result afterwards
         super(CollectEmulator, self).data_collection_hook()
 
-        logging.getLogger('HWR').info(
-            'Waiting for simcal collection emulation.'
-        )
+        logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
         # NBNB TODO put in time-out, somehow
         if running_process is not None:
             return_code = running_process.wait()
             if return_code:
-                raise RuntimeError("simcal process terminated with return code %s"
-                                   % return_code)
-            else:
-                logging.getLogger('HWR').info(
-                    'Simcal collection emulation successful'
+                raise RuntimeError(
+                    "simcal process terminated with return code %s" % return_code
                 )
+            else:
+                logging.getLogger("HWR").info("Simcal collection emulation successful")
 
         return

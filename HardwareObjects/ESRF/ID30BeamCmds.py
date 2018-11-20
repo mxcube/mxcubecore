@@ -4,24 +4,25 @@ from HardwareRepository.CommandContainer import CommandObject
 import gevent
 import logging
 
+
 class ControllerCommand(CommandObject):
     def __init__(self, name, cmd):
         CommandObject.__init__(self, name)
         self._cmd = cmd
-	self._cmd_execution = None
+        self._cmd_execution = None
 
     def isConnected(self):
         return True
 
     def getArguments(self):
-        if self.name() == 'Anneal':
+        if self.name() == "Anneal":
             self._arguments.append(("Time [s]", "float"))
         return self._arguments
 
     @task
     def __call__(self, *args, **kwargs):
         logging.getLogger("user_level_log").info("Starting %s" % self.name())
-        self.emit('commandBeginWaitReply', (str(self.name()), ))
+        self.emit("commandBeginWaitReply", (str(self.name()),))
         self._cmd_execution = gevent.spawn(self._cmd, *args, **kwargs)
         self._cmd_execution.link(self._cmd_done)
 
@@ -29,22 +30,26 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except:
-                logging.getLogger("user_level_log").exception(str(self.name())+" failed!")
-                self.emit('commandFailed', (str(self.name()), ))
-            else: 
-                logging.getLogger("user_level_log").info(str(self.name())+" finished successfully.")
+            except BaseException:
+                logging.getLogger("user_level_log").exception(
+                    str(self.name()) + " failed!"
+                )
+                self.emit("commandFailed", (str(self.name()),))
+            else:
+                logging.getLogger("user_level_log").info(
+                    str(self.name()) + " finished successfully."
+                )
                 if isinstance(res, gevent.GreenletExit):
-                    self.emit('commandFailed', (str(self.name()), ))
+                    self.emit("commandFailed", (str(self.name()),))
                 else:
-                    self.emit('commandReplyArrived', (str(self.name()), res))
+                    self.emit("commandReplyArrived", (str(self.name()), res))
         finally:
-            self.emit('commandReady')
+            self.emit("commandReady")
 
     def abort(self):
         if self._cmd_execution and not self._cmd_execution.ready():
             self._cmd_execution.kill()
-        
+
 
 class ID30BeamCmds(HardwareObject):
     def __init__(self, *args):
@@ -53,7 +58,9 @@ class ID30BeamCmds(HardwareObject):
     def init(self):
         controller = self.getObjectByRole("controller")
         self.centrebeam = ControllerCommand("Centre beam", controller.centrebeam)
-        self.quick_realign = ControllerCommand("Quick realign", controller.quick_realign)
+        self.quick_realign = ControllerCommand(
+            "Quick realign", controller.quick_realign
+        )
         self.anneal = ControllerCommand("Anneal", controller.anneal_procedure)
 
     def getCommands(self):

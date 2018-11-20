@@ -2,10 +2,10 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
-class ALBATransmission(Device):
 
-    def __init__(self,*args):
-        Device.__init__(self,*args)
+class ALBATransmission(Device):
+    def __init__(self, *args):
+        Device.__init__(self, *args)
         self.transmission = None
 
     def init(self):
@@ -17,14 +17,14 @@ class ALBATransmission(Device):
 
     def isReady(self):
         return True
- 
-    def transmissionChanged(self,value):
-        self.transmission = value
-        self.emit('attFactorChanged', self.transmission)
 
-    def stateChanged(self,value):
+    def transmissionChanged(self, value):
+        self.transmission = value
+        self.emit("attFactorChanged", self.transmission)
+
+    def stateChanged(self, value):
         self.state = str(value)
-        self.emit('attStateChanged', self.state)
+        self.emit("attStateChanged", self.state)
 
     def getAttState(self):
         self.state = self.stateChannel.getValue()
@@ -41,13 +41,13 @@ class ALBATransmission(Device):
         self.transmission = value
         self.transmissionChannel.setValue(value)
 
-    def setTransmission(self, value):  
+    def setTransmission(self, value):
         self.set_value(value)
 
     def update_values(self):
         value = self.get_value()
-        self.emit('attFactorChanged', value)
+        self.emit("attFactorChanged", value)
+
 
 def test_hwo(hwo):
-    print "Transmission is: ",hwo.get_value()
-
+    print "Transmission is: ", hwo.get_value()

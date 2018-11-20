@@ -29,6 +29,7 @@ from HardwareRepository import HardwareRepository
 from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
 from HardwareRepository.BaseHardwareObjects import Equipment
 
+
 class BIOMAXEigerMockup(Equipment):
     """
     Description: Eiger hwobj based on tango
@@ -51,7 +52,7 @@ class BIOMAXEigerMockup(Equipment):
         self.status_chan = None
         self.roi_mode = "dsiabled"
         self.photon_energy = 12000
-        self.energy_threshold = 6000 
+        self.energy_threshold = 6000
 
         # defaults
         self.energy_change_threshold_default = 20
@@ -61,40 +62,40 @@ class BIOMAXEigerMockup(Equipment):
         tango_device = self.getProperty("detector_device")
         filewriter_device = self.getProperty("filewriter_device")
 
-        self.file_suffix =  self.getProperty("file_suffix")
+        self.file_suffix = self.getProperty("file_suffix")
         self.default_exposure_time = self.getProperty("default_exposure_time")
         self.default_compression = self.getProperty("default_compression")
         self.buffer_limit = self.getProperty("buffer_limit")
         self.dcu = self.getProperty("dcu")
 
-
         # config needed to be set up for data collection
         # if values are None, use the one from the system
-        self.col_config = { 'OmegaStart': 0,
-                       'OmegaIncrement': 0.1,
-                       'BeamCenterX': 2000, # length not pixel
-                       'BeamCenterY': 2000,
-                       'DetectorDistance': 0.15,
-                       'CountTime': 0.1,
-                       'NbImages': 100,
-                       'NbTriggers': 1,
-                       'ImagesPerFile': 100,
-                       'RoiMode': "disabled",
-                       'FilenamePattern':"test",
-                       'PhotonEnergy': 12000,
-                       'TriggerMode': "exts",
-                     }
-
+        self.col_config = {
+            "OmegaStart": 0,
+            "OmegaIncrement": 0.1,
+            "BeamCenterX": 2000,  # length not pixel
+            "BeamCenterY": 2000,
+            "DetectorDistance": 0.15,
+            "CountTime": 0.1,
+            "NbImages": 100,
+            "NbTriggers": 1,
+            "ImagesPerFile": 100,
+            "RoiMode": "disabled",
+            "FilenamePattern": "test",
+            "PhotonEnergy": 12000,
+            "TriggerMode": "exts",
+        }
 
         # we need to call the init device before accessing the channels here
         #   otherwise the initialization is triggered by the HardwareRepository Poller
         #   that is delayed after the application starts
 
         try:
-            self.energy_change_threshold = float( self.getProperty("min_trigger_energy_change") )
-        except:
+            self.energy_change_threshold = float(
+                self.getProperty("min_trigger_energy_change")
+            )
+        except BaseException:
             self.energy_change_threshold = self.energy_change_threshold_default
-
 
     def get_readout_time(self):
         return 0.000004
@@ -106,7 +107,7 @@ class BIOMAXEigerMockup(Equipment):
         return self.roi_mode
 
     def set_roi_mode(self, value):
-	self.roi_mode = value
+        self.roi_mode = value
 
     def get_pixel_size_x(self):
         """
@@ -129,7 +130,7 @@ class BIOMAXEigerMockup(Equipment):
         number of pixels along x-axis
         numbers vary depending on the RoiMode
         """
-        return 4150 
+        return 4150
 
     def get_y_pixels_in_detector(self):
         """
@@ -150,7 +151,7 @@ class BIOMAXEigerMockup(Equipment):
     #  GET INFORMATION END
 
     #  SET VALUES
-    def set_photon_energy(self,energy):
+    def set_photon_energy(self, energy):
         """
         set photon_energy
         Note, the readout_time will be changed
@@ -185,7 +186,6 @@ class BIOMAXEigerMockup(Equipment):
 
         logging.getLogger("user_level_log").info("Preparing acquisition")
 
-
     @task
     def start_acquisition(self):
         """
@@ -208,18 +208,18 @@ class BIOMAXEigerMockup(Equipment):
 
         try:
             self.cancel()  # this is needed as disarm in tango device server does not seem to work
-                           # as expected. the disarm command in the simpleinterface is always working
-                           # when called from Tango it does not. Once bug is solved in tango server, the
-                           # call to "cancel()" is not necessary here
+            # as expected. the disarm command in the simpleinterface is always working
+            # when called from Tango it does not. Once bug is solved in tango server, the
+            # call to "cancel()" is not necessary here
             self.disarm()
-        except:
+        except BaseException:
             pass
 
     def cancel_acquisition(self):
         """Cancel acquisition"""
         try:
             self.cancel()
-        except:
+        except BaseException:
             pass
 
         time.sleep(1)
@@ -239,4 +239,3 @@ class BIOMAXEigerMockup(Equipment):
 
     def abort(self):
         return
-

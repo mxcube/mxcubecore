@@ -8,27 +8,31 @@ import queue_model_enumerables_v1 as queue_model_enumerables
 
 xmlrpc_prefix = ""
 
+
 def queue_set_serialisation(self, backend):
     if backend.lower() == "json":
         return True
     else:
         raise ValueError("Unknown backend type '%s'" % backend)
 
+
 def queue_get_serialisation(self):
     return "json"
+
 
 def queue_get_available_serialisations(self):
     """
     Returns a tuple of the available serialisation methods for
     native queue objects
     """
-    return ("json",) 
+    return ("json",)
+
 
 def queue_add_node(server_hwobj, task_node, set_on=True):
     """
     Adds the TaskNode objects contained in the json seralized
     list of TaskNodes passed in <task_node>.
-    
+
     The TaskNodes are marked as activated in the queue if <set_on>
     is True and to inactivated if False.
 
@@ -46,11 +50,12 @@ def queue_add_node(server_hwobj, task_node, set_on=True):
     try:
         task = jsonpickle.decode(task_node)
     except Exception as ex:
-        logging.getLogger('HWR').exception(str(ex))
+        logging.getLogger("HWR").exception(str(ex))
         raise
 
     server_hwobj._add_to_queue(task, set_on)
     return True
+
 
 def queue_add_child(server_hwobj, parent_id, child):
     """
@@ -69,11 +74,12 @@ def queue_add_child(server_hwobj, parent_id, child):
     try:
         task = jsonpickle.decode(child)
     except Exception as ex:
-        logging.getLogger('HWR').exception(str(ex))
+        logging.getLogger("HWR").exception(str(ex))
         raise
 
     node_id = server_hwobj._model_add_child(parent_id, task)
     return node_id
+
 
 def queue_get_node(server_hwobj, node_id):
     """
@@ -82,6 +88,7 @@ def queue_get_node(server_hwobj, node_id):
     """
     node = server_hwobj._model_get_node(node_id)
     return jsonpickle.encode(node)
+
 
 def queue_update_result(server_hwobj, node_id, html_report):
     result = False
@@ -92,6 +99,7 @@ def queue_update_result(server_hwobj, node_id, html_report):
         result = True
 
     return result
+
 
 def queue_get_model_code(server_hwobj):
     """
@@ -112,13 +120,14 @@ def queue_get_model_code(server_hwobj):
     queue model that are not available for direct import by the XML-RPC client
     """
 
-    # Recipe from http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
+    # Recipe from
+    # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
 
     # At the moment, queue_model_objects_v1 does not import anything except
     # standard Python modules, so we only need to send over the code for the
     # queue model itself
 
-    return [(queue_model_enumerables.__name__,
-             inspect.getsource(queue_model_enumerables) ),
-            (queue_model_objects.__name__,
-             inspect.getsource(queue_model_objects) ) ]
+    return [
+        (queue_model_enumerables.__name__, inspect.getsource(queue_model_enumerables)),
+        (queue_model_objects.__name__, inspect.getsource(queue_model_objects)),
+    ]

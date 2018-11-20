@@ -15,27 +15,35 @@ __author__ = "Mikel Eguiraun"
 __credits__ = ["The MxCuBE collaboration"]
 
 
-TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, \
-    TOOL_LASER, TOOL_DOUBLE_GRIPPER = (0,1,2,3,4,5)
+TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+)
 
 TOOL_TO_STR = {
-       "Flange": TOOL_FLANGE,
-       "Unipuck": TOOL_UNIPUCK,
-       "Rotat": TOOL_SPINE,
-       "Plate": TOOL_PLATE,
-       "Laser": TOOL_LASER,
-       "Double": TOOL_DOUBLE_GRIPPER,
-   }
+    "Flange": TOOL_FLANGE,
+    "Unipuck": TOOL_UNIPUCK,
+    "Rotat": TOOL_SPINE,
+    "Plate": TOOL_PLATE,
+    "Laser": TOOL_LASER,
+    "Double": TOOL_DOUBLE_GRIPPER,
+}
+
 
 class CatsMaintMockup(Equipment):
 
-    __TYPE__ = "CATS"    
+    __TYPE__ = "CATS"
     NO_OF_LIDS = 3
 
     """
     Actual implementation of the CATS Sample Changer, MAINTENANCE COMMANDS ONLY
     BESSY BL14.1 installation with 3 lids
-    """    
+    """
+
     def __init__(self, *args, **kwargs):
         Equipment.__init__(self, *args, **kwargs)
 
@@ -43,7 +51,7 @@ class CatsMaintMockup(Equipment):
         self._running = 0
         self._powered = 0
         self._toolopen = 0
-        self._message = 'Nothing to report'
+        self._message = "Nothing to report"
         self._regulating = 0
         self._lid1state = 0
         self._lid2state = 0
@@ -51,13 +59,13 @@ class CatsMaintMockup(Equipment):
         self._charging = 0
         self._currenttool = 1
 
-    def init(self):      
+    def init(self):
 
         try:
             self.cats_model = self.cats_device.read_attribute("CatsModel").value
-        except:
+        except BaseException:
             self.cats_model = "CATS"
-   
+
     def get_current_tool(self):
         return self._currenttool
 
@@ -69,7 +77,7 @@ class CatsMaintMockup(Equipment):
         :returns: None
         :rtype: None
         """
-        pass          
+        pass
 
     def _doReset(self):
         """
@@ -79,7 +87,6 @@ class CatsMaintMockup(Equipment):
         :rtype: None
         """
         pass
-
 
     def _doDryGripper(self):
         """
@@ -99,17 +106,16 @@ class CatsMaintMockup(Equipment):
         """
 
         if sample is None:
-            raise Exception ("No sample selected")
+            raise Exception("No sample selected")
         else:
-            str_tmp=str(sample)
-            sample_tmp=str_tmp.split(":")
+            str_tmp = str(sample)
+            sample_tmp = str_tmp.split(":")
             # calculate CATS specific lid/sample number
             lid = (int(sample_tmp[0]) - 1) / 3 + 1
             puc_pos = ((int(sample_tmp[0]) - 1) % 3) * 10 + int(sample_tmp[1])
-            argin = [ str(lid), str(puc_pos), "0"]
+            argin = [str(lid), str(puc_pos), "0"]
             logging.getLogger().info("to SetOnDiff %s", argin)
             # self._executeServerTask(self._cmdSetOnDiff,argin)
-
 
     def _doPowerState(self, state=False):
         """
@@ -130,7 +136,7 @@ class CatsMaintMockup(Equipment):
         """
         self._regulating = True
         self._updateRegulationState(True)
-        
+
     def _doDisableRegulation(self):
         """
         Switch off CATS regulation
@@ -141,7 +147,7 @@ class CatsMaintMockup(Equipment):
         self._regulating = False
         self._updateRegulationState(False)
 
-    def _doLid1State(self, state = True):
+    def _doLid1State(self, state=True):
         """
         Opens lid 1 if >state< == True, closes the lid otherwise
 
@@ -150,8 +156,8 @@ class CatsMaintMockup(Equipment):
         """
         self._lid1state = state
         self._updateLid1State(state)
-           
-    def _doLid2State(self, state = True):
+
+    def _doLid2State(self, state=True):
         """
         Opens lid 2 if >state< == True, closes the lid otherwise
 
@@ -161,7 +167,7 @@ class CatsMaintMockup(Equipment):
         self._lid2state = state
         self._updateLid2State(state)
 
-    def _doLid3State(self, state = True):
+    def _doLid3State(self, state=True):
         """
         Opens lid 3 if >state< == True, closes the lid otherwise
 
@@ -171,52 +177,52 @@ class CatsMaintMockup(Equipment):
         self._lid3state = state
         self._updateLid3State(state)
 
-    #########################          PROTECTED          #########################        
+    # ########################          PROTECTED          #########################
 
-    def _executeTask(self,wait,method,*args):        
-        ret= self._run(method,wait=False,*args)
-        if (wait):                        
+    def _executeTask(self, wait, method, *args):
+        ret = self._run(method, wait=False, *args)
+        if wait:
             return ret.get()
         else:
-            return ret    
-        
+            return ret
+
     @task
-    def _run(self,method,*args):
-        exception=None
-        ret=None    
-        try:            
-            ret=method(*args)
-        except Exception as ex:        
-            exception=ex
+    def _run(self, method, *args):
+        exception = None
+        ret = None
+        try:
+            ret = method(*args)
+        except Exception as ex:
+            exception = ex
         if exception is not None:
             raise exception
         return ret
 
-    #########################           PRIVATE           #########################        
+    # ########################           PRIVATE           #########################
 
     def _updateRunningState(self, value):
         self._running = value
-        self.emit('runningStateChanged', (value, ))
+        self.emit("runningStateChanged", (value,))
         self._updateGlobalState()
 
     def _updatePoweredState(self, value):
         self._powered = value
-        self.emit('powerStateChanged', (value, ))
+        self.emit("powerStateChanged", (value,))
         self._updateGlobalState()
-    
-    def _updateToolState(self,value):
+
+    def _updateToolState(self, value):
         self._toolopen = value
-        self.emit('toolStateChanged', (value, ))
+        self.emit("toolStateChanged", (value,))
         self._updateGlobalState()
 
     def _updateMessage(self, value):
         self._message = value
-        self.emit('messageChanged', (value, ))
+        self.emit("messageChanged", (value,))
         self._updateGlobalState()
 
     def _updateRegulationState(self, value):
         self._regulating = value
-        self.emit('regulationStateChanged', (value, ))
+        self.emit("regulationStateChanged", (value,))
         self._updateGlobalState()
 
     def _updateState(self, value):
@@ -225,17 +231,17 @@ class CatsMaintMockup(Equipment):
 
     def _updateLid1State(self, value):
         self._lid1state = value
-        self.emit('lid1StateChanged', (value, ))
+        self.emit("lid1StateChanged", (value,))
         self._updateGlobalState()
 
     def _updateLid2State(self, value):
         self._lid2state = value
-        self.emit('lid2StateChanged', (value, ))
+        self.emit("lid2StateChanged", (value,))
         self._updateGlobalState()
 
     def _updateLid3State(self, value):
         self._lid3state = value
-        self.emit('lid3StateChanged', (value, ))
+        self.emit("lid3StateChanged", (value,))
         self._updateGlobalState()
 
     def _updateOperationMode(self, value):
@@ -243,20 +249,20 @@ class CatsMaintMockup(Equipment):
 
     def _updateGlobalState(self):
         state_dict, cmd_state, message = self.get_global_state()
-        self.emit('globalStateChanged', (state_dict, cmd_state, message))
+        self.emit("globalStateChanged", (state_dict, cmd_state, message))
 
     def get_global_state(self):
         """
            Update clients with a global state that
-           contains different: 
+           contains different:
 
            - first param (state_dict):
                collection of state bits
 
            - second param (cmd_state):
                list of command identifiers and the
-               status of each of them True/False 
-               representing whether the command is 
+               status of each of them True/False
+               representing whether the command is
                currently available or not
 
            - message
@@ -265,7 +271,7 @@ class CatsMaintMockup(Equipment):
         """
         _ready = str(self._state) in ("READY", "ON")
 
-        if self._running: 
+        if self._running:
             state_str = "MOVING"
         elif not (self._powered) and _ready:
             state_str = "DISABLED"
@@ -274,32 +280,31 @@ class CatsMaintMockup(Equipment):
         else:
             state_str = str(self._state)
 
-
         state_dict = {
-           "toolopen": self._toolopen,
-           "powered": self._powered,
-           "running": self._running,
-           "regulating": self._regulating,
-           "lid1": self._lid1state,
-           "lid2": self._lid2state,
-           "lid3": self._lid3state,
-           "state": state_str,
+            "toolopen": self._toolopen,
+            "powered": self._powered,
+            "running": self._running,
+            "regulating": self._regulating,
+            "lid1": self._lid1state,
+            "lid2": self._lid2state,
+            "lid3": self._lid3state,
+            "state": state_str,
         }
 
         cmd_state = {
-           "powerOn": (not self._powered) and _ready, 
-           "powerOff": (self._powered) and _ready,
-           "regulon": (not self._regulating) and _ready,
-           "openlid1": (not self._lid1state) and self._powered and _ready,
-           "closelid1": self._lid1state and self._powered and _ready,
-           "dry": (not self._running) and self._powered and _ready,
-           "soak": (not self._running) and self._powered and _ready,
-           "home": (not self._running) and self._powered and _ready,
-           "back": (not self._running) and self._powered and _ready,
-           "safe": (not self._running) and self._powered and _ready,
-           "clear_memory": True,
-           "reset": True,
-           "abort": self._running,
+            "powerOn": (not self._powered) and _ready,
+            "powerOff": (self._powered) and _ready,
+            "regulon": (not self._regulating) and _ready,
+            "openlid1": (not self._lid1state) and self._powered and _ready,
+            "closelid1": self._lid1state and self._powered and _ready,
+            "dry": (not self._running) and self._powered and _ready,
+            "soak": (not self._running) and self._powered and _ready,
+            "home": (not self._running) and self._powered and _ready,
+            "back": (not self._running) and self._powered and _ready,
+            "safe": (not self._running) and self._powered and _ready,
+            "clear_memory": True,
+            "reset": True,
+            "abort": self._running,
         }
 
         message = self._message
@@ -307,82 +312,90 @@ class CatsMaintMockup(Equipment):
         return state_dict, cmd_state, message
 
     def get_cmd_info(self):
-        """ return information about existing commands for this object 
-           the information is organized as a list 
+        """ return information about existing commands for this object
+           the information is organized as a list
            with each element contains
            [ cmd_name,  display_name, category ]
         """
         """ [cmd_id, cmd_display_name, nb_args, cmd_category, description ] """
-        cmd_list = [ 
-              ["Power", [
-                   ["powerOn", "PowerOn", "Switch Power On"], 
-                   ["powerOff", "PowerOff", "Switch Power Off"], 
-                   ["regulon", "Regulation On", "Swich LN2 Regulation On"], 
-                 ] 
-              ], 
-              ["Lid", [
-                   ["openlid1", "Open Lid", "Open Lid"], 
-                   ["closelid1", "Close Lid", "Close Lid"], 
-                 ]
-              ], 
-              ["Actions",  [
-                   ["home", "Home", "Actions", "Home (trajectory)"], 
-                   ["dry", "Dry", "Actions", "Dry (trajectory)"], 
-                   ["soak", "Soak", "Actions", "Soak (trajectory)"], 
-                 ] 
-              ], 
-              ["Recovery",  [
-                   ["clear_memory", "Clear Memory", 
-                       "Clear Info in Robot Memory "
-                       " (includes info about sample on Diffr)"], 
-                   ["reset", "Reset Message", "Reset Cats State" ], 
-                   ["back", "Back", "Reset Cats State" ], 
-                   ["safe", "Safe", "Reset Cats State" ], 
-                 ]
-              ], 
-              ["Abort", [
-                    ["abort", "Abort", "Abort Execution of Command"], 
-                 ]
-              ], 
-           ]
+        cmd_list = [
+            [
+                "Power",
+                [
+                    ["powerOn", "PowerOn", "Switch Power On"],
+                    ["powerOff", "PowerOff", "Switch Power Off"],
+                    ["regulon", "Regulation On", "Swich LN2 Regulation On"],
+                ],
+            ],
+            [
+                "Lid",
+                [
+                    ["openlid1", "Open Lid", "Open Lid"],
+                    ["closelid1", "Close Lid", "Close Lid"],
+                ],
+            ],
+            [
+                "Actions",
+                [
+                    ["home", "Home", "Actions", "Home (trajectory)"],
+                    ["dry", "Dry", "Actions", "Dry (trajectory)"],
+                    ["soak", "Soak", "Actions", "Soak (trajectory)"],
+                ],
+            ],
+            [
+                "Recovery",
+                [
+                    [
+                        "clear_memory",
+                        "Clear Memory",
+                        "Clear Info in Robot Memory "
+                        " (includes info about sample on Diffr)",
+                    ],
+                    ["reset", "Reset Message", "Reset Cats State"],
+                    ["back", "Back", "Reset Cats State"],
+                    ["safe", "Safe", "Reset Cats State"],
+                ],
+            ],
+            ["Abort", [["abort", "Abort", "Abort Execution of Command"]]],
+        ]
         return cmd_list
-        
+
     def _executeServerTask(self, method, *args):
         task_id = method(*args)
-        ret=None
+        ret = None
         # introduced wait because it takes some time before the attribute PathRunning is set
         # after launching a transfer
         # after setting refresh in the Tango DS to 0.1 s a wait of 1s is enough
         time.sleep(1.0)
-        while str(self._chnPathRunning.getValue()).lower() == 'true': 
-            gevent.sleep(0.1)            
+        while str(self._chnPathRunning.getValue()).lower() == "true":
+            gevent.sleep(0.1)
         ret = True
         return ret
 
     def send_command(self, cmdname, args=None):
 
-        # 
+        #
         lid = 1
         toolcal = 0
         tool = self.get_current_tool()
 
         if cmdname in ["dry", "safe", "home"]:
-           if tool is not None:
-               args = [tool]
-           else:
-               raise Exception ("Cannot detect type of TOOL in Cats. Command ignored")
+            if tool is not None:
+                args = [tool]
+            else:
+                raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
         if cmdname == "soak":
-           if tool in [TOOL_DOUBLE, TOOL_UNIPUCK]:
-               args = [str(tool), str(lid)]
-           else:
-               raise Exception ("Can SOAK only when UNIPUCK tool is mounted")
+            if tool in [TOOL_DOUBLE, TOOL_UNIPUCK]:
+                args = [str(tool), str(lid)]
+            else:
+                raise Exception("Can SOAK only when UNIPUCK tool is mounted")
 
         if cmdname == "back":
-           if tool is not None:
-               args = [tool, toolcal]
-           else:
-               raise Exception ("Cannot detect type of TOOL in Cats. Command ignored")
+            if tool is not None:
+                args = [tool, toolcal]
+            else:
+                raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
         if cmdname == "powerOn":
             self._doPowerState(True)
@@ -399,5 +412,6 @@ class CatsMaintMockup(Equipment):
             self._doLid1State(False)
         return True
 
+
 def test_hwo(hwo):
-    print hwo.get_current_tool()
+    print(hwo.get_current_tool())

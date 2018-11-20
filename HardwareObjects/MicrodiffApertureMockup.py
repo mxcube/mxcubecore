@@ -1,6 +1,7 @@
-#from MD2Motor import MD2Motor
+# from MD2Motor import MD2Motor
 from HardwareRepository.BaseHardwareObjects import Device
 import math
+
 
 class MicrodiffApertureMockup(Device):
     def init(self):
@@ -10,21 +11,25 @@ class MicrodiffApertureMockup(Device):
 
         self.predefined_position_attr = 1
 
-        self.predefinedPositions = { "5": 1, "20": 2, "50": 3, "100": 4, "150": 5}
+        self.predefinedPositions = {"5": 1, "20": 2, "50": 3, "100": 4, "150": 5}
         self.sortPredefinedPositionsList()
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(lambda x, y: int(round(self.predefinedPositions[x] - self.predefinedPositions[y])))
+        self.predefinedPositionsNamesList.sort(
+            lambda x, y: int(
+                round(self.predefinedPositions[x] - self.predefinedPositions[y])
+            )
+        )
 
     def connectNotify(self, signal):
-        if signal == 'predefinedPositionChanged':
+        if signal == "predefinedPositionChanged":
             positionName = self.getCurrentPositionName()
 
             try:
                 pos = self.predefinedPositions[positionName]
             except KeyError:
-                self.emit(signal, ('', None))
+                self.emit(signal, ("", None))
             else:
                 self.emit(signal, (positionName, pos))
         else:
@@ -40,23 +45,26 @@ class MicrodiffApertureMockup(Device):
         return self.predefinedPositionsNamesList
 
     def motorPositionChanged(self, absolutePosition, private={}):
-        #MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
+        # MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
         positionName = self.getCurrentPositionName(absolutePosition)
         if self._last_position_name != positionName:
             self._last_position_name = positionName
-            self.emit('predefinedPositionChanged', (positionName, positionName and absolutePosition or None, ))
-   
+            self.emit(
+                "predefinedPositionChanged",
+                (positionName, positionName and absolutePosition or None),
+            )
+
     def getCurrentPositionName(self, pos=None):
         pos = self.predefined_position_attr
 
         for positionName in self.predefinedPositions:
-          if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
-            return positionName
-        return ''
+            if math.fabs(self.predefinedPositions[positionName] - pos) <= 1E-3:
+                return positionName
+        return ""
 
     def moveToPosition(self, positionName):
         try:
             self.predefined_position_attr = self.predefinedPositions[positionName]
             return True
-        except:
+        except BaseException:
             return False

@@ -42,7 +42,7 @@ class AbstractEnergyScan(object):
         Execute actions, required before running the raw scan(like changing
         undulator gaps, move to a given energy... These are in general
         beamline specific actions.
-        """ 
+        """
         pass
 
     def execute_energy_scan(self, energy_scan_parameters):
@@ -50,7 +50,7 @@ class AbstractEnergyScan(object):
         Execute the raw scan sequence. Here is where you pass whatever
         parameters you need to run the raw scan (e.g start/end energy,
         counting time, energy step...).
-        """       
+        """
         pass
 
     def get_static_parameters(self, config_file, element, edge):
@@ -120,8 +120,8 @@ class AbstractEnergyScan(object):
         set the nesessary equipment in position after the scan
         """
         pass
-              
-    def doEnergyScan(self):        
+
+    def doEnergyScan(self):
         with error_cleanup(self.escan_cleanup):
             self.escan_prepare()
             self.energy_scan_hook(self.energy_scan_parameters)
@@ -133,48 +133,54 @@ class AbstractEnergyScan(object):
             self.escan_postscan()
             self.close_fast_shutter()
             self.close_safety_shutter(timeout=10)
-            #send finish sucessfully signal to the brick
-            self.emit('energyScanFinished', (self.energy_scan_parameters,))
+            # send finish sucessfully signal to the brick
+            self.emit("energyScanFinished", (self.energy_scan_parameters,))
             self.ready_event.set()
-           
-    def startEnergyScan(self,element,edge,directory,prefix,session_id=None,blsample_id=None):
+
+    def startEnergyScan(
+        self, element, edge, directory, prefix, session_id=None, blsample_id=None
+    ):
         if self._egyscan_task and not self._egyscan_task.ready():
             raise RuntimeError("Scan already started.")
 
-        self.emit('energyScanStarted', ())
+        self.emit("energyScanStarted", ())
         STATICPARS_DICT = {}
-        #Set the energy from the element and edge parameters
-        STATICPARS_DICT = self.get_static_parameters(self.getProperty("config_file"), element,edge)
-        
+        # Set the energy from the element and edge parameters
+        STATICPARS_DICT = self.get_static_parameters(
+            self.getProperty("config_file"), element, edge
+        )
+
         self.energy_scan_parameters = STATICPARS_DICT
         self.energy_scan_parameters["element"] = element
         self.energy_scan_parameters["edge"] = edge
         self.energy_scan_parameters["directory"] = directory
 
-        #Calculate the MCA ROI (if needed)
+        # Calculate the MCA ROI (if needed)
         try:
-            self.set_mca_roi(STATICPARS_DICT['eroi_min'], STATICPARS_DICT['eroi_max'])
-        except:
+            self.set_mca_roi(STATICPARS_DICT["eroi_min"], STATICPARS_DICT["eroi_max"])
+        except BaseException:
             pass
 
-        #Calculate undulator gaps (if any)
+        # Calculate undulator gaps (if any)
         GAPS = {}
         try:
-            GAPS = self.calculate_und_gaps(STATICPARS_DICT['edgeEnergy'])
-        except:
+            GAPS = self.calculate_und_gaps(STATICPARS_DICT["edgeEnergy"])
+        except BaseException:
             pass
 
-        #create the directory if needed
+        # create the directory if needed
         if not os.path.exists(directory):
-             os.makedirs(directory)
-        self.energy_scan_parameters["prefix"]=prefix
+            os.makedirs(directory)
+        self.energy_scan_parameters["prefix"] = prefix
         if session_id is not None:
             self.energy_scan_parameters["sessionId"] = session_id
             self.energy_scan_parameters["blSampleId"] = blsample_id
-            self.energy_scan_parameters['startTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+            self.energy_scan_parameters["startTime"] = time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
 
         self._egyscan_task = gevent.spawn(self.doEnergyScan)
-        
+
     def doChooch(self, elememt, edge, scanArchiveFilePrefix, scanFilePrefix):
         """
         Use chooch to calculate edge and inflection point
@@ -188,7 +194,7 @@ class AbstractEnergyScan(object):
         """
         Enables/disables usage of maximal transmission set
         during the energy scan
-        """  
+        """
         pass
 
     def set_max_transmission(self, value):

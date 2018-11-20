@@ -8,10 +8,12 @@ from qt import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 
+
 class VideoMockup(BaseHardwareObjects.Device):
     """
     Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -33,7 +35,7 @@ class VideoMockup(BaseHardwareObjects.Device):
         image_path = os.path.join("/", current_path, "ExampleFiles/fakeimg.jpg")
         self.qimage.load(image_path)
         self.force_update = False
-        self.image_dimensions = [600, 400]	
+        self.image_dimensions = [600, 400]
         self.image_type = JpegType()
         self.setIsReady(True)
 
@@ -59,13 +61,13 @@ class VideoMockup(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def getContrastMinMax(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def brightnessExists(self):
         """
@@ -82,14 +84,14 @@ class VideoMockup(BaseHardwareObjects.Device):
     def getBrightness(self):
         """
         Descript. :
-        """ 
-        return 
+        """
+        return
 
     def getBrightnessMinMax(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def gainExists(self):
         """
@@ -113,7 +115,7 @@ class VideoMockup(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def gammaExists(self):
         """
@@ -131,12 +133,12 @@ class VideoMockup(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def getGammaMinMax(self):
         """
         Descript. :
-        """ 
+        """
         return (0, 1)
 
     def setLive(self, mode):
@@ -144,13 +146,13 @@ class VideoMockup(BaseHardwareObjects.Device):
         Descript. :
         """
         return
-    
+
     def getWidth(self):
         """
         Descript. :
         """
         return self.image_dimensions[0]
-	
+
     def getHeight(self):
         """
         Descript. :
@@ -160,16 +162,21 @@ class VideoMockup(BaseHardwareObjects.Device):
     def _do_imagePolling(self, sleep_time):
         """
         Descript. :
-        """ 
+        """
         self.image_dimensions = (self.qimage.width(), self.qimage.height())
         while True:
-            self.emit("imageReceived", self.qimage, self.qimage.width(),
-                                       self.qimage.height(), self.force_update)
+            self.emit(
+                "imageReceived",
+                self.qimage,
+                self.qimage.width(),
+                self.qimage.height(),
+                self.force_update,
+            )
             time.sleep(sleep_time)
-	     	
+
     def connectNotify(self, signal):
         """
         Descript. :
         """
-        if signal  == "imageReceived":
+        if signal == "imageReceived":
             self.image_polling = gevent.spawn(self._do_imagePolling, 1)

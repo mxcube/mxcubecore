@@ -29,13 +29,12 @@ __category__ = "Motor"
 
 
 class EMBLPiezoMotor(TINEMotor):
-
     def __init__(self, name):
         TINEMotor.__init__(self, name)
 
         self.cmd_move_first = None
         self.cmd_move_second = None
-  
+
     def init(self):
         TINEMotor.init(self)
         self.cmd_move_first = self.getCommandObject("cmdMoveFirst")
@@ -52,9 +51,10 @@ class EMBLPiezoMotor(TINEMotor):
         :type timeout: float
         :return: None
         """
-        if target == float('nan'):
-            logging.getLogger().debug('Refusing to move %s to target nan' %
-                                      self.objName)
+        if target == float("nan"):
+            logging.getLogger().debug(
+                "Refusing to move %s to target nan" % self.objName
+            )
         else:
             self.cmd_move_first(target)
             self.cmd_move_second(1)

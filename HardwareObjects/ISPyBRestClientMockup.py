@@ -1,14 +1,17 @@
 """
-A client for ISPyB Webservices. 
+A client for ISPyB Webservices.
 """
+from __future__ import print_function
 import logging
 from datetime import datetime
 from urlparse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-_CONNECTION_ERROR_MSG = "Could not connect to ISPyB, please verify that " + \
-                        "the server is running and that your " + \
-                        "configuration is correct"
+_CONNECTION_ERROR_MSG = (
+    "Could not connect to ISPyB, please verify that "
+    + "the server is running and that your "
+    + "configuration is correct"
+)
 _NO_TOKEN_MSG = "Could not connect to ISPyB, no valid REST token available."
 
 
@@ -25,46 +28,56 @@ class ISPyBRestClientMockup(HardwareObject):
         self.__rest_root = None
         self.__rest_username = None
         self.__rest_token = None
-        self.__rest_token_timestamp = None 
+        self.__rest_token_timestamp = None
         self.base_result_url = None
 
-        self.__test_proposal = {'status': {'code': 'ok'},
-                'Person': {'personId': 1,
-                           'laboratoryId': 1,
-                           'login': None,
-                           'familyName':'operator on IDTESTeh1'},
-                'Proposal': {'code': 'idtest',
-                             'title': 'operator on IDTESTeh1',
-                             'personId': 1,
-                             'number': '000',
-                             'proposalId': 1,
-                             'type': 'MX'},
-                'Session': [{'scheduled': 0,
-                             'startDate': '2013-06-11 00:00:00',
-                             'endDate': '2013-06-12 07:59:59',
-                             'beamlineName': 'ID:TEST',
-                             'timeStamp': datetime(2013, 6, 11, 9, 40, 36),
-                             'comments': 'Session created by the BCM',
-                             'sessionId': 34591,
-                             'proposalId': 1, 'nbShifts': 3}],
-                'Laboratory': {'laboratoryId': 1,
-                               'name': 'TEST eh1'}}
+        self.__test_proposal = {
+            "status": {"code": "ok"},
+            "Person": {
+                "personId": 1,
+                "laboratoryId": 1,
+                "login": None,
+                "familyName": "operator on IDTESTeh1",
+            },
+            "Proposal": {
+                "code": "idtest",
+                "title": "operator on IDTESTeh1",
+                "personId": 1,
+                "number": "000",
+                "proposalId": 1,
+                "type": "MX",
+            },
+            "Session": [
+                {
+                    "scheduled": 0,
+                    "startDate": "2013-06-11 00:00:00",
+                    "endDate": "2013-06-12 07:59:59",
+                    "beamlineName": "ID:TEST",
+                    "timeStamp": datetime(2013, 6, 11, 9, 40, 36),
+                    "comments": "Session created by the BCM",
+                    "sessionId": 34591,
+                    "proposalId": 1,
+                    "nbShifts": 3,
+                }
+            ],
+            "Laboratory": {"laboratoryId": 1, "name": "TEST eh1"},
+        }
 
     def init(self):
-        self.session_hwobj = self.getObjectByRole('session')
+        self.session_hwobj = self.getObjectByRole("session")
 
         if self.session_hwobj:
             self.beamline_name = self.session_hwobj.beamline_name
         else:
-            self.beamline_name = 'ID:TEST'
+            self.beamline_name = "ID:TEST"
 
         logging.getLogger("requests").setLevel(logging.WARNING)
 
-        self.__rest_root = self.getProperty('restRoot').strip()
-        self.__rest_username = self.getProperty('restUserName').strip()
-        self.__rest_password = self.getProperty('restPass').strip()
-        self.__site = self.getProperty('site').strip()
-      
+        self.__rest_root = self.getProperty("restRoot").strip()
+        self.__rest_username = self.getProperty("restUserName").strip()
+        self.__rest_password = self.getProperty("restPass").strip()
+        self.__site = self.getProperty("site").strip()
+
         try:
             self.base_result_url = self.getProperty("base_result_url").strip()
         except AttributeError:
@@ -112,9 +125,11 @@ class ISPyBRestClientMockup(HardwareObject):
 
         if self.base_result_url is not None:
             path = "/#/mx/{pcode}{pnumber}/datacollection/datacollectionid/{did}/main"
-            path = path.format(pcode = self.session_hwobj.proposal_code,
-                               pnumber = self.session_hwobj.proposal_number,
-                               did = did)
+            path = path.format(
+                pcode=self.session_hwobj.proposal_code,
+                pnumber=self.session_hwobj.proposal_number,
+                did=did,
+            )
 
             url = urljoin(self.base_result_url, path)
 
@@ -147,7 +162,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :param int image_id: The image id
         :returns: tuple on the form (file name, base64 encoded data)
         """
-        fname, data = ('', '')
+        fname, data = ("", "")
         return fname, data
 
     def get_proposals_by_user(self, user_name):
@@ -171,10 +186,12 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: Person dict
         :rtype: dict
         """
-        return  {'personId': 1,
-                 'laboratoryId': 1,
-                 'login': None,
-                 'familyName':'operator on ID14eh1'}
+        return {
+            "personId": 1,
+            "laboratoryId": 1,
+            "login": None,
+            "familyName": "operator on ID14eh1",
+        }
 
     def translate(self, code, what):
         """
@@ -188,7 +205,7 @@ class ISPyBRestClientMockup(HardwareObject):
 
         return translated
 
-    def store_data_collection(self, mx_collection, beamline_setup = None):
+    def store_data_collection(self, mx_collection, beamline_setup=None):
         """
         Stores the data collection mx_collection, and the beamline setup
         if provided.
@@ -202,7 +219,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: None
 
         """
-        print ("store_data_collection..." , mx_collection)
+        print("store_data_collection...", mx_collection)
         return None, None
 
     def store_beamline_setup(self, session_id, beamline_setup):
@@ -219,7 +236,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print("store_beamline_setup...", beamline_setup) 
+        print("store_beamline_setup...", beamline_setup)
 
     def update_data_collection(self, mx_collection, wait=False):
         """
@@ -231,7 +248,7 @@ class ISPyBRestClientMockup(HardwareObject):
 
         :returns: None
         """
-        print "update_data_collection... ", mx_collection
+        print("update_data_collection... ", mx_collection)
         pass
 
     def store_image(self, image_dict):
@@ -297,7 +314,7 @@ class ISPyBRestClientMockup(HardwareObject):
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
         mx_collection dictionary is set to an exisitng
-        DataCollectionGroup id. 
+        DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
         :type mx_collection: dict

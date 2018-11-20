@@ -22,10 +22,10 @@ class Transmission(HardwareObject):
         return True
 
     def getAtteConfig(self):
-        self.attno = len(self['filter'])
+        self.attno = len(self["filter"])
 
         for att_i in range(self.attno):
-            obj = self['filter'][att_i]
+            obj = self["filter"][att_i]
             self.labels.append(obj.label)
             self.indexes.append(obj.index)
 

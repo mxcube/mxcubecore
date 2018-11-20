@@ -15,6 +15,7 @@ so that States.On == States.ON is *not* always true.
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+
 __author__ = "rhfogh"
 __date__ = "19/06/17"
 
@@ -29,16 +30,18 @@ h_over_e = 12.3984
 
 # Utility functions:
 
+
 def java_property(keyword, value, quote_value=False):
     """Return argument list for command line invocation setting java property"""
     if value is None:
-        return ['-D' + keyword]
+        return ["-D" + keyword]
     else:
         if value and quote_value:
             value = repr(value)
-        return ['-D%s=%s' % (keyword, value)]
+        return ["-D%s=%s" % (keyword, value)]
 
-def command_option(keyword, value, prefix='-', quote_value=False):
+
+def command_option(keyword, value, prefix="-", quote_value=False):
     """Return argument list for command line option"""
     if value is None:
         return [prefix + keyword]
@@ -49,13 +52,15 @@ def command_option(keyword, value, prefix='-', quote_value=False):
             value = str(value)
         return [prefix + keyword, value]
 
+
 def to_ascii(text):
     """Rough-and-ready conversion to bytes, intended for ascii contexts"""
 
-    if hasattr(text, 'encode'):
-        return text.encode('utf8', 'replace')
+    if hasattr(text, "encode"):
+        return text.encode("utf8", "replace")
     else:
         return text
+
 
 def convert_string_value(text):
     """Convert input string to int, float, or string (in order of priority)"""

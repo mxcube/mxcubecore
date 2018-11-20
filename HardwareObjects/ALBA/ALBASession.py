@@ -1,16 +1,18 @@
-import os, time, logging
+import os
+import time
+import logging
 from HardwareRepository import HardwareRepository
 
 import Session
 import queue_model_objects_v1 as queue_model_objects
 
-class ALBASession(Session.Session):
 
+class ALBASession(Session.Session):
     def get_base_data_directory(self):
         """
         Returns the base data directory for ALBA
-        In ALBA the base directory already includes the user 
-        home directory. So 
+        In ALBA the base directory already includes the user
+        home directory. So
         information into account, such as if the current user
         is inhouse.
 
@@ -18,7 +20,7 @@ class ALBASession(Session.Session):
         :rtype: str
         """
         if self.session_start_date:
-            start_time = self.session_start_date.split(' ')[0].replace('-', '')
+            start_time = self.session_start_date.split(" ")[0].replace("-", "")
         else:
             start_time = time.strftime("%Y%m%d")
 
@@ -26,7 +28,7 @@ class ALBASession(Session.Session):
         if self.base_directory is not None:
             directory = os.path.join(self.base_directory, start_time)
         else:
-            directory = '/tmp'
+            directory = "/tmp"
         return directory
 
     def get_archive_directory(self, directory=None):
@@ -40,17 +42,21 @@ class ALBASession(Session.Session):
         session_date = parts[6]
         # remove RAW_DATA from da
         try:
-           more = parts[8:]
-        except:
-           more = [] 
+            more = parts[8:]
+        except BaseException:
+            more = []
 
-        archive_dir = os.path.join(self.base_archive_directory, user_dir, session_date, *more)
-        #if 'RAW_DATA' in thedir:
+        archive_dir = os.path.join(
+            self.base_archive_directory, user_dir, session_date, *more
+        )
+        # if 'RAW_DATA' in thedir:
         #    thedir = thedir.replace('RAW_DATA','ARCHIVE')
-        #else:
+        # else:
         #    thedir = os.path.join(thedir, 'ARCHIVE')
 
-        logging.getLogger("HWR").debug("ALBASession. returning archive directory: %s" % archive_dir)
+        logging.getLogger("HWR").debug(
+            "ALBASession. returning archive directory: %s" % archive_dir
+        )
         return archive_dir
 
     def set_ldap_homedir(self, homedir):

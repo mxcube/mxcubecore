@@ -7,13 +7,12 @@ from HardwareRepository.Command.Tango import DeviceProxy
 
 
 class PX1TangoLight(Device):
-
     def __init__(self, name):
         Device.__init__(self, name)
         self.currentState = "unknown"
 
     def init(self):
-        #self.tangoname = self.
+        # self.tangoname = self.
         self.attrchan = self.getChannelObject("attributeName")
         self.attrchan.connectSignal("update", self.valueChanged)
 
@@ -26,28 +25,27 @@ class PX1TangoLight(Device):
 
         self.px1env_hwo = self.getObjectByRole("px1environment")
         self.light_hwo = self.getObjectByRole("intensity")
-        self.zoom_hwo = self.getObjectByRole("zoom") 
+        self.zoom_hwo = self.getObjectByRole("zoom")
 
         self.connect(self.zoom_hwo, "predefinedPositionChanged", self.zoom_changed)
 
         self._setReady()
         try:
-	   self.inversed = self.getProperty("inversed")
-        except:
-	   self.inversed = False
+            self.inversed = self.getProperty("inversed")
+        except BaseException:
+            self.inversed = False
 
         if self.inversed:
-           self.states = ["in", "out"]
+            self.states = ["in", "out"]
         else:
-           self.states = ["out", "in"]
+            self.states = ["out", "in"]
 
     def _setReady(self):
         self.setIsReady(self.attrchan.isConnected())
 
     def connectNotify(self, signal):
         if self.isReady():
-           self.valueChanged(self.attrchan.getValue())
-
+            self.valueChanged(self.attrchan.getValue())
 
     def valueChanged(self, value):
         self.currentState = value
@@ -56,14 +54,15 @@ class PX1TangoLight(Device):
             self.currentState = self.states[1]
         else:
             self.currentState = self.states[0]
-        
-        self.emit('wagoStateChanged', (self.currentState, ))
-        
+
+        self.emit("wagoStateChanged", (self.currentState,))
+
     def getWagoState(self):
-        return self.currentState 
+        return self.currentState
 
     def wagoIn(self):
         self.setIn()
+
     def wagoOut(self):
         self.setOut()
 
@@ -74,22 +73,24 @@ class PX1TangoLight(Device):
             while not self.px1env_hwo.isPhaseVisuSample():
                 time.sleep(0.1)
                 if time.time() - start_phase > 20:
-                   break
+                    break
 
         self.adjustLightLevel()
- 
+
     def setOut(self):
         self._setReady()
         if self.isReady():
-          if self.inversed:
-              self.set_in()
-          else:
-              self.light_hwo.move(0)
-              self.set_out()
-           
+            if self.inversed:
+                self.set_in()
+            else:
+                self.light_hwo.move(0)
+                self.set_out()
+
     def zoom_changed(self, position_name, value):
         if self.currentState == "in":
-            logging.getLogger("HWR").debug("Zoom changed. and light is in. setting light level") 
+            logging.getLogger("HWR").debug(
+                "Zoom changed. and light is in. setting light level"
+            )
             self.adjustLightLevel()
 
     def adjustLightLevel(self):
@@ -99,13 +100,13 @@ class PX1TangoLight(Device):
         props = self.zoom_hwo.getCurrentPositionProperties()
 
         try:
-            if 'lightLevel' in props.keys():
-                light_level = float(props['lightLevel'])
+            if "lightLevel" in props.keys():
+                light_level = float(props["lightLevel"])
                 light_current = self.light_hwo.getPosition()
                 if light_current != light_level:
-                    logging.getLogger("HWR").debug("Setting light level to %s" % light_level)
+                    logging.getLogger("HWR").debug(
+                        "Setting light level to %s" % light_level
+                    )
                     self.light_hwo.move(light_level)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("Cannot set light level")
-
-   

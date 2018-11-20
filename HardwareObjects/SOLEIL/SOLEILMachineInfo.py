@@ -81,7 +81,7 @@ class SOLEILMachineInfo(HardwareObject):
     def __init__(self, name):
         """__init__"""
         HardwareObject.__init__(self, name)
-        #Parameters
+        # Parameters
         self.update_interval = None
         self.limits_dict = None
         self.hutch_temp_addr = None
@@ -97,56 +97,55 @@ class SOLEILMachineInfo(HardwareObject):
         self.flux_area = None
         self.last_transmission = None
 
-        
         self.values_list = []
-        #Intensity current ranges
-        # Machine current, index = 0 
+        # Intensity current ranges
+        # Machine current, index = 0
         temp_dict = {}
-        temp_dict['value'] = 0
-        temp_dict['value_str'] = ""
-        temp_dict['in_range'] = False
-        temp_dict['title'] = "Machine current"
-        temp_dict['bold'] = True
-        temp_dict['font'] = 14
-        #temp_dict['history'] = True
+        temp_dict["value"] = 0
+        temp_dict["value_str"] = ""
+        temp_dict["in_range"] = False
+        temp_dict["title"] = "Machine current"
+        temp_dict["bold"] = True
+        temp_dict["font"] = 14
+        # temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
         # Machine state, index = 1
         temp_dict = {}
-        temp_dict['value'] = None
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Machine state"
+        temp_dict["value"] = None
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Machine state"
         self.values_list.append(temp_dict)
 
         # Hutch temperature, index = 2
         temp_dict = {}
-        temp_dict['value'] = ""
-        temp_dict['value_str'] = ""
-        temp_dict['in_range'] = None
-        temp_dict['title'] = "Hutch temperature"
+        temp_dict["value"] = ""
+        temp_dict["value_str"] = ""
+        temp_dict["in_range"] = None
+        temp_dict["title"] = "Hutch temperature"
         self.values_list.append(temp_dict)
 
         # Remeasure flux, index = 3
         temp_dict = {}
-        temp_dict['value'] = 1
-        temp_dict['value_str'] = "Remeasure flux!"
-        temp_dict['in_range'] = False
-        temp_dict['title'] = "Flux"
-        temp_dict['align'] = "left"
+        temp_dict["value"] = 1
+        temp_dict["value_str"] = "Remeasure flux!"
+        temp_dict["in_range"] = False
+        temp_dict["title"] = "Flux"
+        temp_dict["align"] = "left"
         self.values_list.append(temp_dict)
 
         # Cryo jet, index = 4
         temp_dict = {}
-        temp_dict['value'] = "???"
-        temp_dict['in_range'] = None
-        temp_dict['title'] = "Cryostream"
+        temp_dict["value"] = "???"
+        temp_dict["in_range"] = None
+        temp_dict["title"] = "Cryostream"
         self.values_list.append(temp_dict)
 
         # Dewar level, index = 5
         temp_dict = {}
-        temp_dict['value'] = "Dewar level in range"
-        temp_dict['in_range'] = True
-        temp_dict['title'] = "Sample changer"
+        temp_dict["value"] = "Dewar level in range"
+        temp_dict["in_range"] = True
+        temp_dict["title"] = "Sample changer"
         self.values_list.append(temp_dict)
 
         self.temp_hum_values = [None, None]
@@ -166,71 +165,72 @@ class SOLEILMachineInfo(HardwareObject):
 
     def init(self):
         """init"""
-        self.update_interval = int(self.getProperty('updateIntervalS'))
-        self.limits_dict = eval(self.getProperty('limits'))
+        self.update_interval = int(self.getProperty("updateIntervalS"))
+        self.limits_dict = eval(self.getProperty("limits"))
 
-        self.chan_mach_curr = self.getChannelObject('machCurrent')
+        self.chan_mach_curr = self.getChannelObject("machCurrent")
         if self.chan_mach_curr is not None:
-            self.chan_mach_curr.connectSignal('update', self.mach_current_changed)
-            
-        self.chan_filling_mode = self.getChannelObject('fillingMode')
+            self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
+
+        self.chan_filling_mode = self.getChannelObject("fillingMode")
         if self.chan_filling_mode is not None:
-            self.chan_filling_mode.connectSignal('update', self.state_text_changed)
-            
-        self.chan_state_text0 = self.getChannelObject('operatorMessage0')
+            self.chan_filling_mode.connectSignal("update", self.state_text_changed)
+
+        self.chan_state_text0 = self.getChannelObject("operatorMessage0")
         if self.chan_state_text0 is not None:
-            self.chan_state_text0.connectSignal('update', self.state_text_changed)
-            
-        self.chan_state_text1 = self.getChannelObject('operatorMessage1')
+            self.chan_state_text0.connectSignal("update", self.state_text_changed)
+
+        self.chan_state_text1 = self.getChannelObject("operatorMessage1")
         if self.chan_state_text1 is not None:
-            self.chan_state_text1.connectSignal('update', self.state_text_changed)
-            
-        self.chan_state_text2 = self.getChannelObject('operatorMessage2')
+            self.chan_state_text1.connectSignal("update", self.state_text_changed)
+
+        self.chan_state_text2 = self.getChannelObject("operatorMessage2")
         if self.chan_state_text2 is not None:
-            self.chan_state_text2.connectSignal('update', self.state_text_changed)
-        
-        self.chan_is_beam_usable = self.getChannelObject('isBeamUsable')
+            self.chan_state_text2.connectSignal("update", self.state_text_changed)
+
+        self.chan_is_beam_usable = self.getChannelObject("isBeamUsable")
         if self.chan_is_beam_usable is not None:
-            self.chan_is_beam_usable.connectSignal('update', self.state_text_changed)
-        
-        self.chan_cryojet_in = self.getChannelObject('cryojetIn')
+            self.chan_is_beam_usable.connectSignal("update", self.state_text_changed)
+
+        self.chan_cryojet_in = self.getChannelObject("cryojetIn")
         if self.chan_cryojet_in is not None:
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
-            self.chan_cryojet_in.connectSignal('update', self.cryojet_in_changed)
+            self.chan_cryojet_in.connectSignal("update", self.cryojet_in_changed)
         else:
-            logging.getLogger("HWR").debug('MachineInfo: Cryojet channel not defined')
+            logging.getLogger("HWR").debug("MachineInfo: Cryojet channel not defined")
 
-        self.chan_sample_temperature = self.getChannelObject('sampleTemp')
+        self.chan_sample_temperature = self.getChannelObject("sampleTemp")
         if self.chan_sample_temperature is not None:
-            #self.chan_sample_temperature.connectSignal('update', self.cryojet_in_changed)
+            # self.chan_sample_temperature.connectSignal('update', self.cryojet_in_changed)
             self.cryojet_in_changed(self.chan_cryojet_in.getValue())
-            
-        self.chan_sc_auto_refill = self.getChannelObject('scAutoRefill')
+
+        self.chan_sc_auto_refill = self.getChannelObject("scAutoRefill")
         if self.chan_sc_auto_refill is not None:
-            self.chan_sc_auto_refill.connectSignal('update',
-               self.sc_autorefill_changed)
+            self.chan_sc_auto_refill.connectSignal("update", self.sc_autorefill_changed)
             self.sc_autorefill_changed(self.chan_sc_auto_refill.getValue())
-            
-        self.chan_sc_dewar_low_level_alarm = self.getChannelObject('scLowLevelAlarm')
+
+        self.chan_sc_dewar_low_level_alarm = self.getChannelObject("scLowLevelAlarm")
         if self.chan_sc_dewar_low_level_alarm is not None:
-            self.chan_sc_dewar_low_level_alarm.connectSignal('update',
-               self.low_level_alarm_changed)
+            self.chan_sc_dewar_low_level_alarm.connectSignal(
+                "update", self.low_level_alarm_changed
+            )
             self.low_level_alarm_changed(self.chan_sc_dewar_low_level_alarm.getValue())
 
-        self.chan_sc_dewar_overflow_alarm = self.getChannelObject('scOverflowAlarm')
+        self.chan_sc_dewar_overflow_alarm = self.getChannelObject("scOverflowAlarm")
         if self.chan_sc_dewar_overflow_alarm is not None:
-            self.chan_sc_dewar_overflow_alarm.connectSignal('update',
-               self.overflow_alarm_changed)
+            self.chan_sc_dewar_overflow_alarm.connectSignal(
+                "update", self.overflow_alarm_changed
+            )
 
-        #self.chan_flux = self.getChannelObject('flux')
-        #if self.chan_flux is not None:
-            #self.chan_flux.connectSignal('update', self.flux_changed)
+        # self.chan_flux = self.getChannelObject('flux')
+        # if self.chan_flux is not None:
+        # self.chan_flux.connectSignal('update', self.flux_changed)
 
-        self.chan_temperature_exp = self.getChannelObject('temperatureExp')
+        self.chan_temperature_exp = self.getChannelObject("temperatureExp")
         if self.chan_temperature_exp is not None:
-            self.chan_temperature_exp.connectSignal('update', self.temperature_changed)
+            self.chan_temperature_exp.connectSignal("update", self.temperature_changed)
             self.temperature_changed(self.chan_temperature_exp.getValue())
-            
+
         self.update_values()
 
     def clear_gevent(self):
@@ -240,23 +240,28 @@ class SOLEILMachineInfo(HardwareObject):
 
     def cryojet_in_changed(self, value):
         """Cryojet in/out value changed"""
-        logging.getLogger("HWR").debug('cryojet_in_changed: %s' % value)
-        self.values_list[4]['in_range'] = False
-        self.values_list[4]['bold'] = True
-        
+        logging.getLogger("HWR").debug("cryojet_in_changed: %s" % value)
+        self.values_list[4]["in_range"] = False
+        self.values_list[4]["bold"] = True
+
         if value == 0:
-            self.values_list[4]['value'] = " In place"
-            self.values_list[4]['in_range'] = True
-            self.values_list[4]['bold'] = False
+            self.values_list[4]["value"] = " In place"
+            self.values_list[4]["in_range"] = True
+            self.values_list[4]["bold"] = False
         elif value == 1:
-            self.values_list[4]['value'] = "NOT IN PLACE"
+            self.values_list[4]["value"] = "NOT IN PLACE"
         else:
-            self.values_list[4]['value'] = "Unknown"
-        
+            self.values_list[4]["value"] = "Unknown"
+
         if self.chan_sample_temperature is not None:
-            self.values_list[4]['value'] += '\n sample temperature: %.1f K' % self.chan_sample_temperature.getValue()
+            self.values_list[4]["value"] += (
+                "\n sample temperature: %.1f K"
+                % self.chan_sample_temperature.getValue()
+            )
         else:
-            logging.getLogger("HWR").debug('chan_sample_temperature: %s' % self.chan_sample_temperature)
+            logging.getLogger("HWR").debug(
+                "chan_sample_temperature: %s" % self.chan_sample_temperature
+            )
         self.update_values()
 
     def mach_current_changed(self, value):
@@ -265,11 +270,13 @@ class SOLEILMachineInfo(HardwareObject):
         :param value: new machine current
         :type value: float
         """
-        if self.values_list[0]['value'] is None \
-        or abs(self.values_list[0]['value'] - value) > 0.00001:
-            self.values_list[0]['value'] = value
-            self.values_list[0]['value_str'] = "%.1f mA" % value
-            self.values_list[0]['in_range'] = value > 60.0
+        if (
+            self.values_list[0]["value"] is None
+            or abs(self.values_list[0]["value"] - value) > 0.00001
+        ):
+            self.values_list[0]["value"] = value
+            self.values_list[0]["value_str"] = "%.1f mA" % value
+            self.values_list[0]["in_range"] = value > 60.0
             self.update_values()
 
     def state_text_changed(self, text):
@@ -278,8 +285,8 @@ class SOLEILMachineInfo(HardwareObject):
         :param text: new machine state text
         :type text: string
         """
-        #self.state_text = str(text)
-        #self.values_list[1]['in_range'] = text != "Fehler"
+        # self.state_text = str(text)
+        # self.values_list[1]['in_range'] = text != "Fehler"
         self.update_machine_state()
 
     def update_machine_state(self):
@@ -289,24 +296,27 @@ class SOLEILMachineInfo(HardwareObject):
         state_text1 = self.chan_state_text1.getValue()
         state_text2 = self.chan_state_text2.getValue()
         is_beam_usable = self.chan_is_beam_usable.getValue()
-        
-        date_boundary_string = ' :'
+
+        date_boundary_string = " :"
         date_boundary = state_text1.find(date_boundary_string)
         date = state_text1[:date_boundary]
-        state_text1 = state_text1[date_boundary + len(date_boundary_string):]
+        state_text1 = state_text1[date_boundary + len(date_boundary_string) :]
         state_text = "%s, %s\n" % (date, state_text0)
-        state_text += "electron energy: %.2f GeV, filling: %s\n" % (self.ring_energy, filling_mode)
-        state_text += "%s\n" % (state_text1, )
-        if state_text2 != ' ':
+        state_text += "electron energy: %.2f GeV, filling: %s\n" % (
+            self.ring_energy,
+            filling_mode,
+        )
+        state_text += "%s\n" % (state_text1,)
+        if state_text2 != " ":
             state_text += "%s\n" % state_text2
-        
+
         if is_beam_usable:
-            self.values_list[1]['in_range'] = True
-            state_text += 'Beam usable'
+            self.values_list[1]["in_range"] = True
+            state_text += "Beam usable"
         else:
-            self.values_list[1]['in_range'] = False
-            state_text += 'Beam unusable'
-        self.values_list[1]['value'] = state_text
+            self.values_list[1]["in_range"] = False
+            state_text += "Beam unusable"
+        self.values_list[1]["value"] = state_text
         self.state_text = state_text
         self.update_values()
 
@@ -323,60 +333,64 @@ class SOLEILMachineInfo(HardwareObject):
     def sc_autorefill_changed(self, value):
         self.auto_refill = value
         self.update_sc_alarm()
-        
+
     def file_transfer_status_changed(self, total, pending, failed):
-        self.values_list[-1]['value'] = "%d  -  %d  -  %d" % \
-               (total, pending, failed)
-        self.values_list[-1]['in_range'] = failed == 0
+        self.values_list[-1]["value"] = "%d  -  %d  -  %d" % (total, pending, failed)
+        self.values_list[-1]["in_range"] = failed == 0
 
         if failed > 0:
-            logging.getLogger("GUI").error("Error in file transfer (%d files failed to copy)." % failed)
- 
+            logging.getLogger("GUI").error(
+                "Error in file transfer (%d files failed to copy)." % failed
+            )
+
     def update_sc_alarm(self):
         """Sample changer alarm"""
         if self.low_level_alarm == 1:
-            self.values_list[5]['value'] = "Low level alarm!"
-            self.values_list[5]['in_range'] = False
-            self.values_list[5]['bold'] = True
-            #logging.getLogger("GUI").error("Liquid nitrogen " + \
-                    #" level in sample changer dewar is too low!")
+            self.values_list[5]["value"] = "Low level alarm!"
+            self.values_list[5]["in_range"] = False
+            self.values_list[5]["bold"] = True
+            # logging.getLogger("GUI").error("Liquid nitrogen " + \
+            # " level in sample changer dewar is too low!")
 
         elif self.overflow_alarm:
-            self.values_list[5]['value'] = "Overflow alarm!"
-            self.values_list[5]['in_range'] = False
-            self.values_list[5]['bold'] = True
-            logging.getLogger("GUI").error("Liquid nitrogen " + \
-                    "overflow in sample changer dewar!")
+            self.values_list[5]["value"] = "Overflow alarm!"
+            self.values_list[5]["in_range"] = False
+            self.values_list[5]["bold"] = True
+            logging.getLogger("GUI").error(
+                "Liquid nitrogen " + "overflow in sample changer dewar!"
+            )
         else:
-            self.values_list[5]['value'] = "Dewar level in range"
-            self.values_list[5]['in_range'] = True
-            
-        logging.getLogger("HWR").error("chan_sc_auto_refill %s" % self.chan_sc_auto_refill.getValue())
+            self.values_list[5]["value"] = "Dewar level in range"
+            self.values_list[5]["in_range"] = True
+
+        logging.getLogger("HWR").error(
+            "chan_sc_auto_refill %s" % self.chan_sc_auto_refill.getValue()
+        )
         if self.chan_sc_auto_refill.getValue() == 0:
-            self.values_list[5]['value'] += ', refill OFF'
+            self.values_list[5]["value"] += ", refill OFF"
         else:
-            self.values_list[5]['value'] += ', refill ON'
+            self.values_list[5]["value"] += ", refill ON"
         self.update_values()
 
     def flux_changed(self, value, beam_info=None, transmission=None):
         """Sets flux value"""
         if value is None:
             value = -1
-        self.values_list[3]['value'] = value
+        self.values_list[3]["value"] = value
         msg_str = "Flux: %.2E ph/s" % value
-        #msg_str += "\n@ %.1f transmission , %d x %d beam" % (\
-                   #transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
-        self.values_list[3]['value_str'] = msg_str
-        self.values_list[3]['in_range'] = value > 1e+6
+        # msg_str += "\n@ %.1f transmission , %d x %d beam" % (\
+        # transmission, beam_info['size_x'] * 1000, beam_info['size_y'] * 1000)
+        self.values_list[3]["value_str"] = msg_str
+        self.values_list[3]["in_range"] = value > 1e+6
         self.update_values()
 
     def get_flux(self, beam_info=None, transmission=None):
         """Returns flux value"""
-        return self.values_list[3]['value']
+        return self.values_list[3]["value"]
 
     def update_values(self):
         """Emits list of values"""
-        self.emit('valuesChanged', self.values_list)
+        self.emit("valuesChanged", self.values_list)
 
     def get_values(self):
         """Returns list of values"""
@@ -385,34 +399,35 @@ class SOLEILMachineInfo(HardwareObject):
 
     def temperature_changed(self, value):
         """"Update hutch temperature"""
-        self.values_list[2]['value'] = '%.1f C' % value
-        self.values_list[2]['in_range'] = value < 25 #self.limits_dict['temp']
+        self.values_list[2]["value"] = "%.1f C" % value
+        self.values_list[2]["in_range"] = value < 25  # self.limits_dict['temp']
         self.update_values()
-        
+
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
         while True:
             temp = self.get_external_value(self.hutch_temp_addr)
             hum = self.get_external_value(self.hutch_hum_addr)
-            if not None in (temp, hum):
-                if (abs(float(temp) - self.hutch_temp) > 0.1 \
-                    or abs(float(hum) != self.hutch_hum > 1)):
+            if None not in (temp, hum):
+                if abs(float(temp) - self.hutch_temp) > 0.1 or abs(
+                    float(hum) != self.hutch_hum > 1
+                ):
                     self.hutch_temp = temp
                     self.hutch_hum = hum
-                    self.values_list[2]['value'] = "%.1f C, %.1f %%" % (temp, hum)
-                    self.values_list[2]['in_range'] = temp < 25 and hum < 60
+                    self.values_list[2]["value"] = "%.1f C, %.1f %%" % (temp, hum)
+                    self.values_list[2]["in_range"] = temp < 25 and hum < 60
                     self.update_values()
             time.sleep(sleep_time)
 
     def get_current(self):
-        "Returns current"""
-        return self.values_list[0]['value']
+        "Returns current" ""
+        return self.values_list[0]["value"]
 
     def get_current_value(self):
         """Returns current"""
-        return self.values_list[0]['value']
+        return self.values_list[0]["value"]
 
-    def	get_message(self):
+    def get_message(self):
         """Returns synchrotron state text"""
         return self.state_text
 
@@ -420,14 +435,16 @@ class SOLEILMachineInfo(HardwareObject):
         while True:
             total, free, perc = self.get_ramdisk_size()
             if None in (total, free, perc):
-                txt = ' Unable to read ramdisk size!'
-                self.values_list[-1]['in_range'] = False
-            else: 
-                txt = ' Total: %s\n Free:  %s (%s)' % (self.sizeof_fmt(total),
-                                                       self.sizeof_fmt(free),
-                                                       '{0:.0%}'.format(perc))
-                self.values_list[-1]['in_range'] = free / 2 ** 30 > 10
-            self.values_list[-1]['value'] = txt
+                txt = " Unable to read ramdisk size!"
+                self.values_list[-1]["in_range"] = False
+            else:
+                txt = " Total: %s\n Free:  %s (%s)" % (
+                    self.sizeof_fmt(total),
+                    self.sizeof_fmt(free),
+                    "{0:.0%}".format(perc),
+                )
+                self.values_list[-1]["in_range"] = free / 2 ** 30 > 10
+            self.values_list[-1]["value"] = txt
             self.update_values()
             time.sleep(sleep_time)
 
@@ -435,7 +452,7 @@ class SOLEILMachineInfo(HardwareObject):
         data_dir = "/ramdisk/"
         if os.path.exists(data_dir):
             st = os.statvfs(data_dir)
-            
+
             total = st.f_blocks * st.f_frsize
             free = st.f_bavail * st.f_frsize
             perc = st.f_bavail / float(st.f_blocks)
@@ -447,10 +464,10 @@ class SOLEILMachineInfo(HardwareObject):
         """Returns disk space formated in string"""
 
         try:
-            for x in ['bytes', 'KB', 'MB', 'GB']:
+            for x in ["bytes", "KB", "MB", "GB"]:
                 if num < 1024.0:
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
-            return "%3.1f%s" % (num, 'TB')
-        except: 
+            return "%3.1f%s" % (num, "TB")
+        except BaseException:
             return "???"

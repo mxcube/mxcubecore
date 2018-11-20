@@ -4,7 +4,7 @@
 [Description]
 Hardware object to simulate video with loop object. Hardware object is based
 on a LimaVideo hardware object. It contains SimulatedLoop class that could
-be used to display and navigate loop. 
+be used to display and navigate loop.
 At this version vapory generates image each second and stores in /tmp.
 At first look there is no direct conversion from vapory scene to qimage.
 
@@ -14,7 +14,7 @@ At first look there is no direct conversion from vapory scene to qimage.
 
 [Emited signals]
 
- - imageReceived : emits qimage to bricks 
+ - imageReceived : emits qimage to bricks
 
 [Included Hardware Objects]
 """
@@ -28,10 +28,12 @@ from QtImport import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 
+
 class VaporyVideo(BaseHardwareObjects.Device):
     """
     Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -47,39 +49,46 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        self.vapory_camera = vapory.Camera('location', [0,2,-3], 'look_at', [0,1,2] )
-        self.vapory_light = vapory.LightSource([2,4,-3], 'color', [1,1,1] )
+        self.vapory_camera = vapory.Camera("location", [0, 2, -3], "look_at", [0, 1, 2])
+        self.vapory_light = vapory.LightSource([2, 4, -3], "color", [1, 1, 1])
 
         self.simulated_loop = SimulatedLoop()
         self.simulated_loop.set_position(0, 0, 0)
 
         self.force_update = False
-        self.image_dimensions = [600, 400]	
+        self.image_dimensions = [600, 400]
         self.image_type = JpegType()
         self.setIsReady(True)
         self.generate_image()
 
-        self.image_polling = gevent.spawn(self._do_imagePolling,
-                                          1)
+        self.image_polling = gevent.spawn(self._do_imagePolling, 1)
 
     def rotate_scene_absolute(self, angle):
         self.simulated_loop.set_position(angle, 0, 0)
         self.generate_image()
-   
+
     def rotate_scene_relative(self, angle):
-        return  
-        
+        return
+
     def generate_image(self):
-        self.vapory_sene = vapory.Scene(self.vapory_camera,
-                                        objects= [self.vapory_light,
-                                                  self.simulated_loop.loop_object])
-        image_array = self.vapory_sene.render("/tmp/vapory_tmp_image.png",
-                                              width=self.image_dimensions[0],
-                                              height=self.image_dimensions[1])
+        self.vapory_sene = vapory.Scene(
+            self.vapory_camera,
+            objects=[self.vapory_light, self.simulated_loop.loop_object],
+        )
+        image_array = self.vapory_sene.render(
+            "/tmp/vapory_tmp_image.png",
+            width=self.image_dimensions[0],
+            height=self.image_dimensions[1],
+        )
         self.qimage = QImage("/tmp/vapory_tmp_image.png")
-        self.emit("imageReceived", self.qimage, self.qimage.width(),
-                                   self.qimage.height(), self.force_update)
- 
+        self.emit(
+            "imageReceived",
+            self.qimage,
+            self.qimage.width(),
+            self.qimage.height(),
+            self.force_update,
+        )
+
     def imageType(self):
         """
         Descript. :
@@ -102,13 +111,13 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def getContrastMinMax(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def brightnessExists(self):
         """
@@ -125,14 +134,14 @@ class VaporyVideo(BaseHardwareObjects.Device):
     def getBrightness(self):
         """
         Descript. :
-        """ 
-        return 
+        """
+        return
 
     def getBrightnessMinMax(self):
         """
         Descript. :
         """
-        return 
+        return
 
     def gainExists(self):
         """
@@ -156,7 +165,7 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def gammaExists(self):
         """
@@ -174,12 +183,12 @@ class VaporyVideo(BaseHardwareObjects.Device):
         """
         Descript. :
         """
-        return 
+        return
 
     def getGammaMinMax(self):
         """
         Descript. :
-        """ 
+        """
         return (0, 1)
 
     def setLive(self, mode):
@@ -187,13 +196,13 @@ class VaporyVideo(BaseHardwareObjects.Device):
         Descript. :
         """
         return
-    
+
     def getWidth(self):
         """
         Descript. :
         """
         return self.image_dimensions[0]
-	
+
     def getHeight(self):
         """
         Descript. :
@@ -203,19 +212,27 @@ class VaporyVideo(BaseHardwareObjects.Device):
     def _do_imagePolling(self, sleep_time):
         """
         Descript. :
-        """ 
+        """
         while True:
-            image_array = self.vapory_sene.render("/tmp/vapory_tmp_image.png",
-                                                  width=self.image_dimensions[0],
-                                                  height=self.image_dimensions[1])    
+            image_array = self.vapory_sene.render(
+                "/tmp/vapory_tmp_image.png",
+                width=self.image_dimensions[0],
+                height=self.image_dimensions[1],
+            )
             self.qimage = QImage("/tmp/vapory_tmp_image.png")
-            self.emit("imageReceived", self.qimage, self.qimage.width(),
-                                       self.qimage.height(), self.force_update)
+            self.emit(
+                "imageReceived",
+                self.qimage,
+                self.qimage.width(),
+                self.qimage.height(),
+                self.force_update,
+            )
             time.sleep(sleep_time)
+
 
 class SimulatedLoop:
     def __init__(self):
-        self.texture = vapory.Texture(vapory.Pigment('color', [1, 0, 1]))
+        self.texture = vapory.Texture(vapory.Pigment("color", [1, 0, 1]))
         self.loop_object = vapory.Box([0, 0, 0], 2, self.texture)
 
     def set_position(self, x, y, z):

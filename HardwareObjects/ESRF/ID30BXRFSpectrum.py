@@ -1,117 +1,130 @@
-from qt import *
-from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
 import time
 import types
-import gevent.event
 import gevent
+from gevent.event import Event
+from HardwareRepository.BaseHardwareObjects import Equipment
+
 
 class XrfSpectrum(Equipment):
     def init(self):
-         
+
         self.scanning = None
         self.moving = None
-        self.ready_event = gevent.event.Event()
+        self.ready_event = Event()
 
         try:
-            self.config_data = self.getChannelObject('config_data')
-        except:
+            self.config_data = self.getChannelObject("config_data")
+        except BaseException:
             self.config_data = None
 
         try:
-            self.calib_data = self.getChannelObject(' calib_data')
-        except:
+            self.calib_data = self.getChannelObject(" calib_data")
+        except BaseException:
             self.calib_data = None
 
         try:
-            self.energySpectrumArgs=self.getChannelObject('spectrum_args')
+            self.energySpectrumArgs = self.getChannelObject("spectrum_args")
         except KeyError:
-            logging.getLogger().warning('XRFSpectrum: error initializing energy spectrum arguments (missing channel)')
-            self.energySpectrumArgs=None
+            logging.getLogger().warning(
+                "XRFSpectrum: error initializing energy spectrum arguments (missing channel)"
+            )
+            self.energySpectrumArgs = None
 
         try:
-            self.spectrumStatusMessage=self.getChannelObject('spectrumStatusMsg')
+            self.spectrumStatusMessage = self.getChannelObject("spectrumStatusMsg")
         except KeyError:
-            self.spectrumStatusMessage=None
-            logging.getLogger().warning('XRFSpectrum: energy messages will not appear (missing channel)')
+            self.spectrumStatusMessage = None
+            logging.getLogger().warning(
+                "XRFSpectrum: energy messages will not appear (missing channel)"
+            )
         else:
-            self.spectrumStatusMessage.connectSignal("update", self.spectrumStatusChanged)
+            self.spectrumStatusMessage.connectSignal(
+                "update", self.spectrumStatusChanged
+            )
 
         try:
-            self.doSpectrum.connectSignal('commandBeginWaitReply', self.spectrumCommandStarted)
-            self.doSpectrum.connectSignal('commandFailed', self.spectrumCommandFailed)
-            self.doSpectrum.connectSignal('commandAborted', self.spectrumCommandAborted)
-            self.doSpectrum.connectSignal('commandReady', self.spectrumCommandReady)
-            self.doSpectrum.connectSignal('commandNotReady', self.spectrumCommandNotReady)
-        except AttributeError,diag:
-            logging.getLogger().warning('XRFSpectrum: error initializing energy spectrum (%s)' % str(diag))
-            self.doSpectrum=None
+            self.doSpectrum.connectSignal(
+                "commandBeginWaitReply", self.spectrumCommandStarted
+            )
+            self.doSpectrum.connectSignal("commandFailed", self.spectrumCommandFailed)
+            self.doSpectrum.connectSignal("commandAborted", self.spectrumCommandAborted)
+            self.doSpectrum.connectSignal("commandReady", self.spectrumCommandReady)
+            self.doSpectrum.connectSignal(
+                "commandNotReady", self.spectrumCommandNotReady
+            )
+        except AttributeError as diag:
+            logging.getLogger().warning(
+                "XRFSpectrum: error initializing energy spectrum (%s)" % str(diag)
+            )
+            self.doSpectrum = None
         else:
             self.doSpectrum.connectSignal("connected", self.sConnected)
             self.doSpectrum.connectSignal("disconnected", self.sDisconnected)
- 
-        self.dbConnection=self.getObjectByRole("dbserver")
+
+        self.dbConnection = self.getObjectByRole("dbserver")
         if self.dbConnection is None:
-            logging.getLogger().warning('XRFSpectrum: you should specify the database hardware object')
-        self.spectrumInfo=None
+            logging.getLogger().warning(
+                "XRFSpectrum: you should specify the database hardware object"
+            )
+        self.spectrumInfo = None
 
         try:
             self.energy_hwobj = self.getObjectByRole("energy")
-        except:
+        except BaseException:
             self.energy_hwobj = None
 
         try:
             self.transmission_hwobj = self.getObjectByRole("transmission")
-        except:
+        except BaseException:
             self.transmission_hwobj = None
 
         try:
             self.beam_info_hwobj = self.getObjectByRole("beam_info")
-        except:
+        except BaseException:
             self.beam_info_hwobj = None
 
         try:
             self.ctrl_hwobj = self.getObjectByRole("controller")
-        except:
+        except BaseException:
             self.ctrl_hwobj = None
 
         try:
             self.mca_hwobj = self.getObjectByRole("mca")
-            #self.mca_hwobj.set_calibration(calib_cf=[0,0.008324,2.223e-06])
+            # self.mca_hwobj.set_calibration(calib_cf=[0,0.008324,2.223e-06])
             self.mca_hwobj.set_calibration(calib_cf=self.mca_hwobj.calib_cf)
-        except:
+        except BaseException:
             self.mca_hwobj = None
 
         try:
-            self.datapath = self.getProperty('datapath')
-        except:
-            self.datapath = '/data/pyarch/'
+            self.datapath = self.getProperty("datapath")
+        except BaseException:
+            self.datapath = "/data/pyarch/"
 
         try:
-            self.cfgpath = self.getProperty('cfgpath')
-        except:
-            self.cfgpath = '/users/blissadm/local/userconf'
+            self.cfgpath = self.getProperty("cfgpath")
+        except BaseException:
+            self.cfgpath = "/users/blissadm/local/userconf"
 
         if self.isConnected():
             self.sConnected()
 
-
     def isConnected(self):
         try:
-          return self.doSpectrum.isConnected()
-        except:
-          return False 
-
+            return self.doSpectrum.isConnected()
+        except BaseException:
+            return False
 
     # Handler for spec connection
+
     def sConnected(self):
-        self.emit('connected', ())
-        #curr = self.getSpectrumParams()
+        self.emit("connected", ())
+        # curr = self.getSpectrumParams()
 
     # Handler for spec disconnection
     def sDisconnected(self):
-        self.emit('disconnected', ())
+        self.emit("disconnected", ())
 
     # Energy spectrum commands
     def canSpectrum(self):
@@ -119,47 +132,58 @@ class XrfSpectrum(Equipment):
             return False
         return self.doSpectrum is not None
 
-    def startXrfSpectrum(self,ct,directory,prefix,session_id=None,blsample_id=None):
+    def startXrfSpectrum(
+        self, ct, directory, prefix, session_id=None, blsample_id=None
+    ):
         self.spectrumInfo = {"sessionId": session_id, "blSampleId": blsample_id}
         self.spectrumCommandStarted()
         if not os.path.isdir(directory):
             logging.getLogger().debug("XRFSpectrum: creating directory %s" % directory)
             try:
                 os.makedirs(directory)
-            except OSError,diag:
-                logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (directory,str(diag)))
+            except OSError as diag:
+                logging.getLogger().error(
+                    "XRFSpectrum: error creating directory %s (%s)"
+                    % (directory, str(diag))
+                )
                 self.spectrumStatusChanged("Error creating directory")
                 return False
 
         curr = self.getSpectrumParams()
 
         try:
-            curr["escan_dir"]=directory
-            curr["escan_prefix"]=prefix
+            curr["escan_dir"] = directory
+            curr["escan_prefix"] = prefix
         except TypeError:
-            curr={}
-            curr["escan_dir"]=directory
-            curr["escan_prefix"]=prefix
+            curr = {}
+            curr["escan_dir"] = directory
+            curr["escan_prefix"] = prefix
 
         a = directory.split(os.path.sep)
-        suffix_path=os.path.join(*a[4:])
-        if 'inhouse' in a :
+        suffix_path = os.path.join(*a[4:])
+        if "inhouse" in a:
             a_dir = os.path.join(self.datapath, a[2], suffix_path)
         else:
-            a_dir = os.path.join(self.datapath,a[4],a[3],*a[5:])
-        if a_dir[-1]!=os.path.sep:
-            a_dir+=os.path.sep
+            a_dir = os.path.join(self.datapath, a[4], a[3], *a[5:])
+        if a_dir[-1] != os.path.sep:
+            a_dir += os.path.sep
         if not os.path.exists(a_dir):
             try:
-                #logging.getLogger().debug("XRFSpectrum: creating %s", a_dir)
+                # logging.getLogger().debug("XRFSpectrum: creating %s", a_dir)
                 os.makedirs(a_dir)
-            except OSError,diag:
-                logging.getLogger().error("XRFSpectrum: error creating directory %s (%s)" % (a_dir,str(diag)))
+            except OSError as diag:
+                logging.getLogger().error(
+                    "XRFSpectrum: error creating directory %s (%s)" % (a_dir, str(diag))
+                )
                 self.spectrumStatusChanged("Error creating directory")
-                return False 
-                
-        filename_pattern = os.path.join(directory, "%s_%s_%%02d" % (prefix,time.strftime("%d_%b_%Y")) )
-        aname_pattern = os.path.join("%s/%s_%s_%%02d" % (a_dir,prefix,time.strftime("%d_%b_%Y")))
+                return False
+
+        filename_pattern = os.path.join(
+            directory, "%s_%s_%%02d" % (prefix, time.strftime("%d_%b_%Y"))
+        )
+        aname_pattern = os.path.join(
+            "%s/%s_%s_%%02d" % (a_dir, prefix, time.strftime("%d_%b_%Y"))
+        )
 
         filename_pattern = os.path.extsep.join((filename_pattern, "dat"))
         html_pattern = os.path.extsep.join((aname_pattern, "html"))
@@ -173,38 +197,37 @@ class XrfSpectrum(Equipment):
             filename = filename_pattern % i
             aname = aname_pattern % i
             htmlname = html_pattern % i
-            i=i+1
+            i = i + 1
 
         self.spectrumInfo["filename"] = filename
-        #self.spectrumInfo["scanFileFullPath"] = filename
+        # self.spectrumInfo["scanFileFullPath"] = filename
         self.spectrumInfo["jpegScanFileFullPath"] = aname
         self.spectrumInfo["exposureTime"] = ct
         self.spectrumInfo["annotatedPymcaXfeSpectrum"] = htmlname
         logging.getLogger().debug("XRFSpectrum: archive file is %s", aname)
 
         gevent.spawn(self.reallyStartXrfSpectrum, ct, filename)
-        
+
         return True
-        
+
     def reallyStartXrfSpectrum(self, ct, filename):
-        
+
         if self.doSpectrum:
             try:
                 res = self.doSpectrum(ct, filename, wait=True)
-            except:
-                logging.getLogger().exception('XRFSpectrum: problem calling spec macro')
+            except BaseException:
+                logging.getLogger().exception("XRFSpectrum: problem calling spec macro")
                 self.spectrumStatusChanged("Error problem spec macro")
             else:
                 self.spectrumCommandFinished(res)
         else:
             try:
                 res = self._doSpectrum(ct, filename, wait=True)
-            except:
-                logging.getLogger().exception('XRFSpectrum: problem calling procedure')
+            except BaseException:
+                logging.getLogger().exception("XRFSpectrum: problem calling procedure")
                 self.spectrumStatusChanged("Error problem with spectrum procedure")
             else:
                 self.spectrumCommandFinished(res)
-        
 
     def cancelXrfSpectrum(self, *args):
         if self.scanning:
@@ -212,90 +235,90 @@ class XrfSpectrum(Equipment):
 
     def spectrumCommandReady(self):
         if not self.scanning:
-            self.emit('xrfSpectrumReady', (True,))
-            self.emit('xrfScanReady', (True,))
+            self.emit("xrfSpectrumReady", (True,))
+            self.emit("xrfScanReady", (True,))
 
     def spectrumCommandNotReady(self):
         if not self.scanning:
-            self.emit('xrfSpectrumReady', (False,))
-            self.emit('xrfScanReady', (False,))
+            self.emit("xrfSpectrumReady", (False,))
+            self.emit("xrfScanReady", (False,))
 
     def spectrumCommandStarted(self, *args):
-        self.spectrumInfo['startTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+        self.spectrumInfo["startTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = True
-        self.emit('xrfSpectrumStarted', ())
-        self.emit('xrfScanStarted', ())
+        self.emit("xrfSpectrumStarted", ())
+        self.emit("xrfScanStarted", ())
 
     def spectrumCommandFailed(self, *args):
-        self.spectrumInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+        self.spectrumInfo["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         self.scanning = False
         self.storeXrfSpectrum()
-        self.emit('xrfSpectrumFailed', ())
-        self.emit('xrfScanFailed', ())
-        self.ready_event.set()
-    
-    def spectrumCommandAborted(self, *args):
-        self.scanning = False
-        self.emit('xrfSpectrumFailed', ())
-        self.emit('xrfScanFailed', ())
+        self.emit("xrfSpectrumFailed", ())
+        self.emit("xrfScanFailed", ())
         self.ready_event.set()
 
-    def spectrumCommandFinished(self,result):
-        self.spectrumInfo['endTime']=time.strftime("%Y-%m-%d %H:%M:%S")
+    def spectrumCommandAborted(self, *args):
+        self.scanning = False
+        self.emit("xrfSpectrumFailed", ())
+        self.emit("xrfScanFailed", ())
+        self.ready_event.set()
+
+    def spectrumCommandFinished(self, result):
+        self.spectrumInfo["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
         logging.getLogger().debug("XRFSpectrum: XRF spectrum result is %s" % result)
         self.scanning = False
 
         if result:
             try:
-                mcaData = self.getChannelObject('mca_data').getValue()
-                mcaCalib = self.getChannelObject('calib_data').getValue()
-            except:
+                mcaData = self.getChannelObject("mca_data").getValue()
+                mcaCalib = self.getChannelObject("calib_data").getValue()
+            except BaseException:
                 mcaData = self.mca_hwobj.read_data(save_data=True)
                 mcaCalib = self.mca_hwobj.get_calibration()
             try:
-                mcaConfig = self.getChannelObject('config_data').getValue()
-                self.spectrumInfo["beamTransmission"] = mcaConfig['att']
-                self.spectrumInfo["energy"] = mcaConfig['energy']
-                self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig['bsX'])
-                self.spectrumInfo["beamSizeVertical"] = float(mcaConfig['bsY'])
-            except:
-                mcaConfig={}
-                #self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
+                mcaConfig = self.getChannelObject("config_data").getValue()
+                self.spectrumInfo["beamTransmission"] = mcaConfig["att"]
+                self.spectrumInfo["energy"] = mcaConfig["energy"]
+                self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
+                self.spectrumInfo["beamSizeVertical"] = float(mcaConfig["bsY"])
+            except BaseException:
+                mcaConfig = {}
+                # self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
                 self.spectrumInfo["energy"] = self.energy_hwobj.getCurrentEnergy()
                 beam_info = self.beam_info_hwobj.get_beam_info()
-                self.spectrumInfo["beamSizeHorizontal"] = beam_info['size_x']
-                self.spectrumInfo["beamSizeVertical"] = beam_info['size_y']
-                mcaConfig['att'] = self.spectrumInfo["beamTransmission"]
-                mcaConfig['energy'] = self.spectrumInfo["energy"]
-                mcaConfig['bsX'] = self.spectrumInfo["beamSizeHorizontal"]
-                mcaConfig['bsY'] = self.spectrumInfo["beamSizeVertical"]
+                self.spectrumInfo["beamSizeHorizontal"] = beam_info["size_x"]
+                self.spectrumInfo["beamSizeVertical"] = beam_info["size_y"]
+                mcaConfig["att"] = self.spectrumInfo["beamTransmission"]
+                mcaConfig["energy"] = self.spectrumInfo["energy"]
+                mcaConfig["bsX"] = self.spectrumInfo["beamSizeHorizontal"]
+                mcaConfig["bsY"] = self.spectrumInfo["beamSizeVertical"]
                 roi = self.mca_hwobj.get_roi()
                 mcaConfig["min"] = roi["chmin"]
                 mcaConfig["max"] = roi["chmax"]
             mcaConfig["legend"] = self.spectrumInfo["annotatedPymcaXfeSpectrum"]
-            mcaConfig["htmldir"],_ = os.path.split(mcaConfig["legend"])
+            mcaConfig["htmldir"], _ = os.path.split(mcaConfig["legend"])
             mcaConfig["file"] = self._get_cfgfile(self.spectrumInfo["energy"])
-                        
-            #here move the png file
+
+            # here move the png file
             pf = self.spectrumInfo["filename"].split(".")
             pngfile = os.path.extsep.join((pf[0], "png"))
-            if os.path.isfile(pngfile) is True :
-                try :
-                    copy(pngfile,self.spectrumInfo["jpegScanFileFullPath"])
-                except:
+            if os.path.isfile(pngfile) is True:
+                try:
+                    copy(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
+                except BaseException:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
-            
+
             logging.getLogger().debug("finished %r", self.spectrumInfo)
             self.storeXrfSpectrum()
-            #self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
-            self.emit('xrfScanFinished', (mcaData,mcaCalib,mcaConfig))
+            # self.emit('xrfSpectrumFinished', (mcaData,mcaCalib,mcaConfig))
+            self.emit("xrfScanFinished", (mcaData, mcaCalib, mcaConfig))
         else:
             self.spectrumCommandFailed()
         self.ready_event.set()
-            
-    def spectrumStatusChanged(self,status):
-        self.emit('xrfScanStatusChanged', (status, ))
-        self.emit('spectrumStatusChanged', (status,))
+
+    def spectrumStatusChanged(self, status):
+        self.emit("xrfScanStatusChanged", (status,))
+        self.emit("spectrumStatusChanged", (status,))
 
     def storeXrfSpectrum(self):
         logging.getLogger().debug("db connection %r", self.dbConnection)
@@ -303,31 +326,32 @@ class XrfSpectrum(Equipment):
         if self.dbConnection is None:
             return
         try:
-            session_id=int(self.spectrumInfo['sessionId'])
-        except:
+            session_id = int(self.spectrumInfo["sessionId"])
+        except BaseException:
             return
-        blsampleid=self.spectrumInfo['blSampleId']
-        self.spectrumInfo.pop('blSampleId')
+        blsampleid = self.spectrumInfo["blSampleId"]
+        self.spectrumInfo.pop("blSampleId")
 
-        db_status=self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
+        db_status = self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
 
-    def updateXrfSpectrum(self,spectrum_id,jpeg_spectrum_filename):
+    def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
 
     def getSpectrumParams(self):
         if self.energySpectrumArgs:
             try:
-                self.curr=self.energySpectrumArgs.getValue()
+                self.curr = self.energySpectrumArgs.getValue()
                 return self.curr
-            except:
-                logging.getLogger().exception('XRFSpectrum: error getting xrfspectrum parameters')
+            except BaseException:
+                logging.getLogger().exception(
+                    "XRFSpectrum: error getting xrfspectrum parameters"
+                )
                 self.spectrumStatusChanged("Error getting xrfspectrum parameters")
                 return False
         else:
             return True
 
-
-    def setSpectrumParams(self,pars):
+    def setSpectrumParams(self, pars):
         self.energySpectrumArgs.setValue(pars)
 
     def _get_cfgfile(self, energy):
@@ -339,22 +363,24 @@ class XrfSpectrum(Equipment):
             cfgname = "10"
         else:
             cfgname = "7"
-        return os.path.join(self.cfgpath,"%skeV.cfg" % cfgname)
+        return os.path.join(self.cfgpath, "%skeV.cfg" % cfgname)
 
-    def _doSpectrum(self,ct, filename, wait=True):
+    def _doSpectrum(self, ct, filename, wait=True):
         en = self.energy_hwobj.getCurrentEnergy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")
-        #stop the procedure if hutch not searched
+        # stop the procedure if hutch not searched
         stat = safshut.getShutterState()
-        if  stat == 'disabled':
-            logging.getLogger("user_level_log").exception('XRFSpectrum: hutch not searched, exiting')
+        if stat == "disabled":
+            logging.getLogger("user_level_log").exception(
+                "XRFSpectrum: hutch not searched, exiting"
+            )
             return False
 
-        fluodet_ctrl =  self.getObjectByRole("fluodet_ctrl")
+        fluodet_ctrl = self.getObjectByRole("fluodet_ctrl")
         fluodet_ctrl.actuatorIn()
-        #open the safety and the fast shutter
+        # open the safety and the fast shutter
         safshut.openShutter()
         init_transm = self.transmission_hwobj.getValue()
         ret = self._findAttenuation(ct)
@@ -368,36 +394,44 @@ class XrfSpectrum(Equipment):
         min_cnt = self.getProperty("min_cnt")
         max_cnt = self.getProperty("max_cnt")
         self.mca_hwobj.set_roi(2, 15, channel=1)
-        print self.spectrumInfo["filename"]
-        self.mca_hwobj.set_presets(erange=1, ctime=ct, fname=self.spectrumInfo["filename"])
+        self.mca_hwobj.set_presets(
+            erange=1, ctime=ct, fname=self.spectrumInfo["filename"]
+        )
 
         # put in max attenuation
         self.transmission_hwobj.setTransmission(0)
-        
+
         self.ctrl_hwobj.diffractometer.msopen()
         self.mca_hwobj.start_acq()
         time.sleep(ct)
-        ic = sum(self.mca_hwobj.read_roi_data())/ct
-        print ic
+        ic = sum(self.mca_hwobj.read_roi_data()) / ct
         if ic > max_cnt:
             self.ctrl_hwobj.diffractometer.msclose()
-            logging.getLogger("user_level_log").exception('The detector is saturated, giving up.')
+            logging.getLogger("user_level_log").exception(
+                "The detector is saturated, giving up."
+            )
             return False
         for i in tf:
             self.mca_hwobj.clear_spectrum()
-            logging.getLogger("user_level_log").info("Setting transmission to %g"% i)
+            logging.getLogger("user_level_log").info("Setting transmission to %g" % i)
             self.transmission_hwobj.setTransmission(i)
             self.mca_hwobj.start_acq()
             time.sleep(ct)
-            ic = sum(self.mca_hwobj.read_roi_data())/ct
-            print ic
-            if ic >  min_cnt:
+            ic = sum(self.mca_hwobj.read_roi_data()) / ct
+            if ic > min_cnt:
                 self.ctrl_hwobj.diffractometer.msclose()
-                self.spectrumInfo["beamTransmission"] =  self.transmission_hwobj.get_value()
-                logging.getLogger("user_level_log").info("Transmission used for spectra: %g"% self.spectrumInfo["beamTransmission"])
+                self.spectrumInfo[
+                    "beamTransmission"
+                ] = self.transmission_hwobj.get_value()
+                logging.getLogger("user_level_log").info(
+                    "Transmission used for spectra: %g"
+                    % self.spectrumInfo["beamTransmission"]
+                )
                 break
         self.ctrl_hwobj.diffractometer.msclose()
         if ic < min_cnt:
-            logging.getLogger("user_level_log").exception('Could not find satisfactory attenuation (is the mca properly set up?), giving up.')
+            logging.getLogger("user_level_log").exception(
+                "Could not find satisfactory attenuation (is the mca properly set up?), giving up."
+            )
             return False
         return True

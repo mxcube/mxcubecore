@@ -9,19 +9,21 @@ import logging
 """
 
 ###
-### Checks the proposal password in a LDAP server
+# Checks the proposal password in a LDAP server
 ###
+
+
 class LdapLoginMockup(Procedure):
-    def __init__(self,name):
-        Procedure.__init__(self,name)
+    def __init__(self, name):
+        Procedure.__init__(self, name)
         self.ldapConnection = None
 
-
     # Initializes the hardware object
-    def init(self):
-        ldaphost = self.getProperty('ldaphost')
 
+    def init(self):
+        ldaphost = self.getProperty("ldaphost")
 
     # Check password in LDAP
+
     def login(self, username, password, retry=True):
         return (True, username)

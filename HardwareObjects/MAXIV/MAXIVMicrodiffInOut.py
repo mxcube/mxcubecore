@@ -7,7 +7,7 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
     def __init__(self, *args):
         MicrodiffInOut.MicrodiffInOut.__init__(self, *args)
 
-    def init(self, *args): 
+    def init(self, *args):
         MicrodiffInOut.MicrodiffInOut.init(self)
         self.keep_polling = True
 
@@ -27,7 +27,7 @@ class MAXIVMicrodiffInOut(MicrodiffInOut.MicrodiffInOut):
         while self.keep_polling:
             try:
                 state = self.getActuatorState()
-            except:
+            except BaseException:
                 time.sleep(1)
                 continue
             if state != old_state:

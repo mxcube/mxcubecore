@@ -1,4 +1,4 @@
-"""Class 
+"""Class
 
 template:
   <procedure class="SpecShell">
@@ -9,76 +9,100 @@ template:
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 from HardwareRepository import HardwareRepository
+
 try:
-  import SpecClient_gevent as SpecClient
+    import SpecClient_gevent as SpecClient
 except ImportError:
-  import SpecClient
-  from SpecClient import SpecVariable
+    import SpecClient
+    from SpecClient import SpecVariable
 
 import types
 from qt import *
 
-class SpecOutputVar(QObject,SpecClient.SpecVariable.SpecVariableA): 
-    def __init__(self,parent):
-        QObject.__init__(self,parent)
+
+class SpecOutputVar(QObject, SpecClient.SpecVariable.SpecVariableA):
+    def __init__(self, parent):
+        QObject.__init__(self, parent)
         SpecClient.SpecVariable.SpecVariableA.__init__(self)
 
-    def update(self,value):
-        value=str(value).rstrip()
+    def update(self, value):
+        value = str(value).rstrip()
         if len(value):
-            self.emit(PYSIGNAL("outputReceived"), (value, ))
+            self.emit(PYSIGNAL("outputReceived"), (value,))
+
 
 class SpecShell(Equipment):
     def __init__(self, *args):
         Equipment.__init__(self, *args)
-        self.isSpecReady=False
+        self.isSpecReady = False
 
     def init(self):
-        self.specShellCommand=None
-        self.specShellLsdef=None
-        self.commandRunning=False
-        self.lsdefRunning=False
-        self.lsdefBuffer=[]
-        self.lsdefCommands=None
-        self.specOutput=SpecOutputVar(None)
-        QObject.connect(self.specOutput,PYSIGNAL("outputReceived"),self.outputReceived)
+        self.specShellCommand = None
+        self.specShellLsdef = None
+        self.commandRunning = False
+        self.lsdefRunning = False
+        self.lsdefBuffer = []
+        self.lsdefCommands = None
+        self.specOutput = SpecOutputVar(None)
+        QObject.connect(
+            self.specOutput, PYSIGNAL("outputReceived"), self.outputReceived
+        )
         try:
-            self.specConnection=SpecClient.SpecConnectionsManager.SpecConnectionsManager().getConnection(self.specversion)
+            self.specConnection = SpecClient.SpecConnectionsManager.SpecConnectionsManager().getConnection(
+                self.specversion
+            )
         except AttributeError:
-            self.specConnection=None
-            logging.getLogger("HWR").error('SpecShell: you must specify a spec version')
+            self.specConnection = None
+            logging.getLogger("HWR").error("SpecShell: you must specify a spec version")
         else:
-            self.specOutput.connectToSpec("output/tty",self.specversion,dispatchMode=SpecClient.SpecVariable.FIREEVENT,prefix=False)
+            self.specOutput.connectToSpec(
+                "output/tty",
+                self.specversion,
+                dispatchMode=SpecClient.SpecVariable.FIREEVENT,
+                prefix=False,
+            )
 
-            SpecClient.SpecEventsDispatcher.connect(self.specConnection, 'connected', self.sConnected)
-            SpecClient.SpecEventsDispatcher.connect(self.specConnection, 'disconnected', self.sDisconnected)
+            SpecClient.SpecEventsDispatcher.connect(
+                self.specConnection, "connected", self.sConnected
+            )
+            SpecClient.SpecEventsDispatcher.connect(
+                self.specConnection, "disconnected", self.sDisconnected
+            )
             if self.isConnected():
                 self.sConnected()
 
     def sConnected(self):
-        self.emit('connected', ())
+        self.emit("connected", ())
 
-        speccommand=SpecClient.SpecCommand.SpecCommand("sleep",self.specConnection,0)
+        speccommand = SpecClient.SpecCommand.SpecCommand(
+            "sleep", self.specConnection, 0
+        )
 
-        self.addCommand({'name':'SpecShellMacro', 'type':'spec', 'version':self.specversion},"sleep")
-        cmd=self.getCommandObject('SpecShellMacro')
-        cmd.connectSignal('commandReady',self.commandReady)
-        cmd.connectSignal('commandNotReady',self.commandNotReady)
-        cmd.connectSignal('commandReplyArrived',self.commandFinished)
-        cmd.connectSignal('commandBeginWaitReply',self.commandStarted)
-        cmd.connectSignal('commandFailed',self.commandFailed)
-        cmd.connectSignal('commandAborted',self.commandAborted)
-        self.specShellCommand=cmd
+        self.addCommand(
+            {"name": "SpecShellMacro", "type": "spec", "version": self.specversion},
+            "sleep",
+        )
+        cmd = self.getCommandObject("SpecShellMacro")
+        cmd.connectSignal("commandReady", self.commandReady)
+        cmd.connectSignal("commandNotReady", self.commandNotReady)
+        cmd.connectSignal("commandReplyArrived", self.commandFinished)
+        cmd.connectSignal("commandBeginWaitReply", self.commandStarted)
+        cmd.connectSignal("commandFailed", self.commandFailed)
+        cmd.connectSignal("commandAborted", self.commandAborted)
+        self.specShellCommand = cmd
 
-        self.addCommand({'name':'SpecShellLsdef', 'type':'spec', 'version':self.specversion},"lsdef *")
-        cmd=self.getCommandObject('SpecShellLsdef')
-        #cmd.connectSignal('commandReady',self.commandReady)
-        #cmd.connectSignal('commandNotReady',self.commandNotReady)
-        cmd.connectSignal('commandReplyArrived',self.commandFinished)
-        cmd.connectSignal('commandBeginWaitReply',self.commandStarted)
-        cmd.connectSignal('commandFailed',self.commandFailed)
-        cmd.connectSignal('commandAborted',self.commandAborted)
-        self.specShellLsdef=cmd
+        self.addCommand(
+            {"name": "SpecShellLsdef", "type": "spec", "version": self.specversion},
+            "lsdef *",
+        )
+        cmd = self.getCommandObject("SpecShellLsdef")
+        # cmd.connectSignal('commandReady',self.commandReady)
+        # cmd.connectSignal('commandNotReady',self.commandNotReady)
+        cmd.connectSignal("commandReplyArrived", self.commandFinished)
+        cmd.connectSignal("commandBeginWaitReply", self.commandStarted)
+        cmd.connectSignal("commandFailed", self.commandFailed)
+        cmd.connectSignal("commandAborted", self.commandAborted)
+        self.specShellLsdef = cmd
 
         """
         try:
@@ -98,99 +122,99 @@ class SpecShell(Equipment):
 
     def sDisconnected(self):
         if self.commandRunning:
-            self.emit('aborted', ())
-            self.emit('failed', (None,))
-            self.commandRunning=False
+            self.emit("aborted", ())
+            self.emit("failed", (None,))
+            self.commandRunning = False
 
-        self.specShellCommand=None
-        self.lsdefCommands=None
-        self.emit('disconnected', ())
+        self.specShellCommand = None
+        self.lsdefCommands = None
+        self.emit("disconnected", ())
 
     def commandReady(self):
-        self.isSpecReady=True
+        self.isSpecReady = True
         if self.specShellCommand is None:
             return
         if self.commandRunning:
             return
-        self.emit('ready', ())
+        self.emit("ready", ())
 
     def commandNotReady(self):
-        self.isSpecReady=False
+        self.isSpecReady = False
         if self.specShellCommand is None:
             return
         if self.commandRunning:
             return
-        self.emit('busy', ())
+        self.emit("busy", ())
 
-    def commandFinished(self,result,command):
-        if command=="SpecShellLsdef":
-            self.lsdefRunning=False
-            commands_list=[]
+    def commandFinished(self, result, command):
+        if command == "SpecShellLsdef":
+            self.lsdefRunning = False
+            commands_list = []
             for buf in self.lsdefBuffer:
                 try:
-                    buf_list=buf.split()
-                except:
+                    buf_list = buf.split()
+                except BaseException:
                     pass
                 else:
-                    i=0
-                    while i<len(buf_list):
-                        cmd_name=buf_list[i]
+                    i = 0
+                    while i < len(buf_list):
+                        cmd_name = buf_list[i]
                         try:
-                            cmd_aux=buf_list[i+1]
-                        except:
+                            cmd_aux = buf_list[i + 1]
+                        except BaseException:
                             pass
                         else:
                             try:
-                                left_par=cmd_aux[0]
-                                right_par=cmd_aux[-1]
-                                midle_num=cmd_aux[1:-1]
-                            except:
+                                left_par = cmd_aux[0]
+                                right_par = cmd_aux[-1]
+                                midle_num = cmd_aux[1:-1]
+                            except BaseException:
                                 pass
                             else:
-                                if left_par=="(" and right_par==")":
+                                if left_par == "(" and right_par == ")":
                                     try:
                                         int(midle_num)
-                                    except:
+                                    except BaseException:
                                         pass
                                     else:
                                         commands_list.append(cmd_name.lstrip("*"))
-                        i+=2
-            self.lsdefBuffer=[]
+                        i += 2
+            self.lsdefBuffer = []
             commands_list.sort()
-            self.lsdefCommands=commands_list
-            self.emit('allCommandsList', (commands_list,))
-        self.commandRunning=False
-        self.emit('finished', (result,))
+            self.lsdefCommands = commands_list
+            self.emit("allCommandsList", (commands_list,))
+        self.commandRunning = False
+        self.emit("finished", (result,))
 
-    def commandStarted(self,command):
-        if command=="SpecShellLsdef":
-            self.lsdefBuffer=[]
-            self.lsdefRunning=True
-        self.commandRunning=True
-        self.emit('started', ())
+    def commandStarted(self, command):
+        if command == "SpecShellLsdef":
+            self.lsdefBuffer = []
+            self.lsdefRunning = True
+        self.commandRunning = True
+        self.emit("started", ())
 
-    def commandFailed(self,result,command):
-        if command=="SpecShellLsdef":
-            self.lsdefRunning=False
-            self.lsdefBuffer=[]
-            self.lsdefCommands=None
-            self.emit('allCommandsList', ((),))
-        self.commandRunning=False
-        self.emit('failed', (result,))
+    def commandFailed(self, result, command):
+        if command == "SpecShellLsdef":
+            self.lsdefRunning = False
+            self.lsdefBuffer = []
+            self.lsdefCommands = None
+            self.emit("allCommandsList", ((),))
+        self.commandRunning = False
+        self.emit("failed", (result,))
 
-    def commandAborted(self,command):
-        if command=="SpecShellLsdef":
-            self.lsdefRunning=False
-            self.lsdefBuffer=[]
-            #self.emit('allCommandsList', ((),))
-        self.commandRunning=False
-        self.emit('aborted', ())
+    def commandAborted(self, command):
+        if command == "SpecShellLsdef":
+            self.lsdefRunning = False
+            self.lsdefBuffer = []
+            # self.emit('allCommandsList', ((),))
+        self.commandRunning = False
+        self.emit("aborted", ())
 
-    def executeCommand(self,command):
+    def executeCommand(self, command):
         try:
             self.specShellCommand.executeCommand(command)
         except SpecClient.SpecClientError.SpecClientError as diag:
-            self.emit('failed', (None,))
+            self.emit("failed", (None,))
 
     def abortCommand(self):
         if self.commandRunning:
@@ -199,32 +223,32 @@ class SpecShell(Equipment):
             except SpecClient.SpecClientError.SpecClientError as diag:
                 pass
 
-    def outputReceived(self,output):
+    def outputReceived(self, output):
         if self.lsdefRunning:
             self.lsdefBuffer.append(output)
         else:
-            self.emit('output', (output,))
+            self.emit("output", (output,))
 
     def getSpecVersion(self):
         try:
-            ver=self.specversion
+            ver = self.specversion
         except AttributeError:
-            ver=None
+            ver = None
         return ver
 
     def getUserCommands(self):
-        cmds=[]
+        cmds = []
         try:
             for cmd in self["usercmds"]:
                 try:
-                    cmd_args=cmd.args
-                except:
-                    cmd_args=""
+                    cmd_args = cmd.args
+                except BaseException:
+                    cmd_args = ""
                 if len(cmd_args):
-                    cmds.append("%s %s" % (cmd.method,cmd_args))
+                    cmds.append("%s %s" % (cmd.method, cmd_args))
                 else:
                     cmds.append(cmd.method)
-        except:
+        except BaseException:
             pass
         return cmds
 
@@ -232,9 +256,9 @@ class SpecShell(Equipment):
         if self.lsdefRunning:
             return
         if self.lsdefCommands is not None:
-            self.emit('allCommandsList', (self.lsdefCommands,))
+            self.emit("allCommandsList", (self.lsdefCommands,))
         else:
             try:
                 self.specShellLsdef.executeCommand("lsdef *")
             except SpecClient.SpecClientError.SpecClientError as diag:
-                self.emit('allCommandsList', ((),))
+                self.emit("allCommandsList", ((),))

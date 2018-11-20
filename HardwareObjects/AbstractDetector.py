@@ -1,13 +1,13 @@
-import abc 
+import abc
 
 
-class AbstractDetector(object):    
+class AbstractDetector(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self): 
+    def __init__(self):
         """
-        Descript. : 
-        """ 
+        Descript. :
+        """
 
         # self.distance = None
         self.temperature = None
@@ -23,28 +23,28 @@ class AbstractDetector(object):
         self.binding_mode = None
         self.roi_mode = None
         self.roi_modes_list = []
-        self.status = None        
+        self.status = None
 
         self.distance_motor_hwobj = None
 
     @abc.abstractmethod
     def get_distance(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     @abc.abstractmethod
     def get_distance_limits(self):
         """
-        Descript. : 
+        Descript. :
         """
-        return 
+        return
 
     @abc.abstractmethod
     def has_shutterless(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
@@ -80,7 +80,7 @@ class AbstractDetector(object):
 
     def set_distance(self, value, timeout=None):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
@@ -89,11 +89,22 @@ class AbstractDetector(object):
 
     def set_detector_mode(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         self.binding_mode = value
 
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, still):
+    def prepare_acquisition(
+        self,
+        take_dark,
+        start,
+        osc_range,
+        exptime,
+        npass,
+        number_of_images,
+        comment,
+        energy,
+        still,
+    ):
         """
         Descript. :
         """
@@ -105,7 +116,9 @@ class AbstractDetector(object):
         """
         return
 
-    def set_detector_filenames(self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path):
+    def set_detector_filenames(
+        self, frame_number, start, filename, jpeg_full_path, jpeg_thumbnail_full_path
+    ):
         """
         Descript. :
         """

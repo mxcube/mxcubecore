@@ -26,7 +26,6 @@ __category__ = "General"
 
 
 class AbstractFlux(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -35,10 +34,10 @@ class AbstractFlux(HardwareObject):
 
     def set_flux(self, value):
         self._value = value
-        self.emit('fluxValueChanged', self._value)
+        self.emit("fluxValueChanged", self._value)
 
     def get_flux(self):
         return self._value
 
     def update_values(self):
-        self.emit('fluxValueChanged', self._value)
+        self.emit("fluxValueChanged", self._value)

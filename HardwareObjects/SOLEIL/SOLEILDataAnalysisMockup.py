@@ -8,8 +8,10 @@ import queue_model_enumerables_v1 as qme
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-class SOLEILDataAnalysisMockup(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
+class SOLEILDataAnalysisMockup(
+    AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject
+):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
         self.processing_done_event = gevent.event.Event()
@@ -24,13 +26,13 @@ class SOLEILDataAnalysisMockup(AbstractDataAnalysis.AbstractDataAnalysis, Hardwa
         return cmd_obj(*args, wait=wait)
 
     def get_beam_size(self):
-        return (10,5)
+        return (10, 5)
 
     def from_params(self, data_collection, char_params):
         return char_params
 
     def characterise(self, edna_input):
-        msg = "Starting MOCKUP Analisys" 
+        msg = "Starting MOCKUP Analisys"
         logging.getLogger("queue_exec").info(msg)
 
         self.processing_done_event.set()

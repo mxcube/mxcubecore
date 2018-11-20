@@ -5,6 +5,7 @@ import shutil
 import logging
 import os
 
+
 class ID232MultiCollect(ESRFMultiCollect):
     def __init__(self, name):
         ESRFMultiCollect.__init__(self, name, PixelDetector(Pilatus), TunableEnergy())
@@ -22,11 +23,11 @@ class ID232MultiCollect(ESRFMultiCollect):
         state = self.getObjectByRole("fastshut").getActuatorState(read=True)
         if state != "out":
             self.close_fast_shutter()
-      
+
     @task
     def get_beam_size(self):
         return self.bl_control.beam_info.get_beam_size()
- 
+
     @task
     def get_slit_gaps(self):
         return (None, None)
@@ -43,13 +44,13 @@ class ID232MultiCollect(ESRFMultiCollect):
         det_distance = self.getObjectByRole("detector_distance")
         det_distance.move(detector_distance)
         while det_distance.motorIsMoving():
-          gevent.sleep(0.1)
+            gevent.sleep(0.1)
 
     @task
     def set_resolution(self, new_resolution):
         self.bl_control.resolution.move(new_resolution)
         while self.bl_control.resolution.motorIsMoving():
-          gevent.sleep(0.1)
+            gevent.sleep(0.1)
 
     def get_resolution_at_corner(self):
         return self.bl_control.resolution.get_value_at_corner()
@@ -66,12 +67,12 @@ class ID232MultiCollect(ESRFMultiCollect):
         diffr = self.bl_control.diffractometer
         try:
             cover_task = self.getObjectByRole("controller").detcover.set_out()
-        except:
+        except BaseException:
             pass
         try:
-            motors_to_move_dict.pop('kappa')
-            motors_to_move_dict.pop('kappa_phi')
-        except:
+            motors_to_move_dict.pop("kappa")
+            motors_to_move_dict.pop("kappa_phi")
+        except BaseException:
             pass
         diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
 
@@ -81,7 +82,7 @@ class ID232MultiCollect(ESRFMultiCollect):
         if self.bl_control.diffractometer.in_plate_mode():
             if number_of_snapshots > 0:
                 number_of_snapshots = 1
-        #diffr.moveToPhase("Centring", wait=True, timeout=200)
+        # diffr.moveToPhase("Centring", wait=True, timeout=200)
         if number_of_snapshots:
             # put the back light in
             diffr.getDeviceByRole("BackLightSwitch").actuatorIn()
@@ -91,17 +92,17 @@ class ID232MultiCollect(ESRFMultiCollect):
     @task
     def do_prepare_oscillation(self, *args, **kwargs):
         diffr = self.getObjectByRole("diffractometer")
-        #send again the command as MD2 software only handles one
-        #centered position!!
-        #has to be where the motors are and before changing the phase
+        # send again the command as MD2 software only handles one
+        # centered position!!
+        # has to be where the motors are and before changing the phase
         diffr.getCommandObject("save_centring_positions")()
-        #move to DataCollection phase
+        # move to DataCollection phase
         if diffr.getPhase() != "DataCollection":
             logging.getLogger("user_level_log").info("Moving MD2 to Data Collection")
         diffr.moveToPhase("DataCollection", wait=True, timeout=200)
-        #switch on the front light
+        # switch on the front light
         diffr.getObjectByRole("FrontLight").move(2)
-        #take the back light out
+        # take the back light out
         diffr.getObjectByRole("BackLightSwitch").actuatorOut()
 
     @task
@@ -110,18 +111,50 @@ class ID232MultiCollect(ESRFMultiCollect):
         if self.helical:
             diffr.oscilScan4d(start, end, exptime, self.helical_pos, wait=True)
         elif self.mesh:
-            diffr.oscilScanMesh(start, end, exptime, self._detector.get_deadtime(), self.mesh_num_lines, self.mesh_total_nb_frames, self.mesh_center, self.mesh_range , wait=True)
+            diffr.oscilScanMesh(
+                start,
+                end,
+                exptime,
+                self._detector.get_deadtime(),
+                self.mesh_num_lines,
+                self.mesh_total_nb_frames,
+                self.mesh_center,
+                self.mesh_range,
+                wait=True,
+            )
         else:
             diffr.oscilScan(start, end, exptime, wait=True)
- 
-    def prepare_acquisition(self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""):
+
+    def prepare_acquisition(
+        self, take_dark, start, osc_range, exptime, npass, number_of_images, comment=""
+    ):
         energy = self._tunable_bl.getCurrentEnergy()
         diffr = self.getObjectByRole("diffractometer")
         diffr.setNbImages(number_of_images)
-        if self.mesh :
-            return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode="EXTERNAL_GATE")
-        else :
-            return self._detector.prepare_acquisition(take_dark, start, osc_range, exptime, npass, number_of_images, comment, energy, trigger_mode="EXTERNAL_TRIGGER")
+        if self.mesh:
+            return self._detector.prepare_acquisition(
+                take_dark,
+                start,
+                osc_range,
+                exptime,
+                npass,
+                number_of_images,
+                comment,
+                energy,
+                trigger_mode="EXTERNAL_GATE",
+            )
+        else:
+            return self._detector.prepare_acquisition(
+                take_dark,
+                start,
+                osc_range,
+                exptime,
+                npass,
+                number_of_images,
+                comment,
+                energy,
+                trigger_mode="EXTERNAL_TRIGGER",
+            )
 
     def open_fast_shutter(self):
         self.getObjectByRole("fastshut").actuatorIn()
@@ -139,7 +172,9 @@ class ID232MultiCollect(ESRFMultiCollect):
     def set_mesh(self, mesh_on):
         self.mesh = mesh_on
 
-    def set_mesh_scan_parameters(self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param):
+    def set_mesh_scan_parameters(
+        self, num_lines, total_nb_frames, mesh_center_param, mesh_range_param
+    ):
         """
         sets the mesh scan parameters :
          - vertcal range
@@ -154,7 +189,7 @@ class ID232MultiCollect(ESRFMultiCollect):
         self.mesh_center = mesh_center_param
 
     def set_transmission(self, transmission):
-    	self.getObjectByRole("transmission").set_value(transmission)
+        self.getObjectByRole("transmission").set_value(transmission)
 
     def get_transmission(self):
         return self.getObjectByRole("transmission").get_value()
@@ -173,14 +208,16 @@ class ID232MultiCollect(ESRFMultiCollect):
     def write_input_files(self, datacollection_id):
         try:
             process_dir = os.path.join(self.xds_directory, "..")
-            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..") 
+            raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")
             for dir in (process_dir, raw_process_dir):
                 for filename in ("x_geo_corr.cbf.bz2", "y_geo_corr.cbf.bz2"):
-                    dest = os.path.join(dir,filename)
+                    dest = os.path.join(dir, filename)
                     if os.path.exists(dest):
                         continue
-                    shutil.copyfile(os.path.join("/data/id29/inhouse/opid291", filename), dest)
-        except:
+                    shutil.copyfile(
+                        os.path.join("/data/id29/inhouse/opid291", filename), dest
+                    )
+        except BaseException:
             logging.exception("Exception happened while copying geo_corr files")
-       
+
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

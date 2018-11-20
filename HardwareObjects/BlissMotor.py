@@ -8,16 +8,17 @@ import types
 from bliss.config import static
 import os
 
-class BlissMotor(Device):      
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
+
+class BlissMotor(Device):
+    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, name):
         Device.__init__(self, name)
 
-    def init(self): 
+    def init(self):
         self.motorState = BlissMotor.NOTINITIALIZED
         self.username = self.motor_name
-       
+
         cfg = static.get_config()
         self.motor = cfg.get(self.motor_name)
         self.connect(self.motor, "position", self.positionChanged)
@@ -25,19 +26,19 @@ class BlissMotor(Device):
         self.connect(self.motor, "move_done", self._move_done)
 
     def connectNotify(self, signal):
-        if signal == 'positionChanged':
-                self.emit('positionChanged', (self.getPosition(), ))
-        elif signal == 'stateChanged':
-                self.updateState()
-        elif signal == 'limitsChanged':
-                self.motorLimitsChanged()  
+        if signal == "positionChanged":
+            self.emit("positionChanged", (self.getPosition(),))
+        elif signal == "stateChanged":
+            self.updateState()
+        elif signal == "limitsChanged":
+            self.motorLimitsChanged()
 
     def _move_done(self, move_done):
         if move_done:
-          self.updateState("READY")
+            self.updateState("READY")
         else:
-          self.updateState("MOVING")
-    
+            self.updateState("MOVING")
+
     def updateState(self, state=None):
         if state is None:
             state = self.motor.state()
@@ -46,7 +47,7 @@ class BlissMotor(Device):
             state = BlissMotor.MOVING
         elif state == "READY":
             state = BlissMotor.READY
-        elif state == "LIMPOS" or state == 'LIMNEG':
+        elif state == "LIMPOS" or state == "LIMNEG":
             state = BlissMotor.ONLIMIT
         else:
             state = BlissMotor.UNUSABLE
@@ -55,15 +56,15 @@ class BlissMotor(Device):
 
         if self.motorState != state:
             self.motorState = state
-            self.emit('stateChanged', (self.motorState, ))
+            self.emit("stateChanged", (self.motorState,))
 
     def getState(self):
         self.updateState()
         return self.motorState
-    
+
     def motorLimitsChanged(self):
-        self.emit('limitsChanged', (self.getLimits(), ))
-                     
+        self.emit("limitsChanged", (self.getLimits(),))
+
     def getLimits(self):
         # no limit = None, but None is a problematic value
         # for some GUI components (like MotorSpinBox), so
@@ -73,8 +74,8 @@ class BlissMotor(Device):
         return ll if ll is not None else -1E6, hl if hl is not None else 1E6
 
     def positionChanged(self, absolutePosition):
-        #print self.name(), absolutePosition
-        self.emit('positionChanged', (absolutePosition, ))
+        # print self.name(), absolutePosition
+        self.emit("positionChanged", (absolutePosition,))
 
     def getPosition(self):
         return self.motor.position()
@@ -87,9 +88,10 @@ class BlissMotor(Device):
         while self.motorIsMoving():
             time.sleep(0.02)
     """
+
     def move(self, position):
-        #self._wait_ready(timeout=15)
-        self.motor.move(position, wait=False) #.link(self.updateState)
+        # self._wait_ready(timeout=15)
+        self.motor.move(position, wait=False)  # .link(self.updateState)
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -99,7 +101,7 @@ class BlissMotor(Device):
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
-           self.motor.wait_move()
+            self.motor.wait_move()
 
     def syncMove(self, position, timeout=None):
         self.move(position)
@@ -107,7 +109,7 @@ class BlissMotor(Device):
 
     def motorIsMoving(self):
         return self.motorState == BlissMotor.MOVING
- 
+
     def getMotorMnemonic(self):
         return self.motor_name
 

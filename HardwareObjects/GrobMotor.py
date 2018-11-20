@@ -5,13 +5,14 @@ import time
 import gevent
 import types
 
-class GrobMotor(Device):      
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)
+
+class GrobMotor(Device):
+    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, name):
         Device.__init__(self, name)
 
-    def init(self): 
+    def init(self):
         self.motorState = GrobMotor.NOTINITIALIZED
         self.username = self.motor_name
         self.grob = self.getObjectByRole("grob")
@@ -24,13 +25,13 @@ class GrobMotor(Device):
         self.connect(self.motor, "state", self.updateState)
 
     def connectNotify(self, signal):
-        if signal == 'positionChanged':
-                self.emit('positionChanged', (self.getPosition(), ))
-        elif signal == 'stateChanged':
-                self.updateState()
-        elif signal == 'limitsChanged':
-                self.motorLimitsChanged()  
- 
+        if signal == "positionChanged":
+            self.emit("positionChanged", (self.getPosition(),))
+        elif signal == "stateChanged":
+            self.updateState()
+        elif signal == "limitsChanged":
+            self.motorLimitsChanged()
+
     def updateState(self, state=None):
         if state is None:
             state = self.motor.state()
@@ -56,25 +57,25 @@ class GrobMotor(Device):
         self.setIsReady(state > GrobMotor.UNUSABLE)
 
         if self.motorState != state:
-            self.motorState = state 
-            self.emit('stateChanged', (self.motorState, ))
+            self.motorState = state
+            self.emit("stateChanged", (self.motorState,))
 
     def getState(self):
         self.updateState()
         return self.motorState
-    
+
     def motorLimitsChanged(self):
-        self.emit('limitsChanged', (self.getLimits(), ))
-                     
+        self.emit("limitsChanged", (self.getLimits(),))
+
     def getLimits(self):
         return self.motor.get_limits()
 
     def positionChanged(self, absolutePosition, private={}):
-        if math.fabs(absolutePosition - private.get("old_pos", 1E12))<=1E-3:
-          return 
-        private["old_pos"]=absolutePosition 
+        if math.fabs(absolutePosition - private.get("old_pos", 1E12)) <= 1E-3:
+            return
+        private["old_pos"] = absolutePosition
 
-        self.emit('positionChanged', (absolutePosition, ))
+        self.emit("positionChanged", (absolutePosition,))
 
     def getPosition(self):
         return self.motor.read_dial()
@@ -84,10 +85,10 @@ class GrobMotor(Device):
 
     def move(self, position):
         if isinstance(self.motor, self.grob.SampleMotor):
-          # position has to be relative
-          self.motor.move_relative(position - self.getPosition())
+            # position has to be relative
+            self.motor.move_relative(position - self.getPosition())
         else:
-          self.motor.start_one(position) 
+            self.motor.start_one(position)
 
     def moveRelative(self, relativePosition):
         self.move(self.getPosition() + relativePosition)
@@ -97,18 +98,18 @@ class GrobMotor(Device):
 
     def waitEndOfMove(self, timeout=None):
         with gevent.Timeout(timeout):
-           self.motor.wait_for_move()
+            self.motor.wait_for_move()
 
     def syncMove(self, position, timeout=None):
         self.move(position)
         try:
-          self.waitEndOfMove(timeout)
-        except:
-          raise MD2TimeoutError
+            self.waitEndOfMove(timeout)
+        except BaseException:
+            raise MD2TimeoutError
 
     def motorIsMoving(self):
         return self.isReady() and self.motor.is_moving()
- 
+
     def getMotorMnemonic(self):
         return self.motor_name
 

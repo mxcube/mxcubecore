@@ -39,7 +39,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </device>
 """
-
+from __future__ import print_function
 import os
 import time
 import logging
@@ -50,10 +50,12 @@ import PyTango
 
 from GenericVideoDevice import GenericVideoDevice
 
+
 class Qt4_TangoLimaVideo(GenericVideoDevice):
     """
-    Descript. : 
+    Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -63,7 +65,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
 
         tangoname = self.getProperty("tangoname")
@@ -71,7 +73,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         width = self.getProperty("width")
         height = self.getProperty("height")
 
-        if None not in [width,height]:
+        if None not in [width, height]:
             self.width = width
             self.height = height
         else:
@@ -88,24 +90,27 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
             self.device.video_mode = "YUV422"
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
-  
+
         GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
+
     def get_raw_image_size(self):
 
         # in case width and height not set in xml return server values
         if None not in [self.width, self.height]:
-            return [self.width, self.height] 
+            return [self.width, self.height]
         else:
-            return [self.device.image_width, self.device.image_height] 
+            return [self.device.image_width, self.device.image_height]
 
     def get_image(self):
         img_data = self.device.video_last_image
 
-        if img_data[0]=="VIDEO_IMAGE":
+        if img_data[0] == "VIDEO_IMAGE":
             header_fmt = ">IHHqiiHHHH"
-            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(header_fmt, img_data[1][:struct.calcsize(header_fmt)])
+            _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
+                header_fmt, img_data[1][: struct.calcsize(header_fmt)]
+            )
             raw_buffer = np.fromstring(img_data[1][32:], np.uint16)
         return raw_buffer, width, height
 
@@ -126,9 +131,9 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
     def set_exposure_time(self, exposure_time_value):
         if self.get_cam_type() == "basler":
             self.device.video_exposure = exposure_time_value
-        
+
     def get_video_live(self):
-        return self.device.video_live 
+        return self.device.video_live
 
     def set_video_live(self, flag):
         self.device.video_live = flag
@@ -140,14 +145,15 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
             return self.width
         else:
             return self.device.width
-    
+
     def getHeight(self):
         if self.height:
             return self.height
         else:
             return self.device.height
-    
+
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+
+    print("Image dimensions: ", hwo.get_image_dimensions())
+    print("Live Mode: ", hwo.get_video_live())

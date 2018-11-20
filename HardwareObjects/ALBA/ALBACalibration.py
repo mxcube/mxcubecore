@@ -51,10 +51,10 @@ __maintainer__ = "Jordi Andreu"
 __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
-class ALBACalibration(BaseHardwareObjects.Device):
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+class ALBACalibration(BaseHardwareObjects.Device):
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
 
     def init(self):
 
@@ -67,18 +67,22 @@ class ALBACalibration(BaseHardwareObjects.Device):
     def getCalibration(self):
         calibx = self.calibx.getValue()
         caliby = self.caliby.getValue()
-        logging.getLogger().debug("Returning calibration: x=%s, y=%s" % (calibx, caliby))
-        return [calibx , caliby]
+        logging.getLogger().debug(
+            "Returning calibration: x=%s, y=%s" % (calibx, caliby)
+        )
+        return [calibx, caliby]
+
 
 def test():
-  hwr_directory = os.environ["XML_FILES_PATH"]
+    hwr_directory = os.environ["XML_FILES_PATH"]
 
-  print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-  hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-  hwr.connect()
+    print "Loading hardware repository from ", os.path.abspath(hwr_directory)
+    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr.connect()
 
-  calib = hwr.getHardwareObject("/calibration")
-  print "Calibration is: ",calib.getCalibration()
+    calib = hwr.getHardwareObject("/calibration")
+    print "Calibration is: ", calib.getCalibration()
 
-if __name__ == '__main__':
-   test()
+
+if __name__ == "__main__":
+    test()

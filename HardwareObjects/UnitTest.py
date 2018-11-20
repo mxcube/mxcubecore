@@ -24,6 +24,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 BL_SETUP = None
 
+
 class TestException(Exception):
     def __init__(self, value):
         self.value = value
@@ -31,44 +32,59 @@ class TestException(Exception):
     def __str__(self):
         return repr(self.value)
 
-class TestMethods(unittest.TestCase):
 
+class TestMethods(unittest.TestCase):
     def test_has_channels(self):
         logging.getLogger("HWR").debug("UnitTest: Testing has channels...")
 
     def test_get_value(self):
         logging.getLogger("HWR").debug("UnitTest: Testing return values...")
-        self.assertIn(type(BL_SETUP.energy_hwobj.getCurrentEnergy()),
-                      (float, int),
-                      "Energy hwobj | getCurrentEnergy() returns float")
+        self.assertIn(
+            type(BL_SETUP.energy_hwobj.getCurrentEnergy()),
+            (float, int),
+            "Energy hwobj | getCurrentEnergy() returns float",
+        )
 
         logging.getLogger("HWR").debug("UnitTest: Testing transmission hwobj")
-        self.assertIn(type(BL_SETUP.transmission_hwobj.getAttFactor()),
-                      (float, int),
-                      "Transmission hwobj | getAttFactor() returns float")
+        self.assertIn(
+            type(BL_SETUP.transmission_hwobj.getAttFactor()),
+            (float, int),
+            "Transmission hwobj | getAttFactor() returns float",
+        )
 
         logging.getLogger("HWR").debug("UnitTest: Testing aperture hwobj")
-        self.assertIn(type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size()),
-                      (float, int),
-                      "Aperture | get_diameter_size() returns float")
-        self.assertIn(type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_list()),
-                      (list, tuple),
-                      "Aperture | get_diameter_list() returns list or tuple")
-        self.assertIn(type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_position_list()),
-                      (list, tuple),
-                      "Aperture | get_position_list() returns list or tuple")
+        self.assertIn(
+            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_size()),
+            (float, int),
+            "Aperture | get_diameter_size() returns float",
+        )
+        self.assertIn(
+            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_diameter_list()),
+            (list, tuple),
+            "Aperture | get_diameter_list() returns list or tuple",
+        )
+        self.assertIn(
+            type(BL_SETUP.beam_info_hwobj.aperture_hwobj.get_position_list()),
+            (list, tuple),
+            "Aperture | get_position_list() returns list or tuple",
+        )
 
     def test_get_limits(self):
         logging.getLogger("HWR").debug("UnitTest: Testing limits...")
-        self.assertIsInstance(BL_SETUP.energy_hwobj.get_energy_limits(),
-                              list,
-                              "Energy hwobj | get_energy_limits() returns list with two floats")
+        self.assertIsInstance(
+            BL_SETUP.energy_hwobj.get_energy_limits(),
+            list,
+            "Energy hwobj | get_energy_limits() returns list with two floats",
+        )
 
     def test_get_state(self):
         logging.getLogger("HWR").debug("UnitTest: Testing states...")
-        self.assertIsInstance(BL_SETUP.transmission_hwobj.getAttState(),
-                              str,
-                              "Transmission hwobj | getAttState() returns int")
+        self.assertIsInstance(
+            BL_SETUP.transmission_hwobj.getAttState(),
+            str,
+            "Transmission hwobj | getAttState() returns int",
+        )
+
 
 class UnitTest(HardwareObject):
     def __init__(self, name):
@@ -80,6 +96,6 @@ class UnitTest(HardwareObject):
         suite = unittest.TestLoader().loadTestsFromTestCase(TestMethods)
         test_result = unittest.TextTestRunner(verbosity=3).run(suite)
 
-        #test_result.errors
-        #test_result.failures
-        #test_result.skipped
+        # test_result.errors
+        # test_result.failures
+        # test_result.skipped

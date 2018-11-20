@@ -14,7 +14,7 @@ beamPosChanged
 | name            | signals          | functions
 -----------------------------------------------------------------------
  aperture_hwobj	    apertureChanged
- slits_hwobj	    	
+ slits_hwobj
  beam_definer_hwobj
 -----------------------------------------------------------------------
 """
@@ -22,10 +22,11 @@ beamPosChanged
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
 
+
 class BeamInfo(Equipment):
     """
     Description:
-    """  	
+    """
 
     def __init__(self, *args):
         """
@@ -49,7 +50,7 @@ class BeamInfo(Equipment):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
@@ -59,32 +60,41 @@ class BeamInfo(Equipment):
 
         self.aperture_hwobj = self.getObjectByRole("aperture")
         if self.aperture_hwobj is not None:
-            self.connect(self.aperture_hwobj, "apertureChanged", \
-                 self.aperture_pos_changed)
+            self.connect(
+                self.aperture_hwobj, "apertureChanged", self.aperture_pos_changed
+            )
         else:
-            logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined") 
+            logging.getLogger("HWR").debug("BeamInfo: Aperture hwobj not defined")
 
         self.slits_hwobj = self.getObjectByRole("slits")
-        if self.slits_hwobj is not None:  
+        if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj, "gapSizeChanged", self.slits_gap_changed)
         else:
             logging.getLogger("HWR").debug("BeamInfo: Slits hwobj not defined")
 
         self.beam_definer_hwobj = self.getObjectByRole("definer")
         if self.beam_definer_hwobj is not None:
-            self.connect(self.beam_definer_hwobj, "definerPosChanged", \
-                 self.definer_pos_changed)
+            self.connect(
+                self.beam_definer_hwobj, "definerPosChanged", self.definer_pos_changed
+            )
         else:
             logging.getLogger("HWR").debug("BeamInfo: Beam definer hwobj not defined")
 
         default_beam_divergence_vertical = None
         default_beam_divergence_horizontal = None
-        try: 
-           default_beam_divergence_vertical = int(self.getProperty("beam_divergence_vertical"))
-           default_beam_divergence_horizontal = int(self.getProperty("beam_divergence_horizontal"))
-        except:
-           pass
-        self.default_beam_divergence = [default_beam_divergence_horizontal, default_beam_divergence_vertical]
+        try:
+            default_beam_divergence_vertical = int(
+                self.getProperty("beam_divergence_vertical")
+            )
+            default_beam_divergence_horizontal = int(
+                self.getProperty("beam_divergence_horizontal")
+            )
+        except BaseException:
+            pass
+        self.default_beam_divergence = [
+            default_beam_divergence_horizontal,
+            default_beam_divergence_vertical,
+        ]
 
     def connectNotify(self, *args):
         self.evaluate_beam_info()
@@ -92,22 +102,22 @@ class BeamInfo(Equipment):
 
     def get_beam_divergence_hor(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_definer_hwobj is not None:
-            return self.beam_definer_hwobj.get_divergence_hor() 
+            return self.beam_definer_hwobj.get_divergence_hor()
         else:
             return self.default_beam_divergence[0]
-    
+
     def get_beam_divergence_ver(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_definer_hwobj is not None:
             return self.beam_definer_hwobj.get_divergence_ver()
         else:
             return self.default_beam_divergence[1]
- 
+
     def get_beam_position(self):
         """
         Descript. :
@@ -115,7 +125,7 @@ class BeamInfo(Equipment):
         Return    :
         """
         return (0, 0)
-        #raise NotImplementedError
+        # raise NotImplementedError
 
     def set_beam_position(self, beam_x, beam_y):
         """
@@ -132,7 +142,7 @@ class BeamInfo(Equipment):
         Return    :
         """
         self.beam_size_aperture = size
-        self.evaluate_beam_info() 
+        self.evaluate_beam_info()
         self.emit_beam_info_change()
 
     def slits_gap_changed(self, size):
@@ -162,15 +172,14 @@ class BeamInfo(Equipment):
         Return    :
         """
         return self.evaluate_beam_info()
-        
+
     def get_beam_size(self):
         """
         Descript. : returns beam size in millimeters
         Return   : list with two integers
         """
         self.evaluate_beam_info()
-        return self.beam_info_dict["size_x"], \
-	       self.beam_info_dict["size_y"]
+        return self.beam_info_dict["size_x"], self.beam_info_dict["size_y"]
 
     def get_beam_shape(self):
         """
@@ -188,44 +197,58 @@ class BeamInfo(Equipment):
         Return    :
         """
         self.evaluate_beam_info()
-        return self.beam_size_slits	
+        return self.beam_size_slits
 
     def evaluate_beam_info(self):
         """
         Descript. : called if aperture, slits or focusing has been changed
         Return    : dictionary,{size_x:0.1, size_y:0.1, shape:"rectangular"}
         """
-        size_x = min(self.beam_size_aperture[0],
-	   	     self.beam_size_slits[0],
-		     self.beam_size_definer[0]) 
-        size_y = min(self.beam_size_aperture[1],
-  		     self.beam_size_slits[1], 
-		     self.beam_size_definer[1]) 
-	
+        size_x = min(
+            self.beam_size_aperture[0],
+            self.beam_size_slits[0],
+            self.beam_size_definer[0],
+        )
+        size_y = min(
+            self.beam_size_aperture[1],
+            self.beam_size_slits[1],
+            self.beam_size_definer[1],
+        )
+
         self.beam_info_dict["size_x"] = size_x
         self.beam_info_dict["size_y"] = size_y
 
         # be careful with comparisons!!! both have to be the same type (=tuple)
         if tuple(self.beam_size_aperture) < tuple(self.beam_size_slits):
-	    self.beam_info_dict["shape"] = "ellipse"
-	else:
-	    self.beam_info_dict["shape"] = "rectangular"
-	
-	return self.beam_info_dict	
+            self.beam_info_dict["shape"] = "ellipse"
+        else:
+            self.beam_info_dict["shape"] = "rectangular"
 
-    def emit_beam_info_change(self): 
+        return self.beam_info_dict
+
+    def emit_beam_info_change(self):
         """
         Descript. :
         Arguments :
         Return    :
         """
-        if self.beam_info_dict["size_x"] != 9999 and \
-           self.beam_info_dict["size_y"] != 9999:		
-            self.emit("beamSizeChanged", ((self.beam_info_dict["size_x"], \
-                 self.beam_info_dict["size_y"]), ))
-            self.emit("beamInfoChanged", (self.beam_info_dict, ))
+        if (
+            self.beam_info_dict["size_x"] != 9999
+            and self.beam_info_dict["size_y"] != 9999
+        ):
+            self.emit(
+                "beamSizeChanged",
+                ((self.beam_info_dict["size_x"], self.beam_info_dict["size_y"]),),
+            )
+            self.emit("beamInfoChanged", (self.beam_info_dict,))
             if self.chan_beam_size_microns:
-                self.chan_beam_size_microns.setValue((self.beam_info_dict["size_x"] * 1000, \
-                     self.beam_info_dict["size_y"] * 1000))	
+                self.chan_beam_size_microns.setValue(
+                    (
+                        self.beam_info_dict["size_x"] * 1000,
+                        self.beam_info_dict["size_y"] * 1000,
+                    )
+                )
             if self.chan_beam_shape_ellipse:
-                self.chan_beam_shape_ellipse.setValue(self.beam_info_dict["shape"] == "ellipse") 
+                self.chan_beam_shape_ellipse.setValue(
+                    self.beam_info_dict["shape"] == "ellipse"
+                )

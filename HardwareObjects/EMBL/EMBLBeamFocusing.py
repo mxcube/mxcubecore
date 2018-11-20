@@ -50,46 +50,52 @@ class EMBLBeamFocusing(HardwareObject):
            attaches corresponding motors
         """
 
-        self.cmd_set_calibration_name = self.getCommandObject(
-            'cmdSetCalibrationName')
+        self.cmd_set_calibration_name = self.getCommandObject("cmdSetCalibrationName")
         self.focus_modes = []
-        for focus_mode in self['focusModes']:
+        for focus_mode in self["focusModes"]:
             self.focus_modes.append(
-                 {'modeName': focus_mode.modeName,
-                  'lensCombination': eval(focus_mode.lensCombination),
-                  'aperture': focus_mode.aperture,
-                  'lensModes': eval(focus_mode.lensModes),
-                  'size': eval(focus_mode.size),
-                  'message': eval(focus_mode.message),
-                  'diverg': eval(focus_mode.divergence)})
+                {
+                    "modeName": focus_mode.modeName,
+                    "lensCombination": eval(focus_mode.lensCombination),
+                    "aperture": focus_mode.aperture,
+                    "lensModes": eval(focus_mode.lensModes),
+                    "size": eval(focus_mode.size),
+                    "message": eval(focus_mode.message),
+                    "diverg": eval(focus_mode.divergence),
+                }
+            )
         self.focus_motors_dict = {}
 
-        focus_motors = eval(self.getProperty('focusMotors', '[]'))
+        focus_motors = eval(self.getProperty("focusMotors", "[]"))
 
         for focus_motor in focus_motors:
             self.focus_motors_dict[focus_motor] = []
 
-        self.motors_groups = [self.getObjectByRole("P14ExpTbl"),
-                              self.getObjectByRole("P14KB"),
-                              self.getObjectByRole("P14DetTrans"),
-                              self.getObjectByRole("P14BCU"),
-                              self.getObjectByRole("slitsMotors")]
+        self.motors_groups = [
+            self.getObjectByRole("P14ExpTbl"),
+            self.getObjectByRole("P14KB"),
+            self.getObjectByRole("P14DetTrans"),
+            self.getObjectByRole("P14BCU"),
+            self.getObjectByRole("slitsMotors"),
+        ]
 
         if len(self.motors_groups) > 0:
             for motors_group in self.motors_groups:
-                self.connect(motors_group,
-                             'mGroupFocModeChanged',
-                             self.motor_group_focus_mode_changed)
+                self.connect(
+                    motors_group,
+                    "mGroupFocModeChanged",
+                    self.motor_group_focus_mode_changed,
+                )
                 motors_group.update_values()
         else:
-            logging.getLogger("HWR").debug('BeamFocusing: No motors defined')
-            self.active_focus_mode = self.focus_modes[0]['modeName']
-            self.size = self.focus_modes[0]['size']
+            logging.getLogger("HWR").debug("BeamFocusing: No motors defined")
+            self.active_focus_mode = self.focus_modes[0]["modeName"]
+            self.size = self.focus_modes[0]["size"]
         self.update_values()
 
         try:
-            self.cmd_set_phase = eval(self.getProperty('setPhaseCmd'))
-        except:
+            self.cmd_set_phase = eval(self.getProperty("setPhaseCmd"))
+        except BaseException:
             pass
 
         self.aperture_hwobj = self.getObjectByRole("aperture")
@@ -122,9 +128,10 @@ class EMBLBeamFocusing(HardwareObject):
 
         if prev_mode != self.active_focus_mode:
             if self.active_focus_mode:
-                logging.getLogger("GUI").info('Focusing: %s mode detected' %
-                                              self.active_focus_mode)
-            self.emit('focusingModeChanged', self.active_focus_mode, self.size)
+                logging.getLogger("GUI").info(
+                    "Focusing: %s mode detected" % self.active_focus_mode
+                )
+            self.emit("focusingModeChanged", self.active_focus_mode, self.size)
             if self.active_focus_mode:
                 self.cmd_set_calibration_name(self.active_focus_mode.lower())
 
@@ -132,7 +139,7 @@ class EMBLBeamFocusing(HardwareObject):
         """Returns defined focus modes names"""
         names = []
         for focus_mode in self.focus_modes:
-            names.append(focus_mode['modeName'])
+            names.append(focus_mode["modeName"])
         return names
 
     def get_focus_mode_message(self, focus_mode_name):
@@ -142,8 +149,8 @@ class EMBLBeamFocusing(HardwareObject):
         :type focus_mode_name: str
         """
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == focus_mode_name:
-                return focus_mode['message']
+            if focus_mode["modeName"] == focus_mode_name:
+                return focus_mode["message"]
 
     def get_available_lens_modes(self, focus_mode_name=None):
         """Get available CRL lens combination for the given focusing mode
@@ -157,8 +164,8 @@ class EMBLBeamFocusing(HardwareObject):
         if focus_mode_name is None:
             focus_mode_name = self.active_focus_mode
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == focus_mode_name:
-                lens_modes = focus_mode['lensModes']
+            if focus_mode["modeName"] == focus_mode_name:
+                lens_modes = focus_mode["lensModes"]
 
         return lens_modes
 
@@ -173,24 +180,24 @@ class EMBLBeamFocusing(HardwareObject):
             focus_mode_name, beam_size = self.get_active_focus_mode()
 
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == focus_mode_name:
-                return focus_mode['lensCombination']
+            if focus_mode["modeName"] == focus_mode_name:
+                return focus_mode["lensCombination"]
 
     def get_focus_mode_aperture(self, focus_mode_name=None):
         if focus_mode_name is None:
             focus_mode_name, beam_size = self.get_active_focus_mode()
 
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == focus_mode_name:
-                return focus_mode['aperture']
+            if focus_mode["modeName"] == focus_mode_name:
+                return focus_mode["aperture"]
 
     def get_active_focus_mode(self):
         """Evaluates and returns active focusing mode"""
         if len(self.focus_motors_dict) > 0:
             active_focus_mode = None
             for focus_mode in self.focus_modes:
-                self.size = focus_mode['size']
-                active_focus_mode = focus_mode['modeName']
+                self.size = focus_mode["size"]
+                active_focus_mode = focus_mode["modeName"]
                 for motor in self.focus_motors_dict:
                     if len(self.focus_motors_dict[motor]) == 0:
                         active_focus_mode = None
@@ -228,11 +235,9 @@ class EMBLBeamFocusing(HardwareObject):
         :param focus_mode: requested focusing mode
         :type focus_mode: str
         """
-        gevent.spawn(self.focus_mode_task,
-                     focus_mode)
-        logging.getLogger("HWR").info('Focusing: %s mode requested' %
-                                      focus_mode)
-        self.emit('focusingModeRequested', focus_mode)
+        gevent.spawn(self.focus_mode_task, focus_mode)
+        logging.getLogger("HWR").info("Focusing: %s mode requested" % focus_mode)
+        self.emit("focusingModeRequested", focus_mode)
 
     def focus_mode_task(self, focus_mode):
         """Gevent task to set focusing mode
@@ -242,49 +247,49 @@ class EMBLBeamFocusing(HardwareObject):
         """
 
         if focus_mode and self.cmd_set_phase:
-            #TODO put a try with error handling
-            logging.getLogger("GUI").warning(\
-                 "Focusing: Setting diffractometer to BeamLocation phase...")
+            # TODO put a try with error handling
+            logging.getLogger("GUI").warning(
+                "Focusing: Setting diffractometer to BeamLocation phase..."
+            )
 
-            #Waits for diffractometer to be ready
+            # Waits for diffractometer to be ready
             self.aperture_hwobj.wait_ready()
-            tinequery(self.cmd_set_phase['address'],
-                      self.cmd_set_phase['property'],
-                      self.cmd_set_phase['argument'])
+            tinequery(
+                self.cmd_set_phase["address"],
+                self.cmd_set_phase["property"],
+                self.cmd_set_phase["argument"],
+            )
 
-            logging.getLogger("GUI").warning(\
-                 "Focusing: Setting focusing motors...")
+            logging.getLogger("GUI").warning("Focusing: Setting focusing motors...")
             if self.motors_groups:
                 for motors_group in self.motors_groups:
                     motors_group.set_motor_group_focus_mode(focus_mode)
-            logging.getLogger("GUI").info('Focusing: Focusing motors set')
+            logging.getLogger("GUI").info("Focusing: Focusing motors set")
 
             aperture_diameter = self.get_focus_mode_aperture(focus_mode)
             logging.getLogger("GUI").warning(
-                 "Focusing: Setting aperture to %d microns..." %
-                 aperture_diameter)
+                "Focusing: Setting aperture to %d microns..." % aperture_diameter
+            )
 
             self.aperture_hwobj.wait_ready()
             self.aperture_hwobj.set_diameter(aperture_diameter)
-            logging.getLogger("GUI").info('Focusing: Aperture set')
+            logging.getLogger("GUI").info("Focusing: Aperture set")
         else:
-            #No motors defined
+            # No motors defined
             self.active_focus_mode = focus_mode
 
     def get_divergence_hor(self):
         """Returns horizontal beam divergence"""
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == self.active_focus_mode:
-                return focus_mode['diverg'][0]
+            if focus_mode["modeName"] == self.active_focus_mode:
+                return focus_mode["diverg"][0]
 
     def get_divergence_ver(self):
         """Returns vertical beam divergence"""
         for focus_mode in self.focus_modes:
-            if focus_mode['modeName'] == self.active_focus_mode:
-                return focus_mode['diverg'][1]
+            if focus_mode["modeName"] == self.active_focus_mode:
+                return focus_mode["diverg"][1]
 
     def update_values(self):
         """Reemits available signals"""
-        self.emit('focusingModeChanged',
-                  self.active_focus_mode,
-                  self.size)
+        self.emit("focusingModeChanged", self.active_focus_mode, self.size)

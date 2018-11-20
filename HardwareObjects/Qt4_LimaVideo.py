@@ -26,7 +26,7 @@ HwObj used to grab images via LImA library or Lima Tango server.
 
 [Configuration]
 See example below.  To select between "Library" or "Tango" simply
-use and configure the field <address> (for Library) 
+use and configure the field <address> (for Library)
 or <tangoname> (for Tango)
 in the XML file.
 
@@ -43,6 +43,8 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </device>
 """
+
+from __future__ import print_function
 import os
 import time
 import logging
@@ -52,23 +54,25 @@ from GenericVideoDevice import GenericVideoDevice
 
 try:
     from Lima import Core
-except:
+except BaseException:
     pass
 
 try:
     from Lima import Prosilica
-except ImportError, e:
+except ImportError as e:
     pass
 
 try:
     from Lima import Basler
-except ImportError, e:
+except ImportError as e:
     pass
+
 
 class Qt4_LimaVideo(GenericVideoDevice):
     """
-    Descript. : 
+    Descript. :
     """
+
     def __init__(self, name):
         """
         Descript. :
@@ -81,21 +85,23 @@ class Qt4_LimaVideo(GenericVideoDevice):
         self.camera = None
         self.interface = None
         self.control = None
-        self.video = None 
+        self.video = None
         self.master_mode = True
 
     def init(self):
         self.cam_address = self.getProperty("address")
         self.cam_type = self.getProperty("type").lower()
 
-        if self.cam_type == 'prosilica':
+        if self.cam_type == "prosilica":
             self.camera = Prosilica.Camera(self.cam_address, self.master_mode, False)
-            self.interface = Prosilica.Interface(self.camera) 
-        elif self.cam_type == 'basler':
-            logging.getLogger("HWR").info("Connecting to camera with address %s" % self.cam_address)
+            self.interface = Prosilica.Interface(self.camera)
+        elif self.cam_type == "basler":
+            logging.getLogger("HWR").info(
+                "Connecting to camera with address %s" % self.cam_address
+            )
             self.camera = Basler.Camera(self.cam_address)
             self.interface = Basler.Interface(self.camera)
- 
+
         self.control = Core.CtControl(self.interface)
         self.video = self.control.video()
 
@@ -107,18 +113,19 @@ class Qt4_LimaVideo(GenericVideoDevice):
         elif cam_encoding == "y8":
             self.video.setMode(Core.Y8)
 
-        GenericVideoDevice.set_cam_encoding(self,cam_encoding)
+        GenericVideoDevice.set_cam_encoding(self, cam_encoding)
 
     """ Overloading of GenericVideoDevice methods """
+
     def get_raw_image_size(self):
-        if self.cam_type == 'prosilica':
+        if self.cam_type == "prosilica":
             return list(self.camera.getMaxWidthHeight())
-        elif self.cam_type == 'basler':
+        elif self.cam_type == "basler":
             width = self.camera.getRoi().getSize().getWidth()
             height = self.camera.getRoi().getSize().getHeight()
             return [width, height]
         else:
-            return [None,None]
+            return [None, None]
 
     def get_image(self):
         image = self.video.getLastImage()
@@ -126,7 +133,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
             raw_buffer = image.buffer()
             return raw_buffer, image.width(), image.height()
         else:
-            return None, None, None 
+            return None, None, None
 
     def get_gain(self):
         value = self.video.getGain()
@@ -154,6 +161,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
 
     """ END Overloading of GenericVideoDevice methods """
 
+
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print("Image dimensions: ", hwo.get_image_dimensions())
+    print("Live Mode: ", hwo.get_video_live())

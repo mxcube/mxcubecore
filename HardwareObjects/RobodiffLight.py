@@ -3,13 +3,11 @@ import logging
 import time
 import gevent
 
+
 class RobodiffLight(Device):
-    states = {
-      0:   "out",
-      1:   "in",
-    }
-    READ_CMD, READ_OUT = (0,1)
-    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0,1,2,3,4,5)   
+    states = {0: "out", 1: "in"}
+    READ_CMD, READ_OUT = (0, 1)
+    (NOTINITIALIZED, UNUSABLE, READY, MOVESTARTED, MOVING, ONLIMIT) = (0, 1, 2, 3, 4, 5)
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -17,7 +15,7 @@ class RobodiffLight(Device):
     def init(self):
         controller = self.getObjectByRole("controller")
 
-	self._state = None
+        self._state = None
         self.username = self.name()
         self.wago_controller = getattr(controller, self.wago)
         self.command_key = self.getProperty("cmd")
@@ -26,17 +24,17 @@ class RobodiffLight(Device):
         self.light_level = self.getProperty("level")
         self.wago_polling = gevent.spawn(self._wago_polling, self.command_key)
         self.setIsReady(True)
-      
+
     def _wago_polling(self, key):
         while True:
             try:
-              reading = int(self.wago_controller.get(key))
-            except:
-              time.sleep(1)
-              continue
+                reading = int(self.wago_controller.get(key))
+            except BaseException:
+                time.sleep(1)
+                continue
             if self._state != reading:
                 self._state = reading
-                self.emit("wagoStateChanged", (self.getWagoState(), ))
+                self.emit("wagoStateChanged", (self.getWagoState(),))
             time.sleep(1)
 
     def getWagoState(self):

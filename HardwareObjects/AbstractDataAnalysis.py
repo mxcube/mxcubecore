@@ -1,8 +1,8 @@
 import abc
 
+
 class AbstractDataAnalysis(object):
     __metaclass__ = abc.ABCMeta
-
 
     @abc.abstractmethod
     def characterise(self, edna_input):
@@ -12,7 +12,6 @@ class AbstractDataAnalysis(object):
         """
         return None
 
-
     @abc.abstractmethod
     def get_html_report(self, edna_output):
         """
@@ -21,13 +20,12 @@ class AbstractDataAnalysis(object):
         """
         return None
 
-
     @abc.abstractmethod
     def from_params(self, ref_parameters, char_params, path_str):
         """Return xml input file for EDNA
 
         :param ref_parameters: A named tuple or object with following fields:
-              'id', 
+              'id',
               'prefix',
               'run_number',
               'template',
@@ -48,7 +46,7 @@ class AbstractDataAnalysis(object):
               'inverse_beam',
               'screening_id'
 
-         :param char_params: A named tuple or object with following fields:  
+         :param char_params: A named tuple or object with following fields:
               # Optimisation parameters
               'aimed_resolution'
               'aimed_multiplicity'
@@ -82,7 +80,7 @@ class AbstractDataAnalysis(object):
               # Radiation damage model
               'rad_suscept'
               'beta'
-              'sigma'  
+              'sigma'
 
           :param path_str: Template string representing path to each image
         """
@@ -94,8 +92,9 @@ The resulting EDNA XML can be handled with a function similair to this.
 It has to be adapted to the specific representation of a collection that
 you have.
 """
-def dc_from_edna_output(edna_output, sample, dcg, session,
-                        char_params = None):
+
+
+def dc_from_edna_output(edna_output, sample, dcg, session, char_params=None):
     data_collections = []
 
     edna_result = XSDataResultMXCuBE.parseString(edna_output)
@@ -105,8 +104,8 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
         edna_strategy = char_results.getStrategyResult()
         collection_plan = edna_strategy.getCollectionPlan()[0]
         wedges = collection_plan.getCollectionStrategy().getSubWedge()
-    except:
-            pass
+    except BaseException:
+        pass
     else:
         try:
             run_number = collection_plan.getCollectionPlanNumber().getValue()
@@ -114,14 +113,14 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
             run_number = None
 
         try:
-            resolution = collection_plan.getStrategySummary().\
-                getResolution().getValue()
+            resolution = collection_plan.getStrategySummary().getResolution().getValue()
         except AttributeError:
             resolution = None
 
-        try: 
-            transmission = collection_plan.getStrategySummary().\
-               getAttenuation().getValue()
+        try:
+            transmission = (
+                collection_plan.getStrategySummary().getAttenuation().getValue()
+            )
         except AttributeError:
             transmission = None
 
@@ -153,27 +152,25 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
                 dc.parameters.screening_id = screening_id
 
             try:
-                dc.parameters.osc_start = goniostat.\
-                    getRotationAxisStart().getValue()
+                dc.parameters.osc_start = goniostat.getRotationAxisStart().getValue()
             except AttributeError:
                 pass
 
             try:
-                dc.parameters.osc_end = goniostat.\
-                    getRotationAxisEnd().getValue()
+                dc.parameters.osc_end = goniostat.getRotationAxisEnd().getValue()
             except AttributeError:
                 pass
 
             try:
-                dc.parameters.osc_width = goniostat.\
-                    getOscillationWidth().getValue()
+                dc.parameters.osc_width = goniostat.getOscillationWidth().getValue()
             except AttributeError:
                 pass
 
             try:
-                dc.parameters.num_images = \
-                    int(abs(dc.parameters.osc_end - \
-                            dc.parameters.osc_start) / dc.parameters.range)
+                dc.parameters.num_images = int(
+                    abs(dc.parameters.osc_end - dc.parameters.osc_start)
+                    / dc.parameters.range
+                )
             except AttributeError:
                 pass
 
@@ -182,9 +179,10 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
             except AttributeError:
                 pass
 
-            try: 
-                dc.parameters.energy = \
-                    int(123984.0/beam.getWavelength().getValue())/10000.0
+            try:
+                dc.parameters.energy = (
+                    int(123984.0 / beam.getWavelength().getValue()) / 10000.0
+                )
             except AttributeError:
                 pass
 
@@ -192,7 +190,6 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
                 dc.parameters.exp_time = beam.getExposureTime().getValue()
             except AttributeError:
                 pass
-
 
             # dc.parameters.comments = enda_result.comments
             # dc.parametets.path = enda_result.directory
@@ -204,7 +201,9 @@ def dc_from_edna_output(edna_output, sample, dcg, session,
 
             dc.sample = sample
 
-            dc.parameters.directory = session.get_image_directory(sub_dir = dcg.name.lower().replace(' ',''))
+            dc.parameters.directory = session.get_image_directory(
+                sub_dir=dcg.name.lower().replace(" ", "")
+            )
 
         if char_params:
             dc.char_params = char_params

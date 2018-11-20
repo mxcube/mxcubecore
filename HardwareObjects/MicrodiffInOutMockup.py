@@ -14,59 +14,60 @@ Example xml file:
   <use_hwstate>True</use_hwstate>
 </device>
 """
-class MicrodiffInOutMockup(Device):
 
+
+class MicrodiffInOutMockup(Device):
     def __init__(self, name):
         Device.__init__(self, name)
         self.actuatorState = "unknown"
         self.username = "unknown"
-        #default timeout - 3 sec
+        # default timeout - 3 sec
         self.timeout = 3
         self.hwstate_attr = None
-
 
     def init(self):
         self.cmdname = self.getProperty("cmd_name")
         self.username = self.getProperty("username")
 
-        self.states = {True:"in", False:"out"}
+        self.states = {True: "in", False: "out"}
         self.state_attr = False
         self.offset = self.getProperty("offset")
         if self.offset > 0:
-            self.states = {self.offset:"out", self.offset-1:"in",}
+            self.states = {self.offset: "out", self.offset - 1: "in"}
 
         states = self.getProperty("private_state")
         if states:
             import ast
+
             self.states = ast.literal_eval(states)
         try:
             tt = float(self.getProperty("timeout"))
             self.timeout = tt
-        except:
+        except BaseException:
             pass
 
         self.moves = dict((self.states[k], k) for k in self.states)
 
     def connectNotify(self, signal):
-        if signal=='actuatorStateChanged':
+        if signal == "actuatorStateChanged":
             self.valueChanged(self.state_attr)
 
     def valueChanged(self, value):
         self.actuatorState = self.states.get(value, "unknown")
-        self.emit('actuatorStateChanged', (self.actuatorState, ))
-        
+        self.emit("actuatorStateChanged", (self.actuatorState,))
+
     def _ready(self):
         return True
-  
+
     def _wait_ready(self, timeout=None):
         timeout = timeout or self.timeout
         tt1 = time.time()
         while time.time() - tt1 < timeout:
-             if self._ready():
-                 break
-             else:
-                 time.sleep(0.5)
- 
+            if self._ready():
+                break
+            else:
+                time.sleep(0.5)
+
     def getActuatorState(self, read=False):
         if read is True:
             value = self.state_attr
@@ -75,7 +76,7 @@ class MicrodiffInOutMockup(Device):
         else:
             if self.actuatorState == "unknown":
                 self.connectNotify("actuatorStateChanged")
-        return self.actuatorState 
+        return self.actuatorState
 
     def actuatorIn(self, wait=True, timeout=None):
         if self._ready():
@@ -85,11 +86,15 @@ class MicrodiffInOutMockup(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.valueChanged(self.state_attr)
-            except:
-                logging.getLogger('user_level_log').error("Cannot put %s in", self.username)
+            except BaseException:
+                logging.getLogger("user_level_log").error(
+                    "Cannot put %s in", self.username
+                )
         else:
-            logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s in" , self.username)
- 
+            logging.getLogger("user_level_log").error(
+                "Microdiff is not ready, will not put %s in", self.username
+            )
+
     def actuatorOut(self, wait=True, timeout=None):
         if self._ready():
             try:
@@ -98,8 +103,11 @@ class MicrodiffInOutMockup(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.valueChanged(self.state_attr)
-            except:
-                logging.getLogger('user_level_log').error("Cannot put %s out", self.username)
+            except BaseException:
+                logging.getLogger("user_level_log").error(
+                    "Cannot put %s out", self.username
+                )
         else:
-            logging.getLogger('user_level_log').error("Microdiff is not ready, will not put %s out" , self.username)
-
+            logging.getLogger("user_level_log").error(
+                "Microdiff is not ready, will not put %s out", self.username
+            )
