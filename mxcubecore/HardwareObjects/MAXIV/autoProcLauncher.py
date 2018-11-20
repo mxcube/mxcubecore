@@ -11,7 +11,8 @@ import logging
 import httplib
 import logging
 import tempfile
-import subprocess, shlex
+import subprocess
+import shlex
 
 inputTemplate = """<?xml version="1.0"?>
 <XSDataInputControlAutoPROC>
@@ -95,14 +96,22 @@ edPlugin.executeSynchronous()
 """
 # XDS.INP creation is now asynchronous in mxcube, so it may not be here yet
 # when we're started
-#WAIT_XDS_TIMEOUT = 10
+# WAIT_XDS_TIMEOUT = 10
 
 HPC_HOST = "b-picard07-clu0-fe-0.maxiv.lu.se"
 
 
 class AutoProcLauncher:
-
-    def __init__(self, path, mode, datacollectionID, residues=200, anomalous=False, cell="0,0,0,0,0,0", spacegroup=None):
+    def __init__(
+        self,
+        path,
+        mode,
+        datacollectionID,
+        residues=200,
+        anomalous=False,
+        cell="0,0,0,0,0,0",
+        spacegroup=None,
+    ):
         self.autoprocessingPath = path
         self.mode = mode
         self.dataCollectionId = datacollectionID
@@ -121,19 +130,23 @@ class AutoProcLauncher:
 
     def parse_input_file(self):
         # the other parameters are not used right now
-        self.inputXml = inputTemplate.format(dataCollectionId=self.dataCollectionId,
-                                             doAnomAndNonanom=self.doAnomAndNonanom,
-                                             autoPROCPath=self.autoPROCPath)
+        self.inputXml = inputTemplate.format(
+            dataCollectionId=self.dataCollectionId,
+            doAnomAndNonanom=self.doAnomAndNonanom,
+            autoPROCPath=self.autoPROCPath,
+        )
 
         # we now need a temp file in the data dir to write the data model to
         ednaInputFileName = "autoPROC_input.xml"
         self.ednaInputFilePath = os.path.join(self.autoPROCPath, ednaInputFileName)
         if os.path.exists(self.ednaInputFilePath):
             # Create unique file name
-            ednaInputFile = tempfile.NamedTemporaryFile(suffix=".xml",
-                                                        prefix="autoPROC_input-",
-                                                        dir=self.autoPROCPath,
-                                                        delete=False)
+            ednaInputFile = tempfile.NamedTemporaryFile(
+                suffix=".xml",
+                prefix="autoPROC_input-",
+                dir=self.autoPROCPath,
+                delete=False,
+            )
             self.ednaInputFilePath = os.path.join(self.autoPROCPath, ednaInputFile.name)
             ednaInputFile.file.write(self.inputXml)
             ednaInputFile.close()
@@ -149,26 +162,31 @@ class AutoProcLauncher:
             beamline = "unknown"
             proposal = "unknown"
 
-        #to do restrict autoPROC only for academic users!?
-
+        # to do restrict autoPROC only for academic users!?
 
         template = string.Template(SCRIPT_TEMPLATE)
-        self.script = template.substitute(beamline=beamline,
-                                     proposal=proposal,
-                                     autoPROCDirectory=self.autoPROCPath,
-                                     dataCollectionId=self.dataCollectionId,
-                                     inputFile=self.ednaInputFilePath)
+        self.script = template.substitute(
+            beamline=beamline,
+            proposal=proposal,
+            autoPROCDirectory=self.autoPROCPath,
+            dataCollectionId=self.dataCollectionId,
+            inputFile=self.ednaInputFilePath,
+        )
 
         # we also need some kind of script to run edna-plugin-launcher
         ednaScriptFileName = "autoPROC_launcher.sh"
         self.ednaScriptFilePath = os.path.join(self.autoPROCPath, ednaScriptFileName)
         if os.path.exists(self.ednaScriptFilePath):
             # Create unique file name
-            ednaScriptFile = tempfile.NamedTemporaryFile(suffix=".sh",
-                                                         prefix="autoPROC_launcher-",
-                                                         dir=self.autoPROCPath,
-                                                         delete=False)
-            self.ednaScriptFilePath = os.path.join(self.autoPROCPath, ednaScriptFile.name)
+            ednaScriptFile = tempfile.NamedTemporaryFile(
+                suffix=".sh",
+                prefix="autoPROC_launcher-",
+                dir=self.autoPROCPath,
+                delete=False,
+            )
+            self.ednaScriptFilePath = os.path.join(
+                self.autoPROCPath, ednaScriptFile.name
+            )
             ednaScriptFile.file.write(self.script)
             ednaScriptFile.close()
         else:
@@ -177,25 +195,35 @@ class AutoProcLauncher:
 
     def execute(self):
 
-        cmd = "echo 'cd %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s; source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile" % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
+        cmd = (
+            "echo 'cd %s;source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh -F /etc/ssh/.ssh -o UserKnownHostsFile=/etc/ssh/.ssh/known_host -i /etc/ssh/id_rsa_biomax-service %s; source /mxn/groups/biomax/wmxsoft/scripts_mxcube/biomax_HPC.bash_profile"
+            % (self.autoPROCPath, self.ednaScriptFilePath, HPC_HOST)
+        )
 
         # for test
-        #cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
-        #print cmd
-        logging.getLogger('HWR').info("Autoproc launcher: command gonna be launched: %s" % cmd)
+        # cmd = "echo 'cd %s;/mxn/groups/biomax/cmxsoft/edna-mx/scripts_maxiv/edna_sbatch.sh %s' | ssh %s" % (autoPROCPath, ednaScriptFilePath, hpc_host)
+        # print cmd
+        logging.getLogger("HWR").info(
+            "Autoproc launcher: command gonna be launched: %s" % cmd
+        )
 
-        p = subprocess.Popen(cmd, shell=True) #, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        p = subprocess.Popen(
+            cmd, shell=True
+        )  # , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         p.wait()
 
     def parse_and_execute(self):
         self.parse_input_file()
         self.execute()
 
+
 if __name__ == "__main__":
     args = sys.argv[1:]
 
     if (len(args) % 2) != 0:
-        logging.error("the argument list is not well formed (odd number of args/options)")
+        logging.error(
+            "the argument list is not well formed (odd number of args/options)"
+        )
         sys.exit()
 
     # do the arg parsing by hand since neither getopt nor optparse support
@@ -213,5 +241,13 @@ if __name__ == "__main__":
     dataCollectionId = options["-datacollectionID"]
     mode = options.get("-mode")
 
-    autoProc = AutoProcLauncher(autoprocessingPath, mode, dataCollectionId, residues, anomalous, cell, spacegroup)
+    autoProc = AutoProcLauncher(
+        autoprocessingPath,
+        mode,
+        dataCollectionId,
+        residues,
+        anomalous,
+        cell,
+        spacegroup,
+    )
     autoProc.parse_and_execute()

@@ -23,36 +23,34 @@ from AbstractEnergy import AbstractEnergy
 
 
 class EnergyMockup(AbstractEnergy):
+    def __init__(self, name):
+        AbstractEnergy.__init__(self, name)
 
-   def __init__(self, name):
-       AbstractEnergy.__init__(self, name)
+    def init(self):
+        self._tunable = True
+        self._moving = False
+        self._energy_value = 12.7
+        self.set_energy_limits((4, 20))
 
-   def init(self):
-       self._tunable = True
-       self._moving = False
-       self._energy_value = 12.7
-       self.set_energy_limits((4, 20))
+    def move_energy(self, value, wait=True):
+        if wait:
+            self._aborted = False
+            self._moving = True
 
-   def move_energy(self, value, wait=True):
-       if wait:
-           self._aborted = False
-           self._moving = True
- 
-           # rhfogh: Modified as previous allowed only integer values
-           # First move towards energy, setting to integer keV values
-           step = -1 if value < self._energy_value else 1
-           for ii in range(int(self._energy_value) +step , int(value) + step,
-                          step):
-               if self._aborted:
-                   self._moving = False
-                   raise StopIteration("Energy change cancelled !")
+            # rhfogh: Modified as previous allowed only integer values
+            # First move towards energy, setting to integer keV values
+            step = -1 if value < self._energy_value else 1
+            for ii in range(int(self._energy_value) + step, int(value) + step, step):
+                if self._aborted:
+                    self._moving = False
+                    raise StopIteration("Energy change cancelled !")
 
-               self._energy_value = ii
-               self.update_values()
-               time.sleep(0.2)
+                self._energy_value = ii
+                self.update_values()
+                time.sleep(0.2)
 
-       # Now set final value
-       self._energy_value = value
-       self._moving = False
-       self.update_values()
-       self.emit('stateChanged', ('ready' ))
+        # Now set final value
+        self._energy_value = value
+        self._moving = False
+        self.update_values()
+        self.emit("stateChanged", ("ready"))

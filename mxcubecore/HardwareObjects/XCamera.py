@@ -14,46 +14,47 @@ class XCamera(TacoDevice.TacoDevice):
     def init(self):
         if self.device.imported:
             # device is already in tcp mode (done in _init)
-            self.device.DevCcdLive(0) #stop acquisition
-            self.device.DevCcdLive(1) #start acquisition
+            self.device.DevCcdLive(0)  # stop acquisition
+            self.device.DevCcdLive(1)  # start acquisition
             self.setPollCommand("DevCcdReadJpeg", 75)
 
             # add command for receiving statistics from Device Server
-            cmdObject = self.addCommand({ 'type': 'taco', 'name': 'statisticsCmd', 'taconame': self.tacoName() }, "DevReadSigValues")
-            cmdObject.poll(self.interval, (), valueChangedCallback=self.statisticsChanged, timeoutCallback=self.statisticsTimeout)
-            
+            cmdObject = self.addCommand(
+                {"type": "taco", "name": "statisticsCmd", "taconame": self.tacoName()},
+                "DevReadSigValues",
+            )
+            cmdObject.poll(
+                self.interval,
+                (),
+                valueChangedCallback=self.statisticsChanged,
+                timeoutCallback=self.statisticsTimeout,
+            )
 
-    def valueChanged(self, deviceName, value):        
-        self.emit('imageReceived', (value, ))
-
+    def valueChanged(self, deviceName, value):
+        self.emit("imageReceived", (value,))
 
     def getWidth(self):
         if self.isReady():
             return self.device.DevCcdXSize()
 
-
     def getHeight(self):
         if self.isReady():
             return self.device.DevCcdYSize()
-
 
     def setSize(self, width, height):
         if self.isReady():
             return self.device.DevCcdOutputSize(width, height)
 
-
     def statisticsChanged(self, stats):
-        self.emit('imageDataChanged', self.getImageData(read=False))
-        
+        self.emit("imageDataChanged", self.getImageData(read=False))
 
     def statisticsTimeout(self):
         pass
 
-
     def getImageData(self, read=True):
         if read:
             stats = self.device.DevReadSigValues()
-            
+
         exposure_time = stats[0]
         threshold = stats[1]
         calib_intensity = stats[2]
@@ -69,4 +70,13 @@ class XCamera(TacoDevice.TacoDevice):
         xbeam_center = stats[12]
         ybeam_center = stats[13]
 
-        return (exposure_time, width, height, (roi_x1, roi_y1, roi_x2, roi_y2), live_mode, intensity, xbeam_center, ybeam_center)
+        return (
+            exposure_time,
+            width,
+            height,
+            (roi_x1, roi_y1, roi_x2, roi_y2),
+            live_mode,
+            intensity,
+            xbeam_center,
+            ybeam_center,
+        )

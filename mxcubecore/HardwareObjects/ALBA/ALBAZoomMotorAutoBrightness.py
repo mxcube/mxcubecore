@@ -68,86 +68,85 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
 
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")
 
-        self.zoom = self.getObjectByRole('zoom')
-        self.blight = self.getObjectByRole('blight')
- 
+        self.zoom = self.getObjectByRole("zoom")
+        self.blight = self.getObjectByRole("blight")
+
         self.zoom.positionChannel.connectSignal("update", self.positionChanged)
         self.zoom.stateChannel.connectSignal("update", self.stateChanged)
-
 
     def getPredefinedPositionsList(self):
         retlist = self.zoom.getPredefinedPositionsList()
         logging.getLogger("HWR").debug("Zoom positions list: %s" % repr(retlist))
         return retlist
-        
 
     def moveToPosition(self, posno):
-        #no = posno.split()[0]
-        #logging.getLogger("HWR").debug("Moving to position %s" % no)
+        # no = posno.split()[0]
+        # logging.getLogger("HWR").debug("Moving to position %s" % no)
 
-        #self.blight.moveToPosition(posno)
+        # self.blight.moveToPosition(posno)
         self.zoom.moveToPosition(posno)
         state = self.zoom.getState()
-        #state = self.positionChannel.setValue(int(no))
+        # state = self.positionChannel.setValue(int(no))
 
     def motorIsMoving(self):
         return self.zoom.motorIsMoving()
 
-#        if str(self.getState()) == "MOVING":
-#             return True
-#        else:
-#             return False
+    #        if str(self.getState()) == "MOVING":
+    #             return True
+    #        else:
+    #             return False
 
     def getLimits(self):
-        #return (1,12) 
+        # return (1,12)
         return self.zoom.getLimits()
 
     def getState(self):
-#        state = self.stateChannel.getValue()
-#        curr_pos = self.getPosition()
-#        if state == PyTango.DevState.ON:
-#             return ALBAZoomMotor.READY
-#        elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
-#             return ALBAZoomMotor.MOVING
-#        elif curr_pos in self.getLimits():
-#             return ALBAZoomMotor.ONLIMIT
-#        else:
-#             return ALBAZoomMotor.FAULT
-#        return state
+        #        state = self.stateChannel.getValue()
+        #        curr_pos = self.getPosition()
+        #        if state == PyTango.DevState.ON:
+        #             return ALBAZoomMotor.READY
+        #        elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
+        #             return ALBAZoomMotor.MOVING
+        #        elif curr_pos in self.getLimits():
+        #             return ALBAZoomMotor.ONLIMIT
+        #        else:
+        #             return ALBAZoomMotor.FAULT
+        #        return state
         return self.zoom.getState()
-   
+
     def getPosition(self):
-#        return self.positionChannel.getValue()
+        #        return self.positionChannel.getValue()
         return self.zoom.getPosition()
-   
+
     def getCurrentPositionName(self):
-#        n = int(self.positionChannel.getValue())
-#        value = "%s z%s" % (n, n)
-#        logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
-#        return value
-         return self.zoom.getCurrentPositionName()
-    
+        #        n = int(self.positionChannel.getValue())
+        #        value = "%s z%s" % (n, n)
+        #        logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
+        #        return value
+        return self.zoom.getCurrentPositionName()
+
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
-        self.emit('stateChanged', (self.getState(), ))
+        self.emit("stateChanged", (self.getState(),))
 
     def positionChanged(self, currentposition):
         currentposition = self.getCurrentPositionName()
-        logging.getLogger("HWR").debug("predefinedPositionChanged emitted: %s" % currentposition)
+        logging.getLogger("HWR").debug(
+            "predefinedPositionChanged emitted: %s" % currentposition
+        )
         # Update light brightness step-by-step
         posno = currentposition.split()[0]
         logging.getLogger("HWR").debug("Moving brightness to: %s" % posno)
 
         self.blight.moveToPosition(posno)
-        
-        
-        self.emit('predefinedPositionChanged', (currentposition, 0))
+
+        self.emit("predefinedPositionChanged", (currentposition, 0))
 
     def isReady(self):
         state = self.getState()
@@ -155,21 +154,22 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
 
 def test():
-  hwr_directory = os.environ["XML_FILES_PATH"]
+    hwr_directory = os.environ["XML_FILES_PATH"]
 
-  print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-  hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-  hwr.connect()
+    print "Loading hardware repository from ", os.path.abspath(hwr_directory)
+    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr.connect()
 
-  zoom = hwr.getHardwareObject("/zoom-auto-brightness")
+    zoom = hwr.getHardwareObject("/zoom-auto-brightness")
 
-  print type(zoom.getState() )
+    print type(zoom.getState())
 
-  print "     Zoom position is : ",zoom.getPosition()
-  print "Zoom position name is : ",zoom.getCurrentPositionName()
-  print "               Moving : ",zoom.motorIsMoving()
-  print "                State : ",zoom.getState()
-  print "            Positions : ",zoom.getPredefinedPositionsList()
+    print "     Zoom position is : ", zoom.getPosition()
+    print "Zoom position name is : ", zoom.getCurrentPositionName()
+    print "               Moving : ", zoom.motorIsMoving()
+    print "                State : ", zoom.getState()
+    print "            Positions : ", zoom.getPredefinedPositionsList()
 
-if __name__ == '__main__':
-   test()
+
+if __name__ == "__main__":
+    test()

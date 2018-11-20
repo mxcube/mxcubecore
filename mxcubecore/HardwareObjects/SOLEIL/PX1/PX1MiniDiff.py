@@ -1,4 +1,3 @@
-
 import logging
 import gevent
 import time
@@ -6,28 +5,31 @@ import time
 from GenericDiffractometer import GenericDiffractometer
 import sample_centring
 
+
 class PX1MiniDiff(GenericDiffractometer):
 
-    CENTRING_MOTORS_NAME = ["phi",
-                   "phiz",
-                   "phiy",
-                   "sampx",
-                   "sampy",
-                   "kappa",
-                   "kappa_phi",
-                   "beam_x",
-                   "beam_y",
-                   "zoom"]
+    CENTRING_MOTORS_NAME = [
+        "phi",
+        "phiz",
+        "phiy",
+        "sampx",
+        "sampy",
+        "kappa",
+        "kappa_phi",
+        "beam_x",
+        "beam_y",
+        "zoom",
+    ]
 
     def init(self):
         self.smargon = self.getObjectByRole("smargon")
         self.connect(self.smargon, "stateChanged", self.smargon_state_changed)
 
-        self.lightarm_hwobj = self.getObjectByRole('lightarm')
+        self.lightarm_hwobj = self.getObjectByRole("lightarm")
         # self.centring_hwobj = self.getObjectByRole('centring')
- 
-        self.px1conf_ho = self.getObjectByRole('px1configuration')
-        self.px1env_ho = self.getObjectByRole('px1environment')
+
+        self.px1conf_ho = self.getObjectByRole("px1configuration")
+        self.px1env_ho = self.getObjectByRole("px1environment")
 
         self.pixels_per_mm_x = 0
         self.pixels_per_mm_y = 0
@@ -35,12 +37,10 @@ class PX1MiniDiff(GenericDiffractometer):
         GenericDiffractometer.init(self)
 
         self.centring_methods = {
-             GenericDiffractometer.CENTRING_METHOD_MANUAL: \
-                 self.px1_manual_centring,
-             GenericDiffractometer.CENTRING_METHOD_AUTO: \
-                 self.start_automatic_centring,
-             GenericDiffractometer.CENTRING_METHOD_MOVE_TO_BEAM: \
-                 self.start_move_to_beam}
+            GenericDiffractometer.CENTRING_METHOD_MANUAL: self.px1_manual_centring,
+            GenericDiffractometer.CENTRING_METHOD_AUTO: self.start_automatic_centring,
+            GenericDiffractometer.CENTRING_METHOD_MOVE_TO_BEAM: self.start_move_to_beam,
+        }
 
     def prepare_centring(self, timeout=20):
         self.px1env_ho.gotoSampleViewPhase()
@@ -54,24 +54,25 @@ class PX1MiniDiff(GenericDiffractometer):
                 if env_state != "RUNNING" and self.px1env_ho.isPhaseVisuSample():
                     break
                 if time.time() - t0 > timeout:
-                    logging.getLogger("HWR").debug("timeout sending supervisor to sample view phase")
+                    logging.getLogger("HWR").debug(
+                        "timeout sending supervisor to sample view phase"
+                    )
                     break
                 gevent.sleep(0.1)
 
         self.lightarm_hwobj.adjustLightLevel()
 
-
     def smargon_state_changed(self, value):
         logging.getLogger("HWR").debug("smargon state changed")
         self.smargon_state = value
-        self.emit("minidiffStateChanged",(value,))
+        self.emit("minidiffStateChanged", (value,))
 
     def is_ready(self):
         return self.smargon.get_state() == "STANDBY"
 
-        #self.smargon_state = str(self.smargon_state_ch.getValue())
-        #return self.smargon_state == "STANDBY"
-        
+        # self.smargon_state = str(self.smargon_state_ch.getValue())
+        # return self.smargon_state == "STANDBY"
+
     def get_pixels_per_mm(self):
         self.update_zoom_calibration()
         return GenericDiffractometer.get_pixels_per_mm(self)
@@ -79,49 +80,58 @@ class PX1MiniDiff(GenericDiffractometer):
     def update_zoom_calibration(self):
         """
         """
-        if 'zoom' not in self.motor_hwobj_dict:
+        if "zoom" not in self.motor_hwobj_dict:
             # not initialized yet
             return
 
-        zoom_motor = self.motor_hwobj_dict['zoom']
+        zoom_motor = self.motor_hwobj_dict["zoom"]
 
         props = zoom_motor.getCurrentPositionProperties()
 
-        if 'pixelsPerMmZ' in props.keys() and 'pixelsPerMmY' in props.keys():
-            self.pixels_per_mm_x = float(props['pixelsPerMmY'])
-            self.pixels_per_mm_y = float(props['pixelsPerMmZ'])
+        if "pixelsPerMmZ" in props.keys() and "pixelsPerMmY" in props.keys():
+            self.pixels_per_mm_x = float(props["pixelsPerMmY"])
+            self.pixels_per_mm_y = float(props["pixelsPerMmZ"])
         else:
             self.pixels_per_mm_x = 0
             self.pixels_per_mm_y = 0
 
-        if 'beamPositionX' in props.keys() and 'beamPositionY' in props.keys():
-            self.beam_xc = float(props['beamPositionX'])
-            self.beam_yc = float(props['beamPositionY'])
-            
+        if "beamPositionX" in props.keys() and "beamPositionY" in props.keys():
+            self.beam_xc = float(props["beamPositionX"])
+            self.beam_yc = float(props["beamPositionY"])
+
         if 0 not in [self.pixels_per_mm_x, self.pixels_per_mm_y]:
-            self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
+            self.emit(
+                "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
+            )
 
     def px1_manual_centring(self, sample_info=None, wait_result=None):
         """
         """
         self.emit_progress_message("Manual 3 click centring...")
-        logging.getLogger("HWR").debug("   starting manual 3 click centring. phiy is %s" % str(self.centring_phiy))
+        logging.getLogger("HWR").debug(
+            "   starting manual 3 click centring. phiy is %s" % str(self.centring_phiy)
+        )
 
         centring_points = self.px1conf_ho.getCentringPoints()
         centring_phi_incr = self.px1conf_ho.getCentringPhiIncrement()
         centring_sample_type = self.px1conf_ho.getCentringSampleType()
 
-        self.current_centring_procedure = \
-                 sample_centring.px1_start({"phi": self.centring_phi,
-                                        "phiy": self.centring_phiy,
-                                        "sampx": self.centring_sampx,
-                                        "sampy": self.centring_sampy,
-                                        "phiz": self.centring_phiz },
-                                        self.pixels_per_mm_x,
-                                        self.pixels_per_mm_y,
-                                        self.beam_position[0],
-                                        self.beam_position[1],
-                                        n_points=centring_points, phi_incr=centring_phi_incr, sample_type=centring_sample_type)
+        self.current_centring_procedure = sample_centring.px1_start(
+            {
+                "phi": self.centring_phi,
+                "phiy": self.centring_phiy,
+                "sampx": self.centring_sampx,
+                "sampy": self.centring_sampy,
+                "phiz": self.centring_phiz,
+            },
+            self.pixels_per_mm_x,
+            self.pixels_per_mm_y,
+            self.beam_position[0],
+            self.beam_position[1],
+            n_points=centring_points,
+            phi_incr=centring_phi_incr,
+            sample_type=centring_sample_type,
+        )
 
         self.current_centring_procedure.link(self.centring_done)
 
@@ -138,11 +148,15 @@ class PX1MiniDiff(GenericDiffractometer):
             logging.exception("Could not complete centring")
             self.emit_centring_failed()
         else:
-            logging.getLogger("HWR").debug("Diffractometer: centring procedure done. %s" % motor_pos)
+            logging.getLogger("HWR").debug(
+                "Diffractometer: centring procedure done. %s" % motor_pos
+            )
 
             for motor in motor_pos:
                 position = motor_pos[motor]
-                logging.getLogger("HWR").debug("   - motor is %s - going to %s" % (motor.name(), position))
+                logging.getLogger("HWR").debug(
+                    "   - motor is %s - going to %s" % (motor.name(), position)
+                )
 
             self.emit_progress_message("Moving sample to centred position...")
             self.emit_centring_moving()
@@ -152,14 +166,17 @@ class PX1MiniDiff(GenericDiffractometer):
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
-                #done already by px1_center
+                # done already by px1_center
                 pass
-                #if 3 click centring move -180
-                #if not self.in_plate_mode():
-                    #self.wait_device_ready()
-                    #self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
+                # if 3 click centring move -180
+                # if not self.in_plate_mode():
+                # self.wait_device_ready()
+                # self.motor_hwobj_dict['phi'].syncMoveRelative(-180)
 
-            if self.current_centring_method == GenericDiffractometer.CENTRING_METHOD_AUTO:
+            if (
+                self.current_centring_method
+                == GenericDiffractometer.CENTRING_METHOD_AUTO
+            ):
                 self.emit("newAutomaticCentringPoint", motor_pos)
             self.centring_time = time.time()
             self.emit_centring_successful()
@@ -170,11 +187,12 @@ class PX1MiniDiff(GenericDiffractometer):
         """
         """
         self.emit_progress_message("Moving to motors positions...")
-        self.move_to_motors_positions_procedure = gevent.spawn(\
-             self.move_motors, motors_positions)
+        self.move_to_motors_positions_procedure = gevent.spawn(
+            self.move_motors, motors_positions
+        )
 
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
-        
+
         if wait:
             self.wait_device_ready(10)
 
@@ -192,11 +210,13 @@ class PX1MiniDiff(GenericDiffractometer):
         """
         from queue_model_objects_v1 import CentredPosition
 
-        if isinstance(motor_positions,  CentredPosition):
+        if isinstance(motor_positions, CentredPosition):
             motor_positions = motor_positions.as_dict()
 
-        logging.getLogger("HWR").debug("MiniDiff moving motors. %s" % str(motor_positions))
-        
+        logging.getLogger("HWR").debug(
+            "MiniDiff moving motors. %s" % str(motor_positions)
+        )
+
         self.wait_device_ready(timeout)
         logging.getLogger("HWR").debug("   now ready to move them")
         for motor in motor_positions.keys():
@@ -209,17 +229,19 @@ class PX1MiniDiff(GenericDiffractometer):
                     continue
                 motor_positions[motor] = position
 
-            logging.getLogger("HWR").debug("  / moving motor. %s to %s" % (motor.name(), position))
+            logging.getLogger("HWR").debug(
+                "  / moving motor. %s to %s" % (motor.name(), position)
+            )
             self.wait_device_ready(timeout)
             try:
                 motor.syncMove(position)
             except:
                 import traceback
-                logging.getLogger("HWR").debug("  / error moving motor on diffractometer. state is %s" % (self.smargon_state))
+
+                logging.getLogger("HWR").debug(
+                    "  / error moving motor on diffractometer. state is %s"
+                    % (self.smargon_state)
+                )
                 logging.getLogger("HWR").debug("     / %s " % traceback.format_exc())
-  
-               
-            
+
         self.wait_device_ready(timeout)
-
-

@@ -21,8 +21,8 @@ from ConvertUtils import h_over_e
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-class AbstractEnergy(HardwareObject):
 
+class AbstractEnergy(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -35,7 +35,7 @@ class AbstractEnergy(HardwareObject):
         self._wavelength_value = None
 
         self.canMoveEnergy = self.can_move_energy
-        self.getEnergyLimits  = self.get_energy_limits
+        self.getEnergyLimits = self.get_energy_limits
         self.getWavelengthLimits = self.get_wavelength_limits
         self.isReady = self.is_ready
         self.getCurrentEnergy = self.get_current_energy
@@ -77,18 +77,18 @@ class AbstractEnergy(HardwareObject):
     def get_wavelength_limits(self):
         lims = None
         if self._energy_limits is not None:
-            lims = (h_over_e / self._energy_limits[1],
-                    h_over_e / self._energy_limits[0])
+            lims = (
+                h_over_e / self._energy_limits[1],
+                h_over_e / self._energy_limits[0],
+            )
         return lims
 
     def move_energy(self, value, wait=True):
         self._energy_value = value
         self.update_values()
- 
+
     def move_wavelength(self, value, wait=True):
         self.move_energy(h_over_e / value, wait)
 
     def update_values(self):
-        self.emit("energyChanged",
-                  self._energy_value,
-                  h_over_e / self._energy_value)
+        self.emit("energyChanged", self._energy_value, h_over_e / self._energy_value)

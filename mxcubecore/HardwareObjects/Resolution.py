@@ -2,11 +2,12 @@ from AbstractMotor import AbstractMotor
 import logging
 import math
 
+
 class Resolution(AbstractMotor):
     def __init__(self, *args, **kwargs):
         AbstractMotor.__init__(self, name="Resolution")
 
-        #self.get_value = self.getPosition
+        # self.get_value = self.getPosition
         self.valid = True
 
     def init(self):
@@ -17,16 +18,15 @@ class Resolution(AbstractMotor):
         self.energy = self.getObjectByRole("energy")
         self.detector = self.getObjectByRole("detector")
         if self.detector:
-            self.det_width = float(self.detector.getProperty('width'))
-            self.det_height = float(self.detector.getProperty('height'))
+            self.det_width = float(self.detector.getProperty("width"))
+            self.det_height = float(self.detector.getProperty("height"))
         else:
             self.valid = False
-            logging.getLogger().exception('Cannot get detector properties')
+            logging.getLogger().exception("Cannot get detector properties")
             raise AttributeError("Cannot get detector properties")
 
-
         self.connect(self.dtox, "stateChanged", self.dtoxStateChanged)
-        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged) 
+        self.connect(self.dtox, "positionChanged", self.dtoxPositionChanged)
         self.connect(self.energy, "valueChanged", self.energyChanged)
 
     def isReady(self):
@@ -40,16 +40,18 @@ class Resolution(AbstractMotor):
     def get_beam_centre(self, dtox=None):
         if dtox is None:
             dtox = self.dtox.getPosition()
-        ax = float(self.detector['beam'].getProperty('ax'))
-        bx = float(self.detector['beam'].getProperty('bx'))
-        ay = float(self.detector['beam'].getProperty('ay'))
-        by = float(self.detector['beam'].getProperty('by'))
-     
-        return float(dtox*ax+bx), float(dtox*ay+by)
+        ax = float(self.detector["beam"].getProperty("ax"))
+        bx = float(self.detector["beam"].getProperty("bx"))
+        ay = float(self.detector["beam"].getProperty("ay"))
+        by = float(self.detector["beam"].getProperty("by"))
+
+        return float(dtox * ax + bx), float(dtox * ay + by)
 
     def update_beam_centre(self, dtox):
         beam_x, beam_y = self.get_beam_centre(dtox)
-        self.det_radius =  min(self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y)
+        self.det_radius = min(
+            self.det_width - beam_x, self.det_height - beam_y, beam_x, beam_y
+        )
 
     def getWavelength(self):
         try:
@@ -57,11 +59,11 @@ class Resolution(AbstractMotor):
         except:
             current_en = self.energy.getPosition()
             if current_en:
-                return (12.3984/current_en)
+                return 12.3984 / current_en
             return None
 
     def energyChanged(self, egy):
-        return self.recalculateResolution() 
+        return self.recalculateResolution()
 
     def res2dist(self, res=None):
         current_wavelength = self.getWavelength()
@@ -69,13 +71,13 @@ class Resolution(AbstractMotor):
         if res is None:
             res = self.currentResolution
 
-        ax = float(self.detector['beam'].getProperty('ax'))
-        bx = float(self.detector['beam'].getProperty('bx'))
-        ay = float(self.detector['beam'].getProperty('ay'))
-        by = float(self.detector['beam'].getProperty('by'))
+        ax = float(self.detector["beam"].getProperty("ax"))
+        bx = float(self.detector["beam"].getProperty("bx"))
+        ay = float(self.detector["beam"].getProperty("ay"))
+        by = float(self.detector["beam"].getProperty("by"))
 
         try:
-            ttheta = 2*math.asin(current_wavelength / (2*res))
+            ttheta = 2 * math.asin(current_wavelength / (2 * res))
 
             dist_1 = bx / (math.tan(ttheta) - ax)
             dist_2 = by / (math.tan(ttheta) - ay)
@@ -91,9 +93,9 @@ class Resolution(AbstractMotor):
 
         try:
             ttheta = math.atan(radius / dist)
-            
+
             if ttheta != 0:
-                return current_wavelength / (2*math.sin(ttheta/2))
+                return current_wavelength / (2 * math.sin(ttheta / 2))
             else:
                 return None
         except Exception:
@@ -103,37 +105,39 @@ class Resolution(AbstractMotor):
     def dist2res(self, dist=None):
         if dist is None:
             dist = self.dtox.getPosition()
-            
+
         return self._calc_res(self.det_radius, dist)
-       
+
     def recalculateResolution(self):
         dtox_pos = self.dtox.getPosition()
         self.update_beam_centre(dtox_pos)
         new_res = self.dist2res(dtox_pos)
         if new_res is None:
             return
-        self.update_resolution(new_res) 
+        self.update_resolution(new_res)
 
     def getPosition(self):
         if self.currentResolution is None:
-          self.recalculateResolution()
+            self.recalculateResolution()
         return self.currentResolution
 
     def get_value_at_corner(self):
         dtox_pos = self.dtox.getPosition()
         beam_x, beam_y = self.get_beam_centre(dtox_pos)
 
-        distance_at_corners = [math.sqrt(beam_x**2+beam_y**2), 
-                               math.sqrt((self.det_width-beam_x)**2+beam_y**2),
-                               math.sqrt((beam_x**2+(self.det_height-beam_y)**2)),
-                               math.sqrt((self.det_width-beam_x)**2+(self.det_height-beam_y)**2)]
-        return self._calc_res(max(distance_at_corners), dtox_pos)      
+        distance_at_corners = [
+            math.sqrt(beam_x ** 2 + beam_y ** 2),
+            math.sqrt((self.det_width - beam_x) ** 2 + beam_y ** 2),
+            math.sqrt((beam_x ** 2 + (self.det_height - beam_y) ** 2)),
+            math.sqrt((self.det_width - beam_x) ** 2 + (self.det_height - beam_y) ** 2),
+        ]
+        return self._calc_res(max(distance_at_corners), dtox_pos)
 
     def update_resolution(self, res):
         self.currentResolution = res
-        self.emit("positionChanged", (res, ))
-        self.emit('valueChanged', (res, ))
-         
+        self.emit("positionChanged", (res,))
+        self.emit("valueChanged", (res,))
+
     def getState(self):
         return self.dtox.getState()
 
@@ -142,9 +146,9 @@ class Resolution(AbstractMotor):
             self.dtoxStateChanged(self.dtox.getState())
 
     def dtoxStateChanged(self, state):
-        self.emit("stateChanged", (state, ))
+        self.emit("stateChanged", (state,))
         if state == self.dtox.READY:
-          self.recalculateResolution()
+            self.recalculateResolution()
 
     def dtoxPositionChanged(self, pos):
         self.update_beam_centre(pos)
@@ -152,11 +156,13 @@ class Resolution(AbstractMotor):
 
     def getLimits(self):
         low, high = self.dtox.getLimits()
-       
+
         return (self.dist2res(low), self.dist2res(high))
 
     def move(self, pos, wait=False):
-        logging.getLogger().info("move Resolution to %s (%f mm)", pos, self.res2dist(pos))
+        logging.getLogger().info(
+            "move Resolution to %s (%f mm)", pos, self.res2dist(pos)
+        )
 
         if wait:
             self.dtox.syncMove(self.res2dist(pos))
@@ -171,4 +177,3 @@ class Resolution(AbstractMotor):
             self.dtox.stop()
         except:
             pass
-    

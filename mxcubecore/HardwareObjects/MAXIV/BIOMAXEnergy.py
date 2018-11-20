@@ -21,19 +21,19 @@ class BIOMAXEnergy(Energy.Energy):
         self.en_lims = []
 
         try:
-            self.energy_motor =  self.getObjectByRole("energy")
+            self.energy_motor = self.getObjectByRole("energy")
         except KeyError:
-            logging.getLogger("HWR").warning('Energy: error initializing energy motor')
+            logging.getLogger("HWR").warning("Energy: error initializing energy motor")
 
         try:
             self.default_en = self.getProperty("default_energy")
         except KeyError:
-            logging.getLogger("HWR").warning('Energy: no default energy')
+            logging.getLogger("HWR").warning("Energy: no default energy")
 
         try:
             self.tunable = self.getProperty("tunable_energy")
-        except KeyError :
-            logging.getLogger("HWR").warning('Energy: will set to fixed energy')
+        except KeyError:
+            logging.getLogger("HWR").warning("Energy: will set to fixed energy")
 
         try:
             self.ctrl = self.getObjectByRole("controller")
@@ -41,15 +41,17 @@ class BIOMAXEnergy(Energy.Energy):
             logging.getLogger("HWR").info("No controller used")
 
         if self.energy_motor is not None:
-            self.energy_motor.connect('positionChanged', self.energyPositionChanged)
-            self.energy_motor.connect('stateChanged', self.energyStateChanged)
+            self.energy_motor.connect("positionChanged", self.energyPositionChanged)
+            self.energy_motor.connect("stateChanged", self.energyStateChanged)
 
     def getCurrentEnergy(self):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition() / 1000
             except:
-                logging.getLogger("HWR").exception("EnergyHO: could not read current energy")
+                logging.getLogger("HWR").exception(
+                    "EnergyHO: could not read current energy"
+                )
                 return None
         return self.default_en
 
@@ -60,10 +62,14 @@ class BIOMAXEnergy(Energy.Energy):
         if self.energy_motor is not None:
             try:
                 self.en_lims = self.energy_motor.getLimits()
-                self.en_lims = (float(self.en_lims[0])/1000, float(self.en_lims[1])/1000)
-                return self.en_lims 
+                self.en_lims = (
+                    float(self.en_lims[0]) / 1000,
+                    float(self.en_lims[1]) / 1000,
+                )
+                return self.en_lims
             except:
-                logging.getLogger("HWR").exception("EnergyHO: could not read energy motor limits")
+                logging.getLogger("HWR").exception(
+                    "EnergyHO: could not read energy motor limits"
+                )
                 return None
-        return None 
-
+        return None

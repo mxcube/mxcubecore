@@ -26,7 +26,6 @@ __category__ = "General"
 
 
 class EMBLBeamstop(Device):
-
     def __init__(self, name):
         Device.__init__(self, name)
 
@@ -45,14 +44,13 @@ class EMBLBeamstop(Device):
         self.default_direction = self.getProperty("defaultBeamstopDirection")
 
         if self.default_distance is None:
-            self.chan_distance = self.getChannelObject('BeamstopDistance')
+            self.chan_distance = self.getChannelObject("BeamstopDistance")
             if self.chan_distance is not None:
-                self.chan_distance.connectSignal("update",
-                                                 self.distance_changed)
+                self.chan_distance.connectSignal("update", self.distance_changed)
         else:
             self.distance = float(self.default_distance)
 
-        self.chan_position = self.getChannelObject('BeamstopPosition')
+        self.chan_position = self.getChannelObject("BeamstopPosition")
 
     def isReady(self):
         """Returns True if device ready
@@ -67,7 +65,7 @@ class EMBLBeamstop(Device):
         :return: None
         """
         self.distance = value
-        self.emit('beamstopDistanceChanged', value)
+        self.emit("beamstopDistanceChanged", value)
 
     def get_size(self):
         """Returns default beamstop size"""
@@ -114,4 +112,4 @@ class EMBLBeamstop(Device):
         """Reemits available signals"""
         if self.chan_distance is not None:
             self.distance = self.chan_distance.getValue()
-        self.emit('beamstopDistanceChanged', self.distance)
+        self.emit("beamstopDistanceChanged", self.distance)

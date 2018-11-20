@@ -28,12 +28,11 @@ __credits__ = ["MXCuBE colaboration"]
 
 
 class DoorInterlockMockup(HardwareObject):
-
     def __init__(self, name):
-        HardwareObject.__init__(self, name) 
+        HardwareObject.__init__(self, name)
 
         self.door_interlock_state = None
-           
+
     def init(self):
         self.door_interlock_state = "locked_active"
 
@@ -47,10 +46,10 @@ class DoorInterlockMockup(HardwareObject):
         return self.door_interlock_state in ("locked_active", "locked_inactive")
 
     def getState(self):
-        return self.door_interlock_state 
+        return self.door_interlock_state
 
     def unlock_door_interlock(self):
         if self.door_interlock_state == "locked_active":
             self.door_interlock_state = "unlocked"
-        self.emit('doorInterlockStateChanged', self.door_interlock_state, "")
-        self.emit('hutchTrigger', self.door_interlock_state == "unlocked")
+        self.emit("doorInterlockStateChanged", self.door_interlock_state, "")
+        self.emit("hutchTrigger", self.door_interlock_state == "unlocked")
