@@ -158,7 +158,7 @@ class CatsBessy(SampleChanger):
     def getSampleProperties(self):
         return (Pin.__HOLDER_LENGTH_PROPERTY__,)
 
-    #########################           TASKS           #########################
+    # ########################           TASKS           #########################
     def _doUpdateInfo(self):
         self._updateSCContents()
         self._updateSelection()
@@ -267,8 +267,7 @@ class CatsBessy(SampleChanger):
     def clearBasketInfo(self, basket):
         self._reset_basket_info(basket)
 
-        #########################           PRIVATE           #########################
-
+    # ########################           PRIVATE           #########################
     def _updateOperationMode(self, value):
         self._scIsCharging = not value
 

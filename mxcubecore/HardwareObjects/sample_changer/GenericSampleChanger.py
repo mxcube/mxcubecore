@@ -204,7 +204,7 @@ class SampleChanger(Container, Equipment):
 
     __metaclass__ = abc.ABCMeta
 
-    #########################           EVENTS           #########################
+    # ########################    EVENTS    #########################
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
     INFO_CHANGED_EVENT = "infoChanged"
@@ -226,7 +226,7 @@ class SampleChanger(Container, Equipment):
         self.task_error = None
         self._transient = False
         self._token = None
-        self._timer_update_inverval = 5  # defines the interval in periods of 100 ms
+        self._timer_update_inverval = 5  # interval in periods of 100 ms
         self._timer_update_counter = 0
 
     def init(self):
@@ -278,7 +278,7 @@ class SampleChanger(Container, Equipment):
             except BaseException:
                 pass
 
-    #########################           TIMER           #########################
+    # ########################    TIMER    #########################
     def _setTimerUpdateInterval(self, value):
         self._timer_update_inverval = value
 
@@ -289,12 +289,12 @@ class SampleChanger(Container, Equipment):
     def _onTimer1s(self):
         pass
 
-    ########################           EQUIPMENT           #######################
+    # #######################    EQUIPMENT    #######################
 
     def connectNotify(self, signal):
         logging.getLogger().info("connectNotify " + str(signal))
 
-    #########################           PUBLIC           #########################
+    # ########################    PUBLIC    #########################
 
     def getState(self):
         """
@@ -462,10 +462,10 @@ class SampleChanger(Container, Equipment):
     def getSampleProperties(self):
         return ()
 
-    #########################           TASKS           #########################
+    # ########################    TASKS    #########################
     def changeMode(self, mode, wait=True):
         """
-        Change the mode of Sample Changer (SC specific, imply a change of the State)
+        Change the mode (SC specific, imply change of the State)
         Modes:
             Unknown     = 0
             Normal      = 1
@@ -540,7 +540,7 @@ class SampleChanger(Container, Equipment):
     def unload(self, sample_slot=None, wait=True):
         """
         Unload the sample.
-        If sample_slot=None, unloads to the same slot the sample was loaded from.
+        If sample_slot=None, unloads to the same slot it was loaded from.
         """
         sample_slot = self._resolveComponent(sample_slot)
         self.assertNotCharging()
@@ -554,7 +554,7 @@ class SampleChanger(Container, Equipment):
     def reset(self, wait=True):
         """
         Reset the SC.
-        If sample_slot=None, unloads to the same slot the sample was loaded from.
+        If sample_slot=None, unloads to the same slot it was loaded from.
         """
         return self._executeTask(SampleChangerState.Resetting, wait, self._doReset)
 
@@ -572,7 +572,7 @@ class SampleChanger(Container, Equipment):
             return c
         return component
 
-    #########################           ABSTRACTS           #########################
+    # ########################    ABSTRACTS    #########################
 
     @abc.abstractmethod
     def _doAbort(self):
@@ -609,7 +609,7 @@ class SampleChanger(Container, Equipment):
     def _doReset(self):
         return
 
-    #########################           PROTECTED           #########################
+    # ########################    PROTECTED    #########################
 
     def _executeTask(self, task, wait, method, *args):
         self.assertCanExecuteTask()
@@ -704,7 +704,7 @@ class SampleChanger(Container, Equipment):
             Container._setSelectedComponent(self, component)
             self._triggerSelectionChangedEvent()
 
-    #########################           PRIVATE           #########################
+    # ########################    PRIVATE    #########################
 
     def _triggerStateChangedEvent(self, former):
         self.emit(self.STATE_CHANGED_EVENT, (self.state, former))
