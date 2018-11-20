@@ -53,10 +53,10 @@ class ElementAnalysis(Procedure):
                     self.configOk = False
                 else:
                     try:
-                        exec ("self.connect(channel,'update',self.%sUpdate)" % chan)
+                        exec("self.connect(channel,'update',self.%sUpdate)" % chan)
                     except AttributeError:
                         pass
-                exec ("self.%sChannel=channel" % chan)
+                exec("self.%sChannel=channel" % chan)
 
             self.energy = self.getChannelObject("energy")
             self.energy_value = self.energy.getValue()
@@ -86,28 +86,28 @@ class ElementAnalysis(Procedure):
                     if cmd.name() == mandatory_cmd:
                         cmd_found = cmd
                         try:
-                            exec (
+                            exec(
                                 "cmd.connectSignal('commandReplyArrived', self.%sEnded)"
                                 % mandatory_cmd
                             )
                         except AttributeError:
                             pass
                         try:
-                            exec (
+                            exec(
                                 "cmd.connectSignal('commandBeginWaitReply', self.%sStarted)"
                                 % mandatory_cmd
                             )
                         except AttributeError:
                             pass
                         try:
-                            exec (
+                            exec(
                                 "cmd.connectSignal('commandFailed', self.%sFailed)"
                                 % mandatory_cmd
                             )
                         except AttributeError:
                             pass
                         try:
-                            exec (
+                            exec(
                                 "cmd.connectSignal('commandAborted', self.%sAborted)"
                                 % mandatory_cmd
                             )
@@ -123,7 +123,7 @@ class ElementAnalysis(Procedure):
                         "ElementAnalysis: you must specify the %s command" % desc
                     )
                     self.configOk = False
-                exec ("self.%sCmd=cmd_found" % mandatory_cmd)
+                exec("self.%sCmd=cmd_found" % mandatory_cmd)
                 # print " "
                 # print ("------------- Added command: self.%sCmd=cmd_found"% mandatory_cmd )
                 # print ("-------------                     : mandatory_cmd", mandatory_cmd)

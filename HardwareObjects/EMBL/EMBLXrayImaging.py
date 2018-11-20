@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import os
 import time
 import gevent
@@ -139,7 +140,7 @@ class EMBLXrayImaging(HardwareObject):
         self.repeat_image_play = value
 
     def start_imaging(self, data_model):
-        print data_model
+        print(data_model)
 
     def set_graphics_scene_size(self, size, fixed):
         pass
@@ -211,8 +212,9 @@ class EMBLXrayImaging(HardwareObject):
 
         os.chdir(os.path.dirname(flat_field_path))
         flfiles = os.listdir(os.path.dirname(flat_field_path))
-        fllist = [filename for filename in flfiles if filename.endswith(fileformat)]
-        fllist.sort()
+        fllist = sorted(
+            [filename for filename in flfiles if filename.endswith(fileformat)]
+        )
         if cut:
             ff_arr = dxchange.reader.read_tiff_stack(
                 fllist[0], range(len(fllist)), slc=((b, d, 1), (a, c, 1))

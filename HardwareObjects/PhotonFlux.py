@@ -69,7 +69,6 @@ class PhotonFlux(Equipment):
                             for c in calib_dict.itervalues()
                         ]
                     )
-                    print c
                     E = [c[0] for c in calibs]
                     C = [c[1] for c in calibs]
             except BaseException:

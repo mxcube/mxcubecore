@@ -1,3 +1,4 @@
+from __future__ import print_function
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
@@ -651,14 +652,14 @@ class ALBACats(Cats90):
 
 def test_hwo(hwo):
     hwo._updateCatsContents()
-    print (" Is path running? ", hwo.isPathRunning())
-    print (" Loading shifts:  ", hwo._get_shifts())
-    print (" Sample on diffr :  ", hwo.cats_sample_on_diffr())
-    print (" Baskets :  ", hwo.basket_presence)
-    print (" Baskets :  ", hwo.getBasketList())
+    print(" Is path running? ", hwo.isPathRunning())
+    print(" Loading shifts:  ", hwo._get_shifts())
+    print(" Sample on diffr :  ", hwo.cats_sample_on_diffr())
+    print(" Baskets :  ", hwo.basket_presence)
+    print(" Baskets :  ", hwo.getBasketList())
     if hwo.hasLoadedSample():
-        print " Loaded is: ", hwo.getLoadedSample().getCoords()
-    print (" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
+        print(" Loaded is: ", hwo.getLoadedSample().getCoords())
+    print(" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
 
 
 if __name__ == "__main__":

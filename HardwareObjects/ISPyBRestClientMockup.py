@@ -1,6 +1,7 @@
 """
 A client for ISPyB Webservices.
 """
+from __future__ import print_function
 import logging
 from datetime import datetime
 from urlparse import urljoin
@@ -218,7 +219,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns: None
 
         """
-        print ("store_data_collection...", mx_collection)
+        print("store_data_collection...", mx_collection)
         return None, None
 
     def store_beamline_setup(self, session_id, beamline_setup):
@@ -235,7 +236,7 @@ class ISPyBRestClientMockup(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print ("store_beamline_setup...", beamline_setup)
+        print("store_beamline_setup...", beamline_setup)
 
     def update_data_collection(self, mx_collection, wait=False):
         """
@@ -247,7 +248,7 @@ class ISPyBRestClientMockup(HardwareObject):
 
         :returns: None
         """
-        print "update_data_collection... ", mx_collection
+        print("update_data_collection... ", mx_collection)
         pass
 
     def store_image(self, image_dict):
@@ -259,7 +260,7 @@ class ISPyBRestClientMockup(HardwareObject):
 
         :returns: None
         """
-        print ("store_image ", image_dict)
+        print("store_image ", image_dict)
 
     def get_samples(self, proposal_id, session_id):
         pass

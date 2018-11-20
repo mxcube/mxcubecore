@@ -17,7 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 import os
 import copy
 import time
@@ -90,7 +90,7 @@ class NanoDiff(HardwareObject):
         self.chan_calib_y = None
 
         # self.chan_head_type = None
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         self.chan_fast_shutter_is_open = None
         self.chan_sync_move_motors = None
@@ -165,7 +165,7 @@ class NanoDiff(HardwareObject):
         # if self.chan_head_type is not None:
         #    self.head_type = self.chan_head_type.getValue()
 
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         self.chan_current_phase = self.getChannelObject("CurrentPhase")
         if self.chan_current_phase is not None:
@@ -324,7 +324,7 @@ class NanoDiff(HardwareObject):
 
     def in_plate_mode(self):
         # self.head_type = self.chan_head_type.getValue()
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         return self.head_type == NanoDiff.PLATE
 
@@ -338,7 +338,7 @@ class NanoDiff(HardwareObject):
         return self.grid_direction
 
     def is_reversing_rotation(self):
-        return self.reversing_rotation == True
+        return self.reversing_rotation is True
 
     def equipmentReady(self):
         """
@@ -847,7 +847,7 @@ class NanoDiff(HardwareObject):
         self.pixels_per_mm_y = 0.830  # 865
         self.centringPhiValues = []  # according values of phi-s - (mxcubes omegas)
 
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         for click in (0, 1, 2):
             self.user_clicked_event = AsyncResult()
@@ -882,7 +882,7 @@ class NanoDiff(HardwareObject):
             + self.centring_hwobj.centringDataMatrix[2][0]
         ) / 3.0
         horizontalCorrection = -horizontalCorrection / self.pixels_per_mm_x
-        print (horizontalCorrection)
+        print(horizontalCorrection)
         self.phiy_motor_hwobj.moveRelative(-horizontalCorrection)
 
         # the following 3 lines are debug version of centering procedure. Identical as in x direction
@@ -932,18 +932,16 @@ class NanoDiff(HardwareObject):
         )
 
         [phizc, sampyc, sampxc] = numpy.linalg.solve(a, b)
-        print ("phiz correction = ", phizc)
-        print ("sampy correction = ", sampyc)
-        print ("sampx correction = ", sampxc)
+        print("phiz correction = ", phizc)
+        print("sampy correction = ", sampyc)
+        print("sampx correction = ", sampxc)
 
         self.phiz_motor_hwobj.moveRelative(-phizc)
         self.sample_y_motor_hwobj.moveRelative(-sampyc)
         self.sample_x_motor_hwobj.moveRelative(-sampxc)
 
         # return self.centring_hwobj.centeredPosition(return_by_name=False)
-        print (
-            "PP__:  Attention, return of manual_centring is replaced via 'dummy' one"
-        )
+        print("PP__:  Attention, return of manual_centring is replaced via 'dummy' one")
         return self.centring_hwobj.vector_to_centred_positions([0, 0])
 
     def automatic_centring(self):
@@ -1010,7 +1008,7 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        print "automatic_centring_done..."
+        print("automatic_centring_done...")
         res = auto_centring_procedure.get()
         self.emit("newAutomaticCentringPoint", (res[0], res[1]))
 
@@ -1255,7 +1253,7 @@ class NanoDiff(HardwareObject):
 
             # self.centring_status["motors"] = motors
             # self.centring_status["method"] = self.current_centring_method
-            print (
+            print(
                 "PP___: NanoDiff emit_centring_successful(self) commented code adnout motors  "
             )
 

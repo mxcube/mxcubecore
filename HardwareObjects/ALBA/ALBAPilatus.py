@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import logging
 import time
 
@@ -187,7 +188,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         t0 = time.time()
         while self.device_specific.cam_state == "STANDBY":
             if time.time() - t0 > timeout:
-                print ("timeout waiting for Pilatus to be on STANDBY")
+                print("timeout waiting for Pilatus to be on STANDBY")
                 return False
             time.sleep(0.1)
         return True
@@ -300,6 +301,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print "Detector Distance is: ", hwo.get_distance()
-    print "   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre()
-    # print "going to 490 : ", hwo.move_distance(490)
+    print("Detector Distance is: ", hwo.get_distance())
+    print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre())
+    # print("going to 490 : ", hwo.move_distance(490))

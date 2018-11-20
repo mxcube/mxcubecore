@@ -62,7 +62,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </device>
 """
-
+from __future__ import print_function
 import os
 import time
 import logging
@@ -70,7 +70,6 @@ import struct
 import numpy as np
 
 import PyTango
-
 from GenericVideoDevice import GenericVideoDevice
 
 
@@ -160,5 +159,5 @@ class TangoLimaVideoDevice(GenericVideoDevice):
 
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print("Image dimensions: ", hwo.get_image_dimensions())
+    print("Live Mode: ", hwo.get_video_live())
