@@ -300,7 +300,7 @@ class SOLEILMachineInfo(HardwareObject):
         date_boundary_string = " :"
         date_boundary = state_text1.find(date_boundary_string)
         date = state_text1[:date_boundary]
-        state_text1 = state_text1[date_boundary + len(date_boundary_string):]
+        state_text1 = state_text1[date_boundary + len(date_boundary_string) :]
         state_text = "%s, %s\n" % (date, state_text0)
         state_text += "electron energy: %.2f GeV, filling: %s\n" % (
             self.ring_energy,
@@ -469,5 +469,5 @@ class SOLEILMachineInfo(HardwareObject):
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
             return "%3.1f%s" % (num, "TB")
-        except:
+        except BaseException:
             return "???"

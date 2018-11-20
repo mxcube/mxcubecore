@@ -55,7 +55,7 @@ class MicrodiffInOut(Device):
         try:
             tt = float(self.getProperty("timeout"))
             self.timeout = tt
-        except:
+        except BaseException:
             pass
 
         if self.getProperty("use_hwstate"):
@@ -116,7 +116,7 @@ class MicrodiffInOut(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.valueChanged(self.state_attr.getValue())
-            except:
+            except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -133,7 +133,7 @@ class MicrodiffInOut(Device):
                     timeout = timeout or self.timeout
                     self._wait_ready(timeout)
                 self.valueChanged(self.state_attr.getValue())
-            except:
+            except BaseException:
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )

@@ -31,7 +31,7 @@ from HardwareRepository.HardwareObjects.Camera import (
 
 class LimaVideo(Device):
     """
-    Descript. : 
+    Descript. :
     """
 
     def __init__(self, name):
@@ -64,7 +64,7 @@ class LimaVideo(Device):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         self.force_update = False
         self.scaling = pixmaptools.LUT.Scaling()
@@ -253,7 +253,7 @@ class LimaVideo(Device):
             try:
                 os.setgid(int(os.getenv("SUDO_GID")))
                 os.setuid(int(os.getenv("SUDO_UID")))
-            except:
+            except BaseException:
                 logging.getLogger().warning(
                     "%s: failed to change the process ownership.", self.name()
                 )
@@ -335,7 +335,7 @@ class LimaVideo(Device):
             # if bw:
             #    qimage.setNumColors(0)
             qimage.save(filename, "PNG")
-        except:
+        except BaseException:
             logging.getLogger().error(
                 "LimaVideo: unable to save snapshot: %s" % filename
             )

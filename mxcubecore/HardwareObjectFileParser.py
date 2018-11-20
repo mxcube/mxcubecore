@@ -24,7 +24,7 @@ def parse(filename, name):
     try:
         f = open(filename)
         currentXML = f.read()
-    except:
+    except BaseException:
         currentXML = None
 
     xml.sax.parse(filename, curHandler)
@@ -65,7 +65,7 @@ def instanciateClass(moduleName, className, objectName):
                 i = module.__doc__.find("template:")
 
                 if i >= 0:
-                    XMLTemplate = module.__doc__[i + 10:]
+                    XMLTemplate = module.__doc__[i + 10 :]
 
                     xmlStructureRetriever = XMLStructureRetriever()
                     xml.sax.parseString(currentXML, xmlStructureRetriever)
@@ -82,7 +82,7 @@ def instanciateClass(moduleName, className, objectName):
                         return
             try:
                 newInstance = classObj(objectName)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Cannot instanciate class %s", className
                 )
@@ -137,7 +137,7 @@ class HardwareObjectHandler(ContentHandler):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1: -1]) + 1
+            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -154,10 +154,10 @@ class HardwareObjectHandler(ContentHandler):
             else:
                 try:
                     attrs[str(k)] = int(v)
-                except:
+                except BaseException:
                     try:
                         attrs[str(k)] = float(v)
-                    except:
+                    except BaseException:
                         if v == "False":
                             attrs[str(k)] = False
                         elif v == "True":
@@ -170,7 +170,8 @@ class HardwareObjectHandler(ContentHandler):
         if "role" in attrs:
             self.elementRole = attrs["role"]
         if name == "device":
-            # maybe we have to add the DeviceContainer mix-in class to each node of the Hardware Object hierarchy
+            # maybe we have to add the DeviceContainer mix-in class to each node of
+            # the Hardware Object hierarchy
             i = len(self.objects) - 1
             while i >= 0 and not isinstance(
                 self.objects[i], BaseHardwareObjects.DeviceContainer
@@ -304,7 +305,7 @@ class HardwareObjectHandler(ContentHandler):
                         )
                     if len(self.objects) > 0:
                         del self.objects[-1]
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: error while creating Hardware Object from XML file", self.name
                 )
@@ -362,7 +363,7 @@ class XMLStructureRetriever(ContentHandler):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            index = int(self.previousPath[i + 1: -1]) + 1
+            index = int(self.previousPath[i + 1 : -1]) + 1
         else:
             index = 1  # XPath indexes begin at 1
 

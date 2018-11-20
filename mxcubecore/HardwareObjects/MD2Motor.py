@@ -96,7 +96,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except:
+        except BaseException:
             return (-1e4, 1e4)
 
     def getLimits(self):
@@ -105,7 +105,7 @@ class MD2Motor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except:
+        except BaseException:
             return (-1e4, 1e4)
 
     def motorPositionChanged(self, absolutePosition, private={}):
@@ -134,7 +134,7 @@ class MD2Motor(AbstractMotor):
         if wait:
             try:
                 self.waitEndOfMove(timeout)
-            except:
+            except BaseException:
                 raise MD2TimeoutError
 
     def moveRelative(self, relativePosition, wait=False, timeout=None):
@@ -142,7 +142,7 @@ class MD2Motor(AbstractMotor):
         if wait:
             try:
                 self.waitEndOfMove(timeout)
-            except:
+            except BaseException:
                 raise MD2TimeoutError
 
     def waitEndOfMove(self, timeout=None):
@@ -165,5 +165,5 @@ class MD2Motor(AbstractMotor):
         self.home_cmd(self.motor_name)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError

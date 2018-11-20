@@ -506,7 +506,7 @@ class EMBLMachineInfo(HardwareObject):
                     if line_el[-1].isdigit:
                         last_value = line_el[-1]
             last_value = float(last_value)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("MachineInfo: Unable to read epics values")
         finally:
             if url_file:
@@ -553,5 +553,5 @@ class EMBLMachineInfo(HardwareObject):
                     return "%3.1f%s" % (num, x)
                 num /= 1024.0
             return "%3.1f%s" % (num, "TB")
-        except:
+        except BaseException:
             return "???"

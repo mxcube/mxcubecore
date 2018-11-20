@@ -45,7 +45,7 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
 
     It it very similar to SimpleXMLRPCRequestHandler but it checks for a
     "Token" entry in the header. If this token doesn't correspond to a
-    reference token the server sends a "401" (Unauthorized) reply. 
+    reference token the server sends a "401" (Unauthorized) reply.
     """
 
     __referenceToken = None
@@ -100,7 +100,7 @@ class SecureXMLRpcRequestHandler(SimpleXMLRPCRequestHandler):
                 response = self.server._marshaled_dispatch(
                     data, getattr(self, "_dispatch", None)
                 )
-            except Exception, e:  # This should only happen if the module is buggy
+            except Exception as e:  # This should only happen if the module is buggy
                 # internal error, report as HTTP server error
                 self.send_response(500)
 
@@ -152,7 +152,7 @@ class XMLRPCServer(HardwareObject):
 
     def init(self):
         """
-        Method inherited from HardwareObject, called by framework-2. 
+        Method inherited from HardwareObject, called by framework-2.
         """
 
         self.all_interfaces = self.getProperty("all_interfaces")
@@ -173,7 +173,7 @@ class XMLRPCServer(HardwareObject):
 
         try:
             self.open()
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("Can't start XML-RPC server")
 
     def close(self):
@@ -664,7 +664,7 @@ class XMLRPCServer(HardwareObject):
         log = logging.getLogger("HWR")
         log.info("Registering functions in module %s with XML-RPC server" % module_name)
 
-        if not sys.modules.has_key(module_name):
+        if module_name not in sys.modules:
             __import__(module_name)
         module = sys.modules[module_name]
 

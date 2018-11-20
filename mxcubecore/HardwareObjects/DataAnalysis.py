@@ -216,7 +216,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().getValue()
-        except:
+        except BaseException:
             dc_id = id(edna_input)
 
         if hasattr(edna_input, "process_directory"):

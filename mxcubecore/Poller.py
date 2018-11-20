@@ -173,7 +173,7 @@ class _Poller:
 
             if isinstance(res, numpy.ndarray):  # for arrays
                 comparison = res == self.old_res
-                if type(comparison) == bool:
+                if isinstance(comparison, bool):
                     is_equal = comparison
                 else:
                     is_equal = all(comparison)

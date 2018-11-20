@@ -49,7 +49,7 @@ class TacoDevice(Device):
             # start polling only if needed
             try:
                 cmdObject = self.getCommandObject("pollCmd")
-            except:
+            except BaseException:
                 logging.getLogger("HWR").error(
                     "%s: cannot start polling, command not set.", self.name()
                 )
@@ -70,7 +70,7 @@ class TacoDevice(Device):
         if self.__nb_connections == 0:
             try:
                 cmdObject = self.getCommandObject("pollCmd")
-            except:
+            except BaseException:
                 return
             else:
                 cmdObject.stopPolling()
@@ -90,7 +90,7 @@ class TacoDevice(Device):
 
                 if isinstance(func, collections.Callable):
                     result = func(*args)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "Failed to execute command %s on device %s",
                     command,

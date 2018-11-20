@@ -13,10 +13,10 @@ NOTMATCH, MAYMATCH, MATCH = (0, 1, 2)
 
 def testPath(pathParts, queryPathParts, attrs):
     """Given two paths, return True if the query path matches the current path, False otherwise"""
-    if type(pathParts) == type(""):
+    if isinstance(pathParts, type("")):
         pathParts = pathParts.split("/")
 
-    if type(queryPathParts) == type(""):
+    if isinstance(queryPathParts, type("")):
         queryPathParts = queryPathParts.split("/")
 
     nPathParts = len(pathParts)
@@ -46,7 +46,7 @@ def testPath(pathParts, queryPathParts, attrs):
                         break
                 else:
                     if queryPathPart[:j] == pathPart[:k] or queryPathPart[:j] == "*":
-                        if queryPathPart[j + 1: -1] == pathPart[k + 1: -1]:
+                        if queryPathPart[j + 1 : -1] == pathPart[k + 1 : -1]:
                             continue
                         else:
                             #
@@ -56,11 +56,11 @@ def testPath(pathParts, queryPathParts, attrs):
                                 #
                                 # now check if attribute matches
                                 #
-                                attributePart = queryPathPart[j + 2: -1]
+                                attributePart = queryPathPart[j + 2 : -1]
                                 k = attributePart.find("=")
                                 if k >= 0:
                                     queryAttribute = attributePart[:k]
-                                    queryAttributeValue = attributePart[k + 1:]
+                                    queryAttributeValue = attributePart[k + 1 :]
                                     queryAttribute.strip()
                                     queryAttributeValue.strip()
 
@@ -87,7 +87,7 @@ def testPath(pathParts, queryPathParts, attrs):
 
 
 def read(inputFile, path):
-    if type(inputFile) == type(""):
+    if isinstance(inputFile, type("")):
         #
         # open input file
         #
@@ -130,7 +130,7 @@ class XMLReadingHandler(ContentHandler):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1: -1]) + 1
+            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -181,7 +181,7 @@ class XMLReadingHandler(ContentHandler):
 
 
 def update(inputFile, path, value, outputFile=None):
-    if type(inputFile) == type(""):
+    if isinstance(inputFile, type("")):
         #
         # open input file
         #
@@ -196,7 +196,7 @@ def update(inputFile, path, value, outputFile=None):
     if outputFile is None:
         outputFile = sys.stdout
     else:
-        if type(outputFile) == type(""):
+        if isinstance(outputFile, type("")):
             outputFile = open(outputFile, "w")
         else:
             outputFile.flush()
@@ -208,7 +208,7 @@ def update(inputFile, path, value, outputFile=None):
 
 
 def batchUpdate(inputFile, paths, values, outputFile=None):
-    if type(inputFile) == type(""):
+    if isinstance(inputFile, type("")):
         #
         # open input file
         #
@@ -226,7 +226,7 @@ def batchUpdate(inputFile, paths, values, outputFile=None):
     if outputFile is None:
         outputFile = sys.stdout
     else:
-        if type(outputFile) == type(""):
+        if isinstance(outputFile, type("")):
             outputFile = open(outputFile, "w")
         else:
             outputFile.flush()
@@ -238,7 +238,7 @@ def batchUpdate(inputFile, paths, values, outputFile=None):
 
 
 def remove(inputFile, path, outputFile=None):
-    if type(inputFile) == type(""):
+    if isinstance(inputFile, type("")):
         #
         # open input file
         #
@@ -253,7 +253,7 @@ def remove(inputFile, path, outputFile=None):
     if outputFile is None:
         outputFile = sys.stdout
     else:
-        if type(outputFile) == type(""):
+        if isinstance(outputFile, type("")):
             outputFile = open(outputFile, "w")
         else:
             outputFile.flush()
@@ -299,7 +299,7 @@ class XMLUpdateHandler(XMLModifier):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1: -1]) + 1
+            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 
@@ -369,7 +369,7 @@ class XMLBatchUpdateHandler(XMLModifier):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1: -1]) + 1
+            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 
@@ -438,7 +438,7 @@ class XMLRemoveHandler(XMLModifier):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            elementIndex = int(self.previousPath[i + 1: -1]) + 1
+            elementIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             elementIndex = 1  # XPath indexes begin at 1
 

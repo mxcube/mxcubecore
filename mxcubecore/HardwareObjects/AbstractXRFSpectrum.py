@@ -1,10 +1,10 @@
 """
-Represents Abstract XRF spectrum (name could be discussed) Abstract class is 
+Represents Abstract XRF spectrum (name could be discussed) Abstract class is
 compatible with queue_entry and emits these signals during the spectrum:
- - xrfSpectrumStarted  
+ - xrfSpectrumStarted
  - xrfSpectrumFinished
  - xrfSpectrumFailed
- - xrfSpectrumStatusChanged  
+ - xrfSpectrumStatusChanged
 
 Functions that needs a reimplementation:
 - execute_spectrum_command : actual execution command
@@ -25,7 +25,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 class AbstractXRFSpectrum(object):
     """
-    Descript. 
+    Descript.
     """
 
     __metaclass__ = abc.ABCMeta
@@ -76,7 +76,7 @@ class AbstractXRFSpectrum(object):
                     os.makedirs(archive_directory)
                 if not os.path.exists(spectrum_directory):
                     os.makedirs(spectrum_directory)
-            except OSError, diag:
+            except OSError as diag:
                 logging.getLogger().error(
                     "XRFSpectrum: error creating directory %s (%s)"
                     % (archive_directory, str(diag))
@@ -193,7 +193,7 @@ class AbstractXRFSpectrum(object):
 
             try:
                 spectrum_file_raw = open(self.spectrum_info["scanFilePath"], "w")
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "XRFSpectrum: could not create spectrum result raw file %s"
                     % self.spectrum_info["scanFilePath"]
@@ -201,7 +201,7 @@ class AbstractXRFSpectrum(object):
 
             try:
                 archive_file_raw = open(self.spectrum_info["scanFileFullPath"], "w")
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "XRFSpectrum: could not create spectrum result raw file %s"
                     % self.spectrum_info["scanFileFullPath"]
@@ -283,7 +283,7 @@ class AbstractXRFSpectrum(object):
         if self.db_connection_hwobj:
             try:
                 session_id = int(self.spectrum_info["sessionId"])
-            except:
+            except BaseException:
                 return
             blsampleid = self.spectrum_info["blSampleId"]
             self.db_connection_hwobj.storeXfeSpectrum(self.spectrum_info)
@@ -295,5 +295,5 @@ class AbstractXRFSpectrum(object):
         if self.energy_hwobj is not None:
             try:
                 return self.energy_hwobj.getCurrentEnergy()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("XRFSpectrum: couldn't read energy")

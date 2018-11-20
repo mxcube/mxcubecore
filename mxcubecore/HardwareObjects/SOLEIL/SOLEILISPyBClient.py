@@ -42,7 +42,7 @@ class SOLEILISPyBClient(ISPyBClient2):
             )
             hdlr.setFormatter(formatter)
             logger.addHandler(hdlr)
-        except:
+        except BaseException:
             pass
 
         logger.setLevel(logging.INFO)
@@ -94,11 +94,11 @@ class SOLEILISPyBClient(ISPyBClient2):
                     logging.debug(
                         "SOLEILISPyBClient: extracted from ISPyB values for shipping, collection and tools"
                     )
-                except:
+                except BaseException:
                     print traceback.print_exc()
                     logging.exception("SOLEILISPyBClient: %s" % _CONNECTION_ERROR_MSG)
                     return
-        except:
+        except BaseException:
             print traceback.print_exc()
             logging.getLogger("HWR").exception(_CONNECTION_ERROR_MSG)
             return
@@ -122,7 +122,7 @@ class SOLEILISPyBClient(ISPyBClient2):
                     pass
         except IndexError:
             pass
-        except:
+        except BaseException:
             pass
 
     def translate(self, code, what):
@@ -187,7 +187,7 @@ class SOLEILISPyBClient(ISPyBClient2):
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 logging.debug("SOLEIL ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
-            except:
+            except BaseException:
                 pass
 
     def prepare_image_for_lims(self, image_dict):
@@ -196,7 +196,7 @@ class SOLEILISPyBClient(ISPyBClient2):
                 path = image_dict[prop]
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
-            except:
+            except BaseException:
                 pass
 
 

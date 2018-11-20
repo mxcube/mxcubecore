@@ -655,7 +655,7 @@ class DataCollection(TaskNode):
         """
         Descript. : Sets grid id associated to the data collection
         Args.     : grid_id (integer)
-        Return    : 
+        Return    :
         """
         self.grid_id = grid_id
 
@@ -1397,7 +1397,7 @@ class PathTemplate(object):
             session_date = folders[6]
             try:
                 more = folders[8:]
-            except:
+            except BaseException:
                 more = []
             archive_directory = os.path.join(
                 PathTemplate.archive_base_directory, user_dir, session_date, *more
@@ -1406,7 +1406,7 @@ class PathTemplate(object):
                 "PathTemplate (ALBA) - archive_directory is %s" % archive_directory
             )
         else:
-            directory = self.directory[len(PathTemplate.base_directory):]
+            directory = self.directory[len(PathTemplate.base_directory) :]
             folders = directory.split("/")
             if "visitor" in folders:
                 endstation_name = folders[3]
@@ -1983,7 +1983,7 @@ def dc_from_edna_output(
         edna_strategy = char_results.getStrategyResult()
         collection_plan = edna_strategy.getCollectionPlan()[0]
         wedges = collection_plan.getCollectionStrategy().getSubWedge()
-    except:
+    except BaseException:
         pass
     else:
         try:
@@ -2173,15 +2173,15 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
     """
     Creates subwedges for interleved collection.
     Wedges W1, W2, Wm (where m is num_collections) are created:
-    (W1_1, W2_1, ..., W1_m), ... (W1_n-1, W2_n-1, ..., Wm_n-1), 
+    (W1_1, W2_1, ..., W1_m), ... (W1_n-1, W2_n-1, ..., Wm_n-1),
     (W1_n, W2_n, ..., Wm_n)
 
     :param interleave_list: list of interleaved items
     :type interleave_list: list of dict
 
-    :param num_images: number of images of first collection. Based on the 
-    first collection certain number of subwedges will be created. If 
-    first collection contains more images than others then in the end 
+    :param num_images: number of images of first collection. Based on the
+    first collection certain number of subwedges will be created. If
+    first collection contains more images than others then in the end
     the rest of images from first collections are created as last subwedge
     :type num_images: int
 
@@ -2190,7 +2190,7 @@ def create_interleave_sw(interleave_list, num_images, sw_size):
 
     :returns: A list of tuples containing the swb wedges.
               The tuples are in the form:
-              (collection_index, subwedge_index, subwedge_firt_image, 
+              (collection_index, subwedge_index, subwedge_firt_image,
                subwedge_start_osc)
     :rtype: List [(...), (...)]
     """

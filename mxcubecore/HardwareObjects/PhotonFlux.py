@@ -13,7 +13,7 @@ class PhotonFlux(Equipment):
         self.calibration_chan = self.getChannelObject("calibration")
         try:
             self.aperture = self.getObjectByRole("aperture")
-        except:
+        except BaseException:
             pass
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
@@ -53,7 +53,7 @@ class PhotonFlux(Equipment):
 
         try:
             egy = self.energy_motor.getPosition() * 1000.0
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             try:
@@ -63,22 +63,23 @@ class PhotonFlux(Equipment):
                         "%s: calibration is None", self.name()
                     )
                 else:
-                    calibs = [
-                        (float(c["energy"]), float(c[self.counter]))
-                        for c in calib_dict.itervalues()
-                    ]
-                    calibs.sort()
+                    calibs = sorted(
+                        [
+                            (float(c["energy"]), float(c[self.counter]))
+                            for c in calib_dict.itervalues()
+                        ]
+                    )
                     print c
                     E = [c[0] for c in calibs]
                     C = [c[1] for c in calibs]
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "%s: could not get calibration", self.name()
                 )
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except:
+                except BaseException:
                     aperture_coef = 1
                 if aperture_coef <= 0:
                     aperture_coef = 1

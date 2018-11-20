@@ -99,7 +99,7 @@ class InstanceServer(Procedure):
 
         try:
             os.unlink(lockfilename)
-        except:
+        except BaseException:
             pass
         self.emit("instanceInitializing", ())
         if self.isLocal():
@@ -176,7 +176,7 @@ class InstanceServer(Procedure):
                     (self.serverHost, self.serverPort), handleRemoteClient
                 )  # AsyncServer(self,self.serverHost,self.serverPort)
                 async_server.start()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").warning(
                     "InstanceServer: cannot create server, so trying to connect to it"
                 )
@@ -214,7 +214,7 @@ class InstanceServer(Procedure):
     def reconnect(self, quiet=False):
         try:
             self.instanceClient = InstanceClient(self.serverHost, self.serverPort)
-        except:
+        except BaseException:
             self.instanceClient = None
             if not quiet:
                 logging.getLogger("HWR").error(
@@ -234,7 +234,7 @@ class InstanceServer(Procedure):
     def isLocal(self):
         try:
             display = os.environ["DISPLAY"].split(":")[0]
-        except:
+        except BaseException:
             return False
         if not display:
             return True
@@ -506,14 +506,14 @@ class InstanceServer(Procedure):
         msg_obj = None
         try:
             message = InstanceMessage(data=data)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "InstanceServer: problem parsing received message"
             )
         else:
             try:
                 t = message.getType()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem parsing received message"
                 )
@@ -611,7 +611,7 @@ class InstanceServer(Procedure):
             client_id = m.getClientId()
             try:
                 client_prop = m.getProposal()
-            except:
+            except BaseException:
                 client_prop = None
             self.emit("wantsControl", ((client_id, client_prop),))
 
@@ -635,7 +635,7 @@ class InstanceServer(Procedure):
                 else:
                     exec("method=brick.%s.%s" % (widget_name, widget_method))
                 self.emit("widgetCall", (timestamp, method, widget_method_args))
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while calling a brick!"
                 )
@@ -659,7 +659,7 @@ class InstanceServer(Procedure):
                 self.emit(
                     "widgetUpdate", (timestamp, method, widget_method_args, masterSync)
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while updating a brick!"
                 )
@@ -674,7 +674,7 @@ class InstanceServer(Procedure):
                 method = tab.setCurrentPage
                 method_args = (tab_index,)
                 self.emit("widgetUpdate", (timestamp, method, method_args))
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while updating a tab!"
                 )
@@ -884,7 +884,7 @@ class InstanceServer(Procedure):
                 else:
                     exec("method=brick.%s.%s" % (widget_name, widget_method))
                 self.emit("widgetCall", (timestamp, method, widget_method_args))
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while calling a brick!"
                 )
@@ -907,7 +907,7 @@ class InstanceServer(Procedure):
                 self.emit(
                     "widgetUpdate", (timestamp, method, widget_method_args, masterSync)
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while updating a brick!"
                 )
@@ -924,7 +924,7 @@ class InstanceServer(Procedure):
                 method = tab.setCurrentPage
                 method_args = (tab_index,)
                 self.emit("widgetUpdate", (timestamp, method, method_args))
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "InstanceServer: problem while updating a tab!"
                 )
@@ -973,7 +973,7 @@ def handleRemoteClient(client_socket, addr):
         if data == "":
             try:
                 SERVER_CLIENTS.pop(addr)
-            except:
+            except BaseException:
                 # Huh? socket closed but client is not in SERVER_CLIENTS dict!
                 # just ignore silently
                 pass
@@ -999,7 +999,7 @@ def send_data_to_client(client_addr, data):
     if client_socket:
         try:
             client_socket.sendall("%s%s" % (data, TERMINATOR))
-        except:
+        except BaseException:
             # broken pipe? client disconnected
             SERVER_CLIENTS.pop(client_addr)
 
@@ -1008,7 +1008,7 @@ def InstanceClient(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.connect((host, port))
-    except:
+    except BaseException:
         raise
     else:
         socketName = s.getsockname()

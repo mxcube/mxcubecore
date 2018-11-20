@@ -64,7 +64,8 @@ class BIOMAXEiger(Equipment):
         self.buffer_limit = self.getProperty("buffer_limit")
         self.dcu = self.getProperty("dcu")
 
-        # not all of the following attr are needed, for now all of them here for convenience
+        # not all of the following attr are needed, for now all of them here for
+        # convenience
         attr_list = (
             "NbImages",
             "Temperature",
@@ -147,7 +148,8 @@ class BIOMAXEiger(Equipment):
             "TriggerMode": "exts",
         }
 
-        # not all of the following commands are needed, for now all of them here for convenience
+        # not all of the following commands are needed, for now all of them here
+        # for convenience
         cmd_list = (
             "Arm",
             "Trigger",
@@ -202,7 +204,7 @@ class BIOMAXEiger(Equipment):
             self.energy_change_threshold = float(
                 self.getProperty("min_trigger_energy_change")
             )
-        except:
+        except BaseException:
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.getChannelObject("Compression").init_device()
@@ -448,7 +450,7 @@ class BIOMAXEiger(Equipment):
     def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
-        except:
+        except BaseException:
             # not a valid value
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
@@ -645,7 +647,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").info(
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
-        except:
+        except BaseException:
             pass
 
     def cancel_acquisition(self):
@@ -653,7 +655,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
-        except:
+        except BaseException:
             pass
 
         time.sleep(1)
@@ -689,7 +691,7 @@ class BIOMAXEiger(Equipment):
     def abort(self):
         try:
             self.getCommandObject("Abort")()
-        except:
+        except BaseException:
             pass
 
 

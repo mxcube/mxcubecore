@@ -27,7 +27,7 @@ Hardware Object is used to manipulate the zoom of the OAV camera.
 [Channels]
 - position
 - state
-- labels 
+- labels
 
 [Commands]
 
@@ -141,7 +141,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
     def getPosition(self):
         try:
             return self.positionChannel.getValue()
-        except:
+        except BaseException:
             return self.currentposition
 
     def getCurrentPositionName(self):
@@ -150,7 +150,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
             value = "%s z%s" % (n, n)
             logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
             return value
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("cannot get name zoom value")
             return None
 

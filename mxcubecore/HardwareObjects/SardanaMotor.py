@@ -214,7 +214,7 @@ class SardanaMotor(AbstractMotor):
         """
         try:
             return (self.limit_lower, self.limit_upper)
-        except:
+        except BaseException:
             return (None, None)
 
     def getPosition(self):
@@ -258,7 +258,7 @@ class SardanaMotor(AbstractMotor):
         self.move(position)
         try:
             self.wait_end_of_move(timeout)
-        except:
+        except BaseException:
             raise Timeout
 
     def syncMoveRelative(self, relative_position, timeout=None):
@@ -293,7 +293,7 @@ class SardanaMotor(AbstractMotor):
     def get_velocity(self):
         try:
             return self.velocity_channel.getValue()
-        except:
+        except BaseException:
             return None
 
     def set_velocity(self, value):
@@ -302,7 +302,7 @@ class SardanaMotor(AbstractMotor):
     def get_acceleration(self):
         try:
             return self.acceleration_channel.getValue()
-        except:
+        except BaseException:
             return None
 
 

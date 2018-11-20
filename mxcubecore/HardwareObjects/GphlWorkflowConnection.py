@@ -295,7 +295,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except:
+            except BaseException:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create GPhL working directory: %s" % wdir
@@ -344,7 +344,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             self._running_process = subprocess.Popen(
                 command_list, env=envs, stdout=fp1, stderr=fp2
             )
-        except:
+        except BaseException:
             logging.getLogger().error("Error in spawning workflow application")
             raise
         finally:
@@ -387,7 +387,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                         time.sleep(9)
                         if xx.poll() is None:
                             xx.kill()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").info(
                     "Exception while terminating external workflow process %s" % xx
                 )
@@ -405,7 +405,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                 # but it seems to keep the program open (??)
                 # xx.shutdown(raise_exception=True)
                 xx.shutdown()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").debug(
                     "Exception during py4j gateway shutdown. Ignored"
                 )
@@ -958,7 +958,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             response = self._gateway.jvm.co.gphl.sdcp.py4j.Py4jMessage(
                 py4j_payload, enactment_id, correlation_id
             )
-        except:
+        except BaseException:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
                 % py4j_payload.getClass().getSimpleName()

@@ -99,7 +99,7 @@ class PX1Cryotong(Cats90):
                 self.emit("loadError", value)
                 try:
                     self._cmdAckSampleMemory()
-                except:
+                except BaseException:
                     """ do nothing if cmd not to acknowledge not in xml """
                     pass
             self.incoherent_state = value
@@ -205,7 +205,8 @@ class PX1Cryotong(Cats90):
 
         self._doLoadOperation(sample)
 
-        # Check the value of the CATSCRYOTONG attribute dryAndSoakNeeded to warn user if it is True
+        # Check the value of the CATSCRYOTONG attribute dryAndSoakNeeded to warn
+        # user if it is True
         dryAndSoak = self._chnDryAndSoakNeeded.getValue()
         if dryAndSoak:
             logging.getLogger("user_level_log").warning(

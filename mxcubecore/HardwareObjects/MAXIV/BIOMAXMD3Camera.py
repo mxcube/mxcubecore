@@ -70,7 +70,7 @@ class BIOMAXMD3Camera(Device):
             self.chan_zoom.setValue(self.zoom)
             self.width = self.roi_width.getValue() * self.zoom
             self.height = self.roi_height.getValue() * self.zoom
-        except:
+        except BaseException:
             logging.getLogger("HWR").info("cannot set image zoom level")
         thread = Thread(target=self.poll)
         thread.daemon = True
@@ -99,7 +99,7 @@ class BIOMAXMD3Camera(Device):
                 self.stopper = True
                 logging.getLogger("HWR").info("poll images stopped")
                 return
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("Could not read image")
                 self.image_attr = self.addChannel(
                     {"type": "exporter", "name": "image"}, "ImageJPG"
@@ -109,7 +109,8 @@ class BIOMAXMD3Camera(Device):
         self.stopper = True
 
     def startPolling(self):
-        # assuming that it is already stop, more advances features with threading.Event, Event.is_set...
+        # assuming that it is already stop, more advances features with
+        # threading.Event, Event.is_set...
         self.stopper = False
         thread.stop()
         thread = Thread(target=self.poll)
@@ -129,7 +130,7 @@ class BIOMAXMD3Camera(Device):
             self.width = x2 - x1
             self.height = y1 - y2
             return True
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not set image roi")
             return False
 
@@ -144,21 +145,21 @@ class BIOMAXMD3Camera(Device):
                 self.roi_width.getValue(),
                 self.roi_height.getValue(),
             ]
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not retrieve image roi settings")
             return False
 
     def getImageZoom(self):
         try:
             return self.zoom.getValue()
-        except Exception, e:
+        except Exception as e:
             logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
             return False
 
     def setImageZoom(self, new_zoom):
         try:
             return self.zoom.setValue(new_zoom)
-        except Exception, e:
+        except Exception as e:
             logging.getLogger("HWR").exception("Could not retrieve image zoom settings")
             return False
 

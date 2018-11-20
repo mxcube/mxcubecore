@@ -25,8 +25,8 @@ TangoLimaVideoDevice
 This class was previously called Qt4_TangoLimaVideo.  It was changed to
 TangoLimaVideoDevice as it can be used now in Qt4(Qt5) environment or
 without it.
-The property <useqt>False</useqt> in the xml configuration file will inhibit 
-the use of qt. 
+The property <useqt>False</useqt> in the xml configuration file will inhibit
+the use of qt.
 
 The Hardware Object will poll for images at regular interval
 (set by property <interval>value-in-msecs</interval>
@@ -76,7 +76,7 @@ from GenericVideoDevice import GenericVideoDevice
 
 class TangoLimaVideoDevice(GenericVideoDevice):
     """
-    Descript. : 
+    Descript. :
     """
 
     def __init__(self, name):
@@ -88,7 +88,7 @@ class TangoLimaVideoDevice(GenericVideoDevice):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
 
         tangoname = self.getProperty("tangoname")
@@ -124,7 +124,7 @@ class TangoLimaVideoDevice(GenericVideoDevice):
 
         if img_data[0] == "VIDEO_IMAGE":
             raw_fmt = img_data[1][: self.header_size]
-            raw_buffer = np.fromstring(img_data[1][self.header_size:], np.uint16)
+            raw_buffer = np.fromstring(img_data[1][self.header_size :], np.uint16)
             _, ver, img_mode, frame_number, width, height, _, _, _, _ = struct.unpack(
                 self.header_fmt, img_data[1][: self.header_size]
             )

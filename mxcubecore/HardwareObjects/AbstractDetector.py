@@ -6,7 +6,7 @@ class AbstractDetector(object):
 
     def __init__(self):
         """
-        Descript. : 
+        Descript. :
         """
 
         # self.distance = None
@@ -30,21 +30,21 @@ class AbstractDetector(object):
     @abc.abstractmethod
     def get_distance(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     @abc.abstractmethod
     def get_distance_limits(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     @abc.abstractmethod
     def has_shutterless(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
@@ -80,7 +80,7 @@ class AbstractDetector(object):
 
     def set_distance(self, value, timeout=None):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
@@ -89,7 +89,7 @@ class AbstractDetector(object):
 
     def set_detector_mode(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         self.binding_mode = value
 

@@ -17,7 +17,7 @@ class ChannelObject(Device):
                 self.status_channel.connectSignal("update", self.stateChanged)
         except KeyError:
             logging.getLogger().warning("%s: cannot connect to channel", self.name())
-        except Exception, e:
+        except Exception as e:
             import traceback
 
             logging.getLogger("HWR").error(

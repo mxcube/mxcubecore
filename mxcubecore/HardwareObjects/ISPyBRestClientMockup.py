@@ -1,5 +1,5 @@
 """
-A client for ISPyB Webservices. 
+A client for ISPyB Webservices.
 """
 import logging
 from datetime import datetime
@@ -313,7 +313,7 @@ class ISPyBRestClientMockup(HardwareObject):
         Stores or updates a DataCollectionGroup object.
         The entry is updated of the group_id in the
         mx_collection dictionary is set to an exisitng
-        DataCollectionGroup id. 
+        DataCollectionGroup id.
 
         :param mx_collection: The dictionary of values to create the object from.
         :type mx_collection: dict

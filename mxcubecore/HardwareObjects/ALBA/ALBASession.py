@@ -11,8 +11,8 @@ class ALBASession(Session.Session):
     def get_base_data_directory(self):
         """
         Returns the base data directory for ALBA
-        In ALBA the base directory already includes the user 
-        home directory. So 
+        In ALBA the base directory already includes the user
+        home directory. So
         information into account, such as if the current user
         is inhouse.
 
@@ -43,7 +43,7 @@ class ALBASession(Session.Session):
         # remove RAW_DATA from da
         try:
             more = parts[8:]
-        except:
+        except BaseException:
             more = []
 
         archive_dir = os.path.join(

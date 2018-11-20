@@ -155,7 +155,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
     def move_energy(self, energy):
         try:
             self._tunable_bl.energy_obj.move_energy(energy)
-        except:
+        except BaseException:
             self.emit("energyScanFailed", ())
             raise RuntimeError("Cannot move energy")
 
@@ -223,7 +223,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                     for line in raw_file.readlines()[2:]:
                         try:
                             (x, y) = line.split("\t")
-                        except:
+                        except BaseException:
                             (x, y) = line.split()
                         x = float(x.strip())
                         y = float(y.strip())
@@ -338,14 +338,14 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                 png_scan_file,
             )
             canvas.print_figure(png_scan_file, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
                 "Saving energy scan to archive directory for ISPyB : %s", png_arch_file
             )
             canvas.print_figure(png_arch_file, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.storeEnergyScan()

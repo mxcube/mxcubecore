@@ -271,7 +271,7 @@ class Camera(BaseHardwareObjects.Device):
                     if signal == "imageReceived":
                         try:
                             display_num = os.environ["DISPLAY"].split(":")[1]
-                        except:
+                        except BaseException:
                             remote_client = False
                         else:
                             remote_client = display_num != "0.0"
@@ -296,7 +296,7 @@ class Camera(BaseHardwareObjects.Device):
                                     "ImageCounter",
                                 )
                                 imgCnt.connectSignal("update", self.newImage)
-                            except:
+                            except BaseException:
                                 pass
 
                 #############   CONTRAST   #################
@@ -308,7 +308,7 @@ class Camera(BaseHardwareObjects.Device):
                     try:
                         contrastChan = self.getChannelObject("contrast")
                         contrastChan.setValue(str(contrast))
-                    except:
+                    except BaseException:
                         self.oprint("setContrast failed")
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
@@ -320,7 +320,7 @@ class Camera(BaseHardwareObjects.Device):
                         contrastChan = self.getChannelObject("contrast")
                         contrast = contrastChan.getValue()
                         return contrast
-                    except:
+                    except BaseException:
                         self.oprint("getContrast failed")
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
@@ -340,7 +340,7 @@ class Camera(BaseHardwareObjects.Device):
                     try:
                         brightnessChan = self.getChannelObject("brightness")
                         brightnessChan.setValue(brightness)
-                    except:
+                    except BaseException:
                         self.oprint("setBrightness failed")
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
@@ -352,7 +352,7 @@ class Camera(BaseHardwareObjects.Device):
                         brightnessChan = self.getChannelObject("brightness")
                         brightness = brightnessChan.getValue()
                         return brightness
-                    except:
+                    except BaseException:
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
                         )
@@ -372,7 +372,7 @@ class Camera(BaseHardwareObjects.Device):
                         gainChan = self.getChannelObject("gain")
                         # ???? gainChan.setValue(str(gain))
                         gainChan.setValue(gain)
-                    except:
+                    except BaseException:
                         self.oprint("setGain failed")
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
@@ -384,7 +384,7 @@ class Camera(BaseHardwareObjects.Device):
                         gainChan = self.getChannelObject("gain")
                         gain = gainChan.getValue()
                         return gain
-                    except:
+                    except BaseException:
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
                         )
@@ -404,7 +404,7 @@ class Camera(BaseHardwareObjects.Device):
                     try:
                         gammaChan = self.getChannelObject("gamma")
                         gammaChan.setValue(gamma)
-                    except:
+                    except BaseException:
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
                         )
@@ -416,7 +416,7 @@ class Camera(BaseHardwareObjects.Device):
                         gammaChan = self.getChannelObject("gamma")
                         gamma = gammaChan.getValue()
                         return gamma
-                    except:
+                    except BaseException:
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
                         )
@@ -472,7 +472,7 @@ class Camera(BaseHardwareObjects.Device):
                                 )
                             img = img.transpose(Image.FLIP_TOP_BOTTOM)
                             # img.save(*args)
-                        except:
+                        except BaseException:
                             logging.getLogger("HWR").exception(
                                 "%s: could not save snapshot", self.name()
                             )
@@ -480,7 +480,7 @@ class Camera(BaseHardwareObjects.Device):
                             if len(args):
                                 try:
                                     img.save(*args)
-                                except:
+                                except BaseException:
                                     logging.getLogger("HWR").exception(
                                         "%s: could not save snapshot", self.name()
                                     )
@@ -522,54 +522,54 @@ class Camera(BaseHardwareObjects.Device):
                             threshold = self.bpmDevice.getChannelObject(
                                 "threshold"
                             ).getValue()
-                        except:
+                        except BaseException:
                             threshold = -1
                         try:
                             centerx = self.bpmDevice.getChannelObject(
                                 "centerx"
                             ).getValue()
-                        except:
+                        except BaseException:
                             centerx = -1
                         try:
                             centery = self.bpmDevice.getChannelObject(
                                 "centery"
                             ).getValue()
-                        except:
+                        except BaseException:
                             centery = -1
                         try:
                             fwhmx = self.bpmDevice.getChannelObject("fwhmx").getValue()
-                        except:
+                        except BaseException:
                             fwhmx = -1
                         try:
                             fwhmy = self.bpmDevice.getChannelObject("fwhmy").getValue()
-                        except:
+                        except BaseException:
                             fwhmy = -1
                         try:
                             maxpix = self.bpmDevice.getChannelObject(
                                 "maxpix"
                             ).getValue()
-                        except:
+                        except BaseException:
                             maxpix = -1
                         try:
                             intensity = self.bpmDevice.getChannelObject(
                                 "intensity"
                             ).getValue()
-                        except:
+                        except BaseException:
                             intensity = -1
                         # self.oprint("Device name =%s"%self.device.name())
                         try:
                             exposure = self.getChannelObject("exposure").getValue()
-                        except:
+                        except BaseException:
                             exposure = -1
 
                         # SIZES
                         try:
                             width = self.getChannelObject("fullwidth").getValue()
-                        except:
+                        except BaseException:
                             width = -1
                         try:
                             height = self.getChannelObject("fullheight").getValue()
-                        except:
+                        except BaseException:
                             height = -1
 
                         # FLIPS
@@ -577,26 +577,26 @@ class Camera(BaseHardwareObjects.Device):
                             fliphorizontal = self.getChannelObject(
                                 "fliphorizontal"
                             ).getValue()
-                        except:
+                        except BaseException:
                             fliphorizontal = 0
 
                         try:
                             flipvertical = self.getChannelObject(
                                 "flipvertical"
                             ).getValue()
-                        except:
+                        except BaseException:
                             flipvertical = 0
 
                         # GAIN
                         try:
                             gain = self.getChannelObject("gain").getValue()
-                        except:
+                        except BaseException:
                             gain = 0
 
                         # GAMMA
                         try:
                             gamma = self.getChannelObject("gamma").getValue()
-                        except:
+                        except BaseException:
                             gamma = 0
 
                         try:
@@ -604,14 +604,14 @@ class Camera(BaseHardwareObjects.Device):
                                 live = True
                             else:
                                 live = False
-                        except:
+                        except BaseException:
                             live = False
                         try:
                             if self.getBpmState() == PyTango.DevState.ON:
                                 bpm = True
                             else:
                                 bpm = False
-                        except:
+                        except BaseException:
                             bpm = False
                         try:
                             # ?????????? #  (startx, starty, endx, endy, d1, d2, d3, d4) = self.getChannelObject("roi").getValue()
@@ -627,7 +627,7 @@ class Camera(BaseHardwareObjects.Device):
                             ) = self.getChannelObject("roi").getValue()
                             # print "Camera.py -- startx=", startx
                             # print self.getChannelObject("roi").getValue()
-                        except:
+                        except BaseException:
                             (startx, starty, endx, endy, d1, d2, d3, d4) = (
                                 -1,
                                 -1,
@@ -765,7 +765,7 @@ class Camera(BaseHardwareObjects.Device):
                     """taco"""
                     str_val = self.device.DevCcdGetHwPar()
 
-                    if type(str_val) == type(""):
+                    if isinstance(str_val, type("")):
                         [brightness, contrast] = str_val.split()
                         return int(contrast)
                     else:
@@ -783,7 +783,7 @@ class Camera(BaseHardwareObjects.Device):
                     """taco"""
                     str_val = self.device.DevCcdGetHwPar()
 
-                    if type(str_val) == type(""):
+                    if isinstance(str_val, type("")):
                         [brightness, contrast] = str_val.split()
                         return int(brightness)
                     else:
@@ -815,7 +815,7 @@ class Camera(BaseHardwareObjects.Device):
                             pixmap = img.tostring("raw", "BGR")
                             img = Image.frombuffer("RGB", img.size, pixmap)
                             # img.save(*args)
-                        except:
+                        except BaseException:
                             logging.getLogger("HWR").exception(
                                 "%s: could not save snapshot", self.name()
                             )
@@ -823,7 +823,7 @@ class Camera(BaseHardwareObjects.Device):
                             if len(args):
                                 try:
                                     img.save(*args)
-                                except:
+                                except BaseException:
                                     logging.getLogger("HWR").exception(
                                         "%s: could not save snapshot", self.name()
                                     )

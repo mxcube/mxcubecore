@@ -11,7 +11,7 @@ Example XML::
 
 Public Interface:
    Commands:
-       int getState() 
+       int getState()
            Description:
                returns current state
            Output:
@@ -23,7 +23,7 @@ Public Interface:
                      11: alarm
                      13: unknown
                      23: fault
-  
+
        string getStatus()
            Description:
                returns current state as a string that can contain a more
@@ -31,7 +31,7 @@ Public Interface:
 
            Output:
                status string
-   
+
        cmdIn()
            Executes the command associated to the "In" action
        cmdOut()
@@ -39,7 +39,7 @@ Public Interface:
 
    Signals:
        stateChanged
- 
+
 """
 
 from HardwareRepository import HardwareRepository
@@ -101,7 +101,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").warning(traceback.format_exc())

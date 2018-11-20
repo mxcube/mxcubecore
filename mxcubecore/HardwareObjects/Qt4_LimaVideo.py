@@ -26,7 +26,7 @@ HwObj used to grab images via LImA library or Lima Tango server.
 
 [Configuration]
 See example below.  To select between "Library" or "Tango" simply
-use and configure the field <address> (for Library) 
+use and configure the field <address> (for Library)
 or <tangoname> (for Tango)
 in the XML file.
 
@@ -52,23 +52,23 @@ from GenericVideoDevice import GenericVideoDevice
 
 try:
     from Lima import Core
-except:
+except BaseException:
     pass
 
 try:
     from Lima import Prosilica
-except ImportError, e:
+except ImportError as e:
     pass
 
 try:
     from Lima import Basler
-except ImportError, e:
+except ImportError as e:
     pass
 
 
 class Qt4_LimaVideo(GenericVideoDevice):
     """
-    Descript. : 
+    Descript. :
     """
 
     def __init__(self, name):

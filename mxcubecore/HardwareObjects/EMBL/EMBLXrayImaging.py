@@ -171,8 +171,9 @@ class EMBLXrayImaging(HardwareObject):
 
         os.chdir(os.path.dirname(data_path))
         imfiles = os.listdir(os.path.dirname(data_path))
-        imlist = [filename for filename in imfiles if filename.endswith(fileformat)]
-        imlist.sort()
+        imlist = sorted(
+            [filename for filename in imfiles if filename.endswith(fileformat)]
+        )
         self.emit("imageInit", len(imlist))
 
         logging.getLogger("HWR").debug("Start")
@@ -195,8 +196,9 @@ class EMBLXrayImaging(HardwareObject):
 
         os.chdir(os.path.dirname(raw_data_path))
         imfiles = os.listdir(os.path.dirname(raw_data_path))
-        imlist = [filename for filename in imfiles if filename.endswith(fileformat)]
-        imlist.sort()
+        imlist = sorted(
+            [filename for filename in imfiles if filename.endswith(fileformat)]
+        )
         if cut:
             image_arr = dxchange.reader.read_tiff_stack(
                 imlist[0], range(len(imlist)), slc=((b, d, 1), (a, c, 1))

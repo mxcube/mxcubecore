@@ -31,7 +31,7 @@ class Component(object):
     def getAddress(self):
         """
         Returns an unique identifier of the slot of the element ()
-        Can never be None - even if the component is not present 
+        Can never be None - even if the component is not present
         :rtype: str
         """
         return self.address
@@ -59,7 +59,7 @@ class Component(object):
                 for i in range(len(components)):
                     if components[i] is self:
                         return i
-        except:
+        except BaseException:
             return -1
 
     def isLeaf(self):
@@ -67,7 +67,7 @@ class Component(object):
 
     def isPresent(self):
         """
-        Returns true if the element is known to be currently present 
+        Returns true if the element is known to be currently present
         :rtype: bool
         """
         return self.present
@@ -81,7 +81,7 @@ class Component(object):
 
     def isScanned(self):
         """
-        Returns if the element has been scanned for ID (for scannable components) 
+        Returns if the element has been scanned for ID (for scannable components)
         :rtype: bool
         """
         if self.isScannable() == False:
@@ -123,7 +123,7 @@ class Component(object):
         Clears all sample info (also in components if object is a container)
         """
         changed = False
-        if self.id != None:
+        if self.id is not None:
             self.id = None
             changed = True
         if self.present:

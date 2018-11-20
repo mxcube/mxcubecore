@@ -20,7 +20,7 @@ class ID231MultiCollect(ESRFMultiCollect):
                 % data_collect_parameters.get("nb_sum_images", 1)
                 != 0
             ):
-                raise RuntimeError, "invalid number of images to sum"
+                raise RuntimeError("invalid number of images to sum")
 
         data_collect_parameters["dark"] = 0
         # are we doing shutterless ?
@@ -88,7 +88,7 @@ class ID231MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id23eh1/inhouse/opid231", filename), dest
                     )
-        except:
+        except BaseException:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

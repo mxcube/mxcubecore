@@ -33,7 +33,7 @@ class CommandObject:
     def connectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except:
+        except BaseException:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
@@ -41,7 +41,7 @@ class CommandObject:
         signal = str(signal)
 
         if len(args) == 1:
-            if type(args[0]) == tuple:
+            if isinstance(args[0], tuple):
                 args = args[0]
 
         dispatcher.send(signal, self, *args)
@@ -82,14 +82,14 @@ class ChannelObject:
     def connectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except:
+        except BaseException:
             pass
         dispatcher.connect(callableFunc, signalName, self)
 
     def disconnectSignal(self, signalName, callableFunc):
         try:
             dispatcher.disconnect(callableFunc, signalName, self)
-        except:
+        except BaseException:
             pass
 
     def connectNotify(self, signal):
@@ -100,7 +100,7 @@ class ChannelObject:
         signal = str(signal)
 
         if len(args) == 1:
-            if type(args[0]) == tuple:
+            if isinstance(args[0], tuple):
                 args = args[0]
 
         dispatcher.send(signal, self, *args)
@@ -185,7 +185,7 @@ class CommandContainer:
                 from Command.Spec import SpecChannel
 
                 newChannel = SpecChannel(channelName, channel, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -202,7 +202,7 @@ class CommandContainer:
                 from Command.Taco import TacoChannel
 
                 newChannel = TacoChannel(channelName, channel, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().error(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -226,7 +226,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add channel %s (hint: check attributes)",
                     self.name(),
@@ -248,7 +248,7 @@ class CommandContainer:
                 from Command.Exporter import ExporterChannel
 
                 newChannel = ExporterChannel(channelName, channel, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add exporter channel %s (hint: check attributes)",
                     self.name(),
@@ -259,7 +259,7 @@ class CommandContainer:
                 from Command.Epics import EpicsChannel
 
                 newChannel = EpicsChannel(channelName, channel, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
@@ -276,7 +276,7 @@ class CommandContainer:
                 from Command.Tine import TineChannel
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger("GUI").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
@@ -305,7 +305,7 @@ class CommandContainer:
                     channelName, channel, uribase=uribase, **attributesDict
                 )
                 logging.getLogger().debug("Created")
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add SARDANA channel %s (hint: check PV name)",
                     self.name(),
@@ -360,7 +360,7 @@ class CommandContainer:
             return
         newCommand = None
 
-        if type(arg1) == dict:
+        if isinstance(arg1, dict):
             attributesDict = arg1
             cmd = arg2
 
@@ -399,7 +399,7 @@ class CommandContainer:
                 from Command.Spec import SpecCommand
 
                 newCommand = SpecCommand(cmdName, cmd, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -416,7 +416,7 @@ class CommandContainer:
                 from Command.Taco import TacoCommand
 
                 newCommand = TacoCommand(cmdName, cmd, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -439,7 +439,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -462,7 +462,7 @@ class CommandContainer:
                 from Command.Exporter import ExporterCommand
 
                 newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add command %s (hint: check attributes)",
                     self.name(),
@@ -473,7 +473,7 @@ class CommandContainer:
                 from Command.Epics import EpicsCommand
 
                 newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot add EPICS channel %s (hint: check PV name)",
                     self.name(),
@@ -542,7 +542,7 @@ class CommandContainer:
                         attributesDict["doorname"],
                     )
                     raise ConnectionError
-                except:
+                except BaseException:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
@@ -558,7 +558,7 @@ class CommandContainer:
                         taurusname,
                     )
                     raise ConnectionError
-                except:
+                except BaseException:
                     logging.getLogger().exception(
                         '%s: could not add command "%s" (hint: check command attributes)',
                         self.name(),
@@ -586,7 +586,7 @@ class CommandContainer:
                     attributesDict["tangoname"],
                 )
                 raise ConnectionError
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -603,7 +603,7 @@ class CommandContainer:
                 from Command.Tine import TineCommand
 
                 newCommand = TineCommand(cmdName, cmd, **attributesDict)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
                     self.name(),
@@ -613,7 +613,7 @@ class CommandContainer:
         if newCommand is not None:
             self.__commands[cmdName] = newCommand
 
-            if not type(arg1) == dict:
+            if not isinstance(arg1, dict):
                 i = 1
                 for arg in arg1.getObjects("argument"):
                     onchange = arg.getProperty("onchange")
@@ -642,7 +642,7 @@ class CommandContainer:
                             )
                             continue
                     else:
-                        if type(comboitems) == list:
+                        if isinstance(comboitems, list):
                             combo_items = []
                             for item in comboitems:
                                 name = item.getProperty("name")

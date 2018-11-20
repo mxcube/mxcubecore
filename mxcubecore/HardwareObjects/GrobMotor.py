@@ -104,7 +104,7 @@ class GrobMotor(Device):
         self.move(position)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError
 
     def motorIsMoving(self):

@@ -102,12 +102,12 @@ class HardwareObjectNode:
         # python2.7
         # if type(key) == types.StringType:
         # python3.4
-        if type(key) == str:
+        if isinstance(key, str):
             objectName = key
 
             try:
                 i = self.__objectsNames.index(objectName)
-            except:
+            except BaseException:
                 raise KeyError
             else:
                 obj = self.__objects[i]
@@ -118,7 +118,7 @@ class HardwareObjectNode:
         # python2.7
         # elif type(key) == types.IntType:
         # python3.4
-        elif type(key) == int:
+        elif isinstance(key, int):
             i = key
 
             if i < len(self.__objectsNames):
@@ -254,10 +254,10 @@ class HardwareObjectNode:
             #
             try:
                 value = int(value)
-            except:
+            except BaseException:
                 try:
                     value = float(value)
-                except:
+                except BaseException:
                     if value == "True":
                         value = True
                     elif value == "False":
@@ -277,12 +277,12 @@ class HardwareObjectNode:
            after the initialization.
            Problem arrise when a hardware object is used by several bricks.
            If first brick connects to some signal emited by a brick then
-           other bricks connecting to the same signal will no receive the 
+           other bricks connecting to the same signal will no receive the
            values on the startup.
            The easiest solution is to call update_values method directly
            after getHardwareObject and connect.
 
-           Normaly this method would emit all values 
+           Normaly this method would emit all values
         """
         return
 
@@ -338,7 +338,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         signal = str(signal)
 
         if len(args) == 1:
-            if type(args[0]) == tuple:
+            if isinstance(args[0], tuple):
                 args = args[0]
         dispatcher.send(signal, self, *args)
 
@@ -347,7 +347,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
             # TODO 2to3
 
             # if type(sender) == bytes:
-            if type(sender) == str:
+            if isinstance(sender, str):
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -371,7 +371,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         if slot is None:
             # TODO 2to3
             # if type(sender) == bytes:
-            if type(sender) == str:
+            if isinstance(sender, str):
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -556,12 +556,12 @@ class Equipment(HardwareObject, DeviceContainer):
 
 class Null:
     """
-    This class ignores all parameters passed when constructing or 
-    calling instances and traps all attribute and method requests. 
+    This class ignores all parameters passed when constructing or
+    calling instances and traps all attribute and method requests.
     Instances of it always (and reliably) do 'nothing'.
 
-    The code might benefit from implementing some further special 
-    Python methods depending on the context in which its instances 
+    The code might benefit from implementing some further special
+    Python methods depending on the context in which its instances
     are used. Especially when comparing and coercing Null objects
     the respective methods' implementation will depend very much
     on the environment and, hence, these special methods are not

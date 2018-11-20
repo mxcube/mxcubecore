@@ -77,7 +77,7 @@ class CatsMaint(Equipment):
 
         try:
             self.cats_model = self.cats_device.read_attribute("CatsModel").value
-        except:
+        except BaseException:
             self.cats_model = "CATS"
 
         if self.is_isara():
@@ -674,15 +674,15 @@ class CatsMaint(Equipment):
     def get_global_state(self):
         """
            Update clients with a global state that
-           contains different: 
+           contains different:
 
            - first param (state_dict):
                collection of state bits
 
            - second param (cmd_state):
                list of command identifiers and the
-               status of each of them True/False 
-               representing whether the command is 
+               status of each of them True/False
+               representing whether the command is
                currently available or not
 
            - message
@@ -732,8 +732,8 @@ class CatsMaint(Equipment):
         return state_dict, cmd_state, message
 
     def get_cmd_info(self):
-        """ return information about existing commands for this object 
-           the information is organized as a list 
+        """ return information about existing commands for this object
+           the information is organized as a list
            with each element contains
            [ cmd_name,  display_name, category ]
         """
@@ -828,7 +828,7 @@ class CatsMaint(Equipment):
             else:
                 ret = cmd()
             return ret
-        except Exception, exc:
+        except Exception as exc:
             import traceback
 
             traceback.print_exc()

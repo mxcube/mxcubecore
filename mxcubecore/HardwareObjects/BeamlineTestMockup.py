@@ -29,7 +29,7 @@ import tempfile
 
 try:
     import pdfkit
-except:
+except BaseException:
     logging.getLogger("HWR").warning("pdfkit not available")
 
 from datetime import datetime
@@ -100,7 +100,7 @@ class BeamlineTestMockup(HardwareObject):
         try:
             for test in eval(self.getProperty("available_tests")):
                 self.available_tests_dict[test] = TEST_DICT[test]
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug(
                 "BeamlineTest: Available tests are "
                 + "not defined in xml. Setting all tests as available."
@@ -110,7 +110,7 @@ class BeamlineTestMockup(HardwareObject):
 
         try:
             self.startup_test_list = eval(self.getProperty("startup_tests"))
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("BeamlineTest: Test list not defined.")
 
         if self.getProperty("run_tests_at_startup") == True:
@@ -134,7 +134,7 @@ class BeamlineTestMockup(HardwareObject):
                 )
                 if not os.path.exists(self.test_source_directory):
                     os.makedirs(self.test_source_directory)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").warning(
                     "BeamlineTest: Unable to create test directories"
                 )
@@ -145,7 +145,7 @@ class BeamlineTestMockup(HardwareObject):
         for test_index, test_name in enumerate(test_list):
             test_method_name = "test_" + test_name.lower()
             if hasattr(self, test_method_name):
-                if TEST_DICT.has_key(test_name):
+                if test_name in TEST_DICT:
                     logging.getLogger("HWR").debug(
                         "BeamlineTest: Executing test %s (%s)"
                         % (test_name, TEST_DICT[test_name])
@@ -299,7 +299,7 @@ class BeamlineTestMockup(HardwareObject):
             logging.getLogger("HWR").info(
                 "BeamlineTest: Test result written in file %s" % html_filename
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
@@ -307,7 +307,7 @@ class BeamlineTestMockup(HardwareObject):
         try:
             pdfkit.from_url(html_filename, pdf_filename)
             logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        except:
+        except BaseException:
             logging.getLogger("GUI").info(
                 "Unable to generate PDF report %s" % pdf_filename
             )

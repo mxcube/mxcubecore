@@ -37,7 +37,7 @@ _hwrserver = None
 
 
 def addHardwareObjectsDirs(hoDirs):
-    if type(hoDirs) == list:
+    if isinstance(hoDirs, list):
         newHoDirs = list(filter(os.path.isdir, list(map(os.path.abspath, hoDirs))))
 
         for newHoDir in reversed(newHoDirs):
@@ -98,7 +98,7 @@ class __HardwareRepositoryClient:
             self.invalidHardwareObjects = set()
             self.hardwareObjects = weakref.WeakValueDictionary()
 
-            if type(self.serverAddress) == bytes:
+            if isinstance(self.serverAddress, bytes):
                 mngr = SpecConnectionsManager.SpecConnectionsManager()
                 self.server = mngr.getConnection(self.serverAddress)
 
@@ -106,7 +106,8 @@ class __HardwareRepositoryClient:
                     while not self.server.isSpecConnected():
                         time.sleep(0.5)
 
-                # in case of update of a Hardware Object, we discard it => bricks will receive a signal and can reload it
+                # in case of update of a Hardware Object, we discard it => bricks will
+                # receive a signal and can reload it
                 self.server.registerChannel(
                     "update",
                     self.discardHardwareObject,
@@ -163,7 +164,7 @@ class __HardwareRepositoryClient:
                 )
         except SpecClientError.SpecClientTimeoutError:
             logging.getLogger("HWR").error("Timeout loading Hardware Objects")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Could not execute 'require' on Hardware Repository server"
             )
@@ -192,7 +193,7 @@ class __HardwareRepositoryClient:
                             ('xml_get("%s")' % hwobj_name,),
                             timeout=3,
                         )
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception(
                         'Could not load Hardware Object "%s"' % hwobj_name
                     )
@@ -224,7 +225,7 @@ class __HardwareRepositoryClient:
                 if os.path.exists(file_path):
                     try:
                         xml_data = open(file_path, "r").read()
-                    except:
+                    except BaseException:
                         pass
                     break
 
@@ -233,9 +234,9 @@ class __HardwareRepositoryClient:
         if len(xml_data) > 0:
             try:
                 hwobj_instance = self.parseXML(xml_data, hwobj_name)
-                if type(hwobj_instance) == str:
+                if isinstance(hwobj_instance, str):
                     return self.loadHardwareObject(hwobj_instance)
-            except:
+            except BaseException:
                 comment = "Cannot parse xml"
                 logging.getLogger("HWR").exception(
                     "Cannot parse XML file for Hardware Object %s", hwobj_name
@@ -256,7 +257,7 @@ class __HardwareRepositoryClient:
 
                     try:
                         hwobj_instance._addChannelsAndCommands()
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "Error while adding commands and/or channels to Hardware Object %s",
                             hwobj_name,
@@ -267,7 +268,7 @@ class __HardwareRepositoryClient:
                         hwobj_instance._init()
                         hwobj_instance.init()
                         class_name = str(hwobj_instance.__module__)
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             'Cannot initialize Hardware Object "%s"', hwobj_name
                         )
@@ -325,7 +326,7 @@ class __HardwareRepositoryClient:
             pass
         try:
             self.invalidHardwareObjects.remove(hoName)
-        except:
+        except BaseException:
             pass
         try:
             del self.requiredHardwareObjects[hoName]
@@ -346,7 +347,7 @@ class __HardwareRepositoryClient:
         """
         try:
             ho = HardwareObjectFileParser.parseString(XMLString, hoName)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Cannot parse Hardware Repository file %s", hoName
             )
@@ -404,7 +405,7 @@ class __HardwareRepositoryClient:
             completeFilesList = SpecWaitObject.waitReply(
                 self.server, "send_msg_chan_read", ("readDirectory()",), timeout=3
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "Cannot retrieve Hardware Repository files list"
             )
@@ -518,7 +519,7 @@ class __HardwareRepositoryClient:
         """
         try:
             return isinstance(self.hardwareObjects[name], BaseHardwareObjects.Device)
-        except:
+        except BaseException:
             return False
 
     def isProcedure(self, name):
@@ -532,7 +533,7 @@ class __HardwareRepositoryClient:
         """
         try:
             return isinstance(self.hardwareObjects[name], BaseHardwareObjects.Procedure)
-        except:
+        except BaseException:
             return False
 
     def isEquipment(self, name):
@@ -546,7 +547,7 @@ class __HardwareRepositoryClient:
         """
         try:
             return isinstance(self.hardwareObjects[name], BaseHardwareObjects.Equipment)
-        except:
+        except BaseException:
             return False
 
     def hasHardwareObject(self, name):
@@ -605,7 +606,7 @@ class __HardwareRepositoryClient:
 
                         try:
                             dd["imported ?"] = cmd.device.imported and "yes" or "no"
-                        except:
+                        except BaseException:
                             dd["imported ?"] = "no, invalid Taco device"
 
                         dd["device method"] = str(cmd.command)
@@ -650,7 +651,7 @@ class __HardwareRepositoryClient:
                 d["motor mnemonic"] = ho.specName
                 try:
                     d["connected ?"] = ho.connection.isSpecConnected() and "yes" or "no"
-                except:
+                except BaseException:
                     d["connected ?"] = "no"
 
             if isinstance(ho, BaseHardwareObjects.DeviceContainer):
@@ -693,11 +694,11 @@ class __HardwareRepositoryClient:
             else:
                 try:
                     func()
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception(
                         "an error occured while calling timer function"
                     )
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("an error occured inside the timerEvent")
 
     def printReport(self):
@@ -749,7 +750,7 @@ class __HardwareRepositoryClient:
                             "HardwareRepository: %s disconnected from GUI" % item
                         )
                         self.hardwareObjects[hwr_obj].clear_gevent()
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "HardwareRepository: Unable to disconnect hwobj %s" % item
                         )
@@ -761,7 +762,7 @@ class __HardwareRepositoryClient:
                         logging.getLogger("HWR").debug(
                             "HardwareRepository: %s reloaded" % item
                         )
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "HardwareRepository: Unable to reload module %s" % item
                         )
@@ -776,7 +777,7 @@ class __HardwareRepositoryClient:
                         logging.getLogger("HWR").debug(
                             "HardwareRepository: %s connected to GUI" % item
                         )
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "HardwareRepository: Unable to connect hwobj %s" % item
                         )
@@ -786,7 +787,7 @@ class __HardwareRepositoryClient:
                         logging.getLogger("HWR").debug(
                             "HardwareRepository: %s initialized and updated" % item
                         )
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "HardwareRepository: Unable to initialize hwobj %s" % item
                         )

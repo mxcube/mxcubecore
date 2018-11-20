@@ -99,7 +99,7 @@ class ExporterMotor(AbstractMotor):
                 if low_lim == float(1e999) or hi_lim == float(1e999):
                     raise ValueError
                 return low_lim, hi_lim
-            except:
+            except BaseException:
                 return (-1e4, 1e4)
 
     def get_dynamic_limits(self):
@@ -108,7 +108,7 @@ class ExporterMotor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except:
+        except BaseException:
             return (-1e4, 1e4)
 
     def get_max_speed(self):

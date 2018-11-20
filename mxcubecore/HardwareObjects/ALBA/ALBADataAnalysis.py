@@ -124,7 +124,7 @@ class ALBADataAnalysis(DataAnalysis):
         try:
             state = self.job.state
             logging.getLogger("HWR").debug("Job / is %s" % str(state))
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").debug(

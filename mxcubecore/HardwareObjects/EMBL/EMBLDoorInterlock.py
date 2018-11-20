@@ -72,7 +72,7 @@ class EMBLDoorInterlock(Device):
         )
         try:
             self.before_unlock_commands = eval(self.getProperty("beforeUnlockCommands"))
-        except:
+        except BaseException:
             pass
 
         self.use_door_interlock = self.getProperty("useDoorInterlock")
@@ -180,7 +180,7 @@ class EMBLDoorInterlock(Device):
                 self.diffractometer_hwobj.set_phase(
                     self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None
                 )
-            except:
+            except BaseException:
                 logging.getLogger("GUI").error(
                     "Unable to set diffractometer to transfer phase"
                 )

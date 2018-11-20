@@ -46,13 +46,13 @@ class ID23PhotonFlux(Equipment):
             counts = abs(self.counter.ReadData)
             if counts < self.threshold[0] or counts > self.threshold[1]:
                 counts = 0
-        except AttributeError, TypeError:
+        except AttributeError as TypeError:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
             egy = self.energy_motor.getCurrentEnergy() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
@@ -60,7 +60,7 @@ class ID23PhotonFlux(Equipment):
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except:
+                except BaseException:
                     aperture_coef = 1.0
             counts = math.fabs(counts * calib[0] * aperture_coef) * 10e6
         return counts

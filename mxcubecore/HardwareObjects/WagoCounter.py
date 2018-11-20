@@ -22,7 +22,7 @@ class WagoCounter(TacoDevice.TacoDevice):
             try:
                 self.wagoid = self.device.DevName2Key(self.wagoname)
                 self.gainid = self.device.DevName2Key(self.gainname)
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "%s: cannot find id for wago %s", str(self.name()), self.wagoname
                 )
@@ -39,7 +39,7 @@ class WagoCounter(TacoDevice.TacoDevice):
                 gn = gain.index(1) + 1
             except ValueError:
                 gn = -1
-        except:
+        except BaseException:
             logging.getLogger().error("%s: cannot get gain", str(self.name()))
             return -1
         else:
