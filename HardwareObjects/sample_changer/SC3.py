@@ -158,7 +158,7 @@ class SC3(SampleChanger):
                 basket_list.append(basket)
         return basket_list
 
-    #########################           TASKS           #########################
+    # ########    TASKS    ########
     def _doAbort(self):
         self._abort()
 
@@ -278,7 +278,8 @@ class SC3(SampleChanger):
     def clearBasketInfo(self, basket):
         self._reset_basket_info(basket)
 
-    #########################           PRIVATE           #########################
+    # ########     PRIVATE   ########
+
     def _executeServerTask(self, method, *args):
         self._waitDeviceReady(3.0)
         task_id = method(*args)
@@ -394,9 +395,8 @@ if __name__ == "__main__":
             sc.abort()
             sc.reset()
             sc.changeMode(SampleChangerMode.Normal)
-            sc.select(
-                "1", wait=True
-            )  # or else sc.select(sc.getComponentByAddress('1'), wait=True)
+            # or else sc.select(sc.getComponentByAddress('1'), wait=True)
+            sc.select("1", wait=True)
             sc.unload(wait=True)
             sc.load(None, wait=True)
             sc.load("3:04", wait=True)

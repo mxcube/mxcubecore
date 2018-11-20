@@ -593,7 +593,7 @@ class CatsMaint(Equipment):
     def _doToolClose(self):
         self._executeServerTask(self._cmdToolClose)
 
-    #########################          PROTECTED          #########################
+    # ########################          PROTECTED          #########################
 
     def _executeTask(self, wait, method, *args):
         ret = self._run(method, wait=False, *args)
@@ -614,7 +614,7 @@ class CatsMaint(Equipment):
             raise exception
         return ret
 
-    #########################           PRIVATE           #########################
+    # ########################           PRIVATE           #########################
 
     def _updateRunningState(self, value):
         self._running = value
@@ -837,4 +837,4 @@ class CatsMaint(Equipment):
 
 
 def test_hwo(hwo):
-    print hwo.get_current_tool()
+    print(hwo.get_current_tool())
