@@ -66,9 +66,10 @@ class Session(HardwareObject):
         # Intended to allow resetting directories in mock mode,
         # while keeping the session/xml used for the mocked beamline.
         override_file = HardwareRepository().findInRepository(parameter_override_file)
-        logging.getLogger("HWR").info(
-            "Reading override directory names from %s" % override_file
-        )
+        if override_file:
+            logging.getLogger("HWR").info(
+               "Reading override directory names from %s" % override_file
+            )
         if override_file:
             parameters = ET.parse(override_file).getroot()
             for elem in parameters:
