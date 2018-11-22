@@ -25,8 +25,10 @@ def getStdHardwareObjectsPath():
 sys.path.insert(0, getStdHardwareObjectsPath())
 
 hwobj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HardwareObjects")
-
-HardwareRepository.addHardwareObjectsDirs([hwobj_dir])
+hwobj_dir_list = [hwobj_dir]
+for subdir in ("sample_changer", "mockup"):
+    hwobj_dir_list.append(os.path.join(hwobj_dir, subdir))
+HardwareRepository.addHardwareObjectsDirs(hwobj_dir_list)
 
 #
 # create the HardwareRepository logger
