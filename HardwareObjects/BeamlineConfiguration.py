@@ -35,7 +35,7 @@ class BeamlineConfiguration(HardwareObject):
             if shutter_less is None:
                 shutter_less = False
 
-        except:
+        except BaseException:
             shutter_less = False
 
         return shutter_less
@@ -53,7 +53,7 @@ class BeamlineConfiguration(HardwareObject):
             if tw is None:
                 tw = False
 
-        except:
+        except BaseException:
             shutter_less = False
 
         return tw

@@ -8,7 +8,7 @@ class MicrodiffLight(AbstractMotor):
     def init(self):
         try:
             self.set_limits(eval(self.getProperty("limits")))
-        except:
+        except BaseException:
             self.set_limits((0, 2))
 
         self.chan_value = self.getChannelObject("chanLightValue")

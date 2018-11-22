@@ -64,7 +64,8 @@ class EpicsCommand(CommandObject):
             self.emit("commandFailed", (-1, str(self.name())))
             return
         elif len(args) == 0 and len(self.arglist) > 0:
-            # no argument given in the command call but inside the xml file -> use the default argument from the xml file
+            # no argument given in the command call but inside the xml file -> use the
+            # default argument from the xml file
             args = self.arglist
 
         # LNLS
@@ -74,7 +75,7 @@ class EpicsCommand(CommandObject):
                 # no arguments available -> get the pv's current value
                 try:
                     ret = self.pv.get(as_string=self.read_as_str)
-                except:
+                except BaseException:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when calling Epics command %s",
                         str(self.name()),
@@ -89,7 +90,7 @@ class EpicsCommand(CommandObject):
                     # LNLS
                     # self.pv.put(args[0], wait = True)
                     self.pv.put(args[0], wait=False)
-                except:
+                except BaseException:
                     logging.getLogger("HWR").error(
                         "%s: an error occured when calling Epics command %s",
                         str(self.name()),
@@ -103,7 +104,7 @@ class EpicsCommand(CommandObject):
     def valueChanged(self, value):
         try:
             callback = self.__valueChangedCallbackRef()
-        except:
+        except BaseException:
             pass
         else:
             if callback is not None:
@@ -116,7 +117,7 @@ class EpicsCommand(CommandObject):
         if poller is not None:
             try:
                 poller.restart(1000)
-            except:
+            except BaseException:
                 pass
 
     def getPvValue(self):
@@ -169,7 +170,7 @@ class EpicsChannel(ChannelObject):
 
         try:
             self.polling = int(polling)
-        except:
+        except BaseException:
             self.polling = None
         else:
             self.command.poll(self.polling, self.command.arglist, self.valueChanged)

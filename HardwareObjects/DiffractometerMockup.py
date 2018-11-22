@@ -27,7 +27,7 @@ import warnings
 
 try:
     import lucid2
-except:
+except BaseException:
     pass
 
 import queue_model_objects_v1 as qmo
@@ -256,7 +256,7 @@ class DiffractometerMockup(GenericDiffractometer):
         return
         try:
             return self.move_to_centred_position(centred_position, wait=wait)
-        except:
+        except BaseException:
             logging.exception("Could not move to centred position")
 
     def phi_motor_moved(self, pos):

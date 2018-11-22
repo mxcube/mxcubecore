@@ -38,12 +38,12 @@ class AbstractAperture(HardwareObject):
     def init(self):
         try:
             self._diameter_size_list = eval(self.getProperty("diameter_size_list"))
-        except:
+        except BaseException:
             logging.getLogger("HWR").error("Aperture: no diameter size list defined")
 
         try:
             self._position_list = eval(self.getProperty("position_list"))
-        except:
+        except BaseException:
             logging.getLogger("HWR").error("Aperture: no position list defined")
 
     # Methods to get internal read only variables -----------------------------

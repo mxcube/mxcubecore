@@ -35,7 +35,7 @@ class ControllerCommand(CommandObject):
         try:
             try:
                 res = cmd_execution.get()
-            except:
+            except BaseException:
                 self.emit("commandFailed", (str(self.name()),))
             else:
                 if isinstance(res, gevent.GreenletExit):

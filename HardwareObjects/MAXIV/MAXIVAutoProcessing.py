@@ -59,7 +59,7 @@ class MAXIVAutoProcessing(HardwareObject):
 
     def execute_autoprocessing(self, process_event, params_dict, frame_number):
         """
-        Descript. : 
+        Descript. :
         """
         if self.autoproc_programs is not None:
             self.current_autoproc_procedure = gevent.spawn(
@@ -69,20 +69,20 @@ class MAXIVAutoProcessing(HardwareObject):
 
     def autoproc_procedure(self, process_event, params_dict, frame_number):
         """
-        Descript. : 
+        Descript. :
 
-        Main autoprocessing procedure. At the beginning correct event (defined 
-        in xml) is found. If the event is executable then accordingly to the 
-        event type (image, after) then the sequence is executed:  
+        Main autoprocessing procedure. At the beginning correct event (defined
+        in xml) is found. If the event is executable then accordingly to the
+        event type (image, after) then the sequence is executed:
         Implemented tasks:
            - after : Main autoprocessing procedure
-                     1. Input file is generated with create_autoproc_input 
+                     1. Input file is generated with create_autoproc_input
                         Input file has name "edna-autoproc-input-%Y%m%d_%H%M%S.xml".
                      2. Then it waits for XDS.INP directory and if it exists then
                         creates input file
                      3. edna_autoprocessing.sh script is executed with parameters:
                         - arg1 : generated xml file
-                        - arg2 : process dir 
+                        - arg2 : process dir
                      4. script executes EDNA EDPluginControlAutoprocv1_0
            - image : Thumbnail generation for first and last image
                      1. No input file is generated
@@ -199,7 +199,7 @@ class MAXIVAutoProcessing(HardwareObject):
         if residues_num != 0:
             autoproc_input.setNres(XSDataDouble(residues_num))
         space_group = params.get("sample_reference").get("spacegroup", "")
-        if type(space_group) != int and len(space_group) > 0:
+        if not isinstance(space_group, int) and len(space_group) > 0:
             autoproc_input.setSpacegroup(XSDataString(space_group))
         unit_cell = params.get("sample_reference").get("cell", "")
         if len(unit_cell) > 0:

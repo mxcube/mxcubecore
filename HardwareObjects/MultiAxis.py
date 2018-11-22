@@ -36,7 +36,7 @@ class MultiAxis(Equipment):
             for val in tmpstepString.split(" "):
                 try:
                     steps.append(float(val))
-                except:
+                except BaseException:
                     pass
 
         defaultStep = hparams.getProperty("defaultStep")

@@ -32,7 +32,7 @@ __version__ = "2.3."
 
 
 class StateMachine(HardwareObject):
-    """Finite State Machine (FSM) is a mathematical model of a closed or 
+    """Finite State Machine (FSM) is a mathematical model of a closed or
        opened loop discreet-event systems with well defined state.
        It is wildly used to define functioning system and control their
        execution. In the case of MX beamlines and MXCuBE FSM represents
@@ -68,7 +68,7 @@ class StateMachine(HardwareObject):
 
         for condition in self.condition_list:
             condition["value"] = False
-            if not condition.has_key("desc"):
+            if "desc" not in condition:
                 condition["desc"] = condition["name"].title().replace("_", " ")
 
         for transition in self.transition_list:
@@ -83,11 +83,11 @@ class StateMachine(HardwareObject):
                     + "has a none existing destination state: %s" % transition["dest"]
                 )
 
-            if not transition.has_key("conditions_true"):
+            if "conditions_true" not in transition:
                 transition["conditions_true"] = []
-            if not transition.has_key("conditions_false"):
+            if "conditions_false" not in transition:
                 transition["conditions_false"] = []
-            if not transition.has_key("conditions_false_or"):
+            if "conditions_false_or" not in transition:
                 transition["conditions_false_or"] = []
 
             for condition_name in transition["conditions_true"]:
@@ -163,15 +163,15 @@ class StateMachine(HardwareObject):
                 allow_transition = True
                 for cond_name in transition["conditions_true"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == False:
+                    if cond["value"] is False:
                         allow_transition = False
                 for cond_name in transition["conditions_false"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == True:
+                    if cond["value"] is True:
                         allow_transition = False
                 for cond_name in transition["conditions_false_or"]:
                     cond = self.get_condition_by_name(cond_name)
-                    if cond["value"] == False:
+                    if cond["value"] is False:
                         allow_transition = True
 
                 if allow_transition:

@@ -100,7 +100,7 @@ class Lakeshore(TacoDevice.TacoDevice):
                         time.sleep(0.05)
                 else:
                     ret += recv
-            except:
+            except BaseException:
                 ret = ""
                 break
 

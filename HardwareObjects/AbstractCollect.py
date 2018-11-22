@@ -114,7 +114,7 @@ class AbstractCollect(HardwareObject, object):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except:
+        except BaseException:
             pass
 
         session_hwobj = self.getObjectByRole("session")
@@ -157,7 +157,7 @@ class AbstractCollect(HardwareObject, object):
 
     def collect(self, owner, dc_parameters_list):
         """
-        Main collect method.   
+        Main collect method.
         """
         self.ready_event.clear()
         self.current_dc_parameters = dc_parameters_list[0]
@@ -284,7 +284,7 @@ class AbstractCollect(HardwareObject, object):
 
             log.info("Collection: Updating data collection in LIMS")
             self.update_data_collection_in_lims()
-        except:
+        except BaseException:
             exc_type, exc_value, exc_tb = sys.exc_info()
             failed_msg = "Data collection failed!\n%s" % exc_value
             self.collection_failed(failed_msg)
@@ -377,13 +377,13 @@ class AbstractCollect(HardwareObject, object):
 
     def open_detector_cover(self):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     def open_safety_shutter(self):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
@@ -456,28 +456,28 @@ class AbstractCollect(HardwareObject, object):
 
     def get_detector_distance(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.detector_hwobj is not None:
             return self.detector_hwobj.get_distance()
 
     def get_resolution(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.resolution_hwobj is not None:
             return self.resolution_hwobj.getPosition()
 
     def get_transmission(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.transmission_hwobj is not None:
             return self.transmission_hwobj.get_value()
 
     def get_beam_centre(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.detector_hwobj is not None:
             return self.detector_hwobj.get_beam_centre()
@@ -486,13 +486,13 @@ class AbstractCollect(HardwareObject, object):
 
     def get_resolution_at_corner(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     def get_beam_size(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_size()
@@ -501,7 +501,7 @@ class AbstractCollect(HardwareObject, object):
 
     def get_slit_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_slits_gap()
@@ -509,20 +509,20 @@ class AbstractCollect(HardwareObject, object):
 
     def get_undulators_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         return {}
 
     def get_beam_shape(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
 
     def get_machine_current(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_current()
@@ -531,7 +531,7 @@ class AbstractCollect(HardwareObject, object):
 
     def get_machine_message(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
@@ -540,7 +540,7 @@ class AbstractCollect(HardwareObject, object):
 
     def get_machine_fill_mode(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             fill_mode = str(self.machine_info_hwobj.get_message())
@@ -550,13 +550,13 @@ class AbstractCollect(HardwareObject, object):
 
     def get_measured_intensity(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     def get_cryo_temperature(self):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
@@ -581,7 +581,7 @@ class AbstractCollect(HardwareObject, object):
         for directory in args:
             try:
                 os.makedirs(directory)
-            except os.error, e:
+            except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
 
@@ -595,7 +595,7 @@ class AbstractCollect(HardwareObject, object):
 
     def store_data_collection_in_lims(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.lims_client_hwobj and not self.current_dc_parameters["in_interleave"]:
             try:
@@ -612,14 +612,14 @@ class AbstractCollect(HardwareObject, object):
                 self.collection_id = collection_id
                 if detector_id:
                     self.current_dc_parameters["detector_id"] = detector_id
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection in LIMS"
                 )
 
     def update_data_collection_in_lims(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.lims_client_hwobj and not self.current_dc_parameters["in_interleave"]:
             self.current_dc_parameters["flux"] = self.get_flux()
@@ -637,7 +637,7 @@ class AbstractCollect(HardwareObject, object):
             i = 1
             for jj in self.bl_config.undulators:
                 key = jj.type
-                if und.has_key(key):
+                if key in und:
                     self.current_dc_parameters["undulatorGap%d" % (i)] = und[key]
                     i += 1
             self.current_dc_parameters[
@@ -654,14 +654,14 @@ class AbstractCollect(HardwareObject, object):
                 self.lims_client_hwobj.update_data_collection(
                     self.current_dc_parameters
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not update data collection in LIMS"
                 )
 
     def store_sample_info_in_lims(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.lims_client_hwobj and not self.current_dc_parameters["in_interleave"]:
             self.lims_client_hwobj.update_bl_sample(self.current_lims_sample)
@@ -725,19 +725,19 @@ class AbstractCollect(HardwareObject, object):
                 self.lims_client_hwobj.update_data_collection(
                     self.current_dc_parameters
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Could not store data collection into ISPyB"
                 )
 
     def get_sample_info(self):
         """
-        Descript. : 
+        Descript. :
         """
         sample_info = self.current_dc_parameters.get("sample_reference")
         try:
             sample_id = int(sample_info["blSampleId"])
-        except:
+        except BaseException:
             sample_id = None
 
         self.current_dc_parameters["blSampleId"] = sample_id
@@ -759,7 +759,7 @@ class AbstractCollect(HardwareObject, object):
 
                 self.current_dc_parameters["actualSampleSlotInContainer"] = vial
                 self.current_dc_parameters["actualContainerSlotInSC"] = basket
-            except:
+            except BaseException:
                 self.current_dc_parameters["actualSampleBarcode"] = None
                 self.current_dc_parameters["actualContainerBarcode"] = None
         else:
@@ -768,7 +768,7 @@ class AbstractCollect(HardwareObject, object):
 
     def move_to_centered_position(self):
         """
-        Descript. : 
+        Descript. :
         """
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
@@ -784,13 +784,13 @@ class AbstractCollect(HardwareObject, object):
     @task
     def move_motors(self, motor_position_dict):
         """
-        Descript. : 
+        Descript. :
         """
         return
 
     def take_crystal_snapshots(self):
         """
-        Descript. : 
+        Descript. :
         """
         number_of_snapshots = self.current_dc_parameters["take_snapshots"]
         snapshot_directory = self.current_dc_parameters["fileinfo"]["archive_directory"]
@@ -798,7 +798,7 @@ class AbstractCollect(HardwareObject, object):
             if not os.path.exists(snapshot_directory):
                 try:
                     self.create_directories(snapshot_directory)
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception(
                         "Collection: Error creating snapshot directory"
                     )
@@ -858,32 +858,32 @@ class AbstractCollect(HardwareObject, object):
     @abc.abstractmethod
     def data_collection_hook(self):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     @abc.abstractmethod
     def trigger_auto_processing(self, process_event, frame_number):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     def set_helical(self, arg):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     def set_helical_pos(self, arg):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     def setCentringStatus(self, status):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 

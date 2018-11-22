@@ -40,7 +40,7 @@ class CalculateGaps:
                 if gg == 0:
                     gg = int(i[1].strip("."))
                 p_gap[i[0]] = gg
-                if undulator != None:
+                if undulator is not None:
                     if i[0] == undulator:
                         gmax = int(i[1].strip("."))
                         if gg != 0:
@@ -49,7 +49,7 @@ class CalculateGaps:
                         gap[i[0]] = int(i[1].strip("."))
                 else:
                     gap[i[0]] = gg
-            if undulator != None:
+            if undulator is not None:
                 for i in array:
                     if i[0] != undulator and gap[undulator] == gmax:
                         larr = map(float, i[2:])
@@ -57,7 +57,7 @@ class CalculateGaps:
                         gap[i[0]] = gg
             gaps = gap.values()
             labels = gap.keys()
-            if undulator != None:
+            if undulator is not None:
                 for i in gaps:
                     if i == gmax and gaps.index(i) != 0:
                         gaps.reverse()

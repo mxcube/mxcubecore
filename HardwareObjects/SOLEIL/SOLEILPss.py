@@ -23,7 +23,7 @@ class SOLEILPss(Device):
     def init(self):
         try:
             self.device = DeviceProxy(self.getProperty("tangoname"))
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s: unknown pss device name", self.getProperty("tangoname")
             )

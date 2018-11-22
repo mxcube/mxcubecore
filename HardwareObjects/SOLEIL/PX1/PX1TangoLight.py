@@ -32,7 +32,7 @@ class PX1TangoLight(Device):
         self._setReady()
         try:
             self.inversed = self.getProperty("inversed")
-        except:
+        except BaseException:
             self.inversed = False
 
         if self.inversed:
@@ -108,5 +108,5 @@ class PX1TangoLight(Device):
                         "Setting light level to %s" % light_level
                     )
                     self.light_hwo.move(light_level)
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug("Cannot set light level")

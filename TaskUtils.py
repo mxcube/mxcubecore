@@ -26,7 +26,7 @@ class cleanup:
                     continue
                 try:
                     cleanup_func(**self.keys)
-                except:
+                except BaseException:
                     logging.exception(
                         "Exception while calling cleanup callback %s", cleanup_func
                     )
@@ -49,7 +49,7 @@ class error_cleanup:
                     continue
                 try:
                     error_func(**self.keys)
-                except:
+                except BaseException:
                     logging.exception(
                         "Exception while calling error cleanup callback %s", error_func
                     )
@@ -74,7 +74,7 @@ class wrap_errors(object):
         func = self.func
         try:
             return func(*args, **kwargs)
-        except:
+        except BaseException:
             sys.excepthook(*sys.exc_info())
             return TaskException(*sys.exc_info())
 
@@ -90,7 +90,7 @@ class wrap_errors(object):
 
 def task(func):
     def start_task(*args, **kwargs):
-        if args and type(args[0]) == InstanceType:
+        if args and isinstance(args[0], InstanceType):
             logging.debug("Starting %s%s", func.__name__, args[1:])
         else:
             logging.debug("Starting %s%s", func.__name__, args)
@@ -132,7 +132,7 @@ def task(func):
                 setattr(t, "get", types.MethodType(special_get, t))
 
                 return t
-        except:
+        except BaseException:
             t.kill()
             raise
 

@@ -62,7 +62,7 @@ __version__ = ".4.1"
 try:
     # Python 2.4 has a deque
     from collections import deque
-except:
+except BaseException:
     # Python 2.3 and earlier don't
     #
     # limited deque, trimmed version of Raymond Hettinger's recipe:
@@ -141,12 +141,11 @@ class writewrapper(object):
                 xtra = len(data) % BS + BS
             buf = self.d
             for i in xrange(0, len(data) - xtra, BS):
-                buf.append(data[i: i + BS])
+                buf.append(data[i : i + BS])
             if xtra:
                 buf.append(data[-xtra:])
 
 
-#
 class ParseHeaders(dict):
     if 1:
         """Replacement for the deprecated mimetools.Message class
@@ -167,7 +166,6 @@ class ParseHeaders(dict):
         return self._ci_dict.get(key.lower(), default)
 
 
-#
 class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler):
     if 1:
         server_version = "BaseAsyncHTTPServer/" + __version__
@@ -232,7 +230,7 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
         # Check for query string in URL
         qspos = self.path.find("?")
         if qspos >= 0:
-            self.body = cgi.parse_qs(self.path[qspos + 1:], keep_blank_values=1)
+            self.body = cgi.parse_qs(self.path[qspos + 1 :], keep_blank_values=1)
             self.path = self.path[:qspos]
 
         self.handle_data()
@@ -316,9 +314,9 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
         return len(self.outgoing) and self.connected
 
     def handle_write(self):
-        O = self.outgoing
-        while len(O):
-            a = O.popleft()
+        Og = self.outgoing
+        while len(Og):
+            a = Og.popleft()
             # handle end of request disconnection
             if a is None:
                 # Some clients have issues with keep-alive connections, or
@@ -339,7 +337,7 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
                     del _a
                     continue
                 else:
-                    O.appendleft(_a)
+                    Og.appendleft(_a)
                     break
             # handle string/buffer objects
             elif len(a):
@@ -354,13 +352,13 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
                 if not num_sent:
                     # this is probably overkill, but it can save the
                     # allocations of buffers when they are enabled
-                    O.appendleft(a)
+                    Og.appendleft(a)
                 elif self.use_buffer:
-                    O.appendleft(buffer(a, num_sent))
+                    Og.appendleft(buffer(a, num_sent))
                 else:
-                    O.appendleft(a[num_sent:])
+                    Og.appendleft(a[num_sent:])
 
-        except socket.error, why:
+        except socket.error as why:
             if isinstance(why, (str, unicode)):
                 self.log_error(why)
             elif isinstance(why, tuple) and isinstance(why[-1], (str, unicode)):
@@ -415,7 +413,6 @@ class RequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler)
         )
 
 
-#
 class OnlyExactFiles(RequestHandler):
     def send_head(self):
         path = self.translate_path(self.path)
@@ -425,14 +422,10 @@ class OnlyExactFiles(RequestHandler):
         return RequestHandler.send_head(self)
 
 
-#
 class ExactFilesAndIndex(RequestHandler):
     def list_directory(self, path):
         self.send_error(404, "File not found")
         return None
-
-
-#
 
 
 class Server(asyncore.dispatcher):
@@ -512,7 +505,9 @@ class to_logfile:
 
 
 if __name__ == "__main__":
-    usage = "usage: \%prog -r<root> [-p<port>] [-0|-1|-2]"
+    from __future__ import print_function
+
+    usage = r"usage: \%prog -r<root> [-p<port>] [-0|-1|-2]"
 
     parser = optparse.OptionParser(usage)
     parser.add_option(
@@ -562,5 +557,11 @@ if __name__ == "__main__":
 
     req_handler = which[options.server]
     s = Server("", options.port, req_handler)
-    print req_handler.__name__, "running on port", options.port, "with root path", options.root
+    print(
+        req_handler.__name__,
+        "running on port",
+        options.port,
+        "with root path",
+        options.root,
+    )
     asyncore.loop()

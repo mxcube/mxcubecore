@@ -20,7 +20,7 @@ This object manages the movement of several motors to predefined positions.
 
 <deltas>                    : for each motor you define the windows used to
     <role1>val1</role1>       determine that a motor as reach a position
-    <role2>val2</role2>       
+    <role2>val2</role2>
     ...
 </deltas>
 
@@ -31,32 +31,32 @@ This object manages the movement of several motors to predefined positions.
                      "name"
         <role2>val2 : position of the motor "role2" for the predefined position
                      "name"
-        <resoy>8.69565217391e-07</resoy> : for all the position, independant                               
+        <resoy>8.69565217391e-07</resoy> : for all the position, independant
         <beamx>100</beamx>                 value with keyword can be added,
-                                           saved, read ... 
+                                           saved, read ...
     </position>
     ...
 </position>
-        
+
 
 METHOD
-    name:           getState 
+    name:           getState
     input par.:     None
     output par.:    state
     description:    return an and on the state of all the  motor used in the
                     object
-                    
-    name:           moveToPosition 
+
+    name:           moveToPosition
     input par.:     name
     output par.:    None
     description:    move all motors to the predefined position "position"
-                    
-    name:           getPosition 
+
+    name:           getPosition
     input par.:     None
     output par.:    position
     description:    return the name of the current predefined position.
                     return None if all motors are not in their psotion
-                    
+
     name:           setNewPositions
     input par.:     name, newPositions
     output par.:    None
@@ -64,24 +64,24 @@ METHOD
                     in "newPositions", a dictionary with motor role as keys
                     and new motor position as values.
                     Save the new values in the xml file
-                     
+
     name:           getPositionKeyValue
     input par.:     name, key
     output par.:    value
     description:    return the value of the independant "key" field of
                     the predefined position "name"
-                      
-    name:           setPositionKeyValue    
+
+    name:           setPositionKeyValue
     input par.:     name, key, value
     output par.:    None
     description:    Change in the object and in the xml file the value of the
                     independant field "key" in the predefined position "name"
-                       
-    name:           getRoles    
+
+    name:           getRoles
     input par.:     None
     output par.:    roles[]
     description:    return the list of motor's role used in the objects
-                    
+
 
 SIGNAL
     name:           stateChanged
@@ -106,11 +106,11 @@ TEMPLATE
     <motors>
         <device role="zoom" hwrid="/berru/zoom"></device>
     </motors>
-	
+
     <deltas>
         <zoom>0.1</zoom>
     </deltas>
-	
+
     <positions>
         <position>
             <name>1X</name>
@@ -161,14 +161,14 @@ class MultiplePositions(Equipment):
         self.deltas = {}
         try:
             self.deltas = self["deltas"].getProperties()
-        except:
+        except BaseException:
             logging.getLogger().error("No deltas.")
 
         self.positions = {}
         self.positionsIndex = []
         try:
             positions = self["positions"]
-        except:
+        except BaseException:
             logging.getLogger().error("No positions.")
         else:
             for position in positions:
@@ -246,7 +246,7 @@ class MultiplePositions(Equipment):
                             and motpos > pos - self.deltas[role]
                         ):
                             findPosition += 1
-                    except:
+                    except BaseException:
                         continue
 
             if findPosition == len(self.roles):
@@ -260,7 +260,7 @@ class MultiplePositions(Equipment):
 
         posName = self.getPosition()
 
-        if posName == None:
+        if posName is None:
             self.emit("noPosition", ())
             return None
         else:
@@ -350,7 +350,7 @@ class MultiplePositions(Equipment):
         pass
 
 
-"""      
+"""
         xml_tree = cElementTree.fromstring(self.xml_source())
         for elt in xml_tree.findall(".//position"):
            if elt.find("name").text=="12X":

@@ -34,7 +34,7 @@ class ID30A3PhotonFlux(Equipment):
 
     def _get_counts(self):
         """gain = 20 #20uA
-        keithley_voltage = 2 
+        keithley_voltage = 2
         musst_voltage = int("".join([x for x in self.musst.putget("#?CHCFG CH5") if x.isdigit()]))
         musst_fs = float(0x7FFFFFFF)
         counts = abs((gain/keithley_voltage)*musst_voltage*int(self.musst.putget("#?VAL CH5"))/musst_fs)
@@ -61,7 +61,7 @@ class ID30A3PhotonFlux(Equipment):
         flux = counts * self.factor
         self.emitValueChanged("%1.3g" % flux)
 
-        """ 
+        """
         try:
           counts = counts[self.index]
         except TypeError:

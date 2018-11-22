@@ -148,7 +148,7 @@ class MicrodiffMotor(AbstractMotor):
         self.setIsReady(self._get_state() > MicrodiffMotor.UNUSABLE)
 
     def setIsReady(self, value):
-        if value == True:
+        if value is True:
             self.set_ready()
 
     def updateMotorState(self, motor_states):
@@ -170,7 +170,7 @@ class MicrodiffMotor(AbstractMotor):
 
     def motorStateChanged(self, state):
         self.updateState()
-        if type(state) is not int:
+        if not isinstance(state, int):
             state = self.get_state()
         self.emit("stateChanged", (state,))
 
@@ -199,7 +199,7 @@ class MicrodiffMotor(AbstractMotor):
                 if low_lim == float(1e999) or hi_lim == float(1e999):
                     raise ValueError
                 return low_lim, hi_lim
-            except:
+            except BaseException:
                 return (-1e4, 1e4)
 
     def getDynamicLimits(self):
@@ -208,14 +208,14 @@ class MicrodiffMotor(AbstractMotor):
             if low_lim == float(1e999) or hi_lim == float(1e999):
                 raise ValueError
             return low_lim, hi_lim
-        except:
+        except BaseException:
             return (-1e4, 1e4)
 
     def getMaxSpeed(self):
         return self.get_max_speed_cmd(self.motor_name)
 
     def motorPositionChanged(self, absolute_position, private={}):
-        if not None in (absolute_position, self.position):
+        if None not in (absolute_position, self.position):
             if abs(absolute_position - self.position) <= self.motor_resolution:
                 return
         self.position = absolute_position
@@ -252,7 +252,7 @@ class MicrodiffMotor(AbstractMotor):
         self.move(position)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError
 
     def motorIsMoving(self):
@@ -269,5 +269,5 @@ class MicrodiffMotor(AbstractMotor):
         self.home_cmd(self.motor_name)
         try:
             self.waitEndOfMove(timeout)
-        except:
+        except BaseException:
             raise MD2TimeoutError

@@ -91,7 +91,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """Sends start command"""
         try:
             self.cmd_spectrum_start((count_sec, adjust_transmission))
-        except:
+        except BaseException:
             logging.getLogger().exception("XRFSpectrum: problem in starting spectrum")
             self.emit(
                 "xrfSpectrumStatusChanged", ("Error problem in starting spectrum",)

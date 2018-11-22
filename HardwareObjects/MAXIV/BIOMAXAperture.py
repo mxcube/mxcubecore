@@ -35,7 +35,7 @@ class BIOMAXAperture(MicrodiffAperture):
         else:
             try:
                 self.move(self.predefinedPositions[positionName], wait=True, timeout=10)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Cannot move motor %s: invalid position name.", str(self.userName())
                 )

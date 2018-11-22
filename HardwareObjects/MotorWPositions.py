@@ -17,16 +17,14 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+from HardwareRepository.BaseHardwareObjects import Device
+from AbstractMotor import AbstractMotor
 
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"
 __copyright__ = "(c)2016 DESY, FS-PE, P11"
 __license__ = "GPL"
-
-
-import logging
-from HardwareRepository.BaseHardwareObjects import Device
-from AbstractMotor import AbstractMotor
 
 
 class MotorWPositions(AbstractMotor, Device):
@@ -72,13 +70,13 @@ class MotorWPositions(AbstractMotor, Device):
             return
         try:
             self.delta = self["deltas"].getProperty(role)
-        except:
+        except BaseException:
             logging.getLogger().info(
                 "MotorWPositions: no delta defined, setting to %f", self.delta
             )
         try:
             positions = self["positions"]
-        except:
+        except BaseException:
             logging.getLogger().error("MotorWPositions: no positions defined")
         else:
             for position in positions:
@@ -107,7 +105,7 @@ class MotorWPositions(AbstractMotor, Device):
     def moveToPosition(self, position_name):
         try:
             self.motor.move(self.predefined_positions[position_name])
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("MotorWPositions: invalid position name")
 
     def setNewPredefinedPosition(self, positionName, positionOffset):

@@ -35,7 +35,7 @@ class BeamlineSetup(HardwareObject):
 
         try:
             self.advanced_methods = eval(self.getProperty("advancedMethods", "[]"))
-        except:
+        except BaseException:
             pass
 
         self.autoprocessing_methods = []
@@ -46,7 +46,7 @@ class BeamlineSetup(HardwareObject):
             queue_model_objects.DataCollection.set_processing_methods(
                 self.autoprocessing_methods
             )
-        except:
+        except BaseException:
             pass
 
         self.run_processing_parallel = self.getProperty(
@@ -60,7 +60,7 @@ class BeamlineSetup(HardwareObject):
         """
         try:
             value = self.getObjectByRole(role)
-        except:
+        except BaseException:
             value = None
             logging.getLogger("HWR").exception(
                 "Could not get object with "
@@ -163,7 +163,7 @@ class BeamlineSetup(HardwareObject):
             if disable_num_passes is None:
                 disable_num_passes = False
 
-        except:
+        except BaseException:
             disable_num_passes = False
 
         return disable_num_passes
@@ -232,7 +232,7 @@ class BeamlineSetup(HardwareObject):
         char_params.use_aimed_resolution = False
         try:
             char_params.aimed_resolution = diff_plan.getAimedResolution().getValue()
-        except:
+        except BaseException:
             char_params.aimed_resolution = None
 
         char_params.use_aimed_multiplicity = False
@@ -241,7 +241,7 @@ class BeamlineSetup(HardwareObject):
                 diff_plan.getAimedIOverSigmaAtHighestResolution().getValue()
             )
             char_params.aimed_completness = diff_plan.getAimedCompleteness().getValue()
-        except:
+        except BaseException:
             char_params.aimed_i_sigma = None
             char_params.aimed_completness = None
 
@@ -357,28 +357,28 @@ class BeamlineSetup(HardwareObject):
             range_limit = self[parent_key].getProperty("osc_range")
             if range_limit is not None:
                 limits["osc_range"] = range_limit
-        except:
+        except BaseException:
             pass
 
         try:
             num_images_limit = self[parent_key].getProperty("number_of_images")
             if num_images_limit is not None:
                 limits["number_of_images"] = num_images_limit
-        except:
+        except BaseException:
             pass
 
         try:
             kappa_limit = self[parent_key].getProperty("kappa")
             if kappa_limit is not None:
                 limits["kappa"] = kappa_limit
-        except:
+        except BaseException:
             pass
 
         try:
             kappa_phi_limit = self[parent_key].getProperty("kappa_phi")
             if kappa_phi_limit is not None:
                 limits["kappa_phi"] = kappa_phi_limit
-        except:
+        except BaseException:
             pass
 
         return limits
@@ -407,7 +407,7 @@ class BeamlineSetup(HardwareObject):
                 path_template.precision = eval(
                     self.session_hwobj["file_info"].getProperty("precision")
                 )
-        except:
+        except BaseException:
             pass
 
         path_template.start_num = int(
@@ -468,7 +468,7 @@ class BeamlineSetup(HardwareObject):
         result = 0
         try:
             result = round(float(self.kappa_axis_hwobj.getPosition()), 2)
-        except:
+        except BaseException:
             pass
         return result
 
@@ -479,7 +479,7 @@ class BeamlineSetup(HardwareObject):
         result = 0
         try:
             result = round(float(self.kappa_phi_axis_hwobj.getPosition()), 2)
-        except:
+        except BaseException:
             pass
         return result
 
@@ -490,7 +490,7 @@ class BeamlineSetup(HardwareObject):
         result = False
         try:
             result = self.detector_hwobj.has_shutterless()
-        except:
+        except BaseException:
             pass
         return result
 
@@ -501,7 +501,7 @@ class BeamlineSetup(HardwareObject):
         result = ""
         try:
             result = self.detector_hwobj.get_detector_mode()
-        except:
+        except BaseException:
             pass
         return result
 

@@ -32,14 +32,14 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         while True:
             try:
                 self.poll()
-            except:
+            except BaseException:
                 sys.excepthook(*sys.exc_info())
             gevent.sleep(self.getProperty("polling_interval") / 1000.0 or 1)
 
     def init(self):
         try:
             self.device = PyTango.gevent.DeviceProxy(self.getProperty("pss_tangoname"))
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -55,7 +55,7 @@ class BlissHutchTrigger(BaseHardwareObjects.HardwareObject):
         PSSinfo = self.getProperty("pss_card_ch")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
-        except:
+        except BaseException:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 

@@ -1,12 +1,6 @@
 # encoding: utf-8
 """"Global Phasing py4j workflow server connection"""
 
-__copyright__ = """
-  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
-"""
-__author__ = "rhfogh"
-__date__ = "04/11/16"
-
 import logging
 import os
 import socket
@@ -48,6 +42,14 @@ except ImportError:
 
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply
+
+
+__copyright__ = """
+  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
+"""
+
+__author__ = "rhfogh"
+__date__ = "04/11/16"
 
 
 class GphlWorkflowConnection(HardwareObject, object):
@@ -295,7 +297,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         if not os.path.isdir(wdir):
             try:
                 os.makedirs(wdir)
-            except:
+            except BaseException:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create GPhL working directory: %s" % wdir
@@ -303,7 +305,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         for ss in command_list:
             ss = ss.split("=")[-1]
-            if ss.startswith("/") and not "*" in ss and not os.path.exists(ss):
+            if ss.startswith("/") and "*" not in ss and not os.path.exists(ss):
                 logging.getLogger("HWR").warning("File does not exist : %s" % ss)
 
         logging.getLogger("HWR").info("GPhL execute :\n%s" % " ".join(command_list))
@@ -344,7 +346,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             self._running_process = subprocess.Popen(
                 command_list, env=envs, stdout=fp1, stderr=fp2
             )
-        except:
+        except BaseException:
             logging.getLogger().error("Error in spawning workflow application")
             raise
         finally:
@@ -387,7 +389,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                         time.sleep(9)
                         if xx.poll() is None:
                             xx.kill()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").info(
                     "Exception while terminating external workflow process %s" % xx
                 )
@@ -405,7 +407,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                 # but it seems to keep the program open (??)
                 # xx.shutdown(raise_exception=True)
                 xx.shutdown()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").debug(
                     "Exception during py4j gateway shutdown. Ignored"
                 )
@@ -958,7 +960,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             response = self._gateway.jvm.co.gphl.sdcp.py4j.Py4jMessage(
                 py4j_payload, enactment_id, correlation_id
             )
-        except:
+        except BaseException:
             self.abort_workflow(
                 message="Error sending reply (%s) to server"
                 % py4j_payload.getClass().getSimpleName()

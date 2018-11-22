@@ -36,8 +36,8 @@ __version__ = "2.2."
 
 class ALBACollect(AbstractCollect):
     """Main data collection class. Inherited from AbstractMulticollect
-       Collection is done by setting collection parameters and 
-       executing collect command  
+       Collection is done by setting collection parameters and
+       executing collect command
     """
 
     def __init__(self, name):
@@ -100,7 +100,7 @@ class ALBACollect(AbstractCollect):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except:
+        except BaseException:
             pass
 
         self.exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
@@ -539,7 +539,7 @@ class ALBACollect(AbstractCollect):
         if not os.path.exists(basedir):
             try:
                 os.makedirs(basedir)
-            except OSError, e:
+            except OSError as e:
                 import errno
 
                 if e.errno != errno.EEXIST:
@@ -682,7 +682,7 @@ class ALBACollect(AbstractCollect):
         """
         Descript. : 8 floats describe
         p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
-        p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY               
+        p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY
         """
         self.helical_positions = [
             arg["1"]["phiy"],
@@ -697,14 +697,14 @@ class ALBACollect(AbstractCollect):
 
     def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     @task
     def _take_crystal_snapshot(self, filename):
         """
-        Descript. : 
+        Descript. :
         """
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
@@ -714,7 +714,7 @@ class ALBACollect(AbstractCollect):
 
     def set_energy(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         #   program energy
         #   prepare detector for diffraction
@@ -722,7 +722,7 @@ class ALBACollect(AbstractCollect):
 
     def set_wavelength(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         #   program energy
         #   prepare detector for diffraction
@@ -733,7 +733,7 @@ class ALBACollect(AbstractCollect):
 
     def set_transmission(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         self.transmission_hwobj.set_value(value)
 
@@ -749,7 +749,7 @@ class ALBACollect(AbstractCollect):
     @task
     def move_motors(self, motor_position_dict):
         """
-        Descript. : 
+        Descript. :
         """
         self.diffractometer_hwobj.move_motors(motor_position_dict)
 
@@ -780,7 +780,7 @@ class ALBACollect(AbstractCollect):
                     raise
             """
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except:
+        except BaseException:
             logging.exception("Could not create processing file directory")
             return
 
@@ -801,7 +801,7 @@ class ALBACollect(AbstractCollect):
 
     def prepare_input_files(self):
         """
-        Descript. : 
+        Descript. :
         """
         i = 1
         log = logging.getLogger("user_level_log")
@@ -854,7 +854,7 @@ class ALBACollect(AbstractCollect):
 
     def get_wavelength(self):
         """
-        Descript. : 
+        Descript. :
             Called to save wavelength in lims
         """
         if self.energy_hwobj is not None:
@@ -862,7 +862,7 @@ class ALBACollect(AbstractCollect):
 
     def get_detector_distance(self):
         """
-        Descript. : 
+        Descript. :
             Called to save detector_distance in lims
         """
         if self.detector_hwobj is not None:
@@ -870,7 +870,7 @@ class ALBACollect(AbstractCollect):
 
     def get_resolution(self):
         """
-        Descript. : 
+        Descript. :
             Called to save resolution in lims
         """
         if self.resolution_hwobj is not None:
@@ -878,7 +878,7 @@ class ALBACollect(AbstractCollect):
 
     def get_transmission(self):
         """
-        Descript. : 
+        Descript. :
             Called to save transmission in lims
         """
         if self.transmission_hwobj is not None:
@@ -886,8 +886,8 @@ class ALBACollect(AbstractCollect):
 
     def get_undulators_gaps(self):
         """
-        Descript. : return triplet with gaps. In our case we have one gap, 
-                    others are 0        
+        Descript. : return triplet with gaps. In our case we have one gap,
+                    others are 0
         """
         # TODO
         try:
@@ -897,20 +897,20 @@ class ALBACollect(AbstractCollect):
                     return und_gaps
                 else:
                     return und_gaps
-        except:
+        except BaseException:
             pass
         return {}
 
     def get_beam_size(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_size()
 
     def get_slit_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_slits_gap()
@@ -918,21 +918,21 @@ class ALBACollect(AbstractCollect):
 
     def get_beam_shape(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
 
     def get_measured_intensity(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.flux_hwo is not None:
             return self.flux_hwo.get_flux()
 
     def get_machine_current(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_current()
@@ -941,7 +941,7 @@ class ALBACollect(AbstractCollect):
 
     def get_machine_message(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
@@ -950,7 +950,7 @@ class ALBACollect(AbstractCollect):
 
     def get_machine_fill_mode(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return "FillMode not/impl"
@@ -961,7 +961,7 @@ class ALBACollect(AbstractCollect):
 
     def get_flux(self):
         """
-        Descript. : 
+        Descript. :
         """
         return self.get_measured_intensity()
 

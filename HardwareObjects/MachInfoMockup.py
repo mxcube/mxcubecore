@@ -8,8 +8,8 @@ control system.
 This is a mockup hardware object, it simulates the behaviour of an accelerator
 information by :
 
-    - produces a current value that varies with time 
-    - simulates a control room message that changes with some condition 
+    - produces a current value that varies with time
+    - simulates a control room message that changes with some condition
       ()
     - simulates
 
@@ -19,17 +19,17 @@ machInfoChanged
 
    mandatory fields:
      values['current']  type: str; desc: synchrotron radiation current in milli-amps
-     values['message']  type: str; desc: message from control room 
+     values['message']  type: str; desc: message from control room
      values['attention'] type: boolean; desc: False (if no special attention is required)
                                             True (if attention should be raised to the user)
 
-   optional fields: 
+   optional fields:
       any number of optional fields can be sent over with this signal by adding them in the
       values dictionary
-      
+
       for example:
-         values['lifetime'] 
-         values['topup_remaining'] 
+         values['lifetime']
+         values['topup_remaining']
 """
 
 import logging

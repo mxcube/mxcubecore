@@ -150,7 +150,7 @@ class EMBLFlux(AbstractFlux):
             self.intensity_ranges = sorted(
                 self.intensity_ranges, key=lambda item: item["max"]
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").error("BeamlineTest: No intensity ranges defined")
 
         self.chan_intens_mean = self.getChannelObject("intensMean")
@@ -228,7 +228,7 @@ class EMBLFlux(AbstractFlux):
                  if self.origin_beam_info != self.beam_info:
                     if self.origin_beam_info['shape'] == 'ellipse':
                         origin_area = 3.141592 * pow(self.origin_beam_info['size_x'] / 2, 2)
-                    else:     
+                    else:
                         origin_area = self.origin_beam_info['size_x'] * \
                                       self.origin_beam_info['size_y']
 
@@ -238,7 +238,7 @@ class EMBLFlux(AbstractFlux):
                         current_area = self.beam_info['size_x'] * \
                                        self.beam_info['size_y']
                     self.flux_value = self.flux_value * current_area / \
-                                      origin_area   
+                                      origin_area
                  """
             self.emit(
                 "fluxChanged",
@@ -309,7 +309,7 @@ class EMBLFlux(AbstractFlux):
                 for index, diameter_size in enumerate(
                     self.aperture_hwobj.get_diameter_list()
                 ):
-                    # 5. open the fast shutter --------------------------------------------
+                    # 5. open the fast shutter -----------------------------------------
                     self.emit(
                         "progressStep",
                         4 + index,

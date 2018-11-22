@@ -6,7 +6,7 @@ Notes:
 
    Methods for Managing Energy and Wavelength are now removed from
    this hardware object (V.Rey - Jan 2018)
-  
+
    This has been modified to follow the AbstractEnergyScan method
 
 """
@@ -269,7 +269,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             size_hor, size_ver = self.beam_info_hwo.get_beam_size()
             size_hor *= 1000
             size_ver *= 1000
-        except:
+        except BaseException:
             size_hor = None
             size_ver = None
 
@@ -298,7 +298,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             log.debug("EnergyScan: creating directory %s" % directory)
             try:
                 os.makedirs(directory)
-            except OSError, diag:
+            except OSError as diag:
                 log.error(
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(diag))
@@ -324,7 +324,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             self.ready_event.set()
 
             self.scanCommandFinished()
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").error(
@@ -437,7 +437,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 os.makedirs(scan_directory)
             if not os.path.exists(archive_directory):
                 os.makedirs(archive_directory)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "PX1EnergyScan: could not create results directory."
             )
@@ -510,7 +510,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             # self.log.debug("          chooch returns : %s" % str(result))
             # pk, fppPeak, fpPeak, ip, fppInfl, fpInfl, chooch_graph_data = \
             #       result
-        except:
+        except BaseException:
             import traceback
 
             self.log.debug(traceback.format_exc())
@@ -633,7 +633,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 scan_file_png_filename,
             )
             canvas.print_figure(scan_file_png_filename, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -641,7 +641,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 archive_file_png_filename,
             )
             canvas.print_figure(archive_file_png_filename, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.store_energy_scan()
@@ -687,7 +687,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             archive_file_raw = open(archive_filename, "w")
             self.log.info("EnergyScan. saving data in %s" % scan_filename)
             self.log.info("EnergyScan. archiving data in %s" % archive_filename)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EMBLEnergyScan: could not create results raw file"
             )
@@ -710,7 +710,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
             with open(from_file) as ifd, open(to_file, "w") as ofd:
                 ofd.write(ifd.read())
             return True
-        except:
+        except BaseException:
             return False
 
     @task
@@ -770,7 +770,7 @@ class PX1EnergyScan(AbstractEnergyScan, Equipment):
                 x, y = map(float, line.split())
                 # got good data... i
                 in_header = False
-            except:
+            except BaseException:
                 if in_header:
                     continue
                 else:

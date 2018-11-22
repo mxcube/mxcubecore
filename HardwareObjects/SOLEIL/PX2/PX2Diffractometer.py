@@ -539,7 +539,7 @@ class PX2Diffractometer(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -552,7 +552,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except:
+        except BaseException:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -769,7 +769,7 @@ class PX2Diffractometer(GenericDiffractometer):
         """
         if speed is not None:
             return self.cmd_get_omega_scan_limits(speed)
-        elif speed == 0: 
+        elif speed == 0:
             return self.get_osc_limits()
         else:
             motor_acc_const = 5

@@ -40,13 +40,13 @@ class ID29PhotonFlux(Equipment):
             counts = self.counter.getCorrectedPhysValue()
             if counts == -9999:
                 counts = 0
-        except:
+        except BaseException:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:
             egy = self.energy_motor.getCurrentEnergy() * 1000.0
             calib = self.flux_calc.calc_flux_coef(egy)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("%s: could not get energy", self.name())
         else:
             if self.aperture is None:
@@ -54,7 +54,7 @@ class ID29PhotonFlux(Equipment):
             else:
                 try:
                     aperture_coef = self.aperture.getApertureCoef()
-                except:
+                except BaseException:
                     sys.excepthook(*sys.exc_info())
                     aperture_coef = 1
             counts = math.fabs(counts * calib[0] * aperture_coef)

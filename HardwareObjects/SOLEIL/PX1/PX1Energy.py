@@ -34,10 +34,11 @@ class PX1Energy(Device):
 
         try:
             self.monodevice = DeviceProxy(self.getProperty("mono_device"))
-        except:
+        except BaseException:
             self.errorDeviceInstance(self.getProperty("mono_device"))
 
-        # Nom du device bivu (Energy to gap) : necessaire pour amelioration du positionnement de l'onduleur (Backlash)
+        # Nom du device bivu (Energy to gap) : necessaire pour amelioration du
+        # positionnement de l'onduleur (Backlash)
         self.und_device = DeviceProxy(self.getProperty("undulator_device"))
         self.doBacklashCompensation = self.getProperty("backlash")
 
@@ -199,7 +200,7 @@ class PX1Energy(Device):
                             self.und_device.gap = gaplimite
                             self.und_device.gap = newgap + backlash
                         time.sleep(1)
-                except:
+                except BaseException:
                     logging.getLogger("HWR").error(
                         "%s: Cannot move undulator U20 : State device = %s",
                         self.name(),
@@ -209,7 +210,7 @@ class PX1Energy(Device):
             try:
                 self.energy_chan.setValue(value)
                 return value
-            except:
+            except BaseException:
                 logging.getLogger("HWR").error(
                     "%s: Cannot move Energy : State device = %s",
                     self.name(),

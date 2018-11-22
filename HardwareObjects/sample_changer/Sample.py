@@ -4,7 +4,7 @@ import sys
 
 class Sample(Component):
     """
-    Entity class holding state of an individual sample or sample slot (an empty sample location).    
+    Entity class holding state of an individual sample or sample slot (an empty sample location).
     """
 
     # Common properties
@@ -25,21 +25,21 @@ class Sample(Component):
 
     def isLoaded(self):
         """
-        Returns if the sample is currently loaded for data collection 
+        Returns if the sample is currently loaded for data collection
         :rtype: bool
         """
         return self.loaded
 
     def hasBeenLoaded(self):
         """
-        Returns if the sample has already beenloaded for data collection 
+        Returns if the sample has already beenloaded for data collection
         :rtype: bool
         """
         return self.has_been_loaded
 
     def getProperties(self):
         """
-        Returns a dictionary with sample changer specific sample properties 
+        Returns a dictionary with sample changer specific sample properties
         :rtype: dictionary
         """
         return self.properties
@@ -72,7 +72,7 @@ class Sample(Component):
                 f = urllib.urlopen(img_url)
                 img = f.read()
                 return img
-        except:
+        except BaseException:
             print(sys.exc_info()[1])
 
     def clearInfo(self):
@@ -127,7 +127,7 @@ class Sample(Component):
         if self.loaded != loaded:
             self.loaded = loaded
             changed = True
-        if has_been_loaded == None:
+        if has_been_loaded is None:
             if loaded:
                 has_been_loaded = True
         if self.has_been_loaded != has_been_loaded:

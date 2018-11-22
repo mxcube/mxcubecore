@@ -136,7 +136,7 @@ class EMBLMotorsGroup(Device):
             )
             self.chan_positions.connectSignal("update", self.positions_changed)
             self.positions_changed(self.chan_positions.getValue())
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "EMBLMotorsGroup: unable to "
                 + "add channel %s/%s %s"
@@ -153,7 +153,7 @@ class EMBLMotorsGroup(Device):
             )
             self.chan_status.connectSignal("update", self.status_changed)
             self.status_changed(self.chan_status.getValue())
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning(
                 "EMBLMotorsGroup: unable to "
                 + "add channel %s/%s %s"

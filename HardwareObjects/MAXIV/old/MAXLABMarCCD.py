@@ -36,12 +36,12 @@ class MAXLABMarCCD(Equipment):
 
         try:
             self.detector_modes_dict = eval(self.getProperty("detectorModes"))
-        except:
+        except BaseException:
             pass
 
     def get_distance(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.distance_motor_hwobj:
             return self.distance_motor_hwobj.getPosition()

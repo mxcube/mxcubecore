@@ -36,12 +36,7 @@ example xml:
 </object>
 """
 
-
-__credits__ = ["MXCuBE colaboration"]
-__version__ = "2.3"
-__category__ = "Graphics"
-
-
+from __future__ import print_function
 import os
 import math
 import gevent
@@ -74,6 +69,10 @@ except ImportError:
 import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects_v1 as queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+__credits__ = ["MXCuBE colaboration"]
+__version__ = "2.3"
+__category__ = "Graphics"
 
 
 class Qt4_GraphicsManager(HardwareObject):
@@ -146,7 +145,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.graphics_magnification_item = None
 
     def init(self):
-        """Main init function. Initiates all graphics items, hwobjs and 
+        """Main init function. Initiates all graphics items, hwobjs and
            connects all qt signals to slots.
         """
 
@@ -311,7 +310,7 @@ class Qt4_GraphicsManager(HardwareObject):
             if len(self.image_scale_list) > 0:
                 self.image_scale = self.getProperty("default_image_scale")
                 self.set_image_scale(self.image_scale, self.image_scale is not None)
-        except:
+        except BaseException:
             pass
 
         """
@@ -327,30 +326,30 @@ class Qt4_GraphicsManager(HardwareObject):
 
         try:
             self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
-        except:
+        except BaseException:
             self.auto_grid_size_mm = (0.2, 0.2)
 
         self.graphics_move_up_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_right_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_down_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
         self.graphics_move_left_item.setVisible(
-            self.getProperty("enable_move_buttons") == True
+            self.getProperty("enable_move_buttons") is True
         )
 
         # self.set_scrollbars_off(\
-        #     self.getProperty("scrollbars_always_off") == True)
+        #     self.getProperty("scrollbars_always_off") is True)
 
         try:
             self.graphics_magnification_item.set_properties(
                 eval(self.getProperty("magnification_tool"))
             )
-        except:
+        except BaseException:
             pass
 
         # try:
@@ -438,7 +437,7 @@ class Qt4_GraphicsManager(HardwareObject):
                         self.create_line(start_point, end_point)
                 self.de_select_all()
                 graphics_config_file.close()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").error(
                     "GraphicsManager: Unable to load "
                     + "graphics from configuration file %s"
@@ -615,7 +614,7 @@ class Qt4_GraphicsManager(HardwareObject):
     def create_centring_point(self, centring_state, centring_status, emit=True):
         """Creates a new centring position and adds it to graphics point.
 
-        :param centring_state: 
+        :param centring_state:
         :type centring_state: str
         :param centring_status: dictionary with motor pos and etc
         :type centring_status: dict
@@ -650,7 +649,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :type method: str
         :param centring_status: centring status
         :type centring_status: dict
-        :emits: - centringSuccessful 
+        :emits: - centringSuccessful
                 - infoMsg
         """
         self.set_cursor_busy(False)
@@ -800,7 +799,7 @@ class Qt4_GraphicsManager(HardwareObject):
         self.emit("imageDoubleClicked", pos_x, pos_y)
 
     def mouse_released(self, pos_x, pos_y):
-        """Mouse release method. Used to finish grid drawing and item 
+        """Mouse release method. Used to finish grid drawing and item
            selection with selection rectangle
 
         :param pos_x: screen coordinate X
@@ -893,7 +892,7 @@ class Qt4_GraphicsManager(HardwareObject):
         # else:
         #    for shape in self.get_selected_shapes():
         #        if isinstance(shape, GraphicsLib.GraphicsItemGrid):
-        #            print shape
+        #            print(shape)
 
     def key_pressed(self, key_event):
         """Method when key on GraphicsView pressed.
@@ -946,7 +945,7 @@ class Qt4_GraphicsManager(HardwareObject):
         :param item: clicked item
         :type item: QGraphicsLib.GraphicsItem
         :param state: selection state
-        :type state: bool 
+        :type state: bool
         :emits: - pointsSelected
                 - infoMsg
         """
@@ -962,7 +961,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def item_double_clicked(self, item):
         """Item double clicked method.
-           If centring point double clicked then moves motors to the 
+           If centring point double clicked then moves motors to the
            centring position
 
         :param item: double clicked item
@@ -977,7 +976,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """Moves sample
         """
         # TODO Not implemented yet
-        print "Move screen: ", direction
+        print("Move screen: ", direction)
 
     def set_cursor_busy(self, state):
         if state:
@@ -1169,7 +1168,7 @@ class Qt4_GraphicsManager(HardwareObject):
     def select_shape_with_cpos(self, cpos):
         """Selects point with centred position
 
-        :param cpos: centring point 
+        :param cpos: centring point
         :type cpos: queue_model_objects.CentredPosition
         """
         self.de_select_all()
@@ -1271,7 +1270,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """Method to save snapshot
 
         :param file_name: file name
-        :type file_name: str 
+        :type file_name: str
         """
         logging.getLogger("HWR").debug("Saving scene snapshot: %s" % filename)
         try:
@@ -1282,7 +1281,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
             if not os.path.exists(filename):
                 raise Exception("Unable to save snapshot to %s" % filename)
-        except:
+        except BaseException:
             logging.getLogger("user_level_log").error(
                 "Unable to save snapshot: %s" % filename
             )
@@ -1333,14 +1332,14 @@ class Qt4_GraphicsManager(HardwareObject):
         :param bw: black and white
         :type bw: bool
         :param image_type: image format. Default png
-        :type image_type: str         
+        :type image_type: str
         """
         try:
             logging.getLogger("user_level_log").debug(
                 "Saving raw snapshot: %s" % filename
             )
             self.camera_hwobj.save_snapshot(filename, image_type)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Unable to save raw image: %s" % filename
             )
@@ -1357,7 +1356,7 @@ class Qt4_GraphicsManager(HardwareObject):
             axarr[1].plot(ver_sum[::-1], np.arange(0, ver_sum.size, 1))
 
             fig.savefig(profile_filename, dpi=300, bbox_inches="tight")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Unable to save beam profile image: %s" % profile_filename
             )
@@ -1457,8 +1456,8 @@ class Qt4_GraphicsManager(HardwareObject):
         #     self.beam_info_dict, self.pixels_per_mm)
 
     def start_define_beam(self):
-        """Method to define beam size. 
-           User 
+        """Method to define beam size.
+           User
 
         :emits: infoMsg as str
         """
@@ -1710,7 +1709,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """Creates grid
 
         :param spacing: spacing between beams
-        :type spacing: list with two floats (can be negative)        
+        :type spacing: list with two floats (can be negative)
         """
         if not self.wait_grid_drawing_click:
             self.set_cursor_busy(True)
@@ -1873,14 +1872,14 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def set_view_scale(self, view_scale):
         """Scales all objects on the view"""
-        if type(view_scale) == float:
+        if isinstance(view_scale, float):
             self.graphics_view.scale(view_scale, view_scale)
 
     def set_image_scale(self, image_scale, use_scale=False):
         """Scales the incomming frame
 
         :param image_scale: image scale
-        :type image_scale: float 0 - 1.0 
+        :type image_scale: float 0 - 1.0
         :param use_scale: enables/disables image scale
         :type use_scale: bool
         :emits: imageScaleChanged
@@ -1938,11 +1937,11 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def detect_object_shape(self):
         """Method used to detect a shape on the image.
-           It is used to detect beam shape and loop       
+           It is used to detect beam shape and loop
         returns: dictionary with parameters:
                  - center: list with center coordinates
                  - width: estimated beam width
-                 - height: estimated beam height 
+                 - height: estimated beam height
         """
         object_shape_dict = {"center": (0, 0), "width": -1, "height": -1}
         image_array = self.camera_hwobj.get_snapshot(bw=True, return_as_array=True)
@@ -1975,7 +1974,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
             beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
             beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
-        except:
+        except BaseException:
             logging.getLogger("user_level_log").debug(
                 "Qt4_GraphicsManager: " + "Unable to detect object shape"
             )

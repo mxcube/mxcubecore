@@ -21,8 +21,8 @@
 Description
 --------------------------------------------
 
-GenericSampleChanger is a base class to help in the implementation of 
-Hardware Objects for SampleChangers following the 
+GenericSampleChanger is a base class to help in the implementation of
+Hardware Objects for SampleChangers following the
 "SampleChanger Standard Interface".
 
 If this class is used as base class a standard class is then provided for
@@ -42,7 +42,7 @@ Sample Changer States
     SampleChangerState.Loading
     SampleChangerState.Unloading
     SampleChangerState.Selecting
-    SampleChangerState.Scanning 
+    SampleChangerState.Scanning
     SampleChangerState.Resetting
     SampleChangerState.Charging
     SampleChangerState.Moving
@@ -80,9 +80,9 @@ in the model:
             Sample
 
 Tipycally for a sample changer with Pucks and Sample
-there is a single level for Container. Specifying 
+there is a single level for Container. Specifying
 a sample location will consist in giving the puck (basket)
-number followed by the sample number. In the location 
+number followed by the sample number. In the location
 example `3:5` the fifth sample in the third puck is specified.
 
 For other more complex constructions (for example for
@@ -91,7 +91,7 @@ until getting to the sample:
 
 In the example for a location in a plate manipulator like `1:5:2`
 the location specifies first plate well, fifth drop, second crystal.
-   
+
 
 Events emitted
 ----------------------
@@ -110,7 +110,7 @@ Tools for SC Classes
    This property can accept a boolean value (True/False)
 
    If this property is set the HardwareObject will
-   poll itself for state changes, information change and  
+   poll itself for state changes, information change and
    other needed values.
 
    Include a line like `<useUpdateTimer>True</useUpdateTimer`
@@ -119,7 +119,7 @@ Tools for SC Classes
 
 
 --------------------------------------------
-How to implement derived SC Classes 
+How to implement derived SC Classes
 --------------------------------------------
 
 """
@@ -127,6 +127,7 @@ How to implement derived SC Classes
 from Container import *
 
 from HardwareRepository.TaskUtils import *
+
 # This is just to avoid an error when importing Equipment
 import HardwareRepository.HardwareObjectFileParser
 from HardwareRepository.BaseHardwareObjects import Equipment
@@ -203,7 +204,7 @@ class SampleChanger(Container, Equipment):
 
     __metaclass__ = abc.ABCMeta
 
-    #########################           EVENTS           #########################
+    # ########################    EVENTS    #########################
     STATE_CHANGED_EVENT = "stateChanged"
     STATUS_CHANGED_EVENT = "statusChanged"
     INFO_CHANGED_EVENT = "infoChanged"
@@ -225,7 +226,7 @@ class SampleChanger(Container, Equipment):
         self.task_error = None
         self._transient = False
         self._token = None
-        self._timer_update_inverval = 5  # defines the interval in periods of 100 ms
+        self._timer_update_inverval = 5  # interval in periods of 100 ms
         self._timer_update_counter = 0
 
     def init(self):
@@ -261,7 +262,7 @@ class SampleChanger(Container, Equipment):
             try:
                 if self.isEnabled():
                     self._onTimer1s()
-            except:
+            except BaseException:
                 pass
 
     @task
@@ -274,10 +275,10 @@ class SampleChanger(Container, Equipment):
                     if self._timer_update_counter >= self._timer_update_counter:
                         self._onTimerUpdate()
                         self._timer_update_counter = 0
-            except:
+            except BaseException:
                 pass
 
-    #########################           TIMER           #########################
+    # ########################    TIMER    #########################
     def _setTimerUpdateInterval(self, value):
         self._timer_update_inverval = value
 
@@ -288,16 +289,16 @@ class SampleChanger(Container, Equipment):
     def _onTimer1s(self):
         pass
 
-    ########################           EQUIPMENT           #######################
+    # #######################    EQUIPMENT    #######################
 
     def connectNotify(self, signal):
         logging.getLogger().info("connectNotify " + str(signal))
 
-    #########################           PUBLIC           #########################
+    # ########################    PUBLIC    #########################
 
     def getState(self):
         """
-        Returns sample changer state 
+        Returns sample changer state
         :rtype: SampleChangerState
         """
         return self.state
@@ -381,7 +382,7 @@ class SampleChanger(Container, Equipment):
         Description of the error of last executed task (or None if success).
         :rtype: str
         """
-        return self.task != None
+        return self.task is not None
 
     def waitTaskFinished(self, timeout=-1):
         start = time.clock()
@@ -419,9 +420,9 @@ class SampleChanger(Container, Equipment):
         Aborts current task and puts device in safe state
         """
         self._doAbort()
-        if self.task_proc != None:
+        if self.task_proc is not None:
             self.task_proc.join(1.0)
-            if self.task_proc != None:
+            if self.task_proc is not None:
                 self.task_proc.kill(Exception("Task aborted"))
                 self.task = None
                 self.task_proc = None
@@ -461,10 +462,10 @@ class SampleChanger(Container, Equipment):
     def getSampleProperties(self):
         return ()
 
-    #########################           TASKS           #########################
+    # ########################    TASKS    #########################
     def changeMode(self, mode, wait=True):
         """
-        Change the mode of Sample Changer (SC specific, imply a change of the State)
+        Change the mode (SC specific, imply change of the State)
         Modes:
             Unknown     = 0
             Normal      = 1
@@ -486,7 +487,7 @@ class SampleChanger(Container, Equipment):
 
     @task
     def scan(self, component=None, recursive=False):
-        if type(component) == types.ListType:
+        if isinstance(component, types.ListType):
             for c in component:
                 self._scan_one(c, recursive)
         else:
@@ -494,7 +495,7 @@ class SampleChanger(Container, Equipment):
 
     def _scan_one(self, component, recursive):
         self.assertNotCharging()
-        if component == None:
+        if component is None:
             component = self
         component = self._resolveComponent(component)
         component.assertIsScannable()
@@ -517,7 +518,7 @@ class SampleChanger(Container, Equipment):
 
     def load(self, sample=None, wait=True):
         """
-        Load a sample. 
+        Load a sample.
         """
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
@@ -538,8 +539,8 @@ class SampleChanger(Container, Equipment):
 
     def unload(self, sample_slot=None, wait=True):
         """
-        Unload the sample. 
-        If sample_slot=None, unloads to the same slot the sample was loaded from.        
+        Unload the sample.
+        If sample_slot=None, unloads to the same slot it was loaded from.
         """
         sample_slot = self._resolveComponent(sample_slot)
         self.assertNotCharging()
@@ -552,8 +553,8 @@ class SampleChanger(Container, Equipment):
 
     def reset(self, wait=True):
         """
-        Reset the SC. 
-        If sample_slot=None, unloads to the same slot the sample was loaded from.        
+        Reset the SC.
+        If sample_slot=None, unloads to the same slot it was loaded from.
         """
         return self._executeTask(SampleChangerState.Resetting, wait, self._doReset)
 
@@ -571,7 +572,7 @@ class SampleChanger(Container, Equipment):
             return c
         return component
 
-    #########################           ABSTRACTS           #########################
+    # ########################    ABSTRACTS    #########################
 
     @abc.abstractmethod
     def _doAbort(self):
@@ -608,7 +609,7 @@ class SampleChanger(Container, Equipment):
     def _doReset(self):
         return
 
-    #########################           PROTECTED           #########################
+    # ########################    PROTECTED    #########################
 
     def _executeTask(self, task, wait, method, *args):
         self.assertCanExecuteTask()
@@ -636,7 +637,7 @@ class SampleChanger(Container, Equipment):
             exeption=_getTaskException(state)
         finally:
             _triggerTaskFinishedEvent(state,exeption)
-            self._setState(SampleChangerState.Ready)            
+            self._setState(SampleChangerState.Ready)
         """
         exception = None
         ret = None
@@ -703,7 +704,7 @@ class SampleChanger(Container, Equipment):
             Container._setSelectedComponent(self, component)
             self._triggerSelectionChangedEvent()
 
-    #########################           PRIVATE           #########################
+    # ########################    PRIVATE    #########################
 
     def _triggerStateChangedEvent(self, former):
         self.emit(self.STATE_CHANGED_EVENT, (self.state, former))

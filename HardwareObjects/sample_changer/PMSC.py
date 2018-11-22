@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from GenericSampleChanger import *
 import Crims
 
@@ -100,7 +102,7 @@ class PMSC(SampleChanger):
     __TYPE__ = "PlateSupport"
 
     """
-    Concrete implementation of SC3 Sample Changer
+    Concrete implementation of Plate Manipulator as Sample Changer
     """
 
     def __init__(self, *args, **kwargs):
@@ -110,8 +112,9 @@ class PMSC(SampleChanger):
         self._setTransient(True)
 
     def init(self):
-        # exporter_address is propagated to chanels??? Id so why not type????
-        # self._state = self.addChannel({"type":self.channel_type, "name":self.channel_state , 'polling':200}, self.channel_state)
+        # exporter_address is propagated to chanels??? So why not type????
+        # self._state = self.addChannel({"type":self.channel_type,
+        # "name":self.channel_state , 'polling':200}, self.channel_state)
         self._state = self.addChannel(
             {"type": self.channel_type, "name": self.channel_state}, self.channel_state
         )
@@ -160,7 +163,7 @@ class PMSC(SampleChanger):
     def getSampleProperties(self):
         return (Xtal.__LOGIN_PROPERTY__, Xtal.__NAME_PROPERTY__)
 
-    #########################           EVENTS           #########################
+    # ########################    EVENTS    #########################
     def _onStateChanged(self, state):
         if state is None:
             self._setState(SampleChangerState.Unknown)
@@ -181,7 +184,8 @@ class PMSC(SampleChanger):
             elif state == "Initializing":
                 self._setState(SampleChangerState.Initializing)
 
-    #########################           TASKS           #########################
+    # ########################    TASKS    #########################
+
     def _doAbort(self):
         self._abort()
 
@@ -245,7 +249,7 @@ class PMSC(SampleChanger):
         self._reset(False)
         self._waitDeviceReady()
 
-    #########################           PRIVATE           #########################
+    # ########################    PRIVATE    #########################
     def _initializeData(self):
         self._setInfo(False, None, False)
         self._clearComponents()
@@ -327,10 +331,10 @@ CHANNEL_EXPORTER = "exporter"
 if __name__ == "__main__":
 
     def onStateChanged(state, former):
-        print "State Change:  " + str(former) + " => " + str(state)
+        print("State Change:  " + str(former) + " => " + str(state))
 
     def onInfoChanged():
-        print "Info Changed"
+        print("Info Changed")
 
     sc = PMSC()
     sc.connect(sc, sc.STATE_CHANGED_EVENT, onStateChanged)
@@ -358,7 +362,7 @@ if __name__ == "__main__":
 
     """
     print "Before"
-    
+
     sample = sc.getSampleList()[0]
     sample._setHolderLength(22.0)
     sc.updateInfo()
@@ -375,5 +379,5 @@ if __name__ == "__main__":
         sc.select(sc.getComponentByAddress("C12:1-0"), wait=True)
         # sc.select(sc.getComponentByAddress('C12:1'), wait=True)
         # sc.select(sc.getComponentByAddress('C12'), wait=True)
-    except:
-        print sys.exc_info()[1]
+    except BaseException:
+        print(sys.exc_info()[1])

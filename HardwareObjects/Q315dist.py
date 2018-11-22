@@ -39,7 +39,7 @@ class Q315dist(BaseHardwareObjects.Equipment):
                 # logging.getLogger().info("calling dtox %s", attr)
                 return getattr(self.dtox, attr)
         else:
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
     def connectNotify(self, signal):
         if signal == "stateChanged":

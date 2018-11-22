@@ -151,7 +151,7 @@ class EMBLCRL(HardwareObject):
 
     def get_image_plane_distance(self, value):
         """Returns image plane distance"""
-        if type(value) == list:
+        if isinstance(value, list):
             lens_combination = self.convert_value(value)
             # lens_combination = 0
             # for x in range(6):

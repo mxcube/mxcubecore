@@ -3,12 +3,6 @@
 """Global phasing workflow runner
 """
 
-__copyright__ = """
-  * Copyright © 2016 - 2017 by Global Phasing Ltd.
-"""
-__author__ = "rhfogh"
-__date__ = "06/04/17"
-
 import logging
 import uuid
 import time
@@ -36,6 +30,14 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+
+__copyright__ = """
+  * Copyright © 2016 - 2017 by Global Phasing Ltd.
+"""
+__author__ = "rhfogh"
+__date__ = "06/04/17"
+
 
 States = queue_model_enumerables.States
 
@@ -296,7 +298,7 @@ class GphlWorkflow(HardwareObject, object):
                     if result_list is not None:
                         result_list.append((response, correlation_id))
 
-        except:
+        except BaseException:
             self.workflow_end()
             logging.getLogger("HWR").error(
                 "Uncaught error during GPhL workflow execution", exc_info=True
@@ -643,7 +645,8 @@ class GphlWorkflow(HardwareObject, object):
                 qe = self.enqueue_sample_centring(goniostatRotation=sweepSetting)
                 queue_entries.append((qe, sweepSetting, requestedRotationId))
 
-        # NB, split in two loops to get all centrings on queue (and so visible) before execution
+        # NB, split in two loops to get all centrings on queue (and so visible)
+        # before execution
 
         for qe, goniostatRotation, requestedRotationId in queue_entries:
             goniostatTranslations.append(
@@ -661,7 +664,7 @@ class GphlWorkflow(HardwareObject, object):
         if os.path.isfile(fp):
             try:
                 transcal_data = f90nml.read(fp)["sdcp_instrument_list"]
-            except:
+            except BaseException:
                 logging.getLogger("HWR").error(
                     "Error reading transcal.nml file: %s" % fp
                 )
@@ -703,7 +706,7 @@ class GphlWorkflow(HardwareObject, object):
         fp = self.file_paths.get("diffractcal_file")
         try:
             diffractcal_data = f90nml.read(fp)["sdcp_instrument_list"]
-        except:
+        except BaseException:
             logging.getLogger("HWR").debug(
                 "diffractcal file not present - using instrumentation.nml %s" % fp
             )
@@ -1266,7 +1269,7 @@ class GphlWorkflow(HardwareObject, object):
             if text:
                 try:
                     sampleId = uuid.UUID(text)
-                except:
+                except BaseException:
                     # The error expected if this goes wrong is ValueError.
                     # But whatever the error we want to continue
                     pass
@@ -1283,7 +1286,7 @@ class GphlWorkflow(HardwareObject, object):
             # This direstory must exist by the time the WF software checks for it
             try:
                 os.makedirs(image_root)
-            except:
+            except BaseException:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
                     "Could not create image root directory: %s" % image_root

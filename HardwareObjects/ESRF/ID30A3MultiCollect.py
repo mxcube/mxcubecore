@@ -85,7 +85,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         try:
             motors_to_move_dict.pop("kappa")
             motors_to_move_dict.pop("kappa_phi")
-        except:
+        except BaseException:
             pass
         diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
 
@@ -222,7 +222,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             adxv_notify_socket.connect(("aelita.esrf.fr", 8100))
             adxv_notify_socket.sendall("load_image %s\n" % image_filename)
             adxv_notify_socket.close()
-        except:
+        except BaseException:
             pass
         else:
             gevent.sleep(3)
@@ -231,7 +231,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
         try:
             albula_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             albula_socket.connect(("localhost", 31337))
-        except:
+        except BaseException:
             pass
         else:
             albula_socket.sendall(
@@ -258,7 +258,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
 
     # DvS 23rd Feb. 2016: For the moment, we don't have these correction files for the Eiger,
     # thus skipping the copying for now:
-    #     
+    #
         # try:
         #     process_dir = os.path.join(self.xds_directory, "..")
         #     raw_process_dir = os.path.join(self.raw_data_input_file_dir, "..")

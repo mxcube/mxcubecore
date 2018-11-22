@@ -99,12 +99,12 @@ class PX1Environment(Device):
         try:
             self.usingCapillaryChannel = self.getChannelObject("usingCapillary")
             self.setUsingCapillary(True)
-        except:
+        except BaseException:
             self.usingCapillaryChannel = None
 
         try:
             self.beamstopPositionChannel = self.getChannelObject("beamstopPosition")
-        except:
+        except BaseException:
             self.beamstopPositionChannel = None
 
         if self.device is not None:

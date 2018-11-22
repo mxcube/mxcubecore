@@ -55,7 +55,7 @@ from QtImport import QImage, QPixmap
 
 class PX2Video(GenericVideoDevice, camera):
     """
-    Descript. : 
+    Descript. :
     """
 
     def __init__(self, name):
@@ -72,7 +72,7 @@ class PX2Video(GenericVideoDevice, camera):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         # tangoname = self.getProperty("tangoname")
 

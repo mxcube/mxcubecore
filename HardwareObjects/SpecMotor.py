@@ -36,7 +36,8 @@ class SpecMotor(Device, SpecMotorA):
     def motorMoveDone(self, channelValue):
         SpecMotorA.motorMoveDone(self, channelValue)
 
-        # print "motor state is ready ? %s (%s)" % ((self.getState()==SpecMotor.READY), self.getState())
+        # print "motor state is ready ? %s (%s)" %
+        # ((self.getState()==SpecMotor.READY), self.getState())
         if self.getState() == SpecMotor.READY:
             self.emit("moveDone", (self.specversion, self.specname))
 

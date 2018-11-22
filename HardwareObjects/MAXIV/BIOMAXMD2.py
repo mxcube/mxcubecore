@@ -125,7 +125,7 @@ class BIOMAXMD2(GenericDiffractometer):
             self.centring_phiy.moveRelative(
                 -1 * (x - beam_xc) / float(self.pixelsPerMmY)
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "MiniDiff: could not center to beam, aborting"
             )

@@ -120,7 +120,8 @@ def queue_get_model_code(server_hwobj):
     queue model that are not available for direct import by the XML-RPC client
     """
 
-    # Recipe from http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
+    # Recipe from
+    # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
 
     # At the moment, queue_model_objects_v1 does not import anything except
     # standard Python modules, so we only need to send over the code for the

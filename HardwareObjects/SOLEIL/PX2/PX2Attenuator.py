@@ -37,27 +37,29 @@ class PX2Attenuator(Device):
         try:
             # self.Attenuatordevice = SimpleDevice(self.getProperty("tangoname"), verbose=False)
             self.Attenuatordevice = DeviceProxy(self.getProperty("tangoname"))
-        except:
+        except BaseException:
             self.errorDeviceInstance(self.getProperty("tangoname"))
 
         try:
             # self.Attenuatordevice = SimpleDevice(self.getProperty("tangoname"), verbose=False)
             self.Constdevice = DeviceProxy(self.getProperty("tangoname_const"))
-        except:
+        except BaseException:
             self.errorDeviceInstance(self.getProperty("tangoname_const"))
 
-        # Connect to device Primary slit horizontal defined "tangonamePs_h" in the xml file
+        # Connect to device Primary slit horizontal defined "tangonamePs_h" in the
+        # xml file
         try:
             # self.Ps_hdevice = SimpleDevice(self.getProperty("tangonamePs_h"), verbose=False)
             self.Ps_hdevice = DeviceProxy(self.getProperty("tangonamePs_h"))
-        except:
+        except BaseException:
             self.errorDeviceInstance(self.getProperty("tangonamePs_h"))
 
-        # Connect to device Primary slit vertical defined "tangonamePs_v" in the xml file
+        # Connect to device Primary slit vertical defined "tangonamePs_v" in the
+        # xml file
         try:
             # self.Ps_vdevice = SimpleDevice(self.getProperty("tangonamePs_v"), verbose=False)
             self.Ps_vdevice = DeviceProxy(self.getProperty("tangonamePs_v"))
-        except:
+        except BaseException:
             self.errorDeviceInstance(self.getProperty("tangonamePs_v"))
 
         if self.deviceOk:
@@ -93,7 +95,7 @@ class PX2Attenuator(Device):
                 value = None
             logging.getLogger().debug("Attenuator state read from the device %s", value)
 
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s getAttState : received value on channel is not a integer value",
                 str(self.name()),
@@ -124,8 +126,9 @@ class PX2Attenuator(Device):
                 else:
                     value = float(self.Attenuatordevice.I_Trans) * 1.4646
             # Mettre une limite superieure car a une certaine ouverture de fentes on ne gagne plus rien en transmission
-            # Trouver la valeur de transmission par mesure sur QBPM1 doit etre autour de 120%
-        except:
+            # Trouver la valeur de transmission par mesure sur QBPM1 doit etre autour
+            # de 120%
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s getAttFactor : received value on channel is not a float value",
                 str(self.name()),
@@ -146,7 +149,7 @@ class PX2Attenuator(Device):
                 % (str(self.name()), channelValue)
             )
             value = self.getAttFactor()
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s attFactorChanged : received value on channel is not a float value",
                 str(self.name()),
@@ -161,7 +164,7 @@ class PX2Attenuator(Device):
     def attToggleChanged(self, channelValue):
         try:
             value = int(channelValue)
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s attToggleChanged : received value on channel is not a float value",
                 str(self.name()),
@@ -194,7 +197,7 @@ class PX2Attenuator(Device):
             print " Gap FP_V : ", newGapFP_V
             self.Ps_vdevice.gap = newGapFP_V
             # self.attFactorChanged(channelValue)
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "%s set Transmission : received value on channel is not valid",
                 str(self.name()),

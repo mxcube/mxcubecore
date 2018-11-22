@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # called this way
-# autoPROCLauncher.py -path /data/staff/biomax/staff/jie/2015_11_10/processed -mode after -datacollectionID 13 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
+# autoPROCLauncher.py -path
+# /data/staff/biomax/staff/jie/2015_11_10/processed -mode after
+# -datacollectionID 13 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
 
 import os
 import sys
@@ -158,7 +160,7 @@ class AutoProcLauncher:
         try:
             beamline = directories[3]
             proposal = directories[4]
-        except:
+        except BaseException:
             beamline = "unknown"
             proposal = "unknown"
 

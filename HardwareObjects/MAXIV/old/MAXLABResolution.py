@@ -29,7 +29,7 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
             },
             "MXBCM_PARS/detector_radius",
         )
-        # some value has to be read, otherwise subsequent calls will fail due to some variables inside the buffer?????
+        # some value has to be read, otherwise subsequent calls will fail due to s
 
         self.detector_diameter = 0
         self.det_radius = 0
@@ -95,7 +95,7 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
         try:
             ttheta = 2 * math.asin(self.current_wavelength / (2 * res))
             return self.det_radius / math.tan(ttheta)
-        except:
+        except BaseException:
             return None
 
     def dist2res(self, dist=None):
@@ -110,7 +110,7 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
                 return self.current_wavelength / (2 * math.sin(ttheta / 2))
             else:
                 return None
-        except:
+        except BaseException:
             logging.getLogger().exception("error while calculating resolution")
             return None
 
@@ -190,9 +190,9 @@ class MAXLABResolution(BaseHardwareObjects.Equipment):
     def stop(self):
         try:
             self.dtox.stop()
-        except:
+        except BaseException:
             pass
         try:
             self.detm.stop()
-        except:
+        except BaseException:
             pass

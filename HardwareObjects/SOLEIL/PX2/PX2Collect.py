@@ -65,7 +65,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
     ]
 
     # experiment_types = ['OSC',
-    #'Collect - Multiwedge',
+    # 'Collect - Multiwedge',
     # 'Helical',
     # 'Mesh',
     # 'energy_scan',
@@ -107,7 +107,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except:
+        except BaseException:
             pass
 
         self.set_beamline_configuration(
@@ -321,7 +321,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
-        Descript. : 
+        Descript. :
         """
         if self.autoprocessing_hwobj is not None:
             self.autoprocessing_hwobj.execute_autoprocessing(
@@ -347,7 +347,7 @@ class PX2Collect(AbstractCollect, HardwareObject):
     @task
     def move_motors(self, motor_position_dict):
         """
-        Descript. : 
+        Descript. :
         """
         return
 

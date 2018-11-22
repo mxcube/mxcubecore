@@ -2,7 +2,7 @@
 
 """A simple client for MetadataManager and MetaExperiment
 """
-
+from __future__ import print_function
 import os
 import sys
 import math
@@ -37,8 +37,8 @@ class MetadataManagerClient(object):
         if metaExperimentName:
             self.metaExperimentName = metaExperimentName
 
-        print ("MetadataManager: %s" % metadataManagerName)
-        print ("MetaExperiment: %s" % metaExperimentName)
+        print("MetadataManager: %s" % metadataManagerName)
+        print("MetaExperiment: %s" % metaExperimentName)
 
         # Tango Devices instances
         try:
@@ -48,22 +48,22 @@ class MetadataManagerClient(object):
             MetadataManagerClient.metaExperiment = PyTango.client.Device(
                 self.metaExperimentName
             )
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpexted error: ", sys.exc_info()[0])
             raise
 
     def printStatus(self):
-        print ("DataRoot: %s" % MetadataManagerClient.metaExperiment.dataRoot)
-        print ("Proposal: %s" % MetadataManagerClient.metaExperiment.proposal)
-        print ("Sample: %s" % MetadataManagerClient.metaExperiment.sample)
-        print ("Dataset: %s" % MetadataManagerClient.metadataManager.scanName)
+        print("DataRoot: %s" % MetadataManagerClient.metaExperiment.dataRoot)
+        print("Proposal: %s" % MetadataManagerClient.metaExperiment.proposal)
+        print("Sample: %s" % MetadataManagerClient.metaExperiment.sample)
+        print("Dataset: %s" % MetadataManagerClient.metadataManager.scanName)
 
     def __setDataRoot(self, dataRoot):
         try:
             MetadataManagerClient.metaExperiment.dataRoot = dataRoot
             self.dataRoot = dataRoot
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def __setProposal(self, proposal):
@@ -71,31 +71,31 @@ class MetadataManagerClient(object):
         try:
             MetadataManagerClient.metaExperiment.proposal = proposal
             self.proposal = proposal
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def appendFile(self, filePath):
         try:
             MetadataManagerClient.metadataManager.lastDataFile = filePath
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def __setSample(self, sample):
         try:
             MetadataManagerClient.metaExperiment.sample = sample
             self.sample = sample
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def __setDataset(self, datasetName):
         try:
             MetadataManagerClient.metadataManager.scanName = datasetName
             self.datasetName = datasetName
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def start(self, dataRoot, proposal, sampleName, datasetName):
@@ -119,15 +119,15 @@ class MetadataManagerClient(object):
                     if str(MetadataManagerClient.metadataManager.state()) == "ON":
                         MetadataManagerClient.metadataManager.StartScan()
 
-            except:
-                print "Unexpected error:", sys.exc_info()[0]
+            except BaseException:
+                print("Unexpected error:", sys.exc_info()[0])
                 raise
 
     def end(self):
         try:
             MetadataManagerClient.metadataManager.endScan()
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except BaseException:
+            print("Unexpected error:", sys.exc_info()[0])
             raise
 
     def getState(self):
@@ -196,7 +196,7 @@ class MXCuBEMetadataClient(object):
                     replyTo, listTo + listCC + listBCC, mime_text_message.as_string()
                 )
                 smtp.quit()
-            except:
+            except BaseException:
                 pass
         return errorMessage
 
@@ -231,7 +231,8 @@ class MXCuBEMetadataClient(object):
                     if sampleName.startswith(expTypePrefix):
                         sampleName = sampleName.replace(expTypePrefix, "")
                         break
-                # The data set name must be unique so we use the ISPyB data collection id
+                # The data set name must be unique so we use the ISPyB data collection
+                # id
                 datasetName = "{0}_{1}_{2}".format(
                     prefix, run_number, self.esrf_multi_collect.collection_id
                 )
@@ -239,7 +240,7 @@ class MXCuBEMetadataClient(object):
                     directory, self._proposal, sampleName, datasetName
                 )
                 self._metadataManagerClient.printStatus()
-            except:
+            except BaseException:
                 logging.getLogger("user_level_log").warning(
                     "Cannot connect to metadata server"
                 )
@@ -359,7 +360,7 @@ class MXCuBEMetadataClient(object):
                     )
                 self._metadataManagerClient.printStatus()
                 self._metadataManagerClient.end()
-        except:
+        except BaseException:
             logging.getLogger("user_level_log").warning("Cannot upload metadata")
             errorMessage = self.reportStackTrace()
             logging.getLogger("user_level_log").warning(errorMessage)
@@ -393,7 +394,7 @@ class MXCuBEMetadataClient(object):
         ]
         dictMetadata = {}
         for attribute in listAttributes:
-            if type(attribute) == list:
+            if isinstance(attribute, list):
                 attributeName = attribute[0]
                 keyName = attribute[1]
             else:
@@ -403,7 +404,7 @@ class MXCuBEMetadataClient(object):
             if "." in keyName:
                 parent, child = str(keyName).split(".")
                 parentObject = data_collect_parameters[parent]
-                if type(parentObject) == type([]):
+                if isinstance(parentObject, type([])):
                     parentObject = parentObject[0]
                 if child in parentObject:
                     value = str(parentObject[child])
@@ -419,11 +420,11 @@ class MXCuBEMetadataClient(object):
         motorNames = ""
         motorPositions = ""
         for motor, position in data_collect_parameters["motors"].iteritems():
-            if type(motor) == str:
+            if isinstance(motor, str):
                 motorName = motor
             else:
                 nameAttribute = getattr(motor, "name")
-                if type(nameAttribute) == str:
+                if isinstance(nameAttribute, str):
                     motorName = nameAttribute
                 else:
                     motorName = nameAttribute()

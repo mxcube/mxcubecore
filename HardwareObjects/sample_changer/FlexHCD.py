@@ -340,7 +340,6 @@ class FlexHCD(SampleChanger):
         return self._check_pin_on_gonio()
 
     def _check_pin_on_gonio(self):
-        print "_check_pin_on_gonio"
         if self.exporter_addr:
             _on_gonio = self._execute_cmd_exporter("pin_on_gonio", command=True)
         else:
@@ -422,8 +421,9 @@ class FlexHCD(SampleChanger):
     def get_available_grippers(self):
         grippers = []
         if self.exporter_addr:
-            ret = self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
-            ret.sort()
+            ret = sorted(
+                self._execute_cmd_exporter("getSupportedGrippers", attribute=True)
+            )
             for gripper in ret:
                 grippers.append(self.gripper_types[gripper])
             return grippers
