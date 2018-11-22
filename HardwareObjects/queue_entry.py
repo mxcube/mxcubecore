@@ -770,7 +770,7 @@ class SampleQueueEntry(BaseQueueEntry):
 
         try:
             programs = self.beamline_setup.collect_hwobj["auto_processing"]
-        except IndexError:
+        except KeyError:
             pass
         else:
             autoprocessing.start(programs, "end_multicollect", params)
