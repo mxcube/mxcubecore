@@ -14,7 +14,7 @@ beamPosChanged
 | name            | signals          | functions
 -----------------------------------------------------------------------
  aperture_hwobj	    apertureChanged
- slits_hwobj	    	
+ slits_hwobj
  beam_definer_hwobj
 -----------------------------------------------------------------------
 """
@@ -47,7 +47,7 @@ class ALBABeamInfo(Equipment):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
@@ -77,7 +77,7 @@ class ALBABeamInfo(Equipment):
             default_beam_divergence_horizontal = int(
                 self.getProperty("beam_divergence_horizontal")
             )
-        except:
+        except BaseException:
             pass
 
         self.default_beam_divergence = [
@@ -91,13 +91,13 @@ class ALBABeamInfo(Equipment):
 
     def get_beam_divergence_hor(self):
         """
-        Descript. : 
+        Descript. :
         """
         return self.default_beam_divergence[0]
 
     def get_beam_divergence_ver(self):
         """
-        Descript. : 
+        Descript. :
         """
         return self.default_beam_divergence[1]
 

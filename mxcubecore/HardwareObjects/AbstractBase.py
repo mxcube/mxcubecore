@@ -7,7 +7,7 @@ import abc
 
 class AbstractShutter(object, metaclass=abc.ABCMeta):
     """
-    Abstract base class for Shutter objects. The shutter has eight states 
+    Abstract base class for Shutter objects. The shutter has eight states
     which are defined as::
 
      0 -- 'unknown',
@@ -128,7 +128,7 @@ class AbstractAttenuators(object, metaclass=abc.ABCMeta):
 
 class AbstractFrontend(object, metaclass=abc.ABCMeta):
     """
-    Abstract base class for Frontend (shutter) Objects. 
+    Abstract base class for Frontend (shutter) Objects.
     The shutter has eight states which are defined as::
 
      0 -- 'unknown',
@@ -517,7 +517,7 @@ class AbstractLakeshore(object, metaclass=abc.ABCMeta):
         Sets the measurement unit either (C)elsius or (K)elvin
 
         :param unit: The unit 'C' for celsius and 'K' for kelvin
-        :type unit: str 
+        :type unit: str
 
         """
         return

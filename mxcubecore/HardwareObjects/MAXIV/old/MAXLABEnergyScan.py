@@ -63,7 +63,7 @@ class MAXLABEnergyScan(Equipment):
                 self.doEnergyScan.connectSignal(
                     "commandNotReady", self.scanCommandNotReady
                 )
-            except AttributeError, diag:
+            except AttributeError as diag:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing energy scan (%s)" % str(diag)
                 )
@@ -117,7 +117,7 @@ class MAXLABEnergyScan(Equipment):
                 self.moveEnergy.connectSignal(
                     "commandNotReady", self.moveEnergyCmdNotReady
                 )
-            except AttributeError, diag:
+            except AttributeError as diag:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing move energy (%s)" % str(diag)
                 )
@@ -158,12 +158,12 @@ class MAXLABEnergyScan(Equipment):
             # single wavelength beamline
             try:
                 return self.defaultWavelengthChannel.isConnected()
-            except:
+            except BaseException:
                 return False
         else:
             try:
                 return self.doEnergyScan.isConnected()
-            except:
+            except BaseException:
                 return False
 
     def resolutionPositionChanged(self, res):
@@ -184,7 +184,7 @@ class MAXLABEnergyScan(Equipment):
                 self.energy2WavelengthConstant = float(
                     self.energy2WavelengthChannel.getValue()
                 )
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: error initializing energy-wavelength constant"
                 )
@@ -192,14 +192,14 @@ class MAXLABEnergyScan(Equipment):
         if self.defaultWavelengthChannel is not None and self.defaultWavelength is None:
             try:
                 val = self.defaultWavelengthChannel.getValue()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: error getting default wavelength"
                 )
             else:
                 try:
                     self.defaultWavelength = float(val)
-                except:
+                except BaseException:
                     logging.getLogger("HWR").exception(
                         "EnergyScan: error getting default wavelength (%s)"
                     )
@@ -241,7 +241,7 @@ class MAXLABEnergyScan(Equipment):
             )
             try:
                 os.makedirs(directory)
-            except OSError, diag:
+            except OSError as diag:
                 logging.getLogger("HWR").error(
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(diag))
@@ -250,7 +250,7 @@ class MAXLABEnergyScan(Equipment):
                 return False
         try:
             curr = self.energyScanArgs.getValue()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: error getting energy scan parameters"
             )
@@ -268,7 +268,7 @@ class MAXLABEnergyScan(Equipment):
 
         try:
             self.energyScanArgs.setValue(curr)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: error setting energy scan parameters"
             )
@@ -276,7 +276,7 @@ class MAXLABEnergyScan(Equipment):
             return False
         try:
             self.doEnergyScan("%s %s" % (element, edge))
-        except:
+        except BaseException:
             logging.getLogger("HWR").error("EnergyScan: problem calling spec macro")
             self.emit("scanStatusChanged", ("Error problem spec macro",))
             return False
@@ -325,46 +325,46 @@ class MAXLABEnergyScan(Equipment):
 
             try:
                 t = float(result["transmissionFactor"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["transmissionFactor"] = t
             try:
                 et = float(result["exposureTime"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["exposureTime"] = et
             try:
                 se = float(result["startEnergy"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["startEnergy"] = se
             try:
                 ee = float(result["endEnergy"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["endEnergy"] = ee
 
             try:
                 bsX = float(result["beamSizeHorizontal"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["beamSizeHorizontal"] = bsX
 
             try:
                 bsY = float(result["beamSizeVertical"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["beamSizeVertical"] = bsY
 
             try:
                 self.thEdge = float(result["theoreticalEdge"]) / 1000.0
-            except:
+            except BaseException:
                 pass
 
             self.emit("energyScanFinished", (self.scanInfo,))
@@ -394,7 +394,7 @@ class MAXLABEnergyScan(Equipment):
         try:
             f = open(rawScanFile, "w")
             pyarch_f = open(archiveRawScanFile, "w")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not create raw scan files")
             self.storeEnergyScan()
             self.emit("energyScanFailed", ())
@@ -408,7 +408,7 @@ class MAXLABEnergyScan(Equipment):
                 )
                 try:
                     raw_file = open(raw_data_file, "r")
-                except:
+                except BaseException:
                     self.storeEnergyScan()
                     self.emit("energyScanFailed", ())
                     return
@@ -468,7 +468,7 @@ class MAXLABEnergyScan(Equipment):
         try:
             fi = open(scanFile)
             fo = open(archiveEfsFile, "w")
-        except:
+        except BaseException:
             self.storeEnergyScan()
             self.emit("energyScanFailed", ())
             return
@@ -528,7 +528,7 @@ class MAXLABEnergyScan(Equipment):
                 "Rendering energy scan and Chooch graphs to PNG file : %s", escan_png
             )
             canvas.print_figure(escan_png, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -536,7 +536,7 @@ class MAXLABEnergyScan(Equipment):
                 escan_archivepng,
             )
             canvas.print_figure(escan_archivepng, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.storeEnergyScan()
@@ -581,7 +581,7 @@ class MAXLABEnergyScan(Equipment):
             return
         try:
             session_id = int(self.scanInfo["sessionId"])
-        except:
+        except BaseException:
             return
         gevent.spawn(StoreEnergyScanThread, self.dbConnection, self.scanInfo)
         # self.storeScanThread.start()
@@ -597,7 +597,7 @@ class MAXLABEnergyScan(Equipment):
         if self.energyMotor is not None:
             try:
                 return self.energyMotor.getPosition()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
         elif (
@@ -621,7 +621,7 @@ class MAXLABEnergyScan(Equipment):
         if self.energyMotor is not None:
             try:
                 return self.energy2wavelength(self.energyMotor.getPosition())
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
         else:
@@ -644,13 +644,13 @@ class MAXLABEnergyScan(Equipment):
         logging.getLogger("HWR").info("Moving energy to (%s)" % value)
         try:
             value = float(value)
-        except (TypeError, ValueError), diag:
+        except (TypeError, ValueError) as diag:
             logging.getLogger("HWR").error("EnergyScan: invalid energy (%s)" % value)
             return False
 
         try:
             curr_energy = self.energyMotor.getPosition()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: couldn't get current energy"
             )
@@ -660,7 +660,7 @@ class MAXLABEnergyScan(Equipment):
             logging.getLogger("HWR").info("Moving energy: checking limits")
             try:
                 lims = self.energyMotor.getLimits()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: couldn't get energy limits"
                 )
@@ -674,7 +674,7 @@ class MAXLABEnergyScan(Equipment):
                 if self.resolutionMotor is not None:
                     try:
                         self.previousResolution = self.resolutionMotor.getPosition()
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "EnergyScan: couldn't get current resolution"
                         )
@@ -683,7 +683,7 @@ class MAXLABEnergyScan(Equipment):
                 def change_egy():
                     try:
                         self.moveEnergy(value, wait=True)
-                    except:
+                    except BaseException:
                         self.moveEnergyCmdFailed()
                     else:
                         self.moveEnergyCmdFinished(True)
@@ -735,7 +735,7 @@ class MAXLABEnergyScan(Equipment):
             self.energy2wavelength(limits[1]),
             self.energy2wavelength(limits[0]),
         )
-        if wav_limits[0] != None and wav_limits[1] != None:
+        if wav_limits[0] is not None and wav_limits[1] is not None:
             self.emit("wavelengthLimitsChanged", (wav_limits,))
         else:
             self.emit("wavelengthLimitsChanged", (None,))
@@ -773,7 +773,7 @@ class MAXLABEnergyScan(Equipment):
             if self.previousResolution is not None:
                 try:
                     self.resolutionMotor.move(self.previousResolution)
-                except:
+                except BaseException:
                     return (False, "Error trying to move the detector")
                 else:
                     return (True, None)
@@ -813,7 +813,7 @@ def StoreEnergyScanThread(db_conn, scan_info):
     if blsampleid is not None:
         try:
             energyscanid = int(db_status["energyScanId"])
-        except:
+        except BaseException:
             pass
         else:
             asoc = {"blSampleId": blsampleid, "energyScanId": energyscanid}

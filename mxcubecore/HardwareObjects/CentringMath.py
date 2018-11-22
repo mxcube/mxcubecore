@@ -7,7 +7,7 @@ import logging
 
 class CentringMath(Procedure):
     """
-    CentringMath procedure	   
+    CentringMath procedure
     """
 
     def init(self):
@@ -29,10 +29,10 @@ class CentringMath(Procedure):
                 }
             )
 
-        """ 
-        This version is lacking video microscope object. Therefore we model only 
-        static camera axes directions, but no camera axes scaling or center - which 
-        are dynamic. Therefore, camera coordinates are relative, in mm. 
+        """
+        This version is lacking video microscope object. Therefore we model only
+        static camera axes directions, but no camera axes scaling or center - which
+        are dynamic. Therefore, camera coordinates are relative, in mm.
         """
         self.cameraAxes = []
         for axis in self["cameraAxes"]:
@@ -49,7 +49,7 @@ class CentringMath(Procedure):
         """
         One _must_ self.factorize() before!!!
         Input positions are indexed by motor name as in original MiniDiff.
-        For symmetry, output camera coordinates are indexed by camera axis name, like {'X':<float>,'Y':<float>}, 
+        For symmetry, output camera coordinates are indexed by camera axis name, like {'X':<float>,'Y':<float>},
         but not just x,y as in original MiniDiff.
         """
         tau_cntrd = self.centred_positions_to_vector(centring_dict)
@@ -236,7 +236,8 @@ class CentringMath(Procedure):
 
     def camera2alignmentMotor(self, motor_HO, camxy):
         # motor_HO must reference an ALIGNMENT motor!
-        # finds a projection of camera vector {"X":x,"Y":y} onto a motor axis of a motor_HO
+        # finds a projection of camera vector {"X":x,"Y":y} onto a motor axis of a
+        # motor_HO
         for axis in self.gonioAxes:
             if axis["type"] == "translation" and motor_HO is axis["motor_HO"]:
                 res = 0.0

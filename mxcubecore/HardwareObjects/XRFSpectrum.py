@@ -77,7 +77,7 @@ class XRFSpectrum(Equipment):
     def isConnected(self):
         try:
             return self.doSpectrum.isConnected()
-        except:
+        except BaseException:
             return False
 
     # Handler for spec connection
@@ -190,7 +190,7 @@ class XRFSpectrum(Equipment):
         if self.doSpectrum:
             try:
                 res = self.doSpectrum(ct, filename, wait=True)
-            except:
+            except BaseException:
                 logging.getLogger().exception("XRFSpectrum: problem calling SPEC macro")
                 self.spectrumStatusChanged("Error problem SPEC macro")
             else:
@@ -198,7 +198,7 @@ class XRFSpectrum(Equipment):
         else:
             try:
                 res = self._doSpectrum(ct, filename, wait=True)
-            except:
+            except BaseException:
                 logging.getLogger("user_level_log").exception(
                     "XRFSpectrum: problem calling procedure"
                 )
@@ -244,7 +244,7 @@ class XRFSpectrum(Equipment):
             try:
                 mcaData = self.getChannelObject("mca_data").getValue()
                 mcaCalib = self.getChannelObject("calib_data").getValue()
-            except:
+            except BaseException:
                 fname = self.spectrumInfo["filename"].replace(".dat", ".raw")
                 self.mca_hwobj.set_presets(fname=str(fname))
                 mcaData = self.mca_hwobj.read_data(save_data=True)
@@ -255,7 +255,7 @@ class XRFSpectrum(Equipment):
                 self.spectrumInfo["energy"] = mcaConfig["energy"]
                 self.spectrumInfo["beamSizeHorizontal"] = float(mcaConfig["bsX"])
                 self.spectrumInfo["beamSizeVertical"] = float(mcaConfig["bsY"])
-            except:
+            except BaseException:
                 mcaConfig = {}
                 self.spectrumInfo[
                     "beamTransmission"
@@ -289,7 +289,7 @@ class XRFSpectrum(Equipment):
             if os.path.isfile(pngfile) is True:
                 try:
                     copy(pngfile, self.spectrumInfo["jpegScanFileFullPath"])
-                except:
+                except BaseException:
                     logging.getLogger().error("XRFSpectrum: cannot copy %s", pngfile)
 
             # copy raw data file to the archive directory
@@ -326,7 +326,7 @@ class XRFSpectrum(Equipment):
             return
         try:
             session_id = int(self.spectrumInfo["sessionId"])
-        except:
+        except BaseException:
             return
         blsampleid = self.spectrumInfo["blSampleId"]
 
@@ -340,7 +340,7 @@ class XRFSpectrum(Equipment):
             try:
                 self.curr = self.energySpectrumArgs.getValue()
                 return self.curr
-            except:
+            except BaseException:
                 logging.getLogger().exception(
                     "XRFSpectrum: error getting xrfspectrum parameters"
                 )

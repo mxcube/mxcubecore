@@ -95,7 +95,7 @@ class MicrodiffZoomMockup(Device):
             self.predefined_position_attr = self.predefinedPositions[positionName]
             self.motorPositionChanged(self.predefined_position_attr)
             return True
-        except:
+        except BaseException:
             valid = False
 
         self.connectNotify("predefinedPositionChanged")

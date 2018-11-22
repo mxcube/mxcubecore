@@ -48,7 +48,7 @@ Typicaly an input file is created and processing is started with script via
 subprocess.Popen. Results are emited with paralleProcessingResults signal.
 
 Implementations:
- * DozorParallelProcessing: parallel processing based on the Dozor. Started 
+ * DozorParallelProcessing: parallel processing based on the Dozor. Started
    with EDNA and results are set via xmlrpc.
  * ParallelProcessigMockup: mockup version capable to display various
    diffraction scenariou: no diffraction, linear, random, etc.
@@ -90,11 +90,11 @@ class GenericParallelProcessing(HardwareObject):
         try:
             self.detector_hwobj = self.collect_hwobj.detector_hwobj
             self.lims_hwobj = self.collect_hwobj.lims_client_hwobj
-        except:
+        except BaseException:
             try:
                 self.detector_hwobj = self.collect_hwobj.bl_config.detector_hwobj
                 self.lims_hwobj = self.collect_hwobj.cl_config.lims_client_hwobj
-            except:
+            except BaseException:
                 pass
 
         if self.detector_hwobj is None:
@@ -111,7 +111,7 @@ class GenericParallelProcessing(HardwareObject):
         self.kill_command = str(self.getProperty("kill_command"))
 
     def prepare_processing(self):
-        """Prepares processing parameters, creates empty result arrays and 
+        """Prepares processing parameters, creates empty result arrays and
            create necessary directories to store results
 
         :param data_collection: data collection object
@@ -159,7 +159,7 @@ class GenericParallelProcessing(HardwareObject):
         try:
             if not os.path.isdir(processing_directory):
                 os.makedirs(processing_directory)
-        except:
+        except BaseException:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Unable to create directory %s"
                 % processing_directory
@@ -169,7 +169,7 @@ class GenericParallelProcessing(HardwareObject):
         try:
             if not os.path.isdir(processing_archive_directory):
                 os.makedirs(processing_archive_directory)
-        except:
+        except BaseException:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Unable to create archive directory %s"
                 % processing_archive_directory
@@ -260,7 +260,7 @@ class GenericParallelProcessing(HardwareObject):
                 self.params_dict["grid_snapshot_filename"] = grid_snapshot_filename
 
                 gevent.spawn(self.save_grid_snapshot_task, grid_snapshot_filename)
-        except:
+        except BaseException:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Could not save grid snapshot: %s"
                 % grid_snapshot_filename
@@ -334,7 +334,7 @@ class GenericParallelProcessing(HardwareObject):
                     "Parallel processing: Grid snapshot %s saved."
                     % grid_snapshot_filename
                 )
-        except:
+        except BaseException:
             logging.getLogger("GUI").exception(
                 "Parallel processing: Could not save grid snapshot %s"
                 % grid_snapshot_filename
@@ -465,7 +465,7 @@ class GenericParallelProcessing(HardwareObject):
                     self.results_aligned, self.params_dict, html_filename
                 )
                 log.info("Parallel processing: Results html saved %s" % html_filename)
-            except:
+            except BaseException:
                 log.exception(
                     "Parallel processing: Could not save results html %s"
                     % html_filename
@@ -510,7 +510,7 @@ class GenericParallelProcessing(HardwareObject):
                     "Parallel processing: Grid overlay figure saved %s"
                     % processing_grid_overlay_file
                 )
-            except:
+            except BaseException:
                 log.exception(
                     "Parallel processing: Could not save grid overlay figure %s"
                     % processing_grid_overlay_file
@@ -605,7 +605,7 @@ class GenericParallelProcessing(HardwareObject):
             log.info(
                 "Parallel processing: Heat map figure %s saved" % processing_plot_file
             )
-        except:
+        except BaseException:
             log.exception(
                 "Parallel processing: Could not save figure %s" % processing_plot_file
             )
@@ -617,7 +617,7 @@ class GenericParallelProcessing(HardwareObject):
                 "Parallel processing: Archive heat map figure %s saved"
                 % processing_plot_archive_file
             )
-        except:
+        except BaseException:
             log.exception(
                 "Parallel processing: Could not save archive figure %s"
                 % processing_plot_archive_file
@@ -644,7 +644,7 @@ class GenericParallelProcessing(HardwareObject):
                                       self.beamstop_hwobj.get_direction()))
             for index in range(self.params_dict["images_num"]):
                 processing_csv_file.write("%d,%f,%d,%f\n" % (\
-                                          index, 
+                                          index,
                                           self.results_raw["score"][index],
                                           self.results_raw["spots_num"][index],
                                           self.results_raw["spots_resolution"][index]))
@@ -652,7 +652,7 @@ class GenericParallelProcessing(HardwareObject):
                      processing_csv_filename)
         except:
             log.error("Parallel processing: Unable to store raw data in %s" % \
-                      processing_csv_filename) 
+                      processing_csv_filename)
         finally:
             processing_csv_file.close()
         """

@@ -405,7 +405,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
         if gid:
             do_new_dc_group = False
         elif len(self._queue_entry_list) > 0:
-            if type(self._queue_entry_list[0]) == GenericWorkflowQueueEntry:
+            if isinstance(self._queue_entry_list[0], GenericWorkflowQueueEntry):
                 do_new_dc_group = False
 
         init_ref_images = False
@@ -599,7 +599,7 @@ class TaskGroupQueueEntry(BaseQueueEntry):
                     self.interleave_items[item["collect_index"]][
                         "queue_entry"
                     ].execute()
-                except:
+                except BaseException:
                     pass
                 self.interleave_items[item["collect_index"]][
                     "queue_entry"
@@ -933,7 +933,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
             acq_params = data_collection.acquisitions[0].acquisition_parameters
             cpos = acq_params.centred_position
 
-            empty_cpos = all(mpos == None for mpos in cpos.as_dict().values())
+            empty_cpos = all(mpos is None for mpos in cpos.as_dict().values())
 
             if empty_cpos and data_collection.center_before_collect:
                 _p, _s = center_before_collect(
@@ -1381,7 +1381,7 @@ class CharacterisationQueueEntry(BaseQueueEntry):
                 strategy_result = (
                     self.edna_result.getCharacterisationResult().getStrategyResult()
                 )
-            except:
+            except BaseException:
                 strategy_result = None
 
             if strategy_result:
@@ -1643,7 +1643,7 @@ class EnergyScanQueueEntry(BaseQueueEntry):
         energy_scan.result.title = title
         try:
             energy_scan.result.data = self.energy_scan_hwobj.get_scan_data()
-        except:
+        except BaseException:
             pass
 
         if (
@@ -1919,7 +1919,8 @@ class GenericWorkflowQueueEntry(BaseQueueEntry):
                 )
                 logging.getLogger("user_level_log").error(msg)
             else:
-                # Then sleep three seconds for allowing the server to abort a running workflow:
+                # Then sleep three seconds for allowing the server to abort a running
+                # workflow:
                 time.sleep(3)
                 # If the Tango server has been restarted the state.value is None.
                 # If not wait till the state.value is "ON":
@@ -2214,11 +2215,12 @@ def mount_sample(
                 sample_mount_device.load_sample(
                     holder_length, sample_location=loc, wait=True
                 )
-                == False
+                is False
             ):
                 # WARNING: explicit test of False return value.
                 # This is to preserve backward compatibility (load_sample was supposed to return None);
-                # if sample could not be loaded, but no exception is raised, let's skip the sample
+                # if sample could not be loaded, but no exception is raised, let's skip
+                # the sample
                 raise QueueSkippEntryException(
                     "Sample changer could not load sample", ""
                 )

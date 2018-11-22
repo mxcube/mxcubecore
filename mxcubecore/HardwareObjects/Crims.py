@@ -39,7 +39,7 @@ class Xtal:
                     self.IMG_URL = "https://" + self.IMG_URL[7]
                 image_string = urllib.urlopen(self.IMG_URL).read()
                 return image_string
-            except:
+            except BaseException:
                 return
 
     def getSummaryURL(self):
@@ -99,5 +99,5 @@ def getProcessingPlan(barcode, crims_url):
             xtal.SUMMARY_URL = x.find("SUMMARY_URL").text
             pp.Plate.Xtal.append(xtal)
         return pp
-    except:
+    except BaseException:
         return

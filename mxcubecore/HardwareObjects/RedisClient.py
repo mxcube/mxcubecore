@@ -72,7 +72,7 @@ class RedisClient(HardwareObject):
         try:
             if self.redis_client.ping():
                 self.active = True
-        except:
+        except BaseException:
             self.active = False
 
         if self.active:
@@ -93,7 +93,7 @@ class RedisClient(HardwareObject):
             self.connect(
                 self.bl_setup_hwobj.flux_hwobj, "fluxChanged", self.flux_changed
             )
-        except:
+        except BaseException:
             pass
 
         self.proposal_id = self.bl_setup_hwobj.session_hwobj.get_proposal()
@@ -167,7 +167,7 @@ class RedisClient(HardwareObject):
                     jsonpickle.decode(graphics_objects)
                 )
                 logging.getLogger("HWR").debug("RedisClient: Graphics loaded")
-            except:
+            except BaseException:
                 pass
 
     def save_queue_history_item(self, item):
@@ -192,7 +192,7 @@ class RedisClient(HardwareObject):
                 )
                 for item in items:
                     result.append(eval(item))
-            except:
+            except BaseException:
                 pass
         return result
 

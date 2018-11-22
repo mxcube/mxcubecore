@@ -4,7 +4,7 @@
 [Description]
 Hardware object to simulate video with loop object. Hardware object is based
 on a LimaVideo hardware object. It contains SimulatedLoop class that could
-be used to display and navigate loop. 
+be used to display and navigate loop.
 At this version vapory generates image each second and stores in /tmp.
 At first look there is no direct conversion from vapory scene to qimage.
 
@@ -14,7 +14,7 @@ At first look there is no direct conversion from vapory scene to qimage.
 
 [Emited signals]
 
- - imageReceived : emits qimage to bricks 
+ - imageReceived : emits qimage to bricks
 
 [Included Hardware Objects]
 """

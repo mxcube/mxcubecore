@@ -135,7 +135,7 @@ class CollectMockup(AbstractCollect):
 
     def trigger_auto_processing(self, process_event, params_dict, frame_number):
         """
-        Descript. : 
+        Descript. :
         """
         if self.autoprocessing_hwobj is not None:
             self.autoprocessing_hwobj.execute_autoprocessing(
@@ -181,7 +181,7 @@ class CollectMockup(AbstractCollect):
 
     def prepare_input_files(self):
         """
-        Descript. : 
+        Descript. :
         """
         i = 1
         while True:

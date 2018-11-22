@@ -158,14 +158,14 @@ class AbstractEnergyScan(object):
         # Calculate the MCA ROI (if needed)
         try:
             self.set_mca_roi(STATICPARS_DICT["eroi_min"], STATICPARS_DICT["eroi_max"])
-        except:
+        except BaseException:
             pass
 
         # Calculate undulator gaps (if any)
         GAPS = {}
         try:
             GAPS = self.calculate_und_gaps(STATICPARS_DICT["edgeEnergy"])
-        except:
+        except BaseException:
             pass
 
         # create the directory if needed

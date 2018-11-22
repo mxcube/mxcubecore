@@ -481,7 +481,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
                     "PX1Collect: Oopps.  Trying to generate thumbs but  image is not on disk"
                 )
                 return False
-        except:
+        except BaseException:
             import traceback
 
             logging.error("PX1Collect: Cannot generate thumbnails for %s" % filename)
@@ -507,7 +507,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
         if not os.path.exists(basedir):
             try:
                 os.makedirs(basedir)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
 
@@ -517,8 +517,8 @@ class PX1Collect(AbstractCollect, HardwareObject):
         process_dir = basedir.replace("RAW_DATA", "PROCESSED_DATA")
 
         try:
-            os.chmod(process_dir, 0777)
-        except:
+            os.chmod(process_dir, 0o777)
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").error(
@@ -536,7 +536,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
 
         with open(db_f, "w") as fd:
             fd.write(dirname)
-        os.chmod(db_f, 0777)
+        os.chmod(db_f, 0o777)
 
     def create_file_directories(self):
         """
@@ -562,7 +562,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             """
             pass
             # os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except:
+        except BaseException:
             logging.exception("PX1Collect: Could not create processing file directory")
             return
 
@@ -889,7 +889,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             try:
                 u20_gap = self.energy_hwobj.getCurrentUndulatorGap()
                 return {"u20": u20_gap}
-            except:
+            except BaseException:
                 return {}
         else:
             return {}
@@ -984,7 +984,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             self.adxv_socket = socket.socket(af, socktype, proto)
             self.adxv_socket.connect((self.adxv_host, self.adxv_port))
             logging.getLogger().info("PX1Collect: ADXV Visualization connected.")
-        except:
+        except BaseException:
             self.adxv_socket = None
             logging.getLogger().info("PX1Collect: WARNING: Can't connect to ADXV.")
 
@@ -1018,7 +1018,7 @@ class PX1Collect(AbstractCollect, HardwareObject):
             if not self.adxv_socket:
                 try:
                     self.adxv_connect()
-                except Exception, err:
+                except Exception as err:
                     self.adxv_socket = None
                     logging.info(
                         "PX1Collect: ADXV: Warning: Can't connect to adxv socket to follow collect."
@@ -1027,11 +1027,11 @@ class PX1Collect(AbstractCollect, HardwareObject):
             else:
                 logging.info(("PX1Collect: ADXV: " + adxv_send_cmd[1:-2]) % imgname)
                 self.adxv_socket.send(adxv_send_cmd % imgname)
-        except:
+        except BaseException:
             try:
                 del self.adxv_socket
                 self.adxv_connect()
-            except Exception, err:
+            except Exception as err:
                 self.adxv_socket = None
                 logging.error("PX1Collect: ADXV1: msg= %s" % err)
 

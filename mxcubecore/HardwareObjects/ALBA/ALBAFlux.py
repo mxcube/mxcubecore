@@ -15,7 +15,7 @@ class ALBAFlux(Device):
         try:
             if fluxlast > 1e7:
                 return self.last_current_trans()
-        except:
+        except BaseException:
             pass
 
         logging.getLogger("HWR").debug(

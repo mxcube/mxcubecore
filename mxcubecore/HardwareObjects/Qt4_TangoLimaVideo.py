@@ -53,7 +53,7 @@ from GenericVideoDevice import GenericVideoDevice
 
 class Qt4_TangoLimaVideo(GenericVideoDevice):
     """
-    Descript. : 
+    Descript. :
     """
 
     def __init__(self, name):
@@ -65,7 +65,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
 
     def init(self):
         """
-        Descript. : 
+        Descript. :
         """
 
         tangoname = self.getProperty("tangoname")

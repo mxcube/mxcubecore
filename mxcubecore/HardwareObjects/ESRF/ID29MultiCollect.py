@@ -71,7 +71,7 @@ class ID29MultiCollect(ESRFMultiCollect):
         try:
             motors_to_move_dict.pop("kappa")
             motors_to_move_dict.pop("kappa_phi")
-        except:
+        except BaseException:
             pass
         diffr.moveSyncMotors(motors_to_move_dict, wait=True, timeout=200)
 
@@ -207,7 +207,7 @@ class ID29MultiCollect(ESRFMultiCollect):
                     shutil.copyfile(
                         os.path.join("/data/id29/inhouse/opid291", filename), dest
                     )
-        except:
+        except BaseException:
             logging.exception("Exception happened while copying geo_corr files")
 
         return ESRFMultiCollect.write_input_files(self, datacollection_id)

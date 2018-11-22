@@ -237,7 +237,7 @@ class Microdiff(MiniDiff.MiniDiff):
 
     def moveToPhase(self, phase, wait=False, timeout=None):
         if self._ready():
-            if self.phases.has_key(phase):
+            if phase in self.phases:
                 self.movePhase(phase)
                 if wait:
                     if not timeout:
@@ -409,7 +409,7 @@ class Microdiff(MiniDiff.MiniDiff):
     def in_plate_mode(self):
         try:
             return self.head_type.getValue() == "Plate"
-        except:
+        except BaseException:
             return False
 
     def in_kappa_mode(self):
@@ -455,7 +455,7 @@ class Microdiff(MiniDiff.MiniDiff):
                     / float(self.pixelsPerMmY)
                 )
 
-            except:
+            except BaseException:
                 logging.getLogger("user_level_log").exception(
                     "Microdiff: could not move to beam, aborting"
                 )
@@ -542,5 +542,5 @@ def to_float(d):
     for k, v in d.iteritems():
         try:
             d[k] = float(v)
-        except:
+        except BaseException:
             pass

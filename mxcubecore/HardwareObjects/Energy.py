@@ -71,7 +71,7 @@ class Energy(Equipment):
         if self.energy_motor is not None:
             try:
                 return self.energy_motor.getPosition()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read current energy"
                 )
@@ -95,7 +95,7 @@ class Energy(Equipment):
             try:
                 self.en_lims = self.energy_motor.getLimits()
                 return self.en_lims
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyHO: could not read energy motor limits"
                 )
@@ -139,7 +139,7 @@ class Energy(Equipment):
         def change_egy():
             try:
                 self.move_energy(value, wait=True)
-            except:
+            except BaseException:
                 sys.excepthook(*sys.exc_info())
                 self.moveEnergyCmdFailed()
             else:

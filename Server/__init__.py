@@ -32,7 +32,7 @@ class XMLNodesWithRolesReadingHandler(ContentHandler):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1: -1]) + 1
+            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -102,7 +102,7 @@ class XMLPropertiesReadingHandler(ContentHandler):
         i = self.previousPath.rfind("[")
 
         if i >= 0 and self.path[:-4] == self.previousPath[:i]:
-            objectIndex = int(self.previousPath[i + 1: -1]) + 1
+            objectIndex = int(self.previousPath[i + 1 : -1]) + 1
         else:
             objectIndex = 1  # XPath indexes begin at 1
 
@@ -192,7 +192,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                         "__error__": "Could not parse hardware object file %s : %s"
                         % (hardwareObjectName, msg)
                     }
-                except:
+                except BaseException:
                     return {
                         "__error__": "Could not read hardware object %s"
                         % hardwareObjectName
@@ -297,7 +297,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                     f = open(filename, "w")
                     f.write(xml)
                     f.close()
-                except:
+                except BaseException:
                     return {"__error__": "%s update failed" % hardwareObjectName}
                 else:
                     self.server.broadcast_update_event(hardwareObjectName)
@@ -322,7 +322,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                         "__error__": "Could not parse hardware object file %s : %s"
                         % (hardwareObjectName, msg)
                     }
-                except:
+                except BaseException:
                     return {
                         "__error__": "Could not update hardware object %s"
                         % hardwareObjectName
@@ -343,7 +343,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             if os.path.exists(filename):
                 try:
                     pathvalueList = eval(str_updateList)
-                except:
+                except BaseException:
                     return {"__error__": "Bad update list format."}
 
                 if type(pathvalueList) in (list, tuple):
@@ -362,7 +362,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
                             "__error__": "Could not parse hardware object file %s : %s"
                             % (hardwareObjectName, msg)
                         }
-                    except:
+                    except BaseException:
                         return {
                             "__error__": "Could not update hardware object %s"
                             % hardwareObjectName
@@ -389,7 +389,7 @@ class SpecServerConnection(SpecServer.BaseSpecRequestHandler):
             try:
                 f = open(filename)
                 return f.read()
-            except:
+            except BaseException:
                 return ""
         else:
             return ""  # { '__error__': 'No server.' }
@@ -482,7 +482,7 @@ class HardwareRepositorySpecServer(SpecServer.SpecServer):
             hardwareObjectFilenames = {}
 
             for dirpath, dirnames, filenames in os.walk(baseDir):
-                prefix = dirpath[len(baseDir):]
+                prefix = dirpath[len(baseDir) :]
 
                 for file in filenames:
                     if file.endswith(".xml"):

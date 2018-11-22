@@ -1,3 +1,4 @@
+from __future__ import print_function
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
@@ -182,7 +183,7 @@ class ALBACats(Cats90):
         @sample: sample to load.
         @wait:
         @wash: wash dring the load opearation.
-        @return: 
+        @return:
         """
 
         logging.getLogger("HWR").debug(
@@ -266,7 +267,7 @@ class ALBACats(Cats90):
 
     def _doLoad(self, sample=None, shifts=None, use_ht=False):
         """
-        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
+        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
         Overides Cats90 method.
 
@@ -413,7 +414,8 @@ class ALBACats(Cats90):
             else:
                 changing_tool = False
 
-            # we should now check basket type on diffr to see if tool is different... then decide what to do
+            # we should now check basket type on diffr to see if tool is different...
+            # then decide what to do
 
             if shifts is None:
                 xshift, yshift, zshift = ["0", "0", "0"]
@@ -500,7 +502,8 @@ class ALBACats(Cats90):
                 % changing_tool
             )
 
-        # load commands are executed until path is safe. Then we have to wait for path to be finished
+        # load commands are executed until path is safe. Then we have to wait for
+        # path to be finished
         self._waitDeviceReady()
 
     def _doUnload(self, sample_slot=None, shifts=None):
@@ -508,7 +511,7 @@ class ALBACats(Cats90):
         Unloads a sample from the diffractometer.
         Overides Cats90 method.
 
-        @sample_slot: 
+        @sample_slot:
         @shifts: mounting position
         """
         if not self._chnPowered.getValue():
@@ -615,7 +618,7 @@ class ALBACats(Cats90):
                 return int(sample)
             else:
                 return False
-        except:
+        except BaseException:
             return False
 
     def tool_for_basket(self, basketno):
@@ -649,14 +652,14 @@ class ALBACats(Cats90):
 
 def test_hwo(hwo):
     hwo._updateCatsContents()
-    print (" Is path running? ", hwo.isPathRunning())
-    print (" Loading shifts:  ", hwo._get_shifts())
-    print (" Sample on diffr :  ", hwo.cats_sample_on_diffr())
-    print (" Baskets :  ", hwo.basket_presence)
-    print (" Baskets :  ", hwo.getBasketList())
+    print(" Is path running? ", hwo.isPathRunning())
+    print(" Loading shifts:  ", hwo._get_shifts())
+    print(" Sample on diffr :  ", hwo.cats_sample_on_diffr())
+    print(" Baskets :  ", hwo.basket_presence)
+    print(" Baskets :  ", hwo.getBasketList())
     if hwo.hasLoadedSample():
-        print " Loaded is: ", hwo.getLoadedSample().getCoords()
-    print (" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
+        print(" Loaded is: ", hwo.getLoadedSample().getCoords())
+    print(" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
 
 
 if __name__ == "__main__":

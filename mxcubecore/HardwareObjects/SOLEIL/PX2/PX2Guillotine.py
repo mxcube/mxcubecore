@@ -113,7 +113,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
 
         try:
             self.pss_door = self.getProperty("tangoname_pss")
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )
@@ -128,7 +128,7 @@ class PX2Guillotine(BaseHardwareObjects.Device):
         #
         # emit signal
         #
-        if type(value) == float:
+        if isinstance(value, float):
             value = self.shutChannel.value
         self.shutterStateValue = str(value)
         self.emit("shutterStateChanged", (self.getShutterState(),))

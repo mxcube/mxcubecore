@@ -16,7 +16,7 @@ class BL9113MultiCollect(MAXLABMultiCollect):
                 % data_collect_parameters.get("nb_sum_images", 1)
                 != 0
             ):
-                raise RuntimeError, "invalid number of images to sum"
+                raise RuntimeError("invalid number of images to sum")
 
         data_collect_parameters["dark"] = 0
 

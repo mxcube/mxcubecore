@@ -78,7 +78,7 @@ class SOLEILEnergyScan(Equipment):
                 self.doEnergyScan.connectSignal(
                     "commandNotReady", self.scanCommandNotReady
                 )
-            except AttributeError, diag:
+            except AttributeError as diag:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing energy scan (%s)" % str(diag)
                 )
@@ -132,7 +132,7 @@ class SOLEILEnergyScan(Equipment):
                 self.moveEnergy.connectSignal(
                     "commandNotReady", self.moveEnergyCmdNotReady
                 )
-            except AttributeError, diag:
+            except AttributeError as diag:
                 logging.getLogger("HWR").warning(
                     "EnergyScan: error initializing move energy (%s)" % str(diag)
                 )
@@ -166,12 +166,12 @@ class SOLEILEnergyScan(Equipment):
             # single wavelength beamline
             try:
                 return self.defaultWavelengthChannel.isConnected()
-            except:
+            except BaseException:
                 return False
         else:
             try:
                 return self.doEnergyScan.isConnected()
-            except:
+            except BaseException:
                 return False
 
     def resolutionPositionChanged(self, res):
@@ -246,7 +246,7 @@ class SOLEILEnergyScan(Equipment):
             )
             try:
                 os.makedirs(directory)
-            except OSError, diag:
+            except OSError as diag:
                 logging.getLogger("HWR").error(
                     "EnergyScan: error creating directory %s (%s)"
                     % (directory, str(diag))
@@ -282,7 +282,7 @@ class SOLEILEnergyScan(Equipment):
                 "EnergyScan: current energy scan parameters (%s, %s, %s, %s)"
                 % (element, edge, directory, prefix)
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: error setting energy scan parameters"
             )
@@ -293,7 +293,7 @@ class SOLEILEnergyScan(Equipment):
             self.scanCommandStarted()
             self.xanes.scan()  # start() #scan()
             self.scanCommandFinished("success")
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("HWR").error(
@@ -349,46 +349,46 @@ class SOLEILEnergyScan(Equipment):
 
             try:
                 t = float(result["transmissionFactor"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["transmissionFactor"] = t
             try:
                 et = float(result["exposureTime"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["exposureTime"] = et
             try:
                 se = float(result["startEnergy"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["startEnergy"] = se
             try:
                 ee = float(result["endEnergy"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["endEnergy"] = ee
 
             try:
                 bsX = float(result["beamSizeHorizontal"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["beamSizeHorizontal"] = bsX
 
             try:
                 bsY = float(result["beamSizeVertical"])
-            except:
+            except BaseException:
                 pass
             else:
                 self.scanInfo["beamSizeVertical"] = bsY
 
             try:
                 self.thEdge = float(result["theoreticalEdge"]) / 1000.0
-            except:
+            except BaseException:
                 pass
 
             self.emit("energyScanFinished", (self.scanInfo,))
@@ -519,7 +519,7 @@ class SOLEILEnergyScan(Equipment):
                     "Chooch. Archive path is not accessible (%s)" % dirname
                 )
                 return None
-            except:
+            except BaseException:
                 import traceback
 
                 logging.getLogger("user_level_log").error(
@@ -538,7 +538,7 @@ class SOLEILEnergyScan(Equipment):
         try:
             fi = open(scanFile)
             fo = open(archiveEfsFile, "w")
-        except:
+        except BaseException:
             import traceback
 
             logging.getLogger("user_level_log").error(traceback.format_exc())
@@ -605,7 +605,7 @@ class SOLEILEnergyScan(Equipment):
                 "Rendering energy scan and Chooch graphs to PNG file : %s", escan_png
             )
             canvas.print_figure(escan_png, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not print figure")
         try:
             logging.getLogger("HWR").info(
@@ -613,7 +613,7 @@ class SOLEILEnergyScan(Equipment):
                 escan_archivepng,
             )
             canvas.print_figure(escan_archivepng, dpi=80)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("could not save figure")
 
         self.storeEnergyScan()
@@ -692,7 +692,7 @@ class SOLEILEnergyScan(Equipment):
         if self.energyMotor is not None:
             try:
                 return self.energyMotor.getPosition()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
         elif (
@@ -717,7 +717,7 @@ class SOLEILEnergyScan(Equipment):
         if self.energyMotor is not None:
             try:
                 return self.energy2wavelength(self.energyMotor.getPosition())
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("EnergyScan: couldn't read energy")
                 return None
         else:
@@ -740,13 +740,13 @@ class SOLEILEnergyScan(Equipment):
         logging.getLogger("HWR").info("Moving energy to (%s)" % value)
         try:
             value = float(value)
-        except (TypeError, ValueError), diag:
+        except (TypeError, ValueError) as diag:
             logging.getLogger("HWR").error("EnergyScan: invalid energy (%s)" % value)
             return False
 
         try:
             curr_energy = self.energyMotor.getPosition()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "EnergyScan: couldn't get current energy"
             )
@@ -756,7 +756,7 @@ class SOLEILEnergyScan(Equipment):
             logging.getLogger("HWR").info("Moving energy: checking limits")
             try:
                 lims = self.energyMotor.getLimits()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "EnergyScan: couldn't get energy limits"
                 )
@@ -770,7 +770,7 @@ class SOLEILEnergyScan(Equipment):
                 if self.resolutionMotor is not None:
                     try:
                         self.previousResolution = self.resolutionMotor.getPosition()
-                    except:
+                    except BaseException:
                         logging.getLogger("HWR").exception(
                             "EnergyScan: couldn't get current resolution"
                         )
@@ -779,7 +779,7 @@ class SOLEILEnergyScan(Equipment):
                 def change_egy():
                     try:
                         self.moveEnergy(value, wait=True)
-                    except:
+                    except BaseException:
                         self.moveEnergyCmdFailed()
                     else:
                         self.moveEnergyCmdFinished(True)
@@ -831,7 +831,7 @@ class SOLEILEnergyScan(Equipment):
             self.energy2wavelength(limits[1]),
             self.energy2wavelength(limits[0]),
         )
-        if wav_limits[0] != None and wav_limits[1] != None:
+        if wav_limits[0] is not None and wav_limits[1] is not None:
             self.emit("wavelengthLimitsChanged", (wav_limits,))
         else:
             self.emit("wavelengthLimitsChanged", (None,))
@@ -869,7 +869,7 @@ class SOLEILEnergyScan(Equipment):
             if self.previousResolution is not None:
                 try:
                     self.resolutionMotor.move(self.previousResolution)
-                except:
+                except BaseException:
                     return (False, "Error trying to move the detector")
                 else:
                     return (True, None)
@@ -910,7 +910,7 @@ def StoreEnergyScanThread(db_conn, scan_info):
     if blsampleid is not None:
         try:
             energyscanid = int(db_status["energyScanId"])
-        except:
+        except BaseException:
             pass
         else:
             asoc = {"blSampleId": blsampleid, "energyScanId": energyscanid}

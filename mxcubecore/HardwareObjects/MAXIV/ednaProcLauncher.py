@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# python ednaProcLauncher.py -path /data/staff/biomax/staff/jie/20161212_thau_2/processed4 -mode after -datacollectionID 14 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
+# python ednaProcLauncher.py -path
+# /data/staff/biomax/staff/jie/20161212_thau_2/processed4 -mode after
+# -datacollectionID 14 -residues 200 -anomalous False -cell "0,0,0,0,0,0"
 
 import os
 import sys
@@ -91,7 +93,7 @@ edPlugin.setBaseName(baseName)
 
 EDVerbose.screen("Start of execution of EDNA plugin %s" % pluginName)
 os.chdir(baseDir)
-edPlugin.executeSynchronous()   
+edPlugin.executeSynchronous()
 """
 
 
@@ -222,7 +224,7 @@ class EdnaProcLauncher:
         try:
             beamline = directories[3]
             proposal = directories[4]
-        except:
+        except BaseException:
             beamline = "unknown"
             proposal = "unknown"
 

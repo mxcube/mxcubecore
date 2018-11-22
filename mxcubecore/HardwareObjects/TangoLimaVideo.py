@@ -54,7 +54,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
             # try a first call to get an exception if the device
             # is not exported
             self.device.ping()
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error("%s: %s", str(self.name()), last_error.desc)
 
@@ -112,23 +112,24 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
                     self._do_polling, self.device.video_exposure
                 )
 
-    #############   CONTRAST   #################
+    # ############   CONTRAST   #################
+
     def contrastExists(self):
         return self.__contrastExists
 
-    #############   BRIGHTNESS   #################
+    # ############   BRIGHTNESS   #################
     def brightnessExists(self):
         return self.__brightnessExists
 
-    #############   GAIN   #################
+    # ############   GAIN   #################
     def gainExists(self):
         return self.__gainExists
 
-    #############   GAMMA   #################
+    # ############   GAMMA   #################
     def gammaExists(self):
         return self.__gammaExists
 
-    #############   WIDTH   #################
+    # ############   WIDTH   #################
     def getWidth(self):
         """tango"""
         return self.device.image_width
@@ -150,7 +151,7 @@ class TangoLimaVideo(BaseHardwareObjects.Device):
         qimage = self._get_last_image()
         try:
             qimage.save(args[0], "PNG")
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "%s: could not save snapshot", self.name()
             )

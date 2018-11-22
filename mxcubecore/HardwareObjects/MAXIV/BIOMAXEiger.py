@@ -19,7 +19,7 @@ hardware object status:
 
 
 """
-
+from __future__ import print_function
 import gevent
 import time
 import copy
@@ -64,7 +64,8 @@ class BIOMAXEiger(Equipment):
         self.buffer_limit = self.getProperty("buffer_limit")
         self.dcu = self.getProperty("dcu")
 
-        # not all of the following attr are needed, for now all of them here for convenience
+        # not all of the following attr are needed, for now all of them here for
+        # convenience
         attr_list = (
             "NbImages",
             "Temperature",
@@ -147,7 +148,8 @@ class BIOMAXEiger(Equipment):
             "TriggerMode": "exts",
         }
 
-        # not all of the following commands are needed, for now all of them here for convenience
+        # not all of the following commands are needed, for now all of them here
+        # for convenience
         cmd_list = (
             "Arm",
             "Trigger",
@@ -202,7 +204,7 @@ class BIOMAXEiger(Equipment):
             self.energy_change_threshold = float(
                 self.getProperty("min_trigger_energy_change")
             )
-        except:
+        except BaseException:
             self.energy_change_threshold = self.energy_change_threshold_default
 
         self.getChannelObject("Compression").init_device()
@@ -448,7 +450,7 @@ class BIOMAXEiger(Equipment):
     def _validate_energy_value(self, energy):
         try:
             target_energy = float(energy)
-        except:
+        except BaseException:
             # not a valid value
             logging.getLogger("user_level_log").info("Wrong Energy value: %s" % energy)
             return -1
@@ -457,21 +459,21 @@ class BIOMAXEiger(Equipment):
         min_energy = self.get_value("PhotonEnergyMin")
         current_energy = self.get_value("PhotonEnergy")
 
-        print ("   - currently configured energy is: %s" % current_energy)
-        print ("   -    min val: %s / max val: %s " % (min_energy, max_energy))
+        print("   - currently configured energy is: %s" % current_energy)
+        print("   -    min val: %s / max val: %s " % (min_energy, max_energy))
 
         if target_energy < min_energy or target_energy > max_energy:
-            print ("Energy value out of limits: %s" % energy)
+            print("Energy value out of limits: %s" % energy)
             logging.getLogger("user_level_log").info(
                 "Energy value out of limits: %s" % energy
             )
             return -1
 
         if abs(energy - current_energy) > self.energy_change_threshold:
-            print ("Energy difference over threshold. program energy necessary")
+            print("Energy difference over threshold. program energy necessary")
             return 1
         else:
-            print ("Energy difference below threshold. Do not need to program")
+            print("Energy difference below threshold. Do not need to program")
             return 0
 
     def set_energy_threshold(self, threshold):
@@ -515,7 +517,7 @@ class BIOMAXEiger(Equipment):
             return
         return self.get_value("RoiMode")
 
-        #  SET VALUES END
+    #  SET VALUES END
 
     def prepare_acquisition(self, config):
         """
@@ -540,7 +542,7 @@ class BIOMAXEiger(Equipment):
         try:
             self._prepare_acquisition_sequence()
         except Exception as ex:
-            print ex
+            print(ex)
             self._configuration_failed()
         else:
             self._configuration_done()
@@ -571,13 +573,15 @@ class BIOMAXEiger(Equipment):
                     raise Exception("Could not program energy in detector")
         if "CountTime" in self._config_vals.keys():
             self.set_value("CountTime", self._config_vals["CountTime"])
-            print "readout time and count time is ", self.get_readout_time(), self.get_value(
-                "CountTime"
+            print(
+                "readout time and count time is ",
+                self.get_readout_time(),
+                self.get_value("CountTime"),
             )
             self.set_value(
                 "FrameTime", self._config_vals["CountTime"] + self.get_readout_time()
             )
-            print "new frame time is ", self.get_value("FrameTime")
+            print("new frame time is ", self.get_value("FrameTime"))
             for cfg_name, cfg_value in self._config_vals.items():
                 t0 = time.time()
                 if cfg_name == "PhotonEnergy" or cfg_name == "CountTime":
@@ -595,7 +599,7 @@ class BIOMAXEiger(Equipment):
                         if cfg_name == "RoiMode":
                             self.emit("roiChanged")
                     else:
-                        print ("      - value does need to change")
+                        print("      - value does need to change")
                 else:
                     logging.getLogger("HWR").error(
                         "Could not config value %s for detector. Not such channel"
@@ -645,7 +649,7 @@ class BIOMAXEiger(Equipment):
             logging.getLogger("HWR").info(
                 "[DETECTOR] Stop acquisition, detector canceled and disarmed."
             )
-        except:
+        except BaseException:
             pass
 
     def cancel_acquisition(self):
@@ -653,7 +657,7 @@ class BIOMAXEiger(Equipment):
         logging.getLogger("HWR").info("[DETECTOR] Cancelling acquisition")
         try:
             self.cancel()
-        except:
+        except BaseException:
             pass
 
         time.sleep(1)
@@ -689,7 +693,7 @@ class BIOMAXEiger(Equipment):
     def abort(self):
         try:
             self.getCommandObject("Abort")()
-        except:
+        except BaseException:
             pass
 
 
@@ -698,7 +702,7 @@ def test():
     import os
 
     if len(sys.argv) != 5:
-        print (
+        print(
             "Usage: %s triggermode (exts/ints) nb_images exp_time energy" % sys.argv[0]
         )
         sys.exit(0)
@@ -709,11 +713,11 @@ def test():
             exptime = float(sys.argv[3])
             egy = float(sys.argv[4])
         except ValueError:
-            print "Cannot decode parameters. Aborting"
+            print("Cannot decode parameters. Aborting")
             sys.exit(0)
 
     if trigmode not in ["exts", "ints"]:
-        print ('Bad trigger mode. It should be "exts" or "ints"')
+        print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
     hwr = HardwareRepository.HardwareRepository(os.environ.get("XML_FILES_PATH"))
@@ -737,7 +741,7 @@ def test():
     }
 
     if obj.get_status() == "not_init":
-        print ("Cannot initialize hardware object")
+        print("Cannot initialize hardware object")
         sys.exit(0)
 
     if not obj.is_idle():
@@ -746,40 +750,40 @@ def test():
 
     obj.prepare_acquisition(config)
 
-    print ("Waiting for configuration finished")
+    print("Waiting for configuration finished")
 
     while obj.is_preparing():
         gevent.wait(timeout=0.1)
         gevent.sleep(0.1)
-        print "."
+        print(".")
 
     if obj.prepare_error():
-        print "Prepare went wrong. Aborting"
+        print("Prepare went wrong. Aborting")
         sys.exit(0)
 
     readout_time = obj.get_readout_time()
-    print ("EIGER configuration done")
+    print("EIGER configuration done")
 
-    print ("Starting acquisition (trigmode = %s)" % trigmode)
+    print("Starting acquisition (trigmode = %s)" % trigmode)
     if trigmode == "exts":
         total_time = nimages * (exptime + readout_time)
-        print ("Total exposure time (estimated) will be: %s", total_time)
+        print("Total exposure time (estimated) will be: %s", total_time)
 
     try:
         obj.start_acquisition()
 
         if trigmode == "exts":
-            print ("  - waiting for trigger.")
+            print("  - waiting for trigger.")
             sys.stdout.flush()
             obj.wait_acquire()
-            print ("  - trigger received. Acquiring")
+            print("  - trigger received. Acquiring")
             obj.wait_ready_or_idle()
         else:
             obj.trigger()
             obj.wait_ready_or_idle()
 
         obj.stop_acquisition()
-        print ("Acquisition done")
+        print("Acquisition done")
     except KeyboardInterrupt:
         obj.abort()
         obj.wait_idle()

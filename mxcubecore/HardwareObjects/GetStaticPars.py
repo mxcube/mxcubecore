@@ -19,7 +19,7 @@ class GetStaticParameters:
                     array.append(line.split())
                 else:
                     pass
-        except:
+        except BaseException:
             return []
         else:
             larr = []
@@ -37,7 +37,7 @@ class GetStaticParameters:
                         to_delete = [0, 1, 2, 3, 5, 6, 7]
                     else:
                         to_delete = [0, 1, 2, 3, 4, 6, 7]
-                except:
+                except BaseException:
                     to_delete = [0, 1, 2, 3, 4, 6, 7]
             for ii in sorted(to_delete, reverse=True):
                 del larr[ii]

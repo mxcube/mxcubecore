@@ -18,7 +18,7 @@ class AbstractMCA(object):
             chmax (int): channel number, defaults to 4095
 
         Returns:
-            list. Raw data. 
+            list. Raw data.
         """
         pass
 
@@ -120,7 +120,7 @@ class AbstractMCA(object):
 
     @task
     def get_times(self):
-        """Return a dictionary with the preset and elapsed real time [s], 
+        """Return a dictionary with the preset and elapsed real time [s],
         elapsed live time (if possible) [s] and the dead time [%].
 
         Returns:

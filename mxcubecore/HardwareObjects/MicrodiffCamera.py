@@ -18,7 +18,7 @@ class MicrodiffCamera(BaseHardwareObjects.Device):
     def _init(self):
         try:
             self.device = PyTango.DeviceProxy(self.tangoname)
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]

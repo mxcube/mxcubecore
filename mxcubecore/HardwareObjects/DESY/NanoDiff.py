@@ -17,7 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from __future__ import print_function
 import os
 import copy
 import time
@@ -90,7 +90,7 @@ class NanoDiff(HardwareObject):
         self.chan_calib_y = None
 
         # self.chan_head_type = None
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         self.chan_fast_shutter_is_open = None
         self.chan_sync_move_motors = None
@@ -165,7 +165,7 @@ class NanoDiff(HardwareObject):
         # if self.chan_head_type is not None:
         #    self.head_type = self.chan_head_type.getValue()
 
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         self.chan_current_phase = self.getChannelObject("CurrentPhase")
         if self.chan_current_phase is not None:
@@ -285,7 +285,7 @@ class NanoDiff(HardwareObject):
 
         try:
             self.zoom_centre = eval(self.getProperty("zoomCentre"))
-        except:
+        except BaseException:
             if self.image_width is not None and self.image_height is not None:
                 self.zoom_centre = {
                     "x": self.image_width / 2,
@@ -307,7 +307,7 @@ class NanoDiff(HardwareObject):
         self.reversing_rotation = self.getProperty("reversingRotation")
         try:
             self.grid_direction = eval(self.getProperty("gridDirection"))
-        except:
+        except BaseException:
             self.grid_direction = {"fast": (0, 1), "slow": (1, 0)}
             logging.getLogger("HWR").warning(
                 "NanoDiff: Grid direction is not defined. Using default."
@@ -315,7 +315,7 @@ class NanoDiff(HardwareObject):
 
         try:
             self.phase_list = eval(self.getProperty("phaseList"))
-        except:
+        except BaseException:
             self.phase_list = []
 
         self.getPositions = self.get_positions
@@ -324,7 +324,7 @@ class NanoDiff(HardwareObject):
 
     def in_plate_mode(self):
         # self.head_type = self.chan_head_type.getValue()
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         return self.head_type == NanoDiff.PLATE
 
@@ -338,7 +338,7 @@ class NanoDiff(HardwareObject):
         return self.grid_direction
 
     def is_reversing_rotation(self):
-        return self.reversing_rotation == True
+        return self.reversing_rotation is True
 
     def equipmentReady(self):
         """
@@ -720,7 +720,7 @@ class NanoDiff(HardwareObject):
                 if omega is not None:
                     pos["phiMotor"] = omega
                 self.move_to_motors_positions(pos)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "NanoDiff: could not center to beam, aborting"
                 )
@@ -744,7 +744,7 @@ class NanoDiff(HardwareObject):
         self.emit_centring_started(method)
         try:
             fun = self.centring_methods[method]
-        except KeyError, diag:
+        except KeyError as diag:
             logging.getLogger("HWR").error(
                 "NanoDiff: unknown centring method (%s)" % str(diag)
             )
@@ -752,7 +752,7 @@ class NanoDiff(HardwareObject):
         else:
             try:
                 fun(sample_info)
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception("NanoDiff: problem while centring")
                 self.emit_centring_failed()
 
@@ -763,18 +763,18 @@ class NanoDiff(HardwareObject):
         if self.current_centring_procedure is not None:
             try:
                 self.current_centring_procedure.kill()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "NanoDiff: problem aborting the centring method"
                 )
             try:
                 fun = self.cancel_centring_methods[self.current_centring_method]
-            except KeyError, diag:
+            except KeyError as diag:
                 self.emit_centring_failed()
             else:
                 try:
                     fun()
-                except:
+                except BaseException:
                     self.emit_centring_failed()
         else:
             self.emit_centring_failed()
@@ -833,7 +833,7 @@ class NanoDiff(HardwareObject):
             self.accept_centring()
             self.current_centring_method = None
             self.current_centring_procedure = None
-        except:
+        except BaseException:
             logging.exception("Could not complete 2D centring")
 
     def manual_centring(self):
@@ -847,7 +847,7 @@ class NanoDiff(HardwareObject):
         self.pixels_per_mm_y = 0.830  # 865
         self.centringPhiValues = []  # according values of phi-s - (mxcubes omegas)
 
-        print ("PP__:  Attention, chan_head_type is commented out")
+        print("PP__:  Attention, chan_head_type is commented out")
 
         for click in (0, 1, 2):
             self.user_clicked_event = AsyncResult()
@@ -882,7 +882,7 @@ class NanoDiff(HardwareObject):
             + self.centring_hwobj.centringDataMatrix[2][0]
         ) / 3.0
         horizontalCorrection = -horizontalCorrection / self.pixels_per_mm_x
-        print (horizontalCorrection)
+        print(horizontalCorrection)
         self.phiy_motor_hwobj.moveRelative(-horizontalCorrection)
 
         # the following 3 lines are debug version of centering procedure. Identical as in x direction
@@ -932,18 +932,16 @@ class NanoDiff(HardwareObject):
         )
 
         [phizc, sampyc, sampxc] = numpy.linalg.solve(a, b)
-        print ("phiz correction = ", phizc)
-        print ("sampy correction = ", sampyc)
-        print ("sampx correction = ", sampxc)
+        print("phiz correction = ", phizc)
+        print("sampy correction = ", sampyc)
+        print("sampx correction = ", sampxc)
 
         self.phiz_motor_hwobj.moveRelative(-phizc)
         self.sample_y_motor_hwobj.moveRelative(-sampyc)
         self.sample_x_motor_hwobj.moveRelative(-sampxc)
 
         # return self.centring_hwobj.centeredPosition(return_by_name=False)
-        print (
-            "PP__:  Attention, return of manual_centring is replaced via 'dummy' one"
-        )
+        print("PP__:  Attention, return of manual_centring is replaced via 'dummy' one")
         return self.centring_hwobj.vector_to_centred_positions([0, 0])
 
     def automatic_centring(self):
@@ -987,7 +985,7 @@ class NanoDiff(HardwareObject):
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except:
+        except BaseException:
             logging.exception("Could not complete manual centring")
             self.emit_centring_failed()
         else:
@@ -995,7 +993,7 @@ class NanoDiff(HardwareObject):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -1010,7 +1008,7 @@ class NanoDiff(HardwareObject):
         """
         Descript. :
         """
-        print "automatic_centring_done..."
+        print("automatic_centring_done...")
         res = auto_centring_procedure.get()
         self.emit("newAutomaticCentringPoint", (res[0], res[1]))
 
@@ -1020,7 +1018,7 @@ class NanoDiff(HardwareObject):
             motor_pos = manual_centring_procedure.get()
             if isinstance(motor_pos, gevent.GreenletExit):
                 raise motor_pos
-        except:
+        except BaseException:
             logging.exception("Could not complete automatic centring")
             self.emit_centring_failed()
         else:
@@ -1028,7 +1026,7 @@ class NanoDiff(HardwareObject):
             self.emit_centring_moving()
             try:
                 self.move_to_motors_positions(motor_pos)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()
             else:
@@ -1068,7 +1066,7 @@ class NanoDiff(HardwareObject):
                     self.kappa_phi_motor_hwobj: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -1081,7 +1079,7 @@ class NanoDiff(HardwareObject):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except:
+        except BaseException:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task
@@ -1140,7 +1138,7 @@ class NanoDiff(HardwareObject):
     def move_motors(self, motor_position_dict):
         """
         Descript. : general function to move motors.
-        Arg.      : motors positions in dict. Dictionary can contain motor names 
+        Arg.      : motors positions in dict. Dictionary can contain motor names
                     as str or actual motor hwobj
         """
         for motor in motor_position_dict.keys():
@@ -1182,7 +1180,7 @@ class NanoDiff(HardwareObject):
 
     def accept_centring(self):
         """
-        Descript. : 
+        Descript. :
         Arg.      " fully_centred_point. True if 3 click centring
                     else False
         """
@@ -1255,7 +1253,7 @@ class NanoDiff(HardwareObject):
 
             # self.centring_status["motors"] = motors
             # self.centring_status["method"] = self.current_centring_method
-            print (
+            print(
                 "PP___: NanoDiff emit_centring_successful(self) commented code adnout motors  "
             )
 
@@ -1319,7 +1317,7 @@ class NanoDiff(HardwareObject):
         """
         try:
             self.centring_status["images"] = snapshots_procedure.get()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "NanoDiff: could not take crystal snapshots"
             )

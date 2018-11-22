@@ -655,15 +655,15 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         ):
             self.create_directories(dir)
             logging.info("Creating processing input file directory: %s", dir)
-            os.chmod(dir, 0777)
+            os.chmod(dir, 0o777)
 
         try:
             try:
                 os.symlink(files_directory, os.path.join(process_directory, "links"))
-            except os.error, e:
+            except os.error as e:
                 if e.errno != errno.EEXIST:
                     raise
-        except:
+        except BaseException:
             logging.exception("Could not create processing file directory")
 
         return autoprocessing_directory, "", ""
@@ -687,7 +687,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         else:
             hkl_file.write(r.read())
         hkl_file.close()
-        os.chmod(hkl_file_path, 0666)
+        os.chmod(hkl_file_path, 0o666)
 
         for input_file_dir, file_prefix in (
             (self.raw_data_input_file_dir, "../.."),
@@ -702,7 +702,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             else:
                 xds_file.write(r.read())
             xds_file.close()
-            os.chmod(xds_input_file, 0666)
+            os.chmod(xds_input_file, 0o666)
 
         input_file_dir = self.mosflm_raw_data_input_file_dir
         file_prefix = "../.."
@@ -711,7 +711,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         mosflm_file = open(mosflm_input_file, "w")
         mosflm_file.write(conn.getresponse().read())
         mosflm_file.close()
-        os.chmod(mosflm_input_file, 0666)
+        os.chmod(mosflm_input_file, 0o666)
 
         # also write input file for STAC
         for stac_om_input_file_name, stac_om_dir in (
@@ -746,7 +746,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
                 )
             )
             stac_om_file.close()
-            os.chmod(stac_om_input_file, 0666)
+            os.chmod(stac_om_input_file, 0o666)
 
     def get_wavelength(self):
         return self._tunable_bl.get_wavelength()
@@ -765,7 +765,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         _gaps = {}
         try:
             _gaps = self.bl_control.undulators.getUndulatorGaps()
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not get undulator gaps")
         all_gaps.clear()
         for key in _gaps:
@@ -798,14 +798,14 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
         try:
             val = self.getChannelObject("image_intensity").getValue()
             return float(val)
-        except:
+        except BaseException:
             return 0
 
     def get_machine_current(self):
         if self.bl_control.machine_current:
             try:
                 return self.bl_control.machine_current.getCurrent()
-            except:
+            except BaseException:
                 return -1
         else:
             return 0
@@ -902,7 +902,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             else:
                 beamline = directories[2]
                 proposal = directories[4]
-        except:
+        except BaseException:
             beamline = "unknown"
             proposal = "unknown"
         host, port = self.getProperty("bes_jpeg_hostport").split(":")
@@ -969,7 +969,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
 
     def setMeshScanParameters(self, mesh_steps, mesh_range):
         """
-        Descript. : 
+        Descript. :
         """
         self._mesh_steps = mesh_steps
         self._mesh_range = mesh_range

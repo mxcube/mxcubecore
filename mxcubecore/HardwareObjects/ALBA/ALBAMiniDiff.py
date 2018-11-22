@@ -35,7 +35,7 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 - phiMotorMoved
 - stateChanged
 - zoomMotorPredefinedPositionChanged
- 
+
 
 [Functions]
 - None

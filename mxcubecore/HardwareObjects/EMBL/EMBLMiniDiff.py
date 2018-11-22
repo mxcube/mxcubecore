@@ -534,7 +534,7 @@ class EMBLMiniDiff(GenericDiffractometer):
                     self.motor_hwobj_dict["kappa_phi"]: centred_position.kappa_phi,
                 }
                 self.move_to_motors_positions(motor_pos)
-            except:
+            except BaseException:
                 logging.exception("Could not move to centred position")
         else:
             logging.getLogger("HWR").debug(
@@ -547,7 +547,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         try:
             return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
-        except:
+        except BaseException:
             logging.exception("Could not move kappa and kappa_phi")
 
     @task

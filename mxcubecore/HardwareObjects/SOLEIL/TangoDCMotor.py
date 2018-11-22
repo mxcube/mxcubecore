@@ -62,13 +62,13 @@ class TangoDCMotor(Device):
             self.dataType = self.getProperty("datatype")
             if self.dataType is None:
                 self.dataType = "float"
-        except:
+        except BaseException:
             self.dataType = "float"
 
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
-            except:
+            except BaseException:
                 pass
 
         self.setIsReady(True)
@@ -93,7 +93,7 @@ class TangoDCMotor(Device):
                 # logging.getLogger("HWR").error("%s: TangoDCMotor new position  , %s", self.name(), value)
                 self.emit("positionChanged", (value,))
                 self.old_value = value
-            except:
+            except BaseException:
                 logging.getLogger("HWR").error(
                     "%s: TangoDCMotor not responding, %s", self.name(), ""
                 )
@@ -145,7 +145,7 @@ class TangoDCMotor(Device):
             )
             if numpy.inf in limits:
                 limits = numpy.array([-10000, 10000])
-        except:
+        except BaseException:
             # import traceback
             # logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s.\nException %s " % (self.motor_name, traceback.print_exc()))
             if self.motor_name in [
@@ -169,7 +169,7 @@ class TangoDCMotor(Device):
                     "TangoDCMotor.getLimits: %.4f ***** %.4f" % limits
                 )
                 limits = numpy.array(limits)
-            except:
+            except BaseException:
                 # logging.getLogger("HWR").info("TangoDCMotor.getLimits: Cannot get limits for %s" % self.name())
                 limits = None
         return limits
@@ -275,7 +275,9 @@ class TangoDCMotor(Device):
             type(absolutePosition),
         )
         absolutePosition = float(absolutePosition)
-        if type(absolutePosition) != float and type(absolutePosition) != int:
+        if not isinstance(absolutePosition, float) and not isinstance(
+            absolutePosition, int
+        ):
             logging.getLogger("TangoClient").error(
                 "Cannot move %s: position '%s' is not a number. It is a %s",
                 self.tangoname,

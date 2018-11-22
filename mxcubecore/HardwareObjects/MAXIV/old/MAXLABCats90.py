@@ -6,7 +6,7 @@ sample changer model.
 Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
 Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
  -fix the Abort Bug
- -enable setondiff for the catsmaint object 
+ -enable setondiff for the catsmaint object
  -fix the bug of MD2 jam during exchange or unload
 """
 from sample_changer.GenericSampleChanger import *
@@ -193,7 +193,7 @@ class MAXLABCats90(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         self._setSelectedComponent(basket)
         self._setSelectedSample(sample)
@@ -219,7 +219,7 @@ class MAXLABCats90(SampleChanger):
     # JN 20150324, load for CATS GUI, no timer and the window will not freeze
     def load_cats(self, sample=None, wait=True):
         """
-        Load a sample. 
+        Load a sample.
         """
         sample = self._resolveComponent(sample)
         self.assertNotCharging()
@@ -246,10 +246,11 @@ class MAXLABCats90(SampleChanger):
 
         return self._executeTask(SampleChangerState.Loading, wait, self._doLoad, sample)
 
-    # JN 20150324, add load for queue mount, sample centring can start after MD2 in Centring phase instead of waiting for CATS finishes completely
+    # JN 20150324, add load for queue mount, sample centring can start after
+    # MD2 in Centring phase instead of waiting for CATS finishes completely
     def load(self, sample=None, wait=True):
         """
-        Load a sample. 
+        Load a sample.
          """
         if not self._chnPowered.getValue():
             #            raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
@@ -347,7 +348,7 @@ class MAXLABCats90(SampleChanger):
 
     def _doLoad(self, sample=None):
         """
-        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
+        Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
 
         :returns: None
@@ -466,7 +467,7 @@ class MAXLABCats90(SampleChanger):
         """
         try:
             state = self._readState()
-        except:
+        except BaseException:
             state = SampleChangerState.Unknown
         if state == SampleChangerState.Moving and self._isDeviceBusy(self.getState()):
             # print "*** _updateState return"
@@ -566,7 +567,8 @@ class MAXLABCats90(SampleChanger):
         # import pdb; pdb.set_trace()
         basket = None
         sample = None
-        # print "_updateSelection: saved selection: ", self._selected_basket, self._selected_sample
+        # print "_updateSelection: saved selection: ", self._selected_basket,
+        # self._selected_sample
         try:
             basket_no = self._selected_basket
             if (
@@ -584,7 +586,7 @@ class MAXLABCats90(SampleChanger):
                     sample = self.getComponentByAddress(
                         Pin.getSampleAddress(basket_no, sample_no)
                     )
-        except:
+        except BaseException:
             pass
         # if basket is not None and sample is not None:
         #    print "_updateSelection: basket: ", basket, basket.getIndex()
@@ -595,7 +597,7 @@ class MAXLABCats90(SampleChanger):
     def _updateLoadedSample(self):
         """
         Reads the currently mounted sample basket and pin indices from the CATS Tango DS,
-        translates the lid/sample notation into the basket/sample notation and marks the 
+        translates the lid/sample notation into the basket/sample notation and marks the
         respective sample as loaded.
 
         :returns: None

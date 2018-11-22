@@ -24,8 +24,7 @@ RET_NULL = "NULL"
 EVENT = "EVT:"
 
 PARAMETER_SEPARATOR = "\t"
-ARRAY_SEPARATOR = ""
-# 0x001F
+ARRAY_SEPARATOR = ""  # 0x001F
 
 
 class ExporterClient(StandardClient):
@@ -35,7 +34,7 @@ class ExporterClient(StandardClient):
                 evtstr = msg[4:]
                 tokens = evtstr.split(PARAMETER_SEPARATOR)
                 self.onEvent(tokens[0], tokens[1], long(tokens[2]))
-            except:
+            except BaseException:
                 # print "Error processing event: " + str(sys.exc_info()[1])
                 pass
         else:
@@ -74,7 +73,7 @@ class ExporterClient(StandardClient):
         cmd = CMD_SYNC_CALL + " " + method + " "
         if pars is not None:
             for par in pars:
-                if type(par) is list or type(par) is tuple:
+                if isinstance(par, list) or isinstance(par, tuple):
                     par = self.createArrayParameter(par)
                 cmd += str(par) + PARAMETER_SEPARATOR
         ret = self.sendReceive(cmd, timeout)
@@ -85,7 +84,7 @@ class ExporterClient(StandardClient):
             logging.getLogger("user_level_log").error(
                 "Diffractometer: %s" % str(ret[4:])
             )
-            raise Exception, ret[4:]
+            raise Exception(ret[4:])
         elif ret == RET_NULL:
             return None
         elif ret[:4] == RET_OK:
@@ -101,7 +100,7 @@ class ExporterClient(StandardClient):
         return self.send(cmd)
 
     def writeProperty(self, property, value, timeout=-1):
-        if type(value) is list or type(value) is tuple:
+        if isinstance(value, list) or isinstance(value, tuple):
             value = self.createArrayParameter(value)
         cmd = CMD_PROPERTY_WRITE + " " + property + " " + str(value)
         ret = self.sendReceive(cmd, timeout)
@@ -113,7 +112,7 @@ class ExporterClient(StandardClient):
         process_return = None
         try:
             process_return = self.__processReturn(ret)
-        except:
+        except BaseException:
             pass
         return process_return
 
@@ -137,7 +136,7 @@ class ExporterClient(StandardClient):
 
     def parseArray(self, value):
         value = str(value)
-        if value.startswith(ARRAY_SEPARATOR) == False:
+        if value.startswith(ARRAY_SEPARATOR) is False:
             return None
         if value == ARRAY_SEPARATOR:
             return []
@@ -146,8 +145,8 @@ class ExporterClient(StandardClient):
 
     def createArrayParameter(self, value):
         ret = "" + ARRAY_SEPARATOR
-        if not value is None:
-            if type(value) is list or type(value) is tuple:
+        if value is not None:
+            if isinstance(value, list) or isinstance(value, tuple):
                 for item in value:
                     ret = ret + str(item)
                     ret = ret + ARRAY_SEPARATOR

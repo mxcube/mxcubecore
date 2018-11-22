@@ -247,7 +247,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     qe.post_execute()
                 except queue_entry.QueueAbortedException:
                     pass
-                except:
+                except BaseException:
                     pass
 
         self._root_task.kill(block=False)

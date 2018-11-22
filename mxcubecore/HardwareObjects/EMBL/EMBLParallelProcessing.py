@@ -114,10 +114,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         # logging.getLogger("user_level_log").info("%d"%good_index.size)
         for x in range(20, good_index.size, 40):
             self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(
-                good[x - 20: x + 20]
+                good[x - 20 : x + 20]
             )
 
-        """  
+        """
 	   print good_index, self.results_raw["spots_resolution"][good_index]
            f = UnivariateSpline(good_index,self.results_raw["spots_resolution"][good_index],s=10)
            self.results_raw["spots_resolution"][good_index] = f(good_index)

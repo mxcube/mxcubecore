@@ -63,7 +63,7 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
-            except:
+            except BaseException:
                 pass
 
     def prepare_image_for_lims(self, image_dict):
@@ -72,7 +72,7 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 path = image_dict[prop]
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
-            except:
+            except BaseException:
                 pass
 
 

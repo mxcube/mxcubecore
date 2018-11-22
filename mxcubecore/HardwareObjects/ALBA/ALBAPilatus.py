@@ -17,6 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import logging
 import time
 
@@ -58,7 +59,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
         try:
             self.latency_time = float(self.getProperty("latency_time"))
-        except:
+        except BaseException:
             self.latency_time = None
 
         if self.latency_time is None:
@@ -124,7 +125,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         try:
             beam_x = self.beamx_chan.getValue()
             beam_y = self.beamy_chan.getValue()
-        except:
+        except BaseException:
             pass
         return beam_x, beam_y
 
@@ -160,7 +161,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
         try:
             currentenergy = eugap_ch.getValue()
-        except:
+        except BaseException:
             currentenergy = 12.6
 
         det_energy = self.get_threshold()
@@ -187,7 +188,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         t0 = time.time()
         while self.device_specific.cam_state == "STANDBY":
             if time.time() - t0 > timeout:
-                print ("timeout waiting for Pilatus to be on STANDBY")
+                print("timeout waiting for Pilatus to be on STANDBY")
                 return False
             time.sleep(0.1)
         return True
@@ -300,6 +301,6 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    print "Detector Distance is: ", hwo.get_distance()
-    print "   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre()
-    # print "going to 490 : ", hwo.move_distance(490)
+    print("Detector Distance is: ", hwo.get_distance())
+    print("   Beam X: %s / Beam Y: %s" % hwo.get_beam_centre())
+    # print("going to 490 : ", hwo.move_distance(490))

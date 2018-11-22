@@ -23,7 +23,7 @@ class Container(Component):
         -    Well
         -    SC3
         -    PlateSupport
-        -    GRob        
+        -    GRob
         :rtype: str
         """
         return self.type
@@ -31,7 +31,7 @@ class Container(Component):
     def getComponents(self):
         """
         Returns the list of components of this container
-        :rtype: list 
+        :rtype: list
         """
         return self.components
 
@@ -41,7 +41,7 @@ class Container(Component):
     def getSampleList(self):
         """
         Returns the list of all Sample objects under of this container (recursivelly)
-        :rtype: list 
+        :rtype: list
         """
         samples = []
         for c in self.getComponents():
@@ -61,7 +61,7 @@ class Container(Component):
     def getPresentSamples(self):
         """
         Returns the list of all Sample objects under of this container (recursivelly) tagged as present
-        :rtype: list 
+        :rtype: list
         """
         ret = []
         for sample in self.getSampleList():
@@ -71,7 +71,7 @@ class Container(Component):
     def isEmpty(self):
         """
         Returns true if there is no sample present sample under this container
-        :rtype: bool 
+        :rtype: bool
         """
         for s in self.getSampleList():
             if s.isPresent():
@@ -81,7 +81,7 @@ class Container(Component):
     def getComponentByAddress(self, address):
         """
         Returns a component through its slot address or None if address is invalid
-        :rtype: Component 
+        :rtype: Component
         """
         for c in self.getComponents():
             if c.getAddress() == address:
@@ -95,14 +95,14 @@ class Container(Component):
     def hasComponentAddress(self, address):
         """
         Returns if has a component with a given address
-        :rtype: bool 
+        :rtype: bool
         """
         return self.getComponentByAddress(address) is not None
 
     def getComponentById(self, id):
         """
         Returns a component through its id or None if id is invalid
-        :rtype: Component 
+        :rtype: Component
         """
         for c in self.getComponents():
             if c.getID() == id:
@@ -116,7 +116,7 @@ class Container(Component):
     def hasComponentId(self, id):
         """
         Returns if has a component with a given ID
-        :rtype: bool 
+        :rtype: bool
         """
         return self.getComponentById(id) is not None
 

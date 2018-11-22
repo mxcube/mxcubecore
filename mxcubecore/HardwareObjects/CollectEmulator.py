@@ -257,7 +257,7 @@ class CollectEmulator(CollectMockup):
         if sample:
             ss = sample.getName()
             if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name = ss[len(self.TEST_SAMPLE_PREFIX):]
+                sample_name = ss[len(self.TEST_SAMPLE_PREFIX) :]
 
         sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
         if not sample_dir:
@@ -322,7 +322,7 @@ class CollectEmulator(CollectMockup):
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
         finally:

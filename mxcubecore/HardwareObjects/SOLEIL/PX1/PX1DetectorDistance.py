@@ -39,7 +39,7 @@ class PX1DetectorDistance(Device):
         if threshold is not None:
             try:
                 self.threshold = float(threshold)
-            except:
+            except BaseException:
                 pass
 
         self.setIsReady(True)
@@ -89,7 +89,7 @@ class PX1DetectorDistance(Device):
             try:
                 self.emit("positionChanged", (position,))
                 self.old_value = position
-            except:
+            except BaseException:
                 self.old_value = position
 
     def distance_min_changed(self, value=None):
@@ -117,7 +117,7 @@ class PX1DetectorDistance(Device):
             max = float(info.max_value)
             min = float(self.distance_min_chan.getValue())
             return [min, max]
-        except:
+        except BaseException:
             return [-1, 1]
 
     def is_moving(self):

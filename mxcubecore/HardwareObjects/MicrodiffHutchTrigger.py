@@ -8,7 +8,7 @@ import sys
 """
 Read the state of the hutch from the PSS device server and take actions
 when enter (1) or interlock (0) the hutch.
-0 = The hutch has been interlocked and the sample environment should be made 
+0 = The hutch has been interlocked and the sample environment should be made
      ready for data collection. The actions are extract the detector cover,
      move the detector to its previous position, set the MD2 to Centring.
 1 = The interlock is cleared and the user is entering the hutch to change
@@ -26,14 +26,14 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         while True:
             try:
                 self.poll()
-            except:
+            except BaseException:
                 sys.excepthook(*sys.exc_info())
             time.sleep(self.getProperty("interval") / 1000.0 or 1)
 
     def init(self):
         try:
             self.device = PyTango.gevent.DeviceProxy(self.getProperty("tangoname"))
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -44,7 +44,7 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
             self.flex_device = PyTango.gevent.DeviceProxy(
                 self.getProperty("flex_tangoname")
             )
-        except PyTango.DevFailed, traceback:
+        except PyTango.DevFailed as traceback:
             last_error = traceback[-1]
             logging.getLogger("HWR").error(
                 "%s: %s", str(self.name()), last_error["desc"]
@@ -60,7 +60,7 @@ class MicrodiffHutchTrigger(BaseHardwareObjects.HardwareObject):
         PSSinfo = self.getProperty("pss")
         try:
             self.card, self.channel = map(int, PSSinfo.split("/"))
-        except:
+        except BaseException:
             logging.getLogger().error("%s: cannot find PSS number", self.name())
             return
 

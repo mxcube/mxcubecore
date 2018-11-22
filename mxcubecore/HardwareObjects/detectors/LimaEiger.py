@@ -110,7 +110,7 @@ class Eiger:
             self.header["Kappa"] = "%0.4f deg." % diffractometer_positions.get(
                 "kappa", -9999
             )
-        except:
+        except BaseException:
             self.header["Phi"] = "0.0000 deg."
             self.header["Kappa"] = "0.0000 deg."
         self.header["Alpha"] = "0.0000 deg."
@@ -188,7 +188,7 @@ class Eiger:
         prefix = "_".join(prefix.split("_")[:-1]) + "_"
         dirname = os.path.dirname(filename)
         if dirname.startswith(os.path.sep):
-            dirname = dirname[len(os.path.sep):]
+            dirname = dirname[len(os.path.sep) :]
 
         saving_directory = os.path.join(self.config.getProperty("buffer"), dirname)
 
@@ -211,7 +211,7 @@ class Eiger:
     def stop(self):
         try:
             self.getCommandObject("stop_acq")()
-        except:
+        except BaseException:
             pass
         time.sleep(1)
         self.getCommandObject("reset")()

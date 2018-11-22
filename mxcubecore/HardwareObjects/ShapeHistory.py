@@ -571,7 +571,7 @@ class Line(Shape):
             pen.setWidth(1)
             pen.setColor(NORMAL_COLOR)
             qub_line.setPen(pen)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not draw line")
 
         return qub_line
@@ -599,7 +599,7 @@ class Line(Shape):
             highlighted_pen.setWidth(3)
             highlighted_pen.setColor(SELECTED_COLOR)
             self.qub_line.setPen(highlighted_pen)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not higlight line")
             traceback.print_exc()
 
@@ -609,7 +609,7 @@ class Line(Shape):
             normal_pen.setWidth(1)
             normal_pen.setColor(NORMAL_COLOR)
             self.qub_line.setPen(normal_pen)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not un-higlight line")
             traceback.print_exc()
 
@@ -687,7 +687,7 @@ class Point(Shape):
                 qub_point.setPoint(screen_pos[0], screen_pos[1])
                 qub_point.setColor(NORMAL_COLOR)
 
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not draw the centred position")
 
         return qub_point
@@ -718,7 +718,7 @@ class Point(Shape):
             highlighted_pen.setWidth(2)
             highlighted_pen.setColor(SELECTED_COLOR)
             self.qub_point.setPen(highlighted_pen)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not higlight point")
             traceback.print_exc()
 
@@ -728,7 +728,7 @@ class Point(Shape):
             normal_pen.setWidth(1)
             normal_pen.setColor(NORMAL_COLOR)
             self.qub_point.setPen(normal_pen)
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception("Could not un-higlight point")
             traceback.print_exc()
 
@@ -1028,7 +1028,8 @@ class CanvasGrid(qtcanvas.QCanvasRectangle):
         }
 
         # print "Beam: " + str(self.__beam_pos)
-        # print "Grid: (%i, %i, %i, %i):" % (x, y, self.__cell_width, self.__cell_height)
+        # print "Grid: (%i, %i, %i, %i):" % (x, y, self.__cell_width,
+        # self.__cell_height)
 
         return grid
 

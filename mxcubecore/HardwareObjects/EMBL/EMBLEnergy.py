@@ -99,16 +99,16 @@ class EMBLEnergy(Device):
 
         try:
             self.tunable = self.getProperty("tunableEnergy")
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning("Energy: will set to fixed energy")
         try:
             self.default_en = self.getProperty("defaultEnergy")
-        except:
+        except BaseException:
             logging.getLogger("HWR").warning("Energy: no default energy defined")
 
         try:
             self.en_lims = eval(self.getProperty("staticLimits"))
-        except:
+        except BaseException:
             self.en_lims = [None, None]
         self.ctrl_bytes = eval(self.getProperty("ctrlBytes"))
 
@@ -137,7 +137,7 @@ class EMBLEnergy(Device):
             try:
                 value = self.chan_energy.getValue()
                 return value[0] / 1000
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read current energy"
                 )
@@ -156,7 +156,7 @@ class EMBLEnergy(Device):
             try:
                 self.en_lims[0] = self.chan_limit_low.getValue()
                 self.en_lims[1] = self.chan_limit_high.getValue()
-            except:
+            except BaseException:
                 logging.getLogger("HWR").exception(
                     "Energy: could not read energy limits"
                 )

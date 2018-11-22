@@ -41,7 +41,7 @@ class ExporterCommand(CommandObject):
 
         try:
             ret = self.__exporter.execute(self.command, args, kwargs.get("timeout", -1))
-        except:
+        except BaseException:
             # logging.getLogger('HWR').exception("%s: an error occured when calling Exporter command %s", str(self.name()), self.command)
             self.emit("commandFailed", (-1, self.name()))
             raise
@@ -118,7 +118,7 @@ class Exporter(ExporterClient.ExporterClient):
             try:
                 self.disconnect()
                 self.connect()
-            except:
+            except BaseException:
                 time.sleep(1.0)
                 self.reconnect()
 
@@ -140,24 +140,24 @@ class Exporter(ExporterClient.ExporterClient):
             value = self.parseArray(value)
             try:
                 value = map(int, value)
-            except:
+            except BaseException:
                 try:
                     value = map(float, value)
-                except:
+                except BaseException:
                     pass
         else:
             try:
                 value = int(value)
-            except:
+            except BaseException:
                 try:
                     value = float(value)
-                except:
+                except BaseException:
                     try:
                         if value == "false":
                             value = False
                         elif value == "true":
                             value = True
-                    except:
+                    except BaseException:
                         pass
         return value
 
@@ -168,13 +168,13 @@ class Exporter(ExporterClient.ExporterClient):
         while True:
             try:
                 name, value = self.events_queue.get()
-            except:
+            except BaseException:
                 return
 
             for cb in self.callbacks.get(name, []):
                 try:
                     cb(self._to_python_value(value))
-                except:
+                except BaseException:
                     logging.exception(
                         "Exception while executing callback %s for event %s", cb, name
                     )
@@ -209,7 +209,7 @@ class ExporterChannel(ChannelObject):
 
     def update(self, value=None):
         value = value or self.getValue()
-        if type(value) == types.TupleType:
+        if isinstance(value, types.TupleType):
             value = list(value)
 
         self.value = value

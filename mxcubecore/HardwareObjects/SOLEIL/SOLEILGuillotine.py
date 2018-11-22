@@ -116,7 +116,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
             self.pss_door = self.getProperty(
                 "tangoname_pss"
             )  # PyTango.DeviceProxy('I11-MA-CE/PSS/DB_DATA')
-        except:
+        except BaseException:
             logging.getLogger("HWR").error(
                 "Guillotine I11-MA-CE/PSS/DB_DATA: tangopssDevice is not defined "
             )
@@ -131,7 +131,7 @@ class SOLEILGuillotine(BaseHardwareObjects.Device):
         #
         # emit signal
         #
-        if type(value) == float:
+        if isinstance(value, float):
             value = self.shutChannel.value
         self.shutterStateValue = str(value)
         self.emit("shutterStateChanged", (self.getShutterState(),))

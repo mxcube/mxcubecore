@@ -168,7 +168,7 @@ class MaxLabSession(Session):
             if not os.path.exists(archive_dir):
                 os.makedirs(archive_dir)
             return archive_dir
-        except:
+        except BaseException:
             import traceback
 
             traceback.print_exc()

@@ -33,7 +33,7 @@ class Resolution(AbstractMotor):
         if self.valid:
             try:
                 return self.dtox.isReady()
-            except:
+            except BaseException:
                 return False
         return False
 
@@ -56,7 +56,7 @@ class Resolution(AbstractMotor):
     def getWavelength(self):
         try:
             return self.energy.getCurrentWavelength()
-        except:
+        except BaseException:
             current_en = self.energy.getPosition()
             if current_en:
                 return 12.3984 / current_en
@@ -85,7 +85,7 @@ class Resolution(AbstractMotor):
             dist_4 = (self.det_height - by) / (math.tan(ttheta) + ay)
 
             return min(dist_1, dist_2, dist_3, dist_4)
-        except:
+        except BaseException:
             return None
 
     def _calc_res(self, radius, dist):
@@ -175,5 +175,5 @@ class Resolution(AbstractMotor):
     def stop(self):
         try:
             self.dtox.stop()
-        except:
+        except BaseException:
             pass

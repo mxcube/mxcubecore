@@ -107,7 +107,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
 
         try:
             beamsize = self.get_beam_size()
-            if not None in beamsize:
+            if None not in beamsize:
                 beam.setSize(
                     XSDataSize(
                         x=XSDataLength(float(beamsize[0])),
@@ -216,7 +216,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         # name, if there is no dc id.
         try:
             dc_id = edna_input.getDataCollectionId().getValue()
-        except:
+        except BaseException:
             dc_id = id(edna_input)
 
         if hasattr(edna_input, "process_directory"):

@@ -87,7 +87,7 @@ class MicrodiffZoom(MicrodiffMotor):
             self.predefined_position_attr.setValue(
                 self.predefinedPositions[positionName]
             )
-        except:
+        except BaseException:
             logging.getLogger("HWR").exception(
                 "Cannot move motor %s: invalid position name.", str(self.userName())
             )
