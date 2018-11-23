@@ -144,6 +144,7 @@ class Session(HardwareObject):
             pass
 
         queue_model_objects.PathTemplate.set_precision(precision)
+        queue_model_objects.PathTemplate.set_path_template_style(self.synchrotron_name, self.template)
 
     def set_base_data_directories(
         self,
