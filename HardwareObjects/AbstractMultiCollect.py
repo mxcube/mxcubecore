@@ -781,16 +781,16 @@ class AbstractMultiCollect(object):
                                       'machineMessage': self.get_machine_message(),
                                       'temperature': self.get_cryo_temperature()}
 
-                      if archive_directory:
-                          lims_image['jpegFileFullPath'] = jpeg_full_path
-                          lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
+                          if archive_directory:
+                              lims_image['jpegFileFullPath'] = jpeg_full_path
+                              lims_image['jpegThumbnailFileFullPath'] = jpeg_thumbnail_full_path
 
-                      try:
-                          self.bl_control.lims.store_image(lims_image)
-                      except:
-                          logging.getLogger("HWR").exception("Could not store store image in LIMS")
+                          try:
+                              self.bl_control.lims.store_image(lims_image)
+                          except:
+                              logging.getLogger("HWR").exception("Could not store store image in LIMS")
                           
-                      self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
+                          self.generate_image_jpeg(str(file_path), str(jpeg_full_path), str(jpeg_thumbnail_full_path),wait=False)
                 
                       if data_collect_parameters.get("processing", False)=="True":
                         self.trigger_auto_processing("image",
