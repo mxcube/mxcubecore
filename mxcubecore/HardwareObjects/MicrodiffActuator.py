@@ -13,7 +13,7 @@ Example xml file:
 
 import logging
 import time
-from abstract.AbstractActuator import *
+from abstract.AbstractActuator import AbstractActuator
 
 
 class MicrodiffActuator(AbstractActuator):

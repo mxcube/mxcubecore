@@ -4,7 +4,7 @@ import atexit
 from pymba import *
 from PyQt4.QtGui import QImage, QPixmap
 
-from abstract.AbstractVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
 class Qt4_VimbaVideo(AbstractVideoDevice):

@@ -48,7 +48,7 @@ import time
 import logging
 import struct
 
-from abstract.AbstractVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 try:
     from Lima import Core
