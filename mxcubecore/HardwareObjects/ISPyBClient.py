@@ -126,7 +126,7 @@ def utf_encode(res_d):
     return res_d
 
 
-class ISPyBClient2(HardwareObject):
+class ISPyBClient(HardwareObject):
     """
     Web-service client for ISPyB.
     """

@@ -7,7 +7,7 @@ from cookielib import CookieJar
 from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 
-from ISPyBClient2 import ISPyBClient2, _CONNECTION_ERROR_MSG
+from ISPyBClient import ISPyBClient, _CONNECTION_ERROR_MSG
 from urllib2 import URLError
 import traceback
 from collections import namedtuple
@@ -28,9 +28,9 @@ SampleReference = namedtuple(
 )
 
 
-class SOLEILISPyBClient(ISPyBClient2):
+class SOLEILISPyBClient(ISPyBClient):
     def __init__(self, name):
-        ISPyBClient2.__init__(self, name)
+        ISPyBClient.__init__(self, name)
 
         logger = logging.getLogger("ispyb_client")
         print "ISPYB"
