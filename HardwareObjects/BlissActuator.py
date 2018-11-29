@@ -9,7 +9,8 @@ Example xml file:
 """
 import logging
 
-from abstract.AbstractActuator import *
+from abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.TaskUtils import task
 from bliss.controllers.actuator_inout import *
 
 
