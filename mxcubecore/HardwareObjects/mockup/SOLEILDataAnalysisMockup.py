@@ -2,7 +2,7 @@ import os
 import logging
 import gevent.event
 import subprocess
-import abstract.AbstractDataAnalysis
+from abstract.AbstractDataAnalysis import AbstractDataAnalysis
 
 import queue_model_enumerables_v1 as qme
 
@@ -10,7 +10,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 class SOLEILDataAnalysisMockup(
-    AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject
+    AbstractDataAnalysis, HardwareObject
 ):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
