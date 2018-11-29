@@ -19,7 +19,7 @@
 
 import time
 
-from AbstractEnergy import AbstractEnergy
+from abstract.AbstractEnergy import AbstractEnergy
 
 
 class EnergyMockup(AbstractEnergy):

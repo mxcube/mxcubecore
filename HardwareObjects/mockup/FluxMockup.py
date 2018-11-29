@@ -19,7 +19,7 @@
 
 import logging
 from random import random
-from AbstractFlux import AbstractFlux
+from abstract.AbstractFlux import AbstractFlux
 
 
 __credits__ = ["MXCuBE collaboration"]

@@ -18,7 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import edna_test_data
-import AbstractDataAnalysis
+from abstract.AbstractDataAnalysis import AbstractDataAnalysis
 
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
@@ -29,9 +29,10 @@ __credits__ = ["MXCuBE colaboration"]
 __license__ = "LGPLv3"
 
 
-class DataAnalysisMockup(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
+class DataAnalysisMockup(AbstractDataAnalysis, HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
+        AbstractDataAnalysis.__init__(self)
 
     def get_html_report(self, edna_result):
         html_report = None

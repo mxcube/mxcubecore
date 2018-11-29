@@ -24,27 +24,18 @@ import numpy as np
 
 from QtImport import *
 
-from GenericVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
-class Qt4_VideoMockup(GenericVideoDevice):
-    """
-    Descript. :
-    """
+class Qt4_VideoMockup(AbstractVideoDevice):
 
     def __init__(self, name):
-        """
-        Descript. :
-        """
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
         self.force_update = None
         self.image_type = None
         self.image = None
 
     def init(self):
-        """
-        Descript. :
-        """
         current_path = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
         current_path = os.path.join(*current_path[1:-2])
 
@@ -65,7 +56,7 @@ class Qt4_VideoMockup(GenericVideoDevice):
         self.painter.setBrush(custom_brush)
 
         self.setIsReady(True)
-        GenericVideoDevice.init(self)
+        AbstractVideoDevice.init(self)
 
     def get_new_image(self):
         self.painter.drawRect(self.image.width() - 75, self.image.height() - 30, 70, 20)

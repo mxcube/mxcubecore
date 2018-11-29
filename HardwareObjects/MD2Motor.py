@@ -1,7 +1,7 @@
 import logging
 import time
 from gevent import Timeout
-from AbstractMotor import AbstractMotor
+from abstract.AbstractMotor import AbstractMotor
 
 
 class MD2TimeoutError(Exception):
