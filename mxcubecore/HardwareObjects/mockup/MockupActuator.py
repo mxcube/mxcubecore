@@ -9,7 +9,7 @@ Example xml file:
 </device>
 """
 
-from AbstractActuator import *
+from abstract.AbstractActuator import AbstractActuator
 
 
 class MockupActuator(AbstractActuator):
