@@ -1,5 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from abstract.AbstractMultiCollect import AbstractMultiCollect, task
+from abstract.AbstractMultiCollect import AbstractMultiCollect
+from HardwareRepository.TaskUtils import task
 import logging
 import time
 import os
