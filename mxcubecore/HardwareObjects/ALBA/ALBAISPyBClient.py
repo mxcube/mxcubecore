@@ -6,13 +6,13 @@ import os
 from suds.transport.http import HttpAuthenticated
 from suds.client import Client
 
-import ISPyBClient2
-from ISPyBClient2 import _CONNECTION_ERROR_MSG
+import ISPyBClient
+from ISPyBClient import _CONNECTION_ERROR_MSG
 
 
-class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
+class ALBAISPyBClient(ISPyBClient.ISPyBClient):
     def ldap_login(self, login_name, psd, ldap_connection):
-        # overwrites standard ldap login  is ISPyBClient2.py
+        # overwrites standard ldap login  is ISPyBClient.py
         #  to query for homeDirectory
 
         if ldap_connection is None:
