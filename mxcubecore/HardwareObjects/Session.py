@@ -14,11 +14,6 @@ from HardwareRepository.HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects_v1 as queue_model_objects
 
-# Configuration file used to override base_directory paths.
-# Will be ignored if not found
-parameter_override_file = "session_parameter_override.xml"
-
-
 class Session(HardwareObject):
 
     default_raw_data_folder = "RAW_DATA"
