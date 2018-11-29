@@ -1,5 +1,5 @@
 import logging
-from AbstractDetector import AbstractDetector
+from abstract.AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

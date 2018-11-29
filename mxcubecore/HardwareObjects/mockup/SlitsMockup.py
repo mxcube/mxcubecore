@@ -18,7 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from AbstractSlits import AbstractSlits
+from abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["MXCuBE colaboration"]

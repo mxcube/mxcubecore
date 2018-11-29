@@ -57,7 +57,7 @@ else:
     from PIL import Image
 
 
-class GenericVideoDevice(Device):
+class AbstractVideoDevice(Device):
 
     default_cam_encoding = "yuv422p"
     default_poll_interval = 50

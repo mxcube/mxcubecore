@@ -48,10 +48,10 @@ import numpy as np
 
 import PyTango
 
-from GenericVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import GenericVideoDevice
 
 
-class Qt4_TangoLimaVideo(GenericVideoDevice):
+class Qt4_TangoLimaVideo(AbstractVideoDevice):
     """
     Descript. :
     """
@@ -60,7 +60,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
         self.device = None
 
     def init(self):
@@ -83,7 +83,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         self.device = PyTango.DeviceProxy(tangoname)
         self.device.ping()
 
-        GenericVideoDevice.init(self)
+        AbstractVideoDevice.init(self)
 
     def set_cam_encoding(self, cam_encoding):
         if cam_encoding == "yuv422p":
@@ -91,9 +91,9 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
 
-        GenericVideoDevice.set_cam_encoding(self, cam_encoding)
+        AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
-    """ Overloading of GenericVideoDevice methods """
+    """ Overloading of AbstractVideoDevice methods """
 
     def get_raw_image_size(self):
 
@@ -138,7 +138,7 @@ class Qt4_TangoLimaVideo(GenericVideoDevice):
     def set_video_live(self, flag):
         self.device.video_live = flag
 
-    """ END Overloading of GenericVideoDevice methods """
+    """ END Overloading of AbstractVideoDevice methods """
 
     def getWidth(self):
         if self.width:

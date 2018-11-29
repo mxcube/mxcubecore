@@ -4,12 +4,12 @@ import atexit
 from pymba import *
 from PyQt4.QtGui import QImage, QPixmap
 
-from GenericVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import GenericVideoDevice
 
 
-class Qt4_VimbaVideo(GenericVideoDevice):
+class Qt4_VimbaVideo(AbstractVideoDevice):
     def __init__(self, name):
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
 
         self.camera = None
         self.camera_id = str
@@ -20,7 +20,7 @@ class Qt4_VimbaVideo(GenericVideoDevice):
         # start Vimba
         self.camera_id = u"%s" % self.getProperty("camera_id")
         atexit.register(self.close_camera)
-        GenericVideoDevice.init(self)
+        AbstractVideoDevice.init(self)
         self.image_dimensions = [1360, 1024]
 
     def do_image_polling(self, sleep_time):

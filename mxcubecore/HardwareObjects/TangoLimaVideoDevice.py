@@ -70,10 +70,10 @@ import struct
 import numpy as np
 
 import PyTango
-from GenericVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import GenericVideoDevice
 
 
-class TangoLimaVideoDevice(GenericVideoDevice):
+class TangoLimaVideoDevice(AbstractVideoDevice):
     """
     Descript. :
     """
@@ -82,7 +82,7 @@ class TangoLimaVideoDevice(GenericVideoDevice):
         """
         Descript. :
         """
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
         self.device = None
 
     def init(self):
@@ -103,7 +103,7 @@ class TangoLimaVideoDevice(GenericVideoDevice):
         self.device = PyTango.DeviceProxy(tangoname)
         self.device.ping()
 
-        GenericVideoDevice.init(self)
+        AbstractVideoDevice.init(self)
 
     def set_cam_encoding(self, cam_encoding):
         if cam_encoding == "yuv422p":
@@ -111,9 +111,9 @@ class TangoLimaVideoDevice(GenericVideoDevice):
         elif cam_encoding == "y8":
             self.device.video_mode = "Y8"
 
-        GenericVideoDevice.set_cam_encoding(self, cam_encoding)
+        AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
-    """ Overloading of GenericVideoDevice methods """
+    """ Overloading of AbstractVideoDevice methods """
 
     def get_image_dimensions(self):
         return [self.device.image_width, self.device.image_height]
@@ -155,7 +155,7 @@ class TangoLimaVideoDevice(GenericVideoDevice):
     def set_video_live(self, flag):
         self.device.video_live = flag
 
-    """ END Overloading of GenericVideoDevice methods """
+    """ END Overloading of AbstractVideoDevice methods """
 
 
 def test_hwo(hwo):

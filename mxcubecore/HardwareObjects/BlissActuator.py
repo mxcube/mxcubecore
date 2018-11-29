@@ -9,7 +9,7 @@ Example xml file:
 """
 import logging
 
-from AbstractActuator import *
+from abstract.AbstractActuator import *
 from bliss.controllers.actuator_inout import *
 
 
