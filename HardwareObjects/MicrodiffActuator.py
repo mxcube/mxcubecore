@@ -13,7 +13,8 @@ Example xml file:
 
 import logging
 import time
-from AbstractActuator import *
+from abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.TaskUtils import task
 
 
 class MicrodiffActuator(AbstractActuator):

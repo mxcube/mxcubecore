@@ -19,7 +19,7 @@
 
 
 import gevent
-from AbstractAttenuators import AbstractAttenuators
+from abstract.AbstractAttenuators import AbstractAttenuators
 
 
 class Attenuators(AbstractAttenuators):
