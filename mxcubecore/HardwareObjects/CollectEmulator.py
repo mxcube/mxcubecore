@@ -33,6 +33,13 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
+    def init(self):
+        CollectMockup.init(self)
+        session_hwobj = self.getObjectByRole("session")
+        if session_hwobj and self.hasObject('override_data_directories'):
+            dirs = self['override_data_directories'].getProperties()
+            session_hwobj.set_base_data_directories(**dirs)
+
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
 
