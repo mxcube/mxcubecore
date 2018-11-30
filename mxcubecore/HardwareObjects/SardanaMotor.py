@@ -1,6 +1,6 @@
 import logging
 import time
-from AbstractMotor import AbstractMotor, MotorStates
+from abstract.AbstractMotor import AbstractMotor, MotorStates
 from gevent import Timeout
 
 """

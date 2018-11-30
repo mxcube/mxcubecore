@@ -18,7 +18,7 @@ from urlparse import urljoin
 # to simulate no session scheduled, use "nosession" for password
 
 
-class ISPyBClient2Mockup(HardwareObject):
+class ISPyBClientMockup(HardwareObject):
     """
     Web-service client for ISPyB.
     """

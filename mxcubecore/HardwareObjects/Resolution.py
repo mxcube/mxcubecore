@@ -1,4 +1,4 @@
-from AbstractMotor import AbstractMotor
+from abstract.AbstractMotor import AbstractMotor
 import logging
 import math
 
