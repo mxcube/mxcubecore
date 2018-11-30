@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository.TaskUtils import *
-from AbstractEnergyScan import AbstractEnergyScan
+from abstract.AbstractEnergyScan import AbstractEnergyScan
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 scan_test_data = [

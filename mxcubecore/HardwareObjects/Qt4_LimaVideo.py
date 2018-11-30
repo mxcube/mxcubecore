@@ -48,7 +48,7 @@ import time
 import logging
 import struct
 
-from GenericVideoDevice import GenericVideoDevice
+from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 try:
     from Lima import Core
@@ -66,7 +66,7 @@ except ImportError as e:
     pass
 
 
-class Qt4_LimaVideo(GenericVideoDevice):
+class Qt4_LimaVideo(AbstractVideoDevice):
     """
     Descript. :
     """
@@ -75,7 +75,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
         """
         Descript. :
         """
-        GenericVideoDevice.__init__(self, name)
+        AbstractVideoDevice.__init__(self, name)
 
         self.cam_address = None
 
@@ -103,7 +103,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
         self.control = Core.CtControl(self.interface)
         self.video = self.control.video()
 
-        GenericVideoDevice.init(self)
+        AbstractVideoDevice.init(self)
 
     def set_cam_encoding(self, cam_encoding):
         if cam_encoding == "yuv422p":
@@ -111,9 +111,9 @@ class Qt4_LimaVideo(GenericVideoDevice):
         elif cam_encoding == "y8":
             self.video.setMode(Core.Y8)
 
-        GenericVideoDevice.set_cam_encoding(self, cam_encoding)
+        AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
-    """ Overloading of GenericVideoDevice methods """
+    """ Overloading of AbstractVideoDevice methods """
 
     def get_raw_image_size(self):
         if self.cam_type == "prosilica":
@@ -157,7 +157,7 @@ class Qt4_LimaVideo(GenericVideoDevice):
         else:
             self.video.stopLive()
 
-    """ END Overloading of GenericVideoDevice methods """
+    """ END Overloading of AbstractVideoDevice methods """
 
 
 def test_hwo(hwo):
