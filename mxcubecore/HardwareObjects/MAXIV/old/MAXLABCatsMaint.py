@@ -8,7 +8,7 @@ Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
  -add CATS dewar layout
 """
 import logging
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
 import gevent
 import time

@@ -1,13 +1,12 @@
 from qt import *
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import cleanup
 import logging
 import PyChooch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import os
 import time
-import types
 import math
 import gevent
 

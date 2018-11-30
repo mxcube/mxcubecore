@@ -6,10 +6,9 @@ import time
 import errno
 import abc
 import collections
-import gevent
 import autoprocessing
 import gevent
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
 
 BeamlineControl = collections.namedtuple(
     "BeamlineControl",

@@ -6,9 +6,8 @@ import gevent
 
 from HardwareRepository.Command.Tango import DeviceProxy
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 
 
 class EnvironmentPhase:
