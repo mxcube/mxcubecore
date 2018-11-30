@@ -3,7 +3,7 @@ import logging
 import gevent.event
 import threading
 import subprocess
-import AbstractDataAnalysis
+from abstract import AbstractDataAnalysis
 
 import queue_model_enumerables_v1 as qme
 
