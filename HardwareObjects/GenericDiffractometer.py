@@ -923,7 +923,6 @@ class GenericDiffractometer(HardwareObject):
         )
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
-            self.wait_device_not_ready()
             self.wait_device_ready(10)
 
     def move_motors(self, motor_positions, timeout=15):
@@ -940,12 +939,14 @@ class GenericDiffractometer(HardwareObject):
         self.wait_device_ready(timeout)
         for motor in motor_positions.keys():
             position = motor_positions[motor]
+            """
             if isinstance(motor, str):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
             else:
                 logging.getLogger("HWR").debug(
                     " Moving %s to %s" % (str(motor.name()), position)
                 )
+            """
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)

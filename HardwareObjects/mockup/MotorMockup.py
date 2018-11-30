@@ -20,7 +20,7 @@
 import time
 import gevent
 
-from AbstractMotor import AbstractMotor
+from abstract.AbstractMotor import AbstractMotor
 
 
 __credits__ = ["The MxCuBE collaboration"]
