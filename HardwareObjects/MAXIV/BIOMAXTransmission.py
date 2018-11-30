@@ -1,10 +1,6 @@
-import sys
 import gevent
-import time
 import logging
-import math
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
 
 
 class BIOMAXTransmission(Equipment):

@@ -5,7 +5,7 @@ Functionality in addition to sample-transfer functionality: power control,
 lid control, error-recovery commands, ...
 """
 import logging
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
 import gevent
 import time

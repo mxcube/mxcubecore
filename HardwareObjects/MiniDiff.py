@@ -1,12 +1,11 @@
 import gevent
-from gevent.event import AsyncResult
 
 try:
     from Qub.Tools import QubImageSave
 except ImportError:
     pass
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 import tempfile
 import logging
 import math

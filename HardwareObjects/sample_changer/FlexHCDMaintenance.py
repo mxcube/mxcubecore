@@ -1,13 +1,7 @@
 """
 CATS maintenance mockup.
 """
-import logging
-
-from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import Equipment
-
-import gevent
-import time
 
 from PyTango import DeviceProxy
 

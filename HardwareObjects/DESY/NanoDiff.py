@@ -24,16 +24,15 @@ import time
 import logging
 import tempfile
 import gevent
-import random
 import numpy
 import math
+import lucid
 
 
 import queue_model_objects_v1 as qmo
 
 from gevent.event import AsyncResult
-from HardwareRepository import HardwareRepository
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 # from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer

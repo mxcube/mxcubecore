@@ -2,7 +2,8 @@ import os
 import time
 import abc
 import logging
-from HardwareRepository.TaskUtils import *
+import gevent
+from HardwareRepository.TaskUtils import error_cleanup
 
 
 class AbstractEnergyScan(object):

@@ -1,8 +1,5 @@
-from HardwareRepository.TaskUtils import *
 import MiniDiff
 import sample_centring
-import os
-import sys
 import logging
 import time
 import queue_model_objects_v1 as qmo

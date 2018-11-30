@@ -30,7 +30,6 @@ import math
 import numpy
 import queue_model_objects_v1 as queue_model_objects
 
-from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE colaboration"]

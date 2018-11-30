@@ -1,10 +1,9 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
-import numpy
+from HardwareRepository.TaskUtils import task
 import time
 import logging
 import math
-from calc_flux import *
+from calc_flux import CalculateFlux
 from PyTango.gevent import DeviceProxy
 
 
@@ -46,7 +45,7 @@ class ID23PhotonFlux(Equipment):
             counts = abs(self.counter.ReadData)
             if counts < self.threshold[0] or counts > self.threshold[1]:
                 counts = 0
-        except AttributeError as TypeError:
+        except AttributeError:
             counts = 0
             logging.getLogger("HWR").exception("%s: could not get counts", self.name())
         try:

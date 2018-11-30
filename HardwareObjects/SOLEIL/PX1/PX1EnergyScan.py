@@ -18,14 +18,11 @@ import numpy
 import gevent
 import subprocess
 
-import PyChooch
-
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from AbstractEnergyScan import AbstractEnergyScan
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import task, cleanup
 
 from xabs_lib import McMaster
 from HardwareRepository.Command.Tango import DeviceProxy
