@@ -19,7 +19,7 @@ Check if the bug is not already reported in the [issues](https://github.com/mxcu
 
 ### Submiting code to the repository
 
-Pull request (PR) is the most convinient way of submitting a new code to the repository. It helps developers to see the proposed code and publicly review it. You may submit a new PR from your forked repository or from a brach.
+Pull request (PR) is the most convinient way of submitting a new code to the repository. It helps developers to see the proposed code and publicly review it. You may submit a new PR from your forked repository or from a branch.
 
 #### Preparing a pull request from a forked repository
 
