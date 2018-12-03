@@ -22,10 +22,9 @@ ALBACollect
 import os
 import time
 import logging
-import math
+import sys
 import gevent
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.TaskUtils import task
 from AbstractCollect import AbstractCollect
 
 

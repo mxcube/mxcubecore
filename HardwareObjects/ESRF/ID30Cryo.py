@@ -1,6 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import *
-import logging
+from HardwareRepository.TaskUtils import task
 import time
 import gevent
 

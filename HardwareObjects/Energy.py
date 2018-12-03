@@ -2,8 +2,8 @@ import sys
 import time
 import logging
 import math
+import gevent
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
 
 """
 Example xml file:

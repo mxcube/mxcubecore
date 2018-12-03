@@ -7,7 +7,7 @@ import logging
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import cleanup
 from abstract.AbstractEnergyScan import AbstractEnergyScan
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

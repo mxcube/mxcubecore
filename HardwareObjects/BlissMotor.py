@@ -1,12 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import *
-import math
-import logging
-import time
 import gevent
-import types
 from bliss.config import static
-import os
 
 
 class BlissMotor(Device):

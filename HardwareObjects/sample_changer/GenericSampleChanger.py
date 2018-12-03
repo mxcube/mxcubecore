@@ -126,7 +126,7 @@ How to implement derived SC Classes
 
 from Container import *
 
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 
 # This is just to avoid an error when importing Equipment
 import HardwareRepository.HardwareObjectFileParser

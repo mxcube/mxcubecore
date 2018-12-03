@@ -1,10 +1,9 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
-import numpy
+from HardwareRepository.TaskUtils import task
 import time
 import logging
 import math
-from calc_flux import *
+from calc_flux import CalculateFlux
 import sys
 
 

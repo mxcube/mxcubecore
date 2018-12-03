@@ -1,8 +1,9 @@
 """ESRF SC3 Sample Changer Hardware Object
 """
-from HardwareRepository.TaskUtils import *
-from sample_changer import SC3
 import functools
+import logging
+from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from sample_changer import SC3
 
 
 class ESRFSC3(SC3.SC3):

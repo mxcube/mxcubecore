@@ -1,5 +1,5 @@
 import abc
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 
 
 class AbstractMCA(object):
