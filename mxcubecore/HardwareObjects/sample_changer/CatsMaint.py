@@ -13,7 +13,7 @@ Vicente Rey - add support for ISARA Model
 """
 import logging
 
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import Equipment
 
 import gevent

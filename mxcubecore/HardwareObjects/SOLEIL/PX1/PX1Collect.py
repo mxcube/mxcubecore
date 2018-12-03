@@ -4,14 +4,16 @@
 """
 
 import os
+import sys
 import time
 import logging
 import gevent
 import subprocess
+import socket
 
 from HardwareRepository.Command.Tango import DeviceProxy
 
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 

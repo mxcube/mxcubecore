@@ -19,8 +19,9 @@ import math
 import requests
 import uuid
 import json
+import sys
 
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
 

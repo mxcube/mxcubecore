@@ -1,5 +1,5 @@
 from detectors.LimaPilatus import Pilatus
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 import subprocess
 import os
 import time

@@ -5,7 +5,7 @@ Actuators have two positions - 'IN' and 'OUT'.
 import logging
 from warnings import warn
 from HardwareRepository.BaseHardwareObjects import Device
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 
 
 class AbstractActuator(Device):

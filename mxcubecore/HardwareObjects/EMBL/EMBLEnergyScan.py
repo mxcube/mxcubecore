@@ -20,13 +20,14 @@
 import os
 import time
 import logging
+import gevent
 import subprocess
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from AbstractEnergyScan import AbstractEnergyScan
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import cleanup
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

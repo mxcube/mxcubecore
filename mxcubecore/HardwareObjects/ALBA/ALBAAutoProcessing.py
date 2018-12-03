@@ -1,11 +1,9 @@
 from xaloc import XalocJob
 from XSDataCommon import XSDataFile, XSDataString, XSDataInteger
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
-from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from PyTango import DeviceProxy
 import os
-import time
 import logging
 import math
 from datetime import datetime

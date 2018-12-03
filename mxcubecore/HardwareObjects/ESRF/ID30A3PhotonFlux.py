@@ -1,8 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
-import numpy
+from HardwareRepository.TaskUtils import task
 import time
-import logging
 from PyTango.gevent import DeviceProxy
 
 

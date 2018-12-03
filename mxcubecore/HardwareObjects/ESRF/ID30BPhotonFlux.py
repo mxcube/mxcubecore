@@ -1,5 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 import time
 import logging
 
