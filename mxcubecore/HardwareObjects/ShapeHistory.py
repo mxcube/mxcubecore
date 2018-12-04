@@ -24,7 +24,7 @@ import logging
 import qtcanvas
 import qt
 import traceback
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 import types
 
 from qt import Qt

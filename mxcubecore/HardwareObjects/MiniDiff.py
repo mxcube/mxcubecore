@@ -15,7 +15,7 @@ from HardwareRepository import HardwareRepository
 import copy
 import sample_centring
 import numpy
-import queue_model_objects_v1 as qmo
+import queue_model_objects as qmo
 
 
 class myimage:

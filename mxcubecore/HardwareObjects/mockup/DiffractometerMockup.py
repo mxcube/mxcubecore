@@ -30,7 +30,7 @@ try:
 except BaseException:
     pass
 
-import queue_model_objects_v1 as qmo
+import queue_model_objects as qmo
 
 from GenericDiffractometer import GenericDiffractometer
 from gevent.event import AsyncResult

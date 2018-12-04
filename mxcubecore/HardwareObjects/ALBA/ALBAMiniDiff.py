@@ -53,7 +53,7 @@ from gevent.event import AsyncResult
 import gevent
 import PyTango
 
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 
 
 __author__ = "Jordi Andreu"
