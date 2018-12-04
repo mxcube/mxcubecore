@@ -16,7 +16,7 @@ from py4j import clientserver
 
 import ConvertUtils
 import GphlMessages
-from queue_model_enumerables_v1 import States
+from queue_model_enumerables import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import HardwareRepository
 

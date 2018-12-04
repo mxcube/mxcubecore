@@ -1,7 +1,7 @@
 import Session
 import os
 import time
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 
 
 class ESRFSession(Session.Session):

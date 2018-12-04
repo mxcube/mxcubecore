@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 
 from HardwareRepository.HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 
 class Session(HardwareObject):
 
