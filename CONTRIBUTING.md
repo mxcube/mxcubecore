@@ -5,9 +5,8 @@ The aim of these guidlines is to help the developers community to maintain the c
 
 ### Reporting bugs
 
-Before submitting a new bug:
-
-Check if the bug is not already reported in the [issues](https://github.com/mxcube/HardwareRepository/issues/). If the corresponding issue do not exist then:
+Before submitting a new bug check if the bug is not already reported in the [issues](https://github.com/mxcube/HardwareRepository/issues/).
+If the corresponding issue do not exist then:
 
 * Open a new issue with a short description in the title.
 * In the description describe the bug:
@@ -38,7 +37,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
   ```
 * Edit necessary files, delete existing or add a new file.
 * Add files to the staging area:
-   `git add ChangedFile1 ChangedFile2 ...`
+   `git add ChangedFile1 ChangedFile2`
 * Save your new commit to the local repository:
    `git commit`
 * Upload the content of your repository to the remote repository:
@@ -55,7 +54,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
   `git checkout -b issue_100`
 * Edit necessary files, delete existing or add a new file.
 * Add files to the staging area:
-   `git add ChangedFile1 ChangedFile2 ...`
+   `git add ChangedFile1 ChangedFile2`
 * Save your new commit to the local repository:
    `git commit`                          
 * Upload the content of the new branch to the remote repository:
@@ -65,15 +64,14 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 ### Coding style guidlines
 
 It is very important to write a clean and readable code. Therefore we follow the [PEP8 guidlines](https://www.python.org/dev/peps/pep-0008/). Minimal required guidlines are:
-* 88 maximum characters per line
+* Maximum 88 characters per line.
 * Use 4 spaces (not a tab) per identation level.
 * Do not use wild (star) imports.
 * Used naming styles:
-   * lower_case_with_underscores (snake style) for variables, method.
+   * lower_case_with_underscores (snake style) for variables, methods.
    * CapitalizedWords for class names.
-   * UPPERCASE for constants
+   * UPPERCASE for constants.
 * When catching exceptions, mention specific exceptions whenever possible instead of using a bare except.
-
 
 You can use [autopep8](https://www.python.org/dev/peps/pep-0008/a/) and [black](https://pypi.org/project/autopep8/) to format your code:
 
@@ -84,12 +82,17 @@ You can use [autopep8](https://www.python.org/dev/peps/pep-0008/a/) and [black](
 
 ### Continues integration (CI)
 
+For continues integracion [Travis](https://travis-ci.org/) is used.
+
 ### Additional notes
 
 Issue and Pull request Labels
 
-* bug:
-* question
-* unused code
+* bug: indicates a bug in the code. Issue has a highest priority.
+* abstract: Abstract class involved. Issue has a hight priority.
+* question: general question.
+* not used code: suggestion to remove a code block or a file from the repository.
+* wip: work in progress
+* enchancement: code improvement.
 
 Milestones
