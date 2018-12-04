@@ -24,13 +24,13 @@ import gevent
 import traceback
 import logging
 import time
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 import os
 import autoprocessing
 from copy import copy
 
 from collections import namedtuple
-from queue_model_enumerables_v1 import *
+from queue_model_enumerables import *
 from HardwareRepository.HardwareRepository import dispatcher
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]

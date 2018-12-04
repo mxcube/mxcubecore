@@ -6,7 +6,7 @@ the QueueModel.
 import copy
 import os
 import logging
-import queue_model_enumerables_v1 as queue_model_enumerables
+import queue_model_enumerables
 
 try:
     from collections import OrderedDict

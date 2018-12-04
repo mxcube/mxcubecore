@@ -14,7 +14,7 @@ except BaseException:
     raise Exception("Cannot import SDM library.")
 
 from Session import Session
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 
 
 class MaxIVSession(Session):

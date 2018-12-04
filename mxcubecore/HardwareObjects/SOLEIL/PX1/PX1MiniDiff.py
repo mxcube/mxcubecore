@@ -208,7 +208,7 @@ class PX1MiniDiff(GenericDiffractometer):
                             and target values.
         :type motors_dict: dict
         """
-        from queue_model_objects_v1 import CentredPosition
+        from queue_model_objects import CentredPosition
 
         if isinstance(motor_positions, CentredPosition):
             motor_positions = motor_positions.as_dict()

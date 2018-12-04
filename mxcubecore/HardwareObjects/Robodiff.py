@@ -2,7 +2,7 @@ import MiniDiff
 import sample_centring
 import logging
 import time
-import queue_model_objects_v1 as qmo
+import queue_model_objects as qmo
 import copy
 import gevent
 
