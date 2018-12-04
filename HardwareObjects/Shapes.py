@@ -13,7 +13,7 @@ import copy
 
 from functools import reduce
 
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import dispatcher

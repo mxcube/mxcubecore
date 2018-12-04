@@ -67,7 +67,7 @@ except ImportError:
 
 # import AutoMesh
 import Qt4_GraphicsLib as GraphicsLib
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE colaboration"]

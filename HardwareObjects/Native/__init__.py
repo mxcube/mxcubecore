@@ -3,8 +3,8 @@
 import jsonpickle
 import inspect
 import logging
-import queue_model_objects_v1 as queue_model_objects
-import queue_model_enumerables_v1 as queue_model_enumerables
+import queue_model_objects
+import queue_model_enumerables
 
 xmlrpc_prefix = ""
 
@@ -123,7 +123,7 @@ def queue_get_model_code(server_hwobj):
     # Recipe from
     # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
 
-    # At the moment, queue_model_objects_v1 does not import anything except
+    # At the moment, queue_model_objects does not import anything except
     # standard Python modules, so we only need to send over the code for the
     # queue model itself
 

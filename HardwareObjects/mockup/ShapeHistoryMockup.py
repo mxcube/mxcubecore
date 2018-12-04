@@ -20,7 +20,7 @@ between two Point objects.
 import logging
 import os
 import traceback
-import queue_model_objects_v1 as queue_model_objects
+import queue_model_objects
 import types
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject

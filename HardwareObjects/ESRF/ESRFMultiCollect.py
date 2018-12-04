@@ -7,7 +7,7 @@ import os
 import httplib
 import urllib
 import math
-from queue_model_objects_v1 import PathTemplate
+from queue_model_objects import PathTemplate
 
 from ESRFMetadataManagerClient import MXCuBEMetadataClient
 
