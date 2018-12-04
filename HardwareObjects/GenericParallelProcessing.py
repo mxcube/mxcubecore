@@ -96,6 +96,7 @@ class GenericParallelProcessing(HardwareObject):
                 self.lims_hwobj = self.collect_hwobj.cl_config.lims_client_hwobj
             except BaseException:
                 pass
+        print self.lims_hwobj
 
         if self.detector_hwobj is None:
             logging.info("ParallelProcessing: Detector hwobj not defined")
