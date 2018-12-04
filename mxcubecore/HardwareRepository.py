@@ -27,7 +27,7 @@ except ImportError:
 
 import HardwareObjectFileParser
 import BaseHardwareObjects
-from dispatcher import *
+from dispatcher import dispatcher
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
