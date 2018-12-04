@@ -1,11 +1,10 @@
 import sys
 import logging
-import types
-import dispatcher
-from dispatcher import *
+from dispatcher import dispatcher
 from CommandContainer import CommandContainer
 
 if sys.version_info > (3, 0):
+    # This is bad practice, but presumably there is a good reason?
     from HardwareRepository import *
 else:
     import HardwareRepository

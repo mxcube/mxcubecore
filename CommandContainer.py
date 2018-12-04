@@ -7,10 +7,9 @@ for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
 
-import types
 import weakref
 import logging
-from dispatcher import *
+from dispatcher import dispatcher
 
 __author__ = "Matias Guijarro"
 __version__ = 1.0

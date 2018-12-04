@@ -1,7 +1,4 @@
-import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.dispatcher import *
-import time
 
 
 class RobodiffFShut(Equipment):
