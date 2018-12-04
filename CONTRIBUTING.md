@@ -80,9 +80,9 @@ You can use [autopep8](https://www.python.org/dev/peps/pep-0008/a/) and [black](
   black --safe ./
   ```
 
-### Continues integration (CI)
+### Continuous integration (CI)
 
-For continues integracion [Travis](https://travis-ci.org/) is used.
+For continuous integration [Travis](https://travis-ci.org/) is used.
 
 ### Additional notes
 
