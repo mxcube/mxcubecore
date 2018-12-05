@@ -2,7 +2,7 @@ import logging
 import numpy
 import os.path
 
-from XRFSpectrum import *
+from XRFSpectrum import XRFSpectrum
 
 try:
     from PyMca import ConfigDict
@@ -19,15 +19,15 @@ class ID29XRFSpectrum(XRFSpectrum):
         XRFSpectrum.__init__(self, *args, **kwargs)
         self.mca_hwobj = self.getObjectByRole("mca")
         self.ctrl_hwobj = self.getObjectByRole("controller")
-        self.fname = "/users/blissadm/local/beamline_configuration/misc/15keV.cfg"
+        self.fname = self.getProperty("cfgfile")
         self.config = ConfigDict.ConfigDict()
         self.mcafit = ClassMcaTheory.McaTheory(self.fname)
 
-    def preset_mca(self, ctime, fname=None):
+    def preset_mca(self, ctime=5, fname=None):
         self.mca_hwobj.set_roi(2, 15, channel=1)
         self.mca_hwobj.set_presets(erange=1, ctime=ctime, fname=str(fname))
 
-    def choose_attenuation(self, ctime, fname=None):
+    def choose_attenuation(self, ctime=5, fname=None):
         res = True
         if not fname:
             fname = self.spectrumInfo["filename"]
@@ -44,13 +44,13 @@ class ID29XRFSpectrum(XRFSpectrum):
                 ctime=ctime, fname=fname, roi=[2.0, 15.0]
             )
             self.spectrumInfo["beamTransmission"] = tt
-        except Exception as e:
+        except BaseException as e:
             logging.getLogger("user_level_log").exception(str(e))
             res = False
 
         return res
 
-    def _findAttenuation(self, ct):
+    def _findAttenuation(self, ct=5):
         return self.choose_attenuation(ct)
 
     """
@@ -102,7 +102,6 @@ class ID29XRFSpectrum(XRFSpectrum):
             xmin = float(config["min"])
             xmax = float(config["max"])
 
-            # calib = numpy.ravel(calib).tolist()
             self.mcafit.setData(x, y, xmin=xmin, xmax=xmax)
 
             self.mcafit.estimate()
