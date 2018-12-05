@@ -9,6 +9,7 @@ for command launchers and channels (see Command package).
 
 import weakref
 import logging
+from warnings import warn
 from dispatcher import dispatcher
 
 __author__ = "Matias Guijarro"
@@ -58,7 +59,6 @@ class CommandObject:
         return self._arguments
 
     def getComboArgumentItems(self, argName):
-        # print  self._combo_arguments_items[argName]
         return self._combo_arguments_items[argName]
 
     def userName(self):
@@ -154,6 +154,10 @@ class CommandContainer:
         return list(self.__channels.keys())
 
     def addChannel(self, attributesDict, channel, addNow=True):
+        warn("addChannel is deprecated. Use add_channel instead", DeprecationWarning)
+        return self.add_channel(attributesDict, channel, addNow)
+
+    def add_channel(self, attributesDict, channel, addNow=True):
         if not addNow:
             self.__channelsToAdd.append((attributesDict, channel))
             return
@@ -327,20 +331,25 @@ class CommandContainer:
         else:
             logging.getLogger().exception("Channel is None")
 
+    def set_value(self, channel_name, value):
+        self.__channels[channel_name].setValue(value)
+
+    def get_value(self, channel_name):
+        return self.__channels[channel_name].getValue()
+
     def setValue(self, channelName, value):
-        self.__channels[channelName].setValue(value)
+        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
+        self.set_value(channelName, value)
 
     def getValue(self, channelName):
-        return self.__channels[channelName].getValue()
+        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
+        return self.get_value(channelName)
 
     def getChannels(self):
         for chan in self.__channels.values():
             yield chan
 
     def getCommandObject(self, cmdName):
-        # return self.__commands[cmdName]
-        # LNLS
-        # python3.4
         try:
             return self.__commands.get(cmdName)
         except Exception as e:
@@ -354,6 +363,10 @@ class CommandContainer:
         return list(self.__commands.keys())
 
     def addCommand(self, arg1, arg2=None, addNow=True):
+        warn("addCommand is deprecated. Use add_command instead", DeprecationWarning)
+        self.add_command(self, arg1, arg2, addNow)
+
+    def add_command(self, arg1, arg2=None, addNow=True):
         if not addNow:
             self.__commandsToAdd.append((arg1, arg2))
             return
