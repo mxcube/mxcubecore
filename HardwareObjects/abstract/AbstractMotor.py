@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from warnings import warn
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -87,41 +87,18 @@ class AbstractMotor(HardwareObject):
         self.__default_limits = (None, None)
         self.__velocity = None
 
-    def isReady(self):
-        # TODO remove this method
-        # print ("Deprecation warning: Instead of isReady please call is_ready")
-        return self.is_ready()
-
-    def getPosition(self):
-        # TODO remove this method
-        # print ("Deprecation warning: Instead of getPosition please call get_position")
-        return self.get_position()
-
-    def getState(self):
-        # TODO remove this method
-        # print ("Deprecation warning: Instead of getState please call get_state")
-        return self.get_state()
-
-    def getLimits(self):
-        # TODO remove this method
-        # print ("Deprecation: Instead of getLimits please call get_limits")
-        return self.get_limits()
-
-    def getMotorMnemonic(self):
-        # print "Call get_motor_mnemonic!!!"
-        return self.get_motor_mnemonic()
-
-    def homeMotor(self):
+    def home_motor(self, timeout=None):
+        """ Motor homing sequence """
         pass
 
-    def home(self):
-        self.homeMotor()
+    def home(self, timeout=None):
+        self.home_motor(timeout)
 
     def get_motor_mnemonic(self):
         return self.motor_name
 
     def is_ready(self):
-        """
+        """ Check if the motor state is READY
         Returns:
             bool: True if ready, otherwise False
         """
@@ -142,7 +119,7 @@ class AbstractMotor(HardwareObject):
     def set_state(self, state):
         """Sets motor state
 
-        Keyword Args:
+        Args:
             state (str): motor state
         """
         self.__state = state
@@ -169,40 +146,40 @@ class AbstractMotor(HardwareObject):
         """Returns motor limits as (float, float)
 
         Returns:
-            list: limits as a list with two floats
+            tuple: limits as two floats tuple
         """
         return self.__limits
 
     def set_limits(self, limits):
-        """Sets motor limits
+        """Set motor limits
 
-        Kwargs:
-            limits (list): list with two floats
+        Args:
+            limits(tuple): two floats tuple
         """
         self.__limits = limits
         self.emit("limitsChanged", (limits,))
 
     def get_velocity(self):
-        """Returns velocity of the motor
+        """Returns motor velocity
 
         Returns:
-            float. velocity
+            float: velocity
         """
         return self.__velocity
 
     def set_velocity(self, velocity):
-        """Sets the velocity of the motor
+        """Set the motor velocity
 
-        Kwargs:
+        Args:
             velocity (float): target velocity
         """
         self.__velocity = velocity
 
     def move(self, position, wait=False, timeout=None):
         """Move motor to absolute position.
-
-        Kwargs:
+        Args:
             position (float): target position
+        Kwargs:
             wait (bool): optional wait till motor finishes the movement
             timeout (float): optional seconds to wait till move finishes
         """
@@ -210,22 +187,16 @@ class AbstractMotor(HardwareObject):
 
     def move_relative(self, relative_position, wait=False, timeout=None):
         """Move to relative position. Wait the move to finish (True/False)
-
+        Args:
+            relative_position (float): relative position to be moved by
         Kwargs:
-            relative_position (float): relative position to be moved
             wait (bool): optional wait till motor finishes the movement
             timeout (float): optional seconds to wait till move finishes
         """
         self.move(self.get_position() + relative_position, wait, timeout)
 
-    def syncMoveRelative(self, position, timeout=None):
-        self.move_relative(position, wait=True, timeout=timeout)
-
-    def syncMove(self, position, timeout=None):
-        self.move(position, wait=True, timeout=timeout)
-
     def stop(self):
-        """Stops the motor movement
+        """Stop the motor movement
         """
         return
 
@@ -233,3 +204,49 @@ class AbstractMotor(HardwareObject):
         self.emit("stateChanged", (self.get_state(),))
         self.emit("positionChanged", (self.get_position(),))
         self.emit("limitsChanged", (self.get_limits(),))
+
+    """ obsolete, keep for backward compatibility """
+
+    def isReady(self):
+        warn("isReady is deprecated. Use is_ready instead", DeprecationWarning)
+        return self.is_ready()
+
+    def getPosition(self):
+        warn("getPosition is deprecated. Use get_position instead", DeprecationWarning)
+        return self.get_position()
+
+    def getState(self):
+        warn("getState is deprecated. Use get_state instead", DeprecationWarning)
+        return self.get_state()
+
+    def getLimits(self):
+        warn("getLimits is deprecated. Use get_limits instead", DeprecationWarning)
+        return self.get_limits()
+
+    def getMotorMnemonic(self):
+        warn(
+            "getMotorMnemonic is deprecated. Use get_motor_mnemonic instead",
+            DeprecationWarning,
+        )
+        return self.get_motor_mnemonic()
+
+    def syncMove(self, position, timeout=None):
+        warn("syncMove is deprecated. Use move wait=True instead", DeprecationWarning)
+        self.move(position, wait=True, timeout=timeout)
+
+    def moveRelative(self, relative_position, wait=False, timeout=None):
+        warn(
+            "moveRelative is deprecated. Use move_relative instead", DeprecationWarning
+        )
+        self.move_relative(relative_position, wait, timeout)
+
+    def syncMoveRelative(self, position, timeout=None):
+        warn(
+            "syncMoveRelative is deprecated. Use move_relative wait=True instead",
+            DeprecationWarning,
+        )
+        self.move_relative(position, wait=True, timeout=timeout)
+
+    def homeMotor(self, timeout=None):
+        warn("homeMotor is deprecated. Use home_motor instead", DeprecationWarning)
+        self.home_motor(timeout)
