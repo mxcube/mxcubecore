@@ -1,16 +1,9 @@
 import logging
-import weakref
-import new
-import types
-from .embl import ExporterClient
-import time
 import gevent
-import gevent.queue
-from HardwareRepository.CommandContainer import (
-    CommandObject,
-    ChannelObject,
-    ConnectionError,
-)
+from gevent.queue import Queue
+from warnings import warn
+from HardwareRepository.CommandContainer import CommandObject, ChannelObject
+from .embl import ExporterClient
 
 exporter_clients = {}
 
@@ -31,9 +24,7 @@ class ExporterCommand(CommandObject):
         self, name, command, username=None, address=None, port=None, timeout=3, **kwargs
     ):
         CommandObject.__init__(self, name, username, **kwargs)
-
         self.command = command
-
         self.__exporter = start_exporter(address, port, timeout)
 
     def __call__(self, *args, **kwargs):
@@ -89,7 +80,7 @@ class Exporter(ExporterClient.ExporterClient):
 
         self.started = False
         self.callbacks = {}
-        self.events_queue = gevent.queue.Queue()
+        self.events_queue = Queue()
         self.events_processing_task = None
 
     def start(self):
@@ -119,7 +110,7 @@ class Exporter(ExporterClient.ExporterClient):
                 self.disconnect()
                 self.connect()
             except BaseException:
-                time.sleep(1.0)
+                gevent.sleep(1.0)
                 self.reconnect()
 
     def onDisconnected(self):
@@ -208,19 +199,29 @@ class ExporterChannel(ChannelObject):
         self.update()
 
     def update(self, value=None):
-        value = value or self.getValue()
-        if isinstance(value, types.TupleType):
+        value = value or self.get_value()
+        if isinstance(value, tuple):
             value = list(value)
 
         self.value = value
         self.emit("update", value)
 
-    def getValue(self):
+    def get_value(self):
         value = self.__exporter.readProperty(self.attributeName)
         return value
 
-    def setValue(self, newValue):
-        self.__exporter.writeProperty(self.attributeName, newValue)
+    def set_value(self, value):
+        self.__exporter.writeProperty(self.attributeName, value)
 
     def isConnected(self):
         return self.__exporter.isConnected()
+
+    """ obsolete, keep for backward compatibility """
+
+    def getValue(self):
+        warn("getValue is deprecated. Use get_value instead", DeprecationWarning)
+        return self.get_value()
+
+    def setValue(self, newValue):
+        warn("setValue is deprecated. Use set_value instead", DeprecationWarning)
+        self.set_value(newValue)
