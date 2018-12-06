@@ -1,4 +1,4 @@
-<object class="ParallelProcessing">
+<object class="ParallelProcessingMockup">
   <object href="/mxcollect" role="collect"/>
   <object href="/beamstop-mockup" role="beamstop"/>
   <processing_command>/pathToProcessingScript</processing_command>
