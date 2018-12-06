@@ -1,6 +1,6 @@
 from ESRFMultiCollect import *
 import HardwareRepository
-from detectors.LimaPilatus import Pilatus
+from detectors.LimaPilatusDetector import Pilatus
 import gevent
 import shutil
 import logging

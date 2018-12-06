@@ -1,9 +1,9 @@
 from ESRFMultiCollect import *
 
-# from detectors.TacoMar import Mar225
-from detectors.LimaEiger import Eiger
+# from detectors.TacoMarDetector import Mar225
+from detectors.LimaEigerDetector import Eiger
 
-# from detectors.LimaPilatus import Pilatus
+# from detectors.LimaPilatusDetector import Pilatus
 import gevent
 import socket
 import shutil
