@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment class="MinidiffAperture">
+    <username>Aperture</username>
+    <mode>absolute</mode>
+    <motors>
+        <device role="apy" hwrid="/eh1/apy"></device>
+        <device role="apz" hwrid="/eh1/apz"></device>
+    </motors>
+    <deltas>
+        <apy>0.0005</apy>
+        <apz>0.0005</apz>
+    </deltas>
+    <positions>
+        <position>
+            <name>10 um</name>
+            <aperture_size>10</aperture_size>
+            <aperture_coef>0.056</aperture_coef>
+            <apy>-0.00561111111111</apy>
+            <apz>-3.62855</apz>
+        </position>
+        <position>
+            <name>20 um</name>
+            <aperture_size>20</aperture_size>
+            <aperture_coef>0.109</aperture_coef>
+            <apy>0.0137777777778</apy>
+            <apz>-2.4183</apz>
+        </position>
+        <position>
+            <name>30 um</name>
+            <aperture_size>30</aperture_size>
+            <aperture_coef>0.3</aperture_coef>
+            <apy>0.0175</apy>
+            <apz>-1.24155</apz>
+        </position>
+        <position>
+            <name>50 um</name>
+            <aperture_size>50</aperture_size>
+            <aperture_coef>0.558</aperture_coef>
+            <apy>0.00944444444444</apy>
+            <apz>-0.00905</apz>
+        </position>
+        <position>
+            <name>Outbeam</name>
+            <aperture_size>-1</aperture_size>
+            <aperture_coef>1</aperture_coef>
+            <apy>0.00766666666667</apy>
+            <apz>1.4947</apz>
+        </position>
+    </positions>
+</equipment>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<equipment class="PX1MiniDiff">
+  <username>Minidiff</username>
+
+  <channel type="tango" tangoname="i10-c-cx1/ex/sgonaxis" polling="events" name="smargon_state">State</channel>
+
+  <sample_centring>True</sample_centring>
+
+  <object role="smargon" hwrid="/smargon"></object>
+
+  <object role="zoom" hwrid="/zoom"></object>
+  <object role="phi" hwrid="/omega"></object>
+  <object role="phiy" hwrid="/uglidex"></object> 
+  <object role="phiz" hwrid="/uglidey"></object>
+  <object role="sampx" hwrid="/phiz"></object>
+  <object role="sampy" hwrid="/uglidey"></object>
+  <object role="kappa" hwrid="/chi"></object>
+  <object role="kappa_phi" hwrid="/phi"></object>
+
+  <object role="light" href="/light"/>
+  <object role="lightarm" href="/lightarm"/>
+
+  <object role="beam_info" hwrid="/beam-info"></object>
+
+  <object role="camera" hwrid="/ge1350c"></object>
+  <object role="samplechanger" hwrid="/cryotong"></object>
+
+  <object role="px1configuration" hwrid="/px1configuration"></object>
+  <object role="px1environment" hwrid="/px1environment"></object>
+
+
+  <!-- DO THESE VALUES MAKE ANY SENSE AT PX1?? -->
+  <zoomCentre>{"x":340,"y":250}</zoomCentre>
+  <omegaReference>{"motor_name": "phiz", "position":-0.2224, "camera_axis":"x"}</omegaReference>
+  <phaseList>["Transfer","Centring","BeamLocation", "DataCollection"]</phaseList>
+  <headType>MiniKappa</headType>
+
+</equipment>

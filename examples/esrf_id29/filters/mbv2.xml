@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Mirror Beam (dm3)</username>
+   <motor>/oh/motors/mbv2</motor>
+   <filter>
+     <username>Pt</username>
+     <offset>-41.6</offset>
+   </filter>
+   <filter>
+     <username>YAG Screen</username>
+     <offset>-24</offset>
+   </filter>
+   <filter>
+     <username>Out</username>
+     <offset>8.8</offset>
+   </filter>
+   <filter>
+     <username>Empty</username>
+     <offset>27.3</offset>
+   </filter>
+   <filter>
+     <username>Kapton Foil</username>
+     <offset>44.5</offset>
+   </filter>
+</device>

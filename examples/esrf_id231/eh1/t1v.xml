@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Front Vert Offset</username>
+  <specname>t1v</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

@@ -1,0 +1,8 @@
+<device class="Qt4_TangoLimaVideo">
+  <username>Prosilica Lima</username>
+  <type>prosilica</type>
+  <tangoname>i10-c-cx1/ex/imag.2</tangoname> 
+  <encoding>bayer_2_rgb</encoding>
+  <!-- encoding>bayer_demosaicing</encoding -->
+  <interval>50</interval>
+</device>

@@ -1,0 +1,8 @@
+<procedure class = "SpecShell">
+  <specversion>lid232:eh1</specversion>
+  <usercmds>
+    <cmd><method>wa</method><args></args></cmd>
+    <cmd><method>reconfig</method><args></args></cmd>
+    <cmd><method>print "echo"</method><args></args></cmd>
+  </usercmds>
+</procedure>

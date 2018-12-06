@@ -1,0 +1,16 @@
+<equipment>
+  <username>Mono</username>
+  <motors>
+  <pseudo>
+      <device hwrid="/oh/motors/energy"/>
+      <device hwrid="/oh/motors/lambda"/>
+      <device hwrid="/oh/motors/u35u"/>
+      <device hwrid="/oh/motors/u21d"/>
+  </pseudo>
+  <real>
+      <device hwrid="/oh/motors/mono"/>
+      <device hwrid="/oh/motors/push111"/>  
+      <device hwrid="/oh/motors/push311"/>
+  </real>
+  </motors>
+</equipment>

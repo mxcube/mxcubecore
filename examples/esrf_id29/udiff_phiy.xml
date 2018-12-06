@@ -1,0 +1,7 @@
+<device class="MicrodiffMotor">
+  <username>phiy</username>
+  <exporter_address>microdiff29new:9001</exporter_address>
+  <motor_name>AlignmentY</motor_name>
+  <GUIstep>1.0</GUIstep>
+  <unit>-1e-3</unit>
+</device>

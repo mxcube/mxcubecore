@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>DM2 In/Out</username>
+   <motor>/oh1/dm2in</motor>
+   <filter>
+     <username>Diode</username>
+     <offset>1</offset>
+   </filter>
+   <filter>
+     <username>Empty</username>
+     <offset>0</offset>
+   </filter>
+</device>

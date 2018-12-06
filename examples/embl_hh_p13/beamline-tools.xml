@@ -1,0 +1,17 @@
+<object class="BeamlineTools">
+   <object href="/beamline-test" role="beamline_test"/>
+   <tools>
+      <tool>
+       <hwobj>beamline_test</hwobj>
+       <display>Center beam</display>
+       <method>center_beam_report</method>
+       <icon>QuickRealign</icon>
+     </tool> 
+     <tool>
+       <hwobj>beamline_test</hwobj>
+       <display>Measure intensity</display>
+       <method>measure_intensity</method>
+       <icon>Sun</icon>
+     </tool>
+   </tools>
+</object>

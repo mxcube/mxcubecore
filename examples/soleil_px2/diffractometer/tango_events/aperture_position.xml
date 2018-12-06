@@ -1,0 +1,17 @@
+<device class="NamedState">
+    <username>Position</username>
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <channel type="tango" polling="events" name="state">AperturePosition</channel>
+    <channel type="tango" polling="events" name="hardware_state">State</channel>
+    <states>
+       <state>
+          <name>PARK</name>
+       </state>
+       <state>
+          <name>BEAM</name>
+       </state>
+       <state>
+          <name>OFF</name>
+       </state>
+    </states>
+</device>

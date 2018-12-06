@@ -1,0 +1,5 @@
+<device class = "CameraCcd">
+  <username>Matrox Meteor, 3rd camera</username>
+  <taconame>id23/meteor2/2</taconame>
+  <interval>200</interval>
+</device>

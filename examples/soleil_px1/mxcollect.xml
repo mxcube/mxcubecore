@@ -1,0 +1,35 @@
+<object class="PX1Collect">
+
+  <tangoname>i10-c-cx1/ex/collect</tangoname>
+
+  <channel type="tango" name="state">State</channel>
+
+  <object href="/minidiff" role="diffractometer"/>
+
+  <object href="/omega" role="omega"/>
+  <object href="/chi" role="kappa"/>
+  <object href="/phi" role="phi"/>
+
+  <object href="/mxlocal" role="beamline_configuration"/>
+  <object href="/cryotong" role="sample_changer"/>
+  <object href="/energy" role="energy"/>
+  <object href="/attenuators_pslits" role="transmission"/>
+  <object href="/pilatus" role="detector"/>
+  <object href="/beam-info" role="beam_info"/>
+  <object href="/mach" role="machine_info"/>
+  <object href="/resolution" role="resolution"/>
+  <object href="/dbconnection" role="lims_client"/> 
+  <object href="/Qt4_graphics-manager" role="graphics_manager"/> 
+  <object href="/px1environment" role="environment"/> 
+  <object href="/flux" role="flux"/>
+
+  <object href="/fastshut" role="fastshut"/> 
+  <object href="/obx" role="safshut"/> 
+  <object href="/frontend" role="frontend"/> 
+
+  <object href="/lightarm" role="lightarm"/> 
+
+  <imgtojpeg>/nfs/ruche/share-dev/px1dev/MXCuBE/tools/adxv_makejpeg.sh</imgtojpeg>
+  <chooch_cmd>/nfs/ruche/share-dev/px1dev/MXCuBE/tools/run_chooch.sh</chooch_cmd>
+
+</object>

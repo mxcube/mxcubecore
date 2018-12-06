@@ -1,0 +1,56 @@
+<device class = "Attenuators">
+  <username>Attenuators</username>
+  <specversion>lid292:exp</specversion>
+  <command type="spec" name="toggle">attio</command>
+  <command type="spec" name="setTransmission">transmission</command>
+  <channel type="spec" name="attstate">MATT_STATE</channel>
+  <channel type="spec" name="attfactor">ATT_FACTOR</channel>
+  <atte> 
+     <label>PyroC 0.1</label>
+     <bits>1</bits>
+  </atte>
+  <atte> 
+     <label>PyroC 0.25</label>
+     <bits>2</bits>
+  </atte>
+  <atte> 
+     <label>PyroC 0.5</label>
+     <bits>4</bits>
+  </atte>
+  <atte> 
+     <label>PyroC 1</label>
+     <bits>8</bits>
+  </atte>
+  <atte> 
+     <label>PyroC 2</label>
+     <bits>16</bits>
+  </atte>
+  <atte> 
+     <label>PyroC 4</label>
+     <bits>32</bits>
+  </atte>
+  <atte> 
+     <label>Al 0.1</label>
+     <bits>64</bits>
+  </atte>
+  <atte> 
+     <label>Al 0.25</label>
+     <bits>128</bits>
+  </atte>
+  <atte> 
+     <label>Al 0.5</label>
+     <bits>256</bits>
+  </atte>
+  <atte> 
+     <label>Al 1</label>
+     <bits>512</bits>
+  </atte>
+  <atte> 
+     <label>Al 2</label>
+     <bits>1024</bits>
+  </atte>
+  <atte> 
+     <label>Al 4</label>
+     <bits>2048</bits>
+  </atte>
+</device>

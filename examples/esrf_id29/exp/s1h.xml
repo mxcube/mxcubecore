@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Horizontal Beamsize</username>
+  <specname>s1h</specname>
+  <specversion>lid292:exp</specversion>
+  <GUIstep>0.1</GUIstep>
+</device>

@@ -1,0 +1,81 @@
+<gb>
+  <pslit>
+    <data name="psu" value="psu" role="motmne"/>
+    <data name="psd" value="psd" role="motmne"/>
+    <data name="psl" value="psl" role="motmne"/>
+    <data name="psr" value="psr" role="motmne"/>
+    <data name="psvg" value="psvg" role="motmne"/>
+    <data name="psvo" value="psvo" role="motmne"/>
+    <data name="pshg" value="pshg" role="motmne"/>
+    <data name="psho" value="psho" role="motmne"/>
+    <data name="pscnt" value="dm2" role="ctmne"/>
+  </pslit>
+
+  <sslit>
+    <data name="ssu" value="ssu" role="motmne"/>
+    <data name="ssd" value="ssd" role="motmne"/>
+    <data name="ssl" value="ssl" role="motmne"/>
+    <data name="ssr" value="ssr" role="motmne"/>
+    <data name="ssvg" value="ssvg" role="motmne"/>
+    <data name="ssvo" value="ssvo" role="motmne"/>
+    <data name="sshg" value="sshg" role="motmne"/>
+    <data name="ssho" value="ssho" role="motmne"/>
+    <data name="sscnt" value="dm2" role="ctmne"/>
+  </sslit>
+
+  <undulator>
+    <data name="und1" value="u21d" role="motmne" open="28"/>
+    <data name="und2" value="u35u" role="motmne" open="50"/>
+    <data name="undcnt" value="dm2" role="ctmne"/>
+    <data name="unden" value="9"/>
+  </undulator>
+
+  <energy>
+    <data name="energy" value="energy" role="motmne"/>
+  </energy>
+
+  <foil>
+    <data name="mot" value="mbv1" role="motmne"/>
+    <data name="cnt" value="dm2" role="ctmne"/>
+    <!--data name="enlist" value="7.11075:Fe:55.78 8.98048:Cu:50.8 11.56276:Pt:-5.2 13.2719:Pt:-5.2 20:Mo:61.33" role="enlist"/-->
+    <data name="enlist" value="11.56276:Pt:-5.2" role="enlist"/>
+  </foil>
+
+  <filter>
+    <pslit>
+      <data name="din" value="61"/>
+      <data name="mbv1" value="41.2594"/>
+      <data name="attf" value="0.3"/>
+      <data name="attm" value="1"/>
+      <data name="attb" value="3"/>
+      <data name="attm" value="1" curr="130"/>
+      <data name="attb" value="2" curr="130"/>
+      <data name="attm" value="2" curr="45"/>
+    </pslit>
+    <sslit>
+      <data name="wbv" value="0"/>
+      <data name="din" value="61"/>
+      <data name="mbv1" value="41.2594"/>
+      <data name="attf" value="0.3"/>
+      <data name="attm" value="1"/>
+      <data name="attb" value="1"/>
+      <data name="attm" value="2" curr="130"/>
+    </sslit>
+    <mono>
+      <data name="wbv" value="0"/>
+      <data name="din" value="61"/>
+      <data name="attf" value="0.3"/>
+      <data name="attm" value="1"/>
+      <data name="attb" value="0.3"/>
+    </mono>
+    <empty>
+      <data name="wbv" value="0"/>
+      <data name="mbv1" value="41.2594"/>
+      <data name="din" value="83"/>
+      <data name="mbv2" value="8.8"/>
+      <data name="attf" value="0.3"/>
+      <data name="attm" value="0.3"/>
+      <data name="attb" value="0.3"/>
+    </empty>
+  </filter>
+</gb>

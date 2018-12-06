@@ -1,0 +1,44 @@
+<!-- object class="ALBAISPyBClient" -->
+<object class="ALBAISPyBClient">
+
+  <loginType>proposal</loginType>
+  <authServerType>ldap</authServerType>
+
+  <ws_root>https://ispybtest.cells.es/ispyb/ispyb-ws/ispybWS/</ws_root>
+
+  <ws_username>user</ws_username>
+  <ws_password>password</ws_password>
+
+
+  <ws_collection>ToolsForCollectionWebService</ws_collection>
+  <ws_shipping>ToolsForShippingWebService</ws_shipping>
+  <ws_tools>ToolsForBLSampleWebService</ws_tools>
+  <ws_autoproc>ToolsForAutoprocessingWebService</ws_autoproc>
+
+  <object role="ldapServer" href="/ldaplogin"/>
+  <object role="session" href="/session"/>
+
+  <!-- all this should be removed from here (information
+       is in session now), but we need it as long as
+       mxCuBE 1.0 is running - or we need to make sure
+       mxCuBE 1.0 works with the new xml files (ie. cherry picking
+       commits from master to 1.0 or merging)
+  -->
+  <beamline_name>MX-XALOC</beamline_name>
+  <proposals>
+     <proposal>
+       <code>mx</code>
+       <ldap>u</ldap>
+       <ispyb>mx</ispyb>
+       <gui>u</gui>
+     </proposal>
+  </proposals>
+
+   <inhouse>
+     <proposal>
+       <code>opbl</code>
+       <number>13</number>
+     </proposal>
+   </inhouse>
+
+</object>

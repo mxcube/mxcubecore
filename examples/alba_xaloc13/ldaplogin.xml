@@ -1,0 +1,6 @@
+<procedure class="LdapLogin">
+  <ldaphost>ldap01.cells.es</ldaphost> 
+  <ldapport>389</ldapport>
+  <ldapdomain>cells.es</ldapdomain>
+  <ldapou>ISPyBGroups</ldapou>
+</procedure>

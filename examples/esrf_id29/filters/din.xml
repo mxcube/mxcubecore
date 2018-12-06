@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Din (dm2)</username>
+   <motor>/oh/motors/din</motor>
+   <filter>
+     <username>Kapton Foil</username>
+     <offset>61</offset>
+   </filter>
+   <filter>
+     <username>Out</username>
+     <offset>83</offset>
+   </filter>
+</device>

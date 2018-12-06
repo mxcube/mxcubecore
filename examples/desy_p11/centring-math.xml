@@ -1,0 +1,63 @@
+<procedure class="CentringMath">
+  <!--
+  Gonio axes are in a real physical order
+  --> 
+  <gonioAxes>
+     <axis>
+        <motorname>phiy</motorname>
+        <direction>[0, 1, 0]</direction>
+	<type>translation</type>
+	<motorHO>/eh1/diff-phiy</motorHO> 
+     </axis>
+
+     <!-- removing this axis (normal to Omega) will fix Omega position -->
+     <axis>
+        <motorname>phiz</motorname>
+        <direction>[1, 0, 0]</direction>
+        <type>translation</type>
+        <motorHO>/eh1/diff-phiz</motorHO> 
+     </axis>
+
+     <!-- e.g. robodiff chi axis
+     <axis>
+        <name>chi</name>
+        <direction>[0, 0, 1]</direction>
+        <type>rotation</type>
+        <motorHO>/diff-chi</motorHO>
+     </axis>
+     -->
+
+     <axis>
+        <motorname>phi</motorname>
+        <!-- direction of omega at Chi==0 -->
+        <direction>[0, -1, 0]</direction>
+        <type>rotation</type>
+        <motorHO>/eh1/diff-omega</motorHO> 
+     </axis>
+
+     <axis>
+        <!-- direction of sampx at Chi==0 and Omega == 0 --> 
+        <motorname>sampx</motorname>
+        <direction>[-0.281085,  0, 0.959683]</direction>
+        <type>translation</type>
+        <motorHO>/eh1/diff-sampx</motorHO> 
+     </axis>
+
+     <axis>
+        <motorname>sampy</motorname>
+        <direction>[0.959683,  0, 0.281085 ]</direction>
+        <type>translation</type>
+        <motorHO>/eh1/diff-sampy</motorHO> 
+     </axis>
+  </gonioAxes>
+  <cameraAxes>
+     <axis>
+        <axisname>X</axisname>
+        <direction>[1, 0, 0]</direction>
+     </axis>
+     <axis>
+        <axisname>Y</axisname>
+        <direction>[0, 1, 0]</direction>
+     </axis>
+  </cameraAxes>
+</procedure>

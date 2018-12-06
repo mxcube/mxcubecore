@@ -1,0 +1,6 @@
+<procedure class = "Ascan">
+  <username>a2scan</username>
+  <dimension>2</dimension>
+  <command name="start" type="spec">a2scan</command>
+</procedure>
+

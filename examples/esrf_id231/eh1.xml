@@ -1,0 +1,47 @@
+<equipment>
+  <username>eh1</username>
+  <motors>
+<device hwrid="/eh1/tz2"/>
+<device hwrid="/eh1/tz1"/>
+<device hwrid="/eh1/tz3"/>
+<device hwrid="/eh1/ttf"/>
+<device hwrid="/eh1/ttb"/>
+<device hwrid="/eh1/thgt"/>
+<device hwrid="/eh1/txtilt"/>
+<device hwrid="/eh1/tytilt"/>
+<device hwrid="/eh1/ttr"/>
+<device hwrid="/eh1/tztilt"/>
+<device hwrid="/eh1/tftilt"/>
+<device hwrid="/eh1/energy"/>
+<device hwrid="/eh1/s1v"/>
+<device hwrid="/eh1/t1v"/>
+<device hwrid="/eh1/s1h"/>
+<device hwrid="/eh1/t1h"/>
+<device hwrid="/eh1/s2v"/>
+<device hwrid="/eh1/t2v"/>
+<device hwrid="/eh1/s2h"/>
+<device hwrid="/eh1/t2h"/>
+<device hwrid="/eh1/shuty"/>
+<device hwrid="/eh1/shutz"/>
+<device hwrid="/eh1/shut"/>
+<device hwrid="/eh1/focus"/>
+<device hwrid="/eh1/length"/>
+<device hwrid="/eh1/phiz"/>
+<device hwrid="/eh1/phi"/>
+<device hwrid="/eh1/sampx"/>
+<device hwrid="/eh1/sampy"/>
+<device hwrid="/eh1/bstopy"/>
+<device hwrid="/eh1/bstopz"/>
+<device hwrid="/eh1/zoom"/>
+<device hwrid="/eh1/anal"/>
+<device hwrid="/eh1/camx"/>
+<device hwrid="/eh1/camz"/>
+<device hwrid="/eh1/DtoX"/>
+    </motors>
+    <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

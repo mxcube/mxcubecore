@@ -1,0 +1,10 @@
+<device class = "TINEMotor">
+  <channel type="tine" name="axisPosition" tinename="/P13/P13KB/VHMPitchHDn">position</channel>
+  <channel type="tine" name="axisState" tinename="/P13/P13KB/VHMPitchHDn">status</channel>
+  <command type="tine" name="setPosition" tinename="/P13/P13KB/VHMPitchHDn">MOVE.Start</command>
+  <command type="tine" name="setOnline" tinename="/P13/P13KB/VHMPitchHDn">OnLine</command>
+
+  <username>VHM Pitch</username>
+  <epsilon>0.0005</epsilon>
+  <stepLimits>[0.0005, 0.001]</stepLimits>
+</device>

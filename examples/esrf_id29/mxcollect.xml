@@ -1,0 +1,67 @@
+<object class="ID29MultiCollect">
+  <specversion>lid292:exp</specversion>
+  
+  <object href="/dbconnection" role="dbserver"/>
+  <object href="/safshut" role="safety_shutter"/>
+  <object href="/mxlocal" role="beamline_configuration"/>
+  <object href="/udiff" role="diffractometer"/>
+  <object href="/sc" role="sample_changer"/>
+  <object href="/energyscan" role="energy"/>
+  <object href="/attenuators" role="transmission"/>
+  <object href="/exp/DtoX" role="detector_distance"/>
+  <object href="/mach" role="machine_current"/>
+  <object href="/feshut" role="undulators"/>
+  <object href="/cryospy" role="cryo_stream"/>
+  <object href="/exp/res" role="resolution"/>
+  <object href="/flux" role="flux"/>
+
+  <directory_prefix>id29</directory_prefix>
+  <input_files_server>localhost:5698</input_files_server>
+
+  <command type="spec" name="get_resolution_at_corner">getMxResolutionAtCorner</command>
+  <command type="spec" name="get_beam_size_x">getMxBeamSizeX</command>
+  <command type="spec" name="get_beam_size_y">getMxBeamSizeY</command>
+  <command type="spec" name="get_slit_gap_h">getMxSlitGapHorizontal</command>
+  <command type="spec" name="get_slit_gap_v">getMxSlitGapVertical</command>
+  <command type="spec" name="get_beam_shape">getMxBeamShape</command>
+  <command type="spec" name="get_beam_centre_x">getMxBeamCentreX</command>
+  <command type="spec" name="get_beam_centre_y">getMxBeamCentreY</command>
+  <command type="spec" name="close_fast_shutter">msclose</command>
+  <command type="spec" name="open_fast_shutter">msopen</command>
+  <command type="spec" name="adjust_gains">adjust_i0_i1_gain</command>
+  <command type="spec" name="prepare_oscillation">osc_prepare</command>
+  <channel type="spec" name="parameters">datacollection_parameters</channel>
+  <command type="spec" name="build_collect_seq">build_collect_seq</command>
+  <command type="spec" name="validate_collect_parameters">validate_collect_parameters</command>
+  <command type="spec" name="do_oscillation">osc_scan</command>
+  <command type="spec" name="prepare_acquisition">pilatus_prep</command>
+  <command type="spec" name="start_acquisition">ccdstart</command>
+  <command type="spec" name="flush_detector">ccdflush</command>
+  <channel type="spec" name="image_intensity">CURRENT_IMAGE_INTENSITY</channel>
+  <channel type="spec" name="shutterless">PILATUS_SHUT</channel>
+  <command type="spec" name="local_set_experiment_type">pilatus_set_experiment_type</command>
+  <command type="spec" name="specific_collect_frame_hook">pilatus_postframe_actions</command>
+  <command type="spec" name="prepare_beamline">prodc_prepare_beamline</command>  
+  <command type="spec" version="lid292:exp" name="reset_detector">id29_finish_bl</command>
+  <channel type="spec" version="lid292:exp" name="xds_filename">XDS_INPUT_FILENAME</channel>
+  <channel type="spec" version="lid292:exp" name="spec_messages">eprodc_log_message</channel>
+  <channel type="spec" version="lid292:exp" name="helical">HELICAL_SCAN4D</channel>
+  <channel type="spec" version="lid292:exp" name="helical_pos">HELICAL_OSCIL_POS</channel>
+  <channel type="spec" version="lid292:exp" name="helical_pars">HELICAL_PARS</channel>
+  <channel type="spec" version="lid292:exp" name="detector">MXBCM_PARS["detector"]["cansum"]</channel>
+  <channel type="spec" version="lid292:exp" name="scan4d">HELICAL_SCAN4D</channel>
+  <channel type="spec" version="lid292:exp" name="scan4dm">HELICAL_SCAN4D_MANUAL</channel>
+  <command type="spec" version="lid292:exp" name="helical_queue">helical_queue</command>
+  <command type="spec" version="lid292:exp" name="helical_off">helical_scan4d_off</command>
+
+  <auto_processing>
+    <program>
+      <executable>/opt/pxsoft/bin/autoproc_master.pl</executable>
+      <event>before image after end_multicollect</event>
+    </program>
+    <program>
+      <executable>/users/blissadm/bin/autoproc-launcher.py</executable>
+      <event>before</event>
+    </program>
+  </auto_processing>
+</object>

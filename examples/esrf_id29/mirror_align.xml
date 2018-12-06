@@ -1,0 +1,92 @@
+<mirror_align>
+
+  <MIRROR_PARS>
+    <type>toroidal</type>
+    <calculation_server>id29/calc/1</calculation_server>
+    <count_time>0.1</count_time>
+    <spec_eh>lid292:exp</spec_eh>
+  </MIRROR_PARS>
+
+  <MIRROR_MOTORS>
+    <slit_hgap>sshg</slit_hgap>
+    <slit_vgap>ssvg</slit_vgap>
+    <slit_hoff>ssho</slit_hoff>
+    <slit_voff>ssvo</slit_voff>
+    <height>torh</height>
+    <tilt>tory</tilt>
+    <yaw>yaw</yaw>
+    <bender>pmb_m</bender>
+    <translation>mtt</translation>
+  </MIRROR_MOTORS>
+
+  <MIRROR_EH_MOTORS>
+    <tableheight>thgt</tableheight>
+    <tabletrans>ttrans</tabletrans>
+    <slitbox_s1v>s1v</slitbox_s1v>
+    <slitbox_s1h>s1h</slitbox_s1h>
+    <zoom>zoom</zoom>
+  </MIRROR_EH_MOTORS>
+
+  <MIRROR_FILTERS>
+    <!-- motors to move to set mirror filters (all empty + yag screens in) -->
+    <attf>0.3</attf>
+    <attm>2.0</attm>
+    <attb>0.3</attb>
+    <mbv1>42.0</mbv1>
+    <mbv2>-24.0</mbv2>
+  </MIRROR_FILTERS>
+
+  <MIRROR_PREALIGN>
+    <!-- <cam_server>id29/xbpm/mirrbv</cam_server> -->
+    <intensity_counter>mirrbvi</intensity_counter>
+    <beamx_counter>mirrbvx</beamx_counter>
+    <beamy_counter>mirrbvy</beamy_counter>
+    
+    <slit_hgap>2</slit_hgap>
+    <slit_vgap>0.1</slit_vgap>
+    <!--
+         the following beam_roi tags define a region of interest to see
+         the reflected beam during the prealignment
+    -->
+    <beam_roi_x1>672</beam_roi_x1>
+    <beam_roi_y1>400</beam_roi_y1>
+    <beam_roi_x2>228</beam_roi_x2>
+    <beam_roi_y2>550</beam_roi_y2>
+    <!--
+         the following beam_roi tags define a region of interest to see
+         the direct beam during the prealignment
+    -->
+    <dbeam_roi_x1>704</dbeam_roi_x1>
+    <dbeam_roi_y1>401</dbeam_roi_y1>
+    <dbeam_roi_x2>164</dbeam_roi_x2>
+    <dbeam_roi_y2>362</dbeam_roi_y2>
+    <!--
+         height alignment
+    -->
+    <height_lineup_start>-2.3</height_lineup_start>
+    <height_lineup_end>2.3</height_lineup_end>
+    <!--
+         translation alignment
+    -->
+    <translation_slit_hgap>0.2</translation_slit_hgap>
+    <translation_slit_vgap>0.2</translation_slit_vgap>
+    <translation_edge_scan_start>0.7</translation_edge_scan_start>
+    <translation_edge_scan_end>-0.7</translation_edge_scan_end>
+  </MIRROR_PREALIGN>
+
+  <MIRROR_ALIGN>
+    <!-- <cam_server>id29/md2-bpm/1</cam_server> -->
+    <intensity_counter>sampi</intensity_counter>
+    <beamx_counter>sampx</beamx_counter>
+    <beamy_counter>sampy</beamy_counter>
+  </MIRROR_ALIGN>
+
+  <MIRROR_ALIGN_FILTERS>
+    <attf>0.3</attf>
+    <attm>3.0</attm>
+    <attb>0.3</attb>
+    <mbv1>42</mbv1>
+    <mbv2>8.8</mbv2>
+  </MIRROR_ALIGN_FILTERS>
+
+</mirror_align>

@@ -1,0 +1,16 @@
+<device class="PX1Environment">
+  <username>PX1Environment</username>
+  <tangoname>i10-c-cx1/ex/PX1Environment</tangoname> 
+
+  <channel type="tango" polling="events" name="State">State</channel>
+  <channel type="tango" polling="events" name="beamlineMvtAuthorized" tangoname="i10-c-cx1/ex/catscryotong">beamlineMvtAuthorized</channel>
+  <channel type="tango" name="usingCapillary">usingCapillary</channel>
+  <channel type="tango" tangoname="i10-c-cx1/ex/bst.1-Control" name="beamstopPosition">Position</channel>
+
+  <command type="tango" name="GoToCentringPhase">GoToCentringPhase</command>
+  <command type="tango" name="GoToCollectPhase">GoToCollectPhase</command>
+  <command type="tango" name="GoToManualTransfertPhase">GoToManualTransfertPhase</command>
+  <command type="tango" name="GoToTransfertPhase">GoToTransfertPhase</command>
+  <command type="tango" name="GoToVisuSamplePhase">GoToVisuSamplePhase</command>
+  <command type="tango" name="GoToFluoScanPhase">GoToFluoXPhase</command>
+</device>

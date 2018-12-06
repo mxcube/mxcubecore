@@ -1,0 +1,7 @@
+<device class = "SpecMotor">
+  <username>Holder Length</username>
+  <specname>phiy</specname>
+  <GUIstep>1.0</GUIstep>
+  <unit>-1e-3</unit>
+  <specversion>lid292:exp</specversion>
+</device>

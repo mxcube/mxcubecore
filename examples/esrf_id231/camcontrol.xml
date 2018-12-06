@@ -1,0 +1,13 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command>
+     <type>spec</type>
+     <name>set in</name>
+     <toexecute>camin</toexecute>
+  </command>
+  <command>
+     <type>spec</type>
+     <name>set out</name>
+     <toexecute>camout</toexecute>
+  </command>
+</procedure>

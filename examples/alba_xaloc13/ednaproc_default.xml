@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<XSDataAutoprocInput>
+  <input_file>
+    <path>
+      <value>/beamlines/bl13/projects/cycle2018/2018012551-bcalisto/mx2018012551/DATA/20180528/PROCESS_DATA/xds_p58nter_se_2_3_1/XDS.INP</value>
+    </path>
+  </input_file>
+  <!--output_file-->
+    <!--path-->
+      <!--value>RESULTS/ControlEDNAprocv1_0_dataOutput.xml</value-->
+    <!--/path-->
+  <!--/output_file-->
+  <data_collection_id>
+    <value>2004519</value>
+  </data_collection_id>
+</XSDataAutoprocInput>

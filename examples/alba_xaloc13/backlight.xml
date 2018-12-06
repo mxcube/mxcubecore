@@ -1,0 +1,8 @@
+<device class="ALBABackLight">
+  <username>Back</username>
+  <channel type="sardana" taurusname="bl13/eh/diff" name="backlightin" polling="events">BackLightIn</channel>
+  <channel type="sardana" taurusname="blight" polling="events" name="light_level">Brightness</channel>
+  <rest_level>0</rest_level>
+  <minimum_level>9</minimum_level>
+  <limits>0,30</limits>
+</device>

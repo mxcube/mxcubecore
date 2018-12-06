@@ -1,0 +1,6 @@
+<device class = "TangoMachCurrent">
+  <username>Mach</username>
+  <tangoname>ans/ca/machinestatus</tangoname>
+  <channel type="tango" name="current" polling="4000">current</channel>
+</device>
+

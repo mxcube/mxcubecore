@@ -1,0 +1,34 @@
+<device class="MotorsGroup">
+    <username>P14KB</username>
+    <serverAddr>/P14/P14KB</serverAddr>
+    <groupAddr>/HFM_Pitch</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>Status</statusAddr>
+    <motors>
+        <motor>
+          <motorName>VFM_VerTrans</motorName>
+          <motorAddr>VFM_VerTrans</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>6</index>
+          <velocity>0.1</velocity>
+          <updateTolerance>0.010</updateTolerance>
+	  <evalTolerance>10.010</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -1.0, 'Horizontal': -1.0, 'Vertical': 0, 'Double': 0 }</focusingModes>
+        </motor>
+        <motor>
+          <motorName>HFM_HorTrans</motorName>
+          <motorAddr>HFM_HorTrans</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>1</index>
+          <velocity>0.1</velocity>
+          <updateTolerance>0.010</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': 1.6, 'Horizontal': 0.391, 'Vertical': 1.6, 'Double': 0.4196}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

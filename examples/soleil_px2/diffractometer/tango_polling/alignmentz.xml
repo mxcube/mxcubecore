@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <motor_name>AlignmentZ</motor_name>
+    <username>AlignmentZ</username>
+    <direction>1</direction>
+    <GUIstep>0.1</GUIstep>
+    <channel type="tango" polling="1000" name="AlignmentZPosition">AlignmentZPosition</channel>
+    <channel type="tango" polling="1000" name="AlignmentZState">AlignmentZState</channel>
+    <channel type="tango" polling="1000" name="motor_states">MotorStates</channel>
+    <command type="tango" name="abort">abort</command>
+    <command type="tango" name="homing">startHomingMotor</command>
+    <command type="tango" name="getAlignmentZDynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" name="get_limits">getMotorLimits</command>
+    <command type="tango" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

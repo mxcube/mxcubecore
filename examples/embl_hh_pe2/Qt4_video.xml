@@ -1,0 +1,4 @@
+<device class="Qt4_VimbaVideo"> 
+   <interval>40</interval>
+   <camera_index>0</camera_index>
+</device>

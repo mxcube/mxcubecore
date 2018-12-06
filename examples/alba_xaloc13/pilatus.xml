@@ -1,0 +1,27 @@
+<object class="ALBAPilatus">
+
+  <object href="/detector-distance" role="distance_motor"/>
+
+  <tangoname>bl13/eh/pilatuslima</tangoname>
+  <device_specific>bl13/eh/pilatusspecific</device_specific>
+
+  <manufacturer>DECTRIS</manufacturer>
+  <model>6M_F</model>
+  <type>pilatus</type>
+  <file_suffix>cbf</file_suffix>
+
+  <px>0.172</px>
+  <py>0.172</py>
+
+  <default_exposure_time>0.1</default_exposure_time>
+  <minimum_exposure_time>0.08</minimum_exposure_time>
+  <exposure_limits>0.08,1000</exposure_limits>
+
+  <latency_time>0.003</latency_time>
+
+  <channel type="tango" tangoname="bl13/ct/variables" name="beamx">beamx</channel>
+  <channel type="tango" tangoname="bl13/ct/variables" name="beamy">beamy</channel>
+
+  <channel type="tango" tangoname="Eugap" name="eugap">Position</channel>
+
+</object>

@@ -1,0 +1,7 @@
+<equipment class="ALBAMachineInfo">
+    <username>Mach</username>
+    <taurusname>mach/ct/gateway</taurusname>
+    <channel type="sardana" name="MachStatus" polling="1000">State</channel>
+    <channel type="sardana" name="MachCurrent" polling="1000">Current</channel>
+    <channel type="sardana" name="TopUpRemaining" polling="1000">TopUpRemaining</channel>
+</equipment>

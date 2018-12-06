@@ -1,0 +1,91 @@
+<mirror_align>
+
+  <MIRROR_PARS>
+    <type>toroidal</type>
+    <calculation_server>id23/calc/1</calculation_server>
+    <count_time>0.1</count_time>
+    <spec_eh>lid232:eh1</spec_eh>
+  </MIRROR_PARS>
+
+  <MIRROR_MOTORS>
+    <slit_hgap>sshg</slit_hgap>
+    <slit_vgap>ssvg</slit_vgap>
+    <height>torh</height>
+    <tilt>tory</tilt>
+    <yaw>yaw</yaw>
+    <bender>mben</bender>
+    <translation>mtt</translation>
+  </MIRROR_MOTORS>
+
+  <MIRROR_EH_MOTORS>
+    <tableheight>thgt</tableheight>
+    <tabletrans>ttr</tabletrans>
+    <slitbox_s1v>s1v</slitbox_s1v>
+    <slitbox_s1h>s1h</slitbox_s1h>
+    <zoom>zoom</zoom>
+  </MIRROR_EH_MOTORS>
+
+  <MIRROR_FILTERS>
+    <!-- motors to move to set mirror filters (all empty + yag screens in) -->
+    <wbv>0</wbv>
+    <att1>0</att1>
+    <att2>0</att2>
+    <mbv1>5.2</mbv1>
+    <mbv2>1.05</mbv2>
+    <dm2in>0</dm2in>
+  </MIRROR_FILTERS>
+
+  <MIRROR_PREALIGN>
+    <cam_server>id23/meteor2/2</cam_server>
+    <intensity_counter>met2i</intensity_counter>
+    <beamx_counter>met2x</beamx_counter>
+    <beamy_counter>met2y</beamy_counter>
+    <slit_hgap>2</slit_hgap>
+    <slit_vgap>0.1</slit_vgap>
+    <!--
+         the following beam_roi tags define a region of interest to see
+         the reflected beam during the prealignment
+    -->
+    <beam_roi_x1>220</beam_roi_x1>
+    <beam_roi_x2>320</beam_roi_x2>
+    <beam_roi_y1>0</beam_roi_y1>
+    <beam_roi_y2>320</beam_roi_y2>
+    <!--
+         the following beam_roi tags define a region of interest to see
+         the direct beam during the prealignment
+    -->
+    <dbeam_roi_x1>220</dbeam_roi_x1>
+    <dbeam_roi_x2>320</dbeam_roi_x2>
+    <dbeam_roi_y1>100</dbeam_roi_y1>
+    <dbeam_roi_y2>420</dbeam_roi_y2>
+    <!--
+         height alignment
+    -->
+    <height_lineup_start>3</height_lineup_start>
+    <height_lineup_end>-3</height_lineup_end>
+    <!--
+         translation alignment
+    -->
+    <translation_slit_hgap>0.3</translation_slit_hgap>
+    <translation_slit_vgap>0.3</translation_slit_vgap>
+    <translation_edge_scan_start>0.7</translation_edge_scan_start>
+    <translation_edge_scan_end>-0.7</translation_edge_scan_end>
+  </MIRROR_PREALIGN>
+
+  <MIRROR_ALIGN>
+    <cam_server>tango:id23/ge1350c-taco/1</cam_server>
+    <intensity_counter>met3i</intensity_counter>
+    <beamx_counter>met3x</beamx_counter>
+    <beamy_counter>met3y</beamy_counter>
+  </MIRROR_ALIGN>
+
+  <MIRROR_ALIGN_FILTERS>
+    <wbv>0</wbv>
+    <att1>0</att1>
+    <att2>0</att2>
+    <mbv1>5.2</mbv1>
+    <mbv2>5.07</mbv2>
+    <dm2in>0</dm2in>
+  </MIRROR_ALIGN_FILTERS>
+
+</mirror_align>

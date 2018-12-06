@@ -1,0 +1,14 @@
+<object class="EMBLXRFSpectrum">
+  <object hwrid="/attenuators" role="transmission"/>
+  <object hwrid="/energy" role="energy"/>
+  <object hwrid="/beam-info" role="beam_info"/>
+  <object hwrid="/dbconnection" role="dbserver"/>
+
+  <command type="tine" name="cmdSpectrumStart" tinename="/P14/fluorescence-scan/fls-scan">get-spectrum</command>
+  <channel type="tine" name="chanSpectrumStatus" tinename="/P14/fluorescence-scan/fls-scan">status</channel>
+  <channel type="tine" name="chanSpectrumConsts" tinename="/P14/fluorescence-scan/fls-scan">calibration-consts</channel>
+  <command type="tine" name="cmdAdjustTransmission" tinename="/P14/fluorescence-scan/fls-scan">find-transmission</command>
+
+  <configFile>/opt/embl-hh/etc/p14/app/mxcube/HardwareObjects.xml/p14_pymca_config.cfg</configFile>
+
+</object>

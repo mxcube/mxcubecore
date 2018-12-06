@@ -1,0 +1,10 @@
+<device class="SOLEILShutter">
+  <username>FrontEnd</username>
+
+  <tangoname>tdl-i10-c/vi/tdl.1</tangoname>
+
+  <channel type="tango" polling="1000" name="State">State</channel>
+  <command type="tango" name="Open">Open</command>
+  <command type="tango" name="Close">Close</command>
+</device>
+

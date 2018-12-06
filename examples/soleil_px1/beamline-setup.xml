@@ -1,0 +1,96 @@
+<!-- Example beamline setup file -->
+<object class="BeamlineSetup" role="BeamlineSetup">
+  <!-- Objects directly associatd with hardware -->
+
+<!-- Beamline configuration used at PX1 -->
+  <object href="/px1configuration"   role="configuration"/>
+
+  <object href="/fastshut" role="fast_shutter"/>
+  <object href="/attenuators_pslits" role="transmission"/>
+  <object href="/minidiff" role="diffractometer"/>
+  <object href="/beamstop" role="beamstop"/>
+  <object href="/safety_shutter" role="safety_shutter"/>
+  <object href="/omega" role="omega_axis"/>
+  <object href="/chi" role="kappa_axis"/>
+  <object href="/phi" role="kappa_phi_axis"/>
+  <object href="/cryotong" role="sample_changer"/>    
+  <object href="/resolution" role="resolution"/>
+  <object href="/energy" role="energy"/>
+  <object href="/energyscan" role="energyscan"/>
+  <object href="/beam-info" role="beam_info"/>
+  <object href="/dbconnection" role="lims_client"/>
+  <object href="/lims-rest" role="lims_rest_client"/>
+  <object href="/cryotong" role="sample_changer"/>
+  <object href="/session" role="session"/>
+  <object href="/mach" role="mach_info"/>
+<!--OBJECTS NOT PROPERLY USED OR ASSIGNED. EVENTUALLY TO REMOVE.-->
+  <!--object href="/plate-manipulator" role="plate_manipulator"/-->
+  <!--object href="/parallel_processing" role="parallel_processing"/-->
+
+  <!-- Software (abstract) concepts -->
+  <object href="/Qt4_graphics-manager" role="shape_history"/>
+  <object href="/ednaparams" role="workflow"/>
+  <object href="/data-analysis" role="data_analysis"/>
+  <!--<object href="/workflow-mockup" role="workflow"/> -->
+ 
+  <!-- Procedures and routines -->
+  <object href="/mxcollect" role="collect"/> 
+  <object href="/pilatus" role="detector"/>
+
+  <!-- Is it possible to change the beam wavelentgh.
+       Should perhaps be associated with the diffractometer -->
+  <tunable_wavelength>True</tunable_wavelength>
+
+  <!-- Disables or enables the number of passes input box, used
+  for acquisitions.-->
+  <disable_num_passes>False</disable_num_passes>
+
+  <!-- Default values for an acquisition -->
+  <default_acquisition_values>
+    <exposure_time>0.1</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>0.1</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>1</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_acquisition_values>
+
+  <!-- Default values for a characterization -->
+  <default_characterisation_values>
+    <exposure_time>1</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>1</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>1</number_of_images>
+    <detector_mode>1</detector_mode>
+  </default_characterisation_values>
+
+  <!-- Default values for a mesh -->
+  <default_mesh_values>
+    <exposure_time>10</exposure_time>
+    <start_angle>0.0</start_angle>
+    <range>10</range>
+    <number_of_passes>1</number_of_passes>
+    <start_image_number>1</start_image_number>
+    <run_number>1</run_number>
+    <overlap>0</overlap>
+    <number_of_images>1</number_of_images>
+    <detector_mode>1</detector_mode>
+    <cell_counting>inverse-zig-zag</cell_counting>
+    <cell_spacing>vertical,horizontal</cell_spacing>
+    <mesh_center>top-left</mesh_center>
+  </default_mesh_values>
+
+   <!-- Limit values for an acquisition -->
+  <acquisition_limit_values>
+    <exposure_time>0.01,10</exposure_time>
+    <osc_range>0.0,760</osc_range>
+    <number_of_images>1,10000</number_of_images>
+  </acquisition_limit_values>
+ </object>

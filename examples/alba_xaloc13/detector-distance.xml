@@ -1,0 +1,7 @@
+<device class="SardanaMotor">
+  <username>Detector Distance</username>
+  <taurusname>detsamdis</taurusname>
+  <motor_name>Detector Distance</motor_name>
+  <guistep>45</guistep>
+  <!-- interval>500</interval -->
+</device>

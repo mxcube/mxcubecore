@@ -1,0 +1,5 @@
+<device class = "SpecMotor">
+  <username>Back Hor Offset</username>
+  <specname>t2h</specname>
+  <specversion>lid292:exp</specversion>
+</device>

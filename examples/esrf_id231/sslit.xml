@@ -1,0 +1,23 @@
+<equipment>
+  <username>Sec Slit</username>
+  <motors>
+    <pseudo>
+      <device hwrid="/oh1/ssvo"/>
+      <device hwrid="/oh1/ssvg"/>
+      <device hwrid="/oh1/ssho"/>
+      <device hwrid="/oh1/sshg"/>
+    </pseudo>
+    <real>
+      <device hwrid="/oh1/ssu"/>
+      <device hwrid="/oh1/ssd"/>
+      <device hwrid="/oh1/ssf"/>
+      <device hwrid="/oh1/ssb"/>
+    </real>
+  </motors>
+  <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

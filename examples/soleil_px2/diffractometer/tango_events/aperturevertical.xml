@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <motor_name>ApertureVertical</motor_name>
+    <username>ApertureVertical</username>
+    <direction>1</direction>
+    <GUIstep>0.025</GUIstep>
+    <channel type="tango" polling="events" name="ApertureVerticalPosition">ApertureVerticalPosition</channel>
+    <channel type="tango" polling="events" name="ApertureVerticalState">ApertureVerticalState</channel>
+    <channel type="tango" polling="events" name="motor_states">MotorStates</channel>
+    <command type="tango" polling="events" name="abort">abort</command>
+    <command type="tango" polling="events" name="homing">startHomingMotor</command>
+    <command type="tango" polling="events" name="getApertureVerticalDynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" polling="events" name="get_limits">getMotorLimits</command>
+    <command type="tango" polling="events" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

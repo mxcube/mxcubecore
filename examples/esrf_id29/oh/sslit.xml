@@ -1,0 +1,20 @@
+<equipment>
+  <username>Secondary Slits</username>
+  <specname>id29:oh</specname>
+  <motors>
+    <blades>
+      <device hwrid="./motors/ssvo" role="vo"/>
+      <device hwrid="./motors/ssvg" role="vg"/>
+      <device hwrid="./motors/ssho" role="ho"/>
+      <device hwrid="./motors/sshg" role="hg"/>
+    </blades>
+    <slits>
+      <device hwrid="./motors/ssl" role="left"/>
+      <device hwrid="./motors/ssr" role="right"/>
+      <device hwrid="./motors/ssd" role="down"/>
+      <device hwrid="./motors/ssu" role="up"/>
+    </slits>
+  </motors>
+  <realmotor>left right down up</realmotor>
+  <macromotor>vo ho vg hg</macromotor>
+</equipment>

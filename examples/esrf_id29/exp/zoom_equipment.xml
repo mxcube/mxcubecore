@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment class="MultiplePositions">
+  <username>Zoom </username>
+  <amplitude>10</amplitude>
+  <motors>
+    <device role="zoom" hwrid="/exp/zoom"></device>
+  </motors>
+  <deltas>
+    <zoom>0.1</zoom>
+  </deltas>
+  <positions>
+    <position>
+      <name>zoom 1</name>
+      <zoom>1</zoom>
+      <resox>3.69e-06</resox>
+      <resoy>3.709e-06</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 2</name>
+      <zoom>2</zoom>
+      <resox>2.854e-06</resox>
+      <resoy>2.878e-06</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 3</name>
+      <zoom>3</zoom>
+      <resox>2.177e-06</resox>
+      <resoy>2.198e-06</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 4</name>
+      <zoom>4</zoom>
+      <resox>1.646e-06</resox>
+      <resoy>1.663e-06</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 5</name>
+      <zoom>5</zoom>
+      <resox>1.234e-06</resox>
+      <resoy>1.252e-06</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 6</name>
+      <zoom>6</zoom>
+      <resox>9.38e-07</resox>
+      <resoy>9.5e-07</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 7</name>
+      <zoom>7</zoom>
+      <resox>7.08e-07</resox>
+      <resoy>7.21e-07</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 8</name>
+      <zoom>8</zoom>
+      <resox>5.38e-07</resox>
+      <resoy>5.47e-07</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 9</name>
+      <zoom>9</zoom>
+      <resox>4.1e-07</resox>
+      <resoy>4.15e-07</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+    <position>
+      <name>zoom 10</name>
+      <zoom>10</zoom>
+      <resox>3.53e-07</resox>
+      <resoy>3.6e-07</resoy>
+      <beamx>384</beamx>
+      <beamy>288</beamy>
+    </position>
+  </positions>
+</equipment>

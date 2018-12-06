@@ -1,0 +1,8 @@
+<equipment class="EMBLImageTracking">
+   <channel type="tine" name="chanImageTrackingEnabled" tinename="/PE2/image-tracker/img-tracker" attach="datachange" timeout="100">load-state</channel>
+   <channel type="tine" name="chanFilterFramesEnabled" tinename="/PE2/image-tracker/img-tracker" attach="datachange">filter</channel>
+   <channel type="tine" name="chanState" tinename="/PE2/image-tracker/img-tracker" attach="datachange" timeout="100">status</channel>
+
+   <command type="tine" name="cmdLoadImage" tinename="/PE2/image-tracker/img-tracker">load</command>
+</equipment>
+

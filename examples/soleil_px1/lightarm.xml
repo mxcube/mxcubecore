@@ -1,0 +1,20 @@
+<device class="PX1TangoLight">
+    <username>Light Arm</username>
+    <offset>0</offset>
+    <channel type="tango" name="attributeName" tangoname="i10-c-cx1/ex/light.1-pos" polling="1000">isInserted</channel>
+    <command type="tango" tangoname="i10-c-cx1/ex/light.1-pos" name="set_in">Insert</command>
+    <command type="tango" tangoname="i10-c-cx1/ex/light.1-pos" name="set_out">Extract</command>
+    <!-- px1environment_dev>i10-c-cx1/ex/px1environment</px1environment_dev -->
+    <!-- light_dev>i10-c-cx1/ex/light.1</light_dev -->
+
+    <object href="/px1environment" role="px1environment" />
+    <object href="/zoom" role="zoom" />
+    <object href="/light" role="intensity" />
+</device>
+
+
+
+
+
+
+

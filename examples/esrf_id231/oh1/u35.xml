@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Undulator</username>
+  <specname>u35</specname>
+  <specversion>basil:oh1</specversion>
+  <GUIstep>1.000</GUIstep>
+</device>

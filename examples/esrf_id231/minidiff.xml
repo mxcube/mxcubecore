@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment class="MiniDiff">
+  <username>Diffractometer</username>
+  <autoCentering>
+    <debugLevel>1</debugLevel>
+    <!--<centring_server>id23/mxautocentring/1</centring_server>-->
+    <centring_server>http://localhost:23641</centring_server>
+    <c3d>/users/blissadm/applications/c3d/c3d_search</c3d>
+    <imagesFolder>/data/pyarch/id23eh1/C3D/input_images</imagesFolder>
+    <archiveFolder>/data/pyarch/id23eh1/C3D/archive_images</archiveFolder>
+    <outputFolder>/users/blissadm/applications/c3d/output</outputFolder>
+    <statsFile>/users/blissadm/log/Mxautocentring_stats.log</statsFile>
+    
+    
+    <calibrationMacro>minidiff_take_backgrounds</calibrationMacro>
+    <maxhmove>1.3</maxhmove>
+    <maxvmove>1.3</maxvmove> 
+    <maxNoise>50</maxNoise>
+    <maxBackgroundDrift>8</maxBackgroundDrift>
+    <cryoShadowMargin>80</cryoShadowMargin> 
+    <ringMargin>35</ringMargin> 
+    <phiyDirection>1</phiyDirection>
+    <beamline>id23eh1</beamline>
+    <allowPlayback>1</allowPlayback>
+    <targetLoopCentre>1</targetLoopCentre>
+    <doLoopSearch>1</doLoopSearch>
+    <doCrystalDetection>1</doCrystalDetection>
+    <referencePosition>
+      <phiz delta="0.01">1.432</phiz>
+      <phiy delta="0.01">22.6</phiy>
+      <focus delta="0.01">-0.38</focus>
+      <bstopz delta="0.01">-60</bstopz>
+      <sampx delta="0.01">0</sampx>
+      <sampy delta="0.01">0</sampy>
+      <zoom delta="0.01">0</zoom>
+    </referencePosition>
+  </autoCentering>
+  <referencePosition>
+    <phi delta="0.1">0.00171875</phi>
+    <phiz delta="0.01">1.60007</phiz>
+    <zoom delta="0.01"></zoom>
+    <light delta="0.01"></light>
+    <focus delta="0.01">-0.00984444</focus>
+    <phiy delta="0.01">21.9068</phiy>
+    <sampx delta="0.01">0.413196</sampx>
+    <sampy delta="0.01">0</sampy>
+    <bstopz delta="0.01">-80.25</bstopz>
+  </referencePosition>
+  <referencePositionWithKappa>
+    <phi delta="0.1">355</phi>
+    <phiz delta="0.01">1.43862</phiz>
+    <zoom delta="0.01"></zoom>
+    <light delta="0.01"></light>
+    <focus delta="0.01">-0.399289</focus>
+    <phiy delta="0.01">23.0719</phiy>
+    <sampx delta="0.01">-0.265687</sampx>
+    <sampy delta="0.01">-0.354207</sampy>
+    <bstopz delta="0.01">-79.9983</bstopz>
+    <r_kap1 delta="0.01">0</r_kap1>
+    <r_kap2 delta="0.01">0</r_kap2>
+  </referencePositionWithKappa>
+  <resetPosition>
+    <phiz>-1.3986</phiz>
+    <focus>-3.5724</focus>
+    <phiy>27.2167</phiy>
+    <sampx>-2.5210</sampx>
+    <sampy>2.268</sampy>
+  </resetPosition>
+  <device role="camera" hwrid="/ccd/ge1350c"></device>
+  <motors>
+  <phi-shutter>
+      <device role="phi" hwrid="/eh1/phi"></device>
+      <device role="phiz" hwrid="/eh1/phiz"></device>  
+      <device hwrid="/eh1/shuty"></device>
+      <device hwrid="/eh1/shutz"></device>
+      <device hwrid="/eh1/shut"></device>
+  </phi-shutter>
+  <sample>
+      <device role="zoom" hwrid="/eh1/zoom"></device>
+      <device role="light" hwrid="/eh1/light"></device>
+      <device role="flight" hwrid="/eh1/flight"></device>
+      <device role="focus" hwrid="/eh1/focus"></device>
+      <device role="phiy" hwrid="/eh1/length"></device>  
+      <device role="sampx" hwrid="/eh1/sampx"></device>
+      <device role="sampy" hwrid="/eh1/sampy"></device>
+      <device role="kappa" hwrid="/eh1/kap1"></device>
+      <device role="kappa_phi" hwrid="/eh1/kap2"></device>
+  </sample>
+  <others>
+      <device hwrid="/eh1/bstopy"></device>
+      <device role="bstopz" hwrid="/eh1/bstopz"></device>  
+      <device hwrid="/eh1/DtoX"></device>  
+  </others>
+  </motors>
+  <aperture>/apzy</aperture>
+  <samplechanger>/sc</samplechanger>
+  <wagolight>/wago/light</wagolight>
+  <channel version="lid232:eh1" type="spec" name="auto_centring_flag">AUTO_CENTRING_FLAG</channel>
+  <channel version="lid232:eh1" type="spec" name="auto_loop_centring_enabled">ENABLE_AUTO_LOOP_CENTRING</channel>
+  <channel version="lid232:eh1" type="spec" name="auto_crystal_centring_enabled">ENABLE_AUTO_CRYSTAL_CENTRING</channel>
+  <channel version="lid232:eh1" type="spec" name="playback_centring_enabled">ENABLE_PLAYBACK_CENTRING</channel>
+  <command version="lid232:eh1" type="spec" name="getBeamInfo">getMxBeamInfo</command>
+  <command type="spec" version="lid232:eh1" name="phi_init">phi_init</command>
+</equipment>

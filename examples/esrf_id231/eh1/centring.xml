@@ -1,0 +1,9 @@
+<equipment>
+    <motors>
+           <device role="vertical"     hwrid="/eh1/sampy"/>
+           <device role="inBeam"      hwrid="/eh1/sampx"/>
+           <device role="rotation"      hwrid="/eh1/phi"/>
+           <device role="table_y"     hwrid="/eh1/phiy"/>
+           <device role="table_z"     hwrid="/eh1/phiz"/>
+    </motors>
+</equipment>

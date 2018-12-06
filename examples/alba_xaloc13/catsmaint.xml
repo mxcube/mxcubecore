@@ -1,0 +1,23 @@
+<equipment class = "ALBACatsMaint">
+  <username>CatsMaint</username>
+  <tangoname>bl13/eh/cats</tangoname>    
+  
+  <!--  COMMANDS -->
+
+  <channel type="tango" tangoname="bl13/eh/diff" name="shifts">MountingPosition</channel>
+
+  <command type="tango" tangoname="bl13/eh/supervisor" name="super_abort">Abort</command>
+
+  <command type="tango" name="_cmdCalibration">calibration</command>
+  <command type="tango" name="_cmdPanic">panic</command>
+  <command type="tango" name="_cmdPause">pause</command>
+  <command type="tango" name="_cmdRestart">restart</command>
+  <command type="tango" name="_cmdSendOperation">send_op_cmd</command>
+
+  <!--  CHANNELS -->
+
+  <channel type="tango" name="_chnBarcode" polling="2000">Barcode</channel>
+  <channel type="tango" name="_chnAtHome" polling="2000">do_PRO6_RAH</channel>
+
+</equipment>
+

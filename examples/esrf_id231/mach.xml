@@ -1,0 +1,8 @@
+<device class = "MachCurrent">
+  <username>Mach</username>
+  <tangoname>orion:10000/fe/id/23</tangoname>
+  <channel type="tango" name="OperatorMsg" polling="2000">SR_Operator_Mesg</channel>
+  <channel type="tango" name="Current" polling="2000">SR_Current</channel>
+  <channel type="tango" name="FillingMode" polling="2000">SR_Filling_Mode</channel>
+  <channel type="tango" name="RefillCountdown" polling="2000">SR_Refill_Countdown</channel>
+</device>

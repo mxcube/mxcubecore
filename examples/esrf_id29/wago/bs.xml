@@ -1,0 +1,8 @@
+<device class = "WagoPneu">
+  <username></username>
+  <specversion>lid292:exp</specversion>
+  <wagoidin>bsin</wagoidin>
+  <wagoidout>bsout</wagoidout>
+  <readmode>command</readmode>
+  <interval>5100</interval>
+</device>
