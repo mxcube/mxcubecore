@@ -9,4 +9,5 @@
   <object href="/resolution-mockup" role="resolution"/>
 
   <object href="/mach-info-mockup" role="machine_info"/>
+  <object href="/plate-manipulator" role="plate_manipulator"/>
 </object>
