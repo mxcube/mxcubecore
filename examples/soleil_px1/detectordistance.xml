@@ -1,0 +1,17 @@
+<device class="PX1DetectorDistance">
+
+  <username>Detector Distance</username>
+
+  <tangoname>i10-c-cx1/dt/detdist.1-control</tangoname>
+
+  <channel type="tango" polling="1000" name="position">position</channel>
+  <channel type="tango" polling="1000" name="state">State</channel>
+  <channel type="tango" polling="1000" name="minimum_distance">distanceMin</channel>
+
+  <command type="tango" name="dist2res">CalculateResolutionFromDistance</command>
+  <command type="tango" name="res2dist">CalculateDistanceFromResolution</command>
+
+  <command type="tango" name="stop">Stop</command>
+
+  <interval>1000</interval>
+</device>

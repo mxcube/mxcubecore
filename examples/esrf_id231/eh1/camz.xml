@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Camera Vert</username>
+  <specname>camz</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

@@ -1,0 +1,7 @@
+<object class="EMBLCRL">
+  <command type="tine" name="cmdSetLenses" tinename="/P14/p14CRLs.CDI/LensOut">SEND</command>
+  <command type="tine" name="cmdSetTrans" tinename="/P14/p14CRLs.CDI/SetTrans">SEND</command> 
+  <channel type="tine" name="chanCrlValue" tinename="/P14/P14CRLs.CDI/LensInBeamLimit" size="6">RECV</channel>
+  <object hwrid="/energy" role="energy"/>
+  <focal_length>28.0</focal_length>
+</object>

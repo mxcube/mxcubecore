@@ -1,0 +1,9 @@
+<device class="MjpgStreamVideo"> 
+    <interval>10</interval>
+    <host>haspp11camsrv</host>
+    <port>8081</port>
+    <width>680</width>
+    <height>512</height>
+    <fliph>1</fliph>
+    <flipv>0</flipv>
+</device>

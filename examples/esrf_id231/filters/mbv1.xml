@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Mon Beam V1</username>
+   <motor>/oh1/mbv1</motor>
+   <filter>
+     <username>Pt</username>
+     <offset>0.15</offset>
+   </filter>
+   <filter>
+     <username>yag</username>
+     <offset>1.1</offset>
+   </filter>
+   <filter>
+     <username>Empty</username>
+     <offset>2.35</offset>
+   </filter>
+   <filter>
+     <username>Cu</username>
+     <offset>2.85</offset>
+   </filter>
+   <filter>
+     <username>Fe</username>
+     <offset>3.15</offset>
+   </filter>
+   <filter>
+     <username>Zr</username>
+     <offset>3.80</offset>
+   </filter>
+   <filter>
+     <username>Mo</username>
+     <offset>4.36</offset>
+   </filter>
+   <filter>
+     <username>Diode</username>
+     <offset>5.2</offset>
+   </filter>
+</device>

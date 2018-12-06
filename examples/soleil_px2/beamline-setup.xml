@@ -1,0 +1,100 @@
+<object class="BeamlineSetup">
+    <!-- Objects directly associatd with hardware -->
+    <object href="/diffractometer/diffractometer" role="diffractometer"/>
+    <object href="/diffractometer/omega" role="omega_axis"/>
+    <object href="/diffractometer/kappa" role="kappa_axis"/>
+    <object href="/diffractometer/phi" role="kappa_phi_axis"/>
+    <object href="/singleton_objects/cats" role="sample_changer"/>    
+    <object href="/singleton_motors/resolution" role="resolution"/>
+    <object href="/singleton_motors/photon_energy" role="energy"/>
+    <object href="/singleton_motors/transmission" role="transmission"/>
+
+    <!-- Software (abstract) concepts -->
+    <object href="/singleton_objects/beaminfo_exporter" role="beam_info"/>
+    <object href="/singleton_objects/Qt4_graphics-manager" role="shape_history"/>
+    <object href="/singleton_objects/session" role="session"/>
+    <object href="/singleton_objects/dbconnection" role="lims_client"/>
+    <object href="/singleton_objects/data-analysis" role="data_analysis"/>
+    
+    <!-- Procedures and routines -->
+    <object href="/mockups/energyscan-mockup" role="energyscan"/>
+    <object href="/experimental_methods/diffraction_methods" role="collect"/>
+    <object href="/singleton_objects/parallel-processing" role="parallel_processing"/>
+    <object href="/mockups/xrf-spectrum-mockup" role="xrf_spectrum"/>
+    <object href="/mockups/detector-mockup" role="detector"/>
+
+    <!-- advanced methods are defined as a list with method names.
+        Each name is then converted to class name.
+        For example Mesh scan -> MeshScan, Xray centring -> XrayCentring
+        and used as a queue_entry. If queue entry is missing
+        then queue skip exception will be raised.
+    -->
+    <advancedMethods>["MeshScan", "XrayCentering", "LineScan"]</advancedMethods>
+
+    <!-- Is it possible to change the beam wavelentgh.
+        Should perhaps be associated with the diffractometer -->
+    <tunable_wavelength>True</tunable_wavelength>
+
+    <!-- Disables or enables the number of passes input box, used
+    for acquisitions.-->
+    <disable_num_passes>True</disable_num_passes>
+
+    <!-- Default values for an acquisition -->
+    <default_acquisition_values>
+        <exposure_time>0.025</exposure_time>
+        <start_angle>0.0</start_angle>
+        <range>0.1</range>
+        <number_of_passes>1</number_of_passes>
+        <start_image_number>1</start_image_number>
+        <run_number>1</run_number>
+        <overlap>0</overlap>
+        <number_of_images>1800</number_of_images>
+        <detector_mode>1</detector_mode>
+    </default_acquisition_values>
+
+    <default_helical_values>
+        <exposure_time>0.025</exposure_time>
+        <start_angle>0.0</start_angle>
+        <range>0.1</range>
+        <number_of_passes>1</number_of_passes>
+        <start_image_number>1</start_image_number>
+        <run_number>1</run_number>
+        <overlap>0</overlap>
+        <number_of_images>1800</number_of_images>
+        <detector_mode>1</detector_mode>
+    </default_helical_values>
+
+    <!-- Default values for a characterization -->
+    <default_characterisation_values>
+        <exposure_time>0.025</exposure_time>
+        <start_angle>0.0</start_angle>
+        <range>0.1</range>
+        <number_of_passes>1</number_of_passes>
+        <start_image_number>1</start_image_number>
+        <run_number>1</run_number>
+        <overlap>-89</overlap>
+        <number_of_images>1</number_of_images>
+        <detector_mode>1</detector_mode>
+        <number_of_wedges></number_of_wedges>
+        <wedge_size>10</wedge_size>
+    </default_characterisation_values>
+
+    <default_advanced_values>
+        <exposure_time>0.025</exposure_time>
+        <start_angle>0.0</start_angle>
+        <range>0.5</range>
+        <number_of_passes>1</number_of_passes>
+        <start_image_number>1</start_image_number>
+        <run_number>1</run_number>
+        <overlap>0</overlap>
+        <number_of_images>100</number_of_images>
+        <detector_mode>1</detector_mode>
+    </default_advanced_values>
+
+    <acquisition_limit_values>
+        <kappa>-9, 240</kappa>
+        <osc_range>-1000,10000</osc_range>
+        <exposure_time>0.00134,6000</exposure_time>
+        <number_of_images>1,99999</number_of_images>
+    </acquisition_limit_values>
+ </object>

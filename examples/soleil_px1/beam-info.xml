@@ -1,0 +1,7 @@
+<device class="PX1BeamInfo">
+   <object href="/zoom" role="zoom" />
+   <tangoname>i10-c-cx1/ex/beamsize</tangoname>
+   <channel type="tango" name="beamsizex" polling="events">sizeX</channel>
+   <channel type="tango" name="beamsizey" polling="events">sizeZ</channel>
+</device>
+

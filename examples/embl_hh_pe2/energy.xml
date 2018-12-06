@@ -1,0 +1,35 @@
+<device class = "EMBLEnergy">
+  <command type="tine" name="cmdSetEnergy" tinename="/P14/Energy/P14Energy">TgtEnergy</command>
+  <channel type="tine" name="chanEnergy" tinename="/P14/Energy/P14Energy">Energy</channel>
+  <channel type="tine" name="chanStatus" tinename="/P14/Energy/P14Energy" attach="datachange" timeout="100">Status</channel>
+  <channel type="tine" name="chanStatusBraggBreak" tinename="/P14/Mono/Device 0">StatusBraggBreak</channel>
+  <channel type="tine" name="chanUndulatorGap" tinename="/P14/Energy/P14Energy">Gap</channel>
+
+  <command type="tine" name="cmdEnergyCtrlByte" tinename="/P14/Energy/P14Energy">EnergyCtrlByte</command>
+  <command type="tine" name="cmdReleaseBreakBragg" tinename="/P14/Mono/Device 0">ReleaseBreakBragg</command>
+  <command type="tine" name="cmdSetBreakBragg" tinename="/P14/Mono/Device 0">SetBreakBragg</command> 
+
+  <tunableEnergy>True</tunableEnergy>
+  <!-- Configuration with undulators -->
+  <ctrlBytes>(5, 15)</ctrlBytes>
+
+  <!-- 
+  if change > 0.1 keV ctrlByte[1]
+  else ctrlByte[0]
+
+  #  1 = 0001 bragg
+  #  2 = 0010 perp
+  #  4 = 0100 undulator
+  #  5 = 0101 undulator, bragg
+  #  8 = 1000 roll
+  # 11 = 1011 roll, perp, bragg
+  # 15 = 1111 all motors
+
+  -->
+
+  <!-- Configuration without using undulators -->
+  <!-- <ctrlytes>(1, 11)</ctrlBytes> -->
+  <!-- <defaultEnergy>12.7</defaultEnergy>  -->
+  <staticLimits>[6.0, 19.0]</staticLimits>
+</device>
+

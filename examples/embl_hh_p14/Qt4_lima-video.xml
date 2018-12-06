@@ -1,0 +1,5 @@
+<device class="Qt4_VimbaVideo"> 
+   <type>Prosilica</type> 
+   <mirror>(True, False)</mirror> 
+   <interval>40</interval>	
+</device>

@@ -1,0 +1,23 @@
+<device class="MotorWPositions">
+    <username>Zoom</username>
+    <motors>
+        <object role="zoom" href="/zoom"></object>
+    </motors>
+    <deltas>
+        <zoom>0.001</zoom>
+    </deltas>
+    <positions>
+        <position>
+            <name>Zoom 0.5</name>
+            <zoom>0.5</zoom>
+        </position>
+        <position>
+            <name>Zoom 1</name>
+            <zoom>1</zoom>
+        </position>
+        <position>
+            <name>Zoom 2</name>
+            <zoom>2</zoom>
+        </position>
+    </positions>
+</device>

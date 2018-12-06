@@ -1,0 +1,5 @@
+<procedure class="LdapLoginMockup">
+  <ldaphost>isis.embl-hamburg.de</ldaphost>
+  <ldapport>389</ldapport> 
+  <ldapstring>ou=people,dc=embl-hamburg,dc=de</ldapstring> 
+</procedure>

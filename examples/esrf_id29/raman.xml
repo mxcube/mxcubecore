@@ -1,0 +1,18 @@
+<equipment>
+  <username>Raman</username>
+  <slitnb>1</slitnb>
+  <motors>
+    <real>
+      <device hwrid="/exp/ramx" role="ramx"/>
+      <device hwrid="/exp/ramy" role="ramy"/>  
+      <device hwrid="/exp/ramz" role="ramz"/>
+    </real>
+  </motors>
+  <specname>lid292:exp</specname>
+  <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

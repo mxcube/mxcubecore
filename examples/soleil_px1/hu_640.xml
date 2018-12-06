@@ -1,0 +1,9 @@
+<device class = "SOLEILUndulator">
+  <username>HU 460</username>
+  <tangoname>ans-c05/ei/l-hu640</tangoname>
+
+  <channel type="tango" name="steptime" polling="2000">stepTimePS1</channel>
+  <channel type="tango" name="current1" polling="2000">currentPS1</channel>
+  <channel type="tango" name="current2" polling="2000">currentPS2</channel>
+  <channel type="tango" name="current3" polling="2000">currentPS3</channel>
+</device>

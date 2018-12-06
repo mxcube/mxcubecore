@@ -1,0 +1,60 @@
+<object class="EMBLCollect">
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/safshut" role="safety_shutter"/>
+  <object href="/beam-info" role="beam_info"/>
+  <object href="/mach-info" role="machine_info"/>
+  <object href="/energy" role="energy"/>
+  <object href="/flux" role="flux"/>
+  <object href="/eh1/detector" role="detector"/>
+  <object href="/eh1/resolution" role="resolution"/>
+  <object href="/attenuators" role="transmission"/>
+  <object href="/auto-processing" role="auto_processing"/>
+  <object href="/dbconnection" role="lims_client"/>
+  <object href="/image-tracking" role="image_tracking"/>
+
+  <channel type="tine" name="collectFrame" tinename="/P13/collection/mx-standard" attach="event">frame</channel>
+  <channel type="tine" name="collectStatus" tinename="/P13/collection/mx-standard" attach="event">status</channel>
+  <channel type="tine" name="collectError" tinename="/P13/collection/mx-standard" attach="event">error</channel> 
+
+  <command type="tine" name="collectDescription" tinename="/P13/collection/mx-standard">description</command>
+  <command type="tine" name="collectDetector" tinename="/P13/collection/mx-standard">detector</command>
+  <command type="tine" name="collectDirectory" tinename="/P13/collection/mx-standard">directory</command>
+  <command type="tine" name="collectEnergy" tinename="/P13/collection/mx-standard">energy</command>
+  <command type="tine" name="collectExposureTime" tinename="/P13/collection/mx-standard">exposure-time</command>
+  <command type="tine" name="collectHelicalPosition" tinename="/P13/collection/mx-standard">helical-position</command>
+  <command type="tine" name="collectInQueue" tinename="/P13/collection/mx-standard">in-queue</command>
+  <command type="tine" name="collectNumImages" tinename="/P13/collection/mx-standard">num-images</command>
+  <command type="tine" name="collectOverlap" tinename="/P13/collection/mx-standard">overlap</command>
+  <command type="tine" name="collectRange" tinename="/P13/collection/mx-standard">range</command>
+  <command type="tine" name="collectRasterLines" tinename="/P13/collection/mx-standard">raster-lines</command>
+  <command type="tine" name="collectRasterRange" tinename="/P13/collection/mx-standard">raster-range</command>
+  <command type="tine" name="collectResolution" tinename="/P13/collection/mx-standard">resolution</command>
+  <command type="tine" name="collectScanType" tinename="/P13/collection/mx-standard">scan-type</command>
+  <command type="tine" name="collectShutter" tinename="/P13/collection/mx-standard">shutter</command>
+  <command type="tine" name="collectShutterless" tinename="/P13/collection/mx-standard">shutterless</command>
+  <command type="tine" name="collectStartAngle" tinename="/P13/collection/mx-standard">start-angle</command>
+  <command type="tine" name="collectStartImage" tinename="/P13/collection/mx-standard">start-image</command>
+  <command type="tine" name="collectTemplate" tinename="/P13/collection/mx-standard">template</command>
+  <command type="tine" name="collectTransmission" tinename="/P13/collection/mx-standard">transmission</command>
+  <command type="tine" name="collectSpaceGroup" tinename="/P13/collection/xds">space-group-symbol</command>
+  <command type="tine" name="collectUnitCell" tinename="/P13/collection/xds">unit-cell</command>
+  <command type="tine" name="collectStart" tinename="/P13/collection/mx-standard">collect</command>
+  <command type="tine" name="collectAbort"   tinename="/P13/collection/mx-standard">abort</command>
+
+  <command type="tine" name="collectXdsDataRange" tinename="/P13/collection/xds">data-range</command>
+
+  <useEDNA>True</useEDNA>
+
+  <input_files_server>localhost:5698</input_files_server>
+  <monochromator>Si(111)</monochromator>
+  <focusing_optic>KB mirrors</focusing_optic>
+  <polarisation>0.99</polarisation>
+  <undulators>
+   <undulator>
+     <type>U29</type>
+     <device_uri></device_uri>
+     <gap_index>0</gap_index>
+    </undulator>
+   </undulators>
+</object>

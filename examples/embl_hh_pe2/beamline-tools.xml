@@ -1,0 +1,25 @@
+<object class="BeamlineTools">
+   <object href="/mini-diff" role="diffractometer"/>
+   <object href="/Qt4_graphics-manager" role="shape_history"/>
+
+   <tools>
+     <tool>
+       <hwobj>diffractometer</hwobj>
+       <display>Park beam stop</display>
+       <method>set_beamstop_park</method>
+       <icon>BeamstopOut</icon>
+     </tool>
+     <tool>
+       <hwobj>diffractometer</hwobj>
+       <display>Set beam stop in beam</display>
+       <method>set_beamstop_beam</method>
+       <icon>BeamstopIn</icon>
+     </tool>
+     <tool>
+       <hwobj>shape_history</hwobj>
+       <display>Save snapshot</display>
+       <method>save_snapshot_with_dialog</method>
+       <icon>Camera</icon>
+     </tool>
+   </tools>
+</object>

@@ -1,0 +1,8 @@
+<device class="InOut">
+  <username></username>
+  <specversion>lid292:exp</specversion>
+  <command type="spec" name="set_out">helical_scan4d_off</command>
+  <command type="spec" name="set_in">helical_scan4d_on</command>
+  <channel type="spec" name="state">HELICAL_SCAN4D</channel>
+  <offset>0</offset>
+</device>

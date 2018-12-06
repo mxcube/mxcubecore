@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <exporter_address>172.19.10.119:9001</exporter_address>
+    <motor_name>CentringTableFocus</motor_name>
+    <username>CentringTableFocus</username>
+    <direction>1</direction>
+    <GUIstep>0.05</GUIstep>
+    <channel type="exporter" name="CentringTableFocusPosition">CentringTableFocusPosition</channel>
+    <channel type="exporter" name="CentringTableFocusState">CentringTableFocusState</channel>
+    <channel type="exporter" name="motor_states">MotorStates</channel>
+    <command type="exporter" name="abort">abort</command>
+    <command type="exporter" name="homing">startHomingMotor</command>
+    <command type="exporter" name="getCentringTableFocusDynamicLimits">getMotorDynamicLimits</command>
+    <command type="exporter" name="get_limits">getMotorLimits</command>
+    <command type="exporter" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

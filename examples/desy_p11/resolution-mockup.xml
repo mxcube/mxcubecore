@@ -1,0 +1,4 @@
+<device class = "ResolutionMockup">
+  <object hwrid="/detector-distance-mockup" role="dtox"/>
+  <object hwrid="/energy-mockup" role="energy"/>
+</device>

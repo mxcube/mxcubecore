@@ -1,0 +1,8 @@
+<device class = "WagoPneu">
+  <username>oav</username>
+  <taconame>id29/wcid29b/wc</taconame>
+  <wagoidin>lightin</wagoidin>
+  <wagoidout>oavi_in</wagoidout>
+  <readmode>command</readmode>
+  <interval>5100</interval>
+</device>

@@ -1,0 +1,70 @@
+<device class="MotorsGroup">
+    <username>P14ExpTbl</username>
+    <serverAddr>/P14/P14ExpTbl</serverAddr>
+    <groupAddr>/ExTblVUp</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>Status</statusAddr>
+    <motors>
+        <motor>
+          <motorName>ExTblVUp</motorName>
+          <motorAddr>ExTblVUp</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>0</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.100</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -0.520, 'Horizontal': -0.520, 'Vertical': 4.075, 'Double': 4.095}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>ExTblHUp</motorName>
+          <motorAddr>ExTblHUp</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>1</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.100</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -0.559, 'Horizontal': -2.559000, 'Vertical': -0.28, 'Double': -2.5590}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>ExTblHDwn</motorName>
+          <motorAddr>ExTblHDwn</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>2</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.100</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 4097, 'Ready': 4096}</statusModes>
+          <focusingModes>{'Unfocused': 0.37, 'Horizontal': -10.759, 'Vertical': -0.28, 'Double': -10.759}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>ExTblVerDwnI</motorName>
+          <motorAddr>ExTblVerDwnI</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>3</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.100</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -0.9, 'Horizontal': -0.90, 'Vertical': 7.942, 'Double': 7.962}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>ExTblVerDwnO</motorName>
+          <motorAddr>ExTblVerDwnO</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>4</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.100</updateTolerance>
+	  <evalTolerance>0.100</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -0.9, 'Horizontal': -0.9, 'Vertical': 7.942, 'Double': 7.962}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

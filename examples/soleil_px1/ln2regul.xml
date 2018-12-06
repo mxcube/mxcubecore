@@ -1,0 +1,6 @@
+<device class="ChannelObject">
+  <username>Cryotong Countdown</username>
+  <tangoname>i10-c-cx1/ex/cats</tangoname>
+  <channel type="tango" name="channel" polling="events">LN2Regulating</channel>
+  <channel type="tango" polling="events" name="state">State</channel>
+</device>

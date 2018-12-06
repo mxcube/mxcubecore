@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Camera Hor</username>
+  <specname>camx</specname>
+  <specversion>lid292:exp</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Shutter Opening</username>
+  <specname>shut</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>1</GUIstep>
+</device>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment class="MultiplePositions">
+  <username>Beamstop</username>
+  <amplitude>80</amplitude>
+  <motors>
+    <device role="vertical" hwrid="/eh1/bstopz"></device>
+    <device role="horizontal" hwrid="/eh1/bstopy"></device>
+  </motors>
+  <deltas>
+    <vertical>0.1</vertical>
+    <horizontal>0.1</horizontal>
+  </deltas>
+  <positions>
+    <position>
+      <name>in</name>
+      <horizontal>0.134611111111</horizontal>
+      <vertical>0.0729277777767</vertical>
+    </position>
+    <position>
+      <name>out</name>
+      <horizontal>0.134611111111</horizontal>
+      <vertical>-79.9270722222</vertical>
+    </position>
+  </positions>
+</equipment>

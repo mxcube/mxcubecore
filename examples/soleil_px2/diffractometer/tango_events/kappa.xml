@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <motor_name>Kappa</motor_name>
+    <username>Kappa</username>
+    <direction>1</direction>
+    <GUIstep>10</GUIstep>
+    <channel type="tango" polling="events" name="KappaPosition">KappaPosition</channel>
+    <channel type="tango" polling="events" name="KappaState">KappaState</channel>
+    <channel type="tango" polling="events" name="motor_states">MotorStates</channel>
+    <command type="tango" polling="events" name="abort">abort</command>
+    <command type="tango" polling="events" name="homing">startHomingMotor</command>
+    <command type="tango" polling="events" name="getKappaDynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" polling="events" name="get_limits">getMotorLimits</command>
+    <command type="tango" polling="events" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

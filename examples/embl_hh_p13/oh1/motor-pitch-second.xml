@@ -1,0 +1,11 @@
+<device class = "TINEMotor">
+  <channel type="tine" name="axisPosition" tinename="/P13/P13Mono/Pitch_2nd">Position</channel>
+  <channel type="tine" name="axisState" tinename="/P13/P13Mono/Pitch_2nd">Status</channel>
+  <command type="tine" name="setPosition" tinename="/P13/P13Mono/Pitch_2nd">MOVE.start</command>
+  <command type="tine" name="setOnline" tinename="/P13/P13Mono/Pitch_2nd">OnLine</command>
+
+  <!-- <GUIstep> -->
+  <username>Pitch 2nd</username>
+  <epsilon>0.0005</epsilon>
+  <stepLimits>[0.0005, 0.001]</stepLimits>
+</device>

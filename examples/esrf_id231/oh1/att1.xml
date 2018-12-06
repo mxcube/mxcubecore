@@ -1,0 +1,5 @@
+<device class = "SpecMotor">
+  <username>att1</username>
+  <specname>att1</specname>
+  <specversion>basil:oh1</specversion>
+</device>

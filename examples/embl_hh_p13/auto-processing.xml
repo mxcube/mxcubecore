@@ -1,0 +1,12 @@
+<object class="EMBLAutoProcessing">
+  <programs>
+    <program>
+      <executable>/opt/embl-hh/bin/edna_queued_autoprocessing.sh</executable>
+      <event>after</event>
+    </program>
+    <program>
+      <executable>/opt/embl-hh/bin/edna_thumbnails.sh</executable>
+      <event>image</event>
+    </program>
+  </programs>
+</object>

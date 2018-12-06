@@ -1,0 +1,7 @@
+<device class="InOut">
+  <username>SafShut</username>
+  <offset>3</offset>
+  <command type="tango" tangoname="id29/v-bsh/1" name="set_out">Close</command>
+  <command type="tango" tangoname="id29/v-bsh/1" name="set_in">Open</command>
+  <channel type="tango" name="state" tangoname="id29/v-bsh/1" polling="1000">State</channel>
+</device>

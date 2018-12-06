@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Vert Back In</username>
+  <specname>tz2</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

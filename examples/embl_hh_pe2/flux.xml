@@ -1,0 +1,4 @@
+<object class="FluxMockup">
+   <object href="/attenuators" role="transmission"/>
+   <object href="/beam-info" role="beam_info"/>
+</object>

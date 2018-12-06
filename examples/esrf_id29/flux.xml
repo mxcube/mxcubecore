@@ -1,0 +1,11 @@
+<device class="PhotonFlux">
+  <username>Photon flux</username>
+  <cnt>i0</cnt>
+  <index>1</index>
+  <channel type="taco" name="counts" taconame="id29/wct_eh/1" polling="3000" compare="False">DevCntReadAll</channel>
+  <channel type="spec" name="calibration" version="lid292:exp">CALIBRATED_DIODE</channel>
+  <object role="aperture" href="/udiff_aperturemot"/> 
+  <channel type="spec" name="flag" version="lid292:exp">FLUX_CALCULATION_FLAG</channel>
+  <device role="shutter" href="/safshut"/>
+  <device role="energy" href="/oh/motors/energy"/>
+</device> 

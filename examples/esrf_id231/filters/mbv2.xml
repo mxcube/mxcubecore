@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Mirror Beam V.</username>
+   <motor>/oh1/mbv2</motor>
+   <filter>
+     <username>yag</username>
+     <offset>1.05</offset>
+   </filter>
+   <filter>
+     <username>Empty</username>
+     <offset>2.5</offset>
+   </filter>
+   <filter>
+     <username>Diode</username>
+     <offset>5.07</offset>
+   </filter>
+</device>

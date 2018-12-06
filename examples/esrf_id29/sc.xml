@@ -1,0 +1,35 @@
+<equipment class = "ESRFSC3">
+  <username>Sample Changer</username>
+  
+  <!-- SC3 commands and channels -->
+  <exporter_address>pcsc3-id29:9001</exporter_address>    
+  <channel type="exporter" name="_state">State</channel>
+  <channel type="exporter" name="_selected_basket">SelectedBasketLocation</channel>
+  <channel type="exporter" name="_selected_sample">SelectedSampleLocation</channel>
+  <command type="exporter" name="_abort">Abort</command>
+  <command type="exporter" name="_getInfo">GetInformationAsXml</command>
+  <command type="exporter" name="_is_task_running">isTaskRunning</command>
+  <command type="exporter" name="_check_task_result">checkTaskResult</command>
+  <command type="exporter" name="_load">LoadSample</command>
+  <command type="exporter" name="_unload">UnLoadSample</command>
+  <command type="exporter" name="_chained_load">ChainedLoadSample</command>
+  <command type="exporter" name="_set_sample_charge">SetBasketTransferMode</command>
+  <command type="exporter" name="_scan_basket">ScanBasketForDatamatrix</command>
+  <command type="exporter" name="_scan_samples">ScanSamplesForDatamatrix</command>
+  <command type="exporter" name="_select_sample">MoveSampleLocation</command>
+  <command type="exporter" name="_select_basket">MoveBasketLocation</command>
+  <command type="exporter" name="_reset">Reset</command>
+  <command type="exporter" name="_reset_basket_info">ResetBasketInformation</command>
+
+  <!-- spec commands and channels -->
+  <specversion>lid292:exp</specversion>
+  <command type="spec" name="_moveToLoadingPosition">SCMoveToLoadingPos</command>
+  <command type="spec" name="_moveToUnloadingPosition">SCMoveToUnloadingPos</command>
+  <command type="spec" name="unlockMinidiffMotors">SCMinidiffGetControl</command>
+  <command type="spec" name="prepareCentring">minidiff_prepare_centring</command>
+  <channel type="spec" name="OperationalFlags">SC_MD_FLAGS</channel>
+
+  <!-- other related hardware from minidiff --> 
+  <device hwrid="/wago/cryo"  role="Cryo"/>
+  <device hwrid="/udiff_light" role="Light"/>
+</equipment>

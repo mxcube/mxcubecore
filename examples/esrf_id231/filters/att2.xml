@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Axis 2</username>
+   <motor>/oh1/att2</motor>
+   <filter>
+     <username>Empty</username>
+     <offset>0</offset>
+   </filter>
+   <filter>
+     <username>Al 0.3</username>
+     <offset>1</offset>
+   </filter>
+   <filter>
+     <username>Al 0.5</username>
+     <offset>2</offset>
+   </filter>
+   <filter>
+     <username>Al 0.93</username>
+     <offset>3</offset>
+   </filter>
+   <filter>
+     <username>Al 1.87</username>
+     <offset>4</offset>
+   </filter>
+   <filter>
+     <username>Al 2.71</username>
+     <offset>5</offset>
+   </filter>
+</device>

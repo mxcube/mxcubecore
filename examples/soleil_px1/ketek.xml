@@ -1,0 +1,19 @@
+<device class="Ketek">
+
+   <tangoname>i10-c-cx1/dt/ketek.2</tangoname>
+
+   <default_channel>2</default_channel>
+   <peakingtime>2.5</peakingtime>
+   <presettype>'FIXED_REAL'</presettype>
+
+   <calib_a>0.0</calib_a>
+   <calib_b>0.01</calib_b>
+   <calib_c>0.0</calib_c>
+
+   <commandlogic>direct</commandlogic>
+
+   <command type="tango" name="insert" tangoname="i10-c-cx1/dt/dtc_sdd.1-pos">Insert</command>
+   <command type="tango" name="extract" tangoname="i10-c-cx1/dt/dtc_sdd.1-pos">Extract</command>
+
+</device>
+

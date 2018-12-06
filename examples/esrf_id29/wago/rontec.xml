@@ -1,0 +1,8 @@
+<device class = "WagoPneu">
+  <username>RONTEC</username>
+  <taconame>id29/wcid29b/wc</taconame>
+  <wagoidin>fldin</wagoidin>
+  <wagoidout>fldbck</wagoidout>
+  <readmode>command</readmode>
+  <interval>2222</interval>
+</device>

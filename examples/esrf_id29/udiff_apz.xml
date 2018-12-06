@@ -1,0 +1,5 @@
+<device class="MicrodiffMotor">
+  <username>apz</username>
+  <exporter_address>microdiff29new:9001</exporter_address>
+  <motor_name>ApertureVertical</motor_name>
+</device>

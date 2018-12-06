@@ -1,0 +1,33 @@
+<procedure>
+ <specversion>lid292:exp</specversion>
+ <command>
+    <type>spec</type>
+    <name>Execute</name>
+    <argument>
+      <name></name>
+      <type>combo
+        <item>
+             <name>Save Final Position</name>
+             <value>2</value>
+        </item>
+        <item>
+             <name>Save Start Position</name>
+             <value>1</value>
+        </item>
+        <item>
+             <name>Go To Final Position</name>
+             <value>22</value>
+        </item>
+        <item>
+             <name>Go To Start Position</name>
+             <value>11</value>
+        </item>
+        <item>
+             <name>Reset All Positions</name>
+             <value>99</value>
+        </item>
+      </type>
+    </argument>
+    <toexecute>helical_getpos</toexecute>
+ </command>
+</procedure>

@@ -1,0 +1,23 @@
+<equipment>
+  <username>Slitbox</username>
+  <motors>
+  <back>
+      <device hwrid="/eh1/s2v" role="s2v"/>
+      <device hwrid="/eh1/t2v" role="t2v"/>  
+      <device hwrid="/eh1/s2h" role="s2h"/>  
+      <device hwrid="/eh1/t2h" role="t2h"/>  
+  </back>
+  <front>
+      <device hwrid="/eh1/s1v" role="s1v"/>
+      <device hwrid="/eh1/t1v" role="t1v"/>
+      <device hwrid="/eh1/s1h" role="s1h"/>
+      <device hwrid="/eh1/t1h" role="t1h"/>
+  </front>
+  </motors>
+  <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

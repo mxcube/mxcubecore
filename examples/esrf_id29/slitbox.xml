@@ -1,0 +1,27 @@
+<equipment>
+  <username>Slitbox</username>
+  <slitnb>2</slitnb>
+  <motors>
+    <slit1>
+      <device hwrid="/exp/s1v" role="s1v"/>
+      <device hwrid="/exp/t1v" role="t1v"/>  
+      <device hwrid="/exp/s1h" role="s1h"/>  
+      <device hwrid="/exp/t1h" role="t1h"/>
+      <realmots>t1v t1h</realmots>
+    </slit1>
+    <slit2>
+      <device hwrid="/exp/s2v" role="s2v"/>
+      <device hwrid="/exp/t2v" role="t2v"/>
+      <device hwrid="/exp/s2h" role="s2h"/>
+      <device hwrid="/exp/t2h" role="t2h"/>
+      <realmots>t2v t2h</realmots>
+    </slit2>
+  </motors>
+  <specname>lid292:exp</specname>
+  <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

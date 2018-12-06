@@ -1,0 +1,7 @@
+<device class="SOLEILShutter">
+  <username>OBX</username>
+  <tangoname>i10-c-c03/ex/obx.1</tangoname>
+  <channel type="tango" polling="500" name="State">State</channel>
+  <command type="tango" name="Open">Open</command>
+  <command type="tango" name="Close">Close</command>
+</device>

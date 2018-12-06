@@ -1,0 +1,16 @@
+<object class="ISPyBRestClientMockup">
+  <restRoot>
+   http://195.221.10.20/ispyb/ispyb-ws/ispybWS/
+  </restRoot>
+  <site>
+   ESRF
+  </site>
+  <exi_root>
+   https://your.exi.org
+  </exi_root>
+  <restUserName>abc</restUserName>
+  <restPass>1Spy6@Sun0</restPass>
+
+  <object role="session" href="/session"/>
+
+</object>

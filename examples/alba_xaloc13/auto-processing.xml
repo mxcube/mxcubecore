@@ -1,0 +1,6 @@
+<object class="ALBAAutoProcessing">
+
+  <template_dir>/beamlines/bl13/commissioning/templates</template_dir>
+  <variables_ds>bl13/ct/variables</variables_ds>
+  
+</object>

@@ -1,0 +1,15 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command type="spec" name="Centre beam">centrebeam</command>
+  <command type="spec" name="Quick realign">prodc_quick_realign</command>
+  <command type="spec" name="Take powders">beam_calibration</command>
+  <command>
+    <type>spec</type>
+    <name>Anneal</name>
+    <argument>
+      <name>Time (s.)</name>
+      <type>float</type>
+    </argument>
+    <toexecute>anneal</toexecute>
+  </command>
+</procedure>
