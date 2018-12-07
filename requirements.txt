@@ -1,7 +1,6 @@
 PyDispatcher
 gevent
 suds
-simplejson
 simpleyaml
 enum34
-
+jsonpickle
