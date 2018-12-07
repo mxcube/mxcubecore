@@ -4,8 +4,14 @@ from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from urlparse import urljoin
-from urllib2 import URLError
+try:
+    from urlparse import urljoin
+    from urllib2 import URLError
+except:
+    #Python3
+    from urllib import parse as urlparse
+    from urllib.error import URLError
+
 from suds.sudsobject import asdict
 from suds import WebFault
 from suds.client import Client

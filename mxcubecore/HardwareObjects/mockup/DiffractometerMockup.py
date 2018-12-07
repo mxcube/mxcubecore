@@ -319,10 +319,10 @@ class DiffractometerMockup(GenericDiffractometer):
                     positions.
         """
 
-        print "moving to beam position: %d %d" % (
+        print("moving to beam position: %d %d" % (
             self.beam_position[0],
             self.beam_position[1],
-        )
+        ))
 
     def move_to_coord(self, x, y, omega=None):
         """
