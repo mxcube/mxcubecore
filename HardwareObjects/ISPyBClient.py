@@ -9,7 +9,7 @@ try:
     from urllib2 import URLError
 except:
     #Python3
-    from urllib import parse as urlparse
+    from urllib.parse import urljoin
     from urllib.error import URLError
 
 from suds.sudsobject import asdict
