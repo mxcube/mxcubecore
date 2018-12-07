@@ -12,17 +12,18 @@ sys.path.insert(0, MXCUBE)
 print ("MXCuBE root: %s" % MXCUBE)
 print ("Config path: %s" % HWR_XML_FILES)
 
-from HardwareRepository import HardwareRepository
-
 hwobj_dirs = [HWR_OBJECT_DIR]
 for subdir in ('abstract', 'mockup', 'sample_changer'):
     hwobj_dirs.append(os.path.join(HWR_OBJECT_DIR, subdir))
 
-HardwareRepository.addHardwareObjectsDirs(hwobj_dirs)
+if sys.version_info > (3, 0):
+    from HardwareRepository.HardwareRepository import * 
+else:
+    from HardwareRepository.HardwareRepository import HardwareRepository
 
 @pytest.fixture(scope="session")
 def hwr():
-    hwr = HardwareRepository.HardwareRepository(HWR_XML_FILES)  
+    hwr = HardwareRepository(HWR_XML_FILES)  
     hwr.connect()
     return hwr
 
