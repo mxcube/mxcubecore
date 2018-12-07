@@ -7,7 +7,7 @@ python:
   - "3.6"
 
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION != '2.7' ]]; then travis_retry pip install -r requirements_2.txt; fi
-  - if [[ $TRAVIS_PYTHON_VERSION != '3'* ]]; then travis_retry pip install -r requirements_3.txt; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then travis_retry pip install -r requirements_2.txt; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3'* ]]; then travis_retry pip install -r requirements_3.txt; fi
 script:
   - python -m pytest
