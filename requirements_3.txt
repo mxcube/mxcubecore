@@ -1,2 +1,3 @@
+gevent==1.2.2
 suds-py3
 PyYAML

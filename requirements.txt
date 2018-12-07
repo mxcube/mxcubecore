@@ -1,5 +1,4 @@
 PyDispatcher
-gevent
 jsonpickle
 enum34
 scipy
