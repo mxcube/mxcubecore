@@ -1,0 +1,11 @@
+PyDispatcher
+gevent
+suds
+simplejson
+simpleyaml
+numpy
+scipy
+matplotlib
+pymca
+enum34
+
