@@ -1,9 +1,7 @@
 PyDispatcher
 gevent
-suds
-simpleyaml
-enum34
 jsonpickle
+enum34
 scipy
 numpy
 matplotlib

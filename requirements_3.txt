@@ -1,9 +1,2 @@
-PyDispatcher
-gevent
 suds-py3
 PyYAML
-enum34
-jsonpickle
-scipy
-numpy
-matplotlib
