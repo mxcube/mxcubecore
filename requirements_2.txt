@@ -1,3 +1,9 @@
-gevent
 suds
+gevent
+enum34
+jsonpickle
 simpleyaml
+PyDispatcher
+numpy
+scipy
+matplotlib

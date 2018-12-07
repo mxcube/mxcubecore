@@ -1,6 +1,3 @@
 PyDispatcher
 jsonpickle
 enum34
-scipy
-numpy
-matplotlib
