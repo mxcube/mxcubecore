@@ -4,3 +4,6 @@ suds
 simpleyaml
 enum34
 jsonpickle
+scipy
+numpy
+matplotlib
