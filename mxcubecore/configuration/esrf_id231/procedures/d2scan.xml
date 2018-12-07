@@ -1,0 +1,6 @@
+<procedure class = "Dscan">
+  <username>d2scan</username>
+  <dimension>2</dimension>
+  <command name="start" type="spec">d2scan</command>
+</procedure>
+

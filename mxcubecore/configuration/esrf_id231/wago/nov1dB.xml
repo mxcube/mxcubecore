@@ -1,0 +1,8 @@
+<device class = "WagoCounter">
+  <username>I1</username>
+  <taconame>id23/wcid231d/wc</taconame>
+  <wagoname>i1</wagoname>
+  <gainfactor>100</gainfactor>
+  <interval>1000</interval>
+</device>
+

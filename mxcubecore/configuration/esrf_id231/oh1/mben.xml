@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Bender</username>
+  <specname>mben</specname>
+  <specversion>basil:oh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

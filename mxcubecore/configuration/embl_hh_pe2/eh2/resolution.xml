@@ -1,0 +1,9 @@
+<device class="TINEMotor">
+  <command type="tine" name="setPosition" tinename="/PE2/collection/resolution">move</command>
+  <command type="tine" name="stopAxis" tinename="/PE2/collection/resolution">stop</command>
+  <channel type="tine" name="axisState" tinename="/PE2/collection/resolution">state2</channel>
+  <channel type="tine" name="axisPosition" tinename="/PE2/collection/resolution">position</channel>
+  <channel type="tine" name="axisLimits" tinename="/PE2/collection/resolution">limits</channel>
+  <epsilon>0.0001</epsilon>
+  <verboseUpdate>False</verboseUpdate>
+</device>

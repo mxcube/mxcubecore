@@ -1,0 +1,32 @@
+<object class="EMBLFlux">
+   <object href="/attenuators" role="transmission"/>
+   <object href="/beam-info" role="beam_info"/>
+   <defaultFlux>2.3e+12</defaultFlux>
+
+   <intensity>
+        <shutterOpenValue>opened</shutterOpenValue>
+        <valueOnClose>1e-9</valueOnClose>
+        <initialResolution>1</initialResolution>
+        <updateRelativeTolerance>0.1</updateRelativeTolerance>
+        <acqTimeOnCloseMs>1000</acqTimeOnCloseMs>
+        <acqTimeOnOpenMs>100</acqTimeOnOpenMs>
+        <ranges>
+            <range>
+                <CurMax>2.5e-9</CurMax>
+                <CurOffset>-7.53517e-12</CurOffset>
+                <CurIndex>2</CurIndex>
+            </range>
+            <range>
+                <CurMax>6.4e-6</CurMax>
+                <CurOffset>-1.93238e-08</CurOffset>
+                <CurIndex>1</CurIndex>
+            </range>
+            <range>
+                <CurMax>10e-2</CurMax>
+                <CurOffset>-3.42607e-05</CurOffset>
+                <CurIndex>0</CurIndex>
+            </range>
+        </ranges>
+    </intensity>
+    <amplChannelIndex>0</amplChannelIndex>
+</object>

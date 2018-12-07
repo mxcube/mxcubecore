@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment>
+  <username>Diffractometer</username>
+  <motors>
+  <phi-shutter>
+      <device role="phi" hwrid="/eh1/phi"></device>
+      <device role="phiz" hwrid="/eh1/phiz"></device>  
+      <device hwrid="/eh1/shuty"></device>
+      <device hwrid="/eh1/shutz"></device>
+      <device hwrid="/eh1/shut"></device>
+  </phi-shutter>
+  <sample>
+      <device role="zoom" hwrid="/eh1/zoom"></device>
+      <device role="light" hwrid="/eh1/light"></device>
+      <device role="focus" hwrid="/eh1/focus"></device>
+      <device role="phiy" hwrid="/eh1/length"></device>  
+      <device role="sampx" hwrid="/eh1/sampx"></device>
+      <device role="sampy" hwrid="/eh1/sampy"></device>
+  </sample>
+  <others>
+      <device hwrid="/eh1/bstopy"></device>
+      <device role="bstopz" hwrid="/eh1/bstopz"></device>  
+      <device hwrid="/eh1/DtoX"></device>  
+  </others>
+  </motors>
+</equipment>

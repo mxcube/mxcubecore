@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Front Vert Gap</username>
+  <specname>s1v</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.010</GUIstep>
+</device>

@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Experimental Hutch YAG</username>
+  <specname>ehyag</specname>
+  <specversion>lid292:exp</specversion>
+  <GUIstep>1</GUIstep>
+</device>

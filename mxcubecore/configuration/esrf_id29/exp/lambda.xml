@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Lambda</username>
+  <specname>lambda</specname>
+  <specversion>lid292:exp</specversion>
+  <GUIstep>0.001</GUIstep>
+</device>

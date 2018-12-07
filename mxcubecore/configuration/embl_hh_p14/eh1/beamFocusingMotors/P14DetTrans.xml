@@ -1,0 +1,58 @@
+<device class="MotorsGroup">
+    <username>P14DetTrans</username>
+    <serverAddr>/P14/P14DetTrans</serverAddr>
+    <groupAddr>/P14DetHor1</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>Status</statusAddr>
+    <motors>
+        <motor>
+          <motorName>P14DetHor1</motorName>
+          <motorAddr>P14DetHor1</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>0</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.005</updateTolerance>
+	  <evalTolerance>9990.1005</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused':-79.96, 'Horizontal': -64.15, 'Vertical': -79.79, 'Double': -64.150}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>P14DetHor2</motorName>
+          <motorAddr>P14DetHor2</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>1</index>
+          <velocity>1</velocity>
+          <updateTolerance>0.005</updateTolerance>
+	  <evalTolerance>9990.105</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -75.660, 'Horizontal': -63.100 , 'Vertical': -75.280, 'Double': -63.1}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>P14DetVer</motorName>
+          <motorAddr>P14DetVer</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVe.stop</stopCmd>
+          <index>2</index>
+          <velocity>0.9</velocity>
+          <updateTolerance>0.005</updateTolerance>
+	  <evalTolerance>9990.105</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -10.5, 'Horizontal': -10.500, 'Vertical': 0.0, 'Double': 0.00}</focusingModes>
+        </motor>
+        <motor>
+          <motorName>P14DetTilt</motorName>
+          <motorAddr>P14DetTilt</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>3</index>
+          <velocity>0.1</velocity>
+          <updateTolerance>0.5</updateTolerance>
+	  <evalTolerance>0.5</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -0.065, 'Horizontal': -0.065, 'Vertical': 0.375, 'Double': 0.375}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

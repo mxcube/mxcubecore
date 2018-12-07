@@ -1,0 +1,5 @@
+<device class = "SpecMotor">
+  <username>Back Vert Offset</username>
+  <specname>t2v</specname>
+  <specversion>lid292:exp</specversion>
+</device>

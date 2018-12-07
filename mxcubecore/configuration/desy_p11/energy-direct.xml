@@ -1,0 +1,8 @@
+<device class="SardanaMotor">
+    <username>EnergyDirect</username>
+    <motor_name>EnergyDirect</motor_name>
+    <taurusname>energy</taurusname>
+    <threshold>0.005</threshold>
+    <interval>2000</interval>
+</device>
+

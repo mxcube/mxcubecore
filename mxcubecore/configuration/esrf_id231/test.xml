@@ -1,0 +1,16 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command>
+    <type>spec</type>
+    <name>Click me</name>
+    <toexecute>myfunc</toexecute>
+    <argument>
+      <type>integer</type>
+      <name>A</name>
+    </argument>
+    <argument>
+      <type>float</type>
+      <name>B</name>
+    </argument>
+  </command>
+</procedure>

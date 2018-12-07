@@ -1,0 +1,4 @@
+<device class="MDFastShutter">
+  <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
+  <channel type="exporter" name="chanShutterState">FastShutterIsOpen</channel>
+</device>

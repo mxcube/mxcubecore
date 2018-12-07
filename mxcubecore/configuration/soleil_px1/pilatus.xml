@@ -1,0 +1,26 @@
+<equipment class = "PX1Pilatus">
+
+  <tangoname>i10-c-cx1/dt/pilatus</tangoname>
+
+  <object href="/detectordistance" role="distance_motor" />
+
+  <channel type="tango" polling="500" name="state">State</channel>
+
+  <channel type="tango" name="threshold">threshold</channel>
+  <command type="tango" name="set_energy">SetEnergy</command>
+  <command type="tango" name="set_header">SetMxSettings</command>
+
+  <type>pilatus</type>
+  <model>6M_F</model>
+  <manufacturer>DECTRIS</manufacturer>
+
+  <px>0.172</px>
+  <py>0.172</py>
+
+  <exposure_limits>0.05,100</exposure_limits>
+  <minimum_exposure_time>0.05</minimum_exposure_time>
+  <default_exposure_time>0.10</default_exposure_time>
+
+  <file_suffix>cbf</file_suffix>
+
+</equipment>

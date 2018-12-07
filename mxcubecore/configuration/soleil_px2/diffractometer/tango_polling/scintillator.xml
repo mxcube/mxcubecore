@@ -1,0 +1,17 @@
+<device class="NamedState">
+    <username>Scintillator</username>
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <channel type="tango" polling="1000" name="state">ScintillatorPosition</channel>
+    <channel type="tango" polling="1000" name="hardware_state">State</channel>
+    <states>
+       <state>
+          <name>PARK</name>
+       </state>
+       <state>
+          <name>SCINTILLATOR</name>
+       </state>
+       <state>
+          <name>PHOTODIODE</name>
+       </state>
+    </states>
+</device>

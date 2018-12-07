@@ -1,0 +1,58 @@
+<device class="MotorsGroup">
+    <username>attocubeMotors</username>	
+    <serverAddr>/P14/P14Atto</serverAddr>
+    <groupAddr>/Sl4Out</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>status</statusAddr>			
+    <motors>
+	<motor>
+          <motorName>Out</motorName>
+	  <motorAddr>Sl4Out</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>None</stopCmd>
+          <index>0</index>
+          <velocity>None</velocity>
+          <updateTolerance>99.</updateTolerance>
+	  <evalTolerance>9999999.</evalTolerance>
+	  <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': 1053090, 'Horizontal': 227751, 'Vertical': -60459, 'Double': -687569}</focusingModes>
+	</motor>
+	<motor>
+          <motorName>In</motorName>
+	  <motorAddr>Sl4In</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>None</stopCmd>
+          <index>1</index>
+          <velocity>None</velocity>
+          <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -800139, 'Horizontal': -269139, 'Vertical': 359730, 'Double': 642060}</focusingModes>
+        </motor>
+	<motor>
+          <motorName>Top</motorName>
+	  <motorAddr>Sl4Top</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>None</stopCmd>
+          <index>2</index>
+          <velocity>None</velocity>
+	  <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+	  <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': 69670, 'Horizontal': 69670, 'Vertical': -100317, 'Double': -570404}</focusingModes>
+        </motor>
+	<motor>
+          <motorName>But</motorName>
+	  <motorAddr>Sl4But</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>None</stopCmd>
+          <index>3</index>
+          <velocity>None</velocity>
+	  <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': -9196, 'Horizontal': -9196, 'Vertical': -24119, 'Double': -110400}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

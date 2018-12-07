@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Din In/Out</username>
+   <motor>/oh1/din</motor>
+   <filter>
+     <username>Diode</username>
+     <offset>5</offset>
+   </filter>
+   <filter>
+     <username>Empty</username>
+     <offset>30</offset>
+   </filter>
+</device>

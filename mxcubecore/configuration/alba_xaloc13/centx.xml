@@ -1,0 +1,5 @@
+<device class="SardanaMotor">
+  <username>Center X</username>
+  <taurusname>centx</taurusname>
+  <motor_name>CentX</motor_name>
+</device>

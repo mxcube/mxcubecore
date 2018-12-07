@@ -1,0 +1,5 @@
+<object class="ISPyBClient2">
+  <object role="session" href="/session"/>
+  <loginType>user</loginType>
+  <authServerType>ispyb</authServerType>
+</object>

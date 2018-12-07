@@ -1,0 +1,8 @@
+<device class="ALBAFrontEnd">
+  <username>Front End</username>
+  <taurusname>bl13/ct/eps-plc-01</taurusname>
+  <channel type="sardana" polling="events" name="actuator">fe_open</channel>
+  <channel type="sardana" name="open_command">OPEN_FE</channel>
+  <channel type="sardana" name="close_command">CLOSE_FE</channel>
+  <states>Open,Closed</states>
+</device>

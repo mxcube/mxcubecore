@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Yaw</username>
+  <specname>yaw</specname>
+  <specversion>basil:oh1</specversion>
+  <GUIstep>0.010</GUIstep>
+</device>

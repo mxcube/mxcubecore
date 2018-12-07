@@ -1,0 +1,179 @@
+<object class="EMBLEnergyScan">
+  <object hwrid="/energy" role="energy"/>
+  <object hwrid="/eh1/resolution" role="resolution"/>
+  <object hwrid="/attenuators" role="transmission"/>
+  <object hwrid="/beam-info" role="beam_info"/>
+  <object hwrid="/dbconnection" role="dbserver"/>
+
+  <channel type="tine" name="energyScanStart" tinename="/P14/fluorescence-scan/fls-scan" attach="event">start</channel>
+  <channel type="tine" name="energyScanStatus" tinename="/P14/fluorescence-scan/fls-scan" attach="event">status</channel>
+  <channel type="tine" name="energyScanError" tinename="/P14/fluorescence-scan/fls-scan" attach="datachange">error</channel>
+	
+  <command type="tine" name="energyScanAbort" tinename="/P14/fluorescence-scan/fls-scan">abort</command>
+  <command type="tine" name="cmdAdjustTransmission" tinename="/P14/fluorescence-scan/fls-scan">attenuate-state</command>
+  <command type="tine" name="cmdSetMaxTransmission" tinename="/P14/fluorescence-scan/fls-scan">max-transmission</command>
+
+  <energy2WavelengthConstant>12.3980</energy2WavelengthConstant>
+  <defaultWavelength>0.976</defaultWavelength>
+  <theoritical_edge_threshold>5</theoritical_edge_threshold>
+  <numPoints>60</numPoints> 
+
+  <chooch_command>/opt/embl-hh/bin/runchooch.py</chooch_command>
+
+  <elements>
+    <element>
+      <symbol>Mn</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Fe</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Co</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Ni</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Cu</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Zn</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>As</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Se</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Br</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Kr</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Rb</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Sr</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Y</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Mo</symbol>
+      <energy>K</energy>
+    </element>
+    <element>
+      <symbol>Sm</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Eu</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Gd</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Tb</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Dy</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Ho</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Er</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Yb</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Lu</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Ta</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>W</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Re</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Os</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Ir</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Pt</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Au</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Hg</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Pb</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>U</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Tl</symbol>
+      <energy>L</energy>
+    </element>
+    <element>
+      <symbol>Se</symbol>
+      <energy>K</energy>
+    </element>
+  </elements>
+  <mad>
+    <defaultenergy>
+      <energy>12.65950</energy>
+      <directory>pk</directory>
+    </defaultenergy>
+    <defaultenergy>
+      <energy>12.65950</energy>
+      <directory>ip</directory>
+    </defaultenergy>
+    <defaultenergy>
+      <energy>12.70800</energy>
+      <directory>rm</directory>
+    </defaultenergy>
+  </mad>
+</object>

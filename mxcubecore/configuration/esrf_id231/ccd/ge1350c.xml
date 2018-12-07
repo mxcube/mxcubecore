@@ -1,0 +1,14 @@
+<device class="Camera">
+  <username>Prosilica GE1350C</username>
+  <tangoname>id23/ge1350c/1</tangoname>
+  <!--<imagetype>bayer:rg</imagetype>-->
+  <!--<imagetype>jpeg</imagetype>-->
+  <imagetype>mmap:/tmp/prosilicaBuffer</imagetype>
+  <interval>40</interval>
+  <remote_interval>40</remote_interval>
+  <bpmname>id23/ge1350c-bpm/1</bpmname>
+</device>
+
+<!--
+Screen size is 680x512
+-->

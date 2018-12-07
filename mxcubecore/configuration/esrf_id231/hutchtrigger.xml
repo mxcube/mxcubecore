@@ -1,0 +1,11 @@
+<device class = "HutchTrigger">
+  <specversion>lid232:eh1</specversion>
+  <username>Hutchtrigger</username>
+  <!-- <taconame>//aries/exp/id23-cr1/sl0</taconame>-->
+  <tangoname>orion:10000/exp/id23-cr1/sl0</tangoname>
+  <interval>1000</interval>
+  <pss>7/1</pss>
+  <command type="spec" name="macro">hutchtrigger</command>
+  <channel type="spec" name="status">HUTCH_TRIGGER_STATUS</channel>
+  <channel type="spec" name="msg">HUTCH_TRIGGER_MESSAGE</channel>
+</device>

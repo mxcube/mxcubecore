@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Exp Table Height</username>
+  <specname>thgt</specname>
+  <specversion>lid292:exp</specversion>
+  <GUIstep>0.01</GUIstep>
+</device>

@@ -1,0 +1,8 @@
+<device class="NamedState">
+    <username>Diameter</username>
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <channel type="tango" polling="1000" name="state">CurrentApertureDiameterIndex</channel>
+    <channel type="tango" polling="1000" name="hardware_state">State</channel>
+    <channel type="tango" name="statelist">ApertureDiameters</channel>
+    <commandtype>index</commandtype>
+</device>

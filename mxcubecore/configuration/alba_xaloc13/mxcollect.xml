@@ -1,0 +1,46 @@
+<object class="ALBACollect">
+
+  <object href="/supervisor" role="supervisor"/>
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/omega" role="omega"/>
+  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/dbconnection" role="lims_client"/>
+
+  <object href="/auto-processing" role="auto_processing"/>
+
+  <object href="/fastshut" role="fast_shutter"/>
+  <object href="/slowshut" role="slow_shutter"/>
+  <object href="/photonshut" role="photon_shutter"/>
+  <object href="/frontend" role="frontend"/>
+
+  <object href="/energy" role="energy"/>
+  <object href="/transmission" role="transmission"/>
+  <object href="/pilatus" role="detector"/>
+  <object href="/resolution" role="resolution"/>
+
+  <object href="/mach-info" role="machine_info"/>
+  <object href="/beam-info" role="beam_info"/>
+
+  <doorname>bl13/door/05</doorname>
+  <command type="sardana" name="ni_configure">ni660x_configure_collect</command>
+  <command type="sardana" name="ni_unconfigure">ni660x_unconfigure_collect</command>
+
+  <object href="/flux" role="flux"/>
+  <channel type="tango" tangoname="kappa" name="kappapos">position</channel>
+  <channel type="tango" tangoname="phi" name="phipos">position</channel>
+  <channel type="tango" tangoname="bl13/ct/variables" name="beamx">beamx</channel>
+  <channel type="tango" tangoname="bl13/ct/variables" name="beamy">beamy</channel>
+
+  <monochromator>Channel-cut Si(111)</monochromator>
+  <focusing_optic>KB mirrors (VFM and HFM in Kirkpatrick-Baez configuration)</focusing_optic>
+  <polarisation>0.99</polarisation>
+
+  <undulators>
+    <undulator>
+     <type>ivu21</type>
+     <device_uri></device_uri>
+     <gap_index>0</gap_index>
+    </undulator>
+  </undulators>
+
+</object>

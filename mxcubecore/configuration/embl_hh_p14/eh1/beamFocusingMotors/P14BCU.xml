@@ -1,0 +1,22 @@
+<device class="MotorsGroup">
+    <username>P14BCU</username>
+    <serverAddr>/P14/P14BCU</serverAddr>
+    <groupAddr>/ShutterTrans</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>Status</statusAddr>
+    <motors>
+        <motor>
+          <motorName>ShutterTrans</motorName>
+          <motorAddr>ShutterTrans</motorAddr>
+          <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>0</index>
+          <velocity>None</velocity>
+          <updateTolerance>0.005</updateTolerance>
+	  <evalTolerance>0.005</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Unfocused': 0.400, 'Horizontal': 0.400, 'Vertical': 0.400, 'Double': 0.400}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

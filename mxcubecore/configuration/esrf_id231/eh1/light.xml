@@ -1,0 +1,20 @@
+<device class = "SpecMotor">
+  <username>Light</username>
+  <specname>light</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.1</GUIstep>
+  <positions>
+    <p1><username>lvl1</username><offset>0</offset></p1>
+    <p2><username>lvl2</username><offset>1</offset></p2>
+    <p3><username>lvl3</username><offset>2</offset></p3>
+    <p4><username>lvl4</username><offset>3</offset></p4>
+    <p5><username>lvl5</username><offset>4</offset></p5>
+    <p6><username>lvl6</username><offset>5</offset></p6>
+    <p6><username>lvl7</username><offset>6</offset></p6>
+    <p6><username>lvl8</username><offset>7</offset></p6>
+    <p6><username>lvl9</username><offset>8</offset></p6>
+    <p6><username>lvl10</username><offset>9</offset></p6>
+    <p6><username>lvl11</username><offset>10</offset></p6>
+  </positions>
+
+</device>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Calib foils (dm1)</username>
+   <motor>/oh/motors/mbv1</motor>
+   <filter>
+     <username>Pt</username>
+     <offset>1</offset>
+   </filter>
+   <filter>
+     <username>YAG Screen</username>
+     <offset>16.3</offset>
+   </filter>
+   <filter>
+     <username>Out</username>
+     <offset>37.7</offset>
+   </filter>
+<!--   
+   <filter>
+     <username>Cu</username>
+     <offset>50.80</offset>
+   </filter>
+   <filter>
+     <username>Fe</username>
+     <offset>55.78</offset>
+   </filter>
+   <filter>
+     <username>Mo</username>
+     <offset>61.33</offset>
+   </filter>
+   <filter>
+     <username>gap</username>
+     <offset>80.98</offset>
+   </filter>
+   <filter>
+     <username>diode</username>
+     <offset>102.19</offset>
+   </filter> 
+-->
+</device>

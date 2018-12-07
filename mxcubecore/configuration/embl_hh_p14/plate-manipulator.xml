@@ -1,0 +1,23 @@
+<equipment class = "PlateManipulator">
+   <exporter_address>p14md301.embl-hamburg.de:9001</exporter_address>
+   <command type="exporter" name="startMovePlateToLocation">startMovePlateToLocation</command>
+   <channel type="exporter" name="PlateLocation">PlateLocation</channel>
+   <channel type="exporter" name="State">State</channel>
+   <channel type="exporter" name="CurrentPhase">CurrentPhase</channel> 
+
+   <!-- Comment next line if kappa is used -->
+   <!-- <channel type="tine" name="PlateLocation" tinename="/P14/MD3/MD3_0">PlateLocation</channel> -->
+
+   <numRows>8</numRows>
+   <numCols>12</numCols>
+   <numDrops>1</numDrops>
+   <crimsWsRoot>https://lolita.embl-hamburg.de</crimsWsRoot>
+
+   <!-- <numRows>9</numRows>
+   <numColls>9</numColls>
+   <numDrops>1</numDrops>-->
+
+   <referencePosX>0.75</referencePosX>
+   <useUpdateTimer>False</useUpdateTimer>
+</equipment>
+

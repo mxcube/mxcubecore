@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Vert up</username>
+  <specname>ssd</specname>
+  <specversion>basil:oh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

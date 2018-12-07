@@ -1,0 +1,22 @@
+<device class="NamedState">
+    <username>Phase</username>
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <channel type="tango" polling="1000" name="state">CurrentPhase</channel>
+    <channel type="tango" polling="1000" name="hardware_state">State</channel>
+    <command type="tango" name="command">startsetphase</command>
+    <states>
+       <state>
+          <name>Centring</name>
+       </state>
+       <state>
+          <name>Transfer</name>
+       </state>
+       <state>
+          <name>BeamLocation</name>
+       </state>
+       <state>
+          <name>DataCollection</name>
+       </state>
+    </states>
+   <object href="/singleton_objects/guillotine" role="guillotine"/>
+</device>

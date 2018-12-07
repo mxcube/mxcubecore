@@ -1,0 +1,12 @@
+<device class="Camera">
+  <username>Prosilica MD2</username>
+  <tangoname>id29/md2/1</tangoname>
+  <imagetype>mmap:/tmp/prosilicaBuffer</imagetype>
+  <!--<imagetype>bayer:rg</imagetype>-->
+  <interval>40</interval>
+  <remote_interval>60</remote_interval>
+  <!--<remote_interval>40</remote_interval>-->
+  <bpmname>id29/md2-bpm/1</bpmname>
+  <bpm>cb</bpm>
+</device>
+

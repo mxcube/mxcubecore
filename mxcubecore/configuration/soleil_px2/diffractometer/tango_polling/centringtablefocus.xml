@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <motor_name>CentringTableFocus</motor_name>
+    <username>CentringTableFocus</username>
+    <direction>1</direction>
+    <GUIstep>0.05</GUIstep>
+    <channel type="tango" polling="1000" name="CentringTableFocusPosition">CentringTableFocusPosition</channel>
+    <channel type="tango" polling="1000" name="CentringTableFocusState">CentringTableFocusState</channel>
+    <channel type="tango" polling="1000" name="motor_states">MotorStates</channel>
+    <command type="tango" name="abort">abort</command>
+    <command type="tango" name="homing">startHomingMotor</command>
+    <command type="tango" name="getCentringTableFocusDynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" name="get_limits">getMotorLimits</command>
+    <command type="tango" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

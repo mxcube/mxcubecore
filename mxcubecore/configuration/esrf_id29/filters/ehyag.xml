@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Experimental Hutch YAG</username>
+   <motor>/exp/ehyag</motor>
+   <filter>
+     <username>In</username>
+     <offset>1</offset>
+   </filter>
+   <filter>
+     <username>Out</username>
+     <offset>0</offset>
+   </filter>
+</device>
