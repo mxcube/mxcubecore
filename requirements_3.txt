@@ -1,7 +1,7 @@
 PyDispatcher
 gevent
 suds-py3
-simpleyaml
+PyYAML
 enum34
 jsonpickle
 scipy
