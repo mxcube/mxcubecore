@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<equipment class="Microdiff">
+  <username>Microdiff</username>
+  <device role="camera" hwrid="/ccd/prosilica_md2"></device>
+  <autoCentering>
+    <debugLevel>1</debugLevel>
+    <centring_server>id29/mxautocentring/1</centring_server>
+    <c3d>/users/blissadm/applications/c3d/c3d_search</c3d>
+    <imagesFolder>/data/pyarch/id29/C3D/input_images</imagesFolder>
+    <outputFolder>/users/blissadm/applications/c3d/output</outputFolder>
+    <archiveFolder>/data/pyarch/id29/C3D/archive_images</archiveFolder>
+    <statsFile>/users/blissadm/log/Mxautocentring_stats.log</statsFile>
+    <calibrationMacro>microdiff_take_backgrounds</calibrationMacro>
+    <maxhmove>1.3</maxhmove>
+    <maxvmove>1.3</maxvmove>
+    <maxNoise>50</maxNoise>
+    <maxBackgroundDrift>13</maxBackgroundDrift>
+    <cryoShadowMargin>70</cryoShadowMargin>
+    <ringMargin>100</ringMargin>
+    <beamline>id29</beamline>
+    <allowPlayback>1</allowPlayback>
+    <targetLoopCentre>1</targetLoopCentre>
+    <doLoopSearch>1</doLoopSearch>
+    <doCrystalDetection>1</doCrystalDetection>
+    <phiyDirection>-1</phiyDirection>
+    <specVersion>lid292:exp</specVersion>
+    <maxhmove>1.1</maxhmove>
+    <maxvmove>1.1</maxvmove>
+    <referencePosition>
+      <phiz delta="0.1">-0.10</phiz>
+      <focus delta="0.1">-0.03</focus>
+      <sampx delta="0.01">-0.10</sampx>
+      <sampy delta="0.01">-0.55</sampy>
+      <bstopz delta="0.01">-30</bstopz>
+    </referencePosition>
+  </autoCentering>
+  <referencePosition>
+    <phi delta="1">0</phi>
+    <phiz delta="0.1">0.350033</phiz>
+    <focus delta="0.1">-0.299889</focus>
+    <phiy delta="0.01">22</phiy>
+    <sampx delta="0.01">0.323324</sampx>
+    <sampy delta="0.01">0.330093</sampy>
+    <bstopz delta="0.01">-59.9999</bstopz>
+  </referencePosition>
+  <referencePositionWithKappa>
+    <phi delta="1">0</phi>
+    <phiz delta="0.1">0.350033</phiz>
+    <focus delta="0.1">-0.299889</focus>
+    <phiy delta="0.01">22</phiy>
+    <sampx delta="0.01">-0.275041</sampx>
+    <sampy delta="0.01">0.330093</sampy>
+    <bstopz delta="0.01">-79.9965</bstopz>
+    <kap1 delta="0.01">0</kap1>
+    <kap2 delta="0.01">0</kap2>
+  </referencePositionWithKappa>
+  <resetPosition>
+    <phiz>-3.1543</phiz>
+    <focus>-2.25</focus>
+    <phiy>27.6282</phiy>
+    <sampx>-2.62</sampx>
+    <sampy>2.332</sampy>
+  </resetPosition>
+  <motors>
+    <phi>
+      <device role="phi" hwrid="/udiff_omega"></device>
+      <device role="phiz" hwrid="/udiff_phiz"></device>
+    </phi>
+    <sample>
+      <device role="zoom" hwrid="/udiff_zoom"/>
+      <device role="lightLevel" hwrid="/udiff_lightmot"/>
+      <device role="lightInOut" hwrid="/udiff_light"/>
+      <device role="focus" hwrid="/udiff_phix"/>
+      <device role="phiy" hwrid="/udiff_phiy"/>
+      <device role="sampx" hwrid="/udiff_sampx"/>
+      <device role="sampy" hwrid="/udiff_sampy"/>
+      <device role="kappa" hwrid="/udiff_kappa"/>
+      <device role="kappa_phi" hwrid="/udiff_kappaphi"/>
+    </sample>
+    <more>
+      <device hwrid="/exp/DtoX"/>
+      <device hwrid="/exp/shuty"/>
+      <device hwrid="/exp/shutz"/>
+    </more>
+  </motors>
+  <aperture>/udiff_aperturemot</aperture>
+  <samplechanger>/sc</samplechanger>
+  <command type="tango" name="save_centring_position" tangoname="tango://microdiff29new:18001/embl/md/1#dbase=no">saveCentringPositions</command>
+  <channel version="lid292:exp" type="spec" name="auto_centring_flag">AUTO_CENTRING_FLAG</channel>
+  <channel version="lid292:exp" type="spec" name="auto_loop_centring_enabled">ENABLE_AUTO_LOOP_CENTRING</channel>
+  <channel version="lid292:exp" type="spec" name="auto_crystal_centring_enabled">ENABLE_AUTO_CRYSTAL_CENTRING</channel>
+  <channel version="lid292:exp" type="spec" name="playback_centring_enabled">ENABLE_PLAYBACK_CENTRING</channel>
+  <command version="lid292:exp" type="spec" name="getBeamInfo">getMxBeamInfo</command>
+</equipment>

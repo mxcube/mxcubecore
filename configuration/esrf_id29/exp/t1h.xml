@@ -1,0 +1,5 @@
+<device class = "SpecMotor">
+  <username>Front Hor Offset</username>
+  <specname>t1h</specname>
+  <specversion>lid292:exp</specversion>
+</device>

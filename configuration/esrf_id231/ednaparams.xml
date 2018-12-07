@@ -1,0 +1,15 @@
+<device class="EdnaWorkflow">
+  <tangoname>id23eh1/workflowexecutor/1</tangoname>
+  <username>edna workflow tango server</username>
+  <command type="tango" name="start">Start</command>
+  <command type="tango" name="pause">Pause</command>
+  <command type="tango" name="resume">Resume</command>
+  <command type="tango" name="abort">Abort</command>
+  <command type="tango" name="set_parameters">SetReviewData</command>
+  <command type="tango" name="get_parameters">GetReviewData</command>
+  <command type="tango" name="set_values_map">SetScalarValuesMap</command>
+  <command type="tango" name="get_values_map">GetScalarValuesMap</command>
+  <command type="tango" name="get_available_workflows">GetAvailableWorkflows</command>
+  <channel type="tango" name="state" polling="500">StateAttribute</channel> 
+  <channel type="tango" name="current_actor" polling="500">RunningActorName</channel> 
+</device>

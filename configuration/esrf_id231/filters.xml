@@ -1,0 +1,21 @@
+<equipment class = "Filters">
+  <username>OH1 Filters</username>
+  <axis> 
+     <device hwrid="/filters/mbv2"/>
+  </axis>
+  <axis> 
+     <device hwrid="/filters/dm2"/>
+  </axis>
+  <axis> 
+     <device hwrid="/filters/mbv1"/>
+  </axis>
+  <axis> 
+     <device hwrid="/filters/wbv"/>
+  </axis>
+  <axis> 
+     <device hwrid="/filters/att2"/>
+  </axis>
+  <axis> 
+     <device hwrid="/filters/att1"/>
+  </axis>
+</equipment>

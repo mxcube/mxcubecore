@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Axis 1</username>
+   <motor>/oh1/att1</motor>
+   <filter>
+     <username>Empty</username>
+     <offset>0</offset>
+   </filter>
+   <filter>
+     <username>PyroC 0.5</username>
+     <offset>1</offset>
+   </filter>
+   <filter>
+     <username>PyroC 1</username>
+     <offset>2</offset>
+   </filter>
+   <filter>
+     <username>PyroC 2</username>
+     <offset>3</offset>
+   </filter>
+   <filter>
+     <username>PyroC 4</username>
+     <offset>4</offset>
+   </filter>
+   <filter>
+     <username>PyroC 6</username>
+     <offset>5</offset>
+   </filter>
+</device>

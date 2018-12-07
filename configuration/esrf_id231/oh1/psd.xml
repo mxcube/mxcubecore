@@ -1,0 +1,6 @@
+<device class = "SpecMotor">
+  <username>Vert back</username>
+  <specname>psd</specname>
+  <specversion>basil:oh1</specversion>
+  <GUIstep>0.100</GUIstep>
+</device>

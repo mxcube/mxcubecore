@@ -1,0 +1,20 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command>
+     <type>spec</type>
+     <name>UV oscillation</name>
+     <argument>
+       <name>Phi start</name>
+       <type>integer</type>
+     </argument>
+     <argument>
+       <name>Phi end</name>
+       <type>integer</type>
+     </argument>
+     <argument>
+       <name>Exp. time (s.)</name>
+       <type>float</type>
+     </argument>
+     <toexecute>uvrip</toexecute>
+  </command>
+</procedure>

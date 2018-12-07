@@ -1,0 +1,12 @@
+<equipment class="ALBASupervisor">
+    <username>Beamline Supervisor</username>
+    <taurusname>bl13/eh/supervisor</taurusname>
+    <channel type="sardana" name="detector_cover_open" polling="1000">DetCoverOpen</channel>
+    <channel type="sardana" name="phase" polling="1000">CurrentPhase</channel>
+    <channel type="sardana" name="state" polling="500">State</channel>
+    <channel type="sardana" name="detdist_position">DetDistance</channel>
+    <command type="sardana" name="go_collect">GoCollectPhase</command>
+    <command type="sardana" name="go_transfer">GoTransferPhase</command>
+    <command type="sardana" name="go_sample_view">GoSampleViewPhase</command>
+    <command type="sardana" name="go_beam_view">GoBeamViewPhase</command>
+</equipment>

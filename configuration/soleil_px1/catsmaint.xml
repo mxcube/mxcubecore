@@ -1,0 +1,64 @@
+<equipment class = "PX1CatsMaint">
+  <username>CatsMaint</username>
+  <tangoname>i10-c-cx1/ex/catscryotong</tangoname>    
+
+  <object role="sample_changer" hwrid="/cryotong"/>
+
+  <no_of_lids>1</no_of_lids>
+  <tool>UNIPUCK</tool>
+  <command type="tango" name="_cmdReset">ResetError</command>
+  <command type="tango" name="_cmdClearMemory">ClearMemory</command>
+  <command type="tango" name="_cmdAckSampleMemory">AckIncoherentGonioSampleState</command>
+
+  <command type="tango" name="_cmdOpenLid">OpenLid</command>
+  <command type="tango" name="_cmdCloseLid">CloseLid</command>
+
+  <command type="tango" name="_cmdOpenLid1">OpenLid</command>
+  <command type="tango" name="_cmdCloseLid1">CloseLid</command>
+
+  <command type="tango" name="_cmdHomeOpen">HomeOpen</command>
+
+  <command type="tango" name="_cmdLoad">mount</command>
+  <command type="tango" name="_cmdUnload">unmount</command>
+  <command type="tango" name="_cmdChainedLoad">exchange</command>
+
+  <command type="tango" name="_cmdPowerOn">PowerOn</command>
+  <command type="tango" name="_cmdPowerOff">PowerOff</command>
+
+  <command type="tango" name="_cmdHome">HomeOpen</command>
+  <command type="tango" name="_cmdAbort">Abort</command>
+  <command type="tango" name="_cmdSafe">Safe</command>
+  <command type="tango" name="_cmdClearMemory">ClearMemory</command>
+
+  <command type="tango" tangoname="i10-c-cx1/ex/cats" name="_cmdRegulOn">regulon</command>
+  <command type="tango" tangoname="i10-c-cx1/ex/cats" name="_cmdOpenTool">toolOpen</command>
+  <command type="tango" tangoname="i10-c-cx1/ex/cats" name="_cmdCloseTool">toolClose</command>
+
+
+  <!-- channel type="tango" name="_chnToolOpen" polling="1000">toolOpen</channeli -->  <!-- Use for r/w command -->
+
+  <channel type="tango" name="_chnSoftAuth" polling="events">beamlineMvtAuthorized</channel>
+  <channel type="tango" name="_chnHomeOpened" polling="events">homeOpened</channel>
+  <channel type="tango" name="_chnSafeNeeded" polling="events">SafeNeeded</channel>
+  <channel type="tango" name="_chnDryAndSoakNeeded" polling="events">dryAndSoakNeeded</channel>
+  <channel type="tango" name="_chnIncoherentGonioSampleState">incoherentGonioSampleState</channel>
+  <channel type="tango" name="_chnCountDown" polling="events">countdown</channel>
+
+  <channel type="tango" name="_chnPathRunning" polling="events">pathRunning</channel>
+
+  <channel type="tango" name="_chnSampleIsDetected" polling="events">sampleIsDetected</channel>
+  <channel type="tango" name="_chnToolOpenClose" polling="events">toolOpen</channel>
+
+  <channel type="tango" name="_chnNumLoadedSample" polling="events">numSampleOnDiff</channel>
+  <channel type="tango" name="_chnLidLoadedSample" polling="events">lidSampleOnDiff</channel>
+
+  <!-- CHANNELS FROM CATS -->
+
+  <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnLN2Regulation">LN2Regulating</channel>
+  <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnLid1State">di_Lid1Open</channel>
+  <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnSampleBarcode">Barcode</channel>
+  <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnPowered">Powered</channel>
+  <channel type="tango" polling="events" tangoname="i10-c-cx1/ex/cats" name="_chnMessage">Message</channel>
+
+</equipment>
+

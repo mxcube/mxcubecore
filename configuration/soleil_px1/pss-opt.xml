@@ -1,0 +1,5 @@
+<device class = "PX1Pss">
+  <username>optPss</username>
+  <tangoname>I10-C-CO/PSS/DB_DATA</tangoname>
+  <channel type="tango" polling="1000" name="state">memInt</channel>
+</device>

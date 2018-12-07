@@ -1,0 +1,35 @@
+<equipment class="MiniDiff">
+  <username>Diffractometer</username>
+  <command type="spec" version="lid232:eh1" name="centerbeam">centerbeam</command>
+  <device hwrid="/ccd/ge1350c" role="camera" />
+  <motors>
+  <phi-shutter>
+      <device hwrid="/eh1/phi"    role="phi"/>
+      <device hwrid="/eh1/phiz"   role="phiz"/>  
+      <device hwrid="/eh1/shuty"/>
+      <device hwrid="/eh1/shutz"/>
+      <device hwrid="/eh1/shut"/>
+  </phi-shutter>
+  <sample>
+      <device hwrid="/eh1/zoom"  role="zoom"/>
+      <device hwrid="/eh1/light" role="light"/>
+      <device hwrid="/eh1/focus" role="focus"/>
+      <device hwrid="/eh1/length" role="phiy"/> 
+      <device hwrid="/eh1/sampx" role="sampx"/>
+      <device hwrid="/eh1/sampy" role="sampy"/>
+  </sample>
+  <others>
+      <device hwrid="/eh1/bstopy"/>
+      <device hwrid="/eh1/bstopz"/>  
+      <device hwrid="/eh1/DtoX"/>  
+      <device hwrid="/eh1/camx"/>
+      <device hwrid="/eh1/camz"/>
+  </others>
+  </motors>
+  <procedures>
+    <procedure hwrid="/procedures/ascan"/>
+    <procedure hwrid="/procedures/dscan"/>
+    <procedure hwrid="/procedures/a2scan"/>
+    <procedure hwrid="/procedures/d2scan"/>
+  </procedures>
+</equipment>

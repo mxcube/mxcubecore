@@ -1,0 +1,22 @@
+<device class = "WagoPneu">
+  <username>Camera</username>
+  <taconame>id23/wcid231e/wc</taconame>
+  <wagoidin>camin</wagoidin>
+  <wagoidout>camup</wagoidout>
+  <logic>-1</logic>
+  <interval>1000</interval>
+</device>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

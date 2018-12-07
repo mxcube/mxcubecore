@@ -1,0 +1,4 @@
+<object class="InstanceServer">
+  <port>12116</port>
+  <object href="/xml-rpc-server" role="xml_rpc_server"/>
+</object>

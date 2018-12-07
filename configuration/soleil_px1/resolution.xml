@@ -1,0 +1,18 @@
+<device class = "PX1Resolution">
+
+  <username>Resolution</username>
+
+  <tangoname>i10-c-cx1/dt/detdist.1-control</tangoname>
+
+  <channel type="tango" polling="events" name="distance">position</channel>
+  <channel type="tango" polling="events" name="resolution">resolution</channel>
+  <channel type="tango" polling="events" name="state">State</channel>
+  <channel type="tango" polling="events" name="minimum_distance">distanceMin</channel>
+  <channel type="tango" polling="events" name="minimum_resolution">resolutionMin</channel>
+  <channel type="tango" polling="events" name="maximum_resolution">resolutionMax</channel>
+
+  <command type="tango" name="stop">Stop</command>
+
+  <object href="/energy" role="energy" />
+
+</device>

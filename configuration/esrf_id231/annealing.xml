@@ -1,0 +1,12 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command>
+     <type>spec</type>
+     <name>anneal</name>
+     <argument>
+       <name>Time (s.)</name>
+       <type>integer</type>
+     </argument>
+     <toexecute>anneal</toexecute>
+  </command>
+</procedure>

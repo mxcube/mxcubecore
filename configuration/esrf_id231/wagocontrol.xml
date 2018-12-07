@@ -1,0 +1,8 @@
+<procedure>
+  <specversion>lid232:eh1</specversion>
+  <command>
+     <type>spec</type>
+     <name>Adjust wago gains</name>
+     <toexecute>_wcadjall</toexecute>
+  </command>
+</procedure>

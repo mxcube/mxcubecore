@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <exporter_address>172.19.10.119:9001</exporter_address>
+    <motor_name>CapillaryVertical</motor_name>
+    <username>CapillaryVertical</username>
+    <direction>1</direction>
+    <GUIstep>0.05</GUIstep>
+    <channel type="exporter" name="CapillaryVerticalPosition">CapillaryVerticalPosition</channel>
+    <channel type="exporter" name="CapillaryVerticalState">CapillaryVerticalState</channel>
+    <channel type="exporter" name="motor_states">MotorStates</channel>
+    <command type="exporter" name="abort">abort</command>
+    <command type="exporter" name="homing">startHomingMotor</command>
+    <command type="exporter" name="getCapillaryVerticalDynamicLimits">getMotorDynamicLimits</command>
+    <command type="exporter" name="get_limits">getMotorLimits</command>
+    <command type="exporter" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

@@ -1,0 +1,5 @@
+<device>
+  <specversion>lid232:eh1</specversion>
+  <command type="spec" name="open">specific_open_fast_shutter</command>
+  <command type="spec" name="close">specific_close_fast_shutter</command>
+</device>

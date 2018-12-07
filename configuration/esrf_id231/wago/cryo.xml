@@ -1,0 +1,22 @@
+<device class = "WagoPneu">
+  <username>CRYO</username>
+  <taconame>id23/wcid231f/wc</taconame>
+  <wagoidin>cryoin</wagoidin>
+  <wagoidout>cryobck</wagoidout>
+  <logic>-1</logic>
+  <interval>1000</interval>
+</device>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

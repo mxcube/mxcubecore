@@ -1,0 +1,33 @@
+<equipment>
+  <username>Minikappa</username>
+  <command>
+    <type>spec</type>
+    <version>lid292:exp</version>
+    <name>Initialize</name>
+    <toexecute>minikappa_init</toexecute>
+  </command>
+  <command>
+    <type>spec</type>
+    <version>lid292:exp</version>
+    <name>Manual Load</name>
+    <toexecute>minikappa_manualload</toexecute>
+  </command>
+  <command>
+    <type>spec</type>
+    <version>lid292:exp</version>
+    <name>Home</name>
+    <toexecute>minikappa_home</toexecute>
+  </command>
+  <specversion>lid292:exp</specversion>
+  <command type="spec" name="KappaOn">SCKappaOn</command>
+  <command type="spec" name="KappaOff">SCKappaOff</command>
+  <channel type="spec" name="KappaInUse">KAPPA_IN_USE</channel>
+  <motors>
+    <device hwrid="/udiff_omega" role="omega"/>
+    <device hwrid="/udiff_kappa" role="kappa"/>
+    <device hwrid="/udiff_kappaphi" role="phi"/>
+    <device hwrid="/udiff_sampx" role="-X"/>
+    <device hwrid="/udiff_sampy" role="Y"/>
+    <device hwrid="/udiff_phiy" role="Z"/>
+  </motors>
+</equipment>

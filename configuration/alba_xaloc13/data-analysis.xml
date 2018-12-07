@@ -1,0 +1,14 @@
+<object class="ALBADataAnalysis">
+  <!-- Path to script that launches edna -->
+
+  <!-- edna_device>bl13/ct/ednads</edna_device -->
+  <!-- edna_default_file>/beamlines/bl13/controls/processing/edna-mx/input_plugin_templates/XSDataInputMXCuBE.xml</edna_default_file-->
+
+  <edna_command>/users/blissadm/local/bin/edna_script.sh</edna_command>
+  <edna_default_file>/homelocal/sicilia/MXCuBE/local/hardware_objects.xml/edna_defaults.xml</edna_default_file>
+  <object href="/mxcollect" role="collect" />
+
+  <template_dir>/beamlines/bl13/commissioning/templates</template_dir>
+  <variables_ds>bl13/ct/variables</variables_ds>
+  
+</object>

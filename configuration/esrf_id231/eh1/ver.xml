@@ -1,0 +1,7 @@
+<device class = "SpecMotor">
+  <username>ver</username>
+  <specname>ver</specname>
+  <GUIstep>0.05</GUIstep>
+  <specversion>lid232:eh1</specversion>
+  <unit>1e-3</unit>
+</device>

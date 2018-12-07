@@ -1,0 +1,6 @@
+<object class="DataAnalysis">
+  <object href="/mxcollect" role="collect"/>
+  <object href="/eh1/diff-beamstop" role="beamstop"/> 
+  <edna_command>/opt/embl-hh/bin/edna_characterisation.sh</edna_command>
+  <edna_default_file>edna-defaults.xml</edna_default_file>
+</object>

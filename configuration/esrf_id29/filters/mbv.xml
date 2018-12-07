@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<device class="FilterAxis">
+   <username>Mono Beam Viewer</username>
+   <motor>/oh/motors/mbv</motor>
+   <filter>
+     <username>YAG Screen</username>
+     <offset>1.3</offset>
+   </filter> 
+   <filter>
+     <username>Out</username>
+     <offset>0.3</offset>
+   </filter> 
+</device>

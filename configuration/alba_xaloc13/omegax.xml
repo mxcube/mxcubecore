@@ -1,0 +1,10 @@
+<device class="SardanaMotor">
+  <username>Omega X</username>
+  <taurusname>omegax</taurusname>
+  <motor_name>OmegaX</motor_name>
+  <!--
+  <channel type="sardana" polling="events" name="position">Position</channel>
+  <channel type="sardana" polling="events" name="state">State</channel>
+  <command type="sardana" name="stop">Stop</command>
+  -->
+</device>

@@ -1,0 +1,4 @@
+<device class="AdscTemperature">
+  <taconame>id23/adsc/1</taconame>
+  <interval>60000</interval>
+</device>

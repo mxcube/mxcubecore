@@ -1,0 +1,39 @@
+<object class="EMBLMiniDiff">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <channel type="tango" polling="1000" name="CoaxCamScaleX">CoaxCamScaleX</channel>
+    <channel type="tango" polling="1000" name="CoaxCamScaleY">CoaxCamScaleY</channel>
+    <channel type="tango" polling="1000" name="HeadType">HeadType</channel>
+    <channel type="tango" polling="1000" name="CurrentPhase">CurrentPhase</channel>
+    <channel type="tango" polling="1000" name="FastShutterIsOpen">FastShutterIsOpen</channel>
+    <channel type="tango" polling="1000" name="State">State</channel>
+    <channel type="tango" polling="1000" name="ScintillatorPosition">ScintillatorPosition</channel>
+    <channel type="tango" polling="1000" name="CapillaryPosition">CapillaryPosition</channel>
+
+    <command type="tango" polling="1000" name="startSetPhase">startSetPhase</command>
+    <command type="tango" polling="1000" name="startAutoFocus">startAutoFocus</command>
+    <command type="tango" polling="1000" name="saveCentringPositions">saveCentringPositions</command>
+    <command type="tango" polling="1000" name="getOmegaMotorDynamicScanLimits">getOmegaMotorDynamicScanLimits</command>
+
+    <object href="/diffractometer/tango_polling/omega" role="phi"/>
+    <object href="/diffractometer/tango_polling/alignmentz" role="phiz"/>
+    <object href="/diffractometer/tango_polling/alignmenty" role="phiy"/>
+    <object href="/diffractometer/tango_polling/predefined-zoom" role="zoom"/>
+    <object href="/diffractometer/tango_polling/centringtablefocus" role="focus"/>
+    <object href="/diffractometer/tango_polling/centringx" role="sampx"/>
+    <object href="/diffractometer/tango_polling/centringy" role="sampy"/>
+    <object href="/diffractometer/tango_polling/kappa" role="kappa"/>
+    <object href="/diffractometer/tango_polling/phi" role="kappa_phi"/>
+    <object href="/singleton_objects/camera" role="camera"/>
+    <object href="/singleton_objects/beaminfo" role="beam_info"/>
+    <object href="/singleton_objects/centring-math" role="centring"/>
+    <object href="/singleton_objects/minikappa-correction" role="minikappa_correction"/>
+    <object href="/singleton_objects/camera" role="camera"/>
+    <object href="/singleton_objects/cats" role="samplechanger"/>
+    
+    <use_sample_changer>True</use_sample_changer> 
+    <zoom_centre>{"x": 680,"y": 512}</zoom_centre>
+
+    <omega_reference>{"motor_name": "phiz", "position": -0.121, "camera_axis":"y","direction": -1}</omega_reference>
+    <grid_direction>{"fast": (1, 0), "slow": (0, -1), "omega_ref" : 0.0}</grid_direction>
+    <reversing_rotation>True</reversing_rotation>
+</object>

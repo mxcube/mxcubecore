@@ -1,0 +1,5 @@
+<device class = "Attenuators">
+  <channel type="tine" name="chanAttValue" tinename="/P14/transmission/attenuator" attach="event">transmission</channel>
+  <channel type="tine" name="chanAttState" tinename="/P14/transmission/attenuator" attach="event">status</channel>
+  <channel type="tine" name="chanAttLimits" tinename="/P14/transmission/attenuator" attach="event">limits</channel>
+</device> 

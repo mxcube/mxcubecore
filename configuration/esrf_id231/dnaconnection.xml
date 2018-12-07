@@ -1,0 +1,8 @@
+<procedure class="DnaServer">
+  <port>2222</port>
+  <dnahost>mx231</dnahost>
+  <dnaname>id23eh1</dnaname>
+  <dnaport>1112</dnaport> 
+  <collect>/mxcollect</collect>
+  <samplechanger>/sc</samplechanger>
+</procedure>

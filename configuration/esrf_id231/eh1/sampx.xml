@@ -1,0 +1,7 @@
+<device class = "SpecMotor">
+  <username>Motor Axis1</username>
+  <specname>sampx</specname>
+  <specversion>lid232:eh1</specversion>
+  <GUIstep>0.100</GUIstep>
+  <unit>1e-3</unit>
+</device>

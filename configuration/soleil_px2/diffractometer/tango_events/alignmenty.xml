@@ -1,0 +1,15 @@
+<device class="MicrodiffMotor">
+    <tangoname>i11-ma-cx1/ex/md2</tangoname>
+    <motor_name>AlignmentY</motor_name>
+    <username>AlignmentY</username>
+    <direction>1</direction>
+    <GUIstep>0.1</GUIstep>
+    <channel type="tango" polling="events" name="AlignmentYPosition">AlignmentYPosition</channel>
+    <channel type="tango" polling="events" name="AlignmentYState">AlignmentYState</channel>
+    <channel type="tango" polling="events" name="motor_states">MotorStates</channel>
+    <command type="tango" polling="events" name="abort">abort</command>
+    <command type="tango" polling="events" name="homing">startHomingMotor</command>
+    <command type="tango" polling="events" name="getAlignmentYDynamicLimits">getMotorDynamicLimits</command>
+    <command type="tango" polling="events" name="get_limits">getMotorLimits</command>
+    <command type="tango" polling="events" name="get_max_speed">getMotorMaxSpeed</command>
+</device>

@@ -1,0 +1,9 @@
+<device class="ALBAFastShutter">
+  <username>Fast Shutter</username>
+  <channel type="sardana" polling="events" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="actuator">IdleState</channel>
+  <command type="sardana" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="nistart">Start</command>
+  <command type="sardana" taurusname="bl13/IO/ibl1302-dev1-ctr2" name="nistop">Stop</command>
+  <channel type="sardana" polling="events" taurusname="fshuz" name="motorposition">Position</channel>
+  <channel type="sardana" polling="events" taurusname="fshuz" name="motorstate">State</channel>
+  <states>Open,Closed</states>
+</device>

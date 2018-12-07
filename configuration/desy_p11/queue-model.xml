@@ -1,0 +1,8 @@
+<object class="QueueModel" role="QueueModel">
+  <object href="/queue" role="queue"/>    
+  
+  <!-- 
+  <load_on_start_enabled>True</load_on_start_enabled>
+  <load_on_start_filename>/tmp/mxcube/queue.dat</load_on_start_filename>
+  -->
+</object>

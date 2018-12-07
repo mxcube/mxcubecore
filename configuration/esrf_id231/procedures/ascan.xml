@@ -1,0 +1,6 @@
+<procedure class = "Ascan">
+  <username>ascan</username>
+  <dimension>1</dimension>
+  <command name="start" type="spec">ascan</command>
+</procedure>
+

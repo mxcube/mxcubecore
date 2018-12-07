@@ -1,0 +1,69 @@
+<equipment class = "Filters">
+  <username>OH Filters</username>
+  <axis>
+    <device class="FilterAxis">
+      <username>attb</username>
+      <motor>/oh/motors/attb</motor>
+      <filter>
+       <username>Out</username>
+       <offset>0.3</offset>
+      </filter>
+      <filter>
+       <username>0.5mm Al / 2mm PyroC</username>
+       <offset>1</offset>
+      </filter>
+      <filter>
+       <username>1mm Al / 2mm PyroC</username>
+       <offset>2</offset>
+      </filter>
+      <filter>
+       <username>2mm Al / 2mm PyroC</username>
+       <offset>3</offset>
+      </filter>
+   </device>
+  </axis>
+  <axis>
+    <device class="FilterAxis">
+      <username>attm</username>
+      <motor>/oh/motors/attm</motor>
+      <filter>
+       <username>Out</username>
+       <offset>0.3</offset>
+      </filter>
+      <filter>
+       <username>1mm PyroC</username>
+       <offset>1</offset>
+      </filter>
+      <filter>
+       <username>2mm PyroC</username>
+       <offset>2</offset>
+      </filter>
+      <filter>
+       <username>5mm PyroC</username>
+       <offset>3</offset>
+      </filter>
+   </device>
+  </axis>
+  <axis>
+    <device class="FilterAxis">
+      <username>attf</username>
+      <motor>/oh/motors/attf</motor>
+      <filter>
+       <username>Out</username>
+       <offset>0.3</offset>
+      </filter>
+      <filter>
+       <username>WhiteDiamond_0.3mm</username>
+       <offset>1</offset>
+      </filter>
+      <filter>
+       <username>0.5mm PyroC</username>
+       <offset>2</offset>
+      </filter>
+      <filter>
+       <username>BlackDiamond_0.8mm</username>
+       <offset>3</offset>
+      </filter>
+    </device>
+  </axis>
+</equipment>

@@ -1,0 +1,6 @@
+<object class="Qt4_GraphicsManager">
+   <object href="/mini-diff" role="diffractometer"/>
+   <object href="/beam-info" role="beam_info"/>
+   <object href="/limavideo" role="camera"/>
+   <!-- magnification_tool>{"scale": 3, "area_size": 100}</magnification_tool  -->
+</object>

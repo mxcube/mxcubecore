@@ -1,0 +1,6 @@
+<procedure class="BeamTestTool">
+    <defaultCsvFileName>/opt/embl-hh/etc/p13/app/beamline-test-tool/p13devicesList.csv</defaultCsvFileName>
+    <object href="/ppu-control" role="ppu_control"/> 
+    <object href="/attenuators" role="attenuators"/>
+    <!-->Available: {'Cm': 'Communication with devices', 'Focus': 'Beam focusing', 'PPU': 'PPU test', 'Profile': 'Beam profile'} <-->
+</procedure>

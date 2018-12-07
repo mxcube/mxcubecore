@@ -1,0 +1,38 @@
+<equipment class = "sample_changer.SC3">
+<!--PMSC  or SC3-->
+  <username>Sample Changer / Test</username>
+  <exporter_address></exporter_address>    
+  <channel type="exporter" name="_state">State</channel>
+  <channel type="exporter" name="_selected_basket">SelectedBasketLocation</channel>
+  <channel type="exporter" name="_selected_sample">SelectedSampleLocation</channel>
+  <command type="exporter" name="_abort">Abort</command>
+  <command type="exporter" name="_getInfo">GetInformationAsXml</command>
+  <command type="exporter" name="_is_task_running">isTaskRunning</command>
+  <command type="exporter" name="_check_task_result">checkTaskResult</command>
+  <command type="exporter" name="_load">LoadSample</command>
+  <command type="exporter" name="_unload">UnLoadSample</command>
+  <command type="exporter" name="_chained_load">ChainedLoadSample</command>
+  <command type="exporter" name="_set_sample_charge">SetBasketTransferMode</command>
+  <command type="exporter" name="_scan_basket">ScanBasketForDatamatrix</command>
+  <command type="exporter" name="_scan_samples">ScanSamplesForDatamatrix</command>
+  <command type="exporter" name="_select_sample">MoveSampleLocation</command>
+  <command type="exporter" name="_select_basket">MoveBasketLocation</command>
+  <command type="exporter" name="_reset">Reset</command>
+
+  <!--
+  <channel_type>exporter</channel_type>
+  <exporter_address>pc445.embl.fr:9001</exporter_address>    
+  
+  <channel_state>State</channel_state>
+  <channel_image>ImageJPG</channel_image>
+  <channel_phase>CurrentPhase</channel_phase>  
+  <channel_task_info>LastTaskInfo</channel_task_info>    
+  
+  <command_scan>startScan</command_scan>
+  <command_set_phase>startSetPhase</command_set_phase>
+  <command_abort>abort</command_abort>  
+  <command_reset>restart</command_reset>
+  <command_load_sample>startMovePlateToShelf</command_load_sample>  
+  <command_select_sample>startMovePlateToShelf</command_select_sample>
+-->
+</equipment>

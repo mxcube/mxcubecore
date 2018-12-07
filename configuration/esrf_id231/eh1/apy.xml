@@ -1,0 +1,7 @@
+<device class = "SpecMotor">
+  <username>Aperture Horizontal</username>
+  <specname>apy</specname>
+  <specversion>lid232:eh1</specversion>
+  <unit>1e-6</unit>
+  <GUIstep>0.002</GUIstep>
+</device>
