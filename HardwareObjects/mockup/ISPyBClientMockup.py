@@ -10,7 +10,11 @@ import time
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-from urlparse import urljoin
+try:
+    from urlparse import urljoin
+except:
+    #Python3
+    from urllib.parse import urljoin
 
 # to simulate wrong loginID, use anything else than idtest
 # to simulate wrong psd, use "wrong" for password

@@ -30,6 +30,13 @@ import math
 import numpy
 import queue_model_objects
 
+try:
+   unicode
+except:
+   # A quick fix for python3
+   unicode = str
+ 
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["MXCuBE colaboration"]
