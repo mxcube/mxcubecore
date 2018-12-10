@@ -1,5 +1,5 @@
 from ESRFMultiCollect import *
-from detectors.LimaPilatus import Pilatus
+from detectors.LimaPilatusDetector import Pilatus
 import shutil
 import logging
 import os

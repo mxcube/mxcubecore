@@ -1,5 +1,5 @@
 from ESRFMultiCollect import *
-from detectors.TacoMar import Mar225
+from detectors.TacoMarDetector import Mar225
 import os
 import socket
 
