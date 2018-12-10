@@ -1,4 +1,4 @@
-from detectors.LimaPilatus import Pilatus
+from detectors.LimaPilatusDetector import Pilatus
 from HardwareRepository.TaskUtils import task
 import subprocess
 import os
