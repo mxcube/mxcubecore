@@ -1,4 +1,4 @@
-<object class="ISPyBClient2">
+<object class="ISPyBClient">
   <ws_root>
     <!-- http://160.103.210.1:8080/ispyb-ejb3/ispybWS/ -->
     http://160.103.210.124:8080/ispyb-ejb3/ispybWS/
