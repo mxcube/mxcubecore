@@ -3,12 +3,20 @@ import logging
 from dispatcher import dispatcher
 from CommandContainer import CommandContainer
 
-if sys.version_info > (3, 0):
-    # This is bad practice, but presumably there is a good reason?
-    from HardwareRepository import *
-else:
-    import HardwareRepository
+# if sys.version_info > (3, 0):
+#    # This is bad practice, but presumably there is a good reason?
+#    # replaced back, because it breaks for python3
+#    from HardwareRepository import HardwareRepository
+# else:
+#     import HardwareRepository
 
+def getHardwareRepository():
+    """Get a HardwareRepository instance.
+
+    NB Necessarty because putting the import statement at the top level
+    leads to circular imports"""
+    from .HardwareRepository import HardwareRepository
+    return HardwareRepository()
 
 class PropertySet(dict):
     def __init__(self):
@@ -152,7 +160,7 @@ class HardwareObjectNode:
                 self.__references.pop()
             )
 
-            hw_object = HardwareRepository.HardwareRepository().getHardwareObject(
+            hw_object = getHardwareRepository().getHardwareObject(
                 reference
             )
 
@@ -305,7 +313,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         return self.name()
 
     def __setstate__(self, name):
-        o = HardwareRepository.HardwareRepository().getHardwareObject(name)
+        o = getHardwareRepository().getHardwareObject(name)
         self.__dict__.update(o.__dict__)
 
     def __bool__(self):
@@ -397,7 +405,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
             if isinstance(node, HardwareObject):
                 if len(updates) > 0:
-                    HardwareRepository.HardwareRepository().update(node.name(), updates)
+                    getHardwareRepository().update(node.name(), updates)
                 return []
             else:
                 return updates
@@ -406,11 +414,11 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def rewrite_xml(self, xml):
         """Rewrite XML file"""
-        HardwareRepository.HardwareRepository().rewrite_xml(self.name(), xml)
+        getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
-        return HardwareRepository.HardwareRepository().xml_source[self.name()]
+        return getHardwareRepository().xml_source[self.name()]
 
 
 class Procedure(HardwareObject):
