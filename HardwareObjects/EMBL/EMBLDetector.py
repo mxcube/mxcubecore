@@ -19,12 +19,11 @@
 
 import gevent
 import logging
-from AbstractDetector import AbstractDetector
+from abstract.AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -61,37 +60,36 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def init(self):
 
-        self.cover_state = "unknown"
+        self.cover_state = 'unknown'
 
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
-        self.chan_cover_state = self.getChannelObject("chanCoverState")
+        self.chan_cover_state = self.getChannelObject('chanCoverState', optional=True)
         if self.chan_cover_state is not None:
-            self.chan_cover_state.connectSignal("update", self.cover_state_changed)
-        self.chan_temperature = self.getChannelObject("chanTemperature")
+            self.chan_cover_state.connectSignal("update",
+                                                self.cover_state_changed)
+        self.chan_temperature = self.getChannelObject('chanTemperature')
         self.chan_temperature.connectSignal("update", self.temperature_changed)
-        self.chan_humidity = self.getChannelObject("chanHumidity")
+        self.chan_humidity = self.getChannelObject('chanHumidity')
         self.chan_humidity.connectSignal("update", self.humidity_changed)
-        self.chan_status = self.getChannelObject("chanStatus")
-        self.chan_status.connectSignal("update", self.status_changed)
-        self.chan_roi_mode = self.getChannelObject("chanRoiMode")
-        self.chan_roi_mode.connectSignal("update", self.roi_mode_changed)
-        self.chan_frame_rate = self.getChannelObject("chanFrameRate")
-        self.chan_frame_rate.connectSignal("update", self.frame_rate_changed)
+        self.chan_status = self.getChannelObject('chanStatus')
+        self.chan_status.connectSignal('update', self.status_changed)
+        self.chan_roi_mode = self.getChannelObject('chanRoiMode')
+        self.chan_roi_mode.connectSignal('update', self.roi_mode_changed)
+        self.chan_frame_rate = self.getChannelObject('chanFrameRate')
+        self.chan_frame_rate.connectSignal('update', self.frame_rate_changed)
         self.frame_rate_changed(self.chan_frame_rate.getValue())
 
         self.chan_actual_frame_rate = self.getChannelObject(
-            "chanActualFrameRate", optional=True
-        )
+            'chanActualFrameRate', optional=True)
         if self.chan_actual_frame_rate is not None:
             self.chan_actual_frame_rate.connectSignal(
-                "update", self.actual_frame_rate_changed
-            )
+                'update', self.actual_frame_rate_changed)
 
-        self.chan_beam_xy = self.getChannelObject("chanBeamXY")
+        self.chan_beam_xy = self.getChannelObject('chanBeamXY')
 
-        self.cmd_close_cover = self.getCommandObject("cmdCloseCover")
-        self.cmd_restart_daq = self.getCommandObject("cmdRestartDaq")
+        self.cmd_close_cover = self.getCommandObject('cmdCloseCover')
+        self.cmd_restart_daq = self.getCommandObject('cmdRestartDaq')
 
         self.collect_name = self.getProperty("collectName")
         self.shutter_name = self.getProperty("shutterName")
@@ -138,17 +136,19 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def temperature_changed(self, value):
         """Updates temperatur value"""
-        if self.temperature is None or abs(self.temperature - value) > self.tolerance:
+        if self.temperature is None or \
+           abs(self.temperature - value) > self.tolerance:
             self.temperature = value
-            self.emit("temperatureChanged", (value, value < self.temp_treshold))
-            self.status_changed("dummy")
+            self.emit('temperatureChanged', (value, value < self.temp_treshold))
+            self.status_changed('dummy')
 
     def humidity_changed(self, value):
         """Update humidity value"""
-        if self.humidity is None or abs(self.humidity - value) > self.tolerance:
+        if self.humidity is None or \
+           abs(self.humidity - value) > self.tolerance:
             self.humidity = value
-            self.emit("humidityChanged", (value, value < self.hum_treshold))
-            self.status_changed("dummy")
+            self.emit('humidityChanged', (value, value < self.hum_treshold))
+            self.status_changed('dummy')
 
     def status_changed(self, status):
         """Status changed event"""
@@ -157,21 +157,20 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             status = self.chan_status.getValue()
         status_message = "Detector: "
         if self.temperature > self.temp_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Temperature %0.2f is greater than allowed %0.2f"
-                % (self.temperature, self.temp_treshold)
-            )
+            logging.getLogger('GUI').warning(
+                "Detector: Temperature %0.2f is greater than allowed %0.2f" %
+                (self.temperature, self.temp_treshold))
             status_message = "Temperature has exceeded threshold.\n"
         if self.humidity > self.hum_treshold:
-            logging.getLogger("GUI").warning(
-                "Detector: Humidity %0.2f is greater than allowed %0.2f"
-                % (self.humidity, self.hum_treshold)
-            )
-            status_message = status_message + "Humidity has exceeded threshold.\n"
+            logging.getLogger('GUI').warning(
+                "Detector: Humidity %0.2f is greater than allowed %0.2f" %
+                (self.humidity, self.hum_treshold))
+            status_message = status_message + \
+                "Humidity has exceeded threshold.\n"
         if status == "calibrating":
             status_message = status_message + "Energy change in progress.\n"
             status_message = status_message + "Please wait...\n"
-            logging.getLogger("GUI").warning(status_message)
+            logging.getLogger('GUI').warning(status_message)
         """
         elif status == "configuring":
             status_message = status_message + "Configuring"
@@ -181,12 +180,12 @@ class EMBLDetector(AbstractDetector, HardwareObject):
                 "Cannot start a collection at the moment."
             logging.getLogger('GUI').warning(status_message)
         """
-        self.emit("statusChanged", (status, status_message))
+        self.emit('statusChanged', (status, status_message, ))
 
     def roi_mode_changed(self, mode):
         """ROI mode change event"""
         self.roi_mode = self.roi_modes_list.index(mode)
-        self.emit("detectorRoiModeChanged", (self.roi_mode,))
+        self.emit('detectorRoiModeChanged', (self.roi_mode, ))
 
     def frame_rate_changed(self, frame_rate):
         """Updates frame rate"""
@@ -194,11 +193,11 @@ class EMBLDetector(AbstractDetector, HardwareObject):
             self.exposure_time_limits[0] = 1 / float(frame_rate)
             self.exposure_time_limits[1] = 6000
 
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
+        self.emit('expTimeLimitsChanged', (self.exposure_time_limits, ))
 
     def actual_frame_rate_changed(self, value):
         self.actual_frame_rate = value
-        self.emit("frameRateChanged", value)
+        self.emit('frameRateChanged', value)
 
     def set_roi_mode(self, mode):
         """Sets roi mode
@@ -276,11 +275,11 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-        self.emit("detectorRoiModeChanged", (self.roi_mode,))
+        self.emit('detectorRoiModeChanged', (self.roi_mode, ))
         temp = self.chan_temperature.getValue()
-        self.emit("temperatureChanged", (temp, temp < self.temp_treshold))
+        self.emit('temperatureChanged', (temp, temp < self.temp_treshold))
         hum = self.chan_humidity.getValue()
-        self.emit("humidityChanged", (hum, hum < self.hum_treshold))
+        self.emit('humidityChanged', (hum, hum < self.hum_treshold))
         self.status_changed("")
-        self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
-        self.emit("frameRateChanged", self.actual_frame_rate)
+        self.emit('expTimeLimitsChanged', (self.exposure_time_limits, ))
+        self.emit('frameRateChanged', self.actual_frame_rate)

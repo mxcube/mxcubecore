@@ -29,13 +29,11 @@ __category__ = "General"
 
 class EMBLDoorInterlock(Device):
 
-    DoorInterlockState = {
-        3: "unlocked",
-        1: "closed",
-        0: "locked_active",
-        46: "locked_inactive",
-        -1: "error",
-    }
+    DoorInterlockState = {3: 'unlocked',
+                          1: 'closed',
+                          0: 'locked_active',
+                          46: 'locked_inactive',
+                          -1: 'error'}
 
     def __init__(self, name):
         Device.__init__(self, name)
@@ -64,36 +62,38 @@ class EMBLDoorInterlock(Device):
     def init(self):
         self.door_interlock_state = "unknown"
 
-        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
-        self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.detector_distance_hwobj = \
+            self.getObjectByRole("detector_distance")
+        self.diffractometer_hwobj = \
+            self.getObjectByRole("diffractometer")
 
-        self.before_unlock_commands_present = self.getProperty(
-            "before_unlock_commands_present"
-        )
+        self.before_unlock_commands_present = \
+            self.getProperty("before_unlock_commands_present")
         try:
-            self.before_unlock_commands = eval(self.getProperty("beforeUnlockCommands"))
+            self.before_unlock_commands = \
+                eval(self.getProperty("beforeUnlockCommands"))
         except BaseException:
             pass
 
-        self.use_door_interlock = self.getProperty("useDoorInterlock")
+        self.use_door_interlock = self.getProperty('useDoorInterlock')
         if self.use_door_interlock is None:
             self.use_door_interlock = True
 
-        self.chan_state_locked = self.getChannelObject("chanStateLocked")
-        self.chan_state_locked.connectSignal("update", self.state_locked_changed)
-        self.chan_state_breakable = self.getChannelObject("chanStateBreakable")
-        self.chan_state_breakable.connectSignal("update", self.state_breakable_changed)
+        self.chan_state_locked = self.getChannelObject('chanStateLocked')
+        self.chan_state_locked.connectSignal('update', self.state_locked_changed)
+        self.chan_state_breakable = self.getChannelObject('chanStateBreakable')
+        self.chan_state_breakable.connectSignal('update',
+                                                self.state_breakable_changed)
 
-        self.chan_ics_error = self.getChannelObject("chanIcsErrorOne")
-        self.chan_ics_error.connectSignal("update", self.ics_error_msg_changed)
+        self.chan_ics_error = self.getChannelObject('chanIcsErrorOne')
+        self.chan_ics_error.connectSignal('update', self.ics_error_msg_changed)
 
-        self.chan_cmd_break_error = self.getChannelObject("chanCmdBreakError")
+        self.chan_cmd_break_error = self.getChannelObject('chanCmdBreakError')
         if self.chan_cmd_break_error is not None:
             self.chan_cmd_break_error.connectSignal(
-                "update", self.cmd_break_error_msg_changed
-            )
+                'update', self.cmd_break_error_msg_changed)
 
-        self.cmd_break_interlock = self.getCommandObject("cmdBreak")
+        self.cmd_break_interlock = self.getCommandObject('cmdBreak')
 
     def cmd_break_error_msg_changed(self, error_msg):
         """Displays error log message if door interlock break do not work
@@ -104,8 +104,7 @@ class EMBLDoorInterlock(Device):
         """
         if len(error_msg) > 0:
             logging.getLogger("GUI").error(
-                "Break ICS door interlock: Error %s" % error_msg
-            )
+                "Break ICS door interlock: Error %s" % error_msg)
 
     def ics_error_msg_changed(self, error_msg):
         """Updates ICS error message
@@ -140,24 +139,25 @@ class EMBLDoorInterlock(Device):
         """Returns current state"""
         if self.door_interlock_state:
             if self.door_interlock_breakabled:
-                self.door_interlock_final_state = "locked_active"
+                self.door_interlock_final_state = 'locked_active'
                 msg = "Locked (unlock enabled)"
             else:
-                self.door_interlock_final_state = "locked_inactive"
+                self.door_interlock_final_state = 'locked_inactive'
                 msg = "Locked (unlock disabled)"
         else:
-            self.door_interlock_final_state = "unlocked"
+            self.door_interlock_final_state = 'unlocked'
             msg = "Unlocked"
 
         if not self.ics_enabled:
-            self.door_interlock_final_state = "error"
+            self.door_interlock_final_state = 'error'
             msg = "Desy ICS error"
 
         if not self.use_door_interlock:
-            self.door_interlock_final_state = "locked_active"
+            self.door_interlock_final_state = 'locked_active'
             msg = "Locked (unlock enabled)"
 
-        self.emit("doorInterlockStateChanged", self.door_interlock_final_state, msg)
+        self.emit('doorInterlockStateChanged', self.door_interlock_final_state,
+                  msg)
         return self.door_interlock_final_state, msg
 
     def unlock_door_interlock(self):
@@ -167,43 +167,40 @@ class EMBLDoorInterlock(Device):
         """
         if self.diffractometer_hwobj is not None:
             if self.diffractometer_hwobj.in_plate_mode():
-                if self.detector_distance_hwobj.getPosition() < 780:
-                    self.detector_distance_hwobj.move(800, timeout=None)
-                    while self.detector_distance_hwobj.getPosition() < 360:
-                        gevent.sleep(0.01)
-                    gevent.sleep(2)
+                if self.detector_distance_hwobj is not None:
+                    if self.detector_distance_hwobj.getPosition() < 780:
+                        self.detector_distance_hwobj.move(800, timeout=None)
+                        while self.detector_distance_hwobj.getPosition() < 360:
+                            gevent.sleep(0.01)
+                        gevent.sleep(2)
             else:
-                if self.detector_distance_hwobj.getPosition() < 1099:
-                    self.detector_distance_hwobj.move(1100)
-                    gevent.sleep(1)
+                if self.detector_distance_hwobj is not None:
+                    if self.detector_distance_hwobj.getPosition() < 1099:
+                        self.detector_distance_hwobj.move(1100)
+                        gevent.sleep(1)
             try:
                 self.diffractometer_hwobj.set_phase(
-                    self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None
-                )
+                    self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None)
             except BaseException:
                 logging.getLogger("GUI").error(
-                    "Unable to set diffractometer to transfer phase"
-                )
+                    "Unable to set diffractometer to transfer phase")
 
         if not self.use_door_interlock:
-            logging.getLogger().info("Door interlock is disabled")
+            logging.getLogger().info('Door interlock is disabled')
             return
 
         if self.door_interlock_state:
             if self.door_interlock_breakabled:
                 if self.cmd_break_interlock is None:
-                    self.cmd_break_interlock = self.getCommandObject(
-                        "cmdBreakInterlock"
-                    )
+                    self.cmd_break_interlock = \
+                        self.getCommandObject('cmdBreakInterlock')
                 self.cmd_break_interlock()
             else:
-                msg = (
-                    "Door Interlock cannot be broken at the moment "
-                    + "please check its status and try again."
-                )
+                msg = "Door Interlock cannot be broken at the moment " + \
+                      "please check its status and try again."
                 logging.getLogger("GUI").error(msg)
         else:
-            logging.getLogger("HWR").info("Door is Interlocked")
+            logging.getLogger('HWR').info('Door is Interlocked')
 
     def update_values(self):
         self.get_state()
