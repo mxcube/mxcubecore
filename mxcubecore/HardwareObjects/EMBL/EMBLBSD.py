@@ -1,0 +1,255 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+import time
+import logging
+
+
+from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.TaskUtils import *
+
+
+__credits__ = ["EMBL Hamburg"]
+__category__ = "General"
+
+
+class EMBLBSD(GenericDiffractometer):
+
+    def __init__(self, *args):
+        """
+        Description:
+        """
+        GenericDiffractometer.__init__(self, *args)
+
+        # Hardware objects ----------------------------------------------------
+        self.zoom_motor_hwobj = None
+        self.camera_hwobj = None
+        self.omega_reference_motor = None
+        self.detector_distance_motor_hwobj = None
+
+        # Channels and commands -----------------------------------------------
+        self.chan_calib_x = None
+        self.chan_calib_y = None
+        self.chan_current_phase = None
+        self.chan_fast_shutter_is_open = None
+        self.chan_state = None
+        self.chan_sync_move_motors = None
+        self.chan_scintillator_position = None
+        self.chan_capillary_position = None
+        self.cmd_start_set_phase = None
+        self.cmd_start_auto_focus = None
+        self.cmd_save_centring_positions = None
+
+        # Internal values -----------------------------------------------------
+        self.use_sc = False
+        self.omega_reference_par = None
+        self.omega_reference_pos = [0, 0]
+
+    def init(self):
+
+        GenericDiffractometer.init(self)
+        self.centring_status = {"valid": False}
+
+        self.chan_state = self.getChannelObject('State')
+        self.current_state = self.chan_state.getValue()
+        self.chan_state.connectSignal("update", self.state_changed)
+
+        self.chan_status = self.getChannelObject('Status')
+        self.chan_status.connectSignal("update", self.status_changed)
+
+        self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
+        self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        self.update_pixels_per_mm()
+
+        self.chan_current_phase = self.getChannelObject('CurrentPhase')
+        self.connect(self.chan_current_phase, "update",
+                     self.current_phase_changed)
+
+        self.chan_fast_shutter_is_open = \
+            self.getChannelObject('FastShutterIsOpen')
+        self.chan_fast_shutter_is_open.connectSignal(
+            "update", self.fast_shutter_state_changed)
+
+        self.chan_scintillator_position = \
+            self.getChannelObject('ScintillatorPosition')
+        self.chan_capillary_position = \
+            self.getChannelObject('CapillaryPosition')
+
+        self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
+        self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+
+        self.detector_distance_motor_hwobj = \
+            self.getObjectByRole('detector_distance_motor')
+
+        self.zoom_motor_hwobj = self.getObjectByRole('zoom')
+        self.connect(self.zoom_motor_hwobj,
+                     'positionChanged',
+                     self.zoom_position_changed)
+        self.connect(self.zoom_motor_hwobj,
+                     'predefinedPositionChanged',
+                     self.zoom_motor_predefined_position_changed)
+
+        self.chan_beamstop_position = \
+            self.getChannelObject('BeamstopPosition')
+
+    def use_sample_changer(self):
+        """Returns true if sample changer is used
+
+        :return: bool
+        """
+        return False
+
+    def beam_position_changed(self, value):
+        self.beam_position = value
+
+    def state_changed(self, state):
+        #logging.getLogger("HWR").debug("State changed: %s" % str(state))
+        self.current_state = state
+        self.emit("minidiffStateChanged", (self.current_state))
+        self.emit("minidiffStatusChanged", (self.current_state))
+
+    def status_changed(self, state):
+        self.emit('statusMessage', ("diffractometer", state, "busy"))
+
+    def zoom_position_changed(self, value):
+        self.update_pixels_per_mm()
+        self.current_motor_positions["zoom"] = value
+
+    def zoom_motor_predefined_position_changed(self, position_name, offset):
+        self.update_pixels_per_mm()
+        self.emit('zoomMotorPredefinedPositionChanged',
+                  (position_name, offset, ))
+
+    def fast_shutter_state_changed(self, is_open):
+        """
+        Description:
+        """
+        self.fast_shutter_is_open = is_open
+        if is_open:
+            msg = "Opened"
+        else:
+            msg = "Closed"
+        self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, msg))
+
+    def update_pixels_per_mm(self, *args):
+        """
+        Descript. :
+        """
+        if self.chan_calib_x:
+            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
+            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+            self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x,
+                                              self.pixels_per_mm_y),))
+
+    def set_phase(self, phase, timeout=80):
+        """Sets diffractometer to the selected phase.
+           In the plate mode before going to or away from
+           Transfer or Beam location phase if needed then detector
+           is moved to the safe distance to avoid collision.
+        """
+        # self.wait_device_ready(2)
+        logging.getLogger("GUI").warning(
+            "Diffractometer: Setting %s phase. Please wait..." % phase)
+
+        if timeout is not None:
+            _start = time.time()
+            self.cmd_start_set_phase(phase)
+            gevent.sleep(5)
+            with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
+                while phase != self.chan_current_phase.getValue():
+                    gevent.sleep(0.1)
+            self.wait_device_ready(30)
+            self.wait_device_ready(30)
+            _howlong = time.time() - _start
+            if _howlong > 11.0:
+                logging.getLogger("GUI").error(
+                    "Changing phase to %s took %.1f seconds" %
+                    (phase, _howlong))
+        else:
+            self.cmd_start_set_phase(phase)
+
+    def start_auto_focus(self, timeout=None):
+        """
+        Descript. :
+        """
+        if timeout:
+            self.ready_event.clear()
+            set_phase_task = gevent.spawn(self.execute_server_task,
+                                          self.cmd_start_auto_focus(),
+                                          timeout)
+            self.ready_event.wait()
+            self.ready_event.clear()
+        else:
+            self.cmd_start_auto_focus()
+
+    def emit_diffractometer_moved(self, *args):
+        """
+        Descript. :
+        """
+        self.emit("diffractometerMoved", ())
+
+    def update_values(self):
+        """
+        Description:
+        """
+        self.emit('minidiffPhaseChanged', (self.current_phase, ))
+        self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, ))
+        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x,
+                                          self.pixels_per_mm_y),))
+
+    def move_omega(self, angle):
+        self.motor_hwobj_dict['phi'].move(angle, timeout=5)
+
+    def set_zoom(self, position):
+        """
+        """
+        self.zoom_motor_hwobj.move_to_position(position)
+
+    def get_osc_limits(self, speed=None):
+        return (-1e6, 1e6)
+
+    def get_scintillator_position(self):
+        return self.chan_scintillator_position.getValue()
+
+    def set_scintillator_position(self, position):
+        self.chan_scintillator_position.setValue(position)
+        with gevent.Timeout(5, Exception("Timeout waiting for scintillator position")):
+            while position != self.get_scintillator_position():
+                gevent.sleep(0.01)
+
+    def get_capillary_position(self):
+        return self.chan_capillary_position.getValue()
+
+    def set_capillary_position(self, position):
+        self.chan_capillary_position.setValue(position)
+        with gevent.Timeout(5, Exception("Timeout waiting for capillary position")):
+            while position != self.get_capillary_position():
+                gevent.sleep(0.01)
+
+    def zoom_in(self):
+        self.zoom_motor_hwobj.zoom_in()
+
+    def zoom_out(self):
+        self.zoom_motor_hwobj.zoom_out()
+
+    def set_beamstop_park(self):
+        self.chan_beamstop_position.setValue("PARK")
+
+    def set_beamstop_beam(self):
+        self.chan_beamstop_position.setValue("BEAM")

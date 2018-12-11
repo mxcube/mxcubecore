@@ -280,10 +280,12 @@ class Marvin(SampleChanger):
                 gevent.sleep(0.05)
 
     def is_sample_on_gonio(self):
-        first_try = self.chan_sample_is_loaded.getValue()
-        gevent.sleep(0.1)
-        second_try = self.chan_sample_is_loaded.getValue()
-        return first_try or second_try
+        return self.chan_sample_is_loaded.getValue()
+        #logging.getLogger("GUI").info("Sample on gonio check 1: %s" %first_try)
+        #gevent.sleep(1.0)
+        #second_try = self.chan_sample_is_loaded.getValue()
+        #logging.getLogger("GUI").info("Sample on gonio check 2: %s" %second_try)
+        #return first_try and second_try
 
     def mounted_sample_puck_changed(self, mounted_sample_puck):
         """Updates mounted puck index"""
@@ -319,6 +321,7 @@ class Marvin(SampleChanger):
     def process_step_info_changed(self, process_step_info):
         self._process_step_info = process_step_info
         if "error" in process_step_info.lower():
+<<<<<<< Updated upstream
             logging.getLogger("GUI").error(
                 "Sample changer: %s" % self._process_step_info
             )
@@ -328,13 +331,24 @@ class Marvin(SampleChanger):
             logging.getLogger("GUI").info(
                 "Sample changer: %s" % self._process_step_info
             )
+=======
+            logging.getLogger("GUI").error("Sample changer: %s" % self._process_step_info[0:80])
+            #self._in_error_state = True
+            #self._setState(SampleChangerState.Alarm)
+        else:
+            logging.getLogger("GUI").info("Sample changer: %s" % self._process_step_info[0:80]) 
+>>>>>>> Stashed changes
         self._info_dict["process_step"] = self._process_step_info
 
     def command_list_changed(self, cmd_list):
         self._command_list = cmd_list
+<<<<<<< Updated upstream
         logging.getLogger("GUI").info(
             "Sample changer: Last command - %s" % self._command_list
         )
+=======
+        logging.getLogger("GUI").info("Sample changer: Last command - %s" % self._command_list.split('\r')[0])
+>>>>>>> Stashed changes
         self._info_dict["command_list"] = self._command_list
 
     def open_lid(self):
@@ -414,13 +428,21 @@ class Marvin(SampleChanger):
            old + mount of  new sample) if a sample is already mounted on
            the diffractometer.
         """
+<<<<<<< Updated upstream
         # self._setState(SampleChangerState.Ready)
+=======
+        self._setState(SampleChangerState.Ready)
+>>>>>>> Stashed changes
         log = logging.getLogger("GUI")
 
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
             return
+
+        #if self._focusing_mode in ("Collimated", "Double") and not self._centre_puck:
+        #    log.error("No center puck detected. Please do Base-to-Center with any puck.")
+        #    return
 
         if self._in_error_state:
             log.error(
@@ -429,7 +451,11 @@ class Marvin(SampleChanger):
                 + "Fix the issue and reset sample changer in MXCuBE"
             )
             return
+<<<<<<< Updated upstream
 
+=======
+        
+>>>>>>> Stashed changes
         start_time = datetime.now()
         selected = self.getSelectedSample()
 
@@ -451,12 +477,19 @@ class Marvin(SampleChanger):
         # first sample is dismounted
         if self._focusing_mode == "P13mode":
             if self.is_sample_on_gonio():
+<<<<<<< Updated upstream
                 if selected == self.getLoadedSample():
                     msq = (
                         "The sample "
                         + str(self.getLoadedSample().getAddress())
                         + " is already loaded"
                     )
+=======
+                if selected==self.getLoadedSample():
+                    msg = "The sample " + \
+                          str(self.getLoadedSample().getAddress()) + \
+                          " is already loaded"
+>>>>>>> Stashed changes
                     raise Exception(msg)
                 else:
                     self._doUnload()
@@ -469,6 +502,7 @@ class Marvin(SampleChanger):
         self.emit("progressInit", (msg, 100, False))
 
         # 2. Set diffractometer transfer phase
+<<<<<<< Updated upstream
         if (
             self.diffractometer_hwobj.get_current_phase()
             != self.diffractometer_hwobj.PHASE_TRANSFER
@@ -476,6 +510,13 @@ class Marvin(SampleChanger):
             self.diffractometer_hwobj.set_phase(
                 self.diffractometer_hwobj.PHASE_TRANSFER, 60.0
             )
+=======
+        logging.getLogger("HWR").debug("%s %s"%(self.diffractometer_hwobj.get_current_phase(),self.diffractometer_hwobj.PHASE_TRANSFER))
+        if self.diffractometer_hwobj.get_current_phase() != \
+           self.diffractometer_hwobj.PHASE_TRANSFER:
+            logging.getLogger("HWR").debug("set transfer")
+            self.diffractometer_hwobj.set_phase(self.diffractometer_hwobj.PHASE_TRANSFER, 60.0)
+>>>>>>> Stashed changes
             time.sleep(2)
             if (
                 self.diffractometer_hwobj.get_current_phase()
@@ -580,8 +621,13 @@ class Marvin(SampleChanger):
     def _doUnload(self, sample_slot=None):
         """Unloads a sample from the diffractometer"""
         log = logging.getLogger("GUI")
+<<<<<<< Updated upstream
 
         # self._setState(SampleChangerState.Ready)
+=======
+ 
+        self._setState(SampleChangerState.Ready)
+>>>>>>> Stashed changes
         if self._focusing_mode not in ("Collimated", "Double", "P13mode"):
             error_msg = "Focusing mode is undefined. Sample loading is disabled"
             log.error(error_msg)
