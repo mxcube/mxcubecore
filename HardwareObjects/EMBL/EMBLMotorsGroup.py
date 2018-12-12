@@ -227,7 +227,13 @@ class EMBLMotorsGroup(Device):
                         "Velocity",
                         motor["velocity"],
                     )
-                time.sleep(0.5)
+        time.sleep(0.5)
+
+        for motor in self.motors_list:
+            if (
+                motor["setCmd"] is not None
+                and focus_mode in motor["focusingModes"].keys()
+            ):
 
                 motor["status"] = motor["statusModes"]["Move"]
                 tine.set(
@@ -239,13 +245,12 @@ class EMBLMotorsGroup(Device):
                     "EMBLMotorsGroup: send %s : %.4f"
                     % (motor["motorAddr"], motor["focusingModes"][str(focus_mode)])
                 )
-                time.sleep(0.1)
                 if motor["motorName"] in ("In", "Out", "Top", "But"):
                     self.wait_motor_ready(motor["motorName"], timeout=10)
-                    time.sleep(1)
-                logging.getLogger("HWR").debug(
-                    "EMBLMotorsGroup: motor %s ready" % motor["motorAddr"]
-                )
+                    time.sleep(1.1)
+                    logging.getLogger("HWR").debug(
+                        "EMBLMotorsGroup: motor %s ready" % motor["motorAddr"]
+                    )
 
     def stop_motor(self, motor_name):
         """Stops motor movement"""

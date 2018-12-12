@@ -167,15 +167,17 @@ class EMBLDoorInterlock(Device):
         """
         if self.diffractometer_hwobj is not None:
             if self.diffractometer_hwobj.in_plate_mode():
-                if self.detector_distance_hwobj.getPosition() < 780:
-                    self.detector_distance_hwobj.move(800, timeout=None)
-                    while self.detector_distance_hwobj.getPosition() < 360:
-                        gevent.sleep(0.01)
-                    gevent.sleep(2)
+                if self.detector_distance_hwobj is not None:
+                    if self.detector_distance_hwobj.getPosition() < 780:
+                        self.detector_distance_hwobj.move(800, timeout=None)
+                        while self.detector_distance_hwobj.getPosition() < 360:
+                            gevent.sleep(0.01)
+                        gevent.sleep(2)
             else:
-                if self.detector_distance_hwobj.getPosition() < 1099:
-                    self.detector_distance_hwobj.move(1100)
-                    gevent.sleep(1)
+                if self.detector_distance_hwobj is not None:
+                    if self.detector_distance_hwobj.getPosition() < 1099:
+                        self.detector_distance_hwobj.move(1100)
+                        gevent.sleep(1)
             try:
                 self.diffractometer_hwobj.set_phase(
                     self.diffractometer_hwobj.PHASE_TRANSFER, timeout=None
