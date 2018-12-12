@@ -111,7 +111,7 @@ Example Hardware Object XML file :
 
 import gevent
 import logging
-from AbstractSlits import AbstractSlits
+from abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["EMBL Hamburg"]

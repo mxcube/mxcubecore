@@ -19,7 +19,7 @@
 import os
 
 from HardwareRepository.TaskUtils import task
-from AbstractCollect import AbstractCollect
+from abstract.AbstractCollect import AbstractCollect
 
 
 __credits__ = ["EMBL Hamburg"]
