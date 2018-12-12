@@ -22,7 +22,7 @@ import time
 import logging
 import tempfile
 from datetime import datetime
-from sample_changer.GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 
 
 POSITION_DESC = {

@@ -9,7 +9,7 @@ Derived from Michael Hellmig's implementation for the BESSY CATS sample changer
  -enable setondiff for the catsmaint object
  -fix the bug of MD2 jam during exchange or unload
 """
-from sample_changer.GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 import time
 import qt
 
@@ -499,7 +499,7 @@ class MAXLABCats90(SampleChanger):
         Read the state of the Tango DS and translate the state to the SampleChangerState Enum
 
         :returns: Sample changer state
-        :rtype: GenericSampleChanger.SampleChangerState
+        :rtype: AbstractSampleChanger.SampleChangerState
         """
         state = self._chnState.getValue()
         # print "*** _readState: ", state

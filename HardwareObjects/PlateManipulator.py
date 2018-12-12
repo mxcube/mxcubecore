@@ -38,7 +38,7 @@ import tempfile
 from datetime import datetime
 
 from sample_changer import Crims
-from GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 
 
 class Xtal(Sample):

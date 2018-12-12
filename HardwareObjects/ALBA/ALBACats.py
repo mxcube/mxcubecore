@@ -2,7 +2,7 @@ from __future__ import print_function
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
-from sample_changer.Cats90 import Cats90, SampleChangerState, TOOL_SPINE
+from Cats90 import Cats90, SampleChangerState, TOOL_SPINE
 
 import logging
 import time
@@ -245,7 +245,7 @@ class ALBACats(Cats90):
     def isPathRunning(self):
         return self._chnPathRunning.getValue()
 
-    # TODO: this overides method from GenericSampleChanger
+    # TODO: this overides method from AbstractSampleChanger
     # def hasLoadedSample(self):  # not used.  to use it remove _
     #   return self._chnSampleIsDetected.getValue()
 
