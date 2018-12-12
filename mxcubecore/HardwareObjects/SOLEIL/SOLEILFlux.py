@@ -19,12 +19,7 @@ class SOLEILFlux(Device):
 
 
 def test():
-    import os
-    import time
-
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     flux = hwr.getHardwareObject("/flux")

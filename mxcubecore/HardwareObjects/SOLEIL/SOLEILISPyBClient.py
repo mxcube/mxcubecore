@@ -214,11 +214,7 @@ def test_hwo(hwo):
 
 
 def test():
-    import os
-
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     db = hwr.getHardwareObject("/singleton_objects/dbconnection")

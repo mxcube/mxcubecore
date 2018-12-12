@@ -12,7 +12,9 @@ class FilterAxis(Device):
         motorname = self.getProperty("motor")
 
         if motorname:
-            hwmot = HardwareRepository.HardwareRepository().getHardwareObject(motorname)
+            hwmot = HardwareRepository.getHardwareRepository().getHardwareObject(
+                motorname
+            )
 
         return hwmot
 

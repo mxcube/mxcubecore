@@ -180,7 +180,7 @@ class MiniDiff(Equipment):
         self.centringSamplex = sample_centring.CentringMotor(self.sampleXMotor)
         self.centringSampley = sample_centring.CentringMotor(self.sampleYMotor)
 
-        hwr = HardwareRepository.HardwareRepository()
+        hwr = HardwareRepository.getHardwareRepository()
         sc_prop = self.getProperty("samplechanger")
         if sc_prop is not None:
             try:

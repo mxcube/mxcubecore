@@ -144,11 +144,7 @@ class SOLEILSession(Session.Session):
 
 
 def test():
-    import os
-
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     sess = hwr.getHardwareObject("/session")

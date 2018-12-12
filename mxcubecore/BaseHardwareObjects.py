@@ -1,13 +1,6 @@
-import sys
 import logging
 from dispatcher import dispatcher
 from CommandContainer import CommandContainer
-
-if sys.version_info > (3, 0):
-    # This is bad practice, but presumably there is a good reason?
-    from HardwareRepository import *
-else:
-    import HardwareRepository
 
 
 class PropertySet(dict):
@@ -147,12 +140,14 @@ class HardwareObjectNode:
         )
 
     def resolveReferences(self):
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
         while len(self.__references) > 0:
             reference, name, role, objectsNamesIndex, objectsIndex, objectsIndex2 = (
                 self.__references.pop()
             )
 
-            hw_object = HardwareRepository.HardwareRepository().getHardwareObject(
+            hw_object =getHardwareRepository().getHardwareObject(
                 reference
             )
 
@@ -305,7 +300,9 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         return self.name()
 
     def __setstate__(self, name):
-        o = HardwareRepository.HardwareRepository().getHardwareObject(name)
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
+        o = getHardwareRepository().getHardwareObject(name)
         self.__dict__.update(o.__dict__)
 
     def __bool__(self):
@@ -388,6 +385,8 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def commitChanges(self):
         """Commit last changes"""
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
 
         def getChanges(node):
             updates = list(node._propertySet.getChanges())
@@ -397,7 +396,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
             if isinstance(node, HardwareObject):
                 if len(updates) > 0:
-                    HardwareRepository.HardwareRepository().update(node.name(), updates)
+                    getHardwareRepository().update(node.name(), updates)
                 return []
             else:
                 return updates
@@ -406,11 +405,15 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
 
     def rewrite_xml(self, xml):
         """Rewrite XML file"""
-        HardwareRepository.HardwareRepository().rewrite_xml(self.name(), xml)
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
+        getHardwareRepository().rewrite_xml(self.name(), xml)
 
     def xml_source(self):
         """Get XML source code"""
-        return HardwareRepository.HardwareRepository().xml_source[self.name()]
+        # NB Must be here - importing at top level leads to circular imports
+        from .HardwareRepository import getHardwareRepository
+        return getHardwareRepository().xml_source[self.name()]
 
 
 class Procedure(HardwareObject):

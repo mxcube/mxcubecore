@@ -18,7 +18,7 @@ from dispatcher import dispatcher
 
 import ConvertUtils
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import HardwareRepository
+from HardwareRepository.HardwareRepository import getHardwareRepository
 
 import queue_model_objects
 import queue_model_enumerables
@@ -117,7 +117,7 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowFailed": self.workflow_failed,
         }
 
-        workflow_connection = HardwareRepository().getHardwareObject("/gphl-setup")
+        workflow_connection = getHardwareRepository().getHardwareObject("/gphl-setup")
         self._workflow_connection = workflow_connection
 
         # Set standard configurable file paths
@@ -185,7 +185,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Add options for target directories:
         # There should be a better way, but apparently there isn't
-        session_hwobj = HardwareRepository().getHardwareObject("session")
+        session_hwobj = getHardwareRepository().getHardwareObject("session")
         process_root = session_hwobj.get_base_process_directory()
         options["appdir"] = process_root
 
@@ -307,7 +307,7 @@ class GphlWorkflow(HardwareObject, object):
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         # There should be a better way, but apparently there isn't
-        qmo = HardwareRepository().getHardwareObject("/queue-model")
+        qmo = getHardwareRepository().getHardwareObject("/queue-model")
         qmo.add_child(parent_model_obj, child_model_obj)
 
     # Message handlers:
@@ -1279,7 +1279,7 @@ class GphlWorkflow(HardwareObject, object):
         else:
             sampleId = uuid.uuid1()
 
-        session_hwobj = HardwareRepository().getHardwareObject("session")
+        session_hwobj = getHardwareRepository().getHardwareObject("session")
         image_root = session_hwobj.get_base_image_directory()
 
         if not os.path.isdir(image_root):

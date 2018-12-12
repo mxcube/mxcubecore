@@ -8,9 +8,7 @@ import os
 import time
 import socket
 import logging
-import xml.etree.ElementTree as ET
 
-from HardwareRepository.HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects
 

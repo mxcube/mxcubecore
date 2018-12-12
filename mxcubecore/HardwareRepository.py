@@ -52,19 +52,24 @@ def setUserFileDirectory(user_file_directory):
 def setHardwareRepositoryServer(hwrserver):
     global _hwrserver
 
-    xml_dirs_list = list(filter(os.path.exists, hwrserver.split(os.path.pathsep)))
+    xml_dirs_list = [os.path.abspath(x) for x in hwrserver.split(os.path.pathsep)]
+    xml_dirs_list = [x for x in xml_dirs_list if os.path.exists(x)]
+
     if xml_dirs_list:
         _hwrserver = xml_dirs_list
     else:
         _hwrserver = hwrserver
 
 
-def HardwareRepository(hwrserver=None):
+def getHardwareRepository(hwrserver=None):
     """Return the Singleton instance of the Hardware Repository."""
     global _instance
 
     if _instance is None:
         if _hwrserver is None:
+            if hwrserver is None:
+                # Default to enviroment variable
+                hwrserver = os.path.abspath(os.environ["XML_FILES_PATH"])
             setHardwareRepositoryServer(hwrserver)
 
         _instance = __HardwareRepositoryClient(_hwrserver)
@@ -75,7 +80,7 @@ def HardwareRepository(hwrserver=None):
 class __HardwareRepositoryClient:
     """Hardware Repository class
 
-    Warning -- should not be instanciated directly ; call the module's level HardwareRepository() function instead
+    Warning -- should not be instanciated directly ; call the module's level getHardwareRepository() function instead
     """
 
     def __init__(self, serverAddress):
