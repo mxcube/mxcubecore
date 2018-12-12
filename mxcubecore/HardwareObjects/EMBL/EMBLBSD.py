@@ -30,7 +30,6 @@ __category__ = "General"
 
 
 class EMBLBSD(GenericDiffractometer):
-
     def __init__(self, *args):
         """
         Description:
@@ -66,47 +65,46 @@ class EMBLBSD(GenericDiffractometer):
         GenericDiffractometer.init(self)
         self.centring_status = {"valid": False}
 
-        self.chan_state = self.getChannelObject('State')
+        self.chan_state = self.getChannelObject("State")
         self.current_state = self.chan_state.getValue()
         self.chan_state.connectSignal("update", self.state_changed)
 
-        self.chan_status = self.getChannelObject('Status')
+        self.chan_status = self.getChannelObject("Status")
         self.chan_status.connectSignal("update", self.status_changed)
 
-        self.chan_calib_x = self.getChannelObject('CoaxCamScaleX')
-        self.chan_calib_y = self.getChannelObject('CoaxCamScaleY')
+        self.chan_calib_x = self.getChannelObject("CoaxCamScaleX")
+        self.chan_calib_y = self.getChannelObject("CoaxCamScaleY")
         self.update_pixels_per_mm()
 
-        self.chan_current_phase = self.getChannelObject('CurrentPhase')
-        self.connect(self.chan_current_phase, "update",
-                     self.current_phase_changed)
+        self.chan_current_phase = self.getChannelObject("CurrentPhase")
+        self.connect(self.chan_current_phase, "update", self.current_phase_changed)
 
-        self.chan_fast_shutter_is_open = \
-            self.getChannelObject('FastShutterIsOpen')
+        self.chan_fast_shutter_is_open = self.getChannelObject("FastShutterIsOpen")
         self.chan_fast_shutter_is_open.connectSignal(
-            "update", self.fast_shutter_state_changed)
+            "update", self.fast_shutter_state_changed
+        )
 
-        self.chan_scintillator_position = \
-            self.getChannelObject('ScintillatorPosition')
-        self.chan_capillary_position = \
-            self.getChannelObject('CapillaryPosition')
+        self.chan_scintillator_position = self.getChannelObject("ScintillatorPosition")
+        self.chan_capillary_position = self.getChannelObject("CapillaryPosition")
 
-        self.cmd_start_set_phase = self.getCommandObject('startSetPhase')
-        self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
+        self.cmd_start_set_phase = self.getCommandObject("startSetPhase")
+        self.cmd_start_auto_focus = self.getCommandObject("startAutoFocus")
 
-        self.detector_distance_motor_hwobj = \
-            self.getObjectByRole('detector_distance_motor')
+        self.detector_distance_motor_hwobj = self.getObjectByRole(
+            "detector_distance_motor"
+        )
 
-        self.zoom_motor_hwobj = self.getObjectByRole('zoom')
-        self.connect(self.zoom_motor_hwobj,
-                     'positionChanged',
-                     self.zoom_position_changed)
-        self.connect(self.zoom_motor_hwobj,
-                     'predefinedPositionChanged',
-                     self.zoom_motor_predefined_position_changed)
+        self.zoom_motor_hwobj = self.getObjectByRole("zoom")
+        self.connect(
+            self.zoom_motor_hwobj, "positionChanged", self.zoom_position_changed
+        )
+        self.connect(
+            self.zoom_motor_hwobj,
+            "predefinedPositionChanged",
+            self.zoom_motor_predefined_position_changed,
+        )
 
-        self.chan_beamstop_position = \
-            self.getChannelObject('BeamstopPosition')
+        self.chan_beamstop_position = self.getChannelObject("BeamstopPosition")
 
     def use_sample_changer(self):
         """Returns true if sample changer is used
@@ -119,13 +117,13 @@ class EMBLBSD(GenericDiffractometer):
         self.beam_position = value
 
     def state_changed(self, state):
-        #logging.getLogger("HWR").debug("State changed: %s" % str(state))
+        # logging.getLogger("HWR").debug("State changed: %s" % str(state))
         self.current_state = state
         self.emit("minidiffStateChanged", (self.current_state))
         self.emit("minidiffStatusChanged", (self.current_state))
 
     def status_changed(self, state):
-        self.emit('statusMessage', ("diffractometer", state, "busy"))
+        self.emit("statusMessage", ("diffractometer", state, "busy"))
 
     def zoom_position_changed(self, value):
         self.update_pixels_per_mm()
@@ -133,8 +131,7 @@ class EMBLBSD(GenericDiffractometer):
 
     def zoom_motor_predefined_position_changed(self, position_name, offset):
         self.update_pixels_per_mm()
-        self.emit('zoomMotorPredefinedPositionChanged',
-                  (position_name, offset, ))
+        self.emit("zoomMotorPredefinedPositionChanged", (position_name, offset))
 
     def fast_shutter_state_changed(self, is_open):
         """
@@ -145,7 +142,7 @@ class EMBLBSD(GenericDiffractometer):
             msg = "Opened"
         else:
             msg = "Closed"
-        self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, msg))
+        self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open, msg))
 
     def update_pixels_per_mm(self, *args):
         """
@@ -154,8 +151,9 @@ class EMBLBSD(GenericDiffractometer):
         if self.chan_calib_x:
             self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
             self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
-            self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x,
-                                              self.pixels_per_mm_y),))
+            self.emit(
+                "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
+            )
 
     def set_phase(self, phase, timeout=80):
         """Sets diffractometer to the selected phase.
@@ -165,13 +163,16 @@ class EMBLBSD(GenericDiffractometer):
         """
         # self.wait_device_ready(2)
         logging.getLogger("GUI").warning(
-            "Diffractometer: Setting %s phase. Please wait..." % phase)
+            "Diffractometer: Setting %s phase. Please wait..." % phase
+        )
 
         if timeout is not None:
             _start = time.time()
             self.cmd_start_set_phase(phase)
             gevent.sleep(5)
-            with gevent.Timeout(timeout, Exception("Timeout waiting for phase %s" % phase)):
+            with gevent.Timeout(
+                timeout, Exception("Timeout waiting for phase %s" % phase)
+            ):
                 while phase != self.chan_current_phase.getValue():
                     gevent.sleep(0.1)
             self.wait_device_ready(30)
@@ -179,8 +180,8 @@ class EMBLBSD(GenericDiffractometer):
             _howlong = time.time() - _start
             if _howlong > 11.0:
                 logging.getLogger("GUI").error(
-                    "Changing phase to %s took %.1f seconds" %
-                    (phase, _howlong))
+                    "Changing phase to %s took %.1f seconds" % (phase, _howlong)
+                )
         else:
             self.cmd_start_set_phase(phase)
 
@@ -190,9 +191,9 @@ class EMBLBSD(GenericDiffractometer):
         """
         if timeout:
             self.ready_event.clear()
-            set_phase_task = gevent.spawn(self.execute_server_task,
-                                          self.cmd_start_auto_focus(),
-                                          timeout)
+            set_phase_task = gevent.spawn(
+                self.execute_server_task, self.cmd_start_auto_focus(), timeout
+            )
             self.ready_event.wait()
             self.ready_event.clear()
         else:
@@ -208,13 +209,12 @@ class EMBLBSD(GenericDiffractometer):
         """
         Description:
         """
-        self.emit('minidiffPhaseChanged', (self.current_phase, ))
-        self.emit('minidiffShutterStateChanged', (self.fast_shutter_is_open, ))
-        self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x,
-                                          self.pixels_per_mm_y),))
+        self.emit("minidiffPhaseChanged", (self.current_phase,))
+        self.emit("minidiffShutterStateChanged", (self.fast_shutter_is_open,))
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
     def move_omega(self, angle):
-        self.motor_hwobj_dict['phi'].move(angle, timeout=5)
+        self.motor_hwobj_dict["phi"].move(angle, timeout=5)
 
     def set_zoom(self, position):
         """

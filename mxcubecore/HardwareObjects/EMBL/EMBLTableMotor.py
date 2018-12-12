@@ -38,12 +38,12 @@ class EMBLTableMotor(AbstractMotor):
         atexit.register(self.close)
 
     def init(self):
-        self.direction = self.getProperty('direction')
+        self.direction = self.getProperty("direction")
         self.set_position(0)
         self.set_state(self.motor_states.READY)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(('10.14.90.12', 701))
-        self.socket.send('enable (0,1,2,3)\r')
+        self.socket.connect(("10.14.90.12", 701))
+        self.socket.send("enable (0,1,2,3)\r")
         self.enabled = True
 
     def is_ready(self):
@@ -56,7 +56,7 @@ class EMBLTableMotor(AbstractMotor):
         self.set_ready(True)
 
     def stop(self):
-        self.socket.send('disable (0,1,2,3)\r')
+        self.socket.send("disable (0,1,2,3)\r")
         self.enabled = False
 
     def move(self, target, wait=None, timeout=None):
@@ -65,12 +65,12 @@ class EMBLTableMotor(AbstractMotor):
     def move_relative(self, relative_position, wait=False, timeout=None):
         self.set_state(self.motor_states.MOVING)
         if not self.enabled:
-            self.socket.send('enable (0,1,2,3)\r')
+            self.socket.send("enable (0,1,2,3)\r")
             time.sleep(1)
-        if self.direction == 'vertical':
-            self.socket.send('PTP/r (1), %f\r' % relative_position)
+        if self.direction == "vertical":
+            self.socket.send("PTP/r (1), %f\r" % relative_position)
         else:
-            self.socket.send('PTP/r (3), %f\r' % relative_position)
+            self.socket.send("PTP/r (3), %f\r" % relative_position)
         self.set_state(self.motor_states.READY)
 
     def close(self):

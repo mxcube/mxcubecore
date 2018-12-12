@@ -25,8 +25,9 @@ import Image
 import gevent
 import QtImport
 import cv2 as cv
-#import numpy as np
-#from joblib import Parallel, delayed
+
+# import numpy as np
+# from joblib import Parallel, delayed
 
 from Qt4_GraphicsLib import *
 
@@ -38,7 +39,6 @@ __category__ = "Task"
 
 
 class EMBLXrayImaging(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -108,67 +108,61 @@ class EMBLXrayImaging(HardwareObject):
         self.ready_event = gevent.event.Event()
         self.live_view_state = True
         self.pixels_per_mm = (1666, 1666)
-        #self.image_dimension = (2048, 2048)
+        # self.image_dimension = (2048, 2048)
         self.image_dimension = (400, 400)
 
         self.graphics_view = GraphicsView()
         self.graphics_camera_frame = GraphicsCameraFrame()
         self.graphics_scale_item = GraphicsItemScale(self)
-        self.graphics_omega_reference_item = \
-            GraphicsItemOmegaReference(self)
+        self.graphics_omega_reference_item = GraphicsItemOmegaReference(self)
 
         self.graphics_view.scene().addItem(self.graphics_camera_frame)
         self.graphics_view.scene().addItem(self.graphics_scale_item)
         self.graphics_view.scene().addItem(self.graphics_omega_reference_item)
 
         self.graphics_view.scene().setSceneRect(
-            0, 0, self.image_dimension[0], self.image_dimension[1])
+            0, 0, self.image_dimension[0], self.image_dimension[1]
+        )
         self.graphics_scale_item.set_start_position(0, 1600)
         self.graphics_scale_item.set_pixels_per_mm(self.pixels_per_mm)
         self.graphics_omega_reference_item.set_reference(
-            (self.image_dimension[0] / 2, 0))
+            (self.image_dimension[0] / 2, 0)
+        )
 
-        self.graphics_view.wheelSignal.connect(
-            self.mouse_wheel_scrolled)
-        self.graphics_view.mouseClickedSignal.connect(
-            self.mouse_clicked)
-        self.graphics_view.mouseReleasedSignal.connect(
-            self.mouse_released)
-        self.graphics_view.mouseMovedSignal.connect(
-            self.mouse_moved)
+        self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
+        self.graphics_view.mouseClickedSignal.connect(self.mouse_clicked)
+        self.graphics_view.mouseReleasedSignal.connect(self.mouse_released)
+        self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
 
         self.qimage = QtImport.QImage()
         self.qpixmap = QtImport.QPixmap()
 
         self.chan_frame = self.getChannelObject("chanFrame")
         if self.chan_frame is not None:
-            self.chan_frame.connectSignal('update', self.frame_changed)
+            self.chan_frame.connectSignal("update", self.frame_changed)
 
-        self.chan_collect_status = self.getChannelObject('collectStatus')
+        self.chan_collect_status = self.getChannelObject("collectStatus")
         if self.chan_collect_status is not None:
             self._actual_collect_status = self.chan_collect_status.getValue()
-            self.chan_collect_status.connectSignal('update',
-                                                   self.collect_status_update)
-        self.chan_collect_frame = self.getChannelObject('collectFrame')
+            self.chan_collect_status.connectSignal("update", self.collect_status_update)
+        self.chan_collect_frame = self.getChannelObject("collectFrame")
         if self.chan_collect_frame is not None:
-            self.chan_collect_frame.connectSignal('update',
-                                                  self.collect_frame_update)
-        self.chan_collect_error = self.getChannelObject('collectError')
+            self.chan_collect_frame.connectSignal("update", self.collect_frame_update)
+        self.chan_collect_error = self.getChannelObject("collectError")
         if self.chan_collect_error:
-            self.chan_collect_error.connectSignal('update',
-                                                  self.collect_error_update)
+            self.chan_collect_error.connectSignal("update", self.collect_error_update)
 
-        self.cmd_collect_detector = self.getCommandObject('collectDetector')
-        self.cmd_collect_directory = self.getCommandObject('collectDirectory')
-        self.cmd_collect_exposure_time = self.getCommandObject('collectExposureTime')
-        self.cmd_collect_in_queue = self.getCommandObject('collectInQueue')
-        self.cmd_collect_num_images = self.getCommandObject('collectNumImages')
-        self.cmd_collect_range = self.getCommandObject('collectRange')
-        self.cmd_collect_scan_type = self.getCommandObject('collectScanType')
-        self.cmd_collect_shutter = self.getCommandObject('collectShutter')
-        self.cmd_collect_shutterless = self.getCommandObject('collectShutterless')
-        self.cmd_collect_start_angle = self.getCommandObject('collectStartAngle')
-        self.cmd_collect_template = self.getCommandObject('collectTemplate')
+        self.cmd_collect_detector = self.getCommandObject("collectDetector")
+        self.cmd_collect_directory = self.getCommandObject("collectDirectory")
+        self.cmd_collect_exposure_time = self.getCommandObject("collectExposureTime")
+        self.cmd_collect_in_queue = self.getCommandObject("collectInQueue")
+        self.cmd_collect_num_images = self.getCommandObject("collectNumImages")
+        self.cmd_collect_range = self.getCommandObject("collectRange")
+        self.cmd_collect_scan_type = self.getCommandObject("collectScanType")
+        self.cmd_collect_shutter = self.getCommandObject("collectShutter")
+        self.cmd_collect_shutterless = self.getCommandObject("collectShutterless")
+        self.cmd_collect_start_angle = self.getCommandObject("collectStartAngle")
+        self.cmd_collect_template = self.getCommandObject("collectTemplate")
 
         self.cmd_collect_ff_num_images = self.getCommandObject("collectFFNumImages")
         self.cmd_collect_ff_offset = self.getCommandObject("collectFFOffset")
@@ -179,8 +173,8 @@ class EMBLXrayImaging(HardwareObject):
         self.cmd_camera_live_view = self.getCommandObject("cameraLiveView")
         self.cmd_camera_write_data = self.getCommandObject("cameraWriteData")
 
-        self.cmd_collect_start = self.getCommandObject('collectStart')
-        self.cmd_collect_abort = self.getCommandObject('collectAbort')
+        self.cmd_collect_start = self.getCommandObject("collectStart")
+        self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
 
@@ -196,20 +190,20 @@ class EMBLXrayImaging(HardwareObject):
             im = Image.open(jpgdata)
             self.qimage = ImageQt(im)
 
-            #self.qimage = self.qimage.scaled(400, 400)
-            #jpgdata = StringIO(data)
-            #im = Image.open(jpgdata)
-            #self.qimage = ImageQt(im)
+            # self.qimage = self.qimage.scaled(400, 400)
+            # jpgdata = StringIO(data)
+            # im = Image.open(jpgdata)
+            # self.qimage = ImageQt(im)
             # f self.qimage is None:
             #   self.qimage = ImageQt(data)
             # lse:
-            #self.qimage = self.qimage.loadFromData(Image.open(jpgdata))
-            #self.qimage = QImage.loadFromData(data)
+            # self.qimage = self.qimage.loadFromData(Image.open(jpgdata))
+            # self.qimage = QImage.loadFromData(data)
 
-            #self.qpixmap.fromImage(self.qimage, Qt.MonoOnly)
+            # self.qpixmap.fromImage(self.qimage, Qt.MonoOnly)
             self.graphics_camera_frame.setPixmap(
-                self.qpixmap.fromImage(
-                    self.qimage, QtImport.Qt.MonoOnly))
+                self.qpixmap.fromImage(self.qimage, QtImport.Qt.MonoOnly)
+            )
 
     def mouse_clicked(self, pos_x, pos_y, left_click):
         self.mouse_hold = True
@@ -240,10 +234,8 @@ class EMBLXrayImaging(HardwareObject):
 
     def emit_frame(self):
         self.emit(
-            "imageReceived",
-            self.qpixmap.fromImage(
-                self.qimage,
-                QImport.Qt.MonoOnly))
+            "imageReceived", self.qpixmap.fromImage(self.qimage, QImport.Qt.MonoOnly)
+        )
 
     def get_graphics_view(self):
         return self.graphics_view
@@ -275,9 +267,13 @@ class EMBLXrayImaging(HardwareObject):
         self.cmd_collect_range(acq_params.osc_range)
 
         self.cmd_collect_ff_num_images(im_params.ff_num_images)
-        self.cmd_collect_ff_offset([im_params.sample_offset_a,
-                                    im_params.sample_offset_b,
-                                    im_params.sample_offset_c])
+        self.cmd_collect_ff_offset(
+            [
+                im_params.sample_offset_a,
+                im_params.sample_offset_b,
+                im_params.sample_offset_c,
+            ]
+        )
         self.cmd_collect_ff_pre(im_params.ff_pre)
         self.cmd_collect_ff_post(im_params.ff_post)
 
@@ -318,15 +314,15 @@ class EMBLXrayImaging(HardwareObject):
                     self.ready_event.set()
                     self._collecting = False
                 if self._previous_collect_status is None:
-                    if self._actual_collect_status == 'busy':
+                    if self._actual_collect_status == "busy":
                         self.print_log("HWR", "info", "Collection: Preparing ...")
-                elif self._previous_collect_status == 'busy':
-                    if self._actual_collect_status == 'collecting':
+                elif self._previous_collect_status == "busy":
+                    if self._actual_collect_status == "collecting":
                         self.emit("collectStarted", (None, 1))
                     elif self._actual_collect_status == "ready":
                         self.ready_event.set()
                         self._collecting = False
-                elif self._previous_collect_status == 'collecting':
+                elif self._previous_collect_status == "collecting":
                     if self._actual_collect_status == "ready":
                         self.ready_event.set()
                         self._collecting = False
@@ -344,8 +340,9 @@ class EMBLXrayImaging(HardwareObject):
 
         if self._collecting and len(error_msg) > 0:
             self._error_msg = error_msg
-            self.print_log("GUI", "error",
-                           "Collection: Error from detector server: %s" % error_msg)
+            self.print_log(
+                "GUI", "error", "Collection: Error from detector server: %s" % error_msg
+            )
 
     def collect_error_update(self, error_msg):
         """Collect error behaviour
@@ -356,8 +353,9 @@ class EMBLXrayImaging(HardwareObject):
 
         if self._collecting and len(error_msg) > 0:
             self._error_msg = error_msg
-            self.print_log("GUI", "error",
-                           "Collection: Error from detector server: %s" % error_msg)
+            self.print_log(
+                "GUI", "error", "Collection: Error from detector server: %s" % error_msg
+            )
 
     def collect_frame_update(self, frame):
         """Image frame update
@@ -368,15 +366,16 @@ class EMBLXrayImaging(HardwareObject):
         if self._collecting:
             if self._collect_frame != frame:
                 self._collect_frame = frame
-                self.emit("progressStep",
-                          (int(float(frame) / self._number_of_images * 100)))
+                self.emit(
+                    "progressStep", (int(float(frame) / self._number_of_images * 100))
+                )
                 self.emit("collectImageTaken", frame)
 
     def set_ff_apply(self, state):
         self.ff_apply = state
 
     def display_image(self, index):
-        angle = self.osc_start + index * len(self.raw_image_arr) / 360.
+        angle = self.osc_start + index * len(self.raw_image_arr) / 360.0
         if angle > 360:
             angle -= 360
         elif angle < 0:
@@ -391,24 +390,17 @@ class EMBLXrayImaging(HardwareObject):
             im = self.raw_image_arr[index]
 
         self.qimage = QImage(
-            im,
-            im.shape[1],
-            im.shape[0],
-            im.shape[1],
-            QImage.Format_Indexed8)
+            im, im.shape[1], im.shape[0], im.shape[1], QImage.Format_Indexed8
+        )
         self.graphics_camera_frame.setPixmap(self.qpixmap.fromImage(self.qimage))
         self.graphics_view.scene().update()
         self.emit("imageLoaded", index)
 
     def display_relative_image(self, relative_angle):
-        self.play_images(0.04,
-                         relative_angle,
-                         False)
+        self.play_images(0.04, relative_angle, False)
 
     def load_images(self, data_path, flat_field_path):
-        gevent.spawn(self.load_images_task,
-                     data_path,
-                     flat_field_path)
+        gevent.spawn(self.load_images_task, data_path, flat_field_path)
 
     def load_images_task(self, data_path, flat_field_path):
         base_name_list = os.path.splitext(os.path.basename(data_path))
@@ -416,8 +408,13 @@ class EMBLXrayImaging(HardwareObject):
         suffix = base_name_list[1][1:]
 
         os.chdir(os.path.dirname(data_path))
-        imlist = sorted([os.path.join(os.path.dirname(data_path), f)
-                         for f in os.listdir(os.path.dirname(data_path)) if f.startswith(prefix)])
+        imlist = sorted(
+            [
+                os.path.join(os.path.dirname(data_path), f)
+                for f in os.listdir(os.path.dirname(data_path))
+                if f.startswith(prefix)
+            ]
+        )
 
         self.print_log("GUI", "info", "Imaging: Reading images from disk...")
         self.raw_image_arr = []
@@ -439,41 +436,38 @@ class EMBLXrayImaging(HardwareObject):
         """
 
         if not self.ff_apply:
-            self.emit('imageInit', len(imlist))
+            self.emit("imageInit", len(imlist))
             self.display_image(0)
 
         self.print_log(
-            "HWR",
-            "debug",
-            "Imaging: Reading flat field images from disk...")
+            "HWR", "debug", "Imaging: Reading flat field images from disk..."
+        )
         base_name_list = os.path.splitext(os.path.basename(flat_field_path))
         prefix = base_name_list[0].split("_")[0][:-5]
         suffix = base_name_list[1][1:]
 
         os.chdir(os.path.dirname(flat_field_path))
         imlist = [
-            os.path.join(
-                os.path.dirname(flat_field_path),
-                f) for f in os.listdir(
-                os.path.dirname(flat_field_path)) if f.startswith(prefix)]
+            os.path.join(os.path.dirname(flat_field_path), f)
+            for f in os.listdir(os.path.dirname(flat_field_path))
+            if f.startswith(prefix)
+        ]
         imlist.sort()
 
         self.ff_image_arr = []
         for image in imlist:
             self.ff_image_arr.append(cv.imread(image, 0))
         self.print_log(
-            "HWR",
-            "debug",
-            "Imaging: Reading flat field images from disk done")
+            "HWR", "debug", "Imaging: Reading flat field images from disk done"
+        )
 
-        #self.emit('imageInit', len(imlist))
+        # self.emit('imageInit', len(imlist))
         # self.display_image(0)
 
     def play_images(self, exp_time=0.04, relative_index=None, repeat=True):
-        self.image_polling = gevent.spawn(self.do_image_polling,
-                                          exp_time,
-                                          relative_index,
-                                          repeat)
+        self.image_polling = gevent.spawn(
+            self.do_image_polling, exp_time, relative_index, repeat
+        )
 
     def do_image_polling(self, exp_time=0.04, relative_index=1, repeat=False):
         self.repeat_image_play = repeat
@@ -490,8 +484,9 @@ class EMBLXrayImaging(HardwareObject):
 
             self.display_image(self.current_image_index)
             self.current_image_index += direction * step
-            if self.repeat_image_play and \
-               self.current_image_index >= len(self.raw_image_arr):
+            if self.repeat_image_play and self.current_image_index >= len(
+                self.raw_image_arr
+            ):
                 self.current_image_index -= len(self.raw_image_arr)
             gevent.sleep(exp_time)
             index += step
@@ -523,8 +518,9 @@ class GraphicsCameraFrame(QGraphicsPixmapItem):
 
     def mousePressEvent(self, event):
         pos = QPointF(event.pos())
-        self.scene().parent().mouseClickedSignal.emit(pos.x(), pos.y(),
-                                                      event.button() == Qt.LeftButton)
+        self.scene().parent().mouseClickedSignal.emit(
+            pos.x(), pos.y(), event.button() == Qt.LeftButton
+        )
         self.update()
 
     def mouseMoveEvent(self, event):

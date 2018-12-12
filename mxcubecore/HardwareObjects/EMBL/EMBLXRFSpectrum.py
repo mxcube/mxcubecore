@@ -29,7 +29,6 @@ __category__ = "General"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
-
     def __init__(self, name):
 
         AbstractXRFSpectrum.__init__(self)
@@ -60,63 +59,63 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.transmission_hwobj = self.getObjectByRole("transmission")
         if self.transmission_hwobj is None:
             logging.getLogger("HWR").warning(
-                "EMBLXRFSpectrum: Transmission hwobj not defined")
+                "EMBLXRFSpectrum: Transmission hwobj not defined"
+            )
 
         self.db_connection_hwobj = self.getObjectByRole("dbserver")
         if self.db_connection_hwobj is None:
-            logging.getLogger().warning(
-                "EMBLXRFSpectrum: DB hwobj not defined")
+            logging.getLogger().warning("EMBLXRFSpectrum: DB hwobj not defined")
 
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         if self.beam_info_hwobj is None:
             logging.getLogger("HWR").warning(
-                "EMBLXRFSpectrum: Beam info hwobj not defined")
+                "EMBLXRFSpectrum: Beam info hwobj not defined"
+            )
 
-        self.cmd_spectrum_start = self.getCommandObject('cmdSpectrumStart')
-        self.cmd_adjust_transmission = \
-            self.getCommandObject('cmdAdjustTransmission')
+        self.cmd_spectrum_start = self.getCommandObject("cmdSpectrumStart")
+        self.cmd_adjust_transmission = self.getCommandObject("cmdAdjustTransmission")
 
-        self.chan_spectrum_status = self.getChannelObject('chanSpectrumStatus')
+        self.chan_spectrum_status = self.getChannelObject("chanSpectrumStatus")
         if self.chan_spectrum_status is not None:
-            self.chan_spectrum_status.connectSignal('update',
-                                                    self.spectrum_status_update)
-        self.chan_spectrum_consts = self.getChannelObject('chanSpectrumConsts')
+            self.chan_spectrum_status.connectSignal(
+                "update", self.spectrum_status_update
+            )
+        self.chan_spectrum_consts = self.getChannelObject("chanSpectrumConsts")
 
         self.config_filename = self.getProperty("configFile")
 
     def can_spectrum(self):
         return True
 
-    def execute_spectrum_command(self, count_sec, filename,
-                                 adjust_transmission=True):
+    def execute_spectrum_command(self, count_sec, filename, adjust_transmission=True):
         """Sends start command"""
         try:
             self.cmd_spectrum_start((count_sec, adjust_transmission))
         except BaseException:
-            logging.getLogger().exception(
-                'XRFSpectrum: problem in starting spectrum')
-            self.emit('xrfSpectrumStatusChanged',
-                      ("Error problem in starting spectrum",))
+            logging.getLogger().exception("XRFSpectrum: problem in starting spectrum")
+            self.emit(
+                "xrfSpectrumStatusChanged", ("Error problem in starting spectrum",)
+            )
             self.spectrum_command_aborted()
 
     def spectrum_status_update(self, status):
         """Controls execution"""
         if self.spectrum_running == True:
-            if status == 'scaning':
-                logging.getLogger("HWR").info('XRF spectrum in progress...')
-            elif status == 'ready':
+            if status == "scaning":
+                logging.getLogger("HWR").info("XRF spectrum in progress...")
+            elif status == "ready":
                 if self.spectrum_running:
                     self.spectrum_data = list(self.cmd_spectrum_start.get())
                     self.mca_calib = self.chan_spectrum_consts.getValue()[::-1]
                     self.spectrum_command_finished()
-                    logging.getLogger("HWR").info('XRF spectrum finished')
-            elif status == 'aborting':
+                    logging.getLogger("HWR").info("XRF spectrum finished")
+            elif status == "aborting":
                 if self.spectrum_running:
                     self.spectrum_command_aborted()
-                    logging.getLogger("HWR").info('XRF spectrum aborted!')
-            elif status == 'error':
+                    logging.getLogger("HWR").info("XRF spectrum aborted!")
+            elif status == "error":
                 self.spectrum_command_failed()
-                logging.getLogger("HWR").error('XRF spectrum error!')
+                logging.getLogger("HWR").error("XRF spectrum error!")
 
     def cancel_spectrum(self, *args):
         """Cancels acquisition"""
