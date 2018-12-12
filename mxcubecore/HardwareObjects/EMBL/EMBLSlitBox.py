@@ -109,16 +109,16 @@ Example Hardware Object XML file :
 </equipment>
 """
 
+import gevent
 import logging
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+from abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "Motor"
 
 
-class EMBLSlitBox(HardwareObject):
+class EMBLSlitBox(AbstractSlits):
     """User can define sizes of horizontal and verstical slits by
        entering direct size and pressing Enter or by using up and
        down buttons. Slits operations are enabled accordingly to
@@ -133,7 +133,7 @@ class EMBLSlitBox(HardwareObject):
 
     def __init__(self, *args):
 
-        HardwareObject.__init__(self, *args)
+        AbstractSlits.__init__(self, *args)
 
         self.decimal_places = None
         self.active_focus_mode = None
@@ -238,7 +238,7 @@ class EMBLSlitBox(HardwareObject):
                 ] = new_status_dict[motor]
         self.emit(
             "statusChanged",
-            (self.gaps_dict["Hor"]["status"], self.gaps_dict["Ver"]["status"]),
+            ((self.gaps_dict["Hor"]["status"], self.gaps_dict["Ver"]["status"]),),
         )
 
     def motors_group_position_changed(self, new_positions_dict):
@@ -254,11 +254,11 @@ class EMBLSlitBox(HardwareObject):
                     do_update = True
 
         if do_update:
-            self.gaps_dict["Hor"]["value"] = self.get_gap_hor()
-            self.gaps_dict["Ver"]["value"] = self.get_gap_ver()
+            self.gaps_dict["Hor"]["value"] = self.get_horizontal_gap()
+            self.gaps_dict["Ver"]["value"] = self.get_vertical_gap()
             self.emit(
                 "valueChanged",
-                [self.gaps_dict["Hor"]["value"], self.gaps_dict["Ver"]["value"]],
+                ([self.gaps_dict["Hor"]["value"], self.gaps_dict["Ver"]["value"]],),
             )
 
     def get_horizontal_gap(self):
@@ -269,9 +269,7 @@ class EMBLSlitBox(HardwareObject):
             + self.motors_dict["Out"]["position"]
             - self.motors_dict["Out"]["reference"]
         )
-        gap = -gap / (10 ** self.decimal_places)
-
-        return gap
+        return -gap / (10 ** self.decimal_places)
 
     def get_vertical_gap(self):
         """Evaluates Vertical gap"""
@@ -281,22 +279,20 @@ class EMBLSlitBox(HardwareObject):
             + self.motors_dict["But"]["position"]
             - self.motors_dict["But"]["reference"]
         )
-        gap = -gap / (10 ** self.decimal_places)
-
-        return gap
+        return -gap / (10 ** self.decimal_places)
 
     def get_gaps(self):
         """Returns horizontala and vertical gap values"""
-        return self.get_gap_hor(), self.get_gap_ver()
+        return self.get_horizontal_gap(), self.get_vertical_gap()
 
-    def set_horizontal_gap(self, new_gap):
+    def set_horizontal_gap(self, new_gap, timeout=None):
         """Sets new gap value"""
         self.set_gap_by_name("Hor", new_gap, timeout)
 
     def set_vertical_gap(self, new_gap, timeout=None):
-        self.set_gap_by_name("Ver", new_gap)
+        self.set_gap_by_name("Ver", new_gap, timeout)
 
-    def set_gap_by_name(self, gap_name, new_gap):
+    def set_gap_by_name(self, gap_name, new_gap, timeout=None):
         old_gap = self.gaps_dict[gap_name]["value"]
         if abs(old_gap - new_gap) > self.gaps_dict[gap_name]["updateTolerance"]:
             for motor in self.motors_dict:
@@ -352,7 +348,9 @@ class EMBLSlitBox(HardwareObject):
                 self.ver_gap_enabled = (
                     self.active_focus_mode in self.gaps_dict["Ver"]["modesAllowed"]
                 )
-            self.emit("focusModeChanged", (self.hor_gap_enabled, self.ver_gap_enabled))
+            self.emit(
+                "focusModeChanged", ((self.hor_gap_enabled, self.ver_gap_enabled),)
+            )
 
     def set_gaps_limits(self, new_gaps_limits):
         """Sets max gap Limits"""
@@ -365,17 +363,17 @@ class EMBLSlitBox(HardwareObject):
             )
             self.emit(
                 "maxLimitsChanged",
-                [self.gaps_dict["Hor"]["maxGap"], self.gaps_dict["Ver"]["maxGap"]],
+                ([self.gaps_dict["Hor"]["maxGap"], self.gaps_dict["Ver"]["maxGap"]],),
             )
 
     def update_values(self):
         """Reemits signals"""
-        self.emit("focusModeChanged", (self.hor_gap_enabled, self.ver_gap_enabled))
+        self.emit("focusModeChanged", ((self.hor_gap_enabled, self.ver_gap_enabled),))
         self.emit(
             "valueChanged",
-            [self.gaps_dict["Hor"]["value"], self.gaps_dict["Ver"]["value"]],
+            ([self.gaps_dict["Hor"]["value"], self.gaps_dict["Ver"]["value"]],),
         )
         self.emit(
             "statusChanged",
-            (self.gaps_dict["Hor"]["status"], self.gaps_dict["Ver"]["status"]),
+            ([self.gaps_dict["Hor"]["status"], self.gaps_dict["Ver"]["status"]],),
         )

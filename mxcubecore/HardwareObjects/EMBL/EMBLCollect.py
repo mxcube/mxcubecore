@@ -19,7 +19,7 @@
 import os
 
 from HardwareRepository.TaskUtils import task
-from AbstractCollect import AbstractCollect
+from abstract.AbstractCollect import AbstractCollect
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -43,7 +43,6 @@ class EMBLCollect(AbstractCollect):
         self._previous_collect_status = None
         self._actual_collect_status = None
 
-        self._use_still = None
         self._collect_frame = None
         self._exp_type_dict = {}
         self.break_bragg_released = False
@@ -64,6 +63,7 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_exposure_time = None
         self.cmd_collect_helical_position = None
         self.cmd_collect_in_queue = None
+        self.cmd_collect_images_per_trigger = None
         self.cmd_collect_num_images = None
         self.cmd_collect_overlap = None
         self.cmd_collect_processing = None
@@ -112,6 +112,9 @@ class EMBLCollect(AbstractCollect):
         self.cmd_collect_directory = self.getCommandObject("collectDirectory")
         self.cmd_collect_energy = self.getCommandObject("collectEnergy")
         self.cmd_collect_exposure_time = self.getCommandObject("collectExposureTime")
+        self.cmd_collect_images_per_trigger = self.getCommandObject(
+            "collectImagesPerTrigger"
+        )
         self.cmd_collect_helical_position = self.getCommandObject(
             "collectHelicalPosition"
         )
@@ -136,8 +139,6 @@ class EMBLCollect(AbstractCollect):
 
         self.cmd_collect_start = self.getCommandObject("collectStart")
         self.cmd_collect_abort = self.getCommandObject("collectAbort")
-
-        self._use_still = self.getProperty("use_still")
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
@@ -231,8 +232,9 @@ class EMBLCollect(AbstractCollect):
                 xds_range = self.current_dc_parameters["in_interleave"]
                 self.cmd_collect_xds_data_range(xds_range)
 
-            if self._use_still:
+            if osc_seq["num_triggers"] and osc_seq["num_images_per_trigger"]:
                 self.cmd_collect_scan_type("still")
+                self.cmd_collect_images_per_trigger(osc_seq["num_images_per_trigger"])
             else:
                 self.cmd_collect_scan_type(
                     self._exp_type_dict.get(

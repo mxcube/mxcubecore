@@ -19,12 +19,11 @@
 
 import gevent
 import logging
-from AbstractDetector import AbstractDetector
+from abstract.AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -65,7 +64,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
 
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
-        self.chan_cover_state = self.getChannelObject("chanCoverState")
+        self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
         if self.chan_cover_state is not None:
             self.chan_cover_state.connectSignal("update", self.cover_state_changed)
         self.chan_temperature = self.getChannelObject("chanTemperature")

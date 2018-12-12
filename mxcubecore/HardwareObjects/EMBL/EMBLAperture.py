@@ -18,7 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import gevent
-from AbstractAperture import AbstractAperture
+from abstract.AbstractAperture import AbstractAperture
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "General"
