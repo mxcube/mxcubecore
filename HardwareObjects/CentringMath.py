@@ -23,7 +23,7 @@ class CentringMath(Procedure):
                     "type": axis.type,
                     "direction": eval(axis.direction),
                     "motor_name": axis.motorname,
-                    "motor_HO": HardwareRepository.HardwareRepository().getHardwareObject(
+                    "motor_HO": HardwareRepository.getHardwareRepository().getHardwareObject(
                         axis.motorHO
                     ),
                 }
