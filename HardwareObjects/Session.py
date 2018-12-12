@@ -164,36 +164,24 @@ class Session(HardwareObject):
         else:
             start_time = time.strftime("%Y%m%d")
 
-        if self.synchrotron_name == "EMBL-HH":
-            if os.getenv("SUDO_USER"):
-                user = os.getenv("SUDO_USER")
-            else:
-                user = os.getenv("USER")
+        if self.is_inhouse():
+            user_category = "inhouse"
             directory = os.path.join(
                 self.base_directory,
-                str(os.getuid()) + "_" + str(os.getgid()),
-                user,
+                self.endstation_name,
+                user_category,
+                self.get_proposal(),
                 start_time,
             )
         else:
-            if self.is_inhouse():
-                user_category = "inhouse"
-                directory = os.path.join(
-                    self.base_directory,
-                    self.endstation_name,
-                    user_category,
-                    self.get_proposal(),
-                    start_time,
-                )
-            else:
-                user_category = "visitor"
-                directory = os.path.join(
-                    self.base_directory,
-                    user_category,
-                    self.get_proposal(),
-                    self.endstation_name,
-                    start_time,
-                )
+            user_category = "visitor"
+            directory = os.path.join(
+                self.base_directory,
+                user_category,
+                self.get_proposal(),
+                self.endstation_name,
+                start_time,
+            )
 
         return directory
 
@@ -289,11 +277,7 @@ class Session(HardwareObject):
             self["file_info"].getProperty("archive_folder"),
         )
 
-        if self.synchrotron_name == "EMBL-HH":
-            folders = self.get_base_data_directory().split("/")
-            archive_directory = os.path.join(archive_directory, *folders[4:])
-        else:
-            archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
+        archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
 
         return archive_directory
 
