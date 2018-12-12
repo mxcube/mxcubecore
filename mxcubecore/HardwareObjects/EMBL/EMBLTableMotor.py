@@ -21,7 +21,7 @@ import time
 import socket
 import atexit
 import logging
-from AbstractMotor import AbstractMotor
+from abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "Motor"

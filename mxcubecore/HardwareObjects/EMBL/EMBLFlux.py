@@ -26,11 +26,10 @@ from copy import deepcopy
 from datetime import datetime
 from scipy.interpolate import interp1d
 
-from AbstractFlux import AbstractFlux
+from abstract.AbstractFlux import AbstractFlux
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
