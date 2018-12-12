@@ -20,9 +20,7 @@
 import time
 import logging
 
-
 from GenericDiffractometer import GenericDiffractometer
-from HardwareRepository.TaskUtils import *
 
 
 __credits__ = ["EMBL Hamburg"]

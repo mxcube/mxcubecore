@@ -33,11 +33,10 @@ except ImportError:
         )
 
 from GenericDiffractometer import GenericDiffractometer
-from HardwareRepository.TaskUtils import *
+from HardwareRepository.TaskUtils import task
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
