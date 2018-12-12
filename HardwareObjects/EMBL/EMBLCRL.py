@@ -29,7 +29,6 @@ __category__ = "General"
 
 
 class EMBLCRL(HardwareObject):
-
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
@@ -55,25 +54,24 @@ class EMBLCRL(HardwareObject):
         self.focal_length = self.getProperty("focal_length")
         self.lens_count = 6
 
-        self.chan_crl_value = self.getChannelObject('chanCrlValue')
+        self.chan_crl_value = self.getChannelObject("chanCrlValue")
         if self.chan_crl_value:
-            self.chan_crl_value.connectSignal('update',
-                                              self.crl_value_changed)
+            self.chan_crl_value.connectSignal("update", self.crl_value_changed)
 
-        self.cmd_set_crl_value = self.getCommandObject('cmdSetLenses')
-        self.cmd_set_trans_value = self.getCommandObject('cmdSetTrans')
+        self.cmd_set_crl_value = self.getCommandObject("cmdSetLenses")
+        self.cmd_set_trans_value = self.getCommandObject("cmdSetTrans")
 
         self.energy_hwobj = self.getObjectByRole("energy")
         self.energy_value = self.energy_hwobj.getCurrentEnergy()
-        self.connect(self.energy_hwobj,
-                     "stateChanged",
-                     self.energy_state_changed)
+        self.connect(self.energy_hwobj, "stateChanged", self.energy_state_changed)
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:
-            self.connect(self.beam_focusing_hwobj,
-                         "focusingModeRequested",
-                         self.focusing_mode_requested)
+            self.connect(
+                self.beam_focusing_hwobj,
+                "focusingModeRequested",
+                self.focusing_mode_requested,
+            )
 
             lens_modes = self.beam_focusing_hwobj.get_available_lens_modes()
             if lens_modes:
@@ -86,13 +84,11 @@ class EMBLCRL(HardwareObject):
         if type(value) in (list, tuple):
             lens_combination = 0
             for index in range(self.lens_count):
-                lens_combination = (lens_combination
-                                    + value[index] * pow(2, index))
+                lens_combination = lens_combination + value[index] * pow(2, index)
         else:
             lens_combination = [0, 0, 0, 0, 0, 0]
             for index in range(self.lens_count):
-                lens_combination[index] = (value & pow(2, index)) / \
-                    pow(2, index)
+                lens_combination[index] = (value & pow(2, index)) / pow(2, index)
 
         return lens_combination
 
@@ -119,7 +115,7 @@ class EMBLCRL(HardwareObject):
         #    self.set_crl_value([0, 0, 0, 0, 0, 0])
         if self.current_mode == "Automatic":
             self.set_according_to_energy()
-        self.emit('crlModeChanged', self.current_mode)
+        self.emit("crlModeChanged", self.current_mode)
 
     def energy_state_changed(self, state):
         """If CRL's in the automatic mode then change setting accoring
@@ -128,8 +124,11 @@ class EMBLCRL(HardwareObject):
         :param state: energy state
         :type state: str
         """
-        if state == "ready" and state != self.energy_state and \
-           self.current_mode == "Automatic":
+        if (
+            state == "ready"
+            and state != self.energy_state
+            and self.current_mode == "Automatic"
+        ):
             self.energy_value = self.energy_hwobj.getCurrentEnergy()
             self.set_according_to_energy()
         self.energy_state = state
@@ -138,14 +137,17 @@ class EMBLCRL(HardwareObject):
         """Sets CRL combination according to the current energy"""
         min_abs = 20
         selected_combination = None
-        #crl_value = [0, 0, 0, 0, 0, 0]
+        # crl_value = [0, 0, 0, 0, 0, 0]
 
         self.energy_value = self.energy_hwobj.getCurrentEnergy()
         for combination_index in range(1, 65):
-            current_abs = abs(self.energy_value -
-                              math.sqrt((2 * 341.52 * combination_index) /
-                                        (2000 * (1 / 42.6696 + 1 /
-                                                 self.focal_length))))
+            current_abs = abs(
+                self.energy_value
+                - math.sqrt(
+                    (2 * 341.52 * combination_index)
+                    / (2000 * (1 / 42.6696 + 1 / self.focal_length))
+                )
+            )
             if current_abs < min_abs:
                 min_abs = current_abs
                 selected_combination = combination_index
@@ -157,27 +159,29 @@ class EMBLCRL(HardwareObject):
         """Returns image plane distance"""
         if isinstance(value, list):
             lens_combination = self.convert_value(value)
-            #lens_combination = 0
+            # lens_combination = 0
             # for x in range(6):
             #    lens_combination = lens_combination + value[x] * pow(2, x)
         else:
             lens_combination = value
-        return 1. / (2 * 341.52 * lens_combination / 2000 /
-                     (self.energy_value ** 2) - 1 / 42.6696)
+        return 1.0 / (
+            2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
+            - 1 / 42.6696
+        )
 
     def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
         if focusing_mode is not None:
-            self.modes = self.beam_focusing_hwobj.\
-                get_available_lens_modes()
+            self.modes = self.beam_focusing_hwobj.get_available_lens_modes()
             self.set_mode(self.modes[0])
-            self.set_crl_value(self.beam_focusing_hwobj.get_lens_combination(
-                focusing_mode))
+            self.set_crl_value(
+                self.beam_focusing_hwobj.get_lens_combination(focusing_mode)
+            )
 
     def crl_value_changed(self, value):
         """Emit signal when crl combination changed"""
         self.crl_value = value
-        self.emit('crlValueChanged', self.crl_value)
+        self.emit("crlValueChanged", self.crl_value)
 
     def set_crl_value(self, value, timeout=None):
         """Sets CRL lens combination. If integer passed then
@@ -190,8 +194,9 @@ class EMBLCRL(HardwareObject):
             self.cmd_set_crl_value(value)
             self.cmd_set_trans_value(1)
         logging.getLogger("GUI").info(
-            "Setting CRL image plane " +
-            "distance to %.2f" % self.get_image_plane_distance(value))
+            "Setting CRL image plane "
+            + "distance to %.2f" % self.get_image_plane_distance(value)
+        )
 
         if timeout:
             gevent.sleep(1)
@@ -205,8 +210,8 @@ class EMBLCRL(HardwareObject):
 
     def update_values(self):
         """Reemits signals"""
-        self.emit('crlModeChanged', self.current_mode)
-        self.emit('crlValueChanged', self.crl_value)
+        self.emit("crlModeChanged", self.current_mode)
+        self.emit("crlValueChanged", self.crl_value)
 
     def move_up(self):
         """Moves lense combination one value up"""

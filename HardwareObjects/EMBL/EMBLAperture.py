@@ -46,37 +46,40 @@ class EMBLAperture(AbstractAperture):
 
         self._position_list = DEFAULT_POSITION_LIST
 
-        self.chan_diameters = self.getChannelObject('ApertureDiameters')
+        self.chan_diameters = self.getChannelObject("ApertureDiameters")
         if self.chan_diameters:
             self._diameter_size_list = self.chan_diameters.getValue()
         else:
             self._diameter_size_list = (10, 20)
 
-        self.chan_diameter_index = \
-            self.getChannelObject('CurrentApertureDiameterIndex')
+        self.chan_diameter_index = self.getChannelObject("CurrentApertureDiameterIndex")
         if self.chan_diameter_index is not None:
             self._current_diameter_index = self.chan_diameter_index.getValue()
             self.diameter_index_changed(self._current_diameter_index)
             self.chan_diameter_index.connectSignal(
-                'update', self.diameter_index_changed)
+                "update", self.diameter_index_changed
+            )
         else:
             self._current_diameter_index = 0
 
-        self.chan_position = self.getChannelObject('AperturePosition')
+        self.chan_position = self.getChannelObject("AperturePosition")
         if self.chan_position:
             self._current_position_name = self.chan_position.getValue()
             self.current_position_name_changed(self._current_position_name)
-            self.chan_position.connectSignal('update',
-                                             self.current_position_name_changed)
+            self.chan_position.connectSignal(
+                "update", self.current_position_name_changed
+            )
 
-        self.chan_state = self.getChannelObject('State')
+        self.chan_state = self.getChannelObject("State")
 
     def diameter_index_changed(self, diameter_index):
         """Callback when diameter index has been changed"""
         self._current_diameter_index = diameter_index
-        self.emit('diameterIndexChanged', self._current_diameter_index,
-                  self._diameter_size_list[self._current_diameter_index]
-                  / 1000.0)
+        self.emit(
+            "diameterIndexChanged",
+            self._current_diameter_index,
+            self._diameter_size_list[self._current_diameter_index] / 1000.0,
+        )
 
     def get_diameter_size(self):
         """Returns: diameter size in mm"""
@@ -126,8 +129,7 @@ class EMBLAperture(AbstractAperture):
         self.chan_position.setValue("OFF")
 
     def wait_ready(self, timeout=20):
-        with gevent.Timeout(timeout,
-                            Exception("Timeout waiting for status ready")):
+        with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
             while self.chan_state.getValue() != "Ready":
                 gevent.sleep(0.1)
 

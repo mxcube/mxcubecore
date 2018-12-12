@@ -97,77 +97,51 @@ class EMBLCollect(AbstractCollect):
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
         self.image_tracking_hwobj = self.getObjectByRole("image_tracking")
 
-        self._exp_type_dict = {'Mesh': 'raster',
-                               'Helical': 'Helical'}
+        self._exp_type_dict = {"Mesh": "raster", "Helical": "Helical"}
 
-        self.chan_collect_status = self.getChannelObject('collectStatus')
+        self.chan_collect_status = self.getChannelObject("collectStatus")
         self._actual_collect_status = self.chan_collect_status.getValue()
-        self.chan_collect_status.connectSignal('update',
-                                               self.collect_status_update)
-        self.chan_collect_frame = self.getChannelObject('collectFrame')
-        self.chan_collect_frame.connectSignal('update',
-                                              self.collect_frame_update)
-        self.chan_collect_error = self.getChannelObject('collectError')
-        self.chan_collect_error.connectSignal('update',
-                                              self.collect_error_update)
-        self.cmd_collect_compression = \
-            self.getCommandObject('collectCompression')
-        self.cmd_collect_description = \
-            self.getCommandObject('collectDescription')
-        self.cmd_collect_detector = \
-            self.getCommandObject('collectDetector')
-        self.cmd_collect_directory = \
-            self.getCommandObject('collectDirectory')
-        self.cmd_collect_energy = \
-            self.getCommandObject('collectEnergy')
-        self.cmd_collect_exposure_time = \
-            self.getCommandObject('collectExposureTime')
-        self.cmd_collect_images_per_trigger = \
-            self.getCommandObject('collectImagesPerTrigger')
-        self.cmd_collect_helical_position = \
-            self.getCommandObject('collectHelicalPosition')
-        self.cmd_collect_in_queue = \
-            self.getCommandObject('collectInQueue')
-        self.cmd_collect_num_images = \
-            self.getCommandObject('collectNumImages')
-        self.cmd_collect_overlap = \
-            self.getCommandObject('collectOverlap')
-        self.cmd_collect_processing = \
-            self.getCommandObject('collectProcessing')
-        self.cmd_collect_range = \
-            self.getCommandObject('collectRange')
-        self.cmd_collect_raster_lines = \
-            self.getCommandObject('collectRasterLines')
-        self.cmd_collect_raster_range = \
-            self.getCommandObject('collectRasterRange')
-        self.cmd_collect_resolution = \
-            self.getCommandObject('collectResolution')
-        self.cmd_collect_scan_type = \
-            self.getCommandObject('collectScanType')
-        self.cmd_collect_shutter = \
-            self.getCommandObject('collectShutter')
-        self.cmd_collect_shutterless = \
-            self.getCommandObject('collectShutterless')
-        self.cmd_collect_start_angle = \
-            self.getCommandObject('collectStartAngle')
-        self.cmd_collect_start_image = \
-            self.getCommandObject('collectStartImage')
-        self.cmd_collect_template = \
-            self.getCommandObject('collectTemplate')
-        self.cmd_collect_transmission = \
-            self.getCommandObject('collectTransmission')
-        self.cmd_collect_space_group = \
-            self.getCommandObject('collectSpaceGroup')
-        self.cmd_collect_unit_cell = \
-            self.getCommandObject('collectUnitCell')
-        self.cmd_collect_xds_data_range = \
-            self.getCommandObject('collectXdsDataRange')
+        self.chan_collect_status.connectSignal("update", self.collect_status_update)
+        self.chan_collect_frame = self.getChannelObject("collectFrame")
+        self.chan_collect_frame.connectSignal("update", self.collect_frame_update)
+        self.chan_collect_error = self.getChannelObject("collectError")
+        self.chan_collect_error.connectSignal("update", self.collect_error_update)
+        self.cmd_collect_compression = self.getCommandObject("collectCompression")
+        self.cmd_collect_description = self.getCommandObject("collectDescription")
+        self.cmd_collect_detector = self.getCommandObject("collectDetector")
+        self.cmd_collect_directory = self.getCommandObject("collectDirectory")
+        self.cmd_collect_energy = self.getCommandObject("collectEnergy")
+        self.cmd_collect_exposure_time = self.getCommandObject("collectExposureTime")
+        self.cmd_collect_images_per_trigger = self.getCommandObject(
+            "collectImagesPerTrigger"
+        )
+        self.cmd_collect_helical_position = self.getCommandObject(
+            "collectHelicalPosition"
+        )
+        self.cmd_collect_in_queue = self.getCommandObject("collectInQueue")
+        self.cmd_collect_num_images = self.getCommandObject("collectNumImages")
+        self.cmd_collect_overlap = self.getCommandObject("collectOverlap")
+        self.cmd_collect_processing = self.getCommandObject("collectProcessing")
+        self.cmd_collect_range = self.getCommandObject("collectRange")
+        self.cmd_collect_raster_lines = self.getCommandObject("collectRasterLines")
+        self.cmd_collect_raster_range = self.getCommandObject("collectRasterRange")
+        self.cmd_collect_resolution = self.getCommandObject("collectResolution")
+        self.cmd_collect_scan_type = self.getCommandObject("collectScanType")
+        self.cmd_collect_shutter = self.getCommandObject("collectShutter")
+        self.cmd_collect_shutterless = self.getCommandObject("collectShutterless")
+        self.cmd_collect_start_angle = self.getCommandObject("collectStartAngle")
+        self.cmd_collect_start_image = self.getCommandObject("collectStartImage")
+        self.cmd_collect_template = self.getCommandObject("collectTemplate")
+        self.cmd_collect_transmission = self.getCommandObject("collectTransmission")
+        self.cmd_collect_space_group = self.getCommandObject("collectSpaceGroup")
+        self.cmd_collect_unit_cell = self.getCommandObject("collectUnitCell")
+        self.cmd_collect_xds_data_range = self.getCommandObject("collectXdsDataRange")
 
-        self.cmd_collect_start = self.getCommandObject('collectStart')
-        self.cmd_collect_abort = self.getCommandObject('collectAbort')
+        self.cmd_collect_start = self.getCommandObject("collectStart")
+        self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.emit("collectConnected", (True,))
-        self.emit("collectReady", (True, ))
+        self.emit("collectReady", (True,))
 
     def data_collection_hook(self):
         """Main collection hook"""
@@ -177,18 +151,23 @@ class EMBLCollect(AbstractCollect):
             self.aborted_by_user = False
             return
 
-        if self._actual_collect_status in ["ready", "unknown", "error",
-                                           "not available"]:
+        if self._actual_collect_status in [
+            "ready",
+            "unknown",
+            "error",
+            "not available",
+        ]:
             self.diffractometer_hwobj.save_centring_positions()
-            comment = 'Comment: %s' % \
-                      str(self.current_dc_parameters.get('comments', ""))
+            comment = "Comment: %s" % str(
+                self.current_dc_parameters.get("comments", "")
+            )
             self._error_msg = ""
             self._collecting = True
             self._collect_frame = None
 
-            osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+            osc_seq = self.current_dc_parameters["oscillation_sequence"][0]
             file_info = self.current_dc_parameters["fileinfo"]
-            sample_ref = self.current_dc_parameters['sample_reference']
+            sample_ref = self.current_dc_parameters["sample_reference"]
 
             if self.image_tracking_hwobj is not None:
                 self.image_tracking_hwobj.set_image_tracking_state(True)
@@ -198,70 +177,76 @@ class EMBLCollect(AbstractCollect):
             self.cmd_collect_description(comment)
             self.cmd_collect_detector(self.detector_hwobj.get_collect_name())
             self.cmd_collect_directory(str(file_info["directory"]))
-            self.cmd_collect_exposure_time(osc_seq['exposure_time'])
-            self.cmd_collect_in_queue(
-                self.current_dc_parameters['in_queue'] != False)
-            self.cmd_collect_overlap(osc_seq['overlap'])
-#            self.cmd_collect_overlap(-0.5)
+            self.cmd_collect_exposure_time(osc_seq["exposure_time"])
+            self.cmd_collect_in_queue(self.current_dc_parameters["in_queue"] != False)
+            self.cmd_collect_overlap(osc_seq["overlap"])
+            #            self.cmd_collect_overlap(-0.5)
             shutter_name = self.detector_hwobj.get_shutter_name()
             if shutter_name is not None:
                 self.cmd_collect_shutter(shutter_name)
 
-            if osc_seq['overlap'] == 0:
+            if osc_seq["overlap"] == 0:
                 self.cmd_collect_shutterless(1)
             else:
                 self.cmd_collect_shutterless(0)
-            self.cmd_collect_range(osc_seq['range'])
-            if self.current_dc_parameters['experiment_type'] != 'Mesh':
-                self.cmd_collect_num_images(osc_seq['number_of_images'])
+            self.cmd_collect_range(osc_seq["range"])
+            if self.current_dc_parameters["experiment_type"] != "Mesh":
+                self.cmd_collect_num_images(osc_seq["number_of_images"])
 
             if self.cmd_collect_processing is not None:
                 self.cmd_collect_processing(
-                    self.current_dc_parameters["processing_parallel"] in
-                    (True, "MeshScan", "XrayCentering"))
+                    self.current_dc_parameters["processing_parallel"]
+                    in (True, "MeshScan", "XrayCentering")
+                )
 
-            #print "Experiment type::::::::::", self.current_dc_parameters['experiment_type']
+            # print "Experiment type::::::::::", self.current_dc_parameters['experiment_type']
             # GB 2018-05-16 : Workaround a fuzzy mesh scan interface of MD3
             # if self.current_dc_parameters['experiment_type'] == 'Mesh':
             #   _do_start = osc_seq['start'] - 0.5 * osc_seq['range']*osc_seq['number_of_images']/float(osc_seq['number_of_lines'])
             #   print _do_start, ' Here'
             # else:
             #   _do_start = osc_seq['start']
-            #print "Oscillation Start::::::::::::::::::::", _do_start
+            # print "Oscillation Start::::::::::::::::::::", _do_start
 
-            self.cmd_collect_start_angle(osc_seq['start'])
+            self.cmd_collect_start_angle(osc_seq["start"])
             # self.cmd_collect_start_angle(_do_start)
 
-            self.cmd_collect_start_image(osc_seq['start_image_number'])
-            self.cmd_collect_template(str(file_info['template']))
-            space_group = str(sample_ref['spacegroup'])
+            self.cmd_collect_start_image(osc_seq["start_image_number"])
+            self.cmd_collect_template(str(file_info["template"]))
+            space_group = str(sample_ref["spacegroup"])
             if len(space_group) == 0:
                 space_group = " "
             self.cmd_collect_space_group(space_group)
-            unit_cell = list(eval(sample_ref['cell']))
+            unit_cell = list(eval(sample_ref["cell"]))
             self.cmd_collect_unit_cell(unit_cell)
 
-            if self.current_dc_parameters['experiment_type'] == 'OSC':
-                xds_range = (osc_seq['start_image_number'],
-                             osc_seq['start_image_number'] +
-                             osc_seq['number_of_images'] - 1)
+            if self.current_dc_parameters["experiment_type"] == "OSC":
+                xds_range = (
+                    osc_seq["start_image_number"],
+                    osc_seq["start_image_number"] + osc_seq["number_of_images"] - 1,
+                )
                 self.cmd_collect_xds_data_range(xds_range)
-            elif self.current_dc_parameters['experiment_type'] == \
-                    "Collect - Multiwedge":
-                xds_range = self.current_dc_parameters['in_interleave']
+            elif (
+                self.current_dc_parameters["experiment_type"] == "Collect - Multiwedge"
+            ):
+                xds_range = self.current_dc_parameters["in_interleave"]
                 self.cmd_collect_xds_data_range(xds_range)
 
-            if osc_seq['num_triggers'] and osc_seq['num_images_per_trigger']:
+            if osc_seq["num_triggers"] and osc_seq["num_images_per_trigger"]:
                 self.cmd_collect_scan_type("still")
-                self.cmd_collect_images_per_trigger(osc_seq['num_images_per_trigger'])
+                self.cmd_collect_images_per_trigger(osc_seq["num_images_per_trigger"])
             else:
-                self.cmd_collect_scan_type(self._exp_type_dict.get(
-                    self.current_dc_parameters['experiment_type'], 'OSC'))
+                self.cmd_collect_scan_type(
+                    self._exp_type_dict.get(
+                        self.current_dc_parameters["experiment_type"], "OSC"
+                    )
+                )
             self.cmd_collect_start()
         else:
-            self.collection_failed("Unable to start collection. " +
-                                   "Detector server is in %s state" %
-                                   self._actual_collect_status)
+            self.collection_failed(
+                "Unable to start collection. "
+                + "Detector server is in %s state" % self._actual_collect_status
+            )
 
     def collect_status_update(self, status):
         """Status event that controls execution
@@ -276,15 +261,15 @@ class EMBLCollect(AbstractCollect):
                 if self._actual_collect_status == "error":
                     self.collection_failed()
                 elif self._actual_collect_status == "collecting":
-                    if self.current_dc_parameters['experiment_type'] != 'Mesh':
+                    if self.current_dc_parameters["experiment_type"] != "Mesh":
                         self.store_image_in_lims_by_frame_num(1)
                 if self._previous_collect_status is None:
-                    if self._actual_collect_status == 'busy':
+                    if self._actual_collect_status == "busy":
                         self.print_log("HWR", "info", "Collection: Preparing ...")
-                elif self._previous_collect_status == 'busy':
-                    if self._actual_collect_status == 'collecting':
+                elif self._previous_collect_status == "busy":
+                    if self._actual_collect_status == "collecting":
                         self.emit("collectStarted", (None, 1))
-                elif self._previous_collect_status == 'collecting':
+                elif self._previous_collect_status == "collecting":
                     if self._actual_collect_status == "ready":
                         self.collection_finished()
                     elif self._actual_collect_status == "aborting":
@@ -300,13 +285,16 @@ class EMBLCollect(AbstractCollect):
 
         if self._collecting and len(error_msg) > 0:
             self._error_msg = error_msg
-            self.print_log("GUI", "error",
-                           "Collection: Error from detector server: %s" % error_msg)
+            self.print_log(
+                "GUI", "error", "Collection: Error from detector server: %s" % error_msg
+            )
 
     def collection_finished(self):
         AbstractCollect.collection_finished(self)
-        if self.current_dc_parameters['in_queue'] is False and \
-                self.break_bragg_released:
+        if (
+            self.current_dc_parameters["in_queue"] is False
+            and self.break_bragg_released
+        ):
             self.break_bragg_released = False
             self.energy_hwobj.set_break_bragg()
 
@@ -317,16 +305,15 @@ class EMBLCollect(AbstractCollect):
         :type frame: int
         """
         if self._collecting:
-            if self.current_dc_parameters['in_interleave']:
-                number_of_images = \
-                    self.current_dc_parameters['in_interleave'][1]
+            if self.current_dc_parameters["in_interleave"]:
+                number_of_images = self.current_dc_parameters["in_interleave"][1]
             else:
-                number_of_images = \
-                    self.current_dc_parameters['oscillation_sequence'][0]['number_of_images']
+                number_of_images = self.current_dc_parameters["oscillation_sequence"][
+                    0
+                ]["number_of_images"]
             if self._collect_frame != frame:
                 self._collect_frame = frame
-                self.emit("progressStep", (int(float(frame) /
-                                               number_of_images * 100)))
+                self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
                 self.emit("collectImageTaken", frame)
 
     def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
@@ -344,8 +331,11 @@ class EMBLCollect(AbstractCollect):
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
         self.autoprocessing_hwobj.execute_autoprocessing(
-            process_event, self.current_dc_parameters,
-            frame_number, self.run_processing_after)
+            process_event,
+            self.current_dc_parameters,
+            frame_number,
+            self.run_processing_after,
+        )
 
     def stopCollect(self, owner="MXCuBE"):
         """Stops collect"""
@@ -360,14 +350,21 @@ class EMBLCollect(AbstractCollect):
              p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
              p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY
         """
-        helical_positions = [arg["1"]["phiy"], arg["1"]["phiz"],
-                             arg["1"]["sampx"], arg["1"]["sampy"],
-                             arg["2"]["phiy"], arg["2"]["phiz"],
-                             arg["2"]["sampx"], arg["2"]["sampy"]]
+        helical_positions = [
+            arg["1"]["phiy"],
+            arg["1"]["phiz"],
+            arg["1"]["sampx"],
+            arg["1"]["sampy"],
+            arg["2"]["phiy"],
+            arg["2"]["phiz"],
+            arg["2"]["sampx"],
+            arg["2"]["sampy"],
+        ]
         self.cmd_collect_helical_position(helical_positions)
 
-    def set_mesh_scan_parameters(self, num_lines, num_total_frames,
-                                 mesh_center, mesh_range):
+    def set_mesh_scan_parameters(
+        self, num_lines, num_total_frames, mesh_center, mesh_range
+    ):
         """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
         self.cmd_collect_num_images(num_total_frames / num_lines)
@@ -384,13 +381,13 @@ class EMBLCollect(AbstractCollect):
            Animation is saved as the fourth snapshot
         """
 
-        self.graphics_manager_hwobj.save_scene_animation(animation_filename,
-                                                         duration_sec)
+        self.graphics_manager_hwobj.save_scene_animation(
+            animation_filename, duration_sec
+        )
 
     def set_energy(self, value):
         """Sets energy"""
-        if abs(value - self.get_energy()) > 0.001 and not \
-           self.break_bragg_released:
+        if abs(value - self.get_energy()) > 0.001 and not self.break_bragg_released:
             self.break_bragg_released = True
             if hasattr(self.energy_hwobj, "release_break_bragg"):
                 self.energy_hwobj.release_break_bragg()
@@ -428,24 +425,28 @@ class EMBLCollect(AbstractCollect):
         i = 1
         while True:
             xds_input_file_dirname = "xds_%s_%s_%d" % (
-                self.current_dc_parameters['fileinfo']['prefix'],
-                self.current_dc_parameters['fileinfo']['run_number'],
-                i)
+                self.current_dc_parameters["fileinfo"]["prefix"],
+                self.current_dc_parameters["fileinfo"]["run_number"],
+                i,
+            )
             xds_directory = os.path.join(
-                self.current_dc_parameters['fileinfo']['process_directory'],
-                xds_input_file_dirname)
+                self.current_dc_parameters["fileinfo"]["process_directory"],
+                xds_input_file_dirname,
+            )
             if not os.path.exists(xds_directory):
                 break
             i += 1
         self.current_dc_parameters["xds_dir"] = xds_directory
 
         mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
-            self.current_dc_parameters['fileinfo']['prefix'],
-            self.current_dc_parameters['fileinfo']['run_number'],
-            i)
+            self.current_dc_parameters["fileinfo"]["prefix"],
+            self.current_dc_parameters["fileinfo"]["run_number"],
+            i,
+        )
         mosflm_directory = os.path.join(
-            self.current_dc_parameters['fileinfo']['process_directory'],
-            mosflm_input_file_dirname)
+            self.current_dc_parameters["fileinfo"]["process_directory"],
+            mosflm_input_file_dirname,
+        )
 
         return xds_directory, mosflm_directory, ""
 
@@ -482,7 +483,7 @@ class EMBLCollect(AbstractCollect):
             if type(und_gaps) in (list, tuple):
                 return und_gaps
             else:
-                return (und_gaps)
+                return und_gaps
         else:
             return {}
 
@@ -503,7 +504,7 @@ class EMBLCollect(AbstractCollect):
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
         else:
-            return ''
+            return ""
 
     def get_machine_fill_mode(self):
         """Returns machine filling mode"""
@@ -511,7 +512,7 @@ class EMBLCollect(AbstractCollect):
             fill_mode = str(self.machine_info_hwobj.get_message())
             return fill_mode[:20]
         else:
-            return ''
+            return ""
 
     def getBeamlineConfiguration(self, *args):
         """Returns beamline config"""

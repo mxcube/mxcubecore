@@ -17,7 +17,6 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 
 class EMBLImageTracking(Device):
-
     def __init__(self, *args):
         Device.__init__(self, *args)
 
@@ -25,8 +24,7 @@ class EMBLImageTracking(Device):
         self.target_port = None
         self.state = None
         self.active_socket = None
-        self.state_dict = {"image_tracking": False,
-                           "filter_frames": False}
+        self.state_dict = {"image_tracking": False, "filter_frames": False}
 
         self.chan_state = None
         self.chan_enable_image_tracking = None
@@ -34,12 +32,15 @@ class EMBLImageTracking(Device):
 
     def init(self):
         self.chan_enable_image_tracking = self.getChannelObject(
-            "chanImageTrackingEnabled")
+            "chanImageTrackingEnabled"
+        )
         self.chan_enable_image_tracking.connectSignal(
-            "update", self.image_tracking_enable_state_changed)
+            "update", self.image_tracking_enable_state_changed
+        )
         self.chan_filter_frames = self.getChannelObject("chanFilterFramesEnabled")
         self.chan_filter_frames.connectSignal(
-            "update", self.filter_frames_enabled_changed)
+            "update", self.filter_frames_enabled_changed
+        )
 
         self.chan_state = self.getChannelObject("chanState")
         self.chan_state.connectSignal("update", self.state_changed)
@@ -48,16 +49,16 @@ class EMBLImageTracking(Device):
 
     def image_tracking_enable_state_changed(self, state):
         self.state_dict["image_tracking"] = state
-        self.emit("imageTrackingStateChanged", (self.state_dict, ))
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def filter_frames_enabled_changed(self, state):
         self.state_dict["filter_frames"] = state
-        self.emit("imageTrackingStateChanged", (self.state_dict, ))
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def state_changed(self, state):
         if self.state != state:
             self.state = state
-        self.emit("stateChanged", (self.state, ))
+        self.emit("stateChanged", (self.state,))
 
     def is_tracking_enabled(self):
         return self.chan_enable_image_tracking.getValue()
@@ -75,4 +76,4 @@ class EMBLImageTracking(Device):
 
     def update_values(self):
         self.emit("stateChanged", self.state)
-        self.emit("imageTrackingStateChanged", (self.state_dict, ))
+        self.emit("imageTrackingStateChanged", (self.state_dict,))

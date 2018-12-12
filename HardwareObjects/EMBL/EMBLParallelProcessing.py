@@ -60,30 +60,24 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :type : str
         """
         input_file = XSDataInputControlDozor()
-        input_file.setTemplate(XSDataString(
-            self.params_dict["template"]))
-        input_file.setFirst_image_number(XSDataInteger(
-            self.params_dict["first_image_num"]))
-        input_file.setLast_image_number(XSDataInteger(
-            self.params_dict["images_num"]))
-        input_file.setFirst_run_number(XSDataInteger(
-            self.params_dict["run_number"]))
-        input_file.setLast_run_number(XSDataInteger(
-            self.params_dict["run_number"]))
-        input_file.setLine_number_of(XSDataInteger(
-            self.params_dict["lines_num"]))
-        input_file.setReversing_rotation(XSDataBoolean(
-            self.params_dict["reversing_rotation"]))
-        input_file.setPixelMin(XSDataInteger(
-            self.detector_hwobj.get_pixel_min()))
-        input_file.setPixelMax(XSDataInteger(
-            self.detector_hwobj.get_pixel_max()))
-        input_file.setBeamstopSize(XSDataDouble(
-            self.beamstop_hwobj.get_size()))
-        input_file.setBeamstopDistance(XSDataDouble(
-            self.beamstop_hwobj.get_distance()))
-        input_file.setBeamstopDirection(XSDataString(
-            self.beamstop_hwobj.get_direction()))
+        input_file.setTemplate(XSDataString(self.params_dict["template"]))
+        input_file.setFirst_image_number(
+            XSDataInteger(self.params_dict["first_image_num"])
+        )
+        input_file.setLast_image_number(XSDataInteger(self.params_dict["images_num"]))
+        input_file.setFirst_run_number(XSDataInteger(self.params_dict["run_number"]))
+        input_file.setLast_run_number(XSDataInteger(self.params_dict["run_number"]))
+        input_file.setLine_number_of(XSDataInteger(self.params_dict["lines_num"]))
+        input_file.setReversing_rotation(
+            XSDataBoolean(self.params_dict["reversing_rotation"])
+        )
+        input_file.setPixelMin(XSDataInteger(self.detector_hwobj.get_pixel_min()))
+        input_file.setPixelMax(XSDataInteger(self.detector_hwobj.get_pixel_max()))
+        input_file.setBeamstopSize(XSDataDouble(self.beamstop_hwobj.get_size()))
+        input_file.setBeamstopDistance(XSDataDouble(self.beamstop_hwobj.get_distance()))
+        input_file.setBeamstopDirection(
+            XSDataString(self.beamstop_hwobj.get_direction())
+        )
 
         input_file.exportToFile(processing_input_filename)
 
@@ -95,9 +89,8 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.data_collection = data_collection
         self.prepare_processing()
         self.create_processing_input_file(
-            os.path.join(
-                self.params_dict["process_directory"],
-                "dozor_input.xml"))
+            os.path.join(self.params_dict["process_directory"], "dozor_input.xml")
+        )
 
         self.emit("processingStarted", self.params_dict, self.results_aligned)
         self.emit("processingResultsUpdate", False)
@@ -107,19 +100,20 @@ class EMBLParallelProcessing(GenericParallelProcessing):
 
     def frame_count_changed(self, frame_count):
         if self.started:
-            self.emit('processingFrame', frame_count)
+            self.emit("processingFrame", frame_count)
             if frame_count >= self.params_dict["images_num"] - 1:
                 self.set_processing_status("Success")
 
     def smooth(self):
-        good_index = numpy.where(self.results_raw["spots_resolution"] > 1 / 46.)[0]
+        good_index = numpy.where(self.results_raw["spots_resolution"] > 1 / 46.0)[0]
         good = self.results_aligned["spots_resolution"][good_index]
         if self.results_raw["spots_resolution"].size > 200:
             points_index = self.results_raw["spots_resolution"].size / 200
 
             for x in range(0, good_index.size, points_index):
                 self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(
-                    good[max(x - points_index / 2, 0): x + points_index / 2])
+                    good[max(x - points_index / 2, 0) : x + points_index / 2]
+                )
 
         # logging.getLogger("user_level_log").info("%d"%good_index.size)
         # for x in range(20, good_index.size, 1):
@@ -149,7 +143,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :param batch: list of dictionaries describing processing results
         :type batch: lis
         """
-        #logging.getLogger("user_level_log").info("Batch arrived %s" % str(self.started))
+        # logging.getLogger("user_level_log").info("Batch arrived %s" % str(self.started))
         if self.started and (type(batch) in (tuple, list)):
             if type(batch[0]) not in (tuple, list):
                 batch = [batch]
@@ -163,11 +157,13 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                 for score_key in self.results_raw.keys():
                     if self.params_dict["lines_num"] > 1:
                         col, row = self.grid.get_col_row_from_image(frame_num)
-                        self.results_aligned[score_key][col][row] = \
-                            self.results_raw[score_key][frame_num]
+                        self.results_aligned[score_key][col][row] = self.results_raw[
+                            score_key
+                        ][frame_num]
                     else:
-                        self.results_aligned[score_key][frame_num] = \
-                            self.results_raw[score_key][frame_num]
+                        self.results_aligned[score_key][frame_num] = self.results_raw[
+                            score_key
+                        ][frame_num]
             # if self.params_dict["lines_num"] <= 1:
             #   self.smooth()
 
@@ -176,7 +172,7 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         while self.started:
             self.emit("processingResultsUpdate", False)
             if self.params_dict["lines_num"] > 1:
-                self.grid.set_score(self.results_raw['score'])
+                self.grid.set_score(self.results_raw["score"])
             gevent.sleep(0.5)
 
     def set_processing_status(self, status):
@@ -196,19 +192,21 @@ class EMBLParallelProcessing(GenericParallelProcessing):
 
     def store_result_xml(self):
         processing_xml_filename = os.path.join(
-            self.params_dict["process_directory"],
-            "dozor_result.xml")
+            self.params_dict["process_directory"], "dozor_result.xml"
+        )
         dozor_result = XSDataResultControlDozor()
         for index in range(self.params_dict["images_num"]):
             dozor_image = XSDataControlImageDozor()
             dozor_image.setNumber(XSDataInteger(index))
             dozor_image.setScore(XSDataDouble(self.results_raw["score"][index]))
-            dozor_image.setSpots_num_of(XSDataInteger(
-                self.results_raw["spots_num"][index]))
-            dozor_image.setSpots_resolution(XSDataDouble(
-                self.results_raw["spots_resolution"][index]))
+            dozor_image.setSpots_num_of(
+                XSDataInteger(self.results_raw["spots_num"][index])
+            )
+            dozor_image.setSpots_resolution(
+                XSDataDouble(self.results_raw["spots_resolution"][index])
+            )
             dozor_result.addImageDozor(dozor_image)
         dozor_result.exportToFile(processing_xml_filename)
         logging.getLogger("HWR").info(
-            "Parallel processing: Results saved in %s" %
-            processing_xml_filename)
+            "Parallel processing: Results saved in %s" % processing_xml_filename
+        )

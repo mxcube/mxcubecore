@@ -53,8 +53,9 @@ class EMBLAutoProcessing(HardwareObject):
         except BaseException:
             self.print_log("AutoProcessing: no autoprocessing program defined.")
 
-    def execute_autoprocessing(self, process_event, params_dict,
-                               frame_number, run_processing=True):
+    def execute_autoprocessing(
+        self, process_event, params_dict, frame_number, run_processing=True
+    ):
         """Method called from collection hwobj after successfull collection.
 
         :param process_event: processing type (after, before, image)
@@ -67,13 +68,13 @@ class EMBLAutoProcessing(HardwareObject):
                                False = create just input file
         :type run_processing: bool
         """
-        self.autoproc_procedure(process_event,
-                                params_dict,
-                                frame_number,
-                                run_processing)
+        self.autoproc_procedure(
+            process_event, params_dict, frame_number, run_processing
+        )
 
-    def autoproc_procedure(self, process_event, params_dict,
-                           frame_number, run_processing=True):
+    def autoproc_procedure(
+        self, process_event, params_dict, frame_number, run_processing=True
+    ):
         """
         Main autoprocessing procedure. At the beginning correct event (defined
         in xml) is found. If the event is executable then accordingly to the
@@ -114,20 +115,27 @@ class EMBLAutoProcessing(HardwareObject):
                     will_execute = True
                     if process_event == "after":
                         end_of_line_to_execute = " " + params_dict["xds_dir"]
-                    elif process_event == 'image':
+                    elif process_event == "image":
                         filename = params_dict["fileinfo"]["template"] % frame_number
-                        end_of_line_to_execute = " %s %s/%s" % \
-                            (params_dict["fileinfo"]["directory"],
-                             params_dict["fileinfo"]["directory"],
-                             filename)
+                        end_of_line_to_execute = " %s %s/%s" % (
+                            params_dict["fileinfo"]["directory"],
+                            params_dict["fileinfo"]["directory"],
+                            filename,
+                        )
                     if will_execute:
-                        subprocess.Popen(str(executable + end_of_line_to_execute),
-                                         shell=True, stdin=None, stdout=None,
-                                         stderr=None, close_fds=True)
+                        subprocess.Popen(
+                            str(executable + end_of_line_to_execute),
+                            shell=True,
+                            stdin=None,
+                            stdout=None,
+                            stderr=None,
+                            close_fds=True,
+                        )
                 else:
                     logging.getLogger().error(
-                        "EMBLAutoprocessing: No program to " +
-                        " execute found (%s)", executable)
+                        "EMBLAutoprocessing: No program to " + " execute found (%s)",
+                        executable,
+                    )
 
     def autoproc_done(self, current_autoproc):
         """Resets current gevent procedure"""
@@ -149,13 +157,11 @@ class EMBLAutoProcessing(HardwareObject):
         autoproc_path = params.get("xds_dir")
         autoproc_xds_filename = os.path.join(autoproc_path, "XDS.INP")
         autoproc_input_filename = os.path.join(
-            autoproc_path,
-            "edna-autoproc-input-%s.xml" %
-            file_name_timestamp)
+            autoproc_path, "edna-autoproc-input-%s.xml" % file_name_timestamp
+        )
         autoproc_output_file_name = os.path.join(
-            autoproc_path,
-            "edna-autoproc-results-%s.xml" %
-            file_name_timestamp)
+            autoproc_path, "edna-autoproc-results-%s.xml" % file_name_timestamp
+        )
 
         autoproc_input = XSDataAutoprocInput()
         autoproc_xds_file = XSDataFile()
@@ -166,8 +172,7 @@ class EMBLAutoProcessing(HardwareObject):
         autoproc_output_file.setPath(XSDataString(autoproc_output_file_name))
         autoproc_input.setOutput_file(autoproc_output_file)
 
-        autoproc_input.setData_collection_id(
-            XSDataInteger(params.get("collection_id")))
+        autoproc_input.setData_collection_id(XSDataInteger(params.get("collection_id")))
         residues_num = float(params.get("residues", 0))
         if residues_num != 0:
             autoproc_input.setNres(XSDataDouble(residues_num))
@@ -184,21 +189,34 @@ class EMBLAutoProcessing(HardwareObject):
         # Maybe create dir with mxcube
         xds_appeared = False
         wait_xds_start = time.time()
-        logging.debug("EMBLAutoprocessing: Waiting for XDS.INP " +
-                      "file: %s" % autoproc_xds_filename)
-        while not xds_appeared and time.time() - wait_xds_start < xds_input_file_wait_timeout:
-            if os.path.exists(autoproc_xds_filename) and \
-               os.stat(autoproc_xds_filename).st_size > 0:
+        logging.debug(
+            "EMBLAutoprocessing: Waiting for XDS.INP "
+            + "file: %s" % autoproc_xds_filename
+        )
+        while (
+            not xds_appeared
+            and time.time() - wait_xds_start < xds_input_file_wait_timeout
+        ):
+            if (
+                os.path.exists(autoproc_xds_filename)
+                and os.stat(autoproc_xds_filename).st_size > 0
+            ):
                 xds_appeared = True
-                logging.debug('EMBLAutoprocessing: XDS.INP file is there, size={0}'.
-                              format(os.stat(autoproc_xds_filename).st_size))
+                logging.debug(
+                    "EMBLAutoprocessing: XDS.INP file is there, size={0}".format(
+                        os.stat(autoproc_xds_filename).st_size
+                    )
+                )
             else:
                 os.system("ls %s> /dev/null" % (os.path.dirname(autoproc_path)))
                 gevent.sleep(xds_input_file_wait_resolution)
         if not xds_appeared:
-            logging.error("EMBLAutoprocessing: XDS.INP file ({0}) failed " +
-                          "to appear after {1} seconds".
-                          format(autoproc_xds_filename, xds_input_file_wait_timeout))
+            logging.error(
+                "EMBLAutoprocessing: XDS.INP file ({0}) failed "
+                + "to appear after {1} seconds".format(
+                    autoproc_xds_filename, xds_input_file_wait_timeout
+                )
+            )
             return None, False
 
         autoproc_input.exportToFile(autoproc_input_filename)
