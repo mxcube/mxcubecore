@@ -18,9 +18,9 @@
   <object href="/session" role="session"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
-   <object href="/gphl-workflow" role="gphl_workflow"/>
   <!-- NB Program will gracefully skip GPhL code if /gphl-setup is not found -->
-   <object href="/gphl-setup" role="gphl_connection"/>
+  <object href="/gphl-workflow" role="gphl_workflow"/>
+  <object href="/gphl-setup" role="gphl_connection"/>
   <!--<object href="/workflow-mockup" role="workflow"/> -->
  
   <!-- Procedures and routines -->
