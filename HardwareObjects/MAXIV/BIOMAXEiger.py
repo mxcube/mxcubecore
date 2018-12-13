@@ -720,7 +720,7 @@ def test():
         print('Bad trigger mode. It should be "exts" or "ints"')
         sys.exit(0)
 
-    hwr = HardwareRepository.HardwareRepository(os.environ.get("XML_FILES_PATH"))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
     obj = hwr.getHardwareObject("/detector")
 

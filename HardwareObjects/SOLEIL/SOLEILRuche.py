@@ -59,9 +59,7 @@ class SOLEILRuche(HardwareObject):
 def test():
     import sys
 
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     ruche = hwr.getHardwareObject("/ruche")

@@ -10,7 +10,7 @@ class SampleStage(Equipment):
             if token.name() == "axis":
                 axis_name = token.getProperty("objectName")
                 if axis_name is not None:
-                    axis = HardwareRepository.HardwareRepository().getHardwareObject(
+                    axis = HardwareRepository.getHardwareRepository().getHardwareObject(
                         axis_name
                     )
                     if axis is not None:

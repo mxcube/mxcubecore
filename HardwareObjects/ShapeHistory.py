@@ -37,7 +37,7 @@ from Qub.Objects.QubDrawingManager import QubAddDrawing
 from Qub.Objects.QubDrawingCanvasTools import QubCanvasTarget
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import dispatcher
+from HardwareRepository.dispatcher import dispatcher
 
 SELECTED_COLOR = qt.Qt.green
 NORMAL_COLOR = qt.Qt.yellow
