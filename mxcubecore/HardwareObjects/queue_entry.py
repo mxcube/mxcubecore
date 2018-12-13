@@ -1314,28 +1314,28 @@ class CharacterisationQueueEntry(BaseQueueEntry):
         BaseQueueEntry.__setstate__(self, d)
 
         self.data_analysis_hwobj = (
-            HardwareRepository.HardwareRepository().getHardwareObject(
+            HardwareRepository.getHardwareRepository().getHardwareObject(
                 d["data_analysis_hwobj"]
             )
             if d["data_analysis_hwobj"]
             else None
         )
         self.diffractometer_hwobj = (
-            HardwareRepository.HardwareRepository().getHardwareObject(
+            HardwareRepository.getHardwareRepository().getHardwareObject(
                 d["diffractometer_hwobj"]
             )
             if d["diffractometer_hwobj"]
             else None
         )
         self.queue_model_hwobj = (
-            HardwareRepository.HardwareRepository().getHardwareObject(
+            HardwareRepository.getHardwareRepository().getHardwareObject(
                 d["queue_model_hwobj"]
             )
             if d["queue_model_hwobj"]
             else None
         )
         self.session_hwobj = (
-            HardwareRepository.HardwareRepository().getHardwareObject(
+            HardwareRepository.getHardwareRepository().getHardwareObject(
                 d["session_hwobj"]
             )
             if d["session_hwobj"]

@@ -101,12 +101,9 @@ class MachInfoMockup(Equipment):
 
 
 def test():
-    import os
     import sys
 
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     conn = hwr.getHardwareObject(sys.argv[1])

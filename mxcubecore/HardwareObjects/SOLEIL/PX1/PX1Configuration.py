@@ -59,8 +59,7 @@ class PX1Configuration(Device):
 
 
 if __name__ == "__main__":
-    hwr_directory = os.environ["XML_FILES_PATH"]
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     env = hwr.getHardwareObject("/px1configuration")

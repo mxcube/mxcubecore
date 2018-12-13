@@ -24,10 +24,7 @@ class XalocCalibration(BaseHardwareObjects.Device):
 
 
 def test():
-    hwr_directory = os.environ["XML_FILES_PATH"]
-
-    print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = HardwareRepository.getHardwareRepository()
     hwr.connect()
 
     calib = hwr.getHardwareObject("/calibration")
