@@ -18,7 +18,7 @@ import ConvertUtils
 import GphlMessages
 from queue_model_enumerables import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import HardwareRepository
+from HardwareRepository.HardwareRepository import getHardwareRepository
 
 try:
     # Needed for 3.6(?) onwards
@@ -113,15 +113,15 @@ class GphlWorkflowConnection(HardwareObject, object):
         for tag, val in dd.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = HardwareRepository().findInRepository(val)
+                val2 = getHardwareRepository().findInRepository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
-            paths[tag] = props[tag] = val2
+            paths[tag] = val2
         dd = next(self.getObjects("software_properties")).getProperties()
         for tag, val in dd.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
-                val2 = HardwareRepository().findInRepository(val)
+                val2 = getHardwareRepository().findInRepository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = props[tag] = val2
@@ -223,7 +223,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
 
-        # NBNB All command line option values are put in qquotes (repr) when
+        # NBNB All command line option values are put in quotes (repr) when
         # the workflow is invoked remotely through ssh.
 
         self.workflow_queue = workflow_queue
@@ -250,26 +250,26 @@ class GphlWorkflowConnection(HardwareObject, object):
             command_list = []
         command_list.append(self.software_paths["java_binary"])
 
-        for keyword, value in params.get("invocation_properties", {}).items():
+        for kw, val in sorted(params.get("invocation_properties", {}).items()):
             command_list.extend(
-                ConvertUtils.java_property(keyword, value, quote_value=in_shell)
+                ConvertUtils.java_property(kw, val, quote_value=in_shell)
             )
 
         params["invocation_options"]["cp"] = self.software_paths["gphl_java_classpath"]
-        for keyword, value in params.get("invocation_options", {}).items():
+        for kw, val in sorted(params.get("invocation_options", {}).items()):
             command_list.extend(
-                ConvertUtils.command_option(keyword, value, quote_value=in_shell)
+                ConvertUtils.command_option(kw, val, quote_value=in_shell)
             )
 
         command_list.append(params["application"])
 
-        for keyword, value in params.get("properties", {}).items():
+        for kw, val in sorted(params.get("properties", {}).items()):
             command_list.extend(
-                ConvertUtils.java_property(keyword, value, quote_value=in_shell)
+                ConvertUtils.java_property(kw, val, quote_value=in_shell)
             )
-        for keyword, value in self.java_properties.items():
+        for kw, val in sorted(self.java_properties.items()):
             command_list.extend(
-                ConvertUtils.java_property(keyword, value, quote_value=in_shell)
+                ConvertUtils.java_property(kw, val, quote_value=in_shell)
             )
 
         workflow_options = dict(params.get("options", {}))
@@ -287,9 +287,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         workflow_options["wdir"] = os.path.join(
             path_template.process_directory, self.getProperty("gphl_subdir")
         )
-        for keyword, value in workflow_options.items():
+        for kw, val in sorted(workflow_options.items()):
             command_list.extend(
-                ConvertUtils.command_option(keyword, value, quote_value=in_shell)
+                ConvertUtils.command_option(kw, val, quote_value=in_shell)
             )
         #
         wdir = workflow_options.get("wdir")
@@ -326,6 +326,10 @@ class GphlWorkflowConnection(HardwareObject, object):
         # Specifically for the stratcal wrapper.
         envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
         envs["BDG_home"] = self.software_paths["BDG_home"]
+
+        # Strategy type to be passed to stratcal wrapper
+        envs['STRATCAL_STRATEGY_TYPE'] = params['strategy_type']
+
         logging.getLogger("HWR").info(
             "Executing GPhL workflow, in environment %s" % envs
         )

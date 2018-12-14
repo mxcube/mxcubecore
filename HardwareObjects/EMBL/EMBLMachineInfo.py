@@ -91,6 +91,8 @@ class EMBLMachineInfo(HardwareObject):
         self.bunch_count = None
         self.flux_area = None
         self.last_transmission = None
+        self.frontend_is_open = False
+        self.undulator_gap = 9999
 
         self.values_list = []
 
@@ -113,7 +115,7 @@ class EMBLMachineInfo(HardwareObject):
         temp_dict = {}
         temp_dict["value"] = None
         temp_dict["in_range"] = True
-        temp_dict["title"] = "Front End"
+        temp_dict["title"] = "Front End / Undulator gap"
         self.values_list.append(temp_dict)
 
         temp_dict = {}
@@ -150,6 +152,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_mach_curr = None
         self.chan_mach_energy = None
         self.chan_bunch_count = None
+        self.chan_undulator_gap = None
         self.chan_state_text = None
         self.chan_cryojet_in = None
         self.chan_sc_dewar_low_level_alarm = None
@@ -181,6 +184,11 @@ class EMBLMachineInfo(HardwareObject):
             self.chan_frontend_status.connectSignal(
                 "update", self.frontend_status_changed
             )
+
+        self.chan_undulator_gap = self.getChannelObject("chanUndulatorGap")
+        if self.chan_undulator_gap is not None:
+            self.chan_undulator_gap.connectSignal("update", self.undulator_gap_changed)
+        self.undulator_gap_changed(self.chan_undulator_gap.getValue())
 
         self.chan_cryojet_in = self.getChannelObject("cryojetIn")
         if self.chan_cryojet_in is not None:
@@ -299,12 +307,13 @@ class EMBLMachineInfo(HardwareObject):
         self.update_machine_state()
 
     def frontend_status_changed(self, value):
-        if value[2] == 2:
-            self.values_list[2]["in_range"] = True
-            self.values_list[2]["value_str"] = "Opened"
-        else:
-            self.values_list[2]["in_range"] = False
-            self.values_list[2]["value_str"] = "Closed"
+        self.frontend_is_open = value[2] == 2
+        self.update_machine_state()
+
+    def undulator_gap_changed(self, value):
+        if type(value) in (list, tuple):
+            value = value[0]
+        self.undulator_gap = value / 1000
 
     def update_machine_state(self):
         """Machine state assembly"""
@@ -314,6 +323,16 @@ class EMBLMachineInfo(HardwareObject):
         if self.bunch_count is not None:
             state_text += ", %d Bunches" % self.bunch_count
         self.values_list[1]["value"] = state_text
+
+        if not self.frontend_is_open or self.undulator_gap > 30:
+            self.values_list[2]["in_range"] = False
+        else:
+            self.values_list[2]["in_range"] = True
+        if self.frontend_is_open:
+            self.values_list[2]["value_str"] = "Opened / %d mm" % self.undulator_gap
+        else:
+            self.values_list[2]["value_str"] = "Closed / %d mm" % self.undulator_gap
+
         self.update_values()
 
     def low_level_alarm_changed(self, value):

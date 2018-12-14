@@ -20,7 +20,7 @@
 import logging
 import gevent
 
-from AbstractXRFSpectrum import AbstractXRFSpectrum
+from abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]

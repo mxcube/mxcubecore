@@ -51,6 +51,9 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
+        self.image_width = 100
+        self.image_height = 100
+
         GenericDiffractometer.init(self)
         self.x_calib = 0.000444
         self.y_calib = 0.000446

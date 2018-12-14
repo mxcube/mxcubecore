@@ -8,7 +8,7 @@ from abstract import AbstractDataAnalysis
 import queue_model_enumerables as qme
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import HardwareRepository
+from HardwareRepository.HardwareRepository import getHardwareRepository
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 from XSDataMXCuBEv1_3 import XSDataMXCuBEDataSet
@@ -41,7 +41,7 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
-        fp = HardwareRepository().findInRepository(self.edna_default_file)
+        fp = getHardwareRepository().findInRepository(self.edna_default_file)
         if fp is None:
             raise ValueError("File %s not found in repository" % self.edna_default_file)
         with open(fp, "r") as f:

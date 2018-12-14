@@ -48,7 +48,10 @@ class EMBLAutoProcessing(HardwareObject):
         self.current_autoproc_procedure = None
 
     def init(self):
-        self.autoproc_programs = self["programs"]
+        try:
+            self.autoproc_programs = self["programs"]
+        except KeyError:
+            self.print_log("AutoProcessing: no autoprocessing program defined.")
 
     def execute_autoprocessing(
         self, process_event, params_dict, frame_number, run_processing=True

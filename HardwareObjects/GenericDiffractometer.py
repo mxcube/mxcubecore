@@ -230,6 +230,7 @@ class GenericDiffractometer(HardwareObject):
 
         # Hardware objects ----------------------------------------------------
         self.camera_hwobj = self.getObjectByRole("camera")
+        self.camera = self.camera_hwobj
         if self.camera_hwobj is not None:
             self.image_height = self.camera_hwobj.getHeight()
             self.image_width = self.camera_hwobj.getWidth()

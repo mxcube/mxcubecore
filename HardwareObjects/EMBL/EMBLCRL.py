@@ -66,15 +66,18 @@ class EMBLCRL(HardwareObject):
         self.connect(self.energy_hwobj, "stateChanged", self.energy_state_changed)
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
-        self.connect(
-            self.beam_focusing_hwobj,
-            "focusingModeRequested",
-            self.focusing_mode_requested,
-        )
+        if self.beam_focusing_hwobj is not None:
+            self.connect(
+                self.beam_focusing_hwobj,
+                "focusingModeRequested",
+                self.focusing_mode_requested,
+            )
 
-        lens_modes = self.beam_focusing_hwobj.get_available_lens_modes()
-        if lens_modes:
-            self.set_mode(lens_modes[0])
+            lens_modes = self.beam_focusing_hwobj.get_available_lens_modes()
+            if lens_modes:
+                self.set_mode(lens_modes[0])
+        else:
+            self.set_mode("Manual")
 
     def convert_value(self, value):
         """Converts int to list of bits"""
@@ -91,7 +94,10 @@ class EMBLCRL(HardwareObject):
 
     def get_modes(self):
         """Returns list with available CRL modes"""
-        return self.beam_focusing_hwobj.get_available_lens_modes()
+        if self.beam_focusing_hwobj:
+            return self.beam_focusing_hwobj.get_available_lens_modes()
+        else:
+            return ["Manual"]
 
     def get_mode(self):
         """Returns current crl mode"""
@@ -187,7 +193,7 @@ class EMBLCRL(HardwareObject):
         if value is not None:
             self.cmd_set_crl_value(value)
             self.cmd_set_trans_value(1)
-        logging.getLogger("user_level_log").info(
+        logging.getLogger("GUI").info(
             "Setting CRL image plane "
             + "distance to %.2f" % self.get_image_plane_distance(value)
         )

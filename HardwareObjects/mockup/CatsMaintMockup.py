@@ -9,7 +9,6 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 import gevent
 import time
 
-from PyTango import DeviceProxy
 
 __author__ = "Mikel Eguiraun"
 __credits__ = ["The MxCuBE collaboration"]

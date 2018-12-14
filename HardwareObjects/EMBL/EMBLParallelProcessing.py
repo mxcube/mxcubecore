@@ -34,8 +34,6 @@ from XSDataControlDozorv1_1 import XSDataControlImageDozor
 
 import numpy
 
-from scipy.interpolate import UnivariateSpline
-
 
 __license__ = "LGPLv3+"
 
@@ -84,38 +82,42 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         input_file.exportToFile(processing_input_filename)
 
     def run_processing(self, data_collection):
-        """Main parallel processing method.
-           1. Generates EDNA input file
-           2. Starts EDNA via subprocess
-
+        """
         :param data_collection: data collection object
         :type data_collection: queue_model_objects.DataCollection
         """
         self.data_collection = data_collection
         self.prepare_processing()
         self.create_processing_input_file(
-            os.path.join(self.params_dict["directory"], "dozor_input.xml")
+            os.path.join(self.params_dict["process_directory"], "dozor_input.xml")
         )
 
-        self.emit(
-            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
-        )
+        self.emit("processingStarted", self.params_dict, self.results_aligned)
+        self.emit("processingResultsUpdate", False)
 
         self.started = True
         self.display_task = gevent.spawn(self.update_map)
 
     def frame_count_changed(self, frame_count):
-        if self.started and frame_count >= self.params_dict["images_num"] - 1:
-            self.set_processing_status("Success")
+        if self.started:
+            self.emit("processingFrame", frame_count)
+            if frame_count >= self.params_dict["images_num"] - 1:
+                self.set_processing_status("Success")
 
     def smooth(self):
         good_index = numpy.where(self.results_raw["spots_resolution"] > 1 / 46.0)[0]
         good = self.results_aligned["spots_resolution"][good_index]
+        if self.results_raw["spots_resolution"].size > 200:
+            points_index = self.results_raw["spots_resolution"].size / 200
+
+            for x in range(0, good_index.size, points_index):
+                self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(
+                    good[max(x - points_index / 2, 0) : x + points_index / 2]
+                )
+
         # logging.getLogger("user_level_log").info("%d"%good_index.size)
-        for x in range(20, good_index.size, 40):
-            self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(
-                good[x - 20 : x + 20]
-            )
+        # for x in range(20, good_index.size, 1):
+        #    self.results_aligned["spots_resolution"][good_index[x]] = numpy.mean(good[x-20:x+20])
 
         """
 	   print good_index, self.results_raw["spots_resolution"][good_index]
@@ -162,21 +164,13 @@ class EMBLParallelProcessing(GenericParallelProcessing):
                         self.results_aligned[score_key][frame_num] = self.results_raw[
                             score_key
                         ][frame_num]
-            if self.params_dict["lines_num"] <= 1:
-                self.smooth()
-
-            # self.emit("paralleProcessingResults",
-            #          (self.results_aligned,
-            #           self.params_dict,
-            #           False))
+            # if self.params_dict["lines_num"] <= 1:
+            #   self.smooth()
 
     def update_map(self):
         gevent.sleep(1)
         while self.started:
-            self.emit(
-                "paralleProcessingResults",
-                (self.results_aligned, self.params_dict, False),
-            )
+            self.emit("processingResultsUpdate", False)
             if self.params_dict["lines_num"] > 1:
                 self.grid.set_score(self.results_raw["score"])
             gevent.sleep(0.5)
@@ -188,15 +182,17 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         :param status: processing status (Success, Failed)
         :type status: str
         """
-        self.batch_processed(self.chan_dozor_pass.getValue())
+        # self.batch_processed(self.chan_dozor_pass.getValue())
         GenericParallelProcessing.set_processing_status(self, status)
 
     def store_processing_results(self, status):
         GenericParallelProcessing.store_processing_results(self, status)
         self.display_task.kill()
+        gevent.spawn(self.store_result_xml)
 
+    def store_result_xml(self):
         processing_xml_filename = os.path.join(
-            self.params_dict["directory"], "dozor_result.xml"
+            self.params_dict["process_directory"], "dozor_result.xml"
         )
         dozor_result = XSDataResultControlDozor()
         for index in range(self.params_dict["images_num"]):
