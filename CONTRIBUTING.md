@@ -33,7 +33,7 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
   git merge upstream/master
   ```
 
-####Preparing a new commit
+#### Preparing a new commit
 
 * Create a new branch:
   `git checkout -b NEW_BRACH_NAME`
