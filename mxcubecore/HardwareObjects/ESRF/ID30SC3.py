@@ -1,7 +1,7 @@
 """ESRF SC3 Sample Changer Hardware Object
 """
 from HardwareRepository.TaskUtils import task
-from sample_changer import SC3
+import SC3
 import ESRFSC3
 
 
