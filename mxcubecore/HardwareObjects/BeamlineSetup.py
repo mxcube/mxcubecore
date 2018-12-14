@@ -8,7 +8,7 @@ import queue_model_enumerables
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import HardwareRepository
+from HardwareRepository.HardwareRepository import getHardwareRepository
 
 
 class BeamlineSetup(HardwareObject):
@@ -216,7 +216,7 @@ class BeamlineSetup(HardwareObject):
         :returns: A CharacterisationsParameters object with default parameters.
         """
         input_fname = self.data_analysis_hwobj.edna_default_file
-        fp = HardwareRepository().findInRepository(input_fname)
+        fp = getHardwareRepository().findInRepository(input_fname)
         if fp is None:
             raise ValueError("File %s not found in repository" % input_fname)
         with open(fp, "r") as f:

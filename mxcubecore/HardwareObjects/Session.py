@@ -8,9 +8,7 @@ import os
 import time
 import socket
 import logging
-import xml.etree.ElementTree as ET
 
-from HardwareRepository.HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects
 
@@ -135,15 +133,16 @@ class Session(HardwareObject):
         self.base_archive_directory = base_archive_directory
 
         self.raw_data_folder_name = raw_folder
-        self.process_data_folder_name = process_folder
-        self.archive_data_folder_name = archive_folder
+        #TODO Looks like these 2 variables are no used
+        #self.process_data_folder_name = process_folder
+        #self.archive_data_folder_name = archive_folder
 
         if self.base_directory is not None:
             queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
 
         if self.base_archive_directory is not None:
             queue_model_objects.PathTemplate.set_archive_path(
-                self.base_archive_directory, self.archive_folder_name
+                self.base_archive_directory, archive_folder
             )
 
     def get_base_data_directory(self):
@@ -163,36 +162,24 @@ class Session(HardwareObject):
         else:
             start_time = time.strftime("%Y%m%d")
 
-        if self.synchrotron_name == "EMBL-HH":
-            if os.getenv("SUDO_USER"):
-                user = os.getenv("SUDO_USER")
-            else:
-                user = os.getenv("USER")
+        if self.is_inhouse():
+            user_category = "inhouse"
             directory = os.path.join(
                 self.base_directory,
-                str(os.getuid()) + "_" + str(os.getgid()),
-                user,
+                self.endstation_name,
+                user_category,
+                self.get_proposal(),
                 start_time,
             )
         else:
-            if self.is_inhouse():
-                user_category = "inhouse"
-                directory = os.path.join(
-                    self.base_directory,
-                    self.endstation_name,
-                    user_category,
-                    self.get_proposal(),
-                    start_time,
-                )
-            else:
-                user_category = "visitor"
-                directory = os.path.join(
-                    self.base_directory,
-                    user_category,
-                    self.get_proposal(),
-                    self.endstation_name,
-                    start_time,
-                )
+            user_category = "visitor"
+            directory = os.path.join(
+                self.base_directory,
+                user_category,
+                self.get_proposal(),
+                self.endstation_name,
+                start_time,
+            )
 
         return directory
 
@@ -288,11 +275,7 @@ class Session(HardwareObject):
             self["file_info"].getProperty("archive_folder"),
         )
 
-        if self.synchrotron_name == "EMBL-HH":
-            folders = self.get_base_data_directory().split("/")
-            archive_directory = os.path.join(archive_directory, *folders[4:])
-        else:
-            archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
+        archive_directory = queue_model_objects.PathTemplate.get_archive_directory()
 
         return archive_directory
 

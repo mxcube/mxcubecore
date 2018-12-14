@@ -113,12 +113,9 @@ def test_hwo():
     from QtImport import *
     import time
 
-    hwr_directory = os.environ["MXCUBE_XML_PATH"]
-    print "hwr_directory", hwr_directory
-    print "abs.path hwr_directory", os.path.abspath(hwr_directory)
-    from HardwareRepository.HardwareRepository import HardwareRepository
+    from HardwareRepository.HardwareRepository import getHardwareRepository
 
-    hwr = HardwareRepository(os.path.abspath(hwr_directory))
+    hwr = getHardwareRepository()
     hwr.connect()
 
     hwo = hwr.getHardwareObject("/singleton_objects/limavideo")

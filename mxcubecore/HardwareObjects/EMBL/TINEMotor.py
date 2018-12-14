@@ -20,7 +20,7 @@
 import logging
 import gevent
 
-from AbstractMotor import AbstractMotor
+from abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
 __version__ = "2.3"

@@ -22,9 +22,9 @@ class EMBLImageTracking(Device):
 
         self.target_ip = None
         self.target_port = None
-        self.image_tracking_enabled = None
         self.state = None
         self.active_socket = None
+        self.state_dict = {"image_tracking": False, "filter_frames": False}
 
         self.chan_state = None
         self.chan_enable_image_tracking = None
@@ -32,10 +32,14 @@ class EMBLImageTracking(Device):
 
     def init(self):
         self.chan_enable_image_tracking = self.getChannelObject(
-            "chanEnableImageTracking"
+            "chanImageTrackingEnabled"
         )
         self.chan_enable_image_tracking.connectSignal(
-            "update", self.enable_image_tracking_changed
+            "update", self.image_tracking_enable_state_changed
+        )
+        self.chan_filter_frames = self.getChannelObject("chanFilterFramesEnabled")
+        self.chan_filter_frames.connectSignal(
+            "update", self.filter_frames_enabled_changed
         )
 
         self.chan_state = self.getChannelObject("chanState")
@@ -43,9 +47,13 @@ class EMBLImageTracking(Device):
 
         self.cmd_load_image = self.getCommandObject("cmdLoadImage")
 
-    def enable_image_tracking_changed(self, state):
-        self.image_tracking_enabled = state
-        self.emit("imageTrackingEnabledChanged", (self.image_tracking_enabled,))
+    def image_tracking_enable_state_changed(self, state):
+        self.state_dict["image_tracking"] = state
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
+
+    def filter_frames_enabled_changed(self, state):
+        self.state_dict["filter_frames"] = state
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
 
     def state_changed(self, state):
         if self.state != state:
@@ -53,12 +61,13 @@ class EMBLImageTracking(Device):
         self.emit("stateChanged", (self.state,))
 
     def is_tracking_enabled(self):
-        if self.chan_enable_image_tracking is not None:
-            return self.chan_enable_image_tracking.getValue()
+        return self.chan_enable_image_tracking.getValue()
 
     def set_image_tracking_state(self, state):
-        if self.chan_enable_image_tracking is not None:
-            self.chan_enable_image_tracking.setValue(state)
+        self.chan_enable_image_tracking.setValue(state)
+
+    def set_filter_frames_state(self, state):
+        self.chan_filter_frames.setValue(state)
 
     def load_image(self, image_name):
         if self.is_tracking_enabled():
@@ -67,3 +76,4 @@ class EMBLImageTracking(Device):
 
     def update_values(self):
         self.emit("stateChanged", self.state)
+        self.emit("imageTrackingStateChanged", (self.state_dict,))
