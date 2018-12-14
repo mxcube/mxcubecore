@@ -40,7 +40,7 @@
 
         <SingleWavelengthAcquisition>
             <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
-            <strategy_type>acquisition</strategy_type>
+            <strategy_type>phasing</strategy_type>
             <documentation>
                 Single wavelength data acquisition, strategy for phasing
                 Includes initial characterisation and complete collection
@@ -76,7 +76,7 @@
 
         <TwoWavelengthMAD>
             <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
-            <strategy_type>acquisition</strategy_type>
+            <strategy_type>phasing</strategy_type>
             <documentation>
                 Two-wavelength MAD data acquisition.
                 Includes initial characterisation and complete collection
@@ -117,7 +117,7 @@
 
         <ThreeWavelengthMAD>
             <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
-            <strategy_type>acquisition</strategy_type>
+            <strategy_type>phasing</strategy_type>
             <documentation>
                 Three-wavelength MAD data acquisition.
                 Includes initial characterisation and complete collection
@@ -161,12 +161,13 @@
             </options>
         </ThreeWavelengthMAD>
 
-        <SingleWavelengthNative>
+        <NativeData_fast>
             <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
-            <strategy_type>acquisition</strategy_type>
+            <strategy_type>native_fast</strategy_type>
             <documentation>
                 Single wavelength data acquisition, strategy for native data collectino
-                Includes initial characterisation and complete collection
+                Includes initial characterisation and complete collection.
+                Fast strategy, 1 sweep (2 for triclinic), chiMax = 20deg
             </documentation>
             <!-- Workflow interleave order (string);  Slowest changing first-->
             <!-- 'g' (Goniostat position); 's' (Scan number); -->
@@ -195,7 +196,83 @@
                 <!-- Default prefix - will be overwritten from user input -->
                 <prefix>gphl_data</prefix>
             </options>
-        </SingleWavelengthNative>
+        </NativeData_fast>
+
+        <NativeData_medium>
+            <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
+            <strategy_type>native_medium</strategy_type>
+            <documentation>
+                Single wavelength data acquisition, strategy for native data collectino
+                Includes initial characterisation and complete collection.
+                Medium strategy, 2 sweeps (3 for triclinic), chiMax = 35deg
+            </documentation>
+            <!-- Workflow interleave order (string);  Slowest changing first-->
+            <!-- 'g' (Goniostat position); 's' (Scan number); -->
+            <!-- 'b' (Beam wavelength); 'd' (Detector position)-->
+            <interleave_order>gs</interleave_order>
+            <!-- Default wavelengths (in A) and their roles -->
+            <beam_energies>
+                <beam_energy>
+                    <role>Acquisition</role>
+                    <!-- beamline energies in keV -->
+                    <value>12.7</value>
+                </beam_energy>
+            </beam_energies>
+            <options>
+                <!-- Name of initial strategy from library to use -->
+                <strategy>InitialCharacterisation</strategy>
+                <!--&lt;!&ndash; Working subdirectory for workflow-side application data&ndash;&gt;-->
+                <!--<appdir>calculations</appdir>-->
+                <!-- Pattern name for inverse-beam collections -->
+                <ibpattern>ib_interleaved</ibpattern>
+                <!-- Pattern name for non-inverse-beam collections -->
+                <pattern>interleaved</pattern>
+                <!-- NBNB replace later -->
+                <!-- Pattern name for characterisation collections -->
+                <charpattern>generic</charpattern>
+                <!-- Default prefix - will be overwritten from user input -->
+                <prefix>gphl_data</prefix>
+            </options>
+        </NativeData_medium>
+
+        <NativeData_complete>
+            <application>co.gphl.wf.workflows.WFSimpleCharToProcessing</application>
+            <strategy_type>native_optimal</strategy_type>
+            <documentation>
+                Single wavelength data acquisition, strategy for native data collectino
+                Includes initial characterisation and complete collection.
+                Strategy for optimal distribution of redundancy,
+                3-4 sweeps. Uses full kappa range.
+                Defaults to medium strategy for sixfold and cubic symmetries.
+            </documentation>
+            <!-- Workflow interleave order (string);  Slowest changing first-->
+            <!-- 'g' (Goniostat position); 's' (Scan number); -->
+            <!-- 'b' (Beam wavelength); 'd' (Detector position)-->
+            <interleave_order>gs</interleave_order>
+            <!-- Default wavelengths (in A) and their roles -->
+            <beam_energies>
+                <beam_energy>
+                    <role>Acquisition</role>
+                    <!-- beamline energies in keV -->
+                    <value>12.7</value>
+                </beam_energy>
+            </beam_energies>
+            <options>
+                <!-- Name of initial strategy from library to use -->
+                <strategy>InitialCharacterisation</strategy>
+                <!--&lt;!&ndash; Working subdirectory for workflow-side application data&ndash;&gt;-->
+                <!--<appdir>calculations</appdir>-->
+                <!-- Pattern name for inverse-beam collections -->
+                <ibpattern>ib_interleaved</ibpattern>
+                <!-- Pattern name for non-inverse-beam collections -->
+                <pattern>interleaved</pattern>
+                <!-- NBNB replace later -->
+                <!-- Pattern name for characterisation collections -->
+                <charpattern>generic</charpattern>
+                <!-- Default prefix - will be overwritten from user input -->
+                <prefix>gphl_data</prefix>
+            </options>
+        </NativeData_complete>
 
         <TranslationalCalibration>
             <application>co.gphl.wf.workflows.WFTransCal</application>
