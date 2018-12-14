@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 import logging
 
-from sample_changer.GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 
 
 class SampleChangerMockup(SampleChanger):

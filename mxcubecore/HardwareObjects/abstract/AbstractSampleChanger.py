@@ -21,7 +21,7 @@
 Description
 --------------------------------------------
 
-GenericSampleChanger is a base class to help in the implementation of
+AbstractSampleChanger is a base class to help in the implementation of
 Hardware Objects for SampleChangers following the
 "SampleChanger Standard Interface".
 
@@ -124,7 +124,7 @@ How to implement derived SC Classes
 
 """
 
-from Container import *
+from sample_changer.Container import *
 
 from HardwareRepository.TaskUtils import task
 

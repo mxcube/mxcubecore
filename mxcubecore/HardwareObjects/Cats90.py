@@ -1,7 +1,7 @@
 """
 CATS sample changer hardware object.
 
-Implements the abstract interface of the GenericSampleChanger for the CATS
+Implements the abstract interface of the AbstractSampleChanger for the CATS
 and ISARA sample changer model.
 
 Derived from Alexandre Gobbo's implementation for the EMBL SC3 sample changer.
@@ -24,7 +24,7 @@ import time
 import PyTango
 import logging
 
-from GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 
 __author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
 __credits__ = ["The MXCuBE collaboration"]
@@ -754,7 +754,7 @@ class Cats90(SampleChanger):
     def load(self, sample=None, wait=True):
         """
         Load a sample.
-            overwrite original load() from GenericSampleChanger to allow finer decision
+            overwrite original load() from AbstractSampleChanger to allow finer decision
             on command to use (with or without barcode / or allow for wash in some cases)
             Implement that logic in _doLoad()
             Add initial verification about the Powered:
@@ -1156,7 +1156,7 @@ class Cats90(SampleChanger):
         Read the state of the Tango DS and translate the state to the SampleChangerState Enum
 
         :returns: Sample changer state
-        :rtype: GenericSampleChanger.SampleChangerState
+        :rtype: AbstractSampleChanger.SampleChangerState
         """
         _state = self._chnState.getValue()
         _powered = self._chnPowered.getValue()
