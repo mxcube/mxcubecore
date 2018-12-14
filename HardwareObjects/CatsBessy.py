@@ -1,4 +1,4 @@
-from .GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 import time
 
 

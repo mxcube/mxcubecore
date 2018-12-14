@@ -1,7 +1,7 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 
-from sample_changer.CatsMaint import CatsMaint
+from abstract.sample_changer.CatsMaint import CatsMaint
 import logging
 
 

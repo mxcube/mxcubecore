@@ -1,4 +1,4 @@
-from .GenericSampleChanger import *
+from abstract.AbstractSampleChanger import *
 
 import xml.sax
 from xml.sax import SAXParseException

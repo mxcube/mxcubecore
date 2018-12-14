@@ -31,8 +31,8 @@ import gevent
 import tempfile
 from datetime import datetime
 
-from sample_changer import Crims
-from sample_changer.GenericSampleChanger import *
+from abstract.sample_changer import Crims
+from abstract.AbstractSampleChanger import *
 
 
 class Xtal(Sample):
