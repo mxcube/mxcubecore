@@ -60,8 +60,15 @@ Pull request (PR) is the most convinient way of submitting a new code to the rep
 
 ### Accepting a pull request
 
-* The author of a pull request may request a PR review from a certain amount of developers.
+* The author of a PR may request a PR review from a certain amount of developers.
 * A reviewer can Comment, Approve or Request changes.
+* Before accepting the PR reviewer has to test the proposed code changes. To test the PR pull the proposed PR and run mxcube:
+  ```bash
+  git fetch origin pull/ID/head:NEW_BRANCH_NAME
+  git checkout NEW_BRANCH_NAME
+
+  start mxcube
+  ```
 * All the assigned reviewers of a PR have to approve the PR before it can be merged.
 * The last reviewer to review the PR have the responsibility of merging it.
 * A PR that has no reviewer can be approved and merged by anyone. 
