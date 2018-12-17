@@ -190,6 +190,9 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.display_task.kill()
         gevent.spawn(self.store_result_xml)
 
+        if self.params_dict["workflow_type"] == "Still":
+            self.start_crystfel_autoproc()
+
     def store_result_xml(self):
         processing_xml_filename = os.path.join(
             self.params_dict["process_directory"], "dozor_result.xml"
@@ -210,3 +213,144 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         logging.getLogger("HWR").info(
             "Parallel processing: Results saved in %s" % processing_xml_filename
         )
+
+    def start_crystfel_autoproc(self):
+        acq_params = self.data_collection.acquisitions[0].acquisition_parameters
+        proc_params = self.data_collection.processing_parameters
+
+        lst_filename = os.path.join(
+            self.params_dict["process_directory"], "crystfel_hits.lst"
+        )
+        stream_filename = os.path.join(
+            self.params_dict["process_directory"], "crystfel_stream.stream"
+        )
+        geom_filename = os.path.join(
+            self.params_dict["process_directory"], "crystfel_detector.geom"
+        )
+        cell_filename = os.path.join(
+            self.params_dict["process_directory"], "crystfel_cell.cell"
+        )
+
+        # Writes lst file for crystfel
+        try:
+            lst_file = open(lst_filename, "w")
+            for index in range(self.params_dict["images_num"]):
+                if self.results_raw["score"][index] > 0:
+                    lst_file.write(
+                        self.params_dict["template"]
+                        % (self.params_dict["run_number"], index + 1)
+                        + "\n"
+                    )
+            self.print_log(
+                "HWR",
+                "debug",
+                "Parallel processing: Hit list stored in %s" % lst_filename,
+            )
+        except BaseException:
+            self.print_log(
+                "GUI",
+                "error",
+                "Parallel processing: Unable to store hit list in %s" % lst_filename,
+            )
+        finally:
+            lst_file.close()
+
+        geom_file = """
+clen = 0.12000
+photon_energy = {energy}
+
+adu_per_photon = 1
+res = 13333.3   ; 75 micron pixel size
+
+panel0/min_fs = 0
+panel0/min_ss = 0
+panel0/max_fs = 2069
+panel0/max_ss = 2166
+panel0/corner_x = -1118.00
+panel0/corner_y = -1079.00
+panel0/fs = x
+panel0/ss = y
+""".format(
+            energy=acq_params.energy
+        )
+
+        data_file = open(geom_filename, "w")
+        data_file.write(geom_file)
+        data_file.close()
+
+        """
+        if "P1" in proc_params.space_group:
+            lattice_type = "triclinic"
+
+        lattice_types = ("triclinic",
+                         "monoclinic",
+                         "orthorhombic",
+                         "tetragonal",
+                         "trigonal",
+                         "hexagonal",
+                         "cubic")
+        """
+
+        cell_file = """
+CrystFEL unit cell file version 1.0
+
+lattice_type = tetragonal
+centering = P
+unique_axis = c
+
+a = {cell_a} A
+b = {cell_b} A
+c = {cell_c} A
+al = {cell_alpha} deg
+be = {cell_beta} deg
+ga = {cell_gamma} deg
+""".format(
+            cell_a=proc_params.cell_a,
+            cell_b=proc_params.cell_b,
+            cell_c=proc_params.cell_c,
+            cell_alpha=proc_params.cell_alpha,
+            cell_beta=proc_params.cell_beta,
+            cell_gamma=proc_params.cell_gamma,
+        )
+
+        data_file = open(cell_filename, "w")
+        data_file.write(cell_file)
+        data_file.close()
+
+        point_group = "422"
+
+        """
+        proc_params_dict = {"directory" : self.params_dict["directory"],
+                            "lst_file": lst_filename,
+                            "geom_file": geom_filename,
+                            "stream_file" : stream_filename,
+                            "cell_filename" : cell_filename,
+                            "point_group": "422",
+                            "space_group": proc_params.space_group,
+                            "hres": acq_params.resolution}
+        log.info("Parallel processing: Crystfel processing parameters: %s" % str(proc_params_dict))
+        """
+
+        end_of_line_to_execute = " %s %s %s %s %s %s %s %.2f" % (
+            self.params_dict["process_directory"],
+            lst_filename,
+            geom_filename,
+            stream_filename,
+            cell_filename,
+            point_group,
+            proc_params.space_group,
+            acq_params.resolution,
+        )
+
+        self.print_log(
+            "HWR",
+            "debug",
+            "Parallel processing: Starting crystfel %s with parameters %s "
+            % (self.crystfel_script, end_of_line_to_execute),
+        )
+
+        """
+        subprocess.Popen(str(self.crystfel_script + end_of_line_to_execute),
+                             shell=True, stdin=None, stdout=None,
+                             stderr=None, close_fds=True)
+        """

@@ -1,5 +1,7 @@
 import os
-
+import json
+import base64
+import PIL.Image
 
 HTML_START = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html lang="en">
@@ -101,96 +103,148 @@ def create_toc(ref_list, title):
     return toc_str
 
 
-def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename):
-    if True:
-        html_file = open(html_filename, "w")
-        html_file.write(HTML_START % "Mesh scan results")
-        html_file.write('<div align="CENTER">\n')
-        html_file.write(create_text("Mesh scan results", heading=1))
-        html_file.write(create_image("parallel_processing_result.png"))
-        html_file.write("</br>")
-        html_file.write(create_text("Scan parameters", heading=1))
-        osc_range_per_line = mesh_scan_params["osc_range"] * (
-            mesh_scan_params["images_per_line"] - 1
-        )
+def create_json_images(image_list):
+    json_item = {"type": "images", "items": []}
+    for image in image_list:
+        item = {}
+        item["type"] = "image"
+        item["suffix"] = image["filename"].split(".")[-1]
+        item["title"] = image["title"]
+        im = PIL.Image.open(image["filename"])
+        item["xsize"] = im.size[0] / 2
+        item["ysize"] = im.size[1] / 2
+        item["value"] = base64.b64encode(open(image["filename"]).read())
+        """
+        if item.get("thumbnail_image_filename") is None:
+            if thumbnailHeight is not None and thumbnailWidth is not None:
+                item["thumbnailSuffix"] = pathToImage.split(".")[-1]
+                item["thumbnailXsize"] = thumbnailHeight
+                item["thumbnailYsize"] = thumbnailWidth
+                item["thumbnailValue"] = base64.b64encode(open(pathToImage).read())
+        else:
+            item["thumbnailSuffix"] = pathToThumbnailImage.split(".")[-1]
+            thumbnailIm = PIL.Image.open(pathToThumbnailImage)
+            item["thumbnailXsize"] = thumbnailIm.size[0]
+            item["thumbnailYsize"] = thumbnailIm.size[1]
+            item["thumbnailValue"] = base64.b64encode(open(pathToThumbnailImage).read())
+        """
+        json_item["items"].append(item)
+    return json_item
 
-        table_cells = [
-            ("Number of lines", str(mesh_scan_params["lines_num"])),
-            ("Frames per line", str(mesh_scan_params["images_per_line"])),
-        ]
-        if mesh_scan_params["lines_num"] > 1:
-            table_cells.extend(
+
+def generate_parallel_processing_report(mesh_scan_results, params_dict):
+    json_dict = {"items": []}
+
+    html_file = open(params_dict["html_file_path"], "w")
+    html_file.write('<div align="CENTER">\n')
+
+    if params_dict["lines_num"] > 1:
+        json_dict["items"].append({"type": "title", "value": "Mesh scan results"})
+        html_file.write(HTML_START % "Mesh scan results")
+    else:
+        html_file.write(HTML_START % "Line scan results")
+        json_dict["items"].append({"type": "title", "value": "Line scan results"})
+
+    html_file.write(create_image("parallel_processing_plot.png"))
+    html_file.write("</br>")
+    html_file.write(create_text("Scan parameters", heading=1))
+    osc_range_per_line = params_dict["osc_range"] * (params_dict["images_per_line"] - 1)
+
+    table_cells = [
+        ("Number of lines", str(params_dict["lines_num"])),
+        ("Frames per line", str(params_dict["images_per_line"])),
+    ]
+    if params_dict["lines_num"] > 1:
+        table_cells.extend(
+            (
                 (
-                    (
-                        "Grid size",
-                        "%d x %d microns"
-                        % (
-                            (
-                                mesh_scan_params["steps_x"]
-                                * mesh_scan_params["xOffset"]
-                                * 1000
-                            ),
-                            (
-                                mesh_scan_params["steps_y"]
-                                * mesh_scan_params["yOffset"]
-                                * 1000
-                            ),
-                        ),
+                    "Grid size",
+                    "%d x %d microns"
+                    % (
+                        (params_dict["steps_x"] * params_dict["xOffset"] * 1000),
+                        (params_dict["steps_y"] * params_dict["yOffset"] * 1000),
                     ),
-                    (
-                        "Scan area",
-                        "%d x %d microns"
-                        % (
-                            (mesh_scan_params["dx_mm"] * 1000),
-                            (mesh_scan_params["dy_mm"] * 1000),
-                        ),
+                ),
+                (
+                    "Scan area",
+                    "%d x %d microns"
+                    % ((params_dict["dx_mm"] * 1000), (params_dict["dy_mm"] * 1000)),
+                ),
+                (
+                    "Horizontal distance between frames",
+                    "%d microns" % (params_dict["xOffset"] * 1000),
+                ),
+                (
+                    "Vertical distance between frames",
+                    "%d microns" % (params_dict["xOffset"] * 1000),
+                ),
+                ("Osciallation middle", "%.1f" % params_dict["osc_midle"]),
+                ("Osciallation range per frame", "%.2f" % params_dict["osc_range"]),
+                (
+                    "Osciallation range per line",
+                    "%.2f (from %.2f to %2.f)"
+                    % (
+                        osc_range_per_line,
+                        (params_dict["osc_midle"] - osc_range_per_line / 2),
+                        (params_dict["osc_midle"] + osc_range_per_line / 2),
                     ),
-                    (
-                        "Horizontal distance between frames",
-                        "%d microns" % (mesh_scan_params["xOffset"] * 1000),
-                    ),
-                    (
-                        "Vertical distance between frames",
-                        "%d microns" % (mesh_scan_params["xOffset"] * 1000),
-                    ),
-                    ("Osciallation middle", "%.1f" % mesh_scan_params["osc_midle"]),
-                    (
-                        "Osciallation range per frame",
-                        "%.2f" % mesh_scan_params["osc_range"],
-                    ),
-                    (
-                        "Osciallation range per line",
-                        "%.2f (from %.2f to %2.f)"
-                        % (
-                            osc_range_per_line,
-                            (mesh_scan_params["osc_midle"] - osc_range_per_line / 2),
-                            (mesh_scan_params["osc_midle"] + osc_range_per_line / 2),
-                        ),
-                    ),
-                )
+                ),
             )
-        table_rec = create_table(table_cells=table_cells, border_size=0)
+        )
+    table_rec = create_table(table_cells=table_cells, border_size=0)
+    for row in table_rec:
+        html_file.write(row)
+    html_file.write("</br>")
+
+    positions = mesh_scan_results.get("best_positions", [])
+    if len(positions) > 0:
+        html_file.write(create_text("Best position", heading=1))
+        html_file.write("</br>")
+
+        html_file.write('<font size="2">')
+        table_cells = [
+            [
+                "%d" % positions[0]["index"],
+                "<b>%.2f<b>" % positions[0]["score"],
+                "<b>%d</b>" % positions[0]["spots_num"],
+                "%.1f" % positions[0]["spots_resolution"],
+                positions[0]["filename"],
+                "%d" % (positions[0]["col"] + 0.5),
+                "%d" % (positions[0]["row"] + 0.5),
+            ]
+        ]
+        table_rec = create_table(
+            [
+                "Index",
+                "<b>Score</b>",
+                "<b>Number of spots</b>",
+                "Resolution",
+                "File name",
+                "Column",
+                "Row",
+            ],
+            table_cells,
+        )
         for row in table_rec:
             html_file.write(row)
         html_file.write("</br>")
 
-        positions = mesh_scan_results.get("best_positions", [])
-        if len(positions) > 0:
-            html_file.write(create_text("Best position", heading=1))
+        if len(positions) > 1:
+            html_file.write(create_text("All positions", heading=1))
             html_file.write("</br>")
-
-            html_file.write('<font size="2">')
-            table_cells = [
-                [
-                    "%d" % positions[0]["index"],
-                    "<b>%.2f<b>" % positions[0]["score"],
-                    "<b>%d</b>" % positions[0]["spots_num"],
-                    "%.1f" % positions[0]["spots_resolution"],
-                    positions[0]["filename"],
-                    "%d" % (positions[0]["col"] + 0.5),
-                    "%d" % (positions[0]["row"] + 0.5),
-                ]
-            ]
+            table_cells = []
+            for position in positions[1:]:
+                table_cells.append(
+                    (
+                        position["index"],
+                        "<b>%.2f</b>" % position["score"],
+                        "<b>%d</b>" % position["spots_num"],
+                        "%.1f" % position["spots_resolution"],
+                        position["filename"],
+                        "%d" % (position["col"] + 0.5),
+                        "%d" % (position["row"] + 0.5),
+                    )
+                )
             table_rec = create_table(
                 [
                     "Index",
@@ -206,44 +260,11 @@ def generate_mesh_scan_report(mesh_scan_results, mesh_scan_params, html_filename
             for row in table_rec:
                 html_file.write(row)
             html_file.write("</br>")
-
-            if len(positions) > 1:
-                html_file.write(create_text("All positions", heading=1))
-                html_file.write("</br>")
-                table_cells = []
-                for position in positions[1:]:
-                    table_cells.append(
-                        (
-                            position["index"],
-                            "<b>%.2f</b>" % position["score"],
-                            "<b>%d</b>" % position["spots_num"],
-                            "%.1f" % position["spots_resolution"],
-                            position["filename"],
-                            "%d" % (position["col"] + 0.5),
-                            "%d" % (position["row"] + 0.5),
-                        )
-                    )
-                table_rec = create_table(
-                    [
-                        "Index",
-                        "<b>Score</b>",
-                        "<b>Number of spots</b>",
-                        "Int aver.",
-                        "Resolution",
-                        "File name",
-                        "Column",
-                        "Row",
-                    ],
-                    table_cells,
-                )
-                for row in table_rec:
-                    html_file.write(row)
-                html_file.write("</br>")
-            html_file.write("</font>")
-    # except:
-    #   pass
-
-    # finally:
+        html_file.write("</font>")
     html_file.write("</div>\n")
     html_file.write(HTML_END)
     html_file.close()
+
+    image = {"title": "plot", "filename": params_dict["cartography_path"]}
+    json_dict["items"].append(create_json_images([image]))
+    open(params_dict["json_file_path"], "w").write(json.dumps(json_dict, indent=4))

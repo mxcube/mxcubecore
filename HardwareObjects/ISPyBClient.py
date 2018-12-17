@@ -1911,18 +1911,10 @@ class ISPyBClient(HardwareObject):
                 "workflow_type", "MeshScan"
             )
             workflow_step_dict["status"] = workflow_info_dict.get("status", "")
-            workflow_step_dict["folderPath"] = workflow_info_dict.get(
-                "result_file_path", ""
-            )
-            workflow_step_dict["imageResultFilePath"] = os.path.join(
-                workflow_step_dict["folderPath"], "parallel_processing_result.png"
-            )
-            workflow_step_dict["htmlResultFilePath"] = os.path.join(
-                workflow_step_dict["folderPath"], "index.html"
-            )
-            workflow_step_dict["resultFilePath"] = os.path.join(
-                workflow_step_dict["folderPath"], "index.html"
-            )
+            workflow_step_dict["folderPath"] = workflow_info_dict.get("result_file_path")
+            workflow_step_dict["imageResultFilePath"] = workflow_info_dict["cartography_path"]
+            workflow_step_dict["htmlResultFilePath"] = workflow_info_dict["html_file_path"]
+            workflow_step_dict["resultFilePath"] = workflow_info_dict["json_file_path"]
             workflow_step_dict["comments"] = workflow_info_dict.get("comments", "")
             workflow_step_dict["crystalSizeX"] = workflow_info_dict.get(
                 "crystal_size_x"
