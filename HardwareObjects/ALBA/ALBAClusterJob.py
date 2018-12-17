@@ -43,26 +43,26 @@ class ALBAClusterJob(object):
     def get_result(self, state):
         pass
 
-class ALBAAutoprocJob(ALBAClusterJob):
-    sls_script = os.path.join(root, 'edna-mx/autoproc/edna-mx.autoproc.sl')
+class ALBAAutoProcJob(ALBAClusterJob):
+    sls_script = os.path.join(root, 'edna-mx/autoproc/mxcube/edna-mx.autoproc.sl')
    
     def run(self, *args):
 
         jobname = os.path.basename(os.path.dirname(edna_directory))
-        self.job = XalocJob("edna-autoproc", jobname, self.sls_script, input_file, edna_directory)
+        self.job = XalocJob("edna-autoproc", jobname, self.sls_script, input_file, edna_directory, 'SCRATCH')
         self.job.submit()
 
 class ALBAEdnaProcJob(ALBAClusterJob):
-    sls_script = os.path.join(root, 'edna-mx/ednaproc/edna-mx.ednaproc.sl')
+    sls_script = os.path.join(root, 'edna-mx/ednaproc/mxcube/edna-mx.ednaproc.sl')
    
     def run(self, *args):
         collect_id, input_file, output_dir = args
-        self.job = XalocJob("edna-ednaproc", str(collect_id), self.sls_script, input_file, output_dir)
+        self.job = XalocJob("edna-ednaproc", str(collect_id), self.sls_script, input_file, output_dir, 'SCRATCH')
         self.job.submit()
 
 class ALBAStrategyJob(ALBAClusterJob):
 
-    sls_script = os.path.join(root, 'edna-mx/strategy/edna-mx.strategy.sl')
+    sls_script = os.path.join(root, 'edna-mx/strategy/mxcube/edna-mx.strategy.sl')
 
     def run(self, *args):
 
@@ -72,7 +72,7 @@ class ALBAStrategyJob(ALBAClusterJob):
 
         jobname = os.path.basename(os.path.dirname(edna_directory))
 
-        self.job = XalocJob("edna-strategy", jobname, self.sls_script, input_file, edna_directory)
+        self.job = XalocJob("edna-strategy", jobname, self.sls_script, input_file, edna_directory, 'SCRATCH')
         self.job.submit()
 
         logging.getLogger("HWR").debug("         StrategyJob - %s" % str(self.job))
