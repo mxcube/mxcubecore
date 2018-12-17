@@ -73,21 +73,8 @@ class SardanaMotor(AbstractMotor):
                     "SardanaMotor: motor_name not defined")
             self.motor_name = self.name()
 
-        try:
-            self.threshold = self.getProperty("threshold")
-        except KeyError:
-            self.threshold = None
-
-        if self.threshold is None:
-            self.threshold = self.threshold_default
-
-        try:
-            self.move_threshold = self.getProperty("move_threshold")
-        except KeyError:
-            self.move_threshold = None
-
-        if self.move_threshold is None:
-            self.move_threshold = self.move_threshold_default
+        self.threshold = self.getProperty("threshold", self.threshold_default)
+        self.move_threshold = self.getProperty("move_threshold", self.move_threshold_default)
 
         try:
             self.polling = self.getProperty("interval")
@@ -186,7 +173,10 @@ class SardanaMotor(AbstractMotor):
         """
         if position is None:
             position = self.position_channel.getValue()
-        if abs(self.motor_position - position) >= self.threshold:
+
+        logging.getLogger("HWR").debug("SardanaMotor.py position changed. Now is %s" % position)
+
+        if abs(self.motor_position - position) > self.threshold:
             self.motor_position = position
             self.emit('positionChanged', (position, ))
             self.motor_state_changed()
