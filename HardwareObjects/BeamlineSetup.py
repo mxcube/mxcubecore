@@ -378,6 +378,20 @@ class BeamlineSetup(HardwareObject):
 
         return path_template
 
+    def get_confirm_dialog_configuration(self):
+        parent_key = 'default_confirm_dialog_configuration'
+        props = self[parent_key].getProperties()  
+
+        # make sure lists are lists
+        for ky in props:
+            val = props[ky]
+            if type(val) is str :
+                vals = val.split(',')
+                if len(vals) > 1:
+                   val = vals
+                props[ky] = val 
+        return props
+
     def _get_energy(self):
         try:
             energy = self.energy_hwobj.getCurrentEnergy()
@@ -482,3 +496,6 @@ class BeamlineSetup(HardwareObject):
                parameter_item['exp_time'] < bottom:
                invalid_parameters_list.append('Exposure time')
         return invalid_parameters_list
+
+def test_hwo(hwo):
+    print hwo.get_confirm_dialog_configuration()
