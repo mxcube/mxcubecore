@@ -389,8 +389,8 @@ class SardanaChannel(ChannelObject, SardanaObject):
     def isConnected(self):
         return self.attribute is not None
 
-    def channelListener(self,*args):
-        ev = AttributeEvent(args)
-        SardanaChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
-        SardanaChannel._eventsQueue.put(ev)
-        SardanaChannel._eventsProcessingTimer.send()
+    #def channelListener(self,*args):
+        #ev = AttributeEvent(args)
+        #SardanaChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
+        #SardanaChannel._eventsQueue.put(ev)
+        #SardanaChannel._eventsProcessingTimer.send()
