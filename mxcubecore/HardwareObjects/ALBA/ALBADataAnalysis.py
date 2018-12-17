@@ -16,7 +16,7 @@ from XSDataCommon import XSDataFile, XSDataString
 
 root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
 
-sls_script = os.path.join(root, 'edna-mx/strategy/edna-mx.strategy.sl')
+sls_script = os.path.join(root, 'edna-mx/strategy/mxcube/edna-mx.strategy.sl')
 
 from xaloc import XalocJob
 
@@ -53,7 +53,7 @@ class ALBADataAnalysis(DataAnalysis):
         logging.getLogger("HWR").debug("      edna directory: %s" % edna_directory)
 
 
-        self.job = XalocJob("edna-strategy", jobname, sls_script, input_file, edna_directory)
+        self.job = XalocJob("edna-strategy", jobname, sls_script, input_file, edna_directory, 'SCRATCH')
         self.job.submit()
 
         logging.getLogger("HWR").debug("  XalocJob submitted %s" % self.job.id)
