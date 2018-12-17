@@ -114,8 +114,9 @@ class ALBACats(Cats90):
         """
         while True:
             state = str( self.super_state_channel.getValue() )
+            phase = self.read_super_phase().upper() 
             if state == "ON": 
-                logging.getLogger("user_level_log").error("Supervisor is in ON state. Returning") 
+                logging.getLogger("user_level_log").error("Supervisor state {0}, phase {1} Returning".format(state, phase)) 
                 break
             elif str(state) != "MOVING":
                 logging.getLogger("user_level_log").error("Supervisor is in a funny state %s" % str(state))
@@ -130,6 +131,7 @@ class ALBACats(Cats90):
             logging.getLogger("user_level_log").error("Supervisor is not yet in %s phase. Aborting load" % final_phase)
             return False
         else:
+            logging.getLogger("user_level_log").info("Supervisor is in %s phase. Beamline ready to start sample loading..." % final_phase)
             return True
 
     def save_detdist_position(self):
@@ -232,7 +234,7 @@ class ALBACats(Cats90):
         """
         self.emit('powerStateChanged', (value, ))
 
-    def _doLoad(self, sample=None, shifts=None, use_ht=False):
+    def _doLoad(self, sample=None, shifts=None, use_ht=False, waitsafe=True):
         """
         Loads a sample on the diffractometer. Performs a simple put operation if the diffractometer is empty, and 
         a sample exchange (unmount of old + mount of new sample) if a sample is already mounted on the diffractometer.
@@ -255,7 +257,7 @@ class ALBACats(Cats90):
             self._updateState() # remove transient states like Loading. Reflect hardware state
             raise Exception("CATS cannot get to transfer phase. Aborting sample changer operation.")
 
-        gevent.sleep(3) 
+        # gevent.sleep(3) 
         if not self._chnPowered.getValue():
             raise Exception("CATS power is not enabled. Please switch on arm power before transferring samples.")
          
@@ -390,6 +392,7 @@ class ALBACats(Cats90):
         elif self.auto_prepare_diff and not changing_tool:
             logging.getLogger("HWR").info("  AUTO_PREPARE_DIFF (On) sample changer is in safe state... preparing diff now")
             #ret = self.diff_send_sampleview()
+            self._wait_super_ready()
             self.go_sampleview_cmd()   
             logging.getLogger("HWR").info("     restoring detector distance")
             self.restore_detdist_position()
@@ -398,7 +401,8 @@ class ALBACats(Cats90):
             logging.getLogger("HWR").info("  AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" % changing_tool)
 
         # load commands are executed until path is safe. Then we have to wait for path to be finished
-        self._waitDeviceReady()
+        self._waitDeviceSafe()
+        #self._waitDeviceReady()
 
     def _doUnload(self,sample_slot=None, shifts=None):
         """
