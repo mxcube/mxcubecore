@@ -35,8 +35,11 @@ class ALBAAutoProcessing(HardwareObject):
         self.var_ds = DeviceProxy( var_dsname)
 
     # input files for standard collection auto processing 
-    def create_input_files(self, xds_dir, mosflm_dir, dc_pars):
+    def create_input_files(self, dc_pars):
  
+        xds_dir = dc_pars['xds_dir']
+        mosflm_dir = dc_pars['auto_dir']
+
         fileinfo = dc_pars['fileinfo']
         osc_seq = dc_pars['oscillation_sequence'][0]
 
