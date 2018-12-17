@@ -15,6 +15,9 @@ except ImportError:
   except ImportError:
       logging.warning("Could not find autocentring library, automatic centring is disabled")
 
+#  !!!!!  ALBA  !!!!
+import lucid_xaloc as lucid
+
 
 def multiPointCentre(z,phis) :
     fitfunc = lambda p,x: p[0] * numpy.sin(x+p[1]) + p[2]
@@ -389,8 +392,9 @@ def center(phi, phiy, phiz,
   else:
       centred_pos.update({ sampx.motor: float(sampx.getPosition() + sampx.direction*(dx + vertical_move[0,0])),
                            sampy.motor: float(sampy.getPosition() + sampy.direction*(dy + vertical_move[1,0])),
+                           phiz.motor: float(phiz.reference_position),
                            phiy.motor: float(phiy.getPosition() + phiy.direction*d_horizontal[0,0]) })
-
+      logging.getLogger('HWR').debug('Update phiz centred position with its reference position %s' % phiz.reference_position)
   return centred_pos
 
 def end(centred_pos=None):
@@ -427,7 +431,8 @@ def start_auto(camera,  centring_motors_dict,
 
 def find_loop(camera, pixelsPerMm_Hor, chi_angle, msg_cb, new_point_cb):
   snapshot_filename = os.path.join(tempfile.gettempdir(), "mxcube_sample_snapshot.png")
-  camera.takeSnapshot(snapshot_filename, bw=True)
+  #camera.takeSnapshot(snapshot_filename, bw=True)
+  camera.save_snapshot(snapshot_filename, bw=True)
   
   info, x, y = lucid.find_loop(snapshot_filename,IterationClosing=6)
   
