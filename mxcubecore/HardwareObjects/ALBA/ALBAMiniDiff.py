@@ -142,17 +142,18 @@ class ALBAMiniDiff(GenericDiffractometer):
         GenericDiffractometer.init(self)
         
         # overwrite default centring motors configuration from GenericDiffractometer
-        # when using sample_centring
+        # when using sample_centrinig. Fix phiz position to a reference value.
         if self.use_sample_centring:
-            self.omegaz_reference = eval(self.getProperty("omegaReference"))
-#            self.centring_phi.direction = 1
-#            self.centring_phiy.direction = 1
-            try:
-                logging.getLogger("HWR").debug("Setting omegaz reference position to {0}".format(self.omegaz_reference['position']))
-                self.centring_phiz.reference_position = self.omegaz_reference['position']
-            except:
-                logging.getLogger("HWR").warning("Invalid value for omegaz reference!")
-                raise
+           
+            if self.getProperty("omegaReference"):
+                self.omegaz_reference = eval(self.getProperty("omegaReference"))
+
+                try:
+                    logging.getLogger("HWR").debug("Setting omegaz reference position to {0}".format(self.omegaz_reference['position']))
+                    self.centring_phiz.reference_position = self.omegaz_reference['position']
+                except:
+                    logging.getLogger("HWR").warning("Invalid value for omegaz reference!")
+                    raise
 
         queue_model_objects.CentredPosition.\
             set_diffractometer_motor_names("phi", "phiy", "phiz", "sampx", "sampy", "kappa")
@@ -197,6 +198,15 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         self.pixels_per_mm_x,  self.pixels_per_mm_y = self.getCalibrationData()
         self.emit('pixelsPerMmChanged', ((self.pixels_per_mm_x, self.pixels_per_mm_y), ))
+
+    # Overwrite from generic diffractometer
+    def update_zoom_calibration(self):
+        """
+        """
+        self.update_pixels_per_mm() 
+        # self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
+        # self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
+        # self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
     #TODO: looks quite bizarre.
     # Use parent method which uses sample_centring module
@@ -369,8 +379,9 @@ class ALBAMiniDiff(GenericDiffractometer):
 
         while True:
             super_state = str(self.super_hwobj.get_state()).upper()
+            logging.getLogger("HWR").debug('ALBAMinidiff: waiting for go_sample_view done (supervisor state is %s)' % super_state)
             if super_state != "MOVING":
-                logging.getLogger("HWR").debug('ALBAMinidiff: go_sample_view done . super_state is %s' % super_state)
+                logging.getLogger("HWR").debug('ALBAMinidiff: go_sample_view done (%s)' % super_state)
                 return True
             gevent.sleep(0.2)
 
