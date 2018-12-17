@@ -1966,6 +1966,7 @@ def mount_sample(beamline_setup_hwobj,
                     return
             try:
                 dm.connect("centringAccepted", centring_done_cb)
+                dm.connect("centringFailed", centring_done_cb)
                 centring_method = view.listView().parent().parent().\
                                   centring_method
                 if centring_method == CENTRING_METHOD.MANUAL:
@@ -1988,6 +1989,7 @@ def mount_sample(beamline_setup_hwobj,
                     view.setText(1, "Centring done !")
                     log.info("Centring saved")
                 else:
+                    view.setText(1, "Centring failed !")
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                         raise QueueSkippEntryException("Could not center sample, skipping", "")
                     else:
@@ -1996,6 +1998,7 @@ def mount_sample(beamline_setup_hwobj,
                 log.exception('Could not center sample: ' + str(ex))
             finally:
                 dm.disconnect("centringAccepted", centring_done_cb)
+                dm.disconnect("centringFailed", centring_done_cb)
 
 MODEL_QUEUE_ENTRY_MAPPINGS = \
     {queue_model_objects.DataCollection: DataCollectionQueueEntry,
