@@ -5,7 +5,7 @@ import os
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 MXCUBE = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 HWR_OBJECT_DIR = os.path.join(MXCUBE, "HardwareObjects")
-HWR_XML_FILES = os.path.join(MXCUBE, "HardwareRepository/test/xml-qt")
+HWR_XML_FILES = os.path.join(MXCUBE, "HardwareRepository/configuration/xml-qt")
 
 sys.path.insert(0, MXCUBE)
 
