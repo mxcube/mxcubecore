@@ -1478,6 +1478,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
         self.diffractometer_hwobj.reject_centring()  
+        self.diffractometer_state_changed()
         self.show_all_items()
 
     def cancel_centring(self, reject=False): 
