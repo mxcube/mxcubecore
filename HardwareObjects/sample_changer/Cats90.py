@@ -1012,6 +1012,17 @@ class Cats90(SampleChanger):
         state = self._readState()
         return state in (SampleChangerState.Ready, SampleChangerState.Charging)              
 
+    def _waitDeviceSafe(self,timeout=None):
+        """
+        Waits until the samle changer HO is ready.
+
+        :returns: None
+        :rtype: None
+        """
+        with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
+            while not self.pathSafe():
+                gevent.sleep(0.01)
+            
     def _waitDeviceReady(self,timeout=None):
         """
         Waits until the samle changer HO is ready.
