@@ -16,14 +16,14 @@ class ALBAFrontLight(Device):
         self.memorized_level = None
         self.previous_level = None
       
-        self.default_off_threshold = 0.01
+        self.default_off_threshold = 1
         self.off_threshold = None
 
     def init(self):
 
         self.level_channel = self.getChannelObject("light_level")
         self.state_channel = self.getChannelObject("state")
-        threshold = self.getProperty("off_threshold")
+        threshold = self.getProperty("off_threshold", self.default_off_threshold)
 
         if threshold is not None:
             try:
@@ -111,17 +111,10 @@ class ALBAFrontLight(Device):
         logging.getLogger("HWR").debug("Setting front light off")
         self.level_channel.setValue(0.0)
 
-def test():
-    import os
-    hwr_directory = os.environ["XML_FILES_PATH"]
-    hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-    hwr.connect()
-
-    light = hwr.getHardwareObject("/frontlight")
-    print "\nLight control for \"%s\"\n" % light.getUserName()
-    print "   Level limits are:",  light.getLimits()
-    print "   Current level is:",  light.getLevel()
-    print "   Current state is:",  light.getState()
-
-if __name__ == '__main__':
-    test()
+def test_hwo(hwo):
+    print "\nLight control for \"%s\"\n" % hwo.getUserName()
+    print "   Level limits are:",  hwo.getLimits()
+    print "   Current level is:",  hwo.getLevel()
+    print "   Current state is:",  hwo.getState()
+    #hwo.setOn()
+    #hwo.setLevel(15)
