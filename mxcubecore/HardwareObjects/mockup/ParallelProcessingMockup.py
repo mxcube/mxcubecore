@@ -48,10 +48,6 @@ class ParallelProcessingMockup(GenericParallelProcessing):
         self.data_collection = data_collection
         self.prepare_processing()
 
-        self.emit(
-            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
-        )
-
         index = 0
         for key in self.results_raw.keys():
             if self.result_type == "first":
@@ -87,23 +83,26 @@ class ParallelProcessingMockup(GenericParallelProcessing):
 
             index += 1
 
+        self.emit(
+            "processingStarted",
+            (self.params_dict, self.results_raw, self.results_aligned),
+        )
+
         for index in range(self.params_dict["images_num"]):
-            if not index % 10:
-                self.align_processing_results(index - 10, index)
-                gevent.sleep(0.1)
-                self.emit(
-                    "paralleProcessingResults",
-                    (self.results_aligned, self.params_dict, False),
-                )
+            if index > 0 and not index % step:
+                self.align_processing_results(index - step, index)
                 self.print_log(
                     "GUI",
                     "info",
                     "Parallel processing: Frame %d/%d done"
                     % (index + 1, self.params_dict["images_num"]),
                 )
+                self.emit('processingFrame', index)
+                self.emit("processingResultsUpdate", False)
+            if not self.started:
+                break
+            else:
+                time.sleep(self.params_dict["exp_time"])
         self.align_processing_results(0, self.params_dict["images_num"] - 1)
-        self.emit(
-            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
-        )
-
+        self.emit("processingResultsUpdate", True)
         self.set_processing_status("Success")

@@ -29,7 +29,6 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from QtImport import *
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -230,6 +229,9 @@ class GenericParallelProcessing(HardwareObject):
         )
         self.params_dict["json_file_path"] = os.path.join(
             archive_directory, "report.json"
+        )
+        self.params_dict["csv_file_path"] = os.path.join(
+            archive_directory, "parallel_processing.csv"
         )
 
         self.params_dict["template"] = template
@@ -453,9 +455,6 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["max_dozor_score"] = self.results_aligned["score"].max()
         best_positions = self.results_aligned.get("best_positions", [])
 
-        processing_plot_file = os.path.join(
-            self.params_dict["process_directory"], "parallel_processing_plot.png"
-        )
         processing_grid_overlay_file = os.path.join(
             self.params_dict["archive_directory"], "grid_overlay.png"
         )
@@ -513,8 +512,8 @@ class GenericParallelProcessing(HardwareObject):
 
         self.lims_hwobj.set_image_quality_indicators_plot(
             self.collect_hwobj.collection_id,
-            processing_plot_archive_file,
-            processing_csv_archive_file,
+            self.params_dict["cartography_path"],
+            self.params_dict["csv_file_path"],
         )
 
         fig, ax = plt.subplots(nrows=1, ncols=1)
@@ -643,13 +642,21 @@ class GenericParallelProcessing(HardwareObject):
         # ---------------------------------------------------------------------
         # Stores plot in the processing directory
         try:
-            if not os.path.exists(os.path.dirname(processing_plot_file)):
-                os.makedirs(os.path.dirname(processing_plot_file))
-            fig.savefig(processing_plot_file, dpi=100, bbox_inches="tight")
-            log.info("Parallel processing: Plot saved in %s" % processing_plot_file)
+            if not os.path.exists(
+                os.path.dirname(self.params_dict["cartography_path"])
+            ):
+                os.makedirs(os.path.dirname(self.params_dict["cartography_path"]))
+            fig.savefig(
+                self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
+            )
+            log.info(
+                "Parallel processing: Plot saved in %s"
+                % self.params_dict["cartography_path"]
+            )
         except BaseException:
             log.exception(
-                "Parallel processing: Could not save plot in %s" % processing_plot_file
+                "Parallel processing: Could not save plot in %s"
+                % self.params_dict["cartography_path"]
             )
 
         # ---------------------------------------------------------------------
@@ -698,8 +705,6 @@ class GenericParallelProcessing(HardwareObject):
                 % self.params_dict["json_file_path"]
             )
 
-        if self.params_dict["workflow_type"] == "Still":
-            self.start_crystfel_autoproc()
         # ---------------------------------------------------------------------
         # Writes results in the csv file
         """
@@ -733,151 +738,6 @@ class GenericParallelProcessing(HardwareObject):
             processing_csv_file.close()
         """
         # ---------------------------------------------------------------------
-
-    def start_crystfel_autoproc(self):
-        acq_params = self.data_collection.acquisitions[0].acquisition_parameters
-        proc_params = self.data_collection.processing_parameters
-
-        lst_filename = os.path.join(
-            self.params_dict["process_directory"],
-            "crystfel_hits_%d.lst" % self.collect_hwobj.collection_id,
-        )
-        stream_filename = os.path.join(
-            self.params_dict["process_directory"],
-            "crystfel_stream_%d.stream" % self.collect_hwobj.collection_id,
-        )
-        geom_filename = os.path.join(
-            self.params_dict["process_directory"],
-            "crystfel_detector_%d.geom" % self.collect_hwobj.collection_id,
-        )
-        cell_filename = os.path.join(
-            self.params_dict["process_directory"],
-            "crystfel_cell_%d.cell" % self.collect_hwobj.collection_id,
-        )
-
-        # Writes lst file for crystfel
-        try:
-            lst_file = open(lst_filename, "w")
-            for index in range(self.params_dict["images_num"]):
-                if self.results_raw["score"][index] > 0:
-                    lst_file.write(
-                        self.params_dict["template"]
-                        % (self.params_dict["run_number"], index + 1)
-                        + "\n"
-                    )
-            self.print_log(
-                "HWR",
-                "debug",
-                "Parallel processing: Hit list stored in %s" % lst_filename,
-            )
-        except BaseException:
-            self.print_log(
-                "GUI",
-                "error",
-                "Parallel processing: Unable to store hit list in %s" % lst_filename,
-            )
-        finally:
-            lst_file.close()
-
-        geom_file = """
-clen = 0.12000
-photon_energy = {energy}
-
-adu_per_photon = 1
-res = 13333.3   ; 75 micron pixel size
-
-panel0/min_fs = 0
-panel0/min_ss = 0
-panel0/max_fs = 2069
-panel0/max_ss = 2166
-panel0/corner_x = -1118.00
-panel0/corner_y = -1079.00
-panel0/fs = x
-panel0/ss = y
-""".format(
-            energy=acq_params.energy
-        )
-
-        data_file = open(geom_filename, "w")
-        data_file.write(geom_file)
-        data_file.close()
-
-        """
-        if "P1" in proc_params.space_group:
-            lattice_type = "triclinic"
-
-        lattice_types = ("triclinic",
-                         "monoclinic",
-                         "orthorhombic",
-                         "tetragonal",
-                         "trigonal",
-                         "hexagonal",
-                         "cubic")
-        """
-
-        cell_file = """
-CrystFEL unit cell file version 1.0
-
-lattice_type = tetragonal
-centering = P
-unique_axis = c
-
-a = {cell_a} A
-b = {cell_b} A
-c = {cell_c} A
-al = {cell_alpha} deg
-be = {cell_beta} deg
-ga = {cell_gamma} deg
-""".format(
-            cell_a=proc_params.cell_a,
-            cell_b=proc_params.cell_b,
-            cell_c=proc_params.cell_c,
-            cell_alpha=proc_params.cell_alpha,
-            cell_beta=proc_params.cell_beta,
-            cell_gamma=proc_params.cell_gamma,
-        )
-
-        data_file = open(cell_filename, "w")
-        data_file.write(cell_file)
-        data_file.close()
-
-        point_group = "422"
-
-        """
-        proc_params_dict = {"directory" : self.params_dict["directory"],
-                            "lst_file": lst_filename,
-                            "geom_file": geom_filename,
-                            "stream_file" : stream_filename,
-                            "cell_filename" : cell_filename,
-                            "point_group": "422",
-                            "space_group": proc_params.space_group,
-                            "hres": acq_params.resolution}
-        log.info("Parallel processing: Crystfel processing parameters: %s" % str(proc_params_dict))
-        """
-
-        end_of_line_to_execute = " %s %s %s %s %s %s %s %.2f" % (
-            self.params_dict["process_directory"],
-            lst_filename,
-            geom_filename,
-            stream_filename,
-            cell_filename,
-            point_group,
-            proc_params.space_group,
-            acq_params.resolution,
-        )
-
-        self.print_log(
-            "HWR",
-            "debug",
-            "Parallel processing: Starting crystfel %s with parameters %s "
-            % (self.crystfel_script, end_of_line_to_execute),
-        )
-
-        """
-        subprocess.Popen(str(self.crystfel_script + end_of_line_to_execute),
-                             shell=True, stdin=None, stdout=None,
-                             stderr=None, close_fds=True)
-        """
 
     def align_processing_results(self, start_index, end_index):
         """Realigns all results. Each results (one dimensional numpy array)
