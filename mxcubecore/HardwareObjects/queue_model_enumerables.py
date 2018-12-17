@@ -23,9 +23,11 @@ ExperimentType = namedtuple(
         "OSC",
         "MESH",
         "COLLECT_MULTIWEDGE",
+        "STILL",
+        "IMAGING"
     ],
 )
-EXPERIMENT_TYPE = ExperimentType(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+EXPERIMENT_TYPE = ExperimentType(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
 EXPERIMENT_TYPE_STR = ExperimentType(
     "SAD",
     "SAD - Inverse Beam",
@@ -37,6 +39,8 @@ EXPERIMENT_TYPE_STR = ExperimentType(
     "OSC",
     "Mesh",
     "Collect - Multiwedge",
+    "Still",
+    "Imaging"
 )
 
 StrategyOption = namedtuple("StrategyOption", ["AVG"])
