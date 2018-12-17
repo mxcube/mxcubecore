@@ -238,7 +238,7 @@ class GenericVideoDevice(Device):
         image.resize(raw_dims[1], raw_dims[0], 2)
         return cv2.cvtColor(image, cv2.COLOR_YUV2RGB_UYVY)
 
-    def save_snapshot(self, filename, image_type='PNG'):
+    def save_snapshot(self, filename, image_type='PNG',bw=True):
         if USEQT:
             qimage = self.get_new_image() 
             qimage.save(filename, image_type) 
