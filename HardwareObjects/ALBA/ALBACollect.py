@@ -142,6 +142,13 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info( "       + wait for energy...")
         self.energy_hwobj.wait_move_energy_done()
 
+        # prepare input files for autoprocessing
+        # pass wavelength needed in auto processing input files
+        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
+        osc_pars['wavelength'] = self.get_wavelength()
+
+        self.autoprocessing_hwobj.create_input_files(self.current_dc_parameters)
+
         if self.aborted_by_user:
             self.emit_collection_failed("Aborted by user")
             self.aborted_by_user = False
@@ -695,18 +702,14 @@ class ALBACollect(AbstractCollect):
             logging.exception("Could not create processing file directory")
             return
 
+        # save directory names in current_dc_parameters. They will later be used
+        #  by autoprocessing. 
         if xds_directory:
             self.current_dc_parameters["xds_dir"] = xds_directory
 
         if auto_directory:
             self.current_dc_parameters["auto_dir"] = auto_directory
 
-        # pass wavelength needed in auto processing input files
-
-        osc_pars = self.current_dc_parameters["oscillation_sequence"][0]
-        osc_pars['wavelength'] = self.get_wavelength()
-
-        self.autoprocessing_hwobj.create_input_files(xds_directory, auto_directory, self.current_dc_parameters)
 
     def prepare_input_files(self):
         """
