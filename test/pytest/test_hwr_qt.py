@@ -1,5 +1,5 @@
 import sys
-from HardwareRepository import QtImport
+import HardwareRepository.QtImport as QtImport
 from HardwareRepository import HardwareRepository
 
 def test_hwr_qt(hwr_qt):
