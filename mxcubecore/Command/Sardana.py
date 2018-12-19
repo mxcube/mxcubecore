@@ -328,14 +328,19 @@ class SardanaChannel(ChannelObject, SardanaObject):
                 if ranges is not None and ranges[-1] != "Not specified":
                     self.info.maxval = float(ranges[-1])
             elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
-                minval, maxval = self.attribute.ranges() 
-                self.info.minval = minval.magnitude   
-                self.info.maxval = maxval.magnitude   
+                try:
+                    range = getattr(self.attribute, 'range')
+                    self.info.minval = range[0].magnitude
+                    self.info.maxval = range[1].magnitude
+                except:
+                    pass
+                    # logging.getLogger("HWR").debug(
+                    #    "Attribute {0} has not range attribute defined".format(self.attribute.fullname))
         except:
             import traceback
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
             logging.getLogger("HWR").info("%s" % traceback.format_exc())
-       
+
         # prepare polling
         # if the polling value is a number set it as the taurus polling period
 
@@ -355,16 +360,46 @@ class SardanaChannel(ChannelObject, SardanaObject):
         self.attribute.write(newValue)
             
     def _readValue(self):
-        value = self.attribute.read().value
+        if taurus.Release.version_info[0] == 3:
+            value = self.attribute.read().value
+        elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+            try:
+                magnitude = getattr(self.attribute.rvalue, 'magnitude')
+                value = magnitude
+            except:
+                value = self.attribute.rvalue
         return value
             
+    # def getInfo(self):
+    #     try:
+    #         b=dir(self.attribute)
+    #         self.info.minval, self.info.maxval = self.attribute._TangoAttribute__attr_config.getLimits()
+    #     except:
+    #         import traceback
+    #         logging.getLogger("HWR").info("%s" % traceback.format_exc())
+    #     return self.info
+
     def getInfo(self):
         try:
-            b=dir(self.attribute)
-            self.info.minval, self.info.maxval = self.attribute._TangoAttribute__attr_config.getLimits()
+            if taurus.Release.version_info[0] == 3:
+                ranges = self.attribute.getConfig().getRanges()
+                if ranges is not None and ranges[0] != "Not specified":
+                    self.info.minval = float(ranges[0])
+                if ranges is not None and ranges[-1] != "Not specified":
+                    self.info.maxval = float(ranges[-1])
+            elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
+                try:
+                    range = getattr(self.attribute, 'range')
+                    self.info.minval = range[0].magnitude
+                    self.info.maxval = range[1].magnitude
+                except:
+                    logging.getLogger("HWR").debug(
+                        "Attribute <range> not defined for {0}".format(self.attribute.fullname))
         except:
             import traceback
+            logging.getLogger("HWR").info("info initialized. Cannot get limits")
             logging.getLogger("HWR").info("%s" % traceback.format_exc())
+
         return self.info
 
     def update(self, event):
@@ -372,7 +407,13 @@ class SardanaChannel(ChannelObject, SardanaObject):
         data = event.event[2]
         
         try:
-            newvalue = data.value
+            if taurus.Release.version_info[0] == 3:
+                newvalue = data.value
+            elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
+                try:
+                    newvalue = data.rvalue.magnitude
+                except:
+                    newvalue = data.rvalue
 
             if newvalue == None:
                 newvalue = self.getValue()

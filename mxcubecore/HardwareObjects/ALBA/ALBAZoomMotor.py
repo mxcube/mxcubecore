@@ -59,6 +59,7 @@ Example Hardware Object XML file :
 from HardwareRepository import HardwareRepository
 from HardwareRepository import BaseHardwareObjects
 import logging
+from taurus.core.tango.enums import DevState
 import os
 import PyTango
 
@@ -130,9 +131,9 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
     def getState(self):
         state = self.stateChannel.getValue()
         curr_pos = self.getPosition()
-        if state == PyTango.DevState.ON:
+        if state == DevState.ON:
              return ALBAZoomMotor.READY
-        elif state == PyTango.DevState.MOVING or state == PyTango.DevState.RUNNING:
+        elif state == DevState.MOVING or state == DevState.RUNNING:
              return ALBAZoomMotor.MOVING
         elif curr_pos in self.getLimits():
              return ALBAZoomMotor.ONLIMIT
