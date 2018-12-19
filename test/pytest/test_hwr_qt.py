@@ -1,5 +1,5 @@
 from HardwareRepository.HardwareRepository import getHardwareRepository
-from QtImport import QApplication
+from HardwareRepository.QtImport import QApplication
 
 def test_hwr_qt(hwr_qt):
     app = QApplication([])
