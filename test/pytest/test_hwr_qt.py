@@ -1,13 +1,11 @@
 import sys
 from HardwareRepository import QtImport
-
-print(QtImport)
-from HardwareRepository.HardwareRepository import getHardwareRepository
+from HardwareRepository import HardwareRepository
 
 def test_hwr_qt(hwr_qt):
     app = QtImport.QApplication([])
 
-    hwr = getHardwareRepository(hwr_qt)
+    hwr = HardwareRepository.getHardwareRepository(hwr_qt)
     hwr.connect()
 
     blsetup_hwobj = hwr.getHardwareObject("beamline-setup")
