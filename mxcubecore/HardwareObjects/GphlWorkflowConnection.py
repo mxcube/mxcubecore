@@ -1,5 +1,5 @@
+#! /usr/bin/env python
 # encoding: utf-8
-
 """Workflow connection, interfacing to external workflow engine
 using py4j and Abstract Beamline Interface messages
 
