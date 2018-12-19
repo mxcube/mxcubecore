@@ -21,8 +21,8 @@ import os
 import time
 import logging
 import gevent
-import numpy
 import subprocess
+import numpy as np
 
 from copy import copy
 from scipy import ndimage
@@ -77,9 +77,12 @@ class GenericParallelProcessing(HardwareObject):
         self.results_aligned = None
         self.done_event = None
         self.started = None
+        self.workflow_info = None
 
-        self.max_x_points = 100
         self.plot_points_num = None
+        self.current_grid_index = None
+        self.grid_properties = []
+        self.crystfel_script = ""
 
     def init(self):
         self.done_event = gevent.event.Event()
@@ -109,6 +112,30 @@ class GenericParallelProcessing(HardwareObject):
         )
         self.start_command = str(self.getProperty("processing_command"))
         self.kill_command = str(self.getProperty("kill_command"))
+        self.grid_properties = eval(self.getProperty("grid_properties", []))
+        self.crystfel_script = self.getProperty("crystfel_script", "TODO")
+        self.current_grid_index = 0
+
+    def get_available_grid_properties(self):
+        prop_list = []
+        for grid_property in self.grid_properties:
+            prop_list.append(
+                "Grid: %dx%d, comp: %dx%d"
+                % (
+                    grid_property["grid_num_row"],
+                    grid_property["grid_num_col"],
+                    grid_property["comp_num_row"],
+                    grid_property["comp_num_col"],
+                )
+            )
+
+        return prop_list
+
+    def get_current_grid_properties(self):
+        return self.grid_properties[self.current_grid_index]
+
+    def set_current_grid_index(self, index):
+        self.current_grid_index = index
 
     def prepare_processing(self):
         """Prepares processing parameters, creates empty result arrays and
@@ -117,7 +144,6 @@ class GenericParallelProcessing(HardwareObject):
         :param data_collection: data collection object
         :type : queue_model_objects.DataCollection
         """
-        # self.data_collection = data_collection
         acquisition = self.data_collection.acquisitions[0]
         acq_params = acquisition.acquisition_parameters
         self.grid = self.data_collection.grid
@@ -131,52 +157,83 @@ class GenericParallelProcessing(HardwareObject):
         images_num = acq_params.num_images
         last_image_num = first_image_num + images_num - 1
         lines_num = acq_params.num_lines
-        process_directory = acquisition.path_template.process_directory
-        archive_directory = acquisition.path_template.get_archive_directory()
         template = os.path.join(
             acquisition.path_template.directory,
             "%s_%%d_%%05d.cbf" % acquisition.path_template.get_prefix(),
         )
 
-        # Estimates and creates dozor directory
-        i = 1
-        while True:
-            processing_input_file_dirname = "dozor_%s_run%s_%d" % (
-                prefix,
-                run_number,
-                i,
-            )
-            processing_directory = os.path.join(
-                process_directory, processing_input_file_dirname
-            )
-            processing_archive_directory = os.path.join(
-                archive_directory, processing_input_file_dirname
-            )
-            if not os.path.exists(processing_directory):
-                break
-            i += 1
-
-        try:
-            if not os.path.isdir(processing_directory):
-                os.makedirs(processing_directory)
-        except BaseException:
-            logging.getLogger("GUI").exception(
-                "Parallel processing: Unable to create directory %s"
-                % processing_directory
-            )
-            self.set_processing_status("Failed")
-
-        try:
-            if not os.path.isdir(processing_archive_directory):
-                os.makedirs(processing_archive_directory)
-        except BaseException:
-            logging.getLogger("GUI").exception(
-                "Parallel processing: Unable to create archive directory %s"
-                % processing_archive_directory
-            )
-            self.set_processing_status("Failed")
-
+        workflow_step_directory = None
         self.params_dict = {}
+
+        if self.data_collection.run_processing_parallel == "XrayCentering":
+            prefix = "xray_centering_%s" % prefix
+            if lines_num > 1:
+                workflow_step_directory = "/mesh"
+            else:
+                workflow_step_directory = "/line"
+
+        if self.workflow_info is not None:
+            process_directory = self.workflow_info["process_root_directory"]
+            archive_directory = self.workflow_info["archive_root_directory"]
+        else:
+            i = 1
+            while True:
+                process_input_file_dirname = "%s_run%s_%d" % (prefix, run_number, i)
+                process_directory = os.path.join(
+                    acquisition.path_template.process_directory,
+                    process_input_file_dirname,
+                )
+                archive_directory = os.path.join(
+                    acquisition.path_template.get_archive_directory(),
+                    process_input_file_dirname,
+                )
+                if not os.path.exists(process_directory):
+                    break
+                i += 1
+
+        self.params_dict["process_root_directory"] = process_directory
+        self.params_dict["archive_root_directory"] = archive_directory
+        self.params_dict["result_file_path"] = archive_directory
+        self.params_dict["collection_id"] = self.collect_hwobj.collection_id
+
+        if workflow_step_directory:
+            process_directory += workflow_step_directory
+            archive_directory += workflow_step_directory
+
+        try:
+            if not os.path.isdir(process_directory):
+                os.makedirs(process_directory)
+        except BaseException:
+            logging.getLogger("GUI").exception(
+                "Parallel processing: Unable to create processing directory %s"
+                % process_directory
+            )
+            self.set_processing_status("Failed")
+
+        self.params_dict["process_directory"] = process_directory
+        self.params_dict["archive_directory"] = archive_directory
+
+        # self.params_dict["plot_path"] = os.path.join(
+        # self.params_dict["directory"],
+        #    "parallel_processing_result.png")
+
+        self.params_dict["folder_path"] = archive_directory
+        self.params_dict["cartography_path"] = os.path.join(
+            archive_directory, "parallel_processing_plot.png"
+        )
+        self.params_dict["log_file_path"] = os.path.join(
+            archive_directory, "parallel_processing.log"
+        )
+        self.params_dict["html_file_path"] = os.path.join(
+            archive_directory, "index.html"
+        )
+        self.params_dict["json_file_path"] = os.path.join(
+            archive_directory, "report.json"
+        )
+        self.params_dict["csv_file_path"] = os.path.join(
+            archive_directory, "parallel_processing.csv"
+        )
+
         self.params_dict["template"] = template
         self.params_dict["first_image_num"] = first_image_num
         self.params_dict["images_num"] = images_num
@@ -187,6 +244,13 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["osc_range"] = acq_params.osc_range
         self.params_dict["resolution"] = acq_params.resolution
         self.params_dict["exp_time"] = acq_params.exp_time
+
+        if not acq_params.num_images_per_trigger:
+            self.params_dict["num_images_per_trigger"] = 1
+        else:
+            self.params_dict[
+                "num_images_per_trigger"
+            ] = acq_params.num_images_per_trigger
 
         self.params_dict["status"] = "Started"
         self.params_dict["title"] = "%s_%d_#####.cbf (%d - %d)" % (
@@ -200,21 +264,7 @@ class GenericParallelProcessing(HardwareObject):
             images_num / lines_num,
         )
         self.params_dict["workflow_type"] = self.data_collection.run_processing_parallel
-        self.params_dict["directory"] = processing_directory
-        self.params_dict["processing_archive_directory"] = processing_archive_directory
-        self.params_dict["result_file_path"] = self.params_dict[
-            "processing_archive_directory"
-        ]
-        self.params_dict["plot_path"] = os.path.join(
-            self.params_dict["directory"], "parallel_processing_result.png"
-        )
-        self.params_dict["cartography_path"] = os.path.join(
-            self.params_dict["processing_archive_directory"],
-            "parallel_processing_result.png",
-        )
-        self.params_dict["log_file_path"] = os.path.join(
-            self.params_dict["processing_archive_directory"], "dozor_log.log"
-        )
+
         self.params_dict["group_id"] = self.data_collection.lims_group_id
         self.params_dict["processing_start_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -226,6 +276,7 @@ class GenericParallelProcessing(HardwareObject):
             self.params_dict["xOffset"] = grid_params["xOffset"]
             self.params_dict["yOffset"] = grid_params["yOffset"]
             self.params_dict["reversing_rotation"] = grid_params["reversing_rotation"]
+            # self.store_coordinate_map()
         else:
             self.params_dict["steps_y"] = 1
             self.params_dict["reversing_rotation"] = False
@@ -234,36 +285,29 @@ class GenericParallelProcessing(HardwareObject):
         self.results_aligned = {}
 
         # Empty numpy arrays to store raw and aligned results
-        if self.data_collection.is_mesh():
-            self.plot_points_num = images_num
-        else:
-            self.plot_points_num = min(self.max_x_points, images_num)
+        self.plot_points_num = images_num
 
         for result_name in self.results_name_list:
-            self.results_raw[result_name] = numpy.zeros(images_num)
-            self.results_aligned[result_name] = numpy.zeros(self.plot_points_num)
+            self.results_raw[result_name] = np.zeros(images_num)
+            self.results_aligned[result_name] = np.zeros(self.plot_points_num)
             # self.results_aligned['image_number']=numpy.linspace(0,images_num,images_num)
             if self.data_collection.is_mesh():
                 self.results_aligned[result_name] = self.results_aligned[
                     result_name
                 ].reshape(self.params_dict["steps_x"], self.params_dict["steps_y"])
             else:
-                self.results_aligned["x_array"] = numpy.linspace(
-                    0, images_num, self.plot_points_num, dtype=numpy.int16
+                self.results_aligned["x_array"] = np.linspace(
+                    0, images_num, self.plot_points_num, dtype=np.int32
                 )
 
         try:
-            if self.data_collection.grid is not None:
-                grid_snapshot_filename = os.path.join(
-                    processing_archive_directory, "grid_snapshot.png"
-                )
-                self.params_dict["grid_snapshot_filename"] = grid_snapshot_filename
-
-                gevent.spawn(self.save_grid_snapshot_task, grid_snapshot_filename)
+            gevent.spawn(
+                self.save_snapshot_task, os.path.join(archive_directory, "snapshot.png")
+            )
         except BaseException:
             logging.getLogger("GUI").exception(
-                "Parallel processing: Could not save grid snapshot: %s"
-                % grid_snapshot_filename
+                "Parallel processing: Could not save snapshot: %s"
+                % os.path.join(archive_directory, "snapshot.png")
             )
 
     def create_processing_input_file(self, processing_input_filename):
@@ -283,12 +327,16 @@ class GenericParallelProcessing(HardwareObject):
         """
         self.data_collection = data_collection
         self.prepare_processing()
-        input_filename = os.path.join(self.params_dict["directory"], "dozor_input.xml")
+        input_filename = os.path.join(
+            self.params_dict["process_directory"], "dozor_input.xml"
+        )
         self.create_processing_input_file(input_filename)
 
         self.emit(
-            "paralleProcessingResults", (self.results_aligned, self.params_dict, False)
+            "processingStarted",
+            (self.params_dict, self.results_raw, self.results_aligned),
         )
+        self.emit("processingResultsUpdate", False)
 
         if not os.path.isfile(self.start_command):
             msg = (
@@ -303,7 +351,7 @@ class GenericParallelProcessing(HardwareObject):
                 + " "
                 + input_filename
                 + " "
-                + self.params_dict["directory"]
+                + self.params_dict["process_directory"]
             )
 
             self.started = True
@@ -316,28 +364,26 @@ class GenericParallelProcessing(HardwareObject):
                 close_fds=True,
             )
 
-    def save_grid_snapshot_task(self, grid_snapshot_filename):
-        """Saves grid snapshot
+    def save_snapshot_task(self, snapshot_filename):
+        """Saves snapshot
 
-        :param grid_snapshot_filename: snapshot filename
-        :type grid_snapshot_filename: str
+        :param snapshot_filename: snapshot filename
+        :type snapshot_filename: str
         :param data_collection: data collection object
         :type data_collection: queue_model_objects.DataCollection
         """
         try:
             if self.data_collection.grid is not None:
-                grid_snapshot = self.data_collection.grid.get_snapshot()
-                grid_snapshot.save(grid_snapshot_filename, "PNG")
+                snapshot = self.data_collection.grid.get_snapshot()
+                snapshot.save(snapshot_filename, "PNG")
             else:
-                self.collect_hwobj._take_crystal_snapshot(grid_snapshot_filename)
+                self.collect_hwobj._take_crystal_snapshot(snapshot_filename)
                 logging.getLogger("HWR").info(
-                    "Parallel processing: Grid snapshot %s saved."
-                    % grid_snapshot_filename
+                    "Parallel processing: Snapshot %s saved." % snapshot_filename
                 )
         except BaseException:
             logging.getLogger("GUI").exception(
-                "Parallel processing: Could not save grid snapshot %s"
-                % grid_snapshot_filename
+                "Parallel processing: Could not save snapshot %s" % snapshot_filename
             )
 
     def is_running(self):
@@ -346,6 +392,7 @@ class GenericParallelProcessing(HardwareObject):
 
     def stop_processing(self):
         """Stops processing"""
+        self.started = False
         self.set_processing_status("Stopped")
         # subprocess.Popen(self.kill_command, shell=True, stdin=None,
         #                 stdout=None, stderr=None, close_fds=True)
@@ -357,32 +404,32 @@ class GenericParallelProcessing(HardwareObject):
         :param status: processing status (Success, Failed)
         :type status: str
         """
-        self.emit(
-            "paralleProcessingResults", (self.results_aligned, self.params_dict, True)
-        )
+        self.emit("processingResultsUpdate", True)
 
         self.data_collection.parallel_processing_result = copy(self.results_aligned)
 
         if self.params_dict["workflow_type"] == "XrayCentering":
-            self.store_processing_results(status)
             if self.results_aligned["best_positions"]:
                 logging.getLogger("GUI").info(
                     "Xray centering: Moving to the best position"
                 )
                 self.diffractometer_hwobj.move_motors(
-                    self.results_aligned["best_positions"][0]["cpos"], timeout=15
+                    self.results_aligned["center_mass"], timeout=15
                 )
+                self.store_processing_results(status)
             else:
                 logging.getLogger("GUI").warning(
                     "Xray Centering: No diffraction found. " + "Stopping Xray centering"
                 )
                 status = "Failed"
+                self.workflow_info = None
             self.done_event.set()
             if status == "Failed":
                 self.emit("processingFailed")
             else:
                 self.emit("processingFinished")
         else:
+            self.workflow_info = None
             if status == "Failed":
                 self.emit("processingFailed")
             else:
@@ -404,33 +451,28 @@ class GenericParallelProcessing(HardwareObject):
         self.params_dict["status"] = status
 
         # ---------------------------------------------------------------------
-        # 1. Assembling all file names
-        self.params_dict["processing_programs"] = "EDNAdozor"
-        self.params_dict["processing_end_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        # Assembling all file names
         self.params_dict["max_dozor_score"] = self.results_aligned["score"].max()
         best_positions = self.results_aligned.get("best_positions", [])
 
-        processing_plot_file = os.path.join(
-            self.params_dict["directory"], "parallel_processing_result.png"
-        )
         processing_grid_overlay_file = os.path.join(
-            self.params_dict["directory"], "grid_overlay.png"
+            self.params_dict["archive_directory"], "grid_overlay.png"
         )
         processing_plot_archive_file = os.path.join(
-            self.params_dict["processing_archive_directory"],
-            "parallel_processing_result.png",
+            self.params_dict["archive_directory"], "parallel_processing_plot.png"
         )
         processing_csv_archive_file = os.path.join(
-            self.params_dict["processing_archive_directory"],
-            "parallel_processing_result.csv",
+            self.params_dict["archive_directory"], "parallel_processing_score.csv"
         )
 
         # If MeshScan and XrayCentring then info is stored in ISPyB
-        if self.params_dict["workflow_type"] in ("MeshScan", "XrayCentering"):
-            log.info("Parallel processing: Saving results in ISPyB...")
-            self.lims_hwobj.store_autoproc_program(self.params_dict)
-            if self.data_collection.workflow_id is not None:
-                self.params_dict["workflow_id"] = self.data_collection.workflow_id
+        if self.params_dict["workflow_type"] in (
+            "MeshScan",
+            "XrayCentering",
+            "LineScan",
+        ):
+            if self.workflow_info is not None:
+                self.params_dict["workflow_id"] = self.workflow_info["workflow_id"]
 
             workflow_id, workflow_mesh_id, grid_info_id = self.lims_hwobj.store_workflow(
                 self.params_dict
@@ -439,37 +481,40 @@ class GenericParallelProcessing(HardwareObject):
             self.params_dict["workflow_id"] = workflow_id
             self.params_dict["workflow_mesh_id"] = workflow_mesh_id
             self.params_dict["grid_info_id"] = grid_info_id
-            self.data_collection.workflow_id = workflow_id
+
+            if (
+                self.params_dict["workflow_type"] == "XrayCentering"
+                and self.params_dict["lines_num"] > 1
+            ):
+                self.workflow_info = {
+                    "workflow_id": self.params_dict["workflow_id"],
+                    "process_root_directory": self.params_dict[
+                        "process_root_directory"
+                    ],
+                    "archive_root_directory": self.params_dict[
+                        "archive_root_directory"
+                    ],
+                }
+            else:
+                self.workflow_info = None
 
             self.collect_hwobj.update_lims_with_workflow(
-                workflow_id, self.params_dict["grid_snapshot_filename"]
+                workflow_id,
+                os.path.join(self.params_dict["archive_directory"], "snapshot.png"),
             )
+
             self.lims_hwobj.store_workflow_step(self.params_dict)
-
-            # self.lims_hwobj.set_image_quality_indicators_plot(
-            #     self.collect_hwobj.collection_id,
-            #     processing_plot_archive_file,
-            #     processing_csv_archive_file)
-
             if len(best_positions) > 0:
                 self.collect_hwobj.store_image_in_lims_by_frame_num(
                     best_positions[0]["index"]
                 )
             log.info("Parallel processing: Results saved in ISPyB")
 
-            try:
-                html_filename = os.path.join(
-                    self.params_dict["result_file_path"], "index.html"
-                )
-                SimpleHTML.generate_mesh_scan_report(
-                    self.results_aligned, self.params_dict, html_filename
-                )
-                log.info("Parallel processing: Results html saved %s" % html_filename)
-            except BaseException:
-                log.exception(
-                    "Parallel processing: Could not save results html %s"
-                    % html_filename
-                )
+        self.lims_hwobj.set_image_quality_indicators_plot(
+            self.collect_hwobj.collection_id,
+            self.params_dict["cartography_path"],
+            self.params_dict["csv_file_path"],
+        )
 
         fig, ax = plt.subplots(nrows=1, ncols=1)
         if self.params_dict["lines_num"] > 1:
@@ -483,7 +528,7 @@ class GenericParallelProcessing(HardwareObject):
                 fig.set_size_inches(current_max * grid_width / grid_height, current_max)
 
             im = ax.imshow(
-                numpy.transpose(self.results_aligned["score"]),
+                np.transpose(self.results_aligned["score"]),
                 interpolation="none",
                 aspect="auto",
                 extent=[
@@ -501,7 +546,7 @@ class GenericParallelProcessing(HardwareObject):
 
                 plt.imsave(
                     processing_grid_overlay_file,
-                    numpy.transpose(self.results_aligned["score"]),
+                    np.transpose(self.results_aligned["score"]),
                     format="png",
                     cmap="hot",
                 )
@@ -557,10 +602,11 @@ class GenericParallelProcessing(HardwareObject):
                 borderaxespad=0.0,
                 bbox_to_anchor=(0.5, -0.13),
                 ncol=3,
+                fontsize=8,
             )
             ax.set_ylim(-0.01, 1.1)
 
-            positions = numpy.linspace(
+            positions = np.linspace(
                 0, self.results_aligned["spots_resolution"].max(), 5
             )
             labels = ["inf"]
@@ -575,15 +621,16 @@ class GenericParallelProcessing(HardwareObject):
             ax.set_ylabel("Resolution")
 
             ay1 = ax.twinx()
-            new_labels = numpy.linspace(
+            new_labels = np.linspace(
                 0,
                 self.results_aligned["spots_num"].max(),
                 len(ay1.get_yticklabels()),
-                dtype=numpy.int16,
+                dtype=np.int16,
             )
             ay1.set_yticklabels(new_labels)
             ay1.set_ylabel("Number of spots")
 
+        # ---------------------------------------------------------------------
         ax.tick_params(axis="x", labelsize=8)
         ax.tick_params(axis="y", labelsize=8)
         ax.set_title(self.params_dict["title"], fontsize=8)
@@ -592,39 +639,73 @@ class GenericParallelProcessing(HardwareObject):
         ax.spines["left"].set_position(("outward", 10))
         ax.spines["bottom"].set_position(("outward", 10))
 
-        self.lims_hwobj.set_image_quality_indicators_plot(
-            self.collect_hwobj.collection_id,
-            processing_plot_archive_file,
-            processing_csv_archive_file,
-        )
+        # ---------------------------------------------------------------------
+        # Stores plot in the processing directory
+        try:
+            if not os.path.exists(
+                os.path.dirname(self.params_dict["cartography_path"])
+            ):
+                os.makedirs(os.path.dirname(self.params_dict["cartography_path"]))
+            fig.savefig(
+                self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
+            )
+            log.info(
+                "Parallel processing: Plot saved in %s"
+                % self.params_dict["cartography_path"]
+            )
+        except BaseException:
+            log.exception(
+                "Parallel processing: Could not save plot in %s"
+                % self.params_dict["cartography_path"]
+            )
 
+        # ---------------------------------------------------------------------
+        # Stores plot for ISPyB
         try:
-            if not os.path.exists(os.path.dirname(processing_plot_file)):
-                os.makedirs(os.path.dirname(processing_plot_file))
-            fig.savefig(processing_plot_file, dpi=150, bbox_inches="tight")
+            if not os.path.exists(
+                os.path.dirname(self.params_dict["cartography_path"])
+            ):
+                os.makedirs(os.path.dirname(self.params_dict["cartography_path"]))
+            fig.savefig(
+                self.params_dict["cartography_path"], dpi=100, bbox_inches="tight"
+            )
             log.info(
-                "Parallel processing: Heat map figure %s saved" % processing_plot_file
+                "Parallel processing: Plot for ISPyB saved in %s"
+                % self.params_dict["cartography_path"]
             )
         except BaseException:
             log.exception(
-                "Parallel processing: Could not save figure %s" % processing_plot_file
-            )
-        try:
-            if not os.path.exists(os.path.dirname(processing_plot_archive_file)):
-                os.makedirs(os.path.dirname(processing_plot_archive_file))
-            fig.savefig(processing_plot_archive_file, dpi=150, bbox_inches="tight")
-            log.info(
-                "Parallel processing: Archive heat map figure %s saved"
-                % processing_plot_archive_file
-            )
-        except BaseException:
-            log.exception(
-                "Parallel processing: Could not save archive figure %s"
-                % processing_plot_archive_file
+                "Parallel processing: Could not save plot for ISPyB %s"
+                % self.params_dict["cartography_path"]
             )
 
         plt.close(fig)
 
+        # ---------------------------------------------------------------------
+        # Generates html and json files
+        try:
+            SimpleHTML.generate_parallel_processing_report(
+                self.results_aligned, self.params_dict
+            )
+            log.info(
+                "Parallel processing: Html report saved in %s"
+                % self.params_dict["html_file_path"]
+            )
+            log.info(
+                "Parallel processing: Json report saved in %s"
+                % self.params_dict["json_file_path"]
+            )
+        except BaseException:
+            log.exception(
+                "Parallel processing: Could not save results html %s"
+                % self.params_dict["html_file_path"]
+            )
+            log.exception(
+                "Parallel processing: Could not save json results in %s"
+                % self.params_dict["json_file_path"]
+            )
+
+        # ---------------------------------------------------------------------
         # Writes results in the csv file
         """
         try:
@@ -656,6 +737,7 @@ class GenericParallelProcessing(HardwareObject):
         finally:
             processing_csv_file.close()
         """
+        # ---------------------------------------------------------------------
 
     def align_processing_results(self, start_index, end_index):
         """Realigns all results. Each results (one dimensional numpy array)
@@ -683,6 +765,28 @@ class GenericParallelProcessing(HardwareObject):
 
         if self.params_dict["lines_num"] > 1:
             self.grid.set_score(self.results_raw["score"])
+            (center_x, center_y) = ndimage.measurements.center_of_mass(
+                self.results_aligned["score"]
+            )
+            self.results_aligned["center_mass"] = self.grid.get_motor_pos_from_col_row(
+                center_x, center_y
+            )
+        else:
+            centred_positions = self.data_collection.get_centred_positions()
+            if len(centred_positions) == 2:
+                center_x = ndimage.measurements.center_of_mass(
+                    self.results_aligned["score"]
+                )[0]
+                self.results_aligned[
+                    "center_mass"
+                ] = self.diffractometer_hwobj.get_point_from_line(
+                    centred_positions[0],
+                    centred_positions[1],
+                    center_x,
+                    self.params_dict["images_num"],
+                )
+            else:
+                self.results_aligned["center_mass"] = centred_positions[0]
 
         # Best positions are extracted
         best_positions_list = []
@@ -741,5 +845,20 @@ class GenericParallelProcessing(HardwareObject):
             mask = self.results_aligned["score"][:, col] > 0
             label_im, nb_labels = ndimage.label(mask)
             # sizes = ndimage.sum(mask, label_im, range(nb_labels + 1))
-            labels = numpy.unique(label_im)
-            label_im = numpy.searchsorted(labels, label_im)
+            labels = np.unique(label_im)
+            label_im = np.searchsorted(labels, label_im)
+
+    def store_coordinate_map(self):
+        mesh_best_file = os.path.join(
+            self.params_dict["process_directory"], "mesh_best.json"
+        )
+
+        json_dict = {"meshPositions": []}
+        for index, item in enumerate(self.grid.get_coordinate_map()):
+            json_dict["meshPositions"].append(
+                {"index": index, "indexY": item[0], "indexZ": item[1]}
+            )
+        with open(mesh_best_file, "w") as fp:
+            json.dump(json_dict, fp)
+
+        self.print_log("Parallel processing: Mesh best file %s saved" % mesh_best_file)

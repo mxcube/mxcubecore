@@ -772,10 +772,9 @@ class SampleQueueEntry(BaseQueueEntry):
 
         try:
             programs = self.beamline_setup.collect_hwobj["auto_processing"]
+            autoprocessing.start(programs, "end_multicollect", params)
         except KeyError:
             pass
-        else:
-            autoprocessing.start(programs, "end_multicollect", params)
 
         self._set_background_color()
         self._view.setText(1, "")

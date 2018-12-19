@@ -155,14 +155,11 @@ class XMLRPCServer(HardwareObject):
         Method inherited from HardwareObject, called by framework-2.
         """
 
-        self.all_interfaces = self.getProperty("all_interfaces")
+        self.all_interfaces = self.getProperty("all_interfaces", False)
         # Listen on all interfaces if <all_interfaces>True</all_interfaces>
         # otherwise only on the interface corresponding to socket.gethostname()
-        if (
-            hasattr(self, "all_interfaces")
-            and self.all_interfaces.strip().lower() == "true"
-        ):
-            host = ""
+        if self.all_interfaces:
+            host = ''
         else:
             host = socket.gethostname()
 
