@@ -181,7 +181,7 @@ class ALBAMachineInfo(Equipment):
         return self.get_mach_current()
 
     def get_message(self):
-        return "Machinfo status: %s" % self.get_mach_status()
+        return "Machinfo status: %s" % str(self.get_mach_status()).split('.')[-1]
 
 #    def get_current_value(self):
 #        """

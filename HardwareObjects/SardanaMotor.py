@@ -25,20 +25,20 @@ class SardanaMotor(AbstractMotor):
     suffix_acceleration = "Acceleration"
 
     state_map = {
-        "ON": MotorStates.READY,
-        "OFF": MotorStates.OFF,
-        "CLOSE": MotorStates.DISABLED,
-        "OPEN": MotorStates.DISABLED,
-        "INSERT": MotorStates.DISABLED,
-        "EXTRACT": MotorStates.DISABLED,
-        "MOVING": MotorStates.MOVING,
-        "STANDBY": MotorStates.READY,
-        "FAULT": MotorStates.FAULT,
-        "INIT": MotorStates.INITIALIZING,
-        "RUNNING": MotorStates.MOVING,
-        "ALARM": MotorStates.ALARM,
-        "DISABLE": MotorStates.DISABLED,
-        "UNKNOWN": MotorStates.UNKNOWN,
+        "DevState.ON": MotorStates.READY,
+        "DevState.OFF": MotorStates.OFF,
+        "DevState.CLOSE": MotorStates.DISABLED,
+        "DevState.OPEN": MotorStates.DISABLED,
+        "DevState.INSERT": MotorStates.DISABLED,
+        "DevState.EXTRACT": MotorStates.DISABLED,
+        "DevState.MOVING": MotorStates.MOVING,
+        "DevState.STANDBY": MotorStates.READY,
+        "DevState.FAULT": MotorStates.FAULT,
+        "DevState.INIT": MotorStates.INITIALIZING,
+        "DevState.RUNNING": MotorStates.MOVING,
+        "DevState.ALARM": MotorStates.ALARM,
+        "DevState.DISABLE": MotorStates.DISABLED,
+        "DevState.UNKNOWN": MotorStates.UNKNOWN,
     }
 
     def __init__(self, name):

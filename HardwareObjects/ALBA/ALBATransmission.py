@@ -23,7 +23,7 @@ class ALBATransmission(Device):
         self.emit('attFactorChanged', self.transmission)
 
     def stateChanged(self,value):
-        self.state = str(value)
+        self.state = value
         self.emit('attStateChanged', self.state)
 
     def getAttState(self):

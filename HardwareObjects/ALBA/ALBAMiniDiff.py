@@ -61,6 +61,7 @@ __maintainer__ = "Jordi Andreu"
 __email__ = "jandreu[at]cells.es"
 __status__ = "Draft"
 
+from taurus.core.tango.enums import DevState
 
 class ALBAMiniDiff(GenericDiffractometer):
     """
@@ -165,7 +166,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         @state: Tango state
         """
 
-        if str(state) == "ON":
+        if state == DevState.ON:
             state = DiffractometerState.tostring(DiffractometerState.Ready)
 
         if state != self.current_state:
@@ -378,9 +379,9 @@ class ALBAMiniDiff(GenericDiffractometer):
         self.super_hwobj.go_sample_view()
 
         while True:
-            super_state = str(self.super_hwobj.get_state()).upper()
+            super_state = self.super_hwobj.get_state()
             logging.getLogger("HWR").debug('ALBAMinidiff: waiting for go_sample_view done (supervisor state is %s)' % super_state)
-            if super_state != "MOVING":
+            if super_state != DevState.MOVING:
                 logging.getLogger("HWR").debug('ALBAMinidiff: go_sample_view done (%s)' % super_state)
                 return True
             gevent.sleep(0.2)

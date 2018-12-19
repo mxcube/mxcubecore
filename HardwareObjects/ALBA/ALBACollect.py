@@ -27,6 +27,7 @@ import gevent
 from HardwareRepository.TaskUtils import *
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from AbstractCollect import AbstractCollect
+from taurus.core.tango.enums import DevState
 
 
 __author__ = "Vicente Rey Bakaikoa"
@@ -514,9 +515,9 @@ class ALBACollect(AbstractCollect):
 
         t0 = time.time()
         while True:
-            super_state = str(self.supervisor_hwobj.get_state()).upper()
+            super_state = self.supervisor_hwobj.get_state()
             cphase = self.supervisor_hwobj.get_current_phase().upper() 
-            if super_state != "MOVING" and cphase == "COLLECT":
+            if super_state != DevState.MOVING and cphase == "COLLECT":
                 break
             if time.time() - t0 > timeout:
                 logging.getLogger("HWR").debug("timeout sending supervisor to collect phase")
@@ -539,9 +540,9 @@ class ALBACollect(AbstractCollect):
 
         t0 = time.time()
         while True:
-            super_state = str(self.supervisor_hwobj.get_state()).upper()
+            super_state = self.supervisor_hwobj.get_state()
             cphase = self.supervisor_hwobj.get_current_phase().upper() 
-            if super_state != "MOVING" and cphase == "SAMPLE":
+            if super_state != DevState.MOVING and cphase == "SAMPLE":
                 break
             if time.time() - t0 > timeout:
                 logging.getLogger("HWR").debug("timeout sending supervisor to sample view phase")

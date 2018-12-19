@@ -2,6 +2,8 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 import logging
+from taurus.core.tango.enums import DevState
+
 
 class ALBAFrontLight(Device):
 
@@ -51,8 +53,15 @@ class ALBAFrontLight(Device):
 
         self.emit('levelChanged', self.current_level)
 
-    def register_state_changed(self,value):
-        self.register_state = str(value).lower()
+    def register_state_changed(self, value):
+        logging.getLogger("HWR").debug("*** Register state changed, value = %s" % value)
+        #self.register_state = str(value).lower()
+        if value == DevState.ON:
+            self.register_state = "on"
+        elif value == DevState.OFF:
+            self.register_state = "off"
+        else:
+            self.register_state = "fault"
         self.update_current_state()
 
     def update_current_state(self):
