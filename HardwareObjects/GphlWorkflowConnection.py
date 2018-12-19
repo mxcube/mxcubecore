@@ -1,25 +1,25 @@
 # encoding: utf-8
 
 """Workflow connection, interfacing to external workflow engine
-using py4j and Abstract Beamline Interface messages"""
+using py4j and Abstract Beamline Interface messages
 
-__copyright__ = """ Copyright © 2016 - 2018 by Global Phasing Ltd. """
+License:
 
-__license__ = """This file is part of MXCuBE.
+This file is part of MXCuBE.
 
-	MXCuBE is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Lesser General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+MXCuBE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-	MXCuBE is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Lesser General Public License for more details.
+MXCuBE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License
-	along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
-	"""
+You should have received a copy of the GNU Lesser General Public License
+along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+"""
 
 import logging
 import os
@@ -62,6 +62,10 @@ except ImportError:
 
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply
+
+__copyright__ = """ Copyright © 2016 - 2018 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
 
 
 class GphlWorkflowConnection(HardwareObject, object):

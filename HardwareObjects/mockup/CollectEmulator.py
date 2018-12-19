@@ -1,24 +1,24 @@
-"""Collection emulator, interfacing data collection to external simulator.
+"""Collection emulator, calling an external program to generate data images.
+Written originally for Global Phasing simcal,
+but could be made to work with other systems
 
-Written for Global Phasing simcal, but could be modified to use other systems"""
+License:
 
-__copyright__ = """ Copyright © 2017 - 2018 by Global Phasing Ltd. """
+This file is part of MXCuBE.
 
-__license__ = """This file is part of MXCuBE.
+MXCuBE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-	MXCuBE is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Lesser General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+MXCuBE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-	MXCuBE is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Lesser General Public License for more details.
-
-	You should have received a copy of the GNU Lesser General Public License
-	along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
-	"""
+You should have received a copy of the GNU Lesser General Public License
+along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+"""
 
 import os
 import subprocess
@@ -34,6 +34,10 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+__copyright__ = """ Copyright © 2017 - 2018 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
 
 
 class CollectEmulator(CollectMockup):
