@@ -1,8 +1,9 @@
+import sys
 import QtImport
 from HardwareRepository.HardwareRepository import getHardwareRepository
 
 def test_hwr_qt(hwr_qt):
-    app = QtImport.getQApp()([])
+    app = QtImport.QApplication([])
 
     hwr = getHardwareRepository(hwr_qt)
     hwr.connect()
