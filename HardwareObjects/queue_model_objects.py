@@ -581,6 +581,11 @@ class DataCollection(TaskNode):
     def is_mesh(self):
         return self.experiment_type == queue_model_enumerables.EXPERIMENT_TYPE.MESH
 
+    def is_still(self):
+        return self.experiment_type == \
+            queue_model_enumerables.EXPERIMENT_TYPE.STILL
+
+
     def get_name(self):
         return "%s_%i" % (
             self.acquisitions[0].path_template.get_prefix(),
@@ -678,12 +683,15 @@ class DataCollection(TaskNode):
         elif self.is_mesh():
             display_name = "%s (%s)" % (self.get_name(), self.grid.get_display_name())
         else:
-            index = self.get_point_index()
-            if index:
-                index = str(index)
+            if self.requires_centring():
+                index = self.get_point_index()
+                if index:
+                    index = str(index)
+                else:
+                    index = "not defined"
+                display_name = "%s (Point %s)" %(self.get_name(), index)
             else:
-                index = "not defined"
-            display_name = "%s (Point %s)" % (self.get_name(), index)
+                display_name = self.get_name()
         return display_name
 
     def get_parallel_processing_result(self):
@@ -698,7 +706,7 @@ class DataCollection(TaskNode):
         self.processing_msg_list.append((time, method, status, msg))
 
 
-class ProcessingParameters:
+class ProcessingParameters(object):
     def __init__(self):
         self.space_group = 0
         self.cell_a = 0
@@ -1512,6 +1520,9 @@ class AcquisitionParameters(object):
         self.in_queue = False
         self.in_interleave = None
 
+        self.num_triggers = int()
+        self.num_images_per_trigger = int()
+
     def set_from_dict(self, params_dict):
         for item in params_dict.items():
             if hasattr(self, item[0]):
@@ -1550,6 +1561,8 @@ class AcquisitionParameters(object):
             "comments": self.comments,
             "in_queue": self.in_queue,
             "in_interleave": self.in_interleave,
+            "num_triggers": self.num_triggers,
+            "num_images_per_trigger": self.num_images_per_trigger,
         }
 
     def copy(self):
@@ -1560,13 +1573,23 @@ class XrayImagingParameters(object):
     def __init__(self):
         object.__init__(self)
 
+        self.ff_num_images = 90
+        self.ff_pre = False
+        self.ff_post = False
+        self.ff_apply = False
+
+        self.sample_offset_a = 0.0
+        self.sample_offset_b = -1.0
+        self.sample_offset_c = 0.0
+
+        self.camera_trigger = True
+        self.camera_live_view = False
+
         self.camera_hw_binning = 0
         self.camera_hw_roi = 0
-        self.store_data = True
-        self.live_display = True
-        self.pre_flat_field_frames = False
-        self.post_flat_field_frames = False
-        self.apply_pre_flat_field_frames = False
+        self.camera_write_data = True
+
+        self.detector_distance = int()
 
     def copy(self):
         return copy.deepcopy(self)
@@ -1829,32 +1852,30 @@ class GphlWorkflow(TaskNode):
 
 
 class XrayImaging(TaskNode):
-    def __init__(self, xray_imaging_params, acquisitions=None, crystal=None, name=""):
+    def __init__(self, xray_imaging_params, acquisition=None, crystal=None, name=''):
         TaskNode.__init__(self)
 
         self.xray_imaging_parameters = xray_imaging_params
-        if not acquisitions:
-            acquisitions = [Acquisition()]
+        if not acquisition:
+            acquisition = Acquisition()
 
         if not crystal:
             crystal = Crystal()
 
-        self.acquisitions = acquisitions
+        self.acquisition = acquisition
         self.crystal = crystal
         self.set_name(name)
-        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.NATIVE
-        self.set_requires_centring(False)
+        self.experiment_type = queue_model_enumerables.EXPERIMENT_TYPE.IMAGING
+        self.set_requires_centring(True)
 
     def get_display_name(self):
         return "Xray imaging"
 
     def get_path_template(self):
-        return self.acquisitions[0].path_template
+        return self.acquisition.path_template
 
     def get_files_to_be_written(self):
-        path_template = self.acquisitions[0].path_template
-        file_locations = path_template.get_files_to_be_written()
-        return file_locations
+        return self.acquisition.path_template.get_files_to_be_written()
 
 
 #
