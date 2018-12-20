@@ -112,7 +112,7 @@ class GenericParallelProcessing(HardwareObject):
         )
         self.start_command = str(self.getProperty("processing_command"))
         self.kill_command = str(self.getProperty("kill_command"))
-        self.grid_properties = eval(self.getProperty("grid_properties", []))
+        self.grid_properties = eval(self.getProperty("grid_properties", "[]"))
         self.crystfel_script = self.getProperty("crystfel_script", "TODO")
         self.current_grid_index = 0
 
