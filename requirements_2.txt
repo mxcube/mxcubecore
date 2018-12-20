@@ -7,3 +7,4 @@ PyDispatcher
 numpy
 scipy
 matplotlib
+Pillow
