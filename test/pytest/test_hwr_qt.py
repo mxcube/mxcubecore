@@ -2,10 +2,7 @@ import sys
 import HardwareRepository.QtImport as QtImport
 from HardwareRepository import HardwareRepository
 
-try:
-   from PyQt4.QtGui import QApplication
-except:
-   from PyQt5.QtGui import QApplication
+from PyQt4.QtGui import QApplication
 
 def test_hwr_qt(hwr_qt):
     app = QtImport.QApplication([])
