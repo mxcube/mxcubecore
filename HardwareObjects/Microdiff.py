@@ -1,322 +1,207 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-import tempfile
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Example xml file
+<object class = "Microdiff"
+  <username>MD2S</username>
+  <exporter_address>wid30bmd2s:9001</exporter_address>
+  <exporter_commands>
+    <move_multiple_motors>SyncMoveMotors</move_multiple_motors>
+    <move_to_phase>startSetPhase</move_to_phase>
+    <scan_limits>getOmegaMotorDynamicScanLimits</scan_limits>
+    <abort>abort</abort>
+    <move_motors_sync>startSimultaneousMoveMotors</move_motors_sync>
+    <osc_scan>startScanEx</osc_scan>
+    <helical_scan>startScan4DEx</helical_scan>
+    <mesh_scan>startRasterScan</mesh_scan>
+    <still_scan>startStillScan</still_scan>
+    <set_plate_vertical>setPlateVertical</set_plate_vertical>
+  </exporter_commands>
+  <exporter_channels>
+    <scale_x>CoaxCamScaleX</scale_x>
+    <scale_y>CoaxCamScaleY</scale_y>
+    <head_type>HeadType</head_type>
+    <kappa_enable>KappaIsEnabled</kappa_enable>
+    <current_phase>CurrentPhase</current_phase>
+    <hwstate>HardwareState</hwstate>
+    <swstate>State</swstate>
+    <scan_range>ScanRange</scan_range>
+    <scan_start_angle>ScanStartAngle</scan_start_angle>
+    <scan_nb_frames>ScanNumberOfFrames</scan_nb_frames>
+    <scan_exposure_time>ScanExposureTime</scan_exposure_time>
+    <scan_detector_gate_pulse_enabled>DetectorGatePulseEnabled</scan_detector_gate_pulse_enabled>
+    <detector_gate_pulse_readout_time>DetectorGatePulseReadoutTime</detector_gate_pulse_readout_time>
+  </exporter_channels>
+</object>
+"""
+
 import logging
-import math
-import os
-import time
-from HardwareRepository import HardwareRepository
-import MiniDiff
-from HardwareRepository import EnhancedPopen
-import copy
 import gevent
+import math
+import gevent
+import time
+
+# import AbstractDiffractometer
+from AbstractDiffractometer import AbstractDiffractometer, DiffrHead, DiffrPhase
+
 import sample_centring
 
 MICRODIFF = None
 
 
-class Microdiff(MiniDiff.MiniDiff):
+class Microdiff(AbstractDiffractometer):
     def init(self):
-        global MICRODIFF
-        MICRODIFF = self
-        self.timeout = 3
-        self.phiMotor = self.getDeviceByRole("phi")
-        self.exporter_addr = self.phiMotor.exporter_address
-        self.x_calib = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "x_calib",
-            },
-            "CoaxCamScaleX",
-        )
-        self.y_calib = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "y_calib",
-            },
-            "CoaxCamScaleY",
-        )
-        self.moveMultipleMotors = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "move_multiple_motors",
-            },
-            "SyncMoveMotors",
-        )
-        self.head_type = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "head_type",
-            },
-            "HeadType",
-        )
-        self.kappa = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "kappa_enable",
-            },
-            "KappaIsEnabled",
-        )
-        self.phases = {
-            "Centring": 1,
-            "BeamLocation": 2,
-            "DataCollection": 3,
-            "Transfer": 4,
-        }
-        self.movePhase = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "move_to_phase",
-            },
-            "startSetPhase",
-        )
-        self.readPhase = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "read_phase",
-            },
-            "CurrentPhase",
-        )
-        self.scanLimits = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "scan_limits",
-            },
-            "getOmegaMotorDynamicScanLimits",
-        )
-        if self.getProperty("use_hwstate"):
-            self.hwstate_attr = self.addChannel(
+        self.exporter_addr = self.getProperty("exporter_address")
+
+        self.commands = {}
+        for name, val in self["exporter_commands"].getProperties().iteritems():
+            self.commands[name] = self.addCommand(
                 {
                     "type": "exporter",
                     "exporter_address": self.exporter_addr,
-                    "name": "hwstate",
+                    "name": name,
                 },
-                "HardwareState",
+                val,
             )
-        else:
-            self.hwstate_attr = None
-        self.swstate_attr = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "swstate",
-            },
-            "State",
-        )
-        self.nb_frames = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "nbframes",
-            },
-            "ScanNumberOfFrames",
-        )
 
-        # raster scan attributes
-        self.scan_range = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "scan_range",
-            },
-            "ScanRange",
-        )
-        self.scan_exposure_time = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "exposure_time",
-            },
-            "ScanExposureTime",
-        )
-        self.scan_start_angle = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_angle",
-            },
-            "ScanStartAngle",
-        )
-        self.scan_detector_gate_pulse_enabled = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "detector_gate_pulse_enabled",
-            },
-            "DetectorGatePulseEnabled",
-        )
-        self.scan_detector_gate_pulse_readout_time = self.addChannel(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "detector_gate_pulse_readout_time",
-            },
-            "DetectorGatePulseReadoutTime",
-        )
+        self.channels = {}
+        for name, val in self["exporter_channels"].getProperties().iteritems():
+            self.channels[name] = self.addChannel(
+                {
+                    "type": "exporter",
+                    "exporter_address": self.exporter_addr,
+                    "name": name,
+                },
+                val,
+            )
 
-        self.abort_cmd = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "abort",
-            },
-            "abort",
-        )
+        AbstractDiffractometer.init(self)
 
-        MiniDiff.MiniDiff.init(self)
-        self.centringPhiy.direction = -1
-        self.MOTOR_TO_EXPORTER_NAME = self.getMotorToExporterNames()
-        self.move_to_coord = self.moveToBeam
-
-        self.centringVertical = self.getDeviceByRole("centringVertical")
-        self.centringFocus = self.getDeviceByRole("centringFocus")
-
-        self.frontLight = self.getDeviceByRole("FrontLight")
-        self.backLight = self.getDeviceByRole("BackLight")
-
-        self.beam_info = self.getObjectByRole("beam_info")
-
-        self.wait_ready = self._wait_ready
-
-    def getMotorToExporterNames(self):
-        MOTOR_TO_EXPORTER_NAME = {
-            "focus": self.focusMotor.getProperty("motor_name"),
-            "kappa": self.kappaMotor.getProperty("motor_name"),
-            "kappa_phi": self.kappaPhiMotor.getProperty("motor_name"),
-            "phi": self.phiMotor.getProperty("motor_name"),
-            "phiy": self.phiyMotor.getProperty("motor_name"),
-            "phiz": self.phizMotor.getProperty("motor_name"),
-            "sampx": self.sampleXMotor.getProperty("motor_name"),
-            "sampy": self.sampleYMotor.getProperty("motor_name"),
-            "zoom": "Zoom",
-        }
-        return MOTOR_TO_EXPORTER_NAME
-
-    def getCalibrationData(self, offset):
-        return (1.0 / self.x_calib.getValue(), 1.0 / self.y_calib.getValue())
-
-    def emitCentringSuccessful(self):
-        # check first if all the motors have stopped
-        self._wait_ready(10)
-
-        # save position in MD2 software
-        self.getCommandObject("save_centring_positions")()
-
-        # do normal stuff
-        return MiniDiff.MiniDiff.emitCentringSuccessful(self)
-
-    def _ready(self):
-        if self.hwstate_attr:
-            if (
-                self.hwstate_attr.getValue() == "Ready"
-                and self.swstate_attr.getValue() == "Ready"
-            ):
-                return True
-        else:
-            if self.swstate_attr.getValue() == "Ready":
-                return True
-        return False
-
-    def _wait_ready(self, timeout=None):
-        # None means infinite timeout
-        # <=0 means default timeout
-        if timeout is not None and timeout <= 0:
+    def wait_ready(self, timeout=None):
+        """ Waits when diffractometer status is ready
+        Args:
+            timeout (int): timeout [s]. None means infinite timeout,
+        """
+        if timeout is not None:
             timeout = self.timeout
         with gevent.Timeout(
             timeout, RuntimeError("Timeout waiting for diffractometer to be ready")
         ):
             while not self._ready():
-                time.sleep(0.5)
+                gevent.sleep(0.5)
 
-    def moveToPhase(self, phase, wait=False, timeout=None):
-        if self._ready():
-            if phase in self.phases:
-                self.movePhase(phase)
-                if wait:
-                    if not timeout:
-                        timeout = 40
-                    self._wait_ready(timeout)
-        else:
-            print "moveToPhase - Ready is: ", self._ready()
+    def _ready(self):
+        try:
+            hwstate = self.channels["hwstate"].get_value()
+        except KeyError:
+            hwstate = "Ready"
 
-    def getPhase(self):
-        return self.readPhase.getValue()
+        swstate = self.channels["swstate"].get_value()
 
-    def moveSyncMotors(self, motors_dict, wait=False, timeout=None):
-        in_kappa_mode = self.in_kappa_mode()
+        return hwstate == "Ready" and swstate == "Ready"
+
+    def get_head_type(self):
+        """ Get the head type
+        Returns:
+            head_type(enum): Head type
+        """
+        head_type = self.channels["head_type"].get_value()
+        for val in DiffrHead:
+            if val.value == head_type:
+                self.head_type = val
+        return self.head_type
+
+    """ motors handling """
+
+    def move_motors(self, motors_positions_dict, wait=False, timeout=20):
+        """ Move simultaneously specified motors to the requested positions
+        Args:
+            motors_positions_dict (dict): dictionary with motor names or hwobj
+                            and target values [mm].
+            wait (bool): wait for the move to finish (True) or not (False)
+        Raises:
+            RuntimeError: Timeout
+            KeyError: The name does not correspond to an existing motor
+        """
         argin = ""
-        # print "start moving motors =============", time.time()
+        # be sure the previous command has finished
         if wait:
-            self._wait_ready()
-        for motor in motors_dict.keys():
-            position = motors_dict[motor]
-            if position is None:
-                continue
-            name = self.MOTOR_TO_EXPORTER_NAME[motor]
-            if not in_kappa_mode and motor in ("kappa", "kappa_phi"):
-                continue
-            argin += "%s=%0.3f;" % (name, position)
-        if not argin:
-            return
-        move_sync_motors = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "move_sync_motors",
-            },
-            "startSimultaneousMoveMotors",
+            self.wait_ready()
+
+        # prepare the command
+        for mot, pos in motors_positions_dict.iteritems():
+            try:
+                name = self.motors_hwobj[mot].name
+                argin += "%s=%0.3f;" % (name, pos)
+            except KeyError:
+                raise
+
+        self.commands["move_motors_sync"](argin)
+        if wait:
+            self.wait_ready(timeout)
+
+    def get_motor_positions(self, motors_positions_list=[]):
+        """ Get the positions of diffractometer motors. If the
+            motors_positions_list is empty, return the positions of all
+            the availble motors
+        Args:
+            motors_positions_list (list): List of motor names or hwobj
+        Returns:
+            motors_positions_dict (dict): role:position dictionary
+        """
+        motors_positions_dict = AbstractDiffractometer.get_motor_positions(
+            self, motors_positions_list
         )
-        move_sync_motors(argin)
+        if not self.in_kappa_mode():
+            motors_positions_dict["kappa"] = None
+            motors_positions_dict["kappa_phi"] = None
+        return motors_positions_dict
 
-        if wait:
-            time.sleep(0.1)
-            self._wait_ready()
-        # print "end moving motors =============", time.time()
+    """ data acquisition scans """
 
-    def oscilScan(self, start, end, exptime, wait=False):
+    def check_scan_limits(self, start, end, exptime):
         if self.in_plate_mode():
             scan_speed = math.fabs(end - start) / exptime
-            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
+            low_lim, hi_lim = map(float, self.commands["scan_limits"](scan_speed))
             if start < low_lim:
                 raise ValueError("Scan start below the allowed value %f" % low_lim)
             elif end > hi_lim:
                 raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
 
-        self.nb_frames.setValue(1)
+    def set_oscillation_scan(self, start, end, exptime, wait=False):
+        # check the scan limits
+        self.check_scan_limits(start, end, exptime)
+
+        self.channelss["scan_nb_frames"].set(1)
         scan_params = "1\t%0.3f\t%0.3f\t%0.4f\t1" % (start, (end - start), exptime)
-        scan = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_scan",
-            },
-            "startScanEx",
-        )
-        scan(scan_params)
-        print "oscil scan started at ----------->", time.time()
+        self.commands["osc_scan"](scan_params)
+        print("oscil scan started at -----------> %f" % time.time())
         if wait:
-            self._wait_ready(
-                600
-            )  # timeout of 10 min # Changed on 20180406 Daniele, because of long exposure time set by users
-            print "finished at ---------->", time.time()
+            self.wait_ready(600)
+        print("finished at ----------> %f" % time.time())
 
-    def oscilScan4d(self, start, end, exptime, motors_pos, wait=False):
-        if self.in_plate_mode():
-            scan_speed = math.fabs(end - start) / exptime
-            low_lim, hi_lim = map(float, self.scanLimits(scan_speed))
-            if start < low_lim:
-                raise ValueError("Scan start below the allowed value %f" % low_lim)
-            elif end > hi_lim:
-                raise ValueError("Scan end abobe the allowed value %f" % hi_lim)
-        self.nb_frames.setValue(1)
-        scan_params = "%0.3f\t%0.3f\t%f\t" % (start, (end - start), exptime)
+    def set_line_scan(self, start, end, exptime, motors_pos, wait=False):
+        # check the scan limits
+        self.check_scan_limits(start, end, exptime)
+
+        self.channels["scan_nb_frames"].set(1)
         scan_params += "%0.3f\t" % motors_pos["1"]["phiy"]
         scan_params += "%0.3f\t" % motors_pos["1"]["phiz"]
         scan_params += "%0.3f\t" % motors_pos["1"]["sampx"]
@@ -326,221 +211,114 @@ class Microdiff(MiniDiff.MiniDiff):
         scan_params += "%0.3f\t" % motors_pos["2"]["sampx"]
         scan_params += "%0.3f" % motors_pos["2"]["sampy"]
 
-        scan = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_scan4d",
-            },
-            "startScan4DEx",
-        )
-        scan(scan_params)
-        print "helical scan started at ----------->", time.time()
+        self.commands["helical_scan"](scan_params)
+        print("helical scan started at -----------> %f" % time.time())
         if wait:
-            self._wait_ready(900)  # timeout of 15 min
-            print "finished at ---------->", time.time()
+            self.wait_ready(900)  # timeout of 15 min
+        print("finished at ----------> %f" % time.time())
 
-    def oscilScanMesh(
+    def set_mesh_scan(
         self,
         start,
         end,
         exptime,
         dead_time,
-        mesh_num_lines,
-        mesh_total_nb_frames,
-        mesh_center,
+        nb_lines,
+        total_nb_frames,
+        mesh_centre,
         mesh_range,
         wait=False,
     ):
-        # import pdb; pdb.set_trace()
-        self.scan_range.setValue(end - start)
-        self.scan_exposure_time.setValue(exptime / mesh_num_lines)
-        self.scan_start_angle.setValue(start)
-        self.scan_detector_gate_pulse_enabled.setValue(True)
-        servo_time = (
-            0.110
-        )  # adding the servo time to the readout time to avoid any servo cycle jitter
-        self.scan_detector_gate_pulse_readout_time.setValue(
-            dead_time * 1000 + servo_time
-        )  # TODO
 
-        # Prepositionning at the center of the grid
-        self.moveMotors(mesh_center.as_dict())
-        self.centringVertical.syncMoveRelative((mesh_range["vertical_range"]) / 2)
-        self.centringPhiy.syncMoveRelative(-(mesh_range["horizontal_range"]) / 2)
+        self.channels["scan_range"].set_value(end - start)
+        self.channels["scan_exposure_time"].set_value(exptime / mesh_num_lines)
+        self.channels["scan_start_angle"].set_value(start)
+        self.channels["scan_detector_gate_pulse_enabled"].set_value(True)
+        # adding 0.11 ms to the readout time to avoid any servo cycle jitter
+        self.channels["detector_gate_pulse_readout_time"].set_value(
+            dead_time * 1000 + 0.11
+        )
+
+        # move to the centre of the grid
+        self.move_motors(mesh_center.as_dict())
+        hpos = (
+            self.grid_directions["horizontal_centring"] * mesh_range["horizontal_range"]
+        )
+        vpos = self.grid_directions["centring_y"] * mesh_range["vertical_range"]
+        self.motors_hwobj["horizontal_alignment"].rmove(hpos / 2)
+        self.motors_hwobj["centring_y"].rmove(vpos / 2)
 
         scan_params = "%0.3f\t" % -mesh_range["horizontal_range"]
         scan_params += "%0.3f\t" % mesh_range["vertical_range"]
         scan_params += "%d\t" % mesh_num_lines
-        scan_params += "%d\t" % (mesh_total_nb_frames / mesh_num_lines)
-        # scan_params += "%d\t" % 1
-        scan_params += "%r" % True  # TODO
+        scan_params += "%d\t" % (total_nb_frames / nb_lines)
+        scan_params += "%r" % True
+        scan_params += "%r\t" % True
+        scan_params += "%r" % False
 
-        scan = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_raster_scan",
-            },
-            "startRasterScan",
-        )
-        scan(scan_params)
-        print "mesh scan started at ----------->", time.time()
+        self.commands["mesh_scan"](scan_params)
+        print("mesh scan started at -----------> %f" % time.time())
         if wait:
-            self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            self.wait_ready(1800)  # timeout of 30 min
+        print("finished at ----------> %f" % time.time())
 
-    def stillScan(self, pulse_duration, pulse_period, pulse_nb, wait=False):
-        scan_params = "%0.6f\t%0.6f\t%d" % (pulse_duration, pulse_period, pulse_nb)
-        scan = self.addCommand(
-            {
-                "type": "exporter",
-                "exporter_address": self.exporter_addr,
-                "name": "start_scan",
-            },
-            "startStillScan",
-        )
-        scan(scan_params)
-        print "still scan started at ----------->", time.time()
+    def set_still_scan(self, duration, period, nb_pulses, wait=False):
+        scan_params = "%0.6f\t%0.6f\t%d" % (duration, period, nb_pulses)
+
+        self.commands["still_scan"](scan_params)
+        print("still scan started at -----------> %f" % time.time())
         if wait:
-            self._wait_ready(1800)  # timeout of 30 min
-            print "finished at ---------->", time.time()
+            self.wait_ready(1800)  # timeout of 30 min
+        print("finished at ----------> %f" % time.time())
 
-    def in_plate_mode(self):
-        try:
-            return self.head_type.getValue() == "Plate"
-        except BaseException:
-            return False
-
-    def in_kappa_mode(self):
-        return self.head_type.getValue() == "MiniKappa" and self.kappa.getValue()
-
-    def getPositions(self):
-        pos = {
-            "phi": float(self.phiMotor.getPosition()),
-            "focus": float(self.focusMotor.getPosition()),
-            "phiy": float(self.phiyMotor.getPosition()),
-            "phiz": float(self.phizMotor.getPosition()),
-            "sampx": float(self.sampleXMotor.getPosition()),
-            "sampy": float(self.sampleYMotor.getPosition()),
-            "zoom": float(self.zoomMotor.getPosition()),
-            "kappa": float(self.kappaMotor.getPosition())
-            if self.in_kappa_mode()
-            else None,
-            "kappa_phi": float(self.kappaPhiMotor.getPosition())
-            if self.in_kappa_mode()
-            else None,
-        }
-        return pos
-
-    def moveMotors(self, roles_positions_dict):
-        self.moveSyncMotors(roles_positions_dict, wait=True)
-
-    def moveToBeam(self, x, y):
-        if not self.in_plate_mode():
-            MiniDiff.MiniDiff.moveToBeam(self, x, y)
-        else:
-            try:
-                beam_xc = self.getBeamPosX()
-                beam_yc = self.getBeamPosY()
-
-                self.centringVertical.moveRelative(
-                    self.centringPhiz.direction
-                    * (y - beam_yc)
-                    / float(self.pixelsPerMmZ)
-                )
-                self.centringPhiy.moveRelative(
-                    self.centringPhiy.direction
-                    * (x - beam_xc)
-                    / float(self.pixelsPerMmY)
-                )
-
-            except BaseException:
-                logging.getLogger("user_level_log").exception(
-                    "Microdiff: could not move to beam, aborting"
-                )
-
-    def start3ClickCentring(self, sample_info=None):
-        if self.in_plate_mode():
-            plateTranslation = self.getDeviceByRole("plateTranslation")
-            cmd_set_plate_vertical = self.addCommand(
-                {
-                    "type": "exporter",
-                    "exporter_address": self.exporter_addr,
-                    "name": "plate_vertical",
-                },
-                "setPlateVertical",
-            )
-            low_lim, high_lim = self.phiMotor.getDynamicLimits()
-            phi_range = math.fabs(high_lim - low_lim - 1)
-            self.currentCentringProcedure = sample_centring.start_plate_1_click(
-                {
-                    "phi": self.centringPhi,
-                    "phiy": self.centringPhiy,
-                    "sampx": self.centringSamplex,
-                    "sampy": self.centringSampley,
-                    "phiz": self.centringVertical,
-                    "plateTranslation": plateTranslation,
-                },
-                self.pixelsPerMmY,
-                self.pixelsPerMmZ,
-                self.getBeamPosX(),
-                self.getBeamPosY(),
-                cmd_set_plate_vertical,
-                low_lim + 0.5,
-                high_lim - 0.5,
-            )
-        else:
-            self.currentCentringProcedure = sample_centring.start(
-                {
-                    "phi": self.centringPhi,
-                    "phiy": self.centringPhiy,
-                    "sampx": self.centringSamplex,
-                    "sampy": self.centringSampley,
-                    "phiz": self.centringPhiz,
-                },
-                self.pixelsPerMmY,
-                self.pixelsPerMmZ,
-                self.getBeamPosX(),
-                self.getBeamPosY(),
-                chi_angle=self.chiAngle,
-            )
-
-        self.currentCentringProcedure.link(self.manualCentringDone)
-
-    def interruptAndAcceptCentring(self):
-        """ Used when plate. Kills the current 1 click centring infinite loop
-        and accepts fake centring - only save the motor positions
+    def set_phase(self, phase=None, wait=False):
+        """Sets diffractometer to selected phase
+        Args:
+            phase (str or enum): desired phase
+            waith (bool): wait (True) or not (False) until the phase is set
         """
-        self.currentCentringProcedure.kill()
-        self.do_centring = False
-        self.startCentringMethod(self, self.MANUAL3CLICK_MODE)
-        self.do_centring = True
+        if isinstance(phase, str):
+            for i in DiffrPhase:
+                if phase == i.value:
+                    self.current_phase = i
+        elif isinstance(phase, DiffrPhase):
+            self.current_phase = phase
+            phase = self.current_phase.value
+        else:
+            self.current_phase = None
+        self.command["move_to_phase"](phase)
 
-    def getFrontLightLevel(self):
-        return self.frontLight.getPosition()
+    def get_phase(self):
+        """ Get the current phase
+        Returns:
+            phase (enum): DiffrPhase enumeration element
+        """
+        phase = self.channels["current_phase"].get_value()
+        for i in DiffrPhase:
+                if phase == i.value:
+                    self.current_phase = i
+        return self.current_phase
 
-    def setFrontLightLevel(self, level):
-        return self.frontLight.move(level)
+    def get_head_type(self):
+        """ Get the head type
+        Returns:
+            head_type(enum): Head type
+        """
+        head = self.channels["head_type"].get_value()
+        for i in DiffrHead:
+            if phase == i.value:
+                self.head_type = i
+        return self.head_type
 
-    def getBackLightLevel(self):
-        return self.backLight.getPosition()
+    def get_pixels_per_mm(self):
+        """ Pixel per mm values
+        Returns:
+            (tuple): pixels_per_mm_x, pixels_per_mm_y
 
-    def setBackLightLevel(self, level):
-        return self.backLight.move(level)
-
-
-def set_light_in(light, light_motor, zoom):
-    self.frontlight.move(0)
-    MICRODIFF.getDeviceByRole("BackLightSwitch").actuatorIn()
-
-
-MiniDiff.set_light_in = set_light_in
-
-
-def to_float(d):
-    for k, v in d.iteritems():
+        """
         try:
-            d[k] = float(v)
-        except BaseException:
-            pass
+            self.pixels_per_mm_x = 1./self.channels["scale_x"].get_value()
+            self.pixels_per_mm_y = 1./self.channels["scale_y"].get_value()
+        except (TypeError, ValueError):
+            return None, None
+        return self.pixels_per_mm_x, self.pixels_per_mm_y
