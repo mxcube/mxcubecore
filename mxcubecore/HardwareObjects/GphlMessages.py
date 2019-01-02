@@ -1,6 +1,23 @@
 #! /usr/bin/env python
 # encoding: utf-8
 """ Abstract beamline interface message classes
+
+License:
+
+This file is part of MXCuBE.
+
+MXCuBE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+MXCuBE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import uuid
@@ -11,12 +28,9 @@ except ImportError:
     from ordereddict import OrderedDict
 from collections import namedtuple
 
-
-__copyright__ = """
-  * Copyright © 2016 - ${YEAR} by Global Phasing Ltd. All rights reserved
-"""
-__author__ = "rhfogh"
-__date__ = "04/11/16"
+__copyright__ = """ Copyright © 2016 - 2018 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
 
 
 # Enumerations
