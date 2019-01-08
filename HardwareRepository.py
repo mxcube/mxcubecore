@@ -61,16 +61,26 @@ def setHardwareRepositoryServer(hwrserver):
         _hwrserver = hwrserver
 
 
-def getHardwareRepository(hwrserver=None):
-    """Return the Singleton instance of the Hardware Repository."""
+def getHardwareRepository(xml_dir=None):
+    """
+    Get the HardwareRepository (singleton) instance, instantiates it if necessary.
+
+    Args:
+        xml_dir (str): Path to XML configuration files for HardwareObject's
+
+    Returns:
+        HardwareRepository: The Singleton instance of HardwareRepository
+                            (in reality __HardwareRepositoryClient)
+    """
     global _instance
 
     if _instance is None:
         if _hwrserver is None:
-            if hwrserver is None:
-                # Default to enviroment variable
+            if xml_dir is None:
+                # Default to environment variable
                 hwrserver = os.path.abspath(os.environ["XML_FILES_PATH"])
-            setHardwareRepositoryServer(hwrserver)
+
+            setHardwareRepositoryServer(xml_dir)
 
         _instance = __HardwareRepositoryClient(_hwrserver)
 
