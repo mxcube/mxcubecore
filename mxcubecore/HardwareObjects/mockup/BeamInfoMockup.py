@@ -40,9 +40,17 @@ class BeamInfoMockup(Equipment):
                 "diameterIndexChanged",
                 self.aperture_diameter_changed,
             )
+
+            ad = self.aperture_hwobj.get_diameter_size() / 1000.0
+            self.beam_size_aperture = [ad, ad]
+
         self.slits_hwobj = self.getObjectByRole("slits")
         if self.slits_hwobj is not None:
             self.connect(self.slits_hwobj, "valueChanged", self.slits_gap_changed)
+
+            sx, sy = self.slits_hwobj.get_gaps()
+            self.beam_size_slits = [sx, sy]
+
         self.emit("beamPosChanged", (self.beam_position,))
 
     def aperture_diameter_changed(self, name, size):
@@ -113,6 +121,7 @@ class BeamInfoMockup(Equipment):
             self.beam_info_dict["shape"] = "ellipse"
         else:
             self.beam_info_dict["shape"] = "rectangular"
+
         return self.beam_info_dict
 
     def emit_beam_info_change(self):
