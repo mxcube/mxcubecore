@@ -7,7 +7,6 @@ MXCUBE = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 HWR = os.path.join(MXCUBE, "HardwareRepository")
 
 sys.path.insert(0, MXCUBE)
-#sys.path.insert(0, HWR)
 
 @pytest.fixture(scope="session")
 def hwr_qt():
@@ -15,4 +14,4 @@ def hwr_qt():
 
 @pytest.fixture(scope="session")
 def hwr_web():
-    return os.path.join(HWR, "configuration/xml-qt")
+    return os.path.join(HWR, "configuration/xml-web")
