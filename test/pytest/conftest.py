@@ -15,4 +15,4 @@ def hwr_qt():
 
 @pytest.fixture(scope="session")
 def hwr_web():
-    return os.path.join(HWR, "configuration/xml-qt")
+    return os.path.join(HWR, "configuration/xml-web")
