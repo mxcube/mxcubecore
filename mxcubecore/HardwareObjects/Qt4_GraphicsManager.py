@@ -360,7 +360,7 @@ class Qt4_GraphicsManager(HardwareObject):
         # except:
         #    pass
 
-        self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
+        #self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.getProperty("omega_move_delta", 10)
 
