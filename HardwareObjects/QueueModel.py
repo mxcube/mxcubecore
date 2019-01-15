@@ -31,9 +31,7 @@ import json
 import logging
 import jsonpickle
 
-import queue_entry
-import queue_model_objects
-
+from HardwareRepository.HardwareObjects import queue_entry, queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -155,7 +153,8 @@ class QueueModel(HardwareObject):
         :returns: None
         :rtype: None
         """
-        if isinstance(child, queue_model_objects.TaskNode):
+        if True:
+        #if isinstance(child, queue_model_objects.TaskNode):
             self._selected_model._total_node_count += 1
             child._parent = parent
             child._node_id = self._selected_model._total_node_count
