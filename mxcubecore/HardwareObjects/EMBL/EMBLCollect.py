@@ -343,6 +343,7 @@ class EMBLCollect(AbstractCollect):
         self.aborted_by_user = True
         self.cmd_collect_abort()
         self.collection_failed("Aborted by user")
+        self.detector_hwobj.close_cover()
 
     def set_helical_pos(self, arg):
         """Sets helical positions
@@ -368,7 +369,7 @@ class EMBLCollect(AbstractCollect):
         """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
         self.cmd_collect_num_images(num_total_frames / num_lines)
-        self.cmd_collect_raster_range(mesh_range[::-1])
+        self.cmd_collect_raster_range(mesh_range)
 
     @task
     def _take_crystal_snapshot(self, filename):

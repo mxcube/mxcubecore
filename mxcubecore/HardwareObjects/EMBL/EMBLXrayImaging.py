@@ -25,14 +25,18 @@ import Image
 import gevent
 import QtImport
 import cv2 as cv
+import numpy as np
 
-# import numpy as np
-# from joblib import Parallel, delayed
+import multiprocessing
+from multiprocessing.dummy import Pool as ThreadPool
 
-from Qt4_GraphicsLib import *
+import QtImport
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects import Qt4_GraphicsLib
 
+
+import tine
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "Task"
@@ -102,6 +106,7 @@ class EMBLXrayImaging(HardwareObject):
         self.cmd_camera_live_view = None
         self.cmd_camera_write_data = None
 
+        self.detector_distance_hwobj = None
         self.diffractometer_hwobj = None
 
     def init(self):
@@ -111,10 +116,10 @@ class EMBLXrayImaging(HardwareObject):
         # self.image_dimension = (2048, 2048)
         self.image_dimension = (400, 400)
 
-        self.graphics_view = GraphicsView()
-        self.graphics_camera_frame = GraphicsCameraFrame()
-        self.graphics_scale_item = GraphicsItemScale(self)
-        self.graphics_omega_reference_item = GraphicsItemOmegaReference(self)
+        self.graphics_view = Qt4_GraphicsLib.GraphicsView()
+        self.graphics_camera_frame = Qt4_GraphicsLib.GraphicsCameraFrame()
+        self.graphics_scale_item = Qt4_GraphicsLib.GraphicsItemScale(self)
+        self.graphics_omega_reference_item = Qt4_GraphicsLib.GraphicsItemOmegaReference(self)
 
         self.graphics_view.scene().addItem(self.graphics_camera_frame)
         self.graphics_view.scene().addItem(self.graphics_scale_item)
@@ -130,8 +135,8 @@ class EMBLXrayImaging(HardwareObject):
         )
 
         self.graphics_view.wheelSignal.connect(self.mouse_wheel_scrolled)
-        self.graphics_view.mouseClickedSignal.connect(self.mouse_clicked)
-        self.graphics_view.mouseReleasedSignal.connect(self.mouse_released)
+        self.graphics_view.scene().mouseClickedSignal.connect(self.mouse_clicked)
+        self.graphics_view.scene().mouseReleasedSignal.connect(self.mouse_released)
         self.graphics_view.mouseMovedSignal.connect(self.mouse_moved)
 
         self.qimage = QtImport.QImage()
@@ -177,6 +182,7 @@ class EMBLXrayImaging(HardwareObject):
         self.cmd_collect_abort = self.getCommandObject("collectAbort")
 
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
+        self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
 
     def set_live_view_state(self, state):
         self.live_view_state = state
@@ -254,7 +260,17 @@ class EMBLXrayImaging(HardwareObject):
         acq_params = data_model.acquisition.acquisition_parameters
         im_params = data_model.xray_imaging_parameters
 
+        self.detector_distance_hwobj.move(im_params.detector_distance, wait=True, timeout=30)
+
+        """
+
         self._number_of_images = acq_params.num_images
+
+        if im_params.detector_distance:
+            delta = im_params.detector_distance - self.detector_distance_hwobj.get_position()
+            print delta
+            tine.set("/P14/P14DetTrans/ComHorTrans","IncrementMove.START", -0.003482*delta)
+            self.detector_distance_hwobj.move(im_params.detector_distance, wait=True, timeout=30)
 
         self.cmd_collect_detector("pco")
         self.cmd_collect_directory(str(path_template.directory))
@@ -283,6 +299,7 @@ class EMBLXrayImaging(HardwareObject):
             self.cmd_camera_trigger(True)
         self.cmd_camera_live_view(im_params.ff_apply)
         self.cmd_camera_write_data(im_params.camera_write_data)
+        """
 
     def execute(self, data_model):
         self._collecting = True
@@ -292,6 +309,7 @@ class EMBLXrayImaging(HardwareObject):
         self.ready_event.clear()
 
     def execute_task(self):
+        return
         self.cmd_collect_start()
 
     def post_execute(self, data_model):
@@ -389,8 +407,8 @@ class EMBLXrayImaging(HardwareObject):
         else:
             im = self.raw_image_arr[index]
 
-        self.qimage = QImage(
-            im, im.shape[1], im.shape[0], im.shape[1], QImage.Format_Indexed8
+        self.qimage = QtImport.QImage(
+            im, im.shape[1], im.shape[0], im.shape[1], QtImport.QImage.Format_Indexed8
         )
         self.graphics_camera_frame.setPixmap(self.qpixmap.fromImage(self.qimage))
         self.graphics_view.scene().update()
@@ -417,13 +435,29 @@ class EMBLXrayImaging(HardwareObject):
         )
 
         self.print_log("GUI", "info", "Imaging: Reading images from disk...")
-        self.raw_image_arr = []
+        self.raw_image_arr = [0] * len(imlist)
+ 
+
+        def append_image(filename):
+            index = int(filename[-9:-4])
+            self.raw_image_arr[index] = (cv.imread(filename, 0))
+
+        cp_count = multiprocessing.cpu_count()
+        print cp_count
+
+        pool = ThreadPool(cp_count)
+        results = pool.map(append_image, imlist)
+
+        pool.close()
+        pool.join()
+        """
         for image in imlist:
             self.raw_image_arr.append(cv.imread(image, 0))
             if self.raw_image_arr[-1].min() < self.norm_min_max[0]:
                 self.norm_min_max[0] = self.raw_image_arr[-1].min()
             if self.raw_image_arr[-1].min() > self.norm_min_max[1]:
                 self.norm_min_max[1] = self.raw_image_arr[-1].max()
+        """
         self.print_log("GUI", "info", "Imaging: Reading of images done.")
 
         """
@@ -494,6 +528,9 @@ class EMBLXrayImaging(HardwareObject):
     def stop_image_play(self):
         self.image_polling.kill()
 
+    def stop_collect(self):
+        self.cmd_collect_abort()    
+
     def mouse_wheel_scrolled(self, delta):
         if self.raw_image_arr is None:
             return
@@ -512,19 +549,19 @@ class EMBLXrayImaging(HardwareObject):
         self.centering_started = 3
 
 
-class GraphicsCameraFrame(QGraphicsPixmapItem):
+class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
     def __init__(self, parent=None):
         super(GraphicsCameraFrame, self).__init__(parent)
 
     def mousePressEvent(self, event):
-        pos = QPointF(event.pos())
+        pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseClickedSignal.emit(
-            pos.x(), pos.y(), event.button() == Qt.LeftButton
+            pos.x(), pos.y(), event.button() == QtImport.Qt.LeftButton
         )
         self.update()
 
     def mouseMoveEvent(self, event):
-        pos = QPointF(event.pos())
+        pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseMovedSignal.emit(pos.x(), pos.y())
         self.update()
 
@@ -534,27 +571,27 @@ class GraphicsCameraFrame(QGraphicsPixmapItem):
     #    self.update()
 
     def mouseReleaseEvent(self, event):
-        pos = QPointF(event.pos())
+        pos = QtImport.QPointF(event.pos())
         self.scene().parent().mouseReleasedSignal.emit(pos.x(), pos.y())
         self.update()
 
 
-class GraphicsView(QGraphicsView):
-    mouseClickedSignal = pyqtSignal(int, int, bool)
-    mouseReleasedSignal = pyqtSignal(int, int)
-    mouseMovedSignal = pyqtSignal(int, int)
-    keyPressedSignal = pyqtSignal(str)
-    wheelSignal = pyqtSignal(int)
+class GraphicsView(QtImport.QGraphicsView):
+    mouseClickedSignal = QtImport.pyqtSignal(int, int, bool)
+    mouseReleasedSignal = QtImport.pyqtSignal(int, int)
+    mouseMovedSignal = QtImport.pyqtSignal(int, int)
+    keyPressedSignal = QtImport.pyqtSignal(str)
+    wheelSignal = QtImport.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super(GraphicsView, self).__init__(parent)
 
-        self.setScene(QGraphicsScene(self))
+        self.setScene(QtImport.QGraphicsScene(self))
         self.scene().clearSelection()
         self.setMouseTracking(True)
-        self.setDragMode(QGraphicsView.RubberBandDrag)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setDragMode(QtImport.QGraphicsView.RubberBandDrag)
+        self.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
 
     def wheelEvent(self, event):
         self.wheelSignal.emit(event.delta())

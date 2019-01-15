@@ -27,6 +27,7 @@ from XSDataCommon import XSDataString
 from XSDataControlDozorv1_1 import XSDataInputControlDozor
 
 
+__credits__ = ["MXCuBE colaboration"]
 __license__ = "LGPLv3+"
 
 
