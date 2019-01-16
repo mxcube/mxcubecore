@@ -280,7 +280,7 @@ class CommandContainer:
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
             except BaseException:
-                logging.getLogger("GUI").exception(
+                logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
@@ -326,8 +326,8 @@ class CommandContainer:
                 from Command.Mockup import MockupChannel
                 newChannel = MockupChannel(channelName, channel, **attributesDict)
             except BaseException:
-                logging.getLogger("GUI").exception(
-                    "%s: cannot add TINE channel %s (hint: check attributes)",
+                logging.getLogger("HWR").exception(
+                    "%s: cannot add Mockup channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
                 ) 
