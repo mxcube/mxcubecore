@@ -25,9 +25,13 @@ try:
 except ImportError:
     pass
 
-import HardwareObjectFileParser
-import BaseHardwareObjects
-from dispatcher import dispatcher
+from . import BaseHardwareObjects
+from . import HardwareObjectFileParser
+
+if sys.version_info[0] == 3:
+    from HardwareRepository.dispatcher import dispatcher
+else:
+    from dispatcher import dispatcher
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3

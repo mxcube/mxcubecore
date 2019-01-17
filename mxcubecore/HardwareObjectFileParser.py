@@ -3,7 +3,7 @@ import logging
 import xml.sax
 from xml.sax.handler import ContentHandler
 
-import BaseHardwareObjects
+from HardwareRepository import BaseHardwareObjects
 
 currentXML = None
 

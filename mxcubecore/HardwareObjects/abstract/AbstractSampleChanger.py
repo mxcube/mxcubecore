@@ -124,19 +124,17 @@ How to implement derived SC Classes
 
 """
 
-from sample_changer.Container import *
-
-from HardwareRepository.TaskUtils import task
-
-# This is just to avoid an error when importing Equipment
-import HardwareRepository.HardwareObjectFileParser
-from HardwareRepository.BaseHardwareObjects import Equipment
-
 import abc
 import logging
 import time
 import gevent
 import types
+
+
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Container
+
 
 
 class SampleChangerState:
@@ -197,7 +195,7 @@ class SampleChangerMode:
     Disabled = 11
 
 
-class SampleChanger(Container, Equipment):
+class SampleChanger(Container.Container, Equipment):
     """
     Abstract base class for sample changers
     """
@@ -695,13 +693,13 @@ class SampleChanger(Container, Equipment):
     def _setSelectedSample(self, sample):
         cur = self.getSelectedSample()
         if cur != sample:
-            Container._setSelectedSample(self, sample)
+            Container.Container._setSelectedSample(self, sample)
             self._triggerSelectionChangedEvent()
 
     def _setSelectedComponent(self, component):
         cur = self.getSelectedComponent()
         if cur != component:
-            Container._setSelectedComponent(self, component)
+            Container.Container._setSelectedComponent(self, component)
             self._triggerSelectionChangedEvent()
 
     # ########################    PRIVATE    #########################

@@ -7,10 +7,16 @@ for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
 
+import sys
 import weakref
 import logging
 from warnings import warn
-from dispatcher import dispatcher
+
+if sys.version_info[0] == 3:
+    from HardwareRepository.dispatcher import dispatcher
+else:
+    from dispatcher import dispatcher
+
 
 __author__ = "Matias Guijarro"
 __version__ = 1.0

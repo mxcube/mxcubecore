@@ -1,6 +1,12 @@
+import sys
 import logging
-from dispatcher import dispatcher
-from CommandContainer import CommandContainer
+
+if sys.version_info[0] == 3:
+    from HardwareRepository.dispatcher import dispatcher
+    from HardwareRepository.CommandContainer import CommandContainer
+else:
+    from dispatcher import dispatcher
+    from CommandContainer import CommandContainer
 
 
 class PropertySet(dict):
