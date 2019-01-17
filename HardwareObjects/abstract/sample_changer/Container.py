@@ -1,4 +1,4 @@
-from Sample import *
+from .Sample import *
 
 
 class Container(Component):

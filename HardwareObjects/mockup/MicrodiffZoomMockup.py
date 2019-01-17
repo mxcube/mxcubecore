@@ -39,11 +39,12 @@ class MicrodiffZoomMockup(Device):
 
     def sortPredefinedPositionsList(self):
         self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(
-            lambda x, y: int(
-                round(self.predefinedPositions[x] - self.predefinedPositions[y])
+        if hasattr(self.predefinedPositionsNamesList, "sort"):  
+            self.predefinedPositionsNamesList.sort(
+                lambda x, y: int(
+                    round(self.predefinedPositions[x] - self.predefinedPositions[y])
+                )
             )
-        )
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":

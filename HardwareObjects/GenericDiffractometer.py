@@ -944,6 +944,8 @@ class GenericDiffractometer(HardwareObject):
             motor_positions = motor_positions.as_dict()
 
         self.wait_device_ready(timeout)
+        result_dict = {}
+
         for motor in motor_positions.keys():
             position = motor_positions[motor]
             """
@@ -957,10 +959,11 @@ class GenericDiffractometer(HardwareObject):
             if type(motor) in (str, unicode):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
-                del motor_positions[motor_role]
+                #del motor_positions[motor_role]
                 if None in (motor, position):
                     continue
-                motor_positions[motor] = position
+                result_dict[motor] = position  
+                #motor_positions[motor] = position
             motor.move(position)
         self.wait_device_ready(timeout)
 
