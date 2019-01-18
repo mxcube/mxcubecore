@@ -1,12 +1,10 @@
+from __future__ import absolute_import
+
 import sys
 import logging
 
-if sys.version_info[0] == 3:
-    from HardwareRepository.dispatcher import dispatcher
-    from HardwareRepository.CommandContainer import CommandContainer
-else:
-    from dispatcher import dispatcher
-    from CommandContainer import CommandContainer
+from HardwareRepository.dispatcher import dispatcher
+from HardwareRepository.CommandContainer import CommandContainer
 
 
 class PropertySet(dict):
