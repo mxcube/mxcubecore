@@ -54,6 +54,7 @@ class EMBLEnergy(Device):
         self.cmd_energy_ctrl_byte = None
         self.cmd_set_break_bragg = None
         self.cmd_release_break_bragg = None
+        self.cmd_reset_perp = None
 
         self.get_energy_limits = self.getEnergyLimits
         self.get_wavelength_limits = self.getWavelengthLimits
@@ -66,6 +67,7 @@ class EMBLEnergy(Device):
         self.cmd_energy_ctrl_byte = self.getCommandObject("cmdEnergyCtrlByte")
         self.cmd_set_break_bragg = self.getCommandObject("cmdSetBreakBragg")
         self.cmd_release_break_bragg = self.getCommandObject("cmdReleaseBreakBragg")
+        self.cmd_reset_perp = self.getCommandObject('cmdResetPerp')
 
         self.chan_energy = self.getChannelObject("chanEnergy")
         if self.chan_energy is not None:
@@ -215,6 +217,10 @@ class EMBLEnergy(Device):
         if pos < 0.001:
             self.emit("stateChanged", ("ready",))
         else:
+            #if energy <= 6: 
+            #    self.cmd_energy_ctrl_byte(self.ctrl_bytes[0])
+            #else:
+            #    self.cmd_energy_ctrl_byte(self.ctrl_bytes[1])
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
                     # p13 63, p14 15
@@ -261,6 +267,9 @@ class EMBLEnergy(Device):
             if self.moving:
                 self.moving = False
                 self.set_break_bragg()
+                if self.cmd_reset_perp is not None:
+                    logging.getLogger('HWR').info("Energy: Perp reset sent")
+                    self.cmd_reset_perp()
             self.move_energy_finished(0)
             self.emit("stateChanged", "ready")
             self.emit("statusInfoChanged", "")

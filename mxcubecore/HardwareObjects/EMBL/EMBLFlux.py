@@ -34,13 +34,14 @@ __category__ = "General"
 
 
 class EMBLFlux(AbstractFlux):
+
     def __init__(self, name):
+
         AbstractFlux.__init__(self, name)
 
         self.measured_flux_dict = None
         self.measured_flux_list = None
         self.current_flux_dict = None
-        self.flux_value = 1
 
         # self.ampl_chan_index = None
         self.intensity_ranges = []
@@ -66,6 +67,11 @@ class EMBLFlux(AbstractFlux):
         self.transmission_hwobj = None
         self.session_hwobj = None
         self.safety_shutter_hwobj = None
+     
+        self.diode_calibration_amp_per_watt = interp1d(\
+              [4., 6., 8., 10., 12., 12.5, 15., 16., 20., 30.],
+              [0.2267, 0.2116, 0.1405, 0.086, 0.0484, 0.0469,
+               0.0289, 0.0240, 0.01248, 0.00388])
 
         self.diode_calibration_amp_per_watt = interp1d(
             [4.0, 6.0, 8.0, 10.0, 12.0, 12.5, 15.0, 16.0, 20.0, 30.0],
@@ -199,16 +205,17 @@ class EMBLFlux(AbstractFlux):
 
     def get_flux(self):
         return self.flux_value
+        """
         if self.current_flux_dict is not None:
             return self.current_flux_dict["flux"]
         else:
             return 1
+        """
 
-    def set_flux(self, flux_value):
-        # self.result_dict = flux_dict
-        # self.update_flux_value()
+    def set_flux(self, flux_dict):
+        #self.update_flux_value()
         self.flux_value = flux_value
-        self.emit("fluxValueChanged", flux_value)
+        self.emit('fluxValueChanged', flux_value)
 
     def set_flux_info(self, flux_info):
         self.flux_value = flux_info["measured"]["flux"]
@@ -268,7 +275,7 @@ class EMBLFlux(AbstractFlux):
             self.measuring = True
             intens_value = 0
             current_phase = self.diffractometer_hwobj.current_phase
-            current_transmission = self.transmission_hwobj.get_value()
+            current_transmission = self.transmission_hwobj.getAttFactor()
             current_aperture_index = self.aperture_hwobj.get_diameter_index()
 
             self.emit("progressInit", "Measuring flux. Please wait...", 10, True)
@@ -321,6 +328,9 @@ class EMBLFlux(AbstractFlux):
                 self.aperture_hwobj.set_diameter_index(0)
                 self.fast_shutter_hwobj.openShutter(wait=True)
 
+                self.measured_flux_list = []
+
+                self.measured_flux_list = []
                 for index, diameter_size in enumerate(
                     self.aperture_hwobj.get_diameter_list()
                 ):
@@ -330,15 +340,13 @@ class EMBLFlux(AbstractFlux):
                         4 + index,
                         "Measuring flux with %d micron aperture" % diameter_size,
                     )
-                    logging.getLogger("GUI").info(
-                        "Measuring flux with %d micron aperture" % diameter_size
-                    )
                     self.aperture_hwobj.set_diameter_index(index)
                     self.diffractometer_hwobj.wait_device_ready(10)
 
                     gevent.sleep(1.5)
                     intens_value = self.chan_intens_mean.getValue(force=True)
-                    intensity_value = intens_value[0] + 1.872e-5  # 2.780e-6
+                    #intens_range_now = self.chan_intens_range.getValue()
+                    intensity_value = intens_value[0] + 1.872e-5  #2.780e-6
                     self.measured_flux_list.append(
                         self.get_flux_result(intensity_value)
                     )
@@ -383,6 +391,44 @@ class EMBLFlux(AbstractFlux):
             self.emit("progressStop", ())
             return
 
+        max_frame_rate = 1 / self.detector_hwobj.get_exposure_time_limits()[0]
+
+        self.emit("progressStep", 10, "Restoring original state") 
+        self.print_log('GUI', 'info', "Flux measurement results:")
+        self.print_log('GUI', 'info', "Aperture | Flux (ph/s) | " + \
+                       "Dose rate (KGy/s) | Time to reach 20 MGy (s) | " + \
+                       "Number of frames @ %d Hz" % max_frame_rate)
+        
+        for index, item in enumerate(self.measured_flux_list):
+            msg = "  *  %d | %1.1e  | %1.1e  | %.1f  | %d" % \
+                   (item["beam_size"][0] * 1000,
+                    item["flux"],
+                    item["dose_rate"],
+                    item["time_to_reach_limit"],
+                    item["frames_to_reach_limit"])
+     
+            #low_value = item["flux"] < 1e9
+            low_value = item["intensity"] - 1.872e-5 < 2e-7
+            out_of_range = False    
+               
+            #    self.print_log('GUI', 'error', msg)
+            #else:
+            #    self.print_log('GUI', 'info', msg)
+
+            if index == 0:
+                if self.measured_flux_list[0]['flux'] <= self.measured_flux_list[-1]['flux'] or \
+                   self.measured_flux_list[0]['flux'] <= self.measured_flux_list[1]['flux']:
+                    out_of_range = True
+            if index in (1,2,3):
+                 if self.measured_flux_list[index]['flux'] <= self.measured_flux_list[index + 1]['flux']:
+                    out_of_range = True
+
+            if low_value or out_of_range:
+                msg += "(intensity: %1.1e)" % item["intensity"]
+                self.print_log('GUI', 'error', msg)
+            else:
+                self.print_log('GUI', 'info', msg)
+
         self.measured_flux_dict = self.measured_flux_list[current_aperture_index]
         self.current_flux_dict = self.measured_flux_list[current_aperture_index]
 
@@ -402,7 +448,7 @@ class EMBLFlux(AbstractFlux):
         energy = self.energy_hwobj.getCurrentEnergy()
         detector_distance = self.detector_hwobj.get_distance()
         beam_size = self.beam_info_hwobj.get_beam_size()
-        transmission = self.transmission_hwobj.get_value()
+        transmission = self.transmission_hwobj.getAttFactor()
         air_trsm = numpy.exp(
             -self.air_absorption_coeff_per_meter(energy) * detector_distance / 1000.0
         )

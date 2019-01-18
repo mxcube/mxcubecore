@@ -286,7 +286,7 @@ class CommandContainer:
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
             except BaseException:
-                logging.getLogger("GUI").exception(
+                logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
@@ -320,6 +320,23 @@ class CommandContainer:
                     self.name(),
                     channelName,
                 )
+
+        elif channelType.lower() == "mockup":
+            if "default_value" not in attributesDict:
+                try:
+                    attributesDict["default_value"] = float(self.default_value)
+                except AttributeError:
+                    pass
+
+            try:
+                from Command.Mockup import MockupChannel
+                newChannel = MockupChannel(channelName, channel, **attributesDict)
+            except BaseException:
+                logging.getLogger("HWR").exception(
+                    "%s: cannot add Mockup channel %s (hint: check attributes)",
+                    self.name(),
+                    channelName,
+                ) 
 
         if newChannel is not None:
             if channelOnChange is not None:
@@ -621,6 +638,18 @@ class CommandContainer:
                 from Command.Tine import TineCommand
 
                 newCommand = TineCommand(cmdName, cmd, **attributesDict)
+            except BaseException:
+                logging.getLogger().exception(
+                    '%s: could not add command "%s" (hint: check command attributes)',
+                    self.name(),
+                    cmdName,
+                )
+
+        elif cmdType.lower() == "mockup":
+            try:
+                from Command.Mockup import MockupCommand
+
+                newCommand = MockupCommand(cmdName, cmd, **attributesDict)
             except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',
