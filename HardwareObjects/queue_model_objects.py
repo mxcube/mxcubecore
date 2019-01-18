@@ -6,12 +6,13 @@ the QueueModel.
 import copy
 import os
 import logging
-import queue_model_enumerables
 
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+from HardwareRepository.HardwareObjects import queue_model_enumerables
 
 
 class TaskNode(object):

@@ -31,10 +31,8 @@ import json
 import logging
 import jsonpickle
 
-import queue_entry
-import queue_model_objects
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects import queue_entry, queue_model_objects
 
 
 class Serializer(object):

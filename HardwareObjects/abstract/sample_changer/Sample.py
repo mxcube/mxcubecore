@@ -1,5 +1,5 @@
 import sys
-from .Component import *
+from .Component import Component
 
 
 class Sample(Component):
