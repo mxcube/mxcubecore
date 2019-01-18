@@ -180,7 +180,7 @@ class BeamlineSetup(HardwareObject):
         num_images = self[parent_key].getProperty("number_of_images")
         osc_range = round(float(self[parent_key].getProperty("range")), 2)
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
-        exp_time = round(float(self[parent_key].getProperty("exposure_time")), 4)
+        exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
         shutterless = self.detector_has_shutterless()
         try:
@@ -302,7 +302,7 @@ class BeamlineSetup(HardwareObject):
         num_images = self[parent_key].getProperty("number_of_images")
         osc_range = round(float(self[parent_key].getProperty("range")), 2)
         overlap = round(float(self[parent_key].getProperty("overlap")), 2)
-        exp_time = round(float(self[parent_key].getProperty("exposure_time")), 4)
+        exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
         shutterless = self.detector_has_shutterless()
 

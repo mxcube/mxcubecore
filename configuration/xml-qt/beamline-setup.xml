@@ -11,6 +11,8 @@
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
   <object href="/flux-mockup" role="flux"/>
+  <object href="/detector-mockup" role="detector"/>
+  <object href="/detector-distance-mockup" role="detector_distance"/>
 
   <!-- Software (abstract) concepts -->
   <object href="/beam-info" role="beam_info"/>
