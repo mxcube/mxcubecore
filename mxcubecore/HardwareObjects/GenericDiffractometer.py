@@ -944,7 +944,6 @@ class GenericDiffractometer(HardwareObject):
             motor_positions = motor_positions.as_dict()
 
         self.wait_device_ready(timeout)
-        result_dict = {}
 
         for motor in motor_positions.keys():
             position = motor_positions[motor]
@@ -962,7 +961,6 @@ class GenericDiffractometer(HardwareObject):
                 #del motor_positions[motor_role]
                 if None in (motor, position):
                     continue
-                result_dict[motor] = position  
                 #motor_positions[motor] = position
             motor.move(position)
         self.wait_device_ready(timeout)
