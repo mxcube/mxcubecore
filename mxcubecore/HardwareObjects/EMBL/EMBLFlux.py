@@ -34,8 +34,10 @@ __category__ = "General"
 
 
 class EMBLFlux(AbstractFlux):
+
     def __init__(self, name):
-        HardwareObject.__init__(self, name)
+
+        AbstractFlux.__init__(self, name)
 
         self.measured_flux_dict = None
         self.measured_flux_list = None
@@ -345,7 +347,6 @@ class EMBLFlux(AbstractFlux):
                     intens_value = self.chan_intens_mean.getValue(force=True)
                     #intens_range_now = self.chan_intens_range.getValue()
                     intensity_value = intens_value[0] + 1.872e-5  #2.780e-6
-                    intensity_value = intens_value[0] + 1.872e-5  # 2.780e-6
                     self.measured_flux_list.append(
                         self.get_flux_result(intensity_value)
                     )
