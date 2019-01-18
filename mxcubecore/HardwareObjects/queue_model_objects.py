@@ -1642,8 +1642,8 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            for motor_name in motor_dict.keys():
-                setattr(self, motor_name, motor_dict[motor_name])
+            for motor_name, position in motor_dict.items():
+                setattr(self, motor_name, position)
 
     def as_dict(self):
         return dict(
