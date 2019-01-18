@@ -1,26 +1,27 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
+#  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import tine
+import Image
 from cStringIO import StringIO
 from PIL.ImageQt import ImageQt
-import Image
 
 import gevent
 import QtImport
@@ -28,26 +29,28 @@ import cv2 as cv
 import numpy as np
 
 import multiprocessing
-from multiprocessing.dummy import Pool as ThreadPool
-
-import QtImport
+from multiprocessing import Pool as ThreadPool
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects import Qt4_GraphicsLib
+from HardwareRepository.HardwareObjects import Qt4_GraphicsLib as GraphicsLib
 
-
-import tine
 
 __credits__ = ["EMBL Hamburg"]
 __category__ = "Task"
 
 
+
+#def append_image(filename):
+#    base_name = filename.replace(".tiff", "")
+#    index = int(base_name[-4:]) - 1
+#    self.raw_image_arr[index] = (cv.imread(filename, 0))
+
 class EMBLXrayImaging(HardwareObject):
     def __init__(self, name):
         HardwareObject.__init__(self, name)
 
-        self.live_view_state = None
         self.raw_image_arr = []
+        self.live_view_state = None
         self.ff_image_arr = None
         self.ff_corrected_image_arr = None
         self.ff_apply = False
@@ -81,6 +84,8 @@ class EMBLXrayImaging(HardwareObject):
         self.chan_collect_status = None
         self.chan_collect_frame = None
         self.chan_collect_error = None
+        self.chan_camera_error = None
+        self.chan_camera_warning = None
 
         self.cmd_collect_compression = None
         self.cmd_collect_detector = None
@@ -113,13 +118,12 @@ class EMBLXrayImaging(HardwareObject):
         self.ready_event = gevent.event.Event()
         self.live_view_state = True
         self.pixels_per_mm = (1666, 1666)
-        # self.image_dimension = (2048, 2048)
-        self.image_dimension = (400, 400)
+        self.image_dimension = (2048, 2048)
 
-        self.graphics_view = Qt4_GraphicsLib.GraphicsView()
-        self.graphics_camera_frame = Qt4_GraphicsLib.GraphicsCameraFrame()
-        self.graphics_scale_item = Qt4_GraphicsLib.GraphicsItemScale(self)
-        self.graphics_omega_reference_item = Qt4_GraphicsLib.GraphicsItemOmegaReference(self)
+        self.graphics_view = GraphicsLib.GraphicsView()
+        self.graphics_camera_frame = GraphicsLib.GraphicsCameraFrame()
+        self.graphics_scale_item = GraphicsLib.GraphicsItemScale(self)
+        self.graphics_omega_reference_item = GraphicsLib.GraphicsItemOmegaReference(self)
 
         self.graphics_view.scene().addItem(self.graphics_camera_frame)
         self.graphics_view.scene().addItem(self.graphics_scale_item)
@@ -156,6 +160,12 @@ class EMBLXrayImaging(HardwareObject):
         self.chan_collect_error = self.getChannelObject("collectError")
         if self.chan_collect_error:
             self.chan_collect_error.connectSignal("update", self.collect_error_update)
+
+        self.chan_camera_warning = self.getChannelObject("cameraWarning")
+        self.chan_camera_warning.connectSignal("update", self.camera_warning_update)
+     
+        self.chan_camera_error = self.getChannelObject("cameraError")
+        self.chan_camera_error.connectSignal("update", self.camera_error_update) 
 
         self.cmd_collect_detector = self.getCommandObject("collectDetector")
         self.cmd_collect_directory = self.getCommandObject("collectDirectory")
@@ -206,7 +216,7 @@ class EMBLXrayImaging(HardwareObject):
             # self.qimage = self.qimage.loadFromData(Image.open(jpgdata))
             # self.qimage = QImage.loadFromData(data)
 
-            # self.qpixmap.fromImage(self.qimage, Qt.MonoOnly)
+            # self.qpixmap.fromImage(self.qimage, QtImport.Qt.MonoOnly)
             self.graphics_camera_frame.setPixmap(
                 self.qpixmap.fromImage(self.qimage, QtImport.Qt.MonoOnly)
             )
@@ -262,13 +272,10 @@ class EMBLXrayImaging(HardwareObject):
 
         self.detector_distance_hwobj.move(im_params.detector_distance, wait=True, timeout=30)
 
-        """
-
         self._number_of_images = acq_params.num_images
 
         if im_params.detector_distance:
             delta = im_params.detector_distance - self.detector_distance_hwobj.get_position()
-            print delta
             tine.set("/P14/P14DetTrans/ComHorTrans","IncrementMove.START", -0.003482*delta)
             self.detector_distance_hwobj.move(im_params.detector_distance, wait=True, timeout=30)
 
@@ -299,7 +306,6 @@ class EMBLXrayImaging(HardwareObject):
             self.cmd_camera_trigger(True)
         self.cmd_camera_live_view(im_params.ff_apply)
         self.cmd_camera_write_data(im_params.camera_write_data)
-        """
 
     def execute(self, data_model):
         self._collecting = True
@@ -309,7 +315,6 @@ class EMBLXrayImaging(HardwareObject):
         self.ready_event.clear()
 
     def execute_task(self):
-        return
         self.cmd_collect_start()
 
     def post_execute(self, data_model):
@@ -389,6 +394,14 @@ class EMBLXrayImaging(HardwareObject):
                 )
                 self.emit("collectImageTaken", frame)
 
+    def camera_warning_update(self, warning_str):
+        warning_list = warning_str.split("\n")
+        print warning_list
+        self.print_log("GUI", "warning", warning_list[-2])
+
+    def camera_error_update(self, error_list):
+        print error_list
+
     def set_ff_apply(self, state):
         self.ff_apply = state
 
@@ -402,13 +415,18 @@ class EMBLXrayImaging(HardwareObject):
         self.graphics_omega_reference_item.set_phi_position(angle)
         self.current_image_index = index
 
+        im = self.raw_image_arr[index].astype(float)
+        ff = self.ff_image_arr[0].astype(float)
+
         if self.ff_apply:
-            im = self.raw_image_arr[index]
-        else:
-            im = self.raw_image_arr[index]
+           #im = cv.subtract(im, ff)
+           #im = cv.divide(im - 136., 255. - 136.)  
+           #im = cv.multiply(im, 255)
+           im = np.divide(im, ff, out=np.zeros_like(im), where=ff!=0)
+           im = 256 * ((im - im.min()) / (im.max() - im.min()))
 
         self.qimage = QtImport.QImage(
-            im, im.shape[1], im.shape[0], im.shape[1], QtImport.QImage.Format_Indexed8
+            im.astype(np.uint8), im.shape[1], im.shape[0], im.shape[1], QtImport.QImage.Format_Indexed8
         )
         self.graphics_camera_frame.setPixmap(self.qpixmap.fromImage(self.qimage))
         self.graphics_view.scene().update()
@@ -435,29 +453,41 @@ class EMBLXrayImaging(HardwareObject):
         )
 
         self.print_log("GUI", "info", "Imaging: Reading images from disk...")
-        self.raw_image_arr = [0] * len(imlist)
- 
 
-        def append_image(filename):
-            index = int(filename[-9:-4])
-            self.raw_image_arr[index] = (cv.imread(filename, 0))
+        self.raw_image_arr = []
+        self.norm_min_max = [255, 0]
+
+        for filename in imlist:
+            self.raw_image_arr.append(cv.imread(filename, 0))
+            #im = self.raw_image_arr[-1][400:-1200,400:-500]
+            """
+            if self.raw_image_arr[-1][50:].min() < self.norm_min_max[0]:
+                self.norm_min_max[0] = self.raw_image_arr[-1][50:].min()
+            if self.raw_image_arr[-1][50:].max() > self.norm_min_max[1]:
+                self.norm_min_max[1] = self.raw_image_arr[-1][50:].max()
+            """
+        """
+        global self.raw_image_arr 
+        self.raw_image_arr = [0] * len(imlist)
+        self.norm_min_max = [255, 0]
 
         cp_count = multiprocessing.cpu_count()
-        print cp_count
-
         pool = ThreadPool(cp_count)
         results = pool.map(append_image, imlist)
 
         pool.close()
         pool.join()
         """
-        for image in imlist:
-            self.raw_image_arr.append(cv.imread(image, 0))
-            if self.raw_image_arr[-1].min() < self.norm_min_max[0]:
-                self.norm_min_max[0] = self.raw_image_arr[-1].min()
-            if self.raw_image_arr[-1].min() > self.norm_min_max[1]:
-                self.norm_min_max[1] = self.raw_image_arr[-1].max()
+
+        self.print_log("GUI", "info", "Imaging: Reading of images done.")
         """
+        for index in range(len(self.raw_image_arr)):
+            if self.raw_image_arr[index].min() < self.norm_min_max[0]:
+                self.norm_min_max[0] = self.raw_image_arr[index].min()
+            if self.raw_image_arr[index].min() > self.norm_min_max[1]:
+                self.norm_min_max[1] = self.raw_image_arr[index].max()
+        """
+        
         self.print_log("GUI", "info", "Imaging: Reading of images done.")
 
         """
@@ -468,14 +498,15 @@ class EMBLXrayImaging(HardwareObject):
                (self.norm_min_max[1] - self.norm_min_max[0]).astype(np.uint8)
         self.print_log("GUI", "info", "Imaging: Normalization done")
         """
-
-        if not self.ff_apply:
-            self.emit("imageInit", len(imlist))
-            self.display_image(0)
+        #if not self.ff_apply:
+        #    self.emit("imageInit", len(imlist))
+        #    self.display_image(0)
 
         self.print_log(
             "HWR", "debug", "Imaging: Reading flat field images from disk..."
         )
+
+        """
         base_name_list = os.path.splitext(os.path.basename(flat_field_path))
         prefix = base_name_list[0].split("_")[0][:-5]
         suffix = base_name_list[1][1:]
@@ -494,9 +525,15 @@ class EMBLXrayImaging(HardwareObject):
         self.print_log(
             "HWR", "debug", "Imaging: Reading flat field images from disk done"
         )
+        """
+        
+        self.ff_image_arr = [cv.imread(flat_field_path, 0)]
+        self.print_log(
+            "HWR", "debug", "Imaging: Done reading flat field images from disk"
+        )
 
-        # self.emit('imageInit', len(imlist))
-        # self.display_image(0)
+        self.emit('imageInit', len(imlist))
+        self.display_image(0)
 
     def play_images(self, exp_time=0.04, relative_index=None, repeat=True):
         self.image_polling = gevent.spawn(
@@ -566,7 +603,7 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
         self.update()
 
     # def mouseDoubleClickEvent(self, event):
-    #    position = QPointF(event.pos())
+    #    position = QtImport.QPointF(event.pos())
     #    self.scene().mouseDoubleClickedSignal.emit(position.x(), position.y())
     #    self.update()
 

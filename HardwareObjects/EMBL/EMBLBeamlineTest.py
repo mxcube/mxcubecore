@@ -532,10 +532,7 @@ class EMBLBeamlineTest(HardwareObject):
         # self.cmd_set_pitch(1)
         # sleep(0.2)
         self.cmd_start_pitch_scan(1)
-        print "-------- started pitch scan ---------"
         sleep(30.0)
-        print "---------- sleeped 30 secs ----------" 
-
         with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
             while self.chan_pitch_scan_status.getValue() != 0:
                 gevent.sleep(0.1)
@@ -1723,11 +1720,6 @@ class EMBLBeamlineTest(HardwareObject):
         result["result_bit"] = False
         result["result_short"] = "Failed"
         result["result_details"] = []
-
-        print self.bl_hwobj.session_hwobj.get_base_image_directory()        
-        print self.bl_hwobj.session_hwobj.get_process_directory ()
-        print self.bl_hwobj.session_hwobj.get_image_directory()
-        print self.bl_hwobj.session_hwobj.get_archive_directory()
 
         self.ready_event.set()
 
