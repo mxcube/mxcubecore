@@ -1674,11 +1674,19 @@ class CentredPosition(object):
     def __eq__(self, cpos):
         eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES) * [False]
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
+            
             self_pos = getattr(self, motor_name)
-            cpos_pos = getattr(cpos, motor_name)
-            if None in (self_pos, cpos_pos):
+            if not hasattr(cpos, motor_name):
                 continue
-            eq[i] = abs(self_pos - cpos_pos) <= self.motor_pos_delta
+            else:
+                cpos_pos = getattr(cpos, motor_name)
+
+            if self_pos == cpos_pos == None:
+                eq[i] = True
+            elif None in (self_pos, cpos_pos):
+                continue
+            else:
+                eq[i] = abs(self_pos - cpos_pos) <= self.motor_pos_delta
         return all(eq)
 
     def __ne__(self, cpos):

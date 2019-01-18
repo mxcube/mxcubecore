@@ -102,7 +102,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.intensity_value = None
 
         self.chan_encoder_ar = None
-        # self.chan_qbpm_ar = None
+        self.chan_qbpm_ar = None
         self.chan_pitch_position_ar = None
         self.chan_pitch_scan_status = None
         self.chan_intens_range = None
@@ -209,7 +209,7 @@ class EMBLBeamlineTest(HardwareObject):
         #             "update",
         #             self.encoder_ar_changed)
 
-        # self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
+        self.chan_qbpm_ar = self.getChannelObject("chanQBPMAr")
 
         self.chan_pitch_position_ar = self.getChannelObject("chanPitchPositionAr")
         # self.connect(self.chan_pitch_position_ar,
@@ -238,6 +238,9 @@ class EMBLBeamlineTest(HardwareObject):
         self.connect(
             self.graphics_manager_hwobj, "imageDoubleClicked", self.image_double_clicked
         )
+        self.connect(self.bl_hwobj.energy_hwobj,
+                     "beamAlignmentRequested",
+                     self.center_beam_report)
 
         if hasattr(self.bl_hwobj.beam_info_hwobj, "beam_focusing_hwobj"):
             self.beam_focusing_hwobj = self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
@@ -530,7 +533,6 @@ class EMBLBeamlineTest(HardwareObject):
         # sleep(0.2)
         self.cmd_start_pitch_scan(1)
         sleep(30.0)
-
         with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
             while self.chan_pitch_scan_status.getValue() != 0:
                 gevent.sleep(0.1)
@@ -1047,11 +1049,18 @@ class EMBLBeamlineTest(HardwareObject):
             3. In a loop take snapshot and move motors
             4. Put back aperture and move to original slits positions
         """
+        log = logging.getLogger("GUI")
+
+        if not self.bl_hwobj.safety_shutter_hwobj.is_opened():
+            log.error("Beam centering failed! Safety shutter is closed! " + \
+                      "Open the shutter to continue.")
+            self.ready_event.set()
+            return
+
         aperture_hwobj = self.bl_hwobj.beam_info_hwobj.aperture_hwobj
         current_energy = self.bl_hwobj._get_energy()
         current_transmission = self.bl_hwobj._get_transmission()
 
-        log = logging.getLogger("GUI")
         msg = "Starting beam centring"
         progress_info = {"progress_total": 6, "progress_msg": msg}
         log.info("Beam centering: %s" % msg)
@@ -1103,12 +1112,8 @@ class EMBLBeamlineTest(HardwareObject):
             )
             self.bl_hwobj.diffractometer_hwobj.set_capillary_position("OFF")
 
-            beam_task_result = self.center_beam_task()
-            if not beam_task_result:
-                log.error("Beam centering: Failed")
-                self.emit("progressStop", ())
-                self.ready_event.set()
-                return
+            gevent.sleep(1)
+            self.center_beam_task()
 
             # self.bl_hwobj.diffractometer_hwobj.set_capillary_position(capillary_position)
         else:
@@ -1210,10 +1215,11 @@ class EMBLBeamlineTest(HardwareObject):
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
             # Beam centering procedure for P13 ---------------------------------
 
-            msg = "4/6 : Starting pitch scan"
+            msg = "4/6 : Executing pitch scan"
             progress_info["progress_msg"] = msg
             log.info("Beam centering: %s" % msg)
             self.emit("testProgress", (3, progress_info))
+            self.emit("progressStep", 3, "Executing pitch scan")
 
             if self.bl_hwobj._get_energy() <= 8.75:
                 self.cmd_set_qbmp_range(0)
@@ -1226,20 +1232,24 @@ class EMBLBeamlineTest(HardwareObject):
             # TODO fix this
             gevent.sleep(0.2)
             self.cmd_start_pitch_scan(1)
-            log.info("start wait")
-            gevent.sleep(30.0)
-            log.info("finish wait")
+            #log.info("start wait...")
+            #gevent.sleep(30.0)
+            #log.info("finish wait")
 
+            gevent.sleep(3)
             with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
-                while self.chan_pitch_scan_status.getValue() != 0:
+                while self.chan_pitch_scan_status.getValue() == 1:
                     gevent.sleep(0.1)
+            gevent.sleep(3)
             self.cmd_set_vmax_pitch(1)
 
             qbpm_arr = self.chan_qbpm_ar.getValue()
-            if max(qbpm_arr) < 100:
+            if max(qbpm_arr) < 10:
                 log.error("Beam alignment failed! Pitch scan failed.")
                 self.emit("progressStop", ())
                 return
+
+            self.emit("progressStep", 4, "Detecting beam position and centering the beam")
 
             for i in range(3):
                 with gevent.Timeout(10, False):
@@ -1273,7 +1283,7 @@ class EMBLBeamlineTest(HardwareObject):
 
                 if abs(delta_hor) > 0.001:
                     log.info("Beam centering: Moving horizontal by %.4f" % delta_hor)
-                    self.horizontal_motor_hwobj.mov_relative(delta_hor, timeout=5)
+                    self.horizontal_motor_hwobj.move_relative(delta_hor, timeout=5)
                     sleep(1)
                 if abs(delta_ver) > 0.001:
                     log.info("Beam centering: Moving vertical by %.4f" % delta_ver)
@@ -1335,7 +1345,6 @@ class EMBLBeamlineTest(HardwareObject):
                             )
                             gevent.sleep(0.1)
                     if None in beam_pos_displacement:
-                        self.emit("progressStop", ())
                         # log.debug("No beam detected")
                         return
 
@@ -1532,7 +1541,179 @@ class EMBLBeamlineTest(HardwareObject):
 
     def measure_flux(self):
         """Measures intesity"""
+        #self.start_test_queue(["measure_intensity"])
+        #gevent.spawn(self.test_measure_intensity)
         self.bl_hwobj.flux_hwobj.measure_flux()
+
+    def test_measure_intensity(self):
+        """Measures intensity and generates report"""
+        result = {}
+        result["result_bit"] = False
+        result["result_details"] = []
+
+        self.emit("progressInit", ("Measuring intensity...", 8, True))
+        try:
+            intens_value = 0
+            current_phase = self.bl_hwobj.diffractometer_hwobj.current_phase
+
+            # 1. close guillotine and fast shutter -------------------------------
+            if not self.bl_hwobj.detector_hwobj.is_cover_closed():
+                logging.getLogger("GUI").error("Unable to measure flux!" + \
+                     "Close the detecor cover to continue")
+                result["result_short"] = "Measure intensity failed. " + \
+                     "Detector cover was open."
+                self.ready_event.set()
+                return result
+
+            #self.bl_hwobj.detector_hwobj.close_cover(wait=True)
+            self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+            logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
+            gevent.sleep(0.1)
+
+            #2. move back light in, check beamstop position ----------------------
+            logging.getLogger("HWR").info("Measure flux: Moving backlight out")
+            self.emit("progressStep", 1, "Moving backlight out")
+            self.bl_hwobj.back_light_hwobj.move_in()
+            logging.getLogger("HWR").debug("Measure flux: Backlight moved out")
+
+            beamstop_position = self.bl_hwobj.beamstop_hwobj.get_position()
+            if beamstop_position == "BEAM":
+                self.emit("progressStep", 2, "Moving beamstop OFF")
+                self.bl_hwobj.beamstop_hwobj.set_position("OFF")
+                self.bl_hwobj.diffractometer_hwobj.wait_device_ready(30)
+                logging.getLogger("HWR").info("Measure flux: Beamstop moved off")
+
+            #3. check scintillator position --------------------------------------
+            scintillator_position = self.bl_hwobj.\
+                diffractometer_hwobj.get_scintillator_position()
+            if scintillator_position == "SCINTILLATOR":
+                #TODO add state change when scintillator position changed
+                self.emit("progressStep", 3, "Setting the photodiode")
+                self.bl_hwobj.diffractometer_hwobj.\
+                     set_scintillator_position("PHOTODIODE")
+                gevent.sleep(1)
+                self.bl_hwobj.diffractometer_hwobj.\
+                     wait_device_ready(30)
+                logging.getLogger("HWR").debug("Measure flux: Scintillator set to photodiode")
+
+            #TODO move in the apeture for P13
+
+            #5. open the fast shutter --------------------------------------------
+            gevent.sleep(1)
+            self.emit("progressStep", 4, "Opening the fast shutter") 
+            self.bl_hwobj.fast_shutter_hwobj.openShutter(wait=True)
+            logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
+            gevent.sleep(0.3)
+
+            #6. measure mean intensity
+            self.ampl_chan_index = 0
+
+            self.emit("progressStep", 5, "Measuring the intensity")
+            intens_value = self.chan_intens_mean.getValue()
+            intens_range_now = self.chan_intens_range.getValue()
+            
+            #TODO: repair this
+            #GB 2018-03-30 09:45:25 : following loop that encodes current offset is broken as self.intensity_ranges = []
+            #hard coding 
+
+            self.intensity_value = intens_value[0] + 2.780e-6
+            
+            #for intens_range in self.intensity_ranges:
+            #    if intens_range['index'] is intens_range_now:
+            #        self.intensity_value = intens_value[self.ampl_chan_index] - \
+            #                              intens_range['offset']
+            #        break
+
+        except Exception as ex:
+            logging.getLogger("GUI").error("Unable to measure flux! %s" % str(ex))
+            self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=False)
+            self.ready_event.set()
+            self.emit("progressStop", ())
+            return result
+
+        self.emit("progressStep", 6, "Closing fast shutter")
+        #7. close the fast shutter -------------------------------------------
+        self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+
+        # 7/7 set back original phase ----------------------------------------
+        self.emit("progressStep", 7, "Restoring diffractometer to %s phase" % current_phase)
+        self.bl_hwobj.diffractometer_hwobj.set_phase(current_phase)
+
+        #8. Calculate --------------------------------------------------------
+        self.emit("progressStep", 8, "Calculating flux")
+        energy = self.bl_hwobj._get_energy()
+        detector_distance = self.bl_hwobj.detector_hwobj.get_distance()
+        beam_size = self.bl_hwobj.beam_info_hwobj.get_beam_size()
+        transmission = self.bl_hwobj.transmission_hwobj.getAttFactor()
+
+        result["result_details"].append("Energy: %.4f keV<br>" % energy)
+        result["result_details"].append("Detector distance: %.2f mm<br>" % \
+                                        detector_distance)
+        result["result_details"].append("Beam size %.2f x %.2f mm<br>" % \
+                                        (beam_size[0], beam_size[1]))
+        result["result_details"].append("Transmission %.2f%%<br><br>" % \
+                                        transmission)
+
+        meas_item = [datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                     "%.4f" % energy,
+                     "%.2f" % detector_distance,
+                     "%.2f x %.2f" % (beam_size[0], beam_size[1]),
+                     "%.2f" % transmission]
+
+        air_trsm = numpy.exp(-self.air_absorption_coeff_per_meter(energy) * \
+             detector_distance / 1000.0)
+        carb_trsm = self.carbon_window_transmission(energy)
+        flux = 0.624151 * 1e16 * self.intensity_value / \
+               self.diode_calibration_amp_per_watt(energy) / \
+               energy / air_trsm / carb_trsm
+
+        #GB correcting diode misscalibration!!!
+        flux = flux * 1.8
+
+        dose_rate = 1e-3 * 1e-14 * self.dose_rate_per_10to14_ph_per_mmsq(energy) * \
+               flux / beam_size[0] / beam_size[1]
+
+        self.bl_hwobj.flux_hwobj.set_flux(flux)
+
+        msg = "Intensity = %1.1e A" % self.intensity_value
+        result["result_details"].append(msg + "<br>")
+        logging.getLogger("GUI").info(msg)
+        result["result_short"] = msg
+        meas_item.append("%1.1e" % self.intensity_value)
+
+        msg = "Flux = %1.1e photon/s" % flux
+        result["result_details"].append(msg + "<br>")
+        logging.getLogger("GUI").info(msg)
+        result["result_short"] = msg
+        meas_item.append("%1.1e" % flux)
+
+        msg = "Dose rate =  %1.1e KGy/s" % dose_rate
+        result["result_details"].append(msg + "<br>")
+        logging.getLogger("GUI").info(msg)
+        meas_item.append("%1.1e" % dose_rate)
+
+        max_frame_rate = 1 / self.bl_hwobj.detector_hwobj.get_exposure_time_limits()[0]
+
+        msg = "Time to reach 20 MGy = %.1f s = %d frames @ %s Hz " % \
+              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate),max_frame_rate)
+        result["result_details"].append(msg + "<br><br>")
+        logging.getLogger("GUI").info(msg)
+        meas_item.append("%d, %d frames" % \
+              (20000. / dose_rate, int(max_frame_rate * 20000. / dose_rate)))
+
+        self.intensity_measurements.insert(0, meas_item)
+
+        result["result_bit"] = True
+        result["result_details"].extend(SimpleHTML.create_table(\
+             ["Time", "Energy (keV)", "Detector distance (mm)",
+              "Beam size (mm)", "Transmission (%%)", "Intensity (A)",
+              "Flux (photons/s)", "Dose rate (KGy/s)",
+              "Time to reach 20 MGy (sec, frames)"],
+             self.intensity_measurements))
+
+        self.ready_event.set()
+        self.emit("progressStop", ())
+        return result
 
     def test_file_system(self):
         result = {}
@@ -1632,4 +1813,4 @@ class EMBLBeamlineTest(HardwareObject):
             return html_filename
 
     def test_method(self):
-        pass
+        print "Test"
