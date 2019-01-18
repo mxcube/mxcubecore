@@ -5,7 +5,8 @@ and procedures on a beamline. Each XML file represent a Hardware Object.
 The Hardware Repository module provides access to these Hardware Objects, and manages
 connections to the Control Software (Spec or Taco Device Servers).
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 import logging
 import gevent
 import weakref
@@ -27,11 +28,7 @@ except ImportError:
 
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
-
-if sys.version_info[0] == 3:
-    from HardwareRepository.dispatcher import dispatcher
-else:
-    from dispatcher import dispatcher
+from HardwareRepository.dispatcher import dispatcher
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
