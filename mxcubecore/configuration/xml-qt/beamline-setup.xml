@@ -11,6 +11,8 @@
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
   <object href="/flux-mockup" role="flux"/>
+  <object href="/detector-mockup" role="detector"/>
+  <object href="/detector-distance-mockup" role="detector_distance"/>
 
   <!-- Software (abstract) concepts -->
   <object href="/beam-info" role="beam_info"/>
@@ -28,7 +30,6 @@
   <object href="/mxcollect" role="collect"/>
   <object href="/parallel-processing" role="parallel_processing"/>
   <object href="/xrf-spectrum-mockup" role="xrf_spectrum"/>
-  <object href="/detector-mockup" role="detector"/>
 
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.
