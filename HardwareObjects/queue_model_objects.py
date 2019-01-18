@@ -1642,8 +1642,8 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            for motor_name, position in motor_dict.iteritems():
-                setattr(self, motor_name, position)
+            for motor_name in motor_dict.keys():
+                setattr(self, motor_name, motor_dict[motor_name])
 
     def as_dict(self):
         return dict(
@@ -1698,7 +1698,6 @@ class CentredPosition(object):
 
     def get_kappa_phi_value(self):
         return self.kappa_phi
-
 
 class Workflow(TaskNode):
     def __init__(self):
