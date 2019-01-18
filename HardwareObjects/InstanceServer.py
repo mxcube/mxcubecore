@@ -15,7 +15,7 @@ try:
 except ImportError:
     qt_variant = "qt3"
 
-import BlissFramework
+import gui as qt_gui
 
 """
 <procedure class="InstanceServer">
@@ -70,8 +70,7 @@ class InstanceServer(Procedure):
         else:
             pass
 
-    def initializeInstance(self):
-        # Remove BlissFramework application lockfile
+    def initialize_instance(self):
         # self.guiConfiguration=qt.qApp.mainWidget().configuration
 
         if qt_variant == "PyQt5":
@@ -94,7 +93,7 @@ class InstanceServer(Procedure):
             self.guiConfiguration = qApp.mainWidget().configuration
 
         lockfilename = os.path.join(
-            tempfile.gettempdir(), ".%s.lock" % BlissFramework.loggingName
+            tempfile.gettempdir(), ".%s.lock" % qt_gui.logging_name
         )
 
         try:
