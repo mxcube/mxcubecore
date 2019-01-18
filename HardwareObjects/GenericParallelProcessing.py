@@ -82,7 +82,6 @@ class GenericParallelProcessing(HardwareObject):
         self.plot_points_num = None
         self.current_grid_index = None
         self.grid_properties = []
-        self.crystfel_script = ""
 
     def init(self):
         self.done_event = gevent.event.Event()
@@ -113,7 +112,6 @@ class GenericParallelProcessing(HardwareObject):
         self.start_command = str(self.getProperty("processing_command"))
         self.kill_command = str(self.getProperty("kill_command"))
         self.grid_properties = eval(self.getProperty("grid_properties", "[]"))
-        self.crystfel_script = self.getProperty("crystfel_script", "TODO")
         self.current_grid_index = 0
 
     def get_available_grid_properties(self):
