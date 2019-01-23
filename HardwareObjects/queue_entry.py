@@ -24,14 +24,13 @@ import gevent
 import traceback
 import logging
 import time
-import queue_model_objects
 import os
 import autoprocessing
 from copy import copy
 from collections import namedtuple
 
-from queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR
-from queue_model_enumerables import CENTRING_METHOD, States
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects. queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD, States
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository import HardwareRepository
 

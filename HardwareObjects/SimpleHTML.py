@@ -1,7 +1,7 @@
 import os
 import json
 import base64
-import PIL.Image
+from PIL import Image
 
 HTML_START = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html lang="en">
@@ -110,7 +110,7 @@ def create_json_images(image_list):
         item["type"] = "image"
         item["suffix"] = image["filename"].split(".")[-1]
         item["title"] = image["title"]
-        im = PIL.Image.open(image["filename"])
+        im = Image.open(image["filename"])
         item["xsize"] = im.size[0] / 2
         item["ysize"] = im.size[1] / 2
         item["value"] = base64.b64encode(open(image["filename"]).read())

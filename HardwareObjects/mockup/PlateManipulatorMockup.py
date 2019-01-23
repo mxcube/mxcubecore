@@ -31,11 +31,11 @@ import gevent
 import tempfile
 from datetime import datetime
 
-from abstract.sample_changer import Crims
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Crims, Sample
 
 
-class Xtal(Sample):
+class Xtal(Sample.Sample):
     __NAME_PROPERTY__ = "Name"
     __LOGIN_PROPERTY__ = "Login"
 
@@ -98,7 +98,7 @@ class Xtal(Sample):
         )
 
 
-class Drop(Container):
+class Drop(Container.Container):
     __TYPE__ = "Drop"
 
     def __init__(self, cell, drops_num):
@@ -140,11 +140,11 @@ class Drop(Container):
     #    return self._well_no
 
 
-class Cell(Container):
+class Cell(Container.Container):
     __TYPE__ = "Cell"
 
     def __init__(self, row, row_chr, col_index, drops_num):
-        Container.__init__(
+        Container.Container.__init__(
             self, self.__TYPE__, row, Cell._getCellAddress(row_chr, col_index), False
         )
         self._row = row
@@ -178,7 +178,7 @@ class Cell(Container):
         return str(row) + str(col)
 
 
-class PlateManipulatorMockup(SampleChanger):
+class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
     """
     """
 
@@ -211,7 +211,7 @@ class PlateManipulatorMockup(SampleChanger):
 
         self._initSCContents()
 
-        SampleChanger.init(self)
+        AbstractSampleChanger.SampleChanger.init(self)
 
     def _onStateChanged(self, state):
         """
@@ -247,7 +247,7 @@ class PlateManipulatorMockup(SampleChanger):
         self._clearComponents()
         for row in range(self.num_rows):
             # row is like a basket
-            basket = Basket(self, row + 1, samples_num=0, name="Row")
+            basket = Container.Basket(self, row + 1, samples_num=0, name="Row")
             present = True
             datamatrix = ""
             scanned = False
@@ -473,7 +473,7 @@ class PlateManipulatorMockup(SampleChanger):
         """
         sample_list = []
         for basket in self.getComponents():
-            if isinstance(basket, Basket):
+            if isinstance(basket, Container.Basket):
                 for cell in basket.getComponents():
                     if isinstance(cell, Cell):
                         for drop in cell.getComponents():

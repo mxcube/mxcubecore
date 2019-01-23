@@ -15,8 +15,6 @@ try:
 except ImportError:
     qt_variant = "qt3"
 
-import gui as qt_gui
-
 """
 <procedure class="InstanceServer">
   <host>myhostname</host>
@@ -71,8 +69,6 @@ class InstanceServer(Procedure):
             pass
 
     def initialize_instance(self):
-        # self.guiConfiguration=qt.qApp.mainWidget().configuration
-
         if qt_variant == "PyQt5":
             from PyQt5.QtWidgets import QApplication
 
@@ -92,14 +88,6 @@ class InstanceServer(Procedure):
 
             self.guiConfiguration = qApp.mainWidget().configuration
 
-        lockfilename = os.path.join(
-            tempfile.gettempdir(), ".%s.lock" % qt_gui.logging_name
-        )
-
-        try:
-            os.unlink(lockfilename)
-        except BaseException:
-            pass
         self.emit("instanceInitializing", ())
         if self.isLocal():
             self.startServer()
