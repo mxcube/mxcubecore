@@ -8,7 +8,7 @@ try:
     from urlparse import urljoin
     from urllib2 import URLError
 except:
-    #Python3
+    # Python3
     from urllib.parse import urljoin
     from urllib.error import URLError
 
@@ -702,7 +702,7 @@ class ISPyBClient(HardwareObject):
         # to do, check how it is done in EMBL
         return True, "True"
 
-    def login(self, loginID, psd, ldap_connection=None):
+    def login(self, loginID, psd, ldap_connection=None, create_session=True):
         login_name = loginID
         proposal_code = ""
         proposal_number = ""
@@ -712,7 +712,7 @@ class ISPyBClient(HardwareObject):
             proposal_code = "".join(
                 itertools.takewhile(lambda c: not c.isdigit(), loginID)
             )
-            proposal_number = loginID[len(proposal_code) :]
+            proposal_number = loginID[len(proposal_code):]
 
         # if translation of the loginID is needed, need to be tested by ESRF
         if self.loginTranslate is True:
@@ -789,7 +789,7 @@ class ISPyBClient(HardwareObject):
         ok, msg = ldap_connection.login(login_name, psd)
         return ok, msg
 
-    def get_todays_session(self, prop):
+    def get_todays_session(self, prop, create_session=True):
         logging.getLogger("HWR").debug("getting proposal for todays session")
 
         try:
@@ -826,10 +826,9 @@ class ISPyBClient(HardwareObject):
                             if current_time >= start_time and current_time <= end_time:
                                 todays_session = session
                                 break
+
         new_session_flag = False
-        if todays_session is None:
-            # a newSession will be created, UI (Qt, web) can decide to accept the
-            # newSession or not
+        if todays_session is None and create_session:
             new_session_flag = True
             current_time = time.localtime()
             start_time = time.strftime("%Y-%m-%d 00:00:00", current_time)
@@ -852,11 +851,13 @@ class ISPyBClient(HardwareObject):
             todays_session = new_session_dict
             localcontact = None
             logging.getLogger("HWR").debug("create new session")
-
-        else:
-            session_id = todays_session["sessionId"]
-            logging.getLogger("HWR").debug("getting local contact for %s" % session_id)
+        elif todays_session:
+            session_id = todays_session['sessionId']
+            logging.getLogger('HWR').debug(
+                'getting local contact for %s' % session_id)
             localcontact = self.get_session_local_contact(session_id)
+        else:
+            todays_session = {}
 
         is_inhouse = self.session_hwobj.is_inhouse(
             prop["Proposal"]["code"], prop["Proposal"]["number"]
@@ -1911,7 +1912,8 @@ class ISPyBClient(HardwareObject):
                 "workflow_type", "MeshScan"
             )
             workflow_step_dict["status"] = workflow_info_dict.get("status", "")
-            workflow_step_dict["folderPath"] = workflow_info_dict.get("result_file_path")
+            workflow_step_dict["folderPath"] = workflow_info_dict.get(
+                "result_file_path")
             workflow_step_dict["imageResultFilePath"] = workflow_info_dict["cartography_path"]
             workflow_step_dict["htmlResultFilePath"] = workflow_info_dict["html_file_path"]
             workflow_step_dict["resultFilePath"] = workflow_info_dict["json_file_path"]

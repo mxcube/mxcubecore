@@ -31,7 +31,7 @@ class MicrodiffInOutMockup(Device):
 
         self.states = {True: "in", False: "out"}
         self.state_attr = False
-        self.offset = self.getProperty("offset")
+        self.offset = self.getProperty("offset", 0)
         if self.offset > 0:
             self.states = {self.offset: "out", self.offset - 1: "in"}
 
