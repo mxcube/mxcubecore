@@ -13,7 +13,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 try:
     from urlparse import urljoin
 except:
-    #Python3
+    # Python3
     from urllib.parse import urljoin
 
 # to simulate wrong loginID, use anything else than idtest
@@ -67,7 +67,7 @@ class ISPyBClientMockup(HardwareObject):
                 "code": "idtest",
                 "title": "operator on IDTESTeh1",
                 "personId": 1,
-                "number": "000",
+                "number": "0",
                 "proposalId": 1,
                 "type": "MX",
             },
@@ -91,10 +91,9 @@ class ISPyBClientMockup(HardwareObject):
         self.loginType = self.getProperty("loginType") or "proposal"
         return self.loginType
 
-    def login(self, loginID, psd, ldap_connection=None):
-
+    def login(self, loginID, psd, ldap_connection=None, create_session=True):
         # to simulate wrong loginID
-        if loginID != "idtest000":
+        if loginID != "idtest0":
             return {
                 "status": {"code": "error", "msg": "loginID 'wrong' does not exist!"},
                 "Proposal": None,

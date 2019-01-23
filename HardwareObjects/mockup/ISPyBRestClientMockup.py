@@ -4,8 +4,14 @@ A client for ISPyB Webservices.
 from __future__ import print_function
 import logging
 from datetime import datetime
-from urlparse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+try:
+    from urlparse import urljoin
+except:
+    # Python3
+    from urllib.parse import urljoin
+
 
 _CONNECTION_ERROR_MSG = (
     "Could not connect to ISPyB, please verify that "
