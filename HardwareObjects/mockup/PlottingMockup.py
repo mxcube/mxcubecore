@@ -21,7 +21,7 @@ def plot_emitter(new_plot, plot_data, plot_end):
         info["scan_nb"] = scan_nb
         new_plot(info)
 
-        for i in xrange(30):
+        for i in range(30):
             plot_data(info, {"angle": i, "diode value": data[i]})
             gevent.sleep(0.1)
 

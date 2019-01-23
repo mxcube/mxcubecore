@@ -7,7 +7,7 @@ import cgi
 
 from datetime import datetime
 from requests import post, get
-from urlparse import urljoin
+from urllib.parse import urljoin
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 _CONNECTION_ERROR_MSG = (
@@ -209,7 +209,7 @@ class ISPyBRestClient(HardwareObject):
             logging.getLogger("ispyb_client").exception(str(ex))
 
         if response:
-            for key, value in response.iteritems():
+            for key, value in response.items():
                 if key.startswith("DataCollection_"):
                     k = str(key.replace("DataCollection_", ""))
                     lims_dc[k] = value
@@ -463,7 +463,7 @@ class ISPyBRestClient(HardwareObject):
         :returns: None
 
         """
-        print "store_data_collection...", mx_collection
+        print("store_data_collection...", mx_collection)
         return None, None
 
     def store_beamline_setup(self, session_id, beamline_setup):
@@ -480,7 +480,7 @@ class ISPyBRestClient(HardwareObject):
         :returns beamline_setup_id: The database id of the beamline setup.
         :rtype: str
         """
-        print "store_beamline_setup...", beamline_setup
+        print("store_beamline_setup...", beamline_setup)
         pass
 
     def update_data_collection(self, mx_collection, wait=False):
@@ -493,7 +493,7 @@ class ISPyBRestClient(HardwareObject):
 
         :returns: None
         """
-        print "update_data_collection... ", mx_collection
+        print("update_data_collection... ", mx_collection)
         pass
 
     def store_image(self, image_dict):
@@ -505,7 +505,7 @@ class ISPyBRestClient(HardwareObject):
 
         :returns: None
         """
-        print "store_image ", image_dict
+        print("store_image ", image_dict)
         pass
 
     def __find_sample(self, sample_ref_list, code=None, location=None):

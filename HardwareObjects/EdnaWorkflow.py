@@ -4,7 +4,6 @@ import os
 import time
 import gevent
 import pprint
-import httplib
 import logging
 import binascii
 
@@ -12,6 +11,12 @@ import binascii
 from lxml import etree
 import types
 from XMLRPCServer import SecureXMLRpcRequestHandler
+
+try:
+    from httplib import HTTPConnection
+except:
+    # Python3
+    from http.client import HTTPConnection
 
 
 class State(object):
@@ -176,7 +181,7 @@ class EdnaWorkflow(HardwareObject):
                 "STOP?timeOut=0",
             )
             logging.info("BES web service URL: %r" % abortWorkflowURL)
-            conn = httplib.HTTPConnection(self._bes_host, self._bes_port)
+            conn = HTTPConnection(self._bes_host, self._bes_port)
             conn.request("POST", abortWorkflowURL)
             response = conn.getresponse()
             if response.status == 200:
@@ -253,7 +258,7 @@ class EdnaWorkflow(HardwareObject):
                 startWorkflowURL += "&%s" % urlParameter
             isFirstParameter = False
         logging.info("BES web service URL: %r" % startWorkflowURL)
-        conn = httplib.HTTPConnection(self._bes_host, self._bes_port)
+        conn = HTTPConnection(self._bes_host, self._bes_port)
         headers = {"Accept": "text/plain"}
         conn.request("POST", startWorkflowURL, headers=headers)
         response = conn.getresponse()
