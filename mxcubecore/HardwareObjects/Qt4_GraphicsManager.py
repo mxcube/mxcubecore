@@ -371,6 +371,8 @@ class Qt4_GraphicsManager(HardwareObject):
         else:
             self.cursor = QtImport.Qt.ArrowCursor
 
+        self.get_snapshot = self.get_scene_snapshot
+
     def save_graphics_config(self):
         """Saves graphical objects in the file
         """

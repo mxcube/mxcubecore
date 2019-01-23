@@ -1,4 +1,5 @@
-from Sample import *
+from .Component import Component
+from .Sample import Sample
 
 
 class Container(Component):

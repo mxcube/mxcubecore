@@ -6,11 +6,15 @@ Hardware Objects. It defines a container
 for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
+from __future__ import absolute_import
 
+import sys
 import weakref
 import logging
 from warnings import warn
-from dispatcher import dispatcher
+
+from HardwareRepository.dispatcher import dispatcher
+
 
 __author__ = "Matias Guijarro"
 __version__ = 1.0
