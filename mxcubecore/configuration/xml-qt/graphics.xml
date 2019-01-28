@@ -1,7 +1,7 @@
-<object class="Qt4_GraphicsManager">
+<object class="QtGraphicsManager">
    <object href="/mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
-   <object href="/Qt4_video-mockup" role="camera"/>
+   <object href="/camera-mockup" role="camera"/>
 
    <!-- Enable move sample buttons 
         TODO: implement this feature
