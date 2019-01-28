@@ -10,10 +10,7 @@ import gevent.server
 import socket
 import pwd
 
-try:
-    from QtImport import qt_variant
-except ImportError:
-    qt_variant = "qt3"
+import QtImport
 
 """
 <procedure class="InstanceServer">
@@ -69,24 +66,10 @@ class InstanceServer(Procedure):
             pass
 
     def initialize_instance(self):
-        if qt_variant == "PyQt5":
-            from PyQt5.QtWidgets import QApplication
-
-            for widget in QApplication.allWidgets():
-                if hasattr(widget, "configuration"):
-                    self.guiConfiguration = widget.configuration
-                    break
-        elif qt_variant == "PyQt4":
-            from PyQt4.QtGui import QApplication
-
-            for widget in QApplication.allWidgets():
-                if hasattr(widget, "configuration"):
-                    self.guiConfiguration = widget.configuration
-                    break
-        else:
-            from qt import qApp
-
-            self.guiConfiguration = qApp.mainWidget().configuration
+        for widget in QtImport.QApplication.allWidgets():
+            if hasattr(widget, "configuration"):
+                self.guiConfiguration = widget.configuration
+                break
 
         self.emit("instanceInitializing", ())
         if self.isLocal():
