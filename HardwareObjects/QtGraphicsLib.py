@@ -1517,6 +1517,22 @@ class GraphicsItemOmegaReference(GraphicsItem):
             self.start_coord = [0, int(omega_reference[1])]
             self.end_coord = [self.scene().width(), int(omega_reference[1])]
 
+class GraphicsItemText(GraphicsItem):
+    """Reference line of the rotation axis"""
+
+    def __init__(self, parent, pos_x=0, pos_y=0):
+        GraphicsItem.__init__(self, parent)
+
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.text = ""
+
+    def paint(self, painter, option, widget):
+        painter.setPen(self.custom_pen)
+        painter.drawText(self.pos_x, self.pos_y, self.text)
+
+    def set_text(self, text):
+        self.text = text
 
 class GraphicsSelectTool(GraphicsItem):
     """Draws a rectangle and selects centring points"""

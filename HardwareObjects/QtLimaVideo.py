@@ -19,7 +19,7 @@
 
 """
 [Name]
-Qt4_LimaVideo
+QtLimaVideo
 
 [Description]
 HwObj used to grab images via LImA library or Lima Tango server.
@@ -33,7 +33,7 @@ in the XML file.
 
 Example Hardware Object XML file :
 ==================================
-<device class="Qt4_LimaVideo">
+<device class="QtLimaVideo">
    <type>basler</type>
    <encoding>yuv422p</encoding>
    <address>84.89.227.6</address>
@@ -66,7 +66,7 @@ except ImportError as e:
     pass
 
 
-class Qt4_LimaVideo(AbstractVideoDevice):
+class QtLimaVideo(AbstractVideoDevice):
     """
     Descript. :
     """

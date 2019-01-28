@@ -19,17 +19,17 @@
 
 """
 [Name]
-Qt4_TangoLimaVideo
+QtTangoLimaVideo
 
 [Description]
 HwObj used to grab images via Tango Lima device server
 If you want to access the Lima Library directly you may consider using
-the Qt4_LimaVideo module instead
+the QtLimaVideo module instead
 
 [Configuration]
 Example Hardware Object XML file :
 ==================================
-<device class="Qt4_LimaVideo">
+<device class="QtLimaVideo">
    <type>basler</type>
    <encoding>yuv422p</encoding>
    <tangoname>bl13/eh/lima_oav</tangoname>
@@ -51,7 +51,7 @@ import PyTango
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
-class Qt4_TangoLimaVideo(AbstractVideoDevice):
+class QtTangoLimaVideo(AbstractVideoDevice):
     """
     Descript. :
     """
