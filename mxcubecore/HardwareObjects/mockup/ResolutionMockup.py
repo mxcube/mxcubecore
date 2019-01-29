@@ -33,6 +33,8 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
             if det_radius > 0:
                 self.det_radius = det_radius
 
+        self.get_limits = self.getLimits
+
     def beam_centre_updated(self, beam_pos_dict):
         pass
 
