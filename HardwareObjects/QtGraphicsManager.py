@@ -27,10 +27,10 @@ objects and actions necessary for MXCuBE:
 - Video handling, scalling and magnification tools
 
 example xml:
-<object class="Qt4_GraphicsManager">
+<object class="QtGraphicsManager">
    <object href="/mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
-   <object href="/Qt4_video-mockup" role="camera"/>
+   <object href="/Qtvideo-mockup" role="camera"/>
 
    <magnification_tool>{"scale": 4, "area_size": 50}</magnification_tool>
 </object>
@@ -69,16 +69,16 @@ except ImportError:
         pass
 
 # import AutoMesh
-import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 
 __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.3"
 __category__ = "Graphics"
 
 
-class Qt4_GraphicsManager(HardwareObject):
+class QtGraphicsManager(HardwareObject):
     def __init__(self, name):
         """
         :param name: name
@@ -1062,7 +1062,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :param index: point index
         :type inde: int
-        :returns: Qt4_GraphicsLib.GraphicsPoint
+        :returns: QtGraphicsLib.GraphicsPoint
         """
         for point in self.get_points():
             if point.index == index:
@@ -1979,7 +1979,7 @@ class Qt4_GraphicsManager(HardwareObject):
             beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except BaseException:
             logging.getLogger("user_level_log").debug(
-                "Qt4_GraphicsManager: " + "Unable to detect object shape"
+                "QtGraphicsManager: " + "Unable to detect object shape"
             )
             beam_spl_x = 0
             beam_spl_y = 0
