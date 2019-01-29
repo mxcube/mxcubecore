@@ -24,14 +24,13 @@ import gevent
 import traceback
 import logging
 import time
-import queue_model_objects
 import os
 import autoprocessing
 from copy import copy
 from collections import namedtuple
 
-from queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR
-from queue_model_enumerables import CENTRING_METHOD, States
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects. queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD, States
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository import HardwareRepository
 
@@ -676,7 +675,7 @@ class SampleQueueEntry(BaseQueueEntry):
         # Only execute samples with collections and when sample changer is used
         if len(self.get_data_model().get_children()) != 0 and sc_used:
             if self.diffractometer_hwobj.in_plate_mode():
-                mount_device = self.plate_manipulator_hwobj
+                return
             else:
                 mount_device = self.sample_changer_hwobj
 
@@ -695,6 +694,9 @@ class SampleQueueEntry(BaseQueueEntry):
                             self.centring_done,
                             self.sample_centring_result,
                         )
+                        #self.beamline_setup.diffractometer_hwobj.close_kappa_task()
+                        #self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
+                        #time.sleep(2)
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = (
@@ -1089,7 +1091,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_snapshot([])
+                    snapshot = self.shape_history.get_scene_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot
@@ -1172,12 +1174,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         if self.processing_task is not None:
             self.get_view().setText(1, "Processing...")
             logging.getLogger("user_level_log").warning("Processing: Please wait...")
-            self.parallel_processing_hwobj.done_event.wait(timeout=120)
+            self.parallel_processing_hwobj.done_event.wait(timeout=5)
             self.parallel_processing_hwobj.done_event.clear()
 
     def stop(self):
         BaseQueueEntry.stop(self)
-
         try:
             self.collect_hwobj.stopCollect("mxCuBE")
             if self.processing_task is not None:
@@ -1198,7 +1199,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def processing_finished(self):
         dispatcher.send("collect_finished")
         self.processing_task = None
-        self.get_view().setText(1, "Done")
+        #self.get_view().setText(1, "Done")
         logging.getLogger("user_level_log").info("Processing: Done")
 
     def processing_failed(self):
@@ -2005,9 +2006,13 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
+        reference_image_collection.grid = self.beamline_setup.shape_history_hwobj.create_auto_grid()
+        reference_image_collection.acquisitions[0].acquisition_parameters.centred_position = \
+            reference_image_collection.grid.get_centred_position()
 
         # Trick to make sure that the reference collection has a sample.
         reference_image_collection._parent = xray_centering.get_parent()
+        xray_centering.line_collection._parent = xray_centering.get_parent()
 
         gid = self.get_data_model().get_parent().lims_group_id
         reference_image_collection.lims_group_id = gid
@@ -2025,9 +2030,9 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
             self.get_view(), reference_image_collection, view_set_queue_entry=False
         )
 
-        helical_model = helical_qe.get_data_model().copy()
-        helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
-        helical_model.grid = None
+        #helical_model = helical_qe.get_data_model()
+        #@helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
+        #@helical_model.grid = None
 
         acq_two = queue_model_objects.Acquisition()
         helical_model.acquisitions.append(acq_two)

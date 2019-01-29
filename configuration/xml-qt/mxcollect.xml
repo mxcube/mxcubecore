@@ -1,6 +1,6 @@
 <object class="CollectMockup">
   <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/graphics" role="graphics_manager"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/lims-client-mockup" role="lims_client"/>
 

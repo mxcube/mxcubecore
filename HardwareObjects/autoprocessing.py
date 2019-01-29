@@ -104,7 +104,7 @@ def start(programs, processEvent, paramsDict):
                     logging.getLogger().error(
                         "No program to execute found (%s)", executable
                     )
-        except BaseException:
+        except KeyError:
             logging.exception("autoprocessing: an error occurred")
 
 

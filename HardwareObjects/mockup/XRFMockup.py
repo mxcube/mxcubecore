@@ -70,7 +70,7 @@ class XRFMockup(Equipment):
                 },
             )
 
-            for i in xrange(SCAN_LENGTH):
+            for i in range(SCAN_LENGTH):
                 try:
                     data = {"energy": i, "diode value": raw_data[i]}
                     new_data = numpy.column_stack(
@@ -88,7 +88,7 @@ class XRFMockup(Equipment):
 
                     gevent.sleep(0.02)
                 except Exception as ex:
-                    print "Exception ", ex
+                    print("Exception ", ex)
 
             self.emit(
                 "plot_end",

@@ -6,11 +6,15 @@ Hardware Objects. It defines a container
 for command launchers and channels (see Command package).
 - C*Object, command launcher & channel base class
 """
+from __future__ import absolute_import
 
+import sys
 import weakref
 import logging
 from warnings import warn
-from dispatcher import dispatcher
+
+from HardwareRepository.dispatcher import dispatcher
+
 
 __author__ = "Matias Guijarro"
 __version__ = 1.0
@@ -280,7 +284,7 @@ class CommandContainer:
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
             except BaseException:
-                logging.getLogger("GUI").exception(
+                logging.getLogger("HWR").exception(
                     "%s: cannot add TINE channel %s (hint: check attributes)",
                     self.name(),
                     channelName,
@@ -314,6 +318,23 @@ class CommandContainer:
                     self.name(),
                     channelName,
                 )
+
+        elif channelType.lower() == "mockup":
+            if "default_value" not in attributesDict:
+                try:
+                    attributesDict["default_value"] = float(self.default_value)
+                except AttributeError:
+                    pass
+
+            try:
+                from Command.Mockup import MockupChannel
+                newChannel = MockupChannel(channelName, channel, **attributesDict)
+            except BaseException:
+                logging.getLogger("HWR").exception(
+                    "%s: cannot add Mockup channel %s (hint: check attributes)",
+                    self.name(),
+                    channelName,
+                ) 
 
         if newChannel is not None:
             if channelOnChange is not None:
@@ -615,6 +636,18 @@ class CommandContainer:
                 from Command.Tine import TineCommand
 
                 newCommand = TineCommand(cmdName, cmd, **attributesDict)
+            except BaseException:
+                logging.getLogger().exception(
+                    '%s: could not add command "%s" (hint: check command attributes)',
+                    self.name(),
+                    cmdName,
+                )
+
+        elif cmdType.lower() == "mockup":
+            try:
+                from Command.Mockup import MockupCommand
+
+                newCommand = MockupCommand(cmdName, cmd, **attributesDict)
             except BaseException:
                 logging.getLogger().exception(
                     '%s: could not add command "%s" (hint: check command attributes)',

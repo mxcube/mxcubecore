@@ -204,6 +204,9 @@ class EMBLSafetyShutter(Device):
         self.emit("shutterStateChanged", (self.shutter_state, msg))
         return self.shutter_state
 
+    def is_opened(self):
+        return self.shutter_state_open
+
     def openShutter(self):
         """Opens shutter
            set the shutter open command to any TEXT value of size 1 to open it

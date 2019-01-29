@@ -11,10 +11,14 @@
   <object href="/resolution-mockup" role="resolution"/>
   <object href="/energy-mockup" role="energy"/>
   <object href="/flux-mockup" role="flux"/>
+  <object href="/detector-mockup" role="detector"/>
+  <object href="/detector-distance-mockup" role="detector_distance"/>
+  <object href="/door-interlock-mockup" role="door_interlock"/>
+  <object href="/safshut" role="safety_shutter"/>
 
   <!-- Software (abstract) concepts -->
   <object href="/beam-info" role="beam_info"/>
-  <object href="/Qt4_graphics-manager" role="shape_history"/>
+  <object href="/graphics" role="shape_history"/>
   <object href="/session" role="session"/>
   <object href="/lims-client-mockup" role="lims_client"/>
   <object href="/data-analysis" role="data_analysis"/>
@@ -28,7 +32,6 @@
   <object href="/mxcollect" role="collect"/>
   <object href="/parallel-processing" role="parallel_processing"/>
   <object href="/xrf-spectrum-mockup" role="xrf_spectrum"/>
-  <object href="/detector-mockup" role="detector"/>
 
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.

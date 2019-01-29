@@ -3,10 +3,11 @@ from datetime import datetime
 import time
 import logging
 
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Container
 
 
-class SampleChangerMockup(SampleChanger):
+class SampleChangerMockup(AbstractSampleChanger.SampleChanger):
 
     __TYPE__ = "Mockup"
     NO_OF_BASKETS = 17
@@ -29,12 +30,12 @@ class SampleChangerMockup(SampleChanger):
         )
 
         for i in range(self.no_of_baskets):
-            basket = Basket(self, i + 1, samples_num=self.no_of_samples_in_basket)
+            basket = Container.Basket(self, i + 1, samples_num=self.no_of_samples_in_basket)
             self._addComponent(basket)
 
         self._initSCContents()
         self.signal_wait_task = None
-        SampleChanger.init(self)
+        AbstractSampleChanger.SampleChanger.init(self)
 
         self.log_filename = self.getProperty("log_filename")
 
@@ -46,7 +47,7 @@ class SampleChangerMockup(SampleChanger):
 
     def load(self, sample, wait=False):
         self.emit("fsmConditionChanged", "sample_mounting_sample_changer", True)
-        self._setState(SampleChangerState.Loading)
+        self._setState(AbstractSampleChanger.SampleChangerState.Loading)
         self._resetLoadedSample()
         if isinstance(sample, tuple):
             basket, sample = sample
@@ -67,10 +68,10 @@ class SampleChangerMockup(SampleChanger):
             time.sleep(0.01)
 
         mounted_sample = self.getComponentByAddress(
-            Pin.getSampleAddress(basket, sample)
+            Container.Pin.getSampleAddress(basket, sample)
         )
         mounted_sample._setLoaded(True, False)
-        self._setState(SampleChangerState.Ready)
+        self._setState(AbstractSampleChanger.SampleChangerState.Ready)
 
         self._setLoadedSample(mounted_sample)
         self.updateInfo()
@@ -93,12 +94,12 @@ class SampleChangerMockup(SampleChanger):
 
     def getLoadedSample(self):
         return self.getComponentByAddress(
-            Pin.getSampleAddress(self._selected_basket, self._selected_sample)
+            Container.Pin.getSampleAddress(self._selected_basket, self._selected_sample)
         )
 
     def is_mounted_sample(self, sample):
         return (
-            self.getComponentByAddress(Pin.getSampleAddress(sample[0], sample[1]))
+            self.getComponentByAddress(Container.Pin.getSampleAddress(sample[0], sample[1]))
             == self.getLoadedSample()
         )
 
@@ -149,10 +150,10 @@ class SampleChangerMockup(SampleChanger):
         for basket_index in range(self.no_of_baskets):
             for sample_index in range(self.no_of_samples_in_basket):
                 sample_list.append(
-                    ("", basket_index + 1, sample_index + 1, 1, Pin.STD_HOLDERLENGTH)
+                    ("", basket_index + 1, sample_index + 1, 1, Container.Pin.STD_HOLDERLENGTH)
                 )
         for spl in sample_list:
-            address = Pin.getSampleAddress(spl[1], spl[2])
+            address = Container.Pin.getSampleAddress(spl[1], spl[2])
             sample = self.getComponentByAddress(address)
             sample_name = named_samples.get(address)
             if sample_name is not None:
@@ -163,4 +164,4 @@ class SampleChangerMockup(SampleChanger):
             sample._setLoaded(loaded, has_been_loaded)
             sample._setHolderLength(spl[4])
 
-        self._setState(SampleChangerState.Ready)
+        self._setState(AbstractSampleChanger.SampleChangerState.Ready)

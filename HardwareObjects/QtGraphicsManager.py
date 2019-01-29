@@ -27,10 +27,10 @@ objects and actions necessary for MXCuBE:
 - Video handling, scalling and magnification tools
 
 example xml:
-<object class="Qt4_GraphicsManager">
+<object class="QtGraphicsManager">
    <object href="/mini-diff-mockup" role="diffractometer"/>
    <object href="/beam-info" role="beam_info"/>
-   <object href="/Qt4_video-mockup" role="camera"/>
+   <object href="/Qtvideo-mockup" role="camera"/>
 
    <magnification_tool>{"scale": 4, "area_size": 50}</magnification_tool>
 </object>
@@ -50,7 +50,7 @@ except:
     import _pickle as pickle
 from time import sleep
 
-from QtImport import *
+import QtImport
 
 from copy import deepcopy
 from scipy import ndimage, interpolate, signal
@@ -69,16 +69,16 @@ except ImportError:
         pass
 
 # import AutoMesh
-import Qt4_GraphicsLib as GraphicsLib
 import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 
 __credits__ = ["MXCuBE colaboration"]
 __version__ = "2.3"
 __category__ = "Graphics"
 
 
-class Qt4_GraphicsManager(HardwareObject):
+class QtGraphicsManager(HardwareObject):
     def __init__(self, name):
         """
         :param name: name
@@ -360,16 +360,18 @@ class Qt4_GraphicsManager(HardwareObject):
         # except:
         #    pass
 
-        self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
+        #self.temp_animation_dir = os.path.join(self.user_file_directory, "animation")
 
         self.omega_move_delta = self.getProperty("omega_move_delta", 10)
 
         custom_cursor_filename = self.getProperty("custom_cursor", "")
         if os.path.exists(custom_cursor_filename):
-            self.cursor = QCursor(QPixmap(custom_cursor_filename), 0, 0)
+            self.cursor = QtImport.QCursor(QtImport.QPixmap(custom_cursor_filename), 0, 0)
             self.set_cursor_busy(False)
         else:
-            self.cursor = Qt.ArrowCursor
+            self.cursor = QtImport.Qt.ArrowCursor
+
+        self.get_snapshot = self.get_scene_snapshot
 
     def save_graphics_config(self):
         """Saves graphical objects in the file
@@ -502,7 +504,7 @@ class Qt4_GraphicsManager(HardwareObject):
         """
         if self.image_scale:
             pixmap_image = pixmap_image.scaled(
-                QSize(
+                QtImport.QSize(
                     pixmap_image.width() * self.image_scale,
                     pixmap_image.height() * self.image_scale,
                 )
@@ -874,7 +876,7 @@ class Qt4_GraphicsManager(HardwareObject):
             select_start_x = self.graphics_select_tool_item.start_coord[0]
             select_start_y = self.graphics_select_tool_item.start_coord[1]
             if abs(select_start_x - pos_x) > 5 and abs(select_start_y - pos_y) > 5:
-                painter_path = QPainterPath()
+                painter_path = QtImport.QPainterPath()
                 painter_path.addRect(
                     min(select_start_x, pos_x),
                     min(select_start_y, pos_y),
@@ -983,9 +985,9 @@ class Qt4_GraphicsManager(HardwareObject):
 
     def set_cursor_busy(self, state):
         if state:
-            QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
+            QtImport.QApplication.setOverrideCursor(QtImport.QCursor(QtImport.Qt.BusyCursor))
         else:
-            QApplication.setOverrideCursor(self.cursor)
+            QtImport.QApplication.setOverrideCursor(self.cursor)
 
     def get_graphics_view(self):
         """Rturns current GraphicsView
@@ -1060,7 +1062,7 @@ class Qt4_GraphicsManager(HardwareObject):
 
         :param index: point index
         :type inde: int
-        :returns: Qt4_GraphicsLib.GraphicsPoint
+        :returns: QtGraphicsLib.GraphicsPoint
         """
         for point in self.get_points():
             if point.index == index:
@@ -1252,12 +1254,12 @@ class Qt4_GraphicsManager(HardwareObject):
             # self.select_shape_with_cpos(shape.get_centred_position())
         # self.graphics_omega_reference_item.hide()
 
-        image = QImage(
+        image = QtImport.QImage(
             self.graphics_view.graphics_scene.sceneRect().size().toSize(),
-            QImage.Format_ARGB32,
+            QtImport.QImage.Format_ARGB32,
         )
-        image.fill(Qt.transparent)
-        image_painter = QPainter(image)
+        image.fill(QtImport.Qt.transparent)
+        image_painter = QtImport.QPainter(image)
         self.graphics_view.render(image_painter)
         image_painter.end()
         self.show_all_items()
@@ -1726,12 +1728,10 @@ class Qt4_GraphicsManager(HardwareObject):
             self.wait_grid_drawing_click = True
 
     def create_auto_grid(self):
-        self.start_auto_centring(wait=True)
-        grid_size = (0.6, 0.6)
-        grid_spacing = (
-            self.beam_info_dict["size_x"] / 2,
-            self.beam_info_dict["size_y"] / 2,
-        )
+        #self.start_auto_centring(wait=True)
+        grid_size = (1, 1)
+        grid_spacing = (self.beam_info_dict["size_x"],
+                        self.beam_info_dict["size_y"])
 
         GraphicsLib.GraphicsItemGrid.set_auto_grid_size(grid_size)
         temp_grid = GraphicsLib.GraphicsItemGrid(
@@ -1979,7 +1979,7 @@ class Qt4_GraphicsManager(HardwareObject):
             beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except BaseException:
             logging.getLogger("user_level_log").debug(
-                "Qt4_GraphicsManager: " + "Unable to detect object shape"
+                "QtGraphicsManager: " + "Unable to detect object shape"
             )
             beam_spl_x = 0
             beam_spl_y = 0
@@ -2131,7 +2131,7 @@ class Qt4_GraphicsManager(HardwareObject):
     def set_magnification_mode(self, mode):
         """Display or hide magnification tool"""
         if mode:
-            QApplication.setOverrideCursor(QCursor(Qt.ClosedHandCursor))
+            QtImport.QApplication.setOverrideCursor(QtImport.QCursor(QtImport.Qt.ClosedHandCursor))
         else:
             self.set_cursor_busy(False)
         self.graphics_magnification_item.setVisible(mode)
@@ -2140,5 +2140,5 @@ class Qt4_GraphicsManager(HardwareObject):
     def set_scrollbars_off(self, state):
         """Enables or disables scrollbars"""
         if state:
-            self.graphics_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            self.graphics_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setHorizontalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
+            self.graphics_view.setVerticalScrollBarPolicy(QtImport.Qt.ScrollBarAlwaysOff)
