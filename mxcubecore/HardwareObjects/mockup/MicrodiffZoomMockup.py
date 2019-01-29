@@ -10,12 +10,9 @@ class MicrodiffZoomMockup(Device):
 
     def init(self):
         self.motor_name = "Zoom"
-        self.motor_pos_attr_suffix = "Position"
         self._last_position_name = None
-
         self.predefined_position_attr = 1
-
-        self.predefinedPositions = {
+        self.predefined_positions = {
             "Zoom 1": 1,
             "Zoom 2": 2,
             "Zoom 3": 3,
@@ -27,30 +24,25 @@ class MicrodiffZoomMockup(Device):
             "Zoom 9": 9,
             "Zoom 10": 10,
         }
-        self.sortPredefinedPositionsList()
-
-        self.get_state = self.getState
-        self.get_predefined_positions_list = self.getPredefinedPositionsList
-        self.get_current_position_name = self.getCurrentPositionName
-        self.move_to_position = self.moveToPosition
+        self.sort_positions_list()
 
     def isReady(self):
         return True
 
-    def sortPredefinedPositionsList(self):
-        self.predefinedPositionsNamesList = self.predefinedPositions.keys()
-        self.predefinedPositionsNamesList.sort(
-            lambda x, y: int(
-                round(self.predefinedPositions[x] - self.predefinedPositions[y])
-            )
-        )
+    def sort_positions_list(self):
+        self.positions_names_list = list(self.predefined_positions.keys())
+        #self.positions_names_list.sort()
+        #    lambda x, y: int(
+        #        round(self.predefined_positions[x] - self.predefined_positions[y])
+        #    )
+        #)
 
     def connectNotify(self, signal):
         if signal == "predefinedPositionChanged":
-            positionName = self.getCurrentPositionName()
+            positionName = self.get_current_position_name()
 
             try:
-                pos = self.predefinedPositions[positionName]
+                pos = self.predefined_positions[positionName]
             except KeyError:
                 self.emit(signal, ("", None))
             else:
@@ -58,21 +50,18 @@ class MicrodiffZoomMockup(Device):
         else:
             return True  # .connectNotify.im_func(self, signal)
 
-    def getState(self):
-        return 2
-
-    def getLimits(self):
+    def get_limits(self):
         return (1, 10)
 
-    def getState(self):
+    def get_state(self):
         return MicrodiffZoomMockup.READY
 
-    def getPredefinedPositionsList(self):
-        return self.predefinedPositionsNamesList
+    def get_predefined_positions_list(self):
+        return self.positions_names_list
 
-    def motorPositionChanged(self, absolutePosition, private={}):
-        # MD2Motor.motorPositionChanged.im_func(self, absolutePosition, private)
-        positionName = self.getCurrentPositionName(absolutePosition)
+    def motor_position_changed(self, absolutePosition, private={}):
+        # MD2Motor.motor_position_changed.im_func(self, absolutePosition, private)
+        positionName = self.get_current_position_name(absolutePosition)
         if self._last_position_name != positionName:
             self._last_position_name = positionName
             self.emit(
@@ -80,20 +69,20 @@ class MicrodiffZoomMockup(Device):
                 (positionName, positionName and absolutePosition or None),
             )
 
-    def getCurrentPositionName(self, pos=None):
+    def get_current_position_name(self, pos=None):
         pos = self.predefined_position_attr
 
-        for positionName in self.predefinedPositions:
-            if math.fabs(self.predefinedPositions[positionName] - pos) <= 1e-3:
+        for positionName in self.predefined_positions:
+            if math.fabs(self.predefined_positions[positionName] - pos) <= 1e-3:
                 return positionName
         return ""
 
-    def moveToPosition(self, positionName):
+    def move_to_position(self, positionName):
         valid = True
 
         try:
-            self.predefined_position_attr = self.predefinedPositions[positionName]
-            self.motorPositionChanged(self.predefined_position_attr)
+            self.predefined_position_attr = self.predefined_positions[positionName]
+            self.motor_position_changed(self.predefined_position_attr)
             return True
         except BaseException:
             valid = False

@@ -6,12 +6,13 @@ the QueueModel.
 import copy
 import os
 import logging
-import queue_model_enumerables
 
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+from HardwareRepository.HardwareObjects import queue_model_enumerables
 
 
 class TaskNode(object):
@@ -1641,7 +1642,7 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            for motor_name, position in motor_dict.iteritems():
+            for motor_name, position in motor_dict.items():
                 setattr(self, motor_name, position)
 
     def as_dict(self):
@@ -1673,11 +1674,19 @@ class CentredPosition(object):
     def __eq__(self, cpos):
         eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES) * [False]
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
+            
             self_pos = getattr(self, motor_name)
-            cpos_pos = getattr(cpos, motor_name)
-            if None in (self_pos, cpos_pos):
+            if not hasattr(cpos, motor_name):
                 continue
-            eq[i] = abs(self_pos - cpos_pos) <= self.motor_pos_delta
+            else:
+                cpos_pos = getattr(cpos, motor_name)
+
+            if self_pos == cpos_pos == None:
+                eq[i] = True
+            elif None in (self_pos, cpos_pos):
+                continue
+            else:
+                eq[i] = abs(self_pos - cpos_pos) <= self.motor_pos_delta
         return all(eq)
 
     def __ne__(self, cpos):
@@ -1697,7 +1706,6 @@ class CentredPosition(object):
 
     def get_kappa_phi_value(self):
         return self.kappa_phi
-
 
 class Workflow(TaskNode):
     def __init__(self):

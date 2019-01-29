@@ -10,12 +10,7 @@ import gevent.server
 import socket
 import pwd
 
-try:
-    from QtImport import qt_variant
-except ImportError:
-    qt_variant = "qt3"
-
-import BlissFramework
+import QtImport
 
 """
 <procedure class="InstanceServer">
@@ -70,37 +65,12 @@ class InstanceServer(Procedure):
         else:
             pass
 
-    def initializeInstance(self):
-        # Remove BlissFramework application lockfile
-        # self.guiConfiguration=qt.qApp.mainWidget().configuration
+    def initialize_instance(self):
+        for widget in QtImport.QApplication.allWidgets():
+            if hasattr(widget, "configuration"):
+                self.guiConfiguration = widget.configuration
+                break
 
-        if qt_variant == "PyQt5":
-            from PyQt5.QtWidgets import QApplication
-
-            for widget in QApplication.allWidgets():
-                if hasattr(widget, "configuration"):
-                    self.guiConfiguration = widget.configuration
-                    break
-        elif qt_variant == "PyQt4":
-            from PyQt4.QtGui import QApplication
-
-            for widget in QApplication.allWidgets():
-                if hasattr(widget, "configuration"):
-                    self.guiConfiguration = widget.configuration
-                    break
-        else:
-            from qt import qApp
-
-            self.guiConfiguration = qApp.mainWidget().configuration
-
-        lockfilename = os.path.join(
-            tempfile.gettempdir(), ".%s.lock" % BlissFramework.loggingName
-        )
-
-        try:
-            os.unlink(lockfilename)
-        except BaseException:
-            pass
         self.emit("instanceInitializing", ())
         if self.isLocal():
             self.startServer()

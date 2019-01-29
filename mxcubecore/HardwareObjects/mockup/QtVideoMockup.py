@@ -27,7 +27,7 @@ from QtImport import *
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
 
-class Qt4_VideoMockup(AbstractVideoDevice):
+class QtVideoMockup(AbstractVideoDevice):
 
     def __init__(self, name):
         AbstractVideoDevice.__init__(self, name)

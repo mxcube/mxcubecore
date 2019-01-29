@@ -211,7 +211,6 @@ class RedisClient(HardwareObject):
                 "mxcube:%s:%s:flux" % (self.proposal_id, self.beamline_name)
             )
 
-            print flux_value
             self.active = True
         except Exception as ex:
             logging.getLogger("HWR").debug(

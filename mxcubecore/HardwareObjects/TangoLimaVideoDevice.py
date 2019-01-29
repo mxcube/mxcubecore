@@ -22,7 +22,7 @@
 TangoLimaVideoDevice
 
 [Note]
-This class was previously called Qt4_TangoLimaVideo.  It was changed to
+This class was previously called QtTangoLimaVideo.  It was changed to
 TangoLimaVideoDevice as it can be used now in Qt4(Qt5) environment or
 without it.
 The property <useqt>False</useqt> in the xml configuration file will inhibit
@@ -52,7 +52,7 @@ the LimaVideoDevice module instead
 [Configuration]
 Example Hardware Object XML file :
 ==================================
-<device class="Qt4_LimaVideo">
+<device class="QtLimaVideo">
    <type>basler</type>
    <encoding>yuv422p</encoding>
    <tangoname>bl13/eh/lima_oav</tangoname>

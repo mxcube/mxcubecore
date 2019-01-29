@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+
+import sys
 import logging
-from dispatcher import dispatcher
-from CommandContainer import CommandContainer
+
+from HardwareRepository.dispatcher import dispatcher
+from HardwareRepository.CommandContainer import CommandContainer
 
 
 class PropertySet(dict):

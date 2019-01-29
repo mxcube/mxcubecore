@@ -1,3 +1,27 @@
+#! /usr/bin/env python
+# encoding: utf-8
+"""Collection emulator, calling an external program to generate data images.
+Written originally for Global Phasing simcal,
+but could be made to work with other systems
+
+License:
+
+This file is part of MXCuBE.
+
+MXCuBE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+MXCuBE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import os
 import subprocess
 import logging
@@ -12,6 +36,10 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+__copyright__ = """ Copyright © 2017 - 2018 by Global Phasing Ltd. """
+__license__ = "LGPLv3+"
+__author__ = "Rasmus H Fogh"
 
 
 class CollectEmulator(CollectMockup):

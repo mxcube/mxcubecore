@@ -43,11 +43,11 @@ class MDCameraMockup(BaseHardwareObjects.Device):
 
     def udiffVersionChanged(self, value):
         if value == "MD2_2":
-            print "start polling MD camera with poll interval=", self.pollInterval
+            print("start polling MD camera with poll interval=", self.pollInterval)
             # self.pollingTimer.start(self.pollInterval)
             # self.startPolling()
         else:
-            print "stop polling the camera. This microdiff version does not support a camera"
+            print("stop polling the camera. This microdiff version does not support a camera")
             # self.pollingTimer.stop()
             self.stopper = True
 
@@ -76,8 +76,8 @@ class MDCameraMockup(BaseHardwareObjects.Device):
                 logging.getLogger("HWR").exception("Could not read image")
 
     def imageUpdated(self, value):
-        print "<HW> got new image"
-        print value
+        print("<HW> got new image")
+        print(value)
 
     def gammaExists(self):
         return False
