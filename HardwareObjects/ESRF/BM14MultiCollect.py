@@ -65,7 +65,7 @@ class BM14MultiCollect(ESRFMultiCollect):
                 adxv_notify_socket.connect(("cakenew.esrf.fr", 8100))
                 adxv_notify_socket.sendall("load_image %s\n" % image_filename)
                 adxv_notify_socket.close()
-        except Exception as err:
+        except Exception:
             logging.info("adxv_notify exception : %r", image_filename)
             # print Exception, err
             pass

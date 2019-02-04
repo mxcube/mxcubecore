@@ -326,13 +326,13 @@ class XrfSpectrum(Equipment):
         if self.dbConnection is None:
             return
         try:
-            session_id = int(self.spectrumInfo["sessionId"])
+            int(self.spectrumInfo["sessionId"])
         except BaseException:
             return
-        blsampleid = self.spectrumInfo["blSampleId"]
+        self.spectrumInfo["blSampleId"]
         self.spectrumInfo.pop("blSampleId")
 
-        db_status = self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
+        self.dbConnection.storeXfeSpectrum(self.spectrumInfo)
 
     def updateXrfSpectrum(self, spectrum_id, jpeg_spectrum_filename):
         pass
@@ -366,7 +366,7 @@ class XrfSpectrum(Equipment):
         return os.path.join(self.cfgpath, "%skeV.cfg" % cfgname)
 
     def _doSpectrum(self, ct, filename, wait=True):
-        en = self.energy_hwobj.getCurrentEnergy()
+        self.energy_hwobj.getCurrentEnergy()
         if not ct:
             ct = 5
         safshut = self.getObjectByRole("safety_shutter")

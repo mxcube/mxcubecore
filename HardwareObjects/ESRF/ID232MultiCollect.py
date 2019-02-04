@@ -66,7 +66,7 @@ class ID232MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
         try:
-            cover_task = self.getObjectByRole("controller").detcover.set_out()
+            self.getObjectByRole("controller").detcover.set_out()
         except BaseException:
             pass
         try:
