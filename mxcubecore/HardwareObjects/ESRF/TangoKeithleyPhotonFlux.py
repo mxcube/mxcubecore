@@ -11,7 +11,7 @@ class TangoKeithleyPhotonFlux(Equipment):
         Equipment.__init__(self, *args, **kwargs)
 
     def init(self):
-        controller = self.getObjectByRole("controller")
+        self.getObjectByRole("controller")
         self.energy_motor = self.getDeviceByRole("energy")
         self.shutter = self.getDeviceByRole("shutter")
         self.aperture = self.getObjectByRole("aperture")

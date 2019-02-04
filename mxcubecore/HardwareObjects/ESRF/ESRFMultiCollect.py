@@ -923,7 +923,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             "/BES/bridge/rest/processes/CreateThumbnails/RUN?%s" % params,
             headers={"Accept": "text/plain"},
         )
-        r = conn.getresponse()
+        conn.getresponse()
 
     """
     getOscillation
