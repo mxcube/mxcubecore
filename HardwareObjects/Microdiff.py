@@ -1,13 +1,7 @@
-from HardwareRepository.BaseHardwareObjects import Equipment
-import tempfile
 import logging
 import math
-import os
 import time
-from HardwareRepository import HardwareRepository
 import MiniDiff
-from HardwareRepository import EnhancedPopen
-import copy
 import gevent
 import sample_centring
 

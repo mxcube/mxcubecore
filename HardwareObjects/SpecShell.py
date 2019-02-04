@@ -8,15 +8,12 @@ template:
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository import HardwareRepository
 
 try:
     import SpecClient_gevent as SpecClient
 except ImportError:
     import SpecClient
-    from SpecClient import SpecVariable
 
-import types
 from qt import *
 
 

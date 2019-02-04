@@ -1,6 +1,5 @@
 from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Equipment
-import logging
 
 
 class SampleStage(Equipment):

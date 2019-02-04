@@ -331,7 +331,6 @@ class Marvin(SampleChanger):
         """Updates the sample changers status: mounted pucks, state, 
            currently loaded sample
         """
-        pass
         #self._updateState()               
         #self._updateSCContents()
         #call this method if status string changed

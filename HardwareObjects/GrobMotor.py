@@ -1,9 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import Device
 import math
-import logging
-import time
 import gevent
-import types
 
 
 class GrobMotor(Device):

@@ -345,7 +345,6 @@ class XSDataStatisticsIntegrationAverageAndNumberOfReflections(object):
         level,
         name_="XSDataStatisticsIntegrationAverageAndNumberOfReflections",
     ):
-        pass
         if self._averageIOverSigma is not None:
             self.averageIOverSigma.export(outfile, level, name_="averageIOverSigma")
         else:

@@ -1,4 +1,3 @@
-import logging
 import saferef
 import gevent
 import gevent.monkey
@@ -6,7 +5,6 @@ from gevent import _threading
 from gevent.queue import Queue, Empty
 from gevent.event import Event
 import numpy
-import types
 
 POLLERS = {}
 

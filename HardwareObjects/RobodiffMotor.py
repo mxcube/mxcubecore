@@ -1,10 +1,6 @@
 from HardwareRepository.BaseHardwareObjects import Device
 from HardwareRepository import HardwareRepository
-import math
-import logging
-import time
 import gevent
-import types
 
 
 class RobodiffMotor(Device):

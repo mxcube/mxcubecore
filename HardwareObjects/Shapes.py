@@ -224,7 +224,6 @@ class Shapes(HardwareObject):
         :returns: The snapshot
         :rtype: str
         """
-        pass
 
     def select_shape_with_cpos(self, cpos):
         return

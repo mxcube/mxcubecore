@@ -40,9 +40,6 @@ Example Hardware Object XML file :
 </device>
 """
 
-import os
-import time
-import logging
 import struct
 import numpy as np
 

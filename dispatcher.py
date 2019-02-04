@@ -1,11 +1,9 @@
 try:
-    from louie import dispatcher
     from louie import robustapply
     from louie import saferef
 
     louie = 1
 except ImportError:
-    from pydispatch import dispatcher
     from pydispatch import robustapply
     from pydispatch import saferef
 

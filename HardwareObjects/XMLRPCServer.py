@@ -17,7 +17,6 @@ import json
 import atexit
 import traceback
 
-import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

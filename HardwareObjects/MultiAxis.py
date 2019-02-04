@@ -1,5 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-import logging
 
 
 class MultiAxis(Equipment):

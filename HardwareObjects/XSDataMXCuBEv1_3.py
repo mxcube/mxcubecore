@@ -223,7 +223,6 @@ class XSDataMXCuBEDataSet(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataMXCuBEDataSet"):
-        pass
         for imageFile_ in self.getImageFile():
             imageFile_.export(outfile, level, name_="imageFile")
         if self.getImageFile() == []:

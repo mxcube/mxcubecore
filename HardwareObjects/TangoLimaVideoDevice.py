@@ -63,14 +63,10 @@ Example Hardware Object XML file :
 </device>
 """
 from __future__ import print_function
-import os
-import time
-import logging
 import struct
 import numpy as np
 
 import PyTango
-from abstract.AbstractVideoDevice import GenericVideoDevice
 
 
 class TangoLimaVideoDevice(AbstractVideoDevice):

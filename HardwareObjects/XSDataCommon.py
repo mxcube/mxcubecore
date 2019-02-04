@@ -149,7 +149,6 @@ class XSConfiguration(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSConfiguration"):
-        pass
         if self.__XSPluginList is not None:
             self.XSPluginList.export(outfile, level, name_="XSPluginList")
 
@@ -376,7 +375,6 @@ class XSDataDisplacement(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataDisplacement"):
-        pass
         if self.__error is not None:
             self.error.export(outfile, level, name_="error")
         if self.__unit is not None:
@@ -675,7 +673,6 @@ class XSDataExecutionInfo(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataExecutionInfo"):
-        pass
         if self.__baseDirectory is not None:
             self.baseDirectory.export(outfile, level, name_="baseDirectory")
         else:
@@ -851,7 +848,6 @@ class XSDataKeyValuePair(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataKeyValuePair"):
-        pass
         if self.__key is not None:
             self.key.export(outfile, level, name_="key")
         else:
@@ -980,7 +976,6 @@ class XSDataDictionary(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataDictionary"):
-        pass
         for keyValuePair_ in self.getKeyValuePair():
             keyValuePair_.export(outfile, level, name_="keyValuePair")
 
@@ -1096,7 +1091,6 @@ class XSOptionItem(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSOptionItem"):
-        pass
         if self.__enabled is not None:
             showIndent(outfile, level)
             if self.__enabled:
@@ -1235,7 +1229,6 @@ class XSOptionList(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSOptionList"):
-        pass
         for XSOptionItem_ in self.getXSOptionItem():
             XSOptionItem_.export(outfile, level, name_="XSOptionItem")
         if self.getXSOptionItem() == []:
@@ -1353,7 +1346,6 @@ class XSParamItem(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSParamItem"):
-        pass
         if self.__name is not None:
             showIndent(outfile, level)
             outfile.write(unicode("<name>%s</name>\n" % self.__name))
@@ -1483,7 +1475,6 @@ class XSParamList(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSParamList"):
-        pass
         for XSParamItem_ in self.getXSParamItem():
             XSParamItem_.export(outfile, level, name_="XSParamItem")
         if self.getXSParamItem() == []:
@@ -1624,7 +1615,6 @@ class XSPluginItem(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSPluginItem"):
-        pass
         if self.__XSOptionList is not None:
             self.XSOptionList.export(outfile, level, name_="XSOptionList")
         if self.__XSParamList is not None:
@@ -1757,7 +1747,6 @@ class XSPluginList(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSPluginList"):
-        pass
         for XSPluginItem_ in self.getXSPluginItem():
             XSPluginItem_.export(outfile, level, name_="XSPluginItem")
         if self.getXSPluginItem() == []:
@@ -1854,7 +1843,6 @@ class XSDataAngle(XSDataDisplacement):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDisplacement.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -2863,7 +2851,6 @@ class XSDataLinearDisplacement(XSDataDisplacement):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDisplacement.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -5321,7 +5308,6 @@ class XSDataDate(XSDataString):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataString.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -5677,7 +5663,6 @@ class XSDataMatrix(XSDataMatrixDouble):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataMatrixDouble.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -5763,7 +5748,6 @@ class XSDataUnitVector(XSDataVectorDouble):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataVectorDouble.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -5848,7 +5832,6 @@ class XSDataAbsorbedDoseRate(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -5933,7 +5916,6 @@ class XSDataAngularSpeed(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -6018,7 +6000,6 @@ class XSDataFlux(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -6103,7 +6084,6 @@ class XSDataLength(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -6188,7 +6168,6 @@ class XSDataSpeed(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -6273,7 +6252,6 @@ class XSDataTime(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
@@ -6358,7 +6336,6 @@ class XSDataWavelength(XSDataDoubleWithUnit):
             self.buildChildren(child_, nodeName_)
 
     def buildChildren(self, child_, nodeName_):
-        pass
         XSDataDoubleWithUnit.buildChildren(self, child_, nodeName_)
 
     # Method for marshalling an object
