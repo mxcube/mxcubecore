@@ -39,7 +39,7 @@ class ID30A3MultiCollect(ESRFMultiCollect):
             100, oscillation_parameters["number_of_images"]
         )
 
-        file_info = data_collect_parameters["fileinfo"]
+        data_collect_parameters["fileinfo"]
 
         self._detector.shutterless = data_collect_parameters["shutterless"]
 

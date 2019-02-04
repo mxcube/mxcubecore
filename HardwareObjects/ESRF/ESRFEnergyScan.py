@@ -174,7 +174,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.dbConnection is None:
             return
         try:
-            session_id = int(self.energy_scan_parameters["sessionId"])
+            int(self.energy_scan_parameters["sessionId"])
         except Exception:
             return
 
@@ -230,7 +230,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                         scan_data.append((x, y))
                         f.write("%f,%f\r\n" % (x, y))
                 f.close()
-            except IOError as e:
+            except IOError:
                 self.storeEnergyScan()
                 self.emit("energyScanFailed", ())
                 return

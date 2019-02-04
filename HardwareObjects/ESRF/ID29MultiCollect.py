@@ -31,7 +31,7 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        controller = self.getObjectByRole("controller")
+        self.getObjectByRole("controller")
 
         return (None, None)
 
