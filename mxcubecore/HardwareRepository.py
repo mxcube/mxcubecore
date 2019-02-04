@@ -35,6 +35,7 @@ __version__ = 1.3
 
 _instance = None
 _hwrserver = None
+_timers = []
 
 
 def addHardwareObjectsDirs(hoDirs):
@@ -705,7 +706,7 @@ class __HardwareRepositoryClient:
             func = func_ref()
 
             if func is None:
-                self.killTimer(t_ev.timerId())
+                #self.killTimer(t_ev.timerId())
                 del _timers[t_ev.timerId()]
             else:
                 try:
@@ -726,13 +727,13 @@ class __HardwareRepositoryClient:
             ["{:<" + str(longest_col) + "}" for longest_col in longest_cols]
         )
 
-        print("+", "=" * (sum(longest_cols) + 5), "+")
-        print("| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment")))
-        print("+", "=" * (sum(longest_cols) + 5), "+")
+        print("+", "=" * (sum(longest_cols) + 2))
+        print("| %s" % row_format.format(*("xml", "Class", "Load time", "Comment")))
+        print("+", "=" * (sum(longest_cols) + 2))
 
         for row in sorted(self.hwobj_info_list):
-            print("| %s|" % row_format.format(*row))
-        print("+", "=" * (sum(longest_cols) + 4), "+")
+            print("| %s" % row_format.format(*row))
+        print("+", "=" * (sum(longest_cols) + 2))
 
     def reloadHardwareObjects(self):
         """
