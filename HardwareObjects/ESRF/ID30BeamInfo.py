@@ -1,4 +1,3 @@
-import logging
 from HardwareRepository import HardwareRepository
 import BeamInfo
 
