@@ -1,4 +1,3 @@
-import imp
 import logging
 import xml.sax
 from xml.sax.handler import ContentHandler

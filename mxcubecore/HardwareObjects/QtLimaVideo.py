@@ -43,10 +43,7 @@ Example Hardware Object XML file :
    <interval>30</interval>
 </device>
 """
-import os
-import time
 import logging
-import struct
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 

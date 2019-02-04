@@ -1,4 +1,3 @@
-from HardwareRepository.BaseHardwareObjects import Device
 import GrobMotor
 
 

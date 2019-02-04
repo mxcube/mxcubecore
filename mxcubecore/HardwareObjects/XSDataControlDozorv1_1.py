@@ -540,7 +540,6 @@ class XSDataControlImageDozor(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataControlImageDozor"):
-        pass
         if self._image is not None:
             self.image.export(outfile, level, name_="image")
         else:

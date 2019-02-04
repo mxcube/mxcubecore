@@ -1,7 +1,6 @@
 from abstract.AbstractSampleChanger import *
 
 import xml.sax
-from xml.sax import SAXParseException
 from xml.sax.handler import ContentHandler
 
 

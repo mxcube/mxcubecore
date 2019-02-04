@@ -1,9 +1,5 @@
 from RobodiffMotor import RobodiffMotor
-import math
 import logging
-import time
-import gevent
-import types
 
 
 class RobodiffMotorWPositions(RobodiffMotor):

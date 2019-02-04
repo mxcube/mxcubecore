@@ -1,9 +1,6 @@
-import math
-import logging
 import time
 from gevent import Timeout
 from AbstractMotor import AbstractMotor
-import traceback
 
 
 class MD2TimeoutError(Exception):

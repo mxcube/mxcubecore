@@ -1,4 +1,3 @@
-from qt import *
 
 import SpecMotor
 import logging

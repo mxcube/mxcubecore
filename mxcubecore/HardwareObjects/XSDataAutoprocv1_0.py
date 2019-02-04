@@ -214,7 +214,6 @@ class XSData2DCoordinates(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSData2DCoordinates"):
-        pass
         if self._x is not None:
             self.x.export(outfile, level, name_="x")
         else:
@@ -343,7 +342,6 @@ class XSDataRange(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataRange"):
-        pass
         if self._begin is not None:
             showIndent(outfile, level)
             outfile.write(unicode("<begin>%d</begin>\n" % self._begin))
@@ -707,7 +705,6 @@ class XSDataXdsCompletenessEntry(object):
         outfile.write(unicode("</%s>\n" % name_))
 
     def exportChildren(self, outfile, level, name_="XSDataXdsCompletenessEntry"):
-        pass
         if self._res is not None:
             self.res.export(outfile, level, name_="res")
         else:

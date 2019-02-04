@@ -1,5 +1,3 @@
-import math
-import logging
 import time
 from gevent import Timeout
 from abstract.AbstractMotor import AbstractMotor

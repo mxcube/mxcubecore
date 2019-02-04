@@ -8,8 +8,6 @@ import logging
 import binascii
 
 # import threading
-from lxml import etree
-import types
 from XMLRPCServer import SecureXMLRpcRequestHandler
 
 try:

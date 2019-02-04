@@ -1,5 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import Device
-import logging
 import time
 import gevent
 
