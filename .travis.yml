@@ -17,6 +17,6 @@ script:
   - python -m pytest
   - pylint -E *py
 #  - pylint -E HardwareObjects/*py
-  - pylint -E HardwareObjects/abstract/*py
-  - pylint -E HardwareObjects/mockup/*py
+#  - pylint -E HardwareObjects/abstract/*py
+#  - pylint -E HardwareObjects/mockup/*py
 
