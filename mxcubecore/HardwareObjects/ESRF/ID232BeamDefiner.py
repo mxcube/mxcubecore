@@ -1,4 +1,3 @@
-import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.AbstractMotor import AbstractMotor
 from bliss.common import event

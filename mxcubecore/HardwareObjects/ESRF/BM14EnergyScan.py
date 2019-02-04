@@ -1,5 +1,6 @@
-from ESRFEnergyScan import *
 import logging
+from HardwareRepository.TaskUtils import task
+from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 
 class BM14EnergyScan(ESRFEnergyScan):
