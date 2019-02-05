@@ -3,7 +3,7 @@ import time
 import subprocess
 import os
 import math
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from HardwareRepository.TaskUtils import task
 from PyTango import DeviceProxy
 
 

@@ -8,7 +8,6 @@ for command launchers and channels (see Command package).
 """
 from __future__ import absolute_import
 
-import sys
 import weakref
 import logging
 from warnings import warn

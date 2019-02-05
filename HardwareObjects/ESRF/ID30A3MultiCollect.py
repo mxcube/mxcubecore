@@ -1,18 +1,12 @@
-from ESRFMultiCollect import *
-
-# from detectors.TacoMarDetector import Mar225
-from detectors.LimaEigerDetector import Eiger
-
-# from detectors.LimaPilatusDetector import Pilatus
 import gevent
 import socket
-import shutil
 import logging
-import os
-import math
-import gevent
+import cPickle as pickle
 
-# import cPickle as pickle
+from HardwareRepository.TaskUtils import task
+
+from ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
+from detectors.LimaEigerDetector import Eiger
 from PyTango.gevent import DeviceProxy
 
 

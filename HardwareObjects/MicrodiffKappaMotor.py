@@ -1,6 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Device
 from MD2Motor import MD2Motor
-import math
 import logging
 import time
 import gevent

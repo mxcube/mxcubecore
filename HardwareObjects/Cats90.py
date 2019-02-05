@@ -656,7 +656,6 @@ class Cats90(SampleChanger):
         :returns: None
         :rtype: None
         """
-        pass
 
     def _directlyUpdateSelectedComponent(self, basket_no, sample_no):
         basket = None

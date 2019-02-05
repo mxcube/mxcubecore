@@ -16,7 +16,6 @@ import logging
 import gevent
 
 from Lima import Core
-from Lima import Prosilica
 
 from Qub.CTools import pixmaptools
 from HardwareRepository.BaseHardwareObjects import Device

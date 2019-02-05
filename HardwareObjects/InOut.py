@@ -1,4 +1,3 @@
-import logging
 from HardwareRepository.BaseHardwareObjects import Device
 
 

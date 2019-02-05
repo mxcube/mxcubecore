@@ -8,9 +8,7 @@ template:
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
-import HardwareRepository.HardwareObjects.SpecMotor
 from SpecClient_gevent import SpecConnectionsManager, SpecEventsDispatcher, SpecCommand
-import types
 
 
 class MotorList(Equipment):

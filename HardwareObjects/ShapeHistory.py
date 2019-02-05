@@ -483,26 +483,22 @@ class Shape(object):
         """
         Draws the shape on its drawing.
         """
-        pass
 
     def get_centred_positions(self):
         """
         :returns: The centred position(s) associated with the shape.
         :rtype: List of CentredPosition objects.
         """
-        pass
 
     def hide(self):
         """
         Hides the shape.
         """
-        pass
 
     def show(self):
         """
         Shows the shape.
         """
-        pass
 
     def update_position(self):
         pass
@@ -511,31 +507,26 @@ class Shape(object):
         """
         Moves the shape to the position <new_position>
         """
-        pass
 
     def highlight(self):
         """
         Highlights the shape
         """
-        pass
 
     def unhighlight(self):
         """
         Removes highlighting.
         """
-        pass
 
     def get_hit(self, x, y):
         """
         :returns: True if the shape was hit by the mouse.
         """
-        pass
 
     def get_qub_objects(self):
         """
         :returns: A list of qub objects.
         """
-        pass
 
 
 class Line(Shape):

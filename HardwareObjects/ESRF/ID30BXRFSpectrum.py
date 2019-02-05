@@ -1,9 +1,8 @@
-from qt import *
+from qt import copy
 from HardwareRepository.BaseHardwareObjects import Equipment
 import logging
 import os
 import time
-import types
 import gevent.event
 import gevent
 

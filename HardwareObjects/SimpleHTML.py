@@ -1,4 +1,3 @@
-import os
 import json
 import base64
 from PIL import Image
