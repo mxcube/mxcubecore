@@ -17,7 +17,6 @@ template:
 """
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository import CommandContainer
-from HardwareRepository import HardwareRepository
 import gevent
 import logging
 import os
@@ -412,7 +411,6 @@ class Camera(BaseHardwareObjects.Device):
                         sys.excepthook(
                             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
                         )
-                        pass
 
                 def getGamma(self):
                     """tango"""
@@ -903,7 +901,6 @@ class Camera(BaseHardwareObjects.Device):
 
                 def setBpm(self, bpmOn):
                     """taco"""
-                    pass
 
                 def getBpmState(self):
                     """taco"""

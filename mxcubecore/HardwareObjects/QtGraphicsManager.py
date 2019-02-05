@@ -40,15 +40,12 @@ from __future__ import print_function
 import os
 import math
 import gevent
-import tempfile
 import logging
-import subprocess
 import numpy as np
 try:
     import cPickle as pickle
 except:
     import _pickle as pickle
-from time import sleep
 
 import QtImport
 
@@ -56,9 +53,7 @@ from copy import deepcopy
 from scipy import ndimage, interpolate, signal
 
 from matplotlib import cm
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 try:
     import lucid2 as lucid

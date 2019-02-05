@@ -3,7 +3,6 @@ from Taco import *
 from threading import RLock
 import weakref
 import types
-import sys
 
 _global_lock = RLock()
 

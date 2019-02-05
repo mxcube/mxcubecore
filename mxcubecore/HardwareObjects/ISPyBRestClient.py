@@ -481,7 +481,6 @@ class ISPyBRestClient(HardwareObject):
         :rtype: str
         """
         print("store_beamline_setup...", beamline_setup)
-        pass
 
     def update_data_collection(self, mx_collection, wait=False):
         """
@@ -494,7 +493,6 @@ class ISPyBRestClient(HardwareObject):
         :returns: None
         """
         print("update_data_collection... ", mx_collection)
-        pass
 
     def store_image(self, image_dict):
         """
@@ -506,7 +504,6 @@ class ISPyBRestClient(HardwareObject):
         :returns: None
         """
         print("store_image ", image_dict)
-        pass
 
     def __find_sample(self, sample_ref_list, code=None, location=None):
         """
@@ -524,7 +521,6 @@ class ISPyBRestClient(HardwareObject):
         :param location: A tuple (<basket>, <vial>) to search for.
         :type location: tuple
         """
-        pass
 
     def get_samples(self, proposal_id, session_id):
         pass
@@ -552,7 +548,6 @@ class ISPyBRestClient(HardwareObject):
         :returns: A list with sample_ref objects.
         :rtype: list
         """
-        pass
 
     def get_bl_sample(self, bl_sample_id):
         """
@@ -565,7 +560,6 @@ class ISPyBRestClient(HardwareObject):
         :rtype: BLSampleWSValue
 
         """
-        pass
 
     def disable(self):
         self.__disabled = True
@@ -586,7 +580,6 @@ class ISPyBRestClient(HardwareObject):
         :returns: DataCollectionGroup id
         :rtype: int
         """
-        pass
 
     def _store_data_collection_group(self, group_data):
         self.update_rest_token()

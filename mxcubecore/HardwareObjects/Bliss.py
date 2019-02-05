@@ -1,6 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-import os
-import sys
 from bliss.config import static
 from bliss.data.node import DataNodeIterator, _get_or_create_node
 import gevent

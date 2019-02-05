@@ -1,5 +1,4 @@
 from HardwareRepository import BaseHardwareObjects
-import logging
 
 
 class Q315dist(BaseHardwareObjects.Equipment):

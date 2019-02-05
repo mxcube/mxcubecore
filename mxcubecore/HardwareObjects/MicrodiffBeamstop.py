@@ -1,5 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import Equipment
-import logging
 
 """
 Move the beamstop or the capillary, using the exporter protocol

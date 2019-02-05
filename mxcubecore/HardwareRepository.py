@@ -10,10 +10,8 @@ from __future__ import print_function, absolute_import
 import logging
 import gevent
 import weakref
-import types
 import sys
 import os
-import stat
 import time
 import gevent.monkey
 from datetime import datetime

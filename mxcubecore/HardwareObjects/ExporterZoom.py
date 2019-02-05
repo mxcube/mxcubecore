@@ -1,5 +1,4 @@
 from ExporterMotor import ExporterMotor
-import logging
 import math
 
 

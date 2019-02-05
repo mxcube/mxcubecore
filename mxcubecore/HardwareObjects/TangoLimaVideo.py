@@ -13,8 +13,6 @@ Example configuration:
 If video mode is not specified, BAYER_RG16 is used by default.
 """
 from HardwareRepository import BaseHardwareObjects
-from HardwareRepository import CommandContainer
-from HardwareRepository import HardwareRepository
 from HardwareRepository.HardwareObjects.Camera import (
     JpegType,
     BayerType,
@@ -25,9 +23,7 @@ from HardwareRepository.HardwareObjects.Camera import (
 from Qub.CTools import pixmaptools
 import gevent
 import logging
-import os
 import time
-import sys
 import PyTango
 from PyTango.gevent import DeviceProxy
 import numpy

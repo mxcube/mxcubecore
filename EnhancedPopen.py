@@ -2,7 +2,6 @@ import os
 import subprocess
 import errno
 import time
-import sys
 import select
 import fcntl
 

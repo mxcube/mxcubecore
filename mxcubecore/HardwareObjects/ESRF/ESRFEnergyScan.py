@@ -1,14 +1,16 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractEnergyScan import *
-from gevent.event import AsyncResult
 import logging
 import time
 import os
 import os.path
 import shutil
-import httplib
 import math
+import gevent
 import PyChooch
+
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from AbstractEnergyScan import AbstractEnergyScan
+
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 

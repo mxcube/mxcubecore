@@ -7,7 +7,6 @@ access and manipulate this information.
 import os
 import time
 import socket
-import logging
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects
