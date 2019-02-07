@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/mxcube/HardwareRepository.svg?branch=master)](https://travis-ci.org/mxcube/HardwareRepository)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 # HardwareRepository of MXCuBE
 HardwareRepository is the back-end level of [MXCuBE Qt](https://github.com/mxcube/mxcube/) and [MXCuBE Web](https://github.com/mxcube/mxcube3/)  allowing to access the beamline control system and instrumentation. It acts as a container of single python objects (called hardware objects).
