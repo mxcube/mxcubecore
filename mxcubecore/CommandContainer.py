@@ -76,6 +76,7 @@ class ChannelObject:
         self._name = name
         self._username = username
         self._attributes = kwargs
+        self._onchange = None
         self.__firstUpdate = True
 
     def name(self):
@@ -188,7 +189,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Spec import SpecChannel
+                from HardwareRepository.Command.Spec import SpecChannel
 
                 newChannel = SpecChannel(channelName, channel, **attributesDict)
             except BaseException:
@@ -205,7 +206,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Taco import TacoChannel
+                from HardwareRepository.Command.Taco import TacoChannel
 
                 newChannel = TacoChannel(channelName, channel, **attributesDict)
             except BaseException:
@@ -222,7 +223,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Tango import TangoChannel
+                from HardwareRepository.Command.Tango import TangoChannel
 
                 newChannel = TangoChannel(channelName, channel, **attributesDict)
             except ConnectionError:
@@ -251,7 +252,7 @@ class CommandContainer:
                 attributesDict["port"] = int(port)
                 del attributesDict["exporter_address"]
 
-                from Command.Exporter import ExporterChannel
+                from HardwareRepository.Command.Exporter import ExporterChannel
 
                 newChannel = ExporterChannel(channelName, channel, **attributesDict)
             except BaseException:
@@ -262,7 +263,7 @@ class CommandContainer:
                 )
         elif channelType.lower() == "epics":
             try:
-                from Command.Epics import EpicsChannel
+                from HardwareRepository.Command.Epics import EpicsChannel
 
                 newChannel = EpicsChannel(channelName, channel, **attributesDict)
             except BaseException:
@@ -279,7 +280,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Tine import TineChannel
+                from HardwareRepository.Command.Tine import TineChannel
 
                 newChannel = TineChannel(channelName, channel, **attributesDict)
             except BaseException:
@@ -299,7 +300,7 @@ class CommandContainer:
             uribase = attributesDict["taurusname"]
 
             try:
-                from Command.Sardana import SardanaChannel
+                from HardwareRepository.Command.Sardana import SardanaChannel
 
                 logging.getLogger().debug(
                     "Creating a sardanachannel - %s / %s / %s",
@@ -326,7 +327,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Mockup import MockupChannel
+                from HardwareRepository.Command.Mockup import MockupChannel
                 newChannel = MockupChannel(channelName, channel, **attributesDict)
             except BaseException:
                 logging.getLogger("HWR").exception(
@@ -428,7 +429,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Spec import SpecCommand
+                from HardwareRepository.Command.Spec import SpecCommand
 
                 newCommand = SpecCommand(cmdName, cmd, **attributesDict)
             except BaseException:
@@ -445,7 +446,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Taco import TacoCommand
+                from HardwareRepository.Command.Taco import TacoCommand
 
                 newCommand = TacoCommand(cmdName, cmd, **attributesDict)
             except BaseException:
@@ -461,7 +462,7 @@ class CommandContainer:
                 except AttributeError:
                     pass
             try:
-                from Command.Tango import TangoCommand
+                from HardwareRepository.Command.Tango import TangoCommand
 
                 newCommand = TangoCommand(cmdName, cmd, **attributesDict)
             except ConnectionError:
@@ -491,7 +492,7 @@ class CommandContainer:
                 attributesDict["port"] = int(port)
                 del attributesDict["exporter_address"]
 
-                from Command.Exporter import ExporterCommand
+                from HardwareRepository.Command.Exporter import ExporterCommand
 
                 newCommand = ExporterCommand(cmdName, cmd, **attributesDict)
             except BaseException:
@@ -502,7 +503,7 @@ class CommandContainer:
                 )
         elif cmdType.lower() == "epics":
             try:
-                from Command.Epics import EpicsCommand
+                from HardwareRepository.Command.Epics import EpicsCommand
 
                 newCommand = EpicsCommand(cmdName, cmd, **attributesDict)
             except BaseException:
@@ -562,7 +563,7 @@ class CommandContainer:
                         self.name(),
                     )
 
-            from Command.Sardana import SardanaCommand, SardanaMacro
+            from HardwareRepository.Command.Sardana import SardanaCommand, SardanaMacro
 
             if cmdtype == "macro" and doorname is not None:
                 try:
@@ -608,7 +609,7 @@ class CommandContainer:
                 except AttributeError:
                     pass
             try:
-                from Command.Pool import PoolCommand
+                from HardwareRepository.Command.Pool import PoolCommand
 
                 newCommand = PoolCommand(cmdName, cmd, **attributesDict)
             except ConnectionError:
@@ -632,7 +633,7 @@ class CommandContainer:
                     pass
 
             try:
-                from Command.Tine import TineCommand
+                from HardwareRepository.Command.Tine import TineCommand
 
                 newCommand = TineCommand(cmdName, cmd, **attributesDict)
             except BaseException:
@@ -644,7 +645,7 @@ class CommandContainer:
 
         elif cmdType.lower() == "mockup":
             try:
-                from Command.Mockup import MockupCommand
+                from HardwareRepository.Command.Mockup import MockupCommand
 
                 newCommand = MockupCommand(cmdName, cmd, **attributesDict)
             except BaseException:
