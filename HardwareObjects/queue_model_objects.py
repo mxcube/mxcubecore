@@ -1382,6 +1382,7 @@ class PathTemplate(object):
         :returns: Archive directory
         """
         folders = self.directory.split("/")
+
         if PathTemplate.synchotron_name == "MAXLAB":
             archive_directory = self.directory
             archive_directory = archive_directory.replace(
@@ -1574,10 +1575,11 @@ class XrayImagingParameters(object):
     def __init__(self):
         object.__init__(self)
 
-        self.ff_num_images = 90
+        self.ff_num_images = 30
         self.ff_pre = False
         self.ff_post = False
         self.ff_apply = False
+        self.ff_ssim_enabled = False
 
         self.sample_offset_a = 0.0
         self.sample_offset_b = -1.0
@@ -1595,7 +1597,21 @@ class XrayImagingParameters(object):
     def copy(self):
         return copy.deepcopy(self)
 
-
+    def as_dict(self):
+        return {'ff_num_images': self.ff_num_images, 
+                'ff_pre': self.ff_pre,
+                'ff_post': self.ff_post, 
+                'ff_apply': self.ff_apply,
+                'ff_ssim_enabled': self.ff_ssim_enabled,
+                'sample_offset_a': self.sample_offset_a,
+                'sample_offset_b': self.sample_offset_b,
+                'sample_offset_c': self.sample_offset_c,
+                'camera_trigger': self.camera_trigger,
+                'camera_live_view': self.camera_live_view,
+                'camera_write_data': self.camera_write_data,
+                'detector_distance': self.camera_write_data
+        }
+ 
 class Crystal(object):
     def __init__(self):
         object.__init__(self)
@@ -1980,6 +1996,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                     "number_of_passes": acq_params.num_passes,
                     "number_of_lines": acq_params.num_lines,
                     "mesh_range": acq_params.mesh_range,
+                    "num_triggers": acq_params.num_triggers,
+                    "num_images_per_trigger": acq_params.num_images_per_trigger
                 }
             ],
             "group_id": data_collection.lims_group_id,
