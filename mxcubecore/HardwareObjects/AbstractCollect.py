@@ -227,8 +227,9 @@ class AbstractCollect(HardwareObject, object):
                          self.current_dc_parameters["energy"])
                 self.set_energy(self.current_dc_parameters["energy"])
 
-            if "resolution" in self.current_dc_parameters:
-                resolution = self.current_dc_parameters["resolution"]["upper"]
+            dd = self.current_dc_parameters.get("resolution")
+            if dd and dd.get('upper'):
+                resolution = dd["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
 

@@ -14,6 +14,7 @@ import subprocess
 import uuid
 import signal
 import time
+import datetime
 
 import gevent.monkey
 import gevent.event
@@ -23,6 +24,7 @@ import ConvertUtils
 import GphlMessages
 from queue_model_enumerables_v1 import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareRepository import HardwareRepository
 
 try:
     # Needed for 3.6(?) onwards
@@ -88,16 +90,42 @@ class GphlWorkflowConnection(HardwareObject, object):
         # Properties for GPhL invocation
         self.java_properties = {}
 
-        
+
     def _init(self):
         pass
 
     def init(self):
-
         if self.hasObject('connection_parameters'):
             self._connection_parameters.update(
                 self['connection_parameters'].getProperties()
             )
+        if self.hasObject('ssh_options'):
+            # We are running through ssh - so we need python_address
+            # If not, we stick to default, which is localhost (127.0.0.1)
+            self._connection_parameters['python_address'] = socket.gethostname()
+
+        locations = next(self.getObjects('directory_locations')).getProperties()
+        paths = self.software_paths
+        props = self.java_properties
+        dd = next(self.getObjects('software_paths')).getProperties()
+        for tag, val in dd.items():
+            val2 = val.format(**locations)
+            if not os.path.isabs(val2):
+                val2 = HardwareRepository().findInRepository(val)
+                if val2 is None:
+                    raise ValueError("File path %s not recognised" % val)
+            paths[tag] = val2
+        dd = next(self.getObjects('software_properties')).getProperties()
+        for tag, val in dd.items():
+            val2 = val.format(**locations)
+            if not os.path.isabs(val2):
+                val2 = HardwareRepository().findInRepository(val)
+                if val2 is None:
+                    raise ValueError("File path %s not recognised" % val)
+            paths[tag] = props[tag] = val2
+        #
+        pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+        paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
     def get_state(self):
         """Returns a member of the General.States enumeration"""
@@ -118,30 +146,22 @@ class GphlWorkflowConnection(HardwareObject, object):
     def to_java_time(self, time):
         """Convert time in seconds since the epoch (python time) to Java time value"""
         return self._gateway.jvm.java.lang.Long(int(time*1000))
-
-    def _initialize_connection(self, gphl_workflow_hwobj):
-        """Set up parameters at start of first execution
-
-        NB This cannot be done in init() as it requires gphl_workflow_hwobj"""
-        locations = next(self.getObjects('directory_locations')).getProperties()
-        locations['LOCAL_SCRIPTS'] = gphl_workflow_hwobj.file_paths['scripts']
-        paths = self.software_paths
-        props = self.java_properties
-        dd = next(self.getObjects('software_paths')).getProperties()
-        for tag, val in dd.items():
-            paths[tag] = val.format(**locations)
-        dd = next(self.getObjects('software_properties')).getProperties()
-        for tag, val in dd.items():
-            val = val.format(**locations)
-            paths[tag] = props[tag] = val
-        #
-        pp = paths.get('co.gphl.wf.bin')
-        if pp:
-            locations['GPHL_INSTALLATION'] = pp
-        pp = (paths.get('co.gphl.wf.bdg_licence_dir')
-              or locations.get('GPHL_INSTALLATION'))
-        if pp:
-            paths['BDG_home'] = pp
+    #
+    # def _initialize_connection(self, gphl_workflow_hwobj):
+    #     """Set up parameters at start of first execution"""
+    #     locations = next(self.getObjects('directory_locations')).getProperties()
+    #     paths = self.software_paths
+    #     props = self.java_properties
+    #     dd = next(self.getObjects('software_paths')).getProperties()
+    #     for tag, val in dd.items():
+    #         paths[tag] = val.format(**locations)
+    #     dd = next(self.getObjects('software_properties')).getProperties()
+    #     for tag, val in dd.items():
+    #         val = val.format(**locations)
+    #         paths[tag] = props[tag] = val
+    #     #
+    #     pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+    #     paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
 
     def get_executable(self, name):
@@ -149,7 +169,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         tag = 'co.gphl.wf.%s.bin' % name
         result = self.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.software_paths['co.gphl.wf.bin'], name)
+            result = os.path.join(self.software_paths['GPHL_INSTALLATION'], name)
         #
         return result
 
@@ -199,6 +219,9 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
 
+        # NBNB All command line option values are put in qquotes (repr) when
+        # the workflow is invoked remotely through ssh.
+
         self.workflow_queue = workflow_queue
 
         if self.get_state() != States.OFF:
@@ -209,41 +232,71 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        commandList = [self.software_paths['java_binary']]
+        in_shell = self.hasObject('ssh_options')
+        if in_shell:
+            dd =  self['ssh_options'].getProperties()
+            #
+            host = dd.pop('Host')
+            command_list = ['ssh']
+            for tag, val in sorted(dd.items()):
+                command_list.extend(('-o',  '%s=%s' % (tag, val)))
+                # command_list.extend(('-o', tag, val))
+            command_list.append(host)
+        else:
+            command_list = []
+        command_list.append(self.software_paths['java_binary'])
+
+        # # HACK - debug options REMOVE!
+        # import socket
+        # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # sock.connect(("8.8.8.8", 80))
+        # ss = "-agentlib:jdwp=transport=dt_socket,address=%s:8050,server=y,suspend=y"
+        # command_list.append(ss % sock.getsockname()[0])
 
         for keyword, value in params.get('invocation_properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
 
-        params['invocation_options']['cp'] = self.software_paths[
-            'gphl_java_classpath'
-        ]
-        for keyword, value in params.get('invocation_options',{}).items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
 
-        commandList.append(params['application'])
-
-        for keyword, value in params.get('properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
-        for keyword, value in self.java_properties.items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
-
+        # We must get hold of the options here, as we need wdir for a property
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
         if calibration_name:
             # Expand calibration base name - to simplify identification.
             workflow_options['calibration'] = (
-                '%s_%s' % (calibration_name,  workflow_model_obj.get_name())
+                    '%s_%s' % (calibration_name,  workflow_model_obj.get_name())
             )
         path_template = workflow_model_obj.get_path_template()
         if 'prefix' in workflow_options:
             workflow_options['prefix'] = path_template.base_prefix
-
         workflow_options['wdir'] = os.path.join(
             path_template.process_directory,
             self.getProperty('gphl_subdir')
         )
+        # Hardcoded - location for log output
+        command_list.extend(ConvertUtils.java_property('co.gphl.wf.wdir',
+                                                       workflow_options['wdir'],
+                                                       quote_value=in_shell))
+
+        ll = ConvertUtils.command_option('cp',
+                                         self.software_paths['gphl_java_classpath'],
+                                         quote_value=in_shell
+                                         )
+        command_list.extend(ll)
+
+        command_list.append(params['application'])
+
+        for keyword, value in params.get('properties',{}).items():
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
+        for keyword, value in self.java_properties.items():
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
+
+
         for keyword, value in workflow_options.items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
+            command_list.extend(ConvertUtils.command_option(keyword, value,
+                                                            quote_value=in_shell))
         #
         wdir = workflow_options.get('wdir')
         # NB this creates the appdir as well (wdir is within appdir)
@@ -256,32 +309,52 @@ class GphlWorkflowConnection(HardwareObject, object):
                     "Could not create GPhL working directory: %s" % wdir
                 )
 
-        for ss in commandList:
+        for ss in command_list:
             ss = ss.split('=')[-1]
             if ss.startswith('/') and not '*' in ss and not os.path.exists(ss):
                 logging.getLogger('HWR').warning(
                     "File does not exist : %s" % ss
                 )
 
-        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
+        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(command_list))
 
         # Get environmental variables
-        envs = {}
+        envs = os.environ.copy()
+
+        # # Trick to allow unauthorised account (e.g. opid30) on ESRF to run GPhL programs
+        # # Any value is OK, just setting it is enough.
+        # envs['AutoPROCWorkFlowUser'] = '1'
+
+        # Hack to pass alternative installation dir for processing
+        val = self.software_paths.get('gphl_wf_processing_installation')
+        if val:
+            envs['GPHL_PROC_INSTALLATION'] = val
+
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
-        # They may be unset depending on the config files
-        val = self.software_paths.get('BDG_home')
-        if val:
-            envs['BDG_home'] = val
-        val = self.software_paths.get('co.gphl.wf.bin')
-        if val:
-            envs['GPHL_INSTALLATION'] = val
+        envs['GPHL_INSTALLATION'] = self.software_paths['GPHL_INSTALLATION']
+        envs['BDG_home'] = self.software_paths['BDG_home']
+        logging.getLogger('HWR').info('Executing GPhL workflow, in environment %s' % envs)
+        log_template = self.getProperty('gphl_logfile_template')
+        if log_template:
+            # Remove ms part before using
+            ss = datetime.datetime.now().isoformat()
+            ff = log_template % ss.split('.')[0]
+            ff = os.path.join(wdir, ff)
+            logging.getLogger('HWR').info('Redirecting GPhL output to  %s' % ff)
+            fp1 = open(ff, 'w')
+            fp2 = subprocess.STDOUT
+        else:
+            fp1 = fp2 = None
         try:
-            self._running_process = subprocess.Popen(commandList, env=envs,
-                                                     stdout=None, stderr=None)
+            self._running_process = subprocess.Popen(command_list, env=envs,
+                                                     stdout=fp1, stderr=fp2)
         except:
             logging.getLogger().error('Error in spawning workflow application')
             raise
+        finally:
+            if fp1 is not None:
+                fp1.close()
 
         self.set_state(States.RUNNING)
 
@@ -473,7 +546,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                               'WorkflowCompleted',
                               'WorkflowFailed'):
             if self.workflow_queue is not None:
-            # Could happen if we have ended the workflow
+                # Could happen if we have ended the workflow
                 self.workflow_queue.put_nowait((message_type, payload,
                                                 correlation_id, None))
                 self.workflow_queue.put_nowait(StopIteration)
@@ -564,11 +637,23 @@ class GphlWorkflowConnection(HardwareObject, object):
         sweeps = frozenset(self._Sweep_to_python(x)
                            for x in py4jGeometricStrategy.getSweeps()
                            )
+        beamSetting = py4jGeometricStrategy.getDefaultBeamSetting()
+        if beamSetting:
+            beamSetting = self._BeamSetting_to_python(beamSetting)
+        else:
+            beamSetting = None
+        detectorSetting = py4jGeometricStrategy.getDefaultDetectorSetting()
+        if detectorSetting:
+            detectorSetting = self._DetectorSetting_to_python(detectorSetting)
+        else:
+            detectorSetting = None
         return GphlMessages.GeometricStrategy(
             isInterleaved=py4jGeometricStrategy.isInterleaved(),
             isUserModifiable=py4jGeometricStrategy.isUserModifiable(),
             allowedWidths=py4jGeometricStrategy.getAllowedWidths(),
             defaultWidthIdx=py4jGeometricStrategy.getDefaultWidthIdx(),
+            defaultBeamSetting=beamSetting,
+            defaultDetectorSetting=detectorSetting,
             sweeps=sweeps,
             id=uuid.UUID(uuidString)
         )
@@ -582,10 +667,10 @@ class GphlWorkflowConnection(HardwareObject, object):
         return GphlMessages.SubprocessStopped()
 
     def _ChooseLattice_to_python(self, py4jChooseLattice):
-        format = py4jChooseLattice.getFormat().toString()
+        format_ = py4jChooseLattice.getFormat().toString()
         solutions = py4jChooseLattice.getSolutions()
         lattices = py4jChooseLattice.getLattices()
-        return GphlMessages.ChooseLattice(format=format, solutions=solutions,
+        return GphlMessages.ChooseLattice(format=format_, solutions=solutions,
                                           lattices=lattices)
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):
@@ -654,7 +739,6 @@ class GphlWorkflowConnection(HardwareObject, object):
         else:
             result = GphlMessages.GoniostatRotation(id=uuid.UUID(uuidString),
                                                     **axisSettings)
-
         py4jGoniostatTranslation = py4jGoniostatRotation.getTranslation()
         if py4jGoniostatTranslation:
             translationAxisSettings = py4jGoniostatTranslation.getAxisSettings()
@@ -682,7 +766,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         axisSettings = py4jDetectorSetting.getAxisSettings()
         #
         return GphlMessages.DetectorSetting(id=uuid.UUID(uuidString),
-                                        **axisSettings)
+                                            **axisSettings)
 
     def _BeamSetting_to_python(self, py4jBeamSetting):
         if py4jBeamSetting is None:
@@ -941,13 +1025,18 @@ class GphlWorkflowConnection(HardwareObject, object):
                          sampleCentred.wedgeWidth,
                          float(sampleCentred.exposure),
                          float(sampleCentred.transmission),
-                         list(sampleCentred.interleaveOrder)
-                         # self._gateway.jvm.String(sampleCentred.interleaveOrder).toCharArray()
+                         list(sampleCentred.interleaveOrder),
+                         list(self._PhasingWavelength_to_java(x)
+                              for x in sampleCentred.wavelengths),
+                         self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting)
                          )
         else:
             result = cls(float(sampleCentred.imageWidth),
                          float(sampleCentred.exposure),
-                         float(sampleCentred.transmission)
+                         float(sampleCentred.transmission),
+                         list(self._PhasingWavelength_to_java(x)
+                              for x in sampleCentred.wavelengths),
+                         self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting)
                          )
 
         beamstopSetting = sampleCentred.beamstopSetting
@@ -1025,10 +1114,6 @@ class GphlWorkflowConnection(HardwareObject, object):
         xx = userProvidedInfo.isAnisotropic
         if xx is not None:
             builder = builder.anisotropic(xx)
-        for phasingWavelength in userProvidedInfo.phasingWavelengths:
-            builder.addPhasingWavelength(
-                self._PhasingWavelength_to_java(phasingWavelength)
-            )
         #
         return builder.build()
 
@@ -1071,6 +1156,26 @@ class GphlWorkflowConnection(HardwareObject, object):
         return self._gateway.jvm.astra.messagebus.messages.information.PhasingWavelengthImpl(
             javaUuid, float(phasingWavelength.wavelength),
             phasingWavelength.role
+        )
+
+    def _BcsDetectorSetting_to_java(self, bcsDetectorSetting):
+
+        if bcsDetectorSetting is None:
+            return None
+
+        orgxy = bcsDetectorSetting.orgxy
+        # Need (temporarily?) because there is a primitive array, not a list,
+        # on the other side
+        orgxy_array = self._gateway.new_array(self._gateway.jvm.double, 2)
+        orgxy_array[0] = orgxy[0]
+        orgxy_array[1] = orgxy[1]
+        axisSettings = dict(((x, float(y))
+                             for x,y in bcsDetectorSetting.axisSettings.items()))
+        javaUuid = self._gateway.jvm.java.util.UUID.fromString(
+            str(bcsDetectorSetting.id)
+        )
+        return self._gateway.jvm.astra.messagebus.messages.instrumentation.BcsDetectorSettingImpl(
+            float(bcsDetectorSetting.resolution), orgxy_array, axisSettings, javaUuid
         )
 
     def _GoniostatTranslation_to_java(self, goniostatTranslation):

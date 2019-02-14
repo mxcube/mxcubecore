@@ -39,7 +39,7 @@ class Session(HardwareObject):
         self.base_archive_directory = None
 
         self.raw_data_folder_name = 'RAW_DATA'
-        self.processed_data_folder_name = 'PROCESS_DATA'
+        self.processed_data_folder_name = 'PROCESSED_DATA'
         self.archive_folder_name = 'ARCHIVE'
 
     # Framework-2 method, inherited from HardwareObject and called
@@ -240,6 +240,17 @@ class Session(HardwareObject):
             prefix = '<acronym>-<name>'
 
         return prefix
+
+    def get_archive_directory(self):
+        archive_directory = os.path.join(self['file_info'].getProperty('archive_base_directory'),
+                                         self['file_info'].getProperty('archive_folder'))
+
+        if self.synchrotron_name == "EMBL-HH":
+            folders = self.get_base_data_directory().split('/')
+            archive_directory = os.path.join(archive_directory,
+                                             *folders[4:])
+        return archive_directory
+
 
     def get_proposal(self):
         """
