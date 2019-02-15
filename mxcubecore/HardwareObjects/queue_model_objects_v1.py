@@ -552,6 +552,7 @@ class DataCollection(TaskNode):
                 'resolution': parameters.resolution,
                 'transmission': parameters.transmission,
                 'detector_mode': parameters.detector_mode,
+                'detector_roi_mode': parameters.detector_roi_mode,
                 'shutterless': parameters.shutterless,
                 'inverse_beam': parameters.inverse_beam,
                 'sample': str(self.crystal),
@@ -1239,6 +1240,7 @@ class PathTemplate(object):
         self.suffix = str()
         self.start_num = int()
         self.num_files = int()
+        self.compression = True
 
         if not hasattr(self, "precision"):
             self.precision = str()
@@ -1255,7 +1257,8 @@ class PathTemplate(object):
                 "suffix" : self.suffix,
                 "precision" : self.precision,
                 "start_num" : self.start_num,
-                "num_files" : self.num_files}
+                "num_files" : self.num_files,
+                "compression": self.compression}
 
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
@@ -1285,6 +1288,8 @@ class PathTemplate(object):
         else:
             file_name = template % (self.get_prefix(),
                                     self.run_number, self.suffix)
+        if self.compression:
+            file_name = "%s.gz" % file_name
 
         return file_name
 
@@ -1431,6 +1436,7 @@ class AcquisitionParameters(object):
         self.take_dark_current = True
         self.skip_existing_images = False
         self.detector_mode = str()
+        self.detector_roi_mode = str()
         self.induce_burn = False
         self.mesh_range = ()        
         self.mesh_snapshot = None
@@ -1790,10 +1796,13 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
                           'process_directory': acquisition.\
                           path_template.process_directory,
                           'template': acquisition.\
-                          path_template.get_image_file_name()},
+                          path_template.get_image_file_name(),
+                          'compression': acquisition.\
+                          path_template.compression},
              'in_queue': acq_params.in_queue,
              'in_interleave' : acq_params.in_interleave,
              'detector_mode': acq_params.detector_mode,
+             'detector_roi_mode': acq_params.detector_roi_mode,
              'shutterless': acq_params.shutterless,
              'sessionId': session.session_id,
              'do_inducedraddam': acq_params.induce_burn,

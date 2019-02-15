@@ -837,7 +837,7 @@ class GenericDiffractometer(HardwareObject):
              self.move_motors, motors_positions)
         self.move_to_motors_positions_procedure.link(self.move_motors_done)
         if wait:
-            self.wait_device_not_ready()
+            # self.wait_device_not_ready()
             self.wait_device_ready(10)
   
     def move_motors(self, motor_positions, timeout=15):
