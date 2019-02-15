@@ -41,11 +41,13 @@ class ALBAEnergy(Device):
         self.wavelength_hwobj = self.getObjectByRole("wavelength")
 
         self.energy_hwobj.connect("positionChanged", self.energy_position_changed)
-        self.wavelength_hwobj.connect("positionChanged", self.wavelength_position_changed)
+        self.wavelength_hwobj.connect(
+            "positionChanged",
+            self.wavelength_position_changed)
 
     def isReady(self):
         return True
- 
+
     def can_move_energy(self):
         return True
 
@@ -66,18 +68,20 @@ class ALBAEnergy(Device):
 
     def energy_position_changed(self, value):
         self.energy_position = value
-        if None not in [self.energy_position, self.wavelength_position]: 
+        if None not in [self.energy_position, self.wavelength_position]:
             self.emit('energyChanged', self.energy_position, self.wavelength_position)
 
     def wavelength_position_changed(self, value):
         self.wavelength_position = value
-        if None not in [self.energy_position, self.wavelength_position]: 
+        if None not in [self.energy_position, self.wavelength_position]:
             self.emit('energyChanged', self.energy_position, self.wavelength_position)
 
     def move_energy(self, value):
         current_egy = self.get_energy()
-         
-        logging.getLogger("HWR").debug("moving energy to %s. now is %s" % (value, current_egy))
+
+        logging.getLogger("HWR").debug(
+            "moving energy to %s. now is %s" %
+            (value, current_egy))
         self.energy_hwobj.move(value)
 
     def wait_move_energy_done(self):

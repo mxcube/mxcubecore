@@ -62,24 +62,26 @@ class ALBAMachineInfo(Equipment):
         self.chan_topup_remaining = None
 
     def init(self):
-	try:
-	    self.chan_mach_current = self.getChannelObject('MachCurrent')
-	    if self.chan_mach_current is not None: 
-	        self.chan_mach_current.connectSignal('update', self.mach_current_changed)
+        try:
+            self.chan_mach_current = self.getChannelObject('MachCurrent')
+            if self.chan_mach_current is not None:
+                self.chan_mach_current.connectSignal(
+                    'update', self.mach_current_changed)
 
-	    self.chan_mach_status = self.getChannelObject('MachStatus')
-	    if self.chan_mach_status is not None:
-	        self.chan_mach_status.connectSignal('update', self.mach_status_changed)
+            self.chan_mach_status = self.getChannelObject('MachStatus')
+            if self.chan_mach_status is not None:
+                self.chan_mach_status.connectSignal('update', self.mach_status_changed)
 
-	    self.chan_topup_remaining = self.getChannelObject('TopUpRemaining')
-	    if self.chan_topup_remaining is not None:
-	        self.chan_topup_remaining.connectSignal('update', self.topup_remaining_changed)
+            self.chan_topup_remaining = self.getChannelObject('TopUpRemaining')
+            if self.chan_topup_remaining is not None:
+                self.chan_topup_remaining.connectSignal(
+                    'update', self.topup_remaining_changed)
         except KeyError:
             self.logger.warning('%s: cannot read machine info', self.name())
 
     def mach_current_changed(self, value):
-        if self.values_dict['mach_current'] is None \
-        or abs(self.values_dict['mach_current'] - value) > 0.10:
+        if self.values_dict['mach_current'] is None or\
+                abs(self.values_dict['mach_current'] - value) > 0.10:
             self.values_dict['mach_current'] = value
             self.update_values()
             self.logger.debug('New machine current value=%smA' % value)

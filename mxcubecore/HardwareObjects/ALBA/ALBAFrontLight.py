@@ -55,10 +55,10 @@ class ALBAFrontLight(Device):
         if threshold is not None:
             try:
                 self.off_threshold = float(threshold)
-            except:
+            except BaseException:
                 self.off_threshold = self.default_threshold
-                logging.getLogger("HWR").info("OFF Threshold for front light is not valid. Using %s" % self.off_threshold)
- 
+                logging.getLogger("HWR").info("OFF Threshold for front light is not"
+                                              "valid. Using %s" % self.off_threshold)
 
         limits = self.getProperty("limits")
         if limits is not None:
@@ -71,7 +71,9 @@ class ALBAFrontLight(Device):
 
     def isReady(self):
         return True
-    def level_changed(self,value):
+
+    def level_changed(self, value):
+        logging.getLogger("HWR").debug("*** Level changed, value = %s" % value)
         self.current_level = value
         self.update_current_state()
 

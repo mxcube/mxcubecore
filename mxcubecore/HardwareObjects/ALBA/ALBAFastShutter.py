@@ -76,13 +76,13 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         try:
             state_string = self.getProperty("states")
             if state_string is None:
-                 self.state_strings = self.default_state_strings
+                self.state_strings = self.default_state_strings
             else:
-                 states = state_string.split(",")
-                 self.state_strings = states[1].strip(), states[0].strip()
-        except:
+                states = state_string.split(",")
+                self.state_strings = states[1].strip(), states[0].strip()
+        except BaseException:
             import traceback
-            logging.getLogger("HWR").warning( traceback.format_exc() )
+            logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -95,7 +95,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def update_state(self):
 
-        if None in [self.actuator_value, self.motor_position, self.motor_state]:  
+        if None in [self.actuator_value, self.motor_position, self.motor_state]:
             act_state = STATE_UNKNOWN
         elif str(self.motor_state) == "MOVING":
             act_state = STATE_MOVING
@@ -108,7 +108,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
                 act_state = STATE_OUT
             else:
                 act_state = STATE_IN
-    
+
         if act_state != self.actuator_state:
             self.actuator_state = act_state
             self.emitStateChanged()
@@ -126,10 +126,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.update_state()
 
     def emitStateChanged(self):
-        #
-        # emit signal
-        #
-        self.emit('fastStateChanged', ((self.actuator_state),))
+        self.emit('fastStateChanged', (self.actuator_state,))
 
     def getMotorPosition(self):
         if self.motor_position is None:
@@ -145,11 +142,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         return self.username
 
     def getStatus(self):
-        """
-        """
-        state = self.getState()  
+        state = self.getState()
 
-        if state in [STATE_OUT,STATE_IN]:
+        if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
         elif state in self.states:
             return self.states[state]
@@ -180,7 +175,7 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             return True
         else:
             return False
-            
+
     def is_close(self):
         if self.actuator_state == STATE_OUT:
             return True

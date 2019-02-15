@@ -92,7 +92,9 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
     def positionChanged(self, currentposition):
         currentposition = self.getCurrentPositionName()
-        logging.getLogger("HWR").debug("predefinedPositionChanged emitted: %s" % currentposition)
+        logging.getLogger("HWR").debug(
+            "predefinedPositionChanged emitted: %s" %
+            currentposition)
         # Update light brightness step-by-step
         posno = currentposition.split()[0]
         self.blight_hwobj.moveToPosition(posno)

@@ -33,8 +33,8 @@ class ALBASession(Session.Session):
     def get_base_data_directory(self):
         """
         Returns the base data directory for ALBA
-        In ALBA the base directory already includes the user 
-        home directory. So 
+        In ALBA the base directory already includes the user
+        home directory. So
         information into account, such as if the current user
         is inhouse.
 
@@ -63,17 +63,18 @@ class ALBASession(Session.Session):
         session_date = parts[6]
         # remove RAW_DATA from da
         try:
-           more = parts[8:]
-        except:
-           more = [] 
+            more = parts[8:]
+        except Exception as e:
+            more = []
 
-        archive_dir = os.path.join(self.base_archive_directory, user_dir, session_date, *more)
-        #if 'RAW_DATA' in thedir:
-        #    thedir = thedir.replace('RAW_DATA','ARCHIVE')
-        #else:
-        #    thedir = os.path.join(thedir, 'ARCHIVE')
-
-        logging.getLogger("HWR").debug("ALBASession. returning archive directory: %s" % archive_dir)
+        archive_dir = os.path.join(
+            self.base_archive_directory,
+            user_dir,
+            session_date,
+            *more)
+        logging.getLogger("HWR").debug(
+            "ALBASession. returning archive directory: %s" %
+            archive_dir)
         return archive_dir
 
     def set_ldap_homedir(self, homedir):

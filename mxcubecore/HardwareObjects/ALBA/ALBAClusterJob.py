@@ -105,7 +105,13 @@ class ALBAStrategyJob(ALBAClusterJob):
 
         jobname = os.path.basename(os.path.dirname(edna_directory))
 
-        self.job = XalocJob("edna-strategy", jobname, self.sls_script, input_file, edna_directory, 'SCRATCH')
+        self.job = XalocJob(
+            "edna-strategy",
+            jobname,
+            self.sls_script,
+            input_file,
+            edna_directory,
+            'SCRATCH')
         self.job.submit()
 
         logging.getLogger("HWR").debug("         StrategyJob - %s" % str(self.job))
@@ -117,8 +123,10 @@ class ALBAStrategyJob(ALBAClusterJob):
         logging.getLogger("HWR").debug("  edna directory: %s" % self.edna_directory)
 
     def get_result(self, state):
-        if state == "COMPLETED": 
-            outfile = os.path.join( self.edna_directory, "ControlInterfaceToMXCuBEv1_3_dataOutput.xml")
+        if state == "COMPLETED":
+            outfile = os.path.join(
+                self.edna_directory,
+                "ControlInterfaceToMXCuBEv1_3_dataOutput.xml")
 
             logging.getLogger("HWR").debug("Job / state is COMPLETED")
             logging.getLogger("HWR").debug("  looking for file: %s" % outfile)
@@ -127,10 +135,13 @@ class ALBAStrategyJob(ALBAClusterJob):
                 open(self.results_file, "w").write(job_output)
                 result = XSDataResultMXCuBE.parseFile(self.results_file)
             else:
-                logging.getLogger("HWR").debug("EDNA Job finished without success / cannot find output file ") 
+                logging.getLogger("HWR").debug(
+                    "EDNA Job finished without success / cannot find output file ")
                 result = ""
         else:
-            logging.getLogger("HWR").debug("EDNA Job finished without success / state was %s" % (job.state))
+            logging.getLogger("HWR").debug(
+                "EDNA Job finished without success / state was %s" %
+                (job.state))
             result = ""
-        
+
         return result
