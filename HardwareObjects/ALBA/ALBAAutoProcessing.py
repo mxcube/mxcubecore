@@ -22,8 +22,6 @@ import math
 import logging
 
 from ALBAClusterJob import ALBAEdnaProcJob
-from PyTango import DeviceProxy
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from XSDataCommon import XSDataFile, XSDataString, XSDataInteger
 from XSDataAutoprocv1_0 import XSDataAutoprocInput
@@ -44,9 +42,11 @@ class ALBAAutoProcessing(HardwareObject):
 
     def init(self):
         self.template_dir = self.getProperty("template_dir")
-        var_dsname = self.getProperty("variables_ds")
-        logging.getLogger("HWR").debug("ALBAAutoProcessing INIT: var_ds=%s, template_dir=%s" % (var_dsname, self.template_dir))
-        self.var_ds = DeviceProxy( var_dsname)
+        logging.getLogger("HWR").debug("Autoprocessing template_dir = %s" %
+                                       self.template_dir)
+        self.detsamdis_hwobj = self.getObjectByRole("detector_distance")
+        self.chan_beamx = self.getChannelObject('beamx')
+        self.chan_beamy = self.getChannelObject('beamy')
 
     def create_input_files(self, dc_pars):
 
@@ -78,17 +78,18 @@ class ALBAAutoProcessing(HardwareObject):
         mosflm_file = os.path.join(mosflm_dir, "mosflm.dat")
 
         # PREPARE VARIABLES
-        detsamdis = self.var_ds.detsamdis
-        beamx, beamy = self.var_ds.beamx, self.var_ds.beamy
+        detsamdis = self.detsamdis_hwobj.get_position()
+        beamx, beamy = self.chan_beamx.getValue(), self.chan_beamy.getValue()
 
-        mbeamx, mbeamy = beamy*0.172, beamx*0.172 
-    
-        datarangestartnum = start_img_num 
-        datarangefinishnum = start_img_num+nb_images-1
-        backgroundrangestartnum = start_img_num 
-        spotrangestartnum = start_img_num
-        if angle_increment != 0: 
-                minimumrange = int(round(20/angle_increment))
+        mbeamx, mbeamy = beamy * 0.172, beamx * 0.172
+
+        data_range_start_num = start_img_num
+        data_range_finish_num = start_img_num + nb_images - 1
+        background_range_start_num = start_img_num
+        spot_range_start_num = start_img_num
+
+        if angle_increment != 0:
+            minimum_range = int(round(20 / angle_increment))
         elif angle_increment == 0:
             minimum_range = 1
         if nb_images >= minimum_range:
