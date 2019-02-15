@@ -20,7 +20,7 @@
 
 Public Interface:
    Commands:
-       int getState() 
+       int getState()
            Description:
                returns current state
            Output:
@@ -32,7 +32,7 @@ Public Interface:
                      11: alarm
                      13: unknown
                      23: fault
-  
+
        string getStatus()
            Description:
                returns current state as a string that can contain a more
@@ -40,7 +40,7 @@ Public Interface:
 
            Output:
                status string
-   
+
        cmdIn()
            Executes the command associated to the "In" action
        cmdOut()
@@ -48,15 +48,20 @@ Public Interface:
 
    Signals:
        stateChanged
- 
-'''
 
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
+"""
+
 import logging
 
+from HardwareRepository import BaseHardwareObjects
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
 STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
-         (0,1,9,11,13,23)
+    (0, 1, 9, 11, 13, 23)
+
 
 class ALBAEpsActuator(BaseHardwareObjects.Device):
 
@@ -74,29 +79,33 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
 
+        self.chan_actuator = None
+
+        self.actuator_state = None
+        self.state_strings = None
+
     def init(self):
         self.actuator_state = STATE_UNKNOWN  
 
         try:
-            self.actuator_channel = self.getChannelObject('actuator')
-            self.actuator_channel.connectSignal('update', self.stateChanged)
+            self.chan_actuator = self.getChannelObject('actuator')
+            self.chan_actuator.connectSignal('update', self.stateChanged)
         except KeyError:
             logging.getLogger().warning('%s: cannot report EPS Actuator State', self.name())
 
         try:
             state_string = self.getProperty("states")
             if state_string is None:
-                 self.state_strings = self.default_state_strings
+                self.state_strings = self.default_state_strings
             else:
-                 states = state_string.split(",")
-                 self.state_strings = states[1].strip(), states[0].strip()
-        except:
+                states = state_string.split(",")
+                self.state_strings = states[1].strip(), states[0].strip()
             import traceback
             logging.getLogger("HWR").warning( traceback.format_exc() )
             self.state_strings = self.default_state_strings
 
     def getState(self):
-        state = self.actuator_channel.getValue()
+        state = self.chan_actuator.getValue()
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
 
@@ -110,11 +119,8 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         return act_state
 
     def stateChanged(self, value):
-        #
-        # emit signal
-        #
         self.actuator_state = self.convert_state(value)
-        self.emit('stateChanged', ((self.actuator_state),))
+        self.emit('stateChanged', (self.actuator_state,))
 
     def getUserName(self):
         return self.username
@@ -133,22 +139,18 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
     def open(self):
         self.cmdIn()
+
     def close(self):
         self.cmdOut()
 
     def cmdIn(self):
-        self.actuator_channel.setValue(1)
+        self.chan_actuator.setValue(1)
 
     def cmdOut(self):
-        self.actuator_channel.setValue(0)
+        self.chan_actuator.setValue(0)
+
 
 def test_hwo(hwo):
-    print "Name is: ",hwo.getUserName()
-    print "Shutter state is: ",hwo.getState()
-    print "Shutter status is: ",hwo.getStatus()
-
-    #print "Opening it"
-    #print hwo.open()
-    #print "Closing it"
-    #print hwo.close()
-
+    print "Name is: ", hwo.getUserName()
+    print "Shutter state is: ", hwo.getState()
+    print "Shutter status is: ", hwo.getStatus()

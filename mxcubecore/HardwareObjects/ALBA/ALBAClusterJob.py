@@ -21,14 +21,15 @@ import os
 import time
 import logging
 
-import sys
-
-sys.path.append("/beamlines/bl13/controls/devel/pycharm/ALBAClusterClient")
-from xaloc import XalocJob
-
+from ALBAClusterClient import XalocJob
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
 root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
+
 
 class ALBAClusterJob(object):
 
@@ -43,7 +44,7 @@ class ALBAClusterJob(object):
         if not self.job:
             return
 
-        time.sleep(0.5) 
+        time.sleep(0.5)
 
         state = self.job.state
 
@@ -52,31 +53,45 @@ class ALBAClusterJob(object):
 
         while state in ["RUNNING", "PENDING"]:
             logging.getLogger("HWR").debug("Job / is %s" % state)
-            time.sleep(0.5) 
+            time.sleep(0.5)
             state = self.job.state
 
-        logging.getLogger("HWR").debug(" job finished with state: \"%s\"" % state) 
+        logging.getLogger("HWR").debug(" job finished with state: \"%s\"" % state)
         return state
 
     def get_result(self, state):
         pass
 
+
 class ALBAAutoProcJob(ALBAClusterJob):
     sls_script = os.path.join(root, 'edna-mx/autoproc/mxcube/edna-mx.autoproc.sl')
-   
-    def run(self, *args):
 
-        jobname = os.path.basename(os.path.dirname(edna_directory))
-        self.job = XalocJob("edna-autoproc", jobname, self.sls_script, input_file, edna_directory, 'SCRATCH')
+    def run(self, *args):
+        collect_id, input_file, output_dir = args
+        self.job = XalocJob(
+            "edna-autoproc",
+            str(collect_id),
+            self.sls_script,
+            input_file,
+            output_dir,
+            'SCRATCH')
         self.job.submit()
+
 
 class ALBAEdnaProcJob(ALBAClusterJob):
     sls_script = os.path.join(root, 'edna-mx/ednaproc/mxcube/edna-mx.ednaproc.sl')
-   
+
     def run(self, *args):
         collect_id, input_file, output_dir = args
-        self.job = XalocJob("edna-ednaproc", str(collect_id), self.sls_script, input_file, output_dir, 'SCRATCH')
+        self.job = XalocJob(
+            "edna-ednaproc",
+            str(collect_id),
+            self.sls_script,
+            input_file,
+            output_dir,
+            'SCRATCH')
         self.job.submit()
+
 
 class ALBAStrategyJob(ALBAClusterJob):
 

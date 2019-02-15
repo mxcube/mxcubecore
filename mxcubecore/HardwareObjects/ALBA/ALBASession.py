@@ -16,11 +16,17 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
-import os, time, logging
-from HardwareRepository import HardwareRepository
 
+import os
+import time
+import logging
 import Session
 import queue_model_objects_v1 as queue_model_objects
+
+__credits__ = ["ALBA"]
+__version__ = "2.3."
+__category__ = "General"
+
 
 class ALBASession(Session.Session):
 
@@ -40,7 +46,6 @@ class ALBASession(Session.Session):
         else:
             start_time = time.strftime("%Y%m%d")
 
-        # directory = os.path.join(self.base_directory, self.get_proposal(), 'DATA', start_time)
         if self.base_directory is not None:
             directory = os.path.join(self.base_directory, start_time)
         else:
@@ -49,11 +54,11 @@ class ALBASession(Session.Session):
 
     def get_archive_directory(self, directory=None):
         if directory is None:
-            thedir = self.get_base_data_directory()
+            _dir = self.get_base_data_directory()
         else:
-            thedir = directory
+            _dir = directory
 
-        parts = thedir.split(os.path.sep)
+        parts = _dir.split(os.path.sep)
         user_dir = parts[5]
         session_date = parts[6]
         # remove RAW_DATA from da

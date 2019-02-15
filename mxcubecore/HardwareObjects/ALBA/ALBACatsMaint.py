@@ -17,52 +17,63 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
+"""
+[Name] ALBACatsMaint
+
+[Description]
+HwObj used to control the CATS sample changer via Tango maintenance operations
+
+[Signals]
+"""
 
 from sample_changer.CatsMaint import CatsMaint
-import logging
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
 
 class ALBACatsMaint(CatsMaint):
 
     def __init__(self, *args):
         CatsMaint.__init__(self, *args)
+        self.chan_shifts = None
+        self.chan_at_home = None
+        self.cmd_super_abort = None
 
     def init(self):
         CatsMaint.init(self)
 
-        # load ALBA attributes and commands from XML
-        self._chnAtHome = self.getChannelObject("_chnAtHome")
-        self.super_abort_cmd = self.getCommandObject("super_abort")
-
         # channel to ask diffractometer for mounting position
-        self.shifts_channel = self.getChannelObject("shifts")
+        self.chan_shifts = self.getChannelObject("shifts")
+        self.chan_at_home = self.getChannelObject("_chnAtHome")
+        self.cmd_super_abort = self.getCommandObject("super_abort")
 
     def _doAbort(self):
-        if self.super_abort_cmd is not None:
-            self.super_abort_cmd()
+        if self.cmd_super_abort is not None:
+            self.cmd_super_abort()
         self._cmdAbort()
 
-    def _doResetMemory(self): 
+    def _doResetMemory(self):
         """
         Reset CATS memory.
         """
         # Check do_PRO6_RAH first
-        if self._chnAtHome.getValue() is True:
+        if self.chan_at_home.getValue() is True:
             CatsMaint._doResetMemory(self)
 
     def _doReset(self):
         """
         Reset CATS system.
         """
-        self._cmdAbort()  
+        self._cmdAbort()
         self._cmdReset()
         self._doResetMemory()
 
     def _doOperationCommand(self, cmd, pars):
         """
         Send a CATS command
-        
+
         @cmd: command
         @pars: command arguments
         """
@@ -74,11 +85,12 @@ class ALBACatsMaint(CatsMaint):
 
         @return: 3-tuple
         """
-        if self.shifts_channel is not None:
-            shifts = self.shifts_channel.getValue()
+        if self.chan_shifts is not None:
+            shifts = self.chan_shifts.getValue()
         else:
             shifts = None
         return shifts
+
 
 def test_hwo(hwo):
     print hwo._get_shifts()

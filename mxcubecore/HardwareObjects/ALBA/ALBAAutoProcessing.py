@@ -18,43 +18,38 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import time
-import logging
 import math
-from datetime import datetime
+import logging
 
 from ALBAClusterJob import ALBAEdnaProcJob
-
-import sys
-sys.path.append("/beamlines/bl13/controls/devel/pycharm/ALBAClusterClient")
-
 from PyTango import DeviceProxy
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.TaskUtils import *
-
-from XSDataAutoprocv1_0 import XSDataAutoprocInput
 from XSDataCommon import XSDataFile, XSDataString, XSDataInteger
+from XSDataAutoprocv1_0 import XSDataAutoprocInput
 
-root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
-sls_script = os.path.join(root, 'gphl/autoproc/autoproc.process.sl')
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
-
-from xaloc import XalocJob
 
 class ALBAAutoProcessing(HardwareObject):
+    def __init__(self, name):
+        HardwareObject.__init__(self, name)
+        self.template_dir = None
+        self.detsamdis_hwobj = None
+        self.chan_beamx = None
+        self.chan_beamy = None
+        self.input_file = None
 
     def init(self):
-        HardwareObject.init(self)
-
         self.template_dir = self.getProperty("template_dir")
         var_dsname = self.getProperty("variables_ds")
         logging.getLogger("HWR").debug("ALBAAutoProcessing INIT: var_ds=%s, template_dir=%s" % (var_dsname, self.template_dir))
         self.var_ds = DeviceProxy( var_dsname)
 
-    # input files for standard collection auto processing 
     def create_input_files(self, dc_pars):
- 
+
         xds_dir = dc_pars['xds_dir']
         mosflm_dir = dc_pars['auto_dir']
 
@@ -62,16 +57,16 @@ class ALBAAutoProcessing(HardwareObject):
         osc_seq = dc_pars['oscillation_sequence'][0]
 
         prefix = fileinfo['prefix']
-        runno =  fileinfo['run_number']
+        runno = fileinfo['run_number']
 
         exp_time = osc_seq['exposure_time']
 
-        start_angle = osc_seq['start']
+        # start_angle = osc_seq['start']
         nb_images = osc_seq['number_of_images']
         start_img_num = osc_seq['start_image_number']
         angle_increment = osc_seq['range']
 
-        wavelength = osc_seq.get('wavelength',0)
+        wavelength = osc_seq.get('wavelength', 0)
 
         xds_template_name = 'XDS_TEMPLATE.INP'
         mosflm_template_name = 'mosflm_template.dat'
@@ -81,8 +76,6 @@ class ALBAAutoProcessing(HardwareObject):
     
         xds_file = os.path.join(xds_dir,"XDS.INP")
         mosflm_file = os.path.join(mosflm_dir,"mosflm.dat")
-    
-        t = datetime.now()
     
         # PREPARE VARIABLES
         detsamdis = self.var_ds.detsamdis
@@ -174,25 +167,16 @@ class ALBAAutoProcessing(HardwareObject):
         path.setValue(xds_file)
         input_file.setPath(path)
 
-        ednaproc_input.setInput_file( input_file )
-        ednaproc_input.setData_collection_id( XSDataInteger(collection_id) )
-
-        #output_dir = XSDataFile()
-        #outpath = XSDataString()
-        #outpath.setValue(output_dir)
-        #output_dir.setPath(path)
-
-        #ednaproc_input.setOutput_directory( output_dir )
+        ednaproc_input.setInput_file(input_file)
+        ednaproc_input.setData_collection_id(XSDataInteger(collection_id))
 
         ednaproc_input.exportToFile(ednaproc_input_file)
-
         self.input_file = ednaproc_input_file
 
-    # trigger auto processing for standard collection
     def trigger_auto_processing(self, dc_pars):
-        logging.getLogger("HWR").debug(" ALBAAutoProcessing. triggering auto processing.")
+        logging.getLogger("HWR").debug("Triggering auto processing.")
 
-        dc_id = dc_pars['collection_id']  
+        dc_id = dc_pars['collection_id']
         output_dir = dc_pars['ednaproc_dir']
 
         logging.getLogger("HWR").debug("    - collection_id = %s " % dc_id)
@@ -202,11 +186,7 @@ class ALBAAutoProcessing(HardwareObject):
         input_file = self.input_file  # TODO
 
         job.run(dc_id, input_file, output_dir)
-    
-def test_hwo(hwo):
-    ofile = "/tmp/edna/edna_result"
-    odir = "/tmp/edna"
-    test_input_file = "/beamlines/bl13/projects/cycle2018-I/2018012551-bcalisto/mx2018012551/DATA/20180131/PROCESS_DATA/characterisation_ref-Thrombin-TB-TTI1_A_run1_1/EDNAInput_2004391.xml"
-    result = hwo.run_edna(test_input_file,ofile,odir) 
-    print result
 
+
+def test_hwo(hwo):
+    pass

@@ -16,38 +16,53 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-ALBACollect
-"""
 import os
+import sys
 import time
-import logging
-import math
 import gevent
-from HardwareRepository.TaskUtils import *
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+import logging
+
+from HardwareRepository.TaskUtils import task
 from AbstractCollect import AbstractCollect
 from taurus.core.tango.enums import DevState
 
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
-__author__ = "Vicente Rey Bakaikoa"
-__credits__ = ["MXCuBE collaboration"]
-__version__ = "2.2."
 
 class ALBACollect(AbstractCollect):
     """Main data collection class. Inherited from AbstractMulticollect
-       Collection is done by setting collection parameters and 
-       executing collect command  
+       Collection is done by setting collection parameters and
+       executing collect command
     """
+
     def __init__(self, name):
-        """
-
-        :param name: name of the object
-        :type name: string
-        """
-
         AbstractCollect.__init__(self, name)
-#        HardwareObject.__init__(self, name)
+
+        self.supervisor_hwobj = None
+        self.fastshut_hwobj = None
+        self.slowshut_hwobj = None
+        self.photonshut_hwobj = None
+        self.frontend_hwobj = None
+        self.diffractometer_hwobj = None
+        self.omega_hwobj = None
+        self.lims_client_hwobj = None
+        self.machine_info_hwobj = None
+        self.energy_hwobj = None
+        self.resolution_hwobj = None
+        self.transmission_hwobj = None
+        self.detector_hwobj = None
+        self.beam_info_hwobj = None
+        self.graphics_manager_hwobj = None
+        self.autoprocessing_hwobj = None
+        self.flux_hwobj = None
+
+        self.cmd_ni_conf = None
+        self.cmd_ni_unconf = None
+
+        self.chan_kappa_pos = None
+        self.chan_phi_pos = None
 
         self._error_msg = ""
         self.owner = None
@@ -61,19 +76,14 @@ class ALBACollect(AbstractCollect):
         self.saved_omega_velocity = None
 
     def init(self):
-        """
-        Init method
-        """
 
         self.ready_event = gevent.event.Event()
 
         self.supervisor_hwobj = self.getObjectByRole("supervisor")
-
         self.fastshut_hwobj = self.getObjectByRole("fast_shutter")
         self.slowshut_hwobj = self.getObjectByRole("slow_shutter")
         self.photonshut_hwobj = self.getObjectByRole("photon_shutter")
         self.frontend_hwobj = self.getObjectByRole("frontend")
-
         self.diffractometer_hwobj = self.getObjectByRole("diffractometer")
         self.omega_hwobj = self.getObjectByRole("omega")
         self.lims_client_hwobj = self.getObjectByRole("lims_client")
@@ -84,16 +94,14 @@ class ALBACollect(AbstractCollect):
         self.detector_hwobj = self.getObjectByRole("detector")
         self.beam_info_hwobj = self.getObjectByRole("beam_info")
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
-
         self.autoprocessing_hwobj = self.getObjectByRole("auto_processing")
+        self.flux_hwobj = self.getObjectByRole("flux")
 
-        self.ni_conf_cmd = self.getCommandObject("ni_configure")
-        self.ni_unconf_cmd = self.getCommandObject("ni_unconfigure")
+        self.cmd_ni_conf = self.getCommandObject("ni_configure")
+        self.cmd_ni_unconf = self.getCommandObject("ni_unconfigure")
 
-        # some extra reading channels to be saved in image header
-        self.flux_hwo = self.getObjectByRole("flux")
-        self.kappapos_chan = self.getChannelObject("kappapos")
-        self.phipos_chan = self.getChannelObject("phipos")
+        self.chan_kappa_pos = self.getChannelObject("kappapos")
+        self.chan_phi_pos = self.getChannelObject("phipos")
 
         undulators = []
         try:
@@ -164,18 +172,32 @@ class ALBACollect(AbstractCollect):
             logging.getLogger("HWR").debug("Running a collect (CHARACTERIZATION)")
         elif exp_type == "Helical":
             logging.getLogger("HWR").debug("Running a helical collection")
-            logging.getLogger("HWR").debug("   helical positions are: %s" % str(self.helical_positions))
+            logging.getLogger("HWR").debug(
+                "\thelical positions are: %s" % str(
+                    self.helical_positions))
             hpos = self.helical_positions
-            logging.getLogger("HWR").debug("               phiy from %3.4f to %3.4f" % (hpos[0],hpos[4]))
-            logging.getLogger("HWR").debug("               phiz from %3.4f to %3.4f" % (hpos[1],hpos[5]))
-            logging.getLogger("HWR").debug("              sampx from %3.4f to %3.4f" % (hpos[2],hpos[6]))
-            logging.getLogger("HWR").debug("              sampy from %3.4f to %3.4f" % (hpos[3],hpos[7]))
+            logging.getLogger("HWR").debug(
+                "\tphiy from %3.4f to %3.4f" %
+                (hpos[0], hpos[4]))
+            logging.getLogger("HWR").debug(
+                "\tphiz from %3.4f to %3.4f" %
+                (hpos[1], hpos[5]))
+            logging.getLogger("HWR").debug(
+                "\tsampx from %3.4f to %3.4f" %
+                (hpos[2], hpos[6]))
+            logging.getLogger("HWR").debug(
+                "\tsampy from %3.4f to %3.4f" %
+                (hpos[3], hpos[7]))
         elif exp_type == "Mesh":
             logging.getLogger("HWR").debug("Running a raster collection ()")
-            logging.getLogger("HWR").debug("   number of lines are: %s" % self.mesh_num_lines)
-            logging.getLogger("HWR").debug("   total nb of frames: %s" % self.mesh_total_nb_frames)
-            logging.getLogger("HWR").debug("          mesh range : %s" % self.mesh_range)
-            logging.getLogger("HWR").debug("          mesh center : %s" % self.mesh_center)
+            logging.getLogger("HWR").debug(
+                "\tnumber of lines are: %s" %
+                self.mesh_num_lines)
+            logging.getLogger("HWR").debug(
+                "\ttotal nb of frames: %s" %
+                self.mesh_total_nb_frames)
+            logging.getLogger("HWR").debug("\tmesh range : %s" % self.mesh_range)
+            logging.getLogger("HWR").debug("\tmesh center : %s" % self.mesh_center)
         else:
             logging.getLogger("HWR").debug("Running a collect (STANDARD)")
 
@@ -541,34 +563,39 @@ class ALBACollect(AbstractCollect):
         t0 = time.time()
         while True:
             super_state = self.supervisor_hwobj.get_state()
-            cphase = self.supervisor_hwobj.get_current_phase().upper() 
+            cphase = self.supervisor_hwobj.get_current_phase().upper()
             if super_state != DevState.MOVING and cphase == "SAMPLE":
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug("timeout sending supervisor to sample view phase")
+                logging.getLogger("HWR").debug(
+                    "timeout sending supervisor to sample view phase")
                 break
             gevent.sleep(0.5)
 
-        logging.getLogger("HWR").debug("supervisor finished go sample view phase task. phase is now: %s" % cphase)
+        logging.getLogger("HWR").debug(
+            "supervisor finished go sample view phase task. phase is now: %s" %
+            cphase)
 
         return self.is_sampleview_phase()
 
     def is_sampleview_phase(self):
-        return self.supervisor_hwobj.get_current_phase().upper() == "SAMPLE" 
+        return self.supervisor_hwobj.get_current_phase().upper() == "SAMPLE"
 
     def configure_ni(self, startang, total_dist):
-        logging.getLogger("HWR").debug("Configuring NI660 with pars 0, %s, %s, 0, 1" % (startang, total_dist))
-        self.ni_conf_cmd(0.0, startang, total_dist,0, 1)
+        logging.getLogger("HWR").debug(
+            "Configuring NI660 with pars 0, %s, %s, 0, 1" %
+            (startang, total_dist))
+        self.cmd_ni_conf(0.0, startang, total_dist, 0, 1)
 
     def unconfigure_ni(self):
-        self.ni_unconf_cmd()
+        self.cmd_ni_unconf()
 
     def open_safety_shutter(self):
-        """ implements prepare_shutters in collect macro """ 
+        """ implements prepare_shutters in collect macro """
 
         # prepare ALL shutters
 
-           # close fast shutter
+        # close fast shutter
         if self.fastshut_hwobj.getState() != 0:
             self.fastshut_hwobj.close()
 
@@ -619,14 +646,14 @@ class ALBACollect(AbstractCollect):
 
     def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
         """
-        Descript. : 
+        Descript. :
         """
         pass
 
     @task
     def _take_crystal_snapshot(self, filename):
         """
-        Descript. : 
+        Descript. :
         """
         if not self.is_sampleview_phase():
             self.go_to_sampleview()
@@ -636,17 +663,17 @@ class ALBACollect(AbstractCollect):
 
     def set_energy(self, value):
         """
-        Descript. : 
+        Descript. :
         """
-        #   program energy 
+        #   program energy
         #   prepare detector for diffraction
         self.energy_hwobj.move_energy(value)
 
     def set_wavelength(self, value):
         """
-        Descript. : 
+        Descript. :
         """
-        #   program energy 
+        #   program energy
         #   prepare detector for diffraction
         self.energy_hwobj.move_wavelength(value)
 
@@ -655,7 +682,7 @@ class ALBACollect(AbstractCollect):
 
     def set_transmission(self, value):
         """
-        Descript. : 
+        Descript. :
         """
         self.transmission_hwobj.set_value(value)
 
@@ -665,16 +692,15 @@ class ALBACollect(AbstractCollect):
         """
         self.resolution_hwobj.move(value)
 
-    def move_detector(self,value):
+    def move_detector(self, value):
         self.detector_hwobj.move_distance(value)
 
-    @task 
+    @task
     def move_motors(self, motor_position_dict):
         """
-        Descript. : 
-        """        
+        Descript. :
+        """
         self.diffractometer_hwobj.move_motors(motor_position_dict)
-
 
     def create_file_directories(self):
         """
@@ -714,7 +740,7 @@ class ALBACollect(AbstractCollect):
 
     def prepare_input_files(self):
         """
-        Descript. : 
+        Descript. :
         """
         i = 1
         log = logging.getLogger("user_level_log")
@@ -761,7 +787,7 @@ class ALBACollect(AbstractCollect):
 
     def get_wavelength(self):
         """
-        Descript. : 
+        Descript. :
             Called to save wavelength in lims
         """
         if self.energy_hwobj is not None:
@@ -769,15 +795,15 @@ class ALBACollect(AbstractCollect):
 
     def get_detector_distance(self):
         """
-        Descript. : 
+        Descript. :
             Called to save detector_distance in lims
         """
-        if self.detector_hwobj is not None:	
+        if self.detector_hwobj is not None:
             return self.detector_hwobj.get_distance()
 
     def get_resolution(self):
         """
-        Descript. : 
+        Descript. :
             Called to save resolution in lims
         """
         if self.resolution_hwobj is not None:
@@ -785,7 +811,7 @@ class ALBACollect(AbstractCollect):
 
     def get_transmission(self):
         """
-        Descript. : 
+        Descript. :
             Called to save transmission in lims
         """
         if self.transmission_hwobj is not None:
@@ -793,10 +819,10 @@ class ALBACollect(AbstractCollect):
 
     def get_undulators_gaps(self):
         """
-        Descript. : return triplet with gaps. In our case we have one gap, 
-                    others are 0        
+        Descript. : return triplet with gaps. In our case we have one gap,
+                    others are 0
         """
-        #TODO 
+        # TODO
         try:
             if self.chan_undulator_gap:
                 und_gaps = self.chan_undulator_gap.getValue()
@@ -810,36 +836,36 @@ class ALBACollect(AbstractCollect):
 
     def get_beam_size(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_size()
 
     def get_slit_gaps(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_slits_gap()
-        return None,None
+        return None, None
 
     def get_beam_shape(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.beam_info_hwobj is not None:
             return self.beam_info_hwobj.get_beam_shape()
-    
+
     def get_measured_intensity(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.flux_hwo is not None:
             return self.flux_hwo.get_flux()
 
     def get_machine_current(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_current()
@@ -848,7 +874,7 @@ class ALBACollect(AbstractCollect):
 
     def get_machine_message(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return self.machine_info_hwobj.get_message()
@@ -857,7 +883,7 @@ class ALBACollect(AbstractCollect):
 
     def get_machine_fill_mode(self):
         """
-        Descript. : 
+        Descript. :
         """
         if self.machine_info_hwobj:
             return "FillMode not/impl"
@@ -868,7 +894,7 @@ class ALBACollect(AbstractCollect):
 
     def get_flux(self):
         """
-        Descript. : 
+        Descript. :
         """
         return self.get_measured_intensity()
 
@@ -877,14 +903,14 @@ class ALBACollect(AbstractCollect):
             dc_pars = self.current_dc_parameters
             self.autoprocessing_hwobj.trigger_auto_processing(dc_pars)
 
+
 def test_hwo(hwo):
-    print "Energy: ",hwo.get_energy()
-    print "Transm: ",hwo.get_transmission()
-    print "Resol: ",hwo.get_resolution()
-    print "Shutters (ready for collect): ",hwo.check_shutters()
-    print "Supervisor(collect phase): ",hwo.is_collect_phase()
+    print "Energy: ", hwo.get_energy()
+    print "Transm: ", hwo.get_transmission()
+    print "Resol: ", hwo.get_resolution()
+    print "Shutters (ready for collect): ", hwo.check_shutters()
+    print "Supervisor(collect phase): ", hwo.is_collect_phase()
 
-    print "Flux ",hwo.get_flux()
-    print "Kappa ",hwo.kappapos_chan.getValue()
-    print "Phi ",hwo.phipos_chan.getValue()
-
+    print "Flux ", hwo.get_flux()
+    print "Kappa ", hwo.kappapos_chan.getValue()
+    print "Phi ", hwo.phipos_chan.getValue()

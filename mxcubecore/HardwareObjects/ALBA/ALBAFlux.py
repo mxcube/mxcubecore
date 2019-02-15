@@ -16,8 +16,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.BaseHardwareObjects import Device
 import logging
+
+from HardwareRepository.BaseHardwareObjects import Device
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
 
 class ALBAFlux(Device):
@@ -56,7 +61,7 @@ class ALBAFlux(Device):
     def get_last_current(self):
         last_flux_norm = self.last_flux_norm_chn.getValue()
         current = self.current_chn.getValue()
-        last_current = (last_flux_norm/250.) * current
+        last_current = (last_flux_norm / 250.) * current
         return last_current
 
 

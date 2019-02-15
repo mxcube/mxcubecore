@@ -17,10 +17,16 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import time
+
+from HardwareRepository import BaseHardwareObjects
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
 STATE_OUT, STATE_IN, STATE_MOVING, STATE_FAULT, STATE_ALARM, STATE_UNKNOWN = \
-         (0,1,9,11,13,23)
+    (0, 1, 9, 11, 13, 23)
+
 
 class ALBAFastShutter(BaseHardwareObjects.Device):
 
@@ -38,24 +44,32 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def __init__(self, name):
         BaseHardwareObjects.Device.__init__(self, name)
 
-    def init(self):
+        self.cmd_ni_start = None
+        self.cmd_ni_stop = None
 
-        self.actuator_state = STATE_UNKNOWN  
+        self.chan_actuator = None
+        self.chan_motor_pos = None
+        self.chan_motor_state = None
+
+        self.actuator_state = STATE_UNKNOWN
         self.actuator_value = None
         self.motor_position = None
         self.motor_state = None
+        self.state_strings = None
+
+    def init(self):
 
         try:
-            self.nistart_cmd = self.getCommandObject("nistart")
-            self.nistop_cmd = self.getCommandObject("nistop")
+            self.cmd_ni_start = self.getCommandObject("nistart")
+            self.cmd_ni_stop = self.getCommandObject("nistop")
 
-            self.actuator_channel = self.getChannelObject('actuator')
-            self.motorpos_channel = self.getChannelObject('motorposition')
-            self.motorstate_channel = self.getChannelObject('motorstate')
+            self.chan_actuator = self.getChannelObject('actuator')
+            self.chan_motor_pos = self.getChannelObject('motorposition')
+            self.chan_motor_state = self.getChannelObject('motorstate')
 
-            self.actuator_channel.connectSignal('update', self.stateChanged)
-            self.motorpos_channel.connectSignal('update', self.motorPositionChanged)
-            self.motorstate_channel.connectSignal('update', self.motorStateChanged)
+            self.chan_actuator.connectSignal('update', self.stateChanged)
+            self.chan_motor_pos.connectSignal('update', self.motorPositionChanged)
+            self.chan_motor_state.connectSignal('update', self.motorStateChanged)
         except KeyError:
             logging.getLogger().warning('%s: cannot report FrontEnd State', self.name())
 
@@ -73,9 +87,9 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def getState(self):
         if self.actuator_state == STATE_UNKNOWN:
-            self.actuator_value = self.actuator_channel.getValue()
-            self.motor_position = self.motorpos_channel.getValue()
-            self.motor_state = self.motorstate_channel.getValue()
+            self.actuator_value = self.chan_actuator.getValue()
+            self.motor_position = self.chan_motor_pos.getValue()
+            self.motor_state = self.chan_motor_state.getValue()
             self.update_state()
         return self.actuator_state
 
@@ -119,12 +133,12 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
     def getMotorPosition(self):
         if self.motor_position is None:
-            self.motor_position = self.motorpos_channel.getValue()
+            self.motor_position = self.chan_motor_pos.getValue()
         return self.motor_position
 
     def getMotorState(self):
         if self.motor_state is None:
-            self.motor_state = self.motorstate_channel.getValue()
+            self.motor_state = self.chan_motor_state.getValue()
         return self.motor_state
 
     def getUserName(self):
@@ -149,17 +163,17 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         self.close()
 
     def close(self):
-        self.motorpos_channel.setValue(0)
+        self.chan_motor_pos.setValue(0)
         self.set_ttl('High')
 
     def open(self):
-        self.motorpos_channel.setValue(0)
+        self.chan_motor_pos.setValue(0)
         self.set_ttl('Low')
 
     def set_ttl(self, value):
-        self.nistop_cmd()
-        self.actuator_channel.setValue(value)
-        self.nistart_cmd()
+        self.cmd_ni_stop()
+        self.chan_actuator.setValue(value)
+        self.cmd_ni_start()
 
     def is_open(self):
         if self.actuator_state == STATE_IN:
@@ -173,18 +187,11 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
         else:
             return False
 
+
 def test_hwo(hwo):
-    print "Name is: ",hwo.getUserName()
+    print "Name is: ", hwo.getUserName()
 
-    print "Shutter state is: ",hwo.getState()
-    print "Shutter status is: ",hwo.getStatus()
-    print "Motor position is: ",hwo.getMotorPosition()
-    print "Motor state is: ",hwo.getMotorState()
-    #hwo.open() 
-    #time.sleep(2)
-    #print "is_open?" , hwo.is_open()
-    #print "is_close?" , hwo.is_close()
-
-if __name__ == '__main__':
-    test()
-
+    print "Shutter state is: ", hwo.getState()
+    print "Shutter status is: ", hwo.getStatus()
+    print "Motor position is: ", hwo.getMotorPosition()
+    print "Motor state is: ", hwo.getMotorState()

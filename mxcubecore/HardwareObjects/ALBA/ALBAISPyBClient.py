@@ -16,16 +16,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository import HardwareRepository
 import logging
-import urllib2
-import os
-
-from suds.transport.http import HttpAuthenticated
-from suds.client import Client
 
 import ISPyBClient2
-from ISPyBClient2 import  _CONNECTION_ERROR_MSG
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
 
 class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
 
@@ -90,15 +88,14 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 pass
 
 def test_hwo(hwo):
-    proposal = 'mx2018012551'
     proposal = 'mx2018002222'
     pasw = '2222008102'
-    
+
     info = hwo.login(proposal, pasw)
     # info = hwo.get_proposal(proposal_code, proposal_number)
     # info = hwo.get_proposal_by_username("u2020000007")
     print info['status']
- 
+
     print "Getting associated samples"
     session_id = 58248
     proposal_id = 8250

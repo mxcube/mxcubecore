@@ -20,24 +20,28 @@ import os
 import time
 import logging
 
-import sys
-sys.path.append("/beamlines/bl13/controls/devel/pycharm/ALBAClusterClient")
-
-from PyTango import DeviceProxy
-
 from DataAnalysis import DataAnalysis
-from HardwareRepository.TaskUtils import *
-
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 from XSDataCommon import XSDataFile, XSDataString
+from ALBAClusterClient import XalocJob
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
 root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
-
 sls_script = os.path.join(root, 'edna-mx/strategy/mxcube/edna-mx.strategy.sl')
 
-from xaloc import XalocJob
 
 class ALBADataAnalysis(DataAnalysis):
+
+    def __init__(self, name):
+        DataAnalysis.__init__(self, name)
+
+        self.job = None
+        self.edna_directory = None
+        self.input_file = None
+        self.results_file = None
 
     def init(self):
         DataAnalysis.init(self)
@@ -77,7 +81,7 @@ class ALBADataAnalysis(DataAnalysis):
 
         self.edna_directory = os.path.dirname(input_file)
         self.input_file = os.path.basename(input_file)
-        #self.results_file = self.fix_path(results_file)
+        # self.results_file = self.fix_path(results_file)
         self.results_file = results_file
         logging.getLogger("HWR").debug("      self.results file: %s" % self.results_file)
 
@@ -95,9 +99,9 @@ class ALBADataAnalysis(DataAnalysis):
 
     def fix_path(self, path):
         outpath = path.replace('PROCESS_DATA', 'PROCESS_DATA/RESULTS')
-        #dirname = os.path.dirname(path)
-        #basename = os.path.basename(path)
-        #outpath = os.path.join(dirname,'RESULTS',basename)
+        # dirname = os.path.dirname(path)
+        # basename = os.path.basename(path)
+        # outpath = os.path.join(dirname,'RESULTS',basename)
         return outpath
 
     def wait_done(self):
