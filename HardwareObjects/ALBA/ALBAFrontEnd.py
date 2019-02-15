@@ -16,54 +16,45 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAFrontEnd
+
+[Description]
 The ALBAFastShutter hardware object is a variation of the ALBAEpsActuator
-where the command to open/close is done on a different channel than the 
+where the command to open/close is done on a different channel than the
 reading of the shutter state.
 
 The interface is otherwise exactly the same as the ALBAEpsActuator
-
-Example XML::
-
-  <device class="ALBAFrontEnd">
-    <username>Front Shutter</username>
-    <taurusname>bl13/ct/eps-plc-01</taurusname>
-    <channel type="sardana" polling="events" name="actuator">fe_open</channel>
-    <channel type="sardana" name="open_command">OPEN_FE</channel>
-    <channel type="sardana" name="close_command">CLOSE_FE</channel>
-    <states>Open,Closed</states>
-  </device>
-
-'''
-
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
-import logging
+"""
 
 from ALBAEpsActuator import ALBAEpsActuator
 
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
+
 class ALBAFrontEnd(ALBAEpsActuator):
+    def __init__(self, name):
+        ALBAEpsActuator.__init__(self, name)
+
+        self.chan_open = None
+        self.chan_close = None
 
     def init(self):
         ALBAEpsActuator.init(self)
 
-        self.open_channel = self.getChannelObject('open_command')
-        self.close_channel = self.getChannelObject('close_command')
+        self.chan_open = self.getChannelObject('open_command')
+        self.chan_close = self.getChannelObject('close_command')
 
     def cmdIn(self):
-        self.open_channel.setValue(True)
-        # self.actuator_channel.setValue(1)
+        self.chan_open.setValue(True)
 
     def cmdOut(self):
-        self.close_channel.setValue(True)
-        # self.actuator_channel.setValue(0)
+        self.chan_close.setValue(True)
+
 
 def test_hwo(hwo):
-    print "Name is: ",hwo.getUserName()
-    print "Shutter state is: ",hwo.getState()
-    print "Shutter status is: ",hwo.getStatus()
-
-    #print "Opening it"
-    #print hwo.open()
-    #print "Closing it"
-    #print hwo.close()
-
+    print "Name is: ", hwo.getUserName()
+    print "Shutter state is: ", hwo.getState()
+    print "Shutter status is: ", hwo.getStatus()

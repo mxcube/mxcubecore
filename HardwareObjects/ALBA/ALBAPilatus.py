@@ -25,7 +25,6 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 from PyTango.gevent import DeviceProxy
 
-__author__ = "Vicente Rey"
 __credits__ = ["ALBA"]
 __version__ = "2.3."
 __category__ = "General"

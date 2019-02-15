@@ -16,16 +16,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 
-from HardwareRepository import HardwareRepository
 from HardwareRepository.BaseHardwareObjects import Device
 
-import logging
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
 
 class ALBAEnergy(Device):
 
-    def __init__(self,*args):
-        Device.__init__(self,*args)
+    def __init__(self, *args):
+        Device.__init__(self, *args)
+
+        self.energy_hwobj = None
+        self.wavelength_hwobj = None
+
         self.energy_position = None
         self.wavelength_position = None
 
@@ -84,16 +91,13 @@ class ALBAEnergy(Device):
 
     def getEnergyLimits(self):
         return self.get_energy_limits()
- 
+
     def get_wavelength_limits(self):
         return self.wavelength_hwobj.getLimits()
- 
+
+
 def test_hwo(hwo):
-
-    print "Energy is: ",hwo.get_energy()
-    print "Wavelength is: ",hwo.get_wavelength()
-    print "Energy limits are: ",hwo.get_energy_limits()
-    print "Wavelength limits are: ",hwo.get_wavelength_limits()
-
-if __name__ == '__main__':
-    test()
+    print "Energy is: ", hwo.get_energy()
+    print "Wavelength is: ", hwo.get_wavelength()
+    print "Energy limits are: ", hwo.get_energy_limits()
+    print "Wavelength limits are: ", hwo.get_wavelength_limits()

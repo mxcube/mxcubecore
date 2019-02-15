@@ -17,45 +17,71 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
+"""
+[Name] ALBACats
 
-from sample_changer.Cats90 import Cats90, SampleChangerState, TOOL_SPINE
+[Description]
+HwObj used to control the CATS sample changer via Tango.
+
+[Signals]
+"""
 
 import logging
 import time
-import gevent
 
-TIMEOUT=3
+from sample_changer.Cats90 import Cats90, SampleChangerState, TOOL_SPINE
+
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
+
+TIMEOUT = 3
 
 
 class ALBACats(Cats90):
     """
     Main class used @ ALBA to integrate the CATS-IRELEC sample changer.
     """
+
     def __init__(self, *args):
         Cats90.__init__(self, *args)
 
+        self.detdist_saved = None
+
+        self.shifts_channel = None
+        self.phase_channel = None
+        self.super_state_channel = None
+        self.detdist_position_channel = None
+        self._chnPathSafe = None
+
+        self.go_transfer_cmd = None
+        self.go_sampleview_cmd = None
+        self.super_abort_cmd = None
+
+        self._cmdLoadHT = None
+        self._cmdChainedLoadHT = None
+        self._cmdUnloadHT = None
+
+        self.auto_prepare_diff = None
+
     def init(self):
         Cats90.init(self)
-
+        # TODO: Migrate to taurus channels instead of tango channels
         self.shifts_channel = self.getChannelObject("shifts")
         self.phase_channel = self.getChannelObject("phase")
+        self.super_state_channel = self.getChannelObject("super_state")
+        self.detdist_position_channel = self.getChannelObject("detdist_position")
+        self._chnPathSafe = self.getChannelObject("_chnPathSafe")
 
         self.go_transfer_cmd = self.getCommandObject("go_transfer")
         self.go_sampleview_cmd = self.getCommandObject("go_sampleview")
         self.super_abort_cmd = self.getCommandObject("super_abort")
-        self.super_state_channel = self.getChannelObject("super_state")
-
-        self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
-        self.detdist_position_channel = self.getChannelObject("detdist_position")
-        self.detdist_saved = None
 
         self._cmdLoadHT = self.getCommandObject("_cmdLoadHT")
         self._cmdChainedLoadHT = self.getCommandObject("_cmdChainedLoadHT")
         self._cmdUnloadHT = self.getCommandObject("_cmdUnloadHT")
 
-        self._chnPathSafe = self.getChannelObject("_chnPathSafe")
+        self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
 
         if self._chnPathRunning is not None:
             self._chnPathRunning.connectSignal("update", self._updateRunningState)
@@ -69,10 +95,14 @@ class ALBACats(Cats90):
 
         @return: boolean
         """
-        return  self.state==SampleChangerState.Ready or self.state==SampleChangerState.Loaded or self.state==SampleChangerState.Charging or self.state==SampleChangerState.StandBy or self.state==SampleChangerState.Disabled
+        return self.state == SampleChangerState.Ready or \
+            self.state == SampleChangerState.Loaded or \
+            self.state == SampleChangerState.Charging or \
+            self.state == SampleChangerState.StandBy or \
+            self.state == SampleChangerState.Disabled
 
     def diff_send_transfer(self):
-	"""
+        """
         Checks if beamline supervisor is in TRANSFER phase (i.e. sample changer in TRANSFER phase too).
         If is not the case, It sends the sample changer to TRANFER phase.
         Returns a boolean value indication if the sample changer is in TRANSFER phase.
@@ -83,12 +113,12 @@ class ALBACats(Cats90):
             logging.getLogger("user_level_log").error("Supervisor is already in transfer phase")
             return True
 
-        self.go_transfer_cmd()   
+        self.go_transfer_cmd()
         ret = self._wait_phase_done('TRANSFER')
         return ret
 
     def diff_send_sampleview(self):
-	"""
+        """
         Checks if beamline supervisor is in SAMPLE phase (i.e. sample changer in SAMPLE phase too).
         If is not the case, It sends the sample changer to SAMPLE phase.
         Returns a boolean value indication if the sample changer is in SAMPLE phase.
@@ -111,7 +141,7 @@ class ALBACats(Cats90):
 
             time.sleep(0.1)
 
-        self.go_sampleview_cmd()   
+        self.go_sampleview_cmd()
         ret = self._wait_phase_done('SAMPLE')
         return ret
 
@@ -174,11 +204,11 @@ class ALBACats(Cats90):
     def load(self, sample=None, wait=False, wash=False):
         """
         Loads a sample. Overides to include ht basket.
-        
+
         @sample: sample to load.
         @wait:
         @wash: wash dring the load opearation.
-        @return: 
+        @return:
         """
    
         logging.getLogger("HWR").debug("Loading sample %s / type(%s)" % (sample, type(sample)))
@@ -567,9 +597,4 @@ def test_hwo(hwo):
     print(" Baskets :  ", hwo.getBasketList())
     if hwo.hasLoadedSample():
         print " Loaded is: ", hwo.getLoadedSample().getCoords()
-    print(" Is mounted sample: " , hwo.is_mounted_sample((1,1)))
-
-
-if  __name__ == '__main__':
-    test()
-
+    print(" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))

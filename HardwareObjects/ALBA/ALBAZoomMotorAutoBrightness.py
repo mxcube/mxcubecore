@@ -33,77 +33,60 @@ paired backlight intensity (slave IOR)
 [Emited signals]
 - stateChanged
 - predefinedPositionChanged
-
-[Functions]
-- None
-
-[Included Hardware Objects]
-- zoom
-- blight
-
-Example Hardware Object XML file :
-==================================
-<device class="ALBAZoomMotorAutoBrightness">
-  <object role="zoom" hwrid="/zoom"></object>
-  <object role="blight" hwrid="/blight"></object>
-</device>
 """
 
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
 import logging
-import os
-import PyTango
 
-__author__ = "Jordi Andreu"
-__credits__ = ["MXCuBE colaboration"]
+from HardwareRepository import BaseHardwareObjects
 
-__version__ = "2.2."
-__maintainer__ = "Jordi Andreu"
-__email__ = "jandreu[at]cells.es"
-__status__ = "Draft"
+__credits__ = ["ALBA"]
+__version__ = "2.3."
+__category__ = "General"
 
 
 class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
     INIT, FAULT, READY, MOVING, ONLIMIT = range(5)
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
+
+        self.zoom_hwobj = None
+        self.blight_hwobj = None
 
     def init(self):
         logging.getLogger("HWR").debug("Initializing zoom motor autobrightness IOR")
 
-        self.zoom = self.getObjectByRole('zoom')
-        self.blight = self.getObjectByRole('blight')
- 
-        self.zoom.positionChannel.connectSignal("update", self.positionChanged)
-        self.zoom.stateChannel.connectSignal("update", self.stateChanged)
+        self.zoom_hwobj = self.getObjectByRole('zoom')
+        self.blight_hwobj = self.getObjectByRole('blight')
+
+        self.zoom_hwobj.chan_position.connectSignal("update", self.positionChanged)
+        self.zoom_hwobj.chan_state.connectSignal("update", self.stateChanged)
 
     def getPredefinedPositionsList(self):
-        retlist = self.zoom.getPredefinedPositionsList()
+        retlist = self.zoom_hwobj.getPredefinedPositionsList()
         logging.getLogger("HWR").debug("Zoom positions list: %s" % repr(retlist))
         return retlist
 
     def moveToPosition(self, posno):
-        self.zoom.moveToPosition(posno)
-        state = self.zoom.getState()
+        self.zoom_hwobj.moveToPosition(posno)
+        state = self.zoom_hwobj.getState()
 
     def motorIsMoving(self):
-        return self.zoom.motorIsMoving()
+        return self.zoom_hwobj.motorIsMoving()
 
     def getLimits(self):
-        return self.zoom.getLimits()
+        return self.zoom_hwobj.getLimits()
 
     def getState(self):
-        return self.zoom.getState()
-   
+        return self.zoom_hwobj.getState()
+
     def getPosition(self):
-        return self.zoom.getPosition()
-   
+        return self.zoom_hwobj.getPosition()
+
     def getCurrentPositionName(self):
-         return self.zoom.getCurrentPositionName()
-    
+        return self.zoom_hwobj.getCurrentPositionName()
+
     def stateChanged(self, state):
         self.emit('stateChanged', (self.getState(), ))
 
@@ -112,8 +95,8 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
         logging.getLogger("HWR").debug("predefinedPositionChanged emitted: %s" % currentposition)
         # Update light brightness step-by-step
         posno = currentposition.split()[0]
-        self.blight.moveToPosition(posno)
-        
+        self.blight_hwobj.moveToPosition(posno)
+
         self.emit('predefinedPositionChanged', (currentposition, 0))
 
     def isReady(self):
@@ -122,11 +105,8 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-  print type(hwo.getState() )
-
-  print "     Zoom position is : ",hwo.getPosition()
-  print "Zoom position name is : ",hwo.getCurrentPositionName()
-  print "               Moving : ",hwo.motorIsMoving()
-  print "                State : ",hwo.getState()
-  print "            Positions : ",hwo.getPredefinedPositionsList()
-
+    print "     Zoom position is : ", hwo.getPosition()
+    print "Zoom position name is : ", hwo.getCurrentPositionName()
+    print "               Moving : ", hwo.motorIsMoving()
+    print "                State : ", hwo.getState()
+    print "            Positions : ", hwo.getPredefinedPositionsList()
