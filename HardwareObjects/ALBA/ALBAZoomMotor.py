@@ -73,13 +73,13 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
         labels = labels.split()
         retlist = []
         for label in labels:
-            pos = str(label.replace(":"," "))
+            pos = str(label.replace(":", " "))
             retlist.append(pos)
         logging.getLogger("HWR").debug("Zoom positions list: %s" % repr(retlist))
         new_retlist = []
         for n, e in enumerate(retlist):
             name = e.split()
-            new_retlist.append("%s %s" % (n+1, name[0]))
+            new_retlist.append("%s %s" % (n + 1, name[0]))
         logging.getLogger("HWR").debug("Zoom positions list: %s" % repr(new_retlist))
         return new_retlist
 
@@ -91,41 +91,41 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
 
     def motorIsMoving(self):
         if str(self.getState()) == "MOVING":
-             return True
+            return True
         else:
-             return False
+            return False
 
     def getLimits(self):
-        return (1,12) 
+        return 1, 12
 
     def getState(self):
         state = self.chan_state.getValue()
         curr_pos = self.getPosition()
         if state == DevState.ON:
-             return ALBAZoomMotor.READY
+            return ALBAZoomMotor.READY
         elif state == DevState.MOVING or state == DevState.RUNNING:
-             return ALBAZoomMotor.MOVING
+            return ALBAZoomMotor.MOVING
         elif curr_pos in self.getLimits():
-             return ALBAZoomMotor.ONLIMIT
+            return ALBAZoomMotor.ONLIMIT
         else:
-             return ALBAZoomMotor.FAULT
-        return state
-    
+            return ALBAZoomMotor.FAULT
+
     def getPosition(self):
         try:
             return self.chan_position.getValue()
         except Exception as e:
             return self.current_position
+
     def getCurrentPositionName(self):
         try:
             n = int(self.chan_position.getValue())
             value = "%s z%s" % (n, n)
             logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
             return value
-        except:
+        except Exception as e:
             logging.getLogger("HWR").debug("cannot get name zoom value")
-            return None 
-    
+            return None
+
     def stateChanged(self, state):
         logging.getLogger("HWR").debug("stateChanged emitted: %s" % state)
         the_state = self.getState()

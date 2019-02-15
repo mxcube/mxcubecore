@@ -107,7 +107,7 @@ class ALBACollect(AbstractCollect):
         try:
             for undulator in self["undulators"]:
                 undulators.append(undulator)
-        except:
+        except BaseException:
             pass
 
         self.exp_type_dict = {'Mesh': 'raster',
@@ -115,24 +115,24 @@ class ALBACollect(AbstractCollect):
 
         det_px, det_py = self.detector_hwobj.get_pixel_size()
 
-        self.set_beamline_configuration(\
-             synchrotron_name="ALBA",
-             directory_prefix=self.getProperty("directory_prefix"),
-             default_exposure_time=self.detector_hwobj.get_default_exposure_time(),
-             minimum_exposure_time=self.detector_hwobj.get_minimum_exposure_time(),
-             detector_fileext=self.detector_hwobj.get_file_suffix(),
-             detector_type=self.detector_hwobj.get_detector_type(),
-             detector_manufacturer=self.detector_hwobj.get_manufacturer(),
-             detector_model=self.detector_hwobj.get_model(),
-             detector_px=det_px,
-             detector_py=det_py,
-             undulators=undulators,
-             focusing_optic=self.getProperty('focusing_optic'),
-             monochromator_type=self.getProperty('monochromator'),
-             beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
-             beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
-             polarisation=self.getProperty('polarisation'),
-             input_files_server=self.getProperty("input_files_server"))
+        self.set_beamline_configuration(
+            synchrotron_name="ALBA",
+            directory_prefix=self.getProperty("directory_prefix"),
+            default_exposure_time=self.detector_hwobj.get_default_exposure_time(),
+            minimum_exposure_time=self.detector_hwobj.get_minimum_exposure_time(),
+            detector_fileext=self.detector_hwobj.get_file_suffix(),
+            detector_type=self.detector_hwobj.get_detector_type(),
+            detector_manufacturer=self.detector_hwobj.get_manufacturer(),
+            detector_model=self.detector_hwobj.get_model(),
+            detector_px=det_px,
+            detector_py=det_py,
+            undulators=undulators,
+            focusing_optic=self.getProperty('focusing_optic'),
+            monochromator_type=self.getProperty('monochromator'),
+            beam_divergence_vertical=self.beam_info_hwobj.get_beam_divergence_hor(),
+            beam_divergence_horizontal=self.beam_info_hwobj.get_beam_divergence_ver(),
+            polarisation=self.getProperty('polarisation'),
+            input_files_server=self.getProperty("input_files_server"))
 
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True, ))
@@ -141,14 +141,14 @@ class ALBACollect(AbstractCollect):
         """Main collection hook
         """
 
-        logging.getLogger("HWR").info( "Running ALBA data collection hook" )
+        logging.getLogger("HWR").info("Running ALBA data collection hook")
 
-        logging.getLogger("HWR").info( "  -- wait for devices to finish moving --")
-        logging.getLogger("HWR").info( "       + wait for resolution...")
+        logging.getLogger("HWR").info("  -- wait for devices to finish moving --")
+        logging.getLogger("HWR").info("       + wait for resolution...")
         self.resolution_hwobj.wait_end_of_move()
-        logging.getLogger("HWR").info( "       + wait for detector distance...")
+        logging.getLogger("HWR").info("       + wait for detector distance...")
         self.detector_hwobj.wait_move_distance_done()
-        logging.getLogger("HWR").info( "       + wait for energy...")
+        logging.getLogger("HWR").info("       + wait for energy...")
         self.energy_hwobj.wait_move_energy_done()
 
         # prepare input files for autoprocessing
@@ -165,7 +165,7 @@ class ALBACollect(AbstractCollect):
 
         ### EDNA_REF, OSC, MESH, HELICAL
 
-        exp_type = self.current_dc_parameters['experiment_type'] 
+        exp_type = self.current_dc_parameters['experiment_type']
         logging.getLogger("HWR").debug("Running a collect (exp_type=%s)" % exp_type)
 
         if exp_type == "Characterization":
@@ -220,18 +220,22 @@ class ALBACollect(AbstractCollect):
 
         omega_pos = osc_seq['start']
 
-        logging.getLogger("HWR").info( "Starting detector")
+        logging.getLogger("HWR").info("Starting detector")
         self.emit("collectStarted", (self.owner, 1))
 
         first_image_no = osc_seq['start_image_number']
 
         if exp_type == 'OSC' or (exp_type == 'Characterization' and nb_images == 1):
-            final_pos = self.prepare_collection(start_angle=omega_pos, nb_images=nb_images, first_image_no=first_image_no)
+            final_pos = self.prepare_collection(
+                start_angle=omega_pos,
+                nb_images=nb_images,
+                first_image_no=first_image_no)
             self.detector_hwobj.start_collection()
             self.collect_images(final_pos, nb_images, first_image_no)
         elif exp_type == 'Characterization' and nb_images > 1:   # image one by one
             for imgno in range(nb_images):
-                final_pos = self.prepare_collection(start_angle=omega_pos, nb_images=1, first_image_no=first_image_no)
+                final_pos = self.prepare_collection(
+                    start_angle=omega_pos, nb_images=1, first_image_no=first_image_no)
                 self.detector_hwobj.start_collection()
                 self.collect_images(final_pos, 1, first_image_no)
                 first_image_no += 1
@@ -241,7 +245,9 @@ class ALBACollect(AbstractCollect):
         #
         # Run
         #
-        logging.getLogger("HWR").info( "collecting images, by moving omega to %s" % final_pos)
+        logging.getLogger("HWR").info(
+            "collecting images, by moving omega to %s" %
+            final_pos)
         self.omega_hwobj.move(final_pos)
         self.wait_collection_done(nb_images, first_image_no)
         self.data_collection_end()
@@ -253,8 +259,9 @@ class ALBACollect(AbstractCollect):
         self.unconfigure_ni()
 
     def data_collection_failed(self):
-        logging.getLogger("HWR").info( "Data collection failed. recovering sequence should go here")
-        
+        logging.getLogger("HWR").info(
+            "Data collection failed. recovering sequence should go here")
+
     def prepare_acquisition(self):
 
         fileinfo = self.current_dc_parameters['fileinfo']
@@ -271,28 +278,36 @@ class ALBACollect(AbstractCollect):
         shutok = self.check_shutters()
 
         if not shutok:
-            logging.getLogger("user_level_log").error(" Shutters are not ready. BYPASSED. Comment line in ALBACollect.py")
+            logging.getLogger("user_level_log").error(
+                " Shutters are not ready. BYPASSED. Comment line in ALBACollect.py")
         else:
-            logging.getLogger("user_level_log").error(" Shutters ready but code is BYPASSED. Comment line in ALBACollect.py")
+            logging.getLogger("user_level_log").error(
+                " Shutters ready but code is BYPASSED. Comment line in ALBACollect.py")
 
-        shutok = True  #  DELETE THIS AFTER TESTS
+        shutok = True  # DELETE THIS AFTER TESTS
 
         if not shutok:
             logging.getLogger("user_level_log").error(" Shutters not ready")
             return False
 
         gevent.sleep(1)
-        logging.getLogger("HWR").info(" Waiting for diffractometer to be ready. Now %s" % str(self.diffractometer_hwobj.current_state))
+        logging.getLogger("HWR").info(
+            " Waiting for diffractometer to be ready. Now %s" % str(
+                self.diffractometer_hwobj.current_state))
         self.diffractometer_hwobj.wait_device_ready(timeout=10)
         logging.getLogger("HWR").info("             diffractometer is now ready.")
 
         # go to collect phase
         if not self.is_collect_phase():
-            logging.getLogger("HWR").info(" Not in collect phase. Asking supervisor to go")
-            logging.getLogger("HWR").info("  diffractometer is now ready. Now %s" % str(self.diffractometer_hwobj.current_state))
+            logging.getLogger("HWR").info(
+                " Not in collect phase. Asking supervisor to go")
+            logging.getLogger("HWR").info(
+                "  diffractometer is now ready. Now %s" % str(
+                    self.diffractometer_hwobj.current_state))
             success = self.go_to_collect()
             if not success:
-                logging.getLogger("user_level_log").error("Cannot set COLLECT phase for diffractometer")
+                logging.getLogger("user_level_log").error(
+                    "Cannot set COLLECT phase for diffractometer")
                 return False
 
         detok = self.detector_hwobj.prepare_acquisition(self.current_dc_parameters)
@@ -311,19 +326,20 @@ class ALBACollect(AbstractCollect):
 
         total_dist = nb_images * img_range
         total_time = nb_images * exp_time
-        omega_speed = float( total_dist / total_time)
+        omega_speed = float(total_dist / total_time)
 
-        logging.getLogger("HWR").info("  prepare detector  was not ok.") 
+        logging.getLogger("HWR").info("  prepare detector  was not ok.")
         self.write_image_headers(start_angle)
 
-        logging.getLogger("HWR").info("  nb_images: %s / img_range: %s / exp_time: %s / total_distance: %s / speed: %s" % \
-                  (nb_images,img_range,exp_time, total_dist, omega_speed))
-        logging.getLogger("HWR").info("  setting omega velocity to 60 to go to intial position")
+        logging.getLogger("HWR").info("  nb_images: %s / img_range: %s / exp_time: %s / total_distance: %s / speed: %s" %
+                                      (nb_images, img_range, exp_time, total_dist, omega_speed))
+        logging.getLogger("HWR").info(
+            "  setting omega velocity to 60 to go to intial position")
         self.omega_hwobj.set_velocity(60)
 
         omega_acceltime = self.omega_hwobj.get_acceleration()
 
-        safe_delta =  9.0 * omega_speed * omega_acceltime
+        safe_delta = 9.0 * omega_speed * omega_acceltime
 
         init_pos = start_angle - safe_delta
         final_pos = start_angle + total_dist + safe_delta
@@ -335,7 +351,9 @@ class ALBACollect(AbstractCollect):
 
         self.omega_hwobj.wait_end_of_move(timeout=10)
 
-        logging.getLogger("HWR").info("Moving omega finished at %s" % self.omega_hwobj.getPosition())
+        logging.getLogger("HWR").info(
+            "Moving omega finished at %s" %
+            self.omega_hwobj.getPosition())
 
         # program omega speed depending on exposure time
 
@@ -346,11 +364,11 @@ class ALBACollect(AbstractCollect):
 
         return final_pos
 
-    def write_image_headers(self,start_angle): 
+    def write_image_headers(self, start_angle):
         fileinfo = self.current_dc_parameters['fileinfo']
         basedir = fileinfo['directory']
 
-        exp_type = self.current_dc_parameters['experiment_type'] 
+        exp_type = self.current_dc_parameters['experiment_type']
         osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
         nb_images = osc_seq['number_of_images']
@@ -362,7 +380,7 @@ class ALBACollect(AbstractCollect):
             angle_spacing = 90
         else:
             angle_spacing = img_range
-    
+
         exp_time = osc_seq['exposure_time']
 
         # PROGRAM Image Headers
@@ -372,58 +390,63 @@ class ALBACollect(AbstractCollect):
 
         self.image_headers = {}
 
-        angle_info =  [start_angle, img_range, angle_spacing]
+        angle_info = [start_angle, img_range, angle_spacing]
 
         self.image_headers['nb_images'] = nb_images
         self.image_headers['Exposure_time'] = "%.4f" % limaexpt
         self.image_headers['Exposure_period'] = "%.4f" % exp_time
-        self.image_headers['Start_angle'] = "%f deg." % start_angle 
+        self.image_headers['Start_angle'] = "%f deg." % start_angle
         self.image_headers['Angle_increment'] = "%f deg." % img_range
         self.image_headers['Wavelength'] = self.energy_hwobj.get_wavelength()
 
-        self.image_headers["Detector_distance"] = "%.5f m" % (self.detector_hwobj.get_distance() / 1000.0)
-        self.image_headers["Detector_Voffset"] = '0 m' 
+        self.image_headers["Detector_distance"] = "%.5f m" % (
+            self.detector_hwobj.get_distance() / 1000.0)
+        self.image_headers["Detector_Voffset"] = '0 m'
 
         beamx, beamy = self.detector_hwobj.get_beam_centre()
         self.image_headers["Beam_xy"] = "(%.2f, %.2f) pixels" % (beamx, beamy)
 
-        self.image_headers["Filter_transmission"] = "%.4f" % (self.transmission_hwobj.getAttFactor() / 100.0)
-        self.image_headers["Flux"] = "%.4g" % self.flux_hwo.get_flux()
+        self.image_headers["Filter_transmission"] = "%.4f" % (
+            self.transmission_hwobj.getAttFactor() / 100.0)
+        self.image_headers["Flux"] = "%.4g" % self.flux_hwobj.get_flux()
         self.image_headers["Detector_2theta"] = "0.0000"
         self.image_headers["Polarization"] = "0.99"
-        self.image_headers["Alpha"] = '0 deg.' 
+        self.image_headers["Alpha"] = '0 deg.'
 
-        self.image_headers["Kappa"] = "%.4f deg." % self.kappapos_chan.getValue()
-        self.image_headers["Phi"] = "%.4f deg." % self.phipos_chan.getValue()
+        self.image_headers["Kappa"] = "%.4f deg." % self.chan_kappa_pos.getValue()
+        self.image_headers["Phi"] = "%.4f deg." % self.chan_phi_pos.getValue()
 
-        self.image_headers["Chi"] = "0 deg." 
+        self.image_headers["Chi"] = "0 deg."
         self.image_headers["Oscillation_axis"] = "X, CW"
-        self.image_headers["N_oscillations"] = '1' 
-        self.image_headers["Detector_2theta"] = "0.0000 deg" 
+        self.image_headers["N_oscillations"] = '1'
+        self.image_headers["Detector_2theta"] = "0.0000 deg"
 
         self.image_headers["Image_path"] = ': %s' % basedir
 
-        self.image_headers["Threshold_setting"] = '%0f eV' % self.detector_hwobj.get_threshold()
-        self.image_headers["Gain_setting"] = '%s' % str(self.detector_hwobj.get_threshold_gain())
+        self.image_headers["Threshold_setting"] = '%0f eV' % self.detector_hwobj.get_threshold(
+        )
+        self.image_headers["Gain_setting"] = '%s' % str(
+            self.detector_hwobj.get_threshold_gain())
 
         self.image_headers["Tau"] = '%s s' % str(199.1e-09)
         self.image_headers["Count_cutoff"] = '%s counts' % str(370913)
         self.image_headers["N_excluded_pixels"] = '= %s' % str(1178)
         self.image_headers["Excluded_pixels"] = ': %s' % str("badpix_mask.tif")
-        self.image_headers["Trim_file"] = ': %s' % str("p6m0108_E12661_T6330_vrf_m0p20.bin")
+        self.image_headers["Trim_file"] = ': %s' % str(
+            "p6m0108_E12661_T6330_vrf_m0p20.bin")
 
         self.detector_hwobj.set_image_headers(self.image_headers, angle_info)
 
     def wait_collection_done(self, nb_images, first_image_no):
-       
+
         osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
         #first_image_no = osc_seq['start_image_number']
         #nb_images = osc_seq['number_of_images']
-        last_image_no = first_image_no + nb_images -1
+        last_image_no = first_image_no + nb_images - 1
 
         if nb_images > 1:
-            self.wait_save_image(first_image_no) 
+            self.wait_save_image(first_image_no)
         self.omega_hwobj.wait_end_of_move(timeout=720)
         self.wait_save_image(last_image_no)
 
@@ -446,27 +469,29 @@ class ALBACollect(AbstractCollect):
                 logging.getLogger("HWR").debug("   giving up waiting for image")
                 return False
             time.sleep(0.2)
-             
+
         self.last_saved_image = fullpath
 
         # generate thumbnails
         archive_dir = fileinfo['archive_directory']
         self.check_directory(archive_dir)
-  
-        jpeg_filename = os.path.splitext(filename)[0] + ".jpeg" 
+
+        jpeg_filename = os.path.splitext(filename)[0] + ".jpeg"
         thumb_filename = os.path.splitext(filename)[0] + ".thumb.jpeg"
 
         thumb_fullpath = os.path.join(archive_dir, thumb_filename)
         jpeg_fullpath = os.path.join(archive_dir, jpeg_filename)
 
-        logging.getLogger("HWR").debug("   creating thumbnails for  %s in: %s and %s" % (fullpath, jpeg_fullpath, thumb_fullpath))
+        logging.getLogger("HWR").debug(
+            "   creating thumbnails for  %s in: %s and %s" %
+            (fullpath, jpeg_fullpath, thumb_fullpath))
         cmd = "adxv_thumb 0.4 %s %s" % (fullpath, jpeg_fullpath)
         os.system(cmd)
         cmd = "adxv_thumb 0.1 %s %s" % (fullpath, thumb_fullpath)
         os.system(cmd)
-               
-        logging.getLogger("HWR").debug("   writing thumbnails info in LIMS") 
-        self.store_image_in_lims(frame_number) 
+
+        logging.getLogger("HWR").debug("   writing thumbnails info in LIMS")
+        self.store_image_in_lims(frame_number)
 
         return True
 
@@ -491,30 +516,28 @@ class ALBACollect(AbstractCollect):
         return True
 
     def get_image_headers(self):
-        headers = []  
+        headers = []
         return headers
 
-
     def collection_end(self):
-        # 
+        #
         # data collection end (or abort)
-        #  
-        logging.getLogger("HWR").info( " finishing data collection ")
+        #
+        logging.getLogger("HWR").info(" finishing data collection ")
         self.fastshut_hwobj.cmdOut()
-        self.emit("progressStop") 
+        self.emit("progressStop")
 
     def check_directory(self, basedir):
         if not os.path.exists(basedir):
             try:
                 os.makedirs(basedir)
-            except OSError, e:
+            except OSError as e:
                 import errno
                 if e.errno != errno.EEXIST:
                     raise
 
     def collect_finished(self, green):
         logging.info("Data collection finished")
-       
 
     def collect_failed(self, par):
         logging.exception("Data collection failed")
@@ -522,7 +545,7 @@ class ALBACollect(AbstractCollect):
         exc_type, exc_value, exc_tb = sys.exc_info()
         failed_msg = 'Data collection failed!\n%s' % exc_value
         self.emit("collectOscillationFailed", (self.owner, False, failed_msg,
-           self.current_dc_parameters.get('collection_id'), 1))
+                                               self.current_dc_parameters.get('collection_id'), 1))
 
         self.detector_hwobj.stop_collection()
         self.omega_hwobj.stop()
@@ -538,20 +561,23 @@ class ALBACollect(AbstractCollect):
         t0 = time.time()
         while True:
             super_state = self.supervisor_hwobj.get_state()
-            cphase = self.supervisor_hwobj.get_current_phase().upper() 
+            cphase = self.supervisor_hwobj.get_current_phase().upper()
             if super_state != DevState.MOVING and cphase == "COLLECT":
                 break
             if time.time() - t0 > timeout:
-                logging.getLogger("HWR").debug("timeout sending supervisor to collect phase")
+                logging.getLogger("HWR").debug(
+                    "timeout sending supervisor to collect phase")
                 break
             gevent.sleep(0.5)
 
-        logging.getLogger("HWR").debug("supervisor finished go collect phase task. phase is now: %s" % cphase)
+        logging.getLogger("HWR").debug(
+            "supervisor finished go collect phase task. phase is now: %s" %
+            cphase)
 
         return self.is_collect_phase()
 
     def is_collect_phase(self):
-        return self.supervisor_hwobj.get_current_phase().upper() == "COLLECT" 
+        return self.supervisor_hwobj.get_current_phase().upper() == "COLLECT"
 
     def go_to_sampleview(self, timeout=180):
         logging.getLogger("HWR").debug("sending supervisor to sample view phase")
@@ -620,7 +646,7 @@ class ALBACollect(AbstractCollect):
         #   on the contrary open_safety_shutter (equivalent to prepare_shutters in original
         #   collect macro will first close the fast shutter and open the other three
         pass
-            
+
     def close_fast_shutter(self):
         self.fastshut_hwobj.cmdOut()
 
@@ -637,12 +663,12 @@ class ALBACollect(AbstractCollect):
         """
         Descript. : 8 floats describe
         p1AlignmY, p1AlignmZ, p1CentrX, p1CentrY
-        p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY               
+        p2AlignmY, p2AlignmZ, p2CentrX, p2CentrY
         """
-        self.helical_positions = [arg["1"]["phiy"],  arg["1"]["phiz"], 
-                             arg["1"]["sampx"], arg["1"]["sampy"],
-                             arg["2"]["phiy"],  arg["2"]["phiz"],
-                             arg["2"]["sampx"], arg["2"]["sampy"]]
+        self.helical_positions = [arg["1"]["phiy"], arg["1"]["phiz"],
+                                  arg["1"]["sampx"], arg["1"]["sampy"],
+                                  arg["2"]["phiy"], arg["2"]["phiz"],
+                                  arg["2"]["sampx"], arg["2"]["sampy"]]
 
     def setMeshScanParameters(self, num_lines, num_images_per_line, mesh_range):
         """
@@ -707,16 +733,17 @@ class ALBACollect(AbstractCollect):
         Method create directories for raw files and processing files.
         Directorie for xds.input and auto_processing are created
         """
-        self.create_directories(\
+        self.create_directories(
             self.current_dc_parameters['fileinfo']['directory'],
             self.current_dc_parameters['fileinfo']['process_directory'])
 
         """create processing directories and img links"""
-        xds_directory,auto_directory,ednaproc_directory = self.prepare_input_files()
+        xds_directory, auto_directory, ednaproc_directory = self.prepare_input_files()
 
         try:
             self.create_directories(xds_directory, auto_directory, ednaproc_directory)
-            os.system("chmod -R 777 %s %s %s" % (xds_directory, auto_directory,ednaproc_directory))
+            os.system("chmod -R 777 %s %s %s" %
+                      (xds_directory, auto_directory, ednaproc_directory))
             """todo, create link of imgs for auto_processing
             try:
                 os.symlink(files_directory, os.path.join(process_directory, "img"))
@@ -725,18 +752,17 @@ class ALBACollect(AbstractCollect):
                     raise
             """
             #os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except:
+        except BaseException:
             logging.exception("Could not create processing file directory")
             return
 
         # save directory names in current_dc_parameters. They will later be used
-        #  by autoprocessing. 
+        #  by autoprocessing.
         if xds_directory:
             self.current_dc_parameters["xds_dir"] = xds_directory
 
         if auto_directory:
             self.current_dc_parameters["auto_dir"] = auto_directory
-
 
     def prepare_input_files(self):
         """
@@ -746,11 +772,11 @@ class ALBACollect(AbstractCollect):
         log = logging.getLogger("user_level_log")
 
         while True:
-            xds_input_file_dirname = "xds_%s_%s_%d" % (\
+            xds_input_file_dirname = "xds_%s_%s_%d" % (
                 self.current_dc_parameters['fileinfo']['prefix'],
                 self.current_dc_parameters['fileinfo']['run_number'],
                 i)
-            xds_directory = os.path.join(\
+            xds_directory = os.path.join(
                 self.current_dc_parameters['fileinfo']['process_directory'],
                 xds_input_file_dirname)
             if not os.path.exists(xds_directory):
@@ -759,22 +785,22 @@ class ALBACollect(AbstractCollect):
 
         self.current_dc_parameters["xds_dir"] = xds_directory
 
-        mosflm_input_file_dirname = "mosflm_%s_%s_%d" % (\
-                self.current_dc_parameters['fileinfo']['prefix'],
-                self.current_dc_parameters['fileinfo']['run_number'],
-                i)
-        mosflm_directory = os.path.join(\
-                self.current_dc_parameters['fileinfo']['process_directory'],
-                mosflm_input_file_dirname)
+        mosflm_input_file_dirname = "mosflm_%s_%s_%d" % (
+            self.current_dc_parameters['fileinfo']['prefix'],
+            self.current_dc_parameters['fileinfo']['run_number'],
+            i)
+        mosflm_directory = os.path.join(
+            self.current_dc_parameters['fileinfo']['process_directory'],
+            mosflm_input_file_dirname)
 
         log.info("  - xds: %s / mosflm: %s" % (xds_directory, mosflm_directory))
 
         while True:
-            ednaproc_dirname = "ednaproc_%s_%s_%d" % (\
+            ednaproc_dirname = "ednaproc_%s_%s_%d" % (
                 self.current_dc_parameters['fileinfo']['prefix'],
                 self.current_dc_parameters['fileinfo']['run_number'],
                 i)
-            ednaproc_directory = os.path.join(\
+            ednaproc_directory = os.path.join(
                 self.current_dc_parameters['fileinfo']['process_directory'],
                 ednaproc_dirname)
             if not os.path.exists(ednaproc_directory):
@@ -828,11 +854,11 @@ class ALBACollect(AbstractCollect):
                 und_gaps = self.chan_undulator_gap.getValue()
                 if type(und_gaps) in (list, tuple):
                     return und_gaps
-                else: 
+                else:
                     return (und_gaps)
-        except:
+        except BaseException:
             pass
-        return {} 
+        return {}
 
     def get_beam_size(self):
         """
@@ -860,8 +886,8 @@ class ALBACollect(AbstractCollect):
         """
         Descript. :
         """
-        if self.flux_hwo is not None:
-            return self.flux_hwo.get_flux()
+        if self.flux_hwobj is not None:
+            return self.flux_hwobj.get_flux()
 
     def get_machine_current(self):
         """
@@ -887,8 +913,8 @@ class ALBACollect(AbstractCollect):
         """
         if self.machine_info_hwobj:
             return "FillMode not/impl"
-            #fill_mode = str(self.machine_info_hwobj.get_message()) 
-            #return fill_mode[:20]
+            #fill_mode = str(self.machine_info_hwobj.get_message())
+            # return fill_mode[:20]
         else:
             return ''
 

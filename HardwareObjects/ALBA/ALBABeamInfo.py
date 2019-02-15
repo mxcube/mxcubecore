@@ -80,13 +80,17 @@ class ALBABeamInfo(Equipment):
         default_beam_divergence_vertical = None
         default_beam_divergence_horizontal = None
 
-        try: 
-           default_beam_divergence_vertical = int(self.getProperty("beam_divergence_vertical"))
-           default_beam_divergence_horizontal = int(self.getProperty("beam_divergence_horizontal"))
-        except:
-           pass
+        try:
+            default_beam_divergence_vertical = int(
+                self.getProperty("beam_divergence_vertical"))
+            default_beam_divergence_horizontal = int(
+                self.getProperty("beam_divergence_horizontal"))
+        except Exception as e:
+            pass
 
-        self.default_beam_divergence = [default_beam_divergence_horizontal, default_beam_divergence_vertical]
+        self.default_beam_divergence = [
+            default_beam_divergence_horizontal,
+            default_beam_divergence_vertical]
 
     def connectNotify(self, *args):
         self.evaluate_beam_info()
@@ -113,8 +117,7 @@ class ALBABeamInfo(Equipment):
 
     def get_beam_size(self):
         self.evaluate_beam_info()
-        return self.beam_info_dict["size_x"], \
-	       self.beam_info_dict["size_y"]
+        return self.beam_info_dict["size_x"], self.beam_info_dict["size_y"]
 
     def get_beam_shape(self):
         return self.beam_info_dict["shape"]

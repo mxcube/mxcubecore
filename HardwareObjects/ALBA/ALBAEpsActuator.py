@@ -85,7 +85,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.state_strings = None
 
     def init(self):
-        self.actuator_state = STATE_UNKNOWN  
+        self.actuator_state = STATE_UNKNOWN
 
         try:
             self.chan_actuator = self.getChannelObject('actuator')
@@ -100,8 +100,9 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
+        except BaseException:
             import traceback
-            logging.getLogger("HWR").warning( traceback.format_exc() )
+            logging.getLogger("HWR").warning(traceback.format_exc())
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -109,7 +110,7 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
         self.actuator_state = self.convert_state(state)
         return self.actuator_state
 
-    def convert_state(self,state):
+    def convert_state(self, state):
         if state == 0:
             act_state = STATE_OUT
         elif state == 1:
@@ -128,9 +129,9 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
     def getStatus(self):
         """
         """
-        state = self.getState()  
+        state = self.getState()
 
-        if state in [STATE_OUT,STATE_IN]:
+        if state in [STATE_OUT, STATE_IN]:
             return self.state_strings[state]
         elif state in self.states:
             return self.states[state]

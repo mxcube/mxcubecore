@@ -70,13 +70,13 @@ class ALBAAutoProcessing(HardwareObject):
 
         xds_template_name = 'XDS_TEMPLATE.INP'
         mosflm_template_name = 'mosflm_template.dat'
-    
-        xds_template_path = os.path.join(self.template_dir,xds_template_name)
-        mosflm_template_path = os.path.join(self.template_dir,mosflm_template_name)
-    
-        xds_file = os.path.join(xds_dir,"XDS.INP")
-        mosflm_file = os.path.join(mosflm_dir,"mosflm.dat")
-    
+
+        xds_template_path = os.path.join(self.template_dir, xds_template_name)
+        mosflm_template_path = os.path.join(self.template_dir, mosflm_template_name)
+
+        xds_file = os.path.join(xds_dir, "XDS.INP")
+        mosflm_file = os.path.join(mosflm_dir, "mosflm.dat")
+
         # PREPARE VARIABLES
         detsamdis = self.var_ds.detsamdis
         beamx, beamy = self.var_ds.beamx, self.var_ds.beamy
@@ -90,76 +90,91 @@ class ALBAAutoProcessing(HardwareObject):
         if angle_increment != 0: 
                 minimumrange = int(round(20/angle_increment))
         elif angle_increment == 0:
-                minimumrange = 1
-        if nb_images >= minimumrange: backgroundrangefinishnum = start_img_num+minimumrange-1
-        if nb_images >= minimumrange: spotrangefinishnum = start_img_num+minimumrange-1
-        if nb_images < minimumrange: backgroundrangefinishnum = start_img_num+nb_images-1
-        if nb_images < minimumrange: spotrangefinishnum = start_img_num+nb_images-1
-    
-        testlowres = 8.
-        largestvector=0.172*((max(beamx,2463-beamx))**2+(max(beamy,2527-beamy))**2)**0.5
-        testhighres = round(wavelength/(2*math.sin(0.5*math.atan(largestvector/detsamdis))),2)
-        lowres = 50.
-        highres = testhighres
-        datafilename=prefix+'_'+str(runno)+'_????'
-        mdatafilename=prefix+'_'+str(runno)+'_####.cbf'
-        seconds = 5*exp_time
+            minimum_range = 1
+        if nb_images >= minimum_range:
+            background_range_finish_num = start_img_num + minimum_range - 1
+        if nb_images >= minimum_range:
+            spot_range_finish_num = start_img_num + minimum_range - 1
+        if nb_images < minimum_range:
+            background_range_finish_num = start_img_num + nb_images - 1
+        if nb_images < minimum_range:
+            spot_range_finish_num = start_img_num + nb_images - 1
 
-        if angle_increment < 1 and not angle_increment == 0: seconds = 5*exp_time/angle_increment
+        test_low_res = 8.
+        largest_vector = 0.172 * ((max(beamx, 2463 - beamx))**2 +
+                                  (max(beamy, 2527 - beamy))**2)**0.5
+        test_high_res = round(wavelength / (2 * math.sin(0.5 * math.atan(largest_vector /
+                                                                         detsamdis))), 2)
+        low_res = 50.
+        high_res = test_high_res
+        data_filename = prefix + '_' + str(runno) + '_????'
+        mdata_filename = prefix + '_' + str(runno) + '_####.cbf'
+        seconds = 5 * exp_time
+
+        if angle_increment < 1 and not angle_increment == 0:
+            seconds = 5 * exp_time / angle_increment
 
         # DEFINE SG/UNIT CELL
-        spacegroupnumber=''
-        unitcellconstants=''
-    
-        datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA','RAW_DATA')
-        datapath_dir = os.path.dirname( os.path.dirname(datapath_dir) ) + os.path.sep
+        spacegroup_number = ''
+        unit_cell_constants = ''
+
+        datapath_dir = os.path.abspath(xds_file).replace('PROCESS_DATA', 'RAW_DATA')
+        datapath_dir = os.path.dirname(os.path.dirname(datapath_dir)) + os.path.sep
 
         # CREATE XDS.INP FILE
-        xds_templ = open(xds_template_path,"r").read()
-    
-        xds_templ = xds_templ.replace( '###BEAMX###',str(round(beamx,2)))
-        xds_templ = xds_templ.replace( "###BEAMY###", str(round(beamy,2)))
-        xds_templ = xds_templ.replace( "###DETSAMDIS###", str(round(detsamdis,2)))
-        xds_templ = xds_templ.replace( "###ANGLEINCREMENT###", str(angle_increment))
-        xds_templ = xds_templ.replace( "###WAVELENGTH###", str(wavelength) )
-        xds_templ = xds_templ.replace( "###DATARANGESTARTNUM###",str(datarangestartnum))
-        xds_templ = xds_templ.replace( "###DATARANGEFINISHNUM###",str(datarangefinishnum))
-        xds_templ = xds_templ.replace( "###BACKGROUNDRANGESTART###", str(backgroundrangestartnum) )
-        xds_templ = xds_templ.replace( "###BACKGROUNDRANGEFINISHNUM###", str(backgroundrangefinishnum) )
-        xds_templ = xds_templ.replace( "###SPOTRANGESTARTNUM###", str(spotrangestartnum) )
-        xds_templ = xds_templ.replace( "###SPOTRANGEFINISHNUM###", str(spotrangefinishnum))
-        xds_templ = xds_templ.replace( "###TESTLOWRES###", str(testlowres))
-        xds_templ = xds_templ.replace( "###TESTHIGHRES###", str(testhighres))
-        xds_templ = xds_templ.replace( "###LOWRES###", str(lowres))
-        xds_templ = xds_templ.replace( "###HIGHRES###", str(highres))
-        xds_templ = xds_templ.replace( "###DIRECTORY###", str(datapath_dir))
-        xds_templ = xds_templ.replace( "###FILENAME###", str(datafilename))
-        xds_templ = xds_templ.replace( "###SECONDS###", str(int(seconds)))
-        xds_templ = xds_templ.replace( "###LYSOZYME_SPACE_GROUP_NUMBER###", str(spacegroupnumber))
-        xds_templ = xds_templ.replace( "###LYSOZYME_UNIT_CELL_CONSTANTS###", str(unitcellconstants))
-    
-        open(xds_file,"w").write(xds_templ)
-    
+        xds_templ = open(xds_template_path, "r").read()
+
+        xds_templ = xds_templ.replace('###BEAMX###', str(round(beamx, 2)))
+        xds_templ = xds_templ.replace("###BEAMY###", str(round(beamy, 2)))
+        xds_templ = xds_templ.replace("###DETSAMDIS###", str(round(detsamdis, 2)))
+        xds_templ = xds_templ.replace("###ANGLEINCREMENT###", str(angle_increment))
+        xds_templ = xds_templ.replace("###WAVELENGTH###", str(wavelength))
+        xds_templ = xds_templ.replace("###DATARANGESTARTNUM###",
+                                      str(data_range_start_num))
+        xds_templ = xds_templ.replace("###DATARANGEFINISHNUM###",
+                                      str(data_range_finish_num))
+        xds_templ = xds_templ.replace("###BACKGROUNDRANGESTART###",
+                                      str(background_range_start_num))
+        xds_templ = xds_templ.replace("###BACKGROUNDRANGEFINISHNUM###",
+                                      str(background_range_finish_num))
+        xds_templ = xds_templ.replace("###SPOTRANGESTARTNUM###",
+                                      str(spot_range_start_num))
+        xds_templ = xds_templ.replace("###SPOTRANGEFINISHNUM###",
+                                      str(spot_range_finish_num))
+        xds_templ = xds_templ.replace("###TESTLOWRES###", str(test_low_res))
+        xds_templ = xds_templ.replace("###TESTHIGHRES###", str(test_high_res))
+        xds_templ = xds_templ.replace("###LOWRES###", str(low_res))
+        xds_templ = xds_templ.replace("###HIGHRES###", str(high_res))
+        xds_templ = xds_templ.replace("###DIRECTORY###", str(datapath_dir))
+        xds_templ = xds_templ.replace("###FILENAME###", str(data_filename))
+        xds_templ = xds_templ.replace("###SECONDS###", str(int(seconds)))
+        xds_templ = xds_templ.replace("###LYSOZYME_SPACE_GROUP_NUMBER###",
+                                      str(spacegroup_number))
+        xds_templ = xds_templ.replace("###LYSOZYME_UNIT_CELL_CONSTANTS###",
+                                      str(unit_cell_constants))
+
+        open(xds_file, "w").write(xds_templ)
+
         # CREATE MOSFLM.DAT FILE
-    
-        mosflm_templ = open(mosflm_template_path,"r").read()
-    
-        mosflm_templ = mosflm_templ.replace( "###DETSAMDIS###", str(round(detsamdis,2)))
-        mosflm_templ = mosflm_templ.replace( '###BEAMX###',str(round(mbeamx,2)))
-        mosflm_templ = mosflm_templ.replace( "###BEAMY###", str(round(mbeamy,2)))
-        mosflm_templ = mosflm_templ.replace( "###DIRECTORY###", str(datapath_dir))
-        mosflm_templ = mosflm_templ.replace( "###FILENAME###", str(mdatafilename))
-        mosflm_templ = mosflm_templ.replace( "###WAVELENGTH###", str(wavelength) )
-        mosflm_templ = mosflm_templ.replace( "###DATARANGESTARTNUM###",str(datarangestartnum))
-    
-        open(mosflm_file,"w").write(mosflm_templ)
+        mosflm_templ = open(mosflm_template_path, "r").read()
+
+        mosflm_templ = mosflm_templ.replace("###DETSAMDIS###", str(round(detsamdis, 2)))
+        mosflm_templ = mosflm_templ.replace('###BEAMX###', str(round(mbeamx, 2)))
+        mosflm_templ = mosflm_templ.replace("###BEAMY###", str(round(mbeamy, 2)))
+        mosflm_templ = mosflm_templ.replace("###DIRECTORY###", str(datapath_dir))
+        mosflm_templ = mosflm_templ.replace("###FILENAME###", str(mdata_filename))
+        mosflm_templ = mosflm_templ.replace("###WAVELENGTH###", str(wavelength))
+        mosflm_templ = mosflm_templ.replace("###DATARANGESTARTNUM###",
+                                            str(data_range_start_num))
+
+        open(mosflm_file, "w").write(mosflm_templ)
 
         # CREATE EDNAPROC XML FILE
-        collection_id = dc_pars['collection_id']  
+        collection_id = dc_pars['collection_id']
         output_dir = dc_pars['ednaproc_dir']
 
-        ednaproc_input_file = os.path.join(output_dir, "EDNAprocInput_%d.xml" % collection_id)
-
+        ednaproc_input_file = os.path.join(output_dir, "EDNAprocInput_%d.xml" %
+                                           collection_id)
         ednaproc_input = XSDataAutoprocInput()
 
         input_file = XSDataFile()

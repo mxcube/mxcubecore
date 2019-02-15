@@ -149,12 +149,14 @@ class ALBABackLight(Device):
         t0 = time.time()
         elapsed = 0
         while elapsed < timeout:
-             isin = self.backlightin_channel.getValue() 
-             if isin == state:
-                 logging.getLogger("HWR").debug("waiting for backlight took %s . In is: %s" % (elapsed,isin))
-                 return True
-             gevent.sleep(0.1)
-             elapsed = time.time()-t0
+            isin = self.backlightin_channel.getValue()
+            if isin == state:
+                logging.getLogger("HWR").debug(
+                    "waiting for backlight took %s. In is: %s" %
+                    (elapsed, isin))
+                return True
+            gevent.sleep(0.1)
+            elapsed = time.time() - t0
 
         logging.getLogger("HWR").debug("Timeout waiting for backlight In")
         return False
