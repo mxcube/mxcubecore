@@ -174,7 +174,7 @@ class SardanaMotor(AbstractMotor):
         if position is None:
             position = self.position_channel.getValue()
 
-        logging.getLogger("HWR").debug("SardanaMotor.py position changed. Now is %s" % position)
+        # logging.getLogger("HWR").debug("SardanaMotor.py position changed. Now is %s" % position)
 
         if abs(self.motor_position - position) > self.threshold:
             self.motor_position = position
