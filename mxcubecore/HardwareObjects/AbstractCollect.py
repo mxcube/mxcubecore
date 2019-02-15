@@ -241,6 +241,15 @@ class AbstractCollect(HardwareObject, object):
             # In order to call the hook with original parameters
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
+
+            # Motor positoions debug output
+            ll = sorted(self.current_dc_parameters['motors'].items())
+            logging.getLogger('HWR').debug("MOTORTEST settings: "
+                                           + ', '.join('%s=%s' % (tt) for tt in ll))
+
+            ll = sorted(self.diffractometer_hwobj.get_positions().items())
+            logging.getLogger('HWR').debug("MOTORTEST positions: "
+                                           + ', '.join('%s=%s' % (tt) for tt in ll))
             self.data_collection_hook()
 
             log.info("Collection: Updating data collection in LIMS")
