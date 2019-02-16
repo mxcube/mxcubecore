@@ -12,6 +12,7 @@ __date__ = "06/04/17"
 import logging
 import uuid
 import time
+import datetime
 import os
 import subprocess
 import socket
@@ -455,7 +456,7 @@ class GphlWorkflow(HardwareObject, object):
         info_text = '\n'.join(lines)
 
         acq_parameters = (
-            self._queue_entry.beamline_setup.get_default_acquisition_parameters()
+            self.beamline_setup.get_default_acquisition_parameters()
         )
         # For now return default values
         field_list = [
@@ -570,7 +571,7 @@ class GphlWorkflow(HardwareObject, object):
     def setup_data_collection(self, payload, correlation_id):
         geometric_strategy = payload
 
-        collect_hwobj = self._queue_entry.beamline_setup.getObjectByRole(
+        collect_hwobj = self.beamline_setup.getObjectByRole(
             'collect'
         )
         beamSetting = geometric_strategy.defaultBeamSetting
@@ -624,6 +625,8 @@ class GphlWorkflow(HardwareObject, object):
                 translation = self.execute_sample_centring(
                         qe, sweepSetting, sweepSetting.id
                     )
+                if self.getProperty('collect_centring_snapshots'):
+                    self.collect_centring_snapshots()
                 goniostatTranslations.append(translation)
                 recen_parameters['ref_xyz'] = tuple(
                     translation.axisSettings[x]
@@ -689,6 +692,8 @@ class GphlWorkflow(HardwareObject, object):
                     qe, goniostatRotation, requestedRotationId
                 )
             )
+            if self.getProperty('collect_centring_snapshots'):
+                self.collect_centring_snapshots()
 
         # Get wavelengths
         h_over_e = ConvertUtils.h_over_e
@@ -848,7 +853,7 @@ class GphlWorkflow(HardwareObject, object):
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
 
-        beamline_setup_hwobj = self._queue_entry.beamline_setup
+        beamline_setup_hwobj = self.beamline_setup
         queue_manager = self._queue_entry.get_queue_controller()
 
         # NBNB creation and use of master_path_template is NOT in testing version yet
@@ -1172,7 +1177,7 @@ class GphlWorkflow(HardwareObject, object):
             # Set or prompt for fine zoom
             self._use_fine_zoom = True
             # TODO Check correct way to get hold of zoom motor
-            zoom_motor = self._queue_entry.beamline_setup.getObjectByRole('zoom')
+            zoom_motor = self.beamline_setup.getObjectByRole('zoom')
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification
@@ -1240,6 +1245,42 @@ class GphlWorkflow(HardwareObject, object):
         centring_entry = queue_manager.get_entry_with_model(centring_model)
 
         return centring_entry
+
+    def collect_centring_snapshots(self):
+
+
+        gphl_workflow_model = self._queue_entry.get_data_model()
+        snapshot_directory = os.path.join(
+            gphl_workflow_model.path_template.get_archive_directory(),
+            'centring_snapshots'
+        )
+        number_of_snapshots = gphl_workflow_model.get_snapshot_count()
+        if number_of_snapshots:
+            logging.getLogger("user_level_log").info(
+                "Post-centring: Taking %d sample snapshot(s)"
+                % number_of_snapshots
+            )
+            collect_hwobj = self.beamline_setup.getObjectByRole(
+                'collect'
+            )
+            image_filename = gphl_workflow_model.path_template.get_image_file_name()
+
+            timestamp = datetime.datetime.now().isoformat().split('.')[0]
+            if image_filename.endswith('.gz'):
+                image_filename = image_filename[:-3]
+            image_filename = os.path.splitext(image_filename)[0] % 0
+            for snapshot_index in range(number_of_snapshots):
+                snapshot_filename = os.path.join(snapshot_directory,
+                    "%s_%s_%s.jpeg" % (image_filename, timestamp, (snapshot_index + 1))
+                )
+                logging.getLogger('HWR').debug('Centring snapshot stored at %s'
+                                               % snapshot_filename)
+                collect_hwobj._take_crystal_snapshot(snapshot_filename)
+                if number_of_snapshots > 1:
+                    collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
+            for ii in range(4 - number_of_snapshots):
+                collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
+
 
     def execute_sample_centring(self, centring_entry, goniostatRotation,
                                 requestedRotationId=None):
