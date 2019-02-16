@@ -198,17 +198,17 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        logging.getLogger('HWR').debug("Emulator: nominal position "
-            + ', '.join('%s=%s' % (tt)
-                        for tt in sorted(data_collect_parameters['motors'].items())
-                        if tt[1] is not None)
-        )
-
-        logging.getLogger('HWR').debug("Emulator:  actual position "
-             + ', '.join('%s=%s' % tt
-                         for tt in sorted(self.diffractometer_hwobj.get_positions().items())
-                         if tt[1] is not None)
-        )
+        # logging.getLogger('HWR').debug("Emulator: nominal position "
+        #     + ', '.join('%s=%s' % (tt)
+        #                 for tt in sorted(data_collect_parameters['motors'].items())
+        #                 if tt[1] is not None)
+        # )
+        #
+        # logging.getLogger('HWR').debug("Emulator:  actual position "
+        #      + ', '.join('%s=%s' % tt
+        #                  for tt in sorted(self.diffractometer_hwobj.get_positions().items())
+        #                  if tt[1] is not None)
+        # )
 
         # Done here as there are what-happens-first conflicts
         # if you put it in init

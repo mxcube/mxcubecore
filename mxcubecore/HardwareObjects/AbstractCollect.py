@@ -242,7 +242,7 @@ class AbstractCollect(HardwareObject, object):
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
 
-            # Motor positoions debug output
+            # Motor positions debug output
             ll = sorted(self.current_dc_parameters['motors'].items())
             logging.getLogger('HWR').debug("MOTORTEST settings: "
                                            + ', '.join('%s=%s' % (tt) for tt in ll))
