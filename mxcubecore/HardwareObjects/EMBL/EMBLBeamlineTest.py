@@ -35,10 +35,10 @@ from scipy.interpolate import interp1d
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-try:
-    import pdfkit
-except BaseException:
-    logging.getLogger("HWR").warning("pdfkit not available")
+#try:
+#    import pdfkit
+#except BaseException:
+#    logging.getLogger("HWR").warning("pdfkit not available")
 
 import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -1796,13 +1796,13 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 
-        try:
-            pdfkit.from_url(html_filename, pdf_filename)
-            logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        except BaseException:
-            logging.getLogger("HWR").error(
-                "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
-            )
+        #try:
+        #    pdfkit.from_url(html_filename, pdf_filename)
+        #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        #except BaseException:
+        #    logging.getLogger("HWR").error(
+        #        "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
+        #    )
 
         self.emit("testFinished", html_filename)
 

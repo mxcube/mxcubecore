@@ -1,3 +1,5 @@
+#pylint: skip-file
+
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube

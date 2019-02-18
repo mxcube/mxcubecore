@@ -19,7 +19,7 @@
 
 import gevent
 import logging
-from _tine import query as tinequery
+from tine import query as tinequery
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

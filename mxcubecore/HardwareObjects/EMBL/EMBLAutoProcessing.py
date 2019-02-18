@@ -24,10 +24,7 @@ import gevent
 import subprocess
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataDouble
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataFile
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataInteger
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataString
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataDouble, XSDataFile, XSDataInteger, XSDataString
 from HardwareRepository.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
 
 
