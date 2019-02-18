@@ -142,7 +142,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         GenericDiffractometer.init(self)
 
         queue_model_objects.CentredPosition.\
-            set_diffractometer_motor_names("phi", "phiy", "phiz", "sampx", "sampy", "kappa")
+            set_diffractometer_motor_names("phi", "phiy", "phiz", "sampx", "sampy",
+                                           "kappa","kappa_phi")
 
     def state_changed(self, state):
         """
