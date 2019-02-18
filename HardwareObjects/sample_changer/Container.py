@@ -191,7 +191,7 @@ class Basket(Container):
     def getBasketAddress(basket_number):
         return str(basket_number)
 
-    def getNumberSamples(self):
+    def getNumberOfSamples(self):
         return self.samples_num
 
     def clearInfo(self):
