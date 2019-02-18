@@ -692,7 +692,7 @@ class GenericDiffractometer(HardwareObject):
                 # TODO... do we need this at all?
                 # fun = self.cancel_centring_methods[self.current_centring_method]
                 pass
-            except KeyError as diag:
+            except KeyError:
                 self.emit_centring_failed()
             else:
                 try:

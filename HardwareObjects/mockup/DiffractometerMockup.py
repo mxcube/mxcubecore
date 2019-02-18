@@ -17,20 +17,10 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import copy
 import time
 import logging
-import tempfile
 import random
 import warnings
-
-try:
-    import lucid2
-except BaseException:
-    pass
-
-import queue_model_objects as qmo
 
 from GenericDiffractometer import GenericDiffractometer
 from gevent.event import AsyncResult
