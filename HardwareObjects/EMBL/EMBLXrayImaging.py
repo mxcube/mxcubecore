@@ -1,4 +1,5 @@
 # pylint: skip-file
+
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -50,143 +51,6 @@ __category__ = "Task"
 
 image_processing_queue = Queue()
 
-class ImageProcessingThread(threading.Thread):
-    def __init__(self, image_count):
-        threading.Thread.__init__(self)
-
-        self.stopped = False
-
-        self.image_count = image_count
-        self.im_min = pow(2, 16)
-        self.im_max = 0
-
-        self.ff_applied = None
-
-    def start(self):
-        self.thread_watcher = gevent.get_hub().loop.async()
-        self.thread_done = gevent.event.Event()
-        threading.Thread.start(self)
-        return self.thread_done
-
-    def set_stop(self):
-        self.stopped = True
-        logging.getLogger("GUI").info("Image processing stopped")
-
-    def get_im_min_max(self):
-        return self.im_min, self.im_max
-
-    def run(self):
-        self.thread_watcher.start(self.thread_done.set)
-        logging.getLogger("GUI").info("Image processing started...")
-        progress_step = 20
-       
-        while not self.stopped:
-            (raw_image, ff_image, index) = image_processing_queue.get()
-
-            ff_corrected_image = None
-            self.ff_applied = np.divide(raw_image.astype(float),
-                                        ff_image.astype(float),
-                                        out=np.ones_like(raw_image.astype(float)),
-                                        where=ff_image.astype(float)!=0)
-           
-            self.ff_applied[ff_image == (pow(2,16) - 1)] = 1
-
-           
-            if self.ff_applied[8:].min() < self.im_min and \
-               self.ff_applied[8:].max() > self.im_max:
-                self.im_min = self.ff_applied[8:].min()
-                self.im_max = self.ff_applied[8:].max()
-
-            image_processing_queue.task_done()
- 
-            done_per = int(float(index) / self.image_count * 100)
-            if not index % (self.image_count / (100 / progress_step)) and done_per > 0:
-                logging.getLogger("GUI").info("Image processing %d%% completed" %done_per)
-            if index == self.image_count - 1:
-                logging.getLogger("GUI").info("Image processing finished")
-                break
-        self.thread_watcher.send()
-
-
-class ImageReadingThread(threading.Thread):
-    def __init__(self, raw_filename_list, ff_filename_list=[], ff_ssim=[]):
-        threading.Thread.__init__(self)
-
-        self.stopped = False
-        self.failed_to_read_count = 10
-        self.raw_filename_list = raw_filename_list
-        self.ff_filename_list = ff_filename_list
- 
-        self.raw_image_list = [None] * len(self.raw_filename_list)
-        self.ff_image_list = [None] * len(self.ff_filename_list)
-
-        self.ff_ssim = None
-
-    def start(self):
-        self.thread_watcher = gevent.get_hub().loop.async()
-        self.thread_done = gevent.event.Event()
-        threading.Thread.start(self)
-        return self.thread_done
-
-    def set_stop(self):
-        self.stopped = True
-        logging.getLogger("GUI").info("Image reading stopped")
-
-    def set_ff_ssim(self, ff_ssim):
-        self.ff_ssim = ff_ssim
-
-    def read_image(self, filename, timeout=10):
-        if timeout:
-            try:
-                with gevent.Timeout(timeout, Exception("Timeout waiting for image %s" % filename)):
-                    while not os.path.isfile(filename):
-                        gevent.sleep(0.5)
-                    return cv.imread(filename, cv.IMREAD_ANYDEPTH)
-            except gevent.Timeout:
-                #Skip the image or 
-                self.failed_to_read_count -= 1
-                if self.failed_to_read_count == 0:
-                    self.set_stop() 
-        else:
-            return cv.imread(filename, cv.IMREAD_ANYDEPTH)
-
-    def run(self):
-        self.thread_watcher.start(self.thread_done.set)
-
-        logging.getLogger("GUI").info("Image reading started...")
-        for index, filename in enumerate(self.ff_filename_list):
-            if self.stopped:
-                self.thread_watcher.send()
-                return
-            self.ff_image_list[index] = self.read_image(filename)
-       
-        progress_step = 20 
-
-        for index, filename in enumerate(self.raw_filename_list):
-            if self.stopped:
-                self.thread_watcher.send()
-                return
-            self.raw_image_list[index] = self.read_image(filename)
-            done_per = int(float(index) / len(self.raw_filename_list) * 100)
-            if not index % (len(self.raw_filename_list) / (100 / progress_step)) and done_per > 0:
-                logging.getLogger("GUI").info("Image reading %d%% completed" % done_per)
-
-            if self.ff_filename_list:
-                ff_index = 0
-                image_processing_queue.put((self.raw_image_list[index], self.ff_image_list[ff_index], index))
-        logging.getLogger("GUI").info("Image reading finished")
-        self.thread_watcher.send()
-
-    def get_raw_image(self, index):
-        return self.raw_image_list[index]
-
-    def get_ff_image(self, raw_image_index):
-        if self.ff_ssim:
-            ff_index = self.ff_ssim[raw_image_index][2] - 1
-        else:
-            ff_index = int(raw_image_index / float(len(self.raw_image_list)) * len(self.ff_image_list))
-        return self.ff_image_list[ff_index]
-
 
 class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
@@ -216,6 +80,8 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.mouse_coord = [0, 0]
         self.centering_started = 0
 
+        self._previous_collect_status = None
+        self._actual_collect_status = None
         self._failed = False
         self._number_of_images = 0
         self.printed_warnings = []
@@ -323,7 +189,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.qimage = QtImport.QImage()
         self.qpixmap = QtImport.QPixmap()
 
-        """
         self.chan_frame = self.getChannelObject("chanFrame")
         self.chan_frame.connectSignal("update", self.frame_changed)
 
@@ -370,7 +235,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
         self.cmd_collect_start = self.getCommandObject("collectStart")
         self.cmd_collect_abort = self.getCommandObject("collectAbort")
-        """
 
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         self.session_hwobj = self.getObjectByRole("session")
@@ -903,7 +767,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
 
     def move_omega(self, image_index):
         if image_index != self.last_image_index:
-            print "last move", self.last_image_index
             if self.config_dict:
                 omega_relative = self.config_dict["collect"]["osc_range"] * image_index
             else:
@@ -911,8 +774,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             if self.last_image_index > image_index:
                 omega_relative *= -1
 
-            print "relative angle: ", omega_relative 
-            print "omega start, relative ", self.omega_start, omega_relative
             self.diffractometer_hwobj.move_omega_relative(omega_relative, timeout=5)
             self.last_image_index = image_index
 
@@ -965,3 +826,141 @@ class GraphicsView(QtImport.QGraphicsView):
 
     def wheelEvent(self, event):
         self.wheelSignal.emit(event.delta())
+
+
+class ImageProcessingThread(threading.Thread):
+    def __init__(self, image_count):
+        threading.Thread.__init__(self)
+
+        self.stopped = False
+
+        self.image_count = image_count
+        self.im_min = pow(2, 16)
+        self.im_max = 0
+
+        self.ff_applied = None
+
+    def start(self):
+        self.thread_watcher = gevent.get_hub().loop.async()
+        self.thread_done = gevent.event.Event()
+        threading.Thread.start(self)
+        return self.thread_done
+
+    def set_stop(self):
+        self.stopped = True
+        logging.getLogger("GUI").info("Image processing stopped")
+
+    def get_im_min_max(self):
+        return self.im_min, self.im_max
+
+    def run(self):
+        self.thread_watcher.start(self.thread_done.set)
+        logging.getLogger("GUI").info("Image processing started...")
+        progress_step = 20
+
+        while not self.stopped:
+            (raw_image, ff_image, index) = image_processing_queue.get()
+
+            ff_corrected_image = None
+            self.ff_applied = np.divide(raw_image.astype(float),
+                                        ff_image.astype(float),
+                                        out=np.ones_like(raw_image.astype(float)),
+                                        where=ff_image.astype(float)!=0)
+
+            self.ff_applied[ff_image == (pow(2,16) - 1)] = 1
+
+
+            if self.ff_applied[8:].min() < self.im_min and \
+               self.ff_applied[8:].max() > self.im_max:
+                self.im_min = self.ff_applied[8:].min()
+                self.im_max = self.ff_applied[8:].max()
+
+            image_processing_queue.task_done()
+
+            done_per = int(float(index) / self.image_count * 100)
+            if not index % (self.image_count / (100 / progress_step)) and done_per > 0:
+                logging.getLogger("GUI").info("Image processing %d%% completed" %done_per)
+            if index == self.image_count - 1:
+                logging.getLogger("GUI").info("Image processing finished")
+                break
+        self.thread_watcher.send()
+
+class ImageReadingThread(threading.Thread):
+    def __init__(self, raw_filename_list, ff_filename_list=[], ff_ssim=[]):
+        threading.Thread.__init__(self)
+
+        self.stopped = False
+        self.failed_to_read_count = 10
+        self.raw_filename_list = raw_filename_list
+        self.ff_filename_list = ff_filename_list
+
+        self.raw_image_list = [None] * len(self.raw_filename_list)
+        self.ff_image_list = [None] * len(self.ff_filename_list)
+
+        self.ff_ssim = None
+
+    def start(self):
+        self.thread_watcher = gevent.get_hub().loop.async()
+        self.thread_done = gevent.event.Event()
+        threading.Thread.start(self)
+        return self.thread_done
+
+    def set_stop(self):
+        self.stopped = True
+        logging.getLogger("GUI").info("Image reading stopped")
+
+    def set_ff_ssim(self, ff_ssim):
+        self.ff_ssim = ff_ssim
+
+    def read_image(self, filename, timeout=10):
+        if timeout:
+            try:
+                with gevent.Timeout(timeout, Exception("Timeout waiting for image %s" % filename)):
+                    while not os.path.isfile(filename):
+                        gevent.sleep(0.5)
+                    return cv.imread(filename, cv.IMREAD_ANYDEPTH)
+            except gevent.Timeout:
+                #Skip the image or 
+                self.failed_to_read_count -= 1
+                if self.failed_to_read_count == 0:
+                    self.set_stop()
+        else:
+            return cv.imread(filename, cv.IMREAD_ANYDEPTH)
+
+    def run(self):
+        self.thread_watcher.start(self.thread_done.set)
+
+        logging.getLogger("GUI").info("Image reading started...")
+        for index, filename in enumerate(self.ff_filename_list):
+            if self.stopped:
+                self.thread_watcher.send()
+                return
+            self.ff_image_list[index] = self.read_image(filename)
+
+        progress_step = 20
+
+        for index, filename in enumerate(self.raw_filename_list):
+            if self.stopped:
+                self.thread_watcher.send()
+                return
+            self.raw_image_list[index] = self.read_image(filename)
+            done_per = int(float(index) / len(self.raw_filename_list) * 100)
+            if not index % (len(self.raw_filename_list) / (100 / progress_step)) and done_per > 0:
+                logging.getLogger("GUI").info("Image reading %d%% completed" % done_per)
+
+            if self.ff_filename_list:
+                ff_index = 0
+                image_processing_queue.put((self.raw_image_list[index], self.ff_image_list[ff_index], index))
+        logging.getLogger("GUI").info("Image reading finished")
+        self.thread_watcher.send()
+
+    def get_raw_image(self, index):
+        return self.raw_image_list[index]
+
+    def get_ff_image(self, raw_image_index):
+        if self.ff_ssim:
+            ff_index = self.ff_ssim[raw_image_index][2] - 1
+        else:
+            ff_index = int(raw_image_index / float(len(self.raw_image_list)) * len(self.ff_image_list))
+        return self.ff_image_list[ff_index]
+
