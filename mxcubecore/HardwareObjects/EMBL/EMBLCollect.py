@@ -20,11 +20,10 @@
 import os
 
 from HardwareRepository.TaskUtils import task
-from abstract.AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -527,3 +526,6 @@ class EMBLCollect(AbstractCollect):
     def set_run_autoprocessing(self, status):
         """Enables or disables autoprocessing after a collection"""
         self.run_autoprocessing = status
+
+    def create_file_directories(self):
+        return

@@ -19,20 +19,15 @@
 
 import os
 import time
+import numpy
 import gevent
 import logging
 
-from GenericParallelProcessing import GenericParallelProcessing
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import GenericParallelProcessing
 
-from XSDataCommon import XSDataBoolean
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataString
-from XSDataControlDozorv1_1 import XSDataInputControlDozor
-from XSDataControlDozorv1_1 import XSDataResultControlDozor
-from XSDataControlDozorv1_1 import XSDataControlImageDozor
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataBoolean, XSDataDouble, XSDataInteger, XSDataString
+from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import XSDataInputControlDozor, XSDataResultControlDozor, XSDataControlImageDozor
 
-import numpy
 
 
 __license__ = "LGPLv3+"
@@ -92,7 +87,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             os.path.join(self.params_dict["process_directory"], "dozor_input.xml")
         )
 
-        self.emit("processingStarted", self.params_dict, self.results_aligned)
+        self.emit(
+            "processingStarted",
+            (self.params_dict, self.results_raw, self.results_aligned),
+        )
         self.emit("processingResultsUpdate", False)
 
         self.started = True

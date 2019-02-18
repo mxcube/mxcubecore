@@ -7,7 +7,7 @@ access and manipulate this information.
 import os
 import time
 
-from Session import Session
+from HardwareRepository.HardwareObjects.Session import Session
 
 class EMBLSession(Session):
 
@@ -34,10 +34,21 @@ class EMBLSession(Session):
             user = os.getenv("USER")
         return os.path.join(
             self.base_directory,
-            str(os.getuid()) + "_" + str(os.getgid()),
+            #str(os.getuid()) + "_" + str(os.getgid()),
             user,
             start_time,
         )
+
+    def get_base_process_directory(self):
+        process_directory = self["file_info"].getProperty("processed_data_base_directory")
+        folders = self.get_base_data_directory().split("/")
+
+        process_directory = os.path.join(process_directory,
+                                         *folders[4:])
+        process_directory = process_directory + "/" + \
+               self["file_info"].getProperty("processed_data_folder_name")
+
+        return process_directory 
 
     def get_archive_directory(self):
         archive_directory = os.path.join(

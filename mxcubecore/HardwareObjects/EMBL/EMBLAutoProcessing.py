@@ -23,18 +23,15 @@ import logging
 import gevent
 import subprocess
 
-from XSDataAutoprocv1_0 import XSDataAutoprocInput
-
-from XSDataCommon import XSDataDouble
-from XSDataCommon import XSDataFile
-from XSDataCommon import XSDataInteger
-from XSDataCommon import XSDataString
-
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataDouble
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataFile
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataInteger
+from HardwareRepository.HardwareObjects.XSDataCommon import XSDataString
+from HardwareRepository.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoprocInput
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -45,7 +42,6 @@ class EMBLAutoProcessing(HardwareObject):
         HardwareObject.__init__(self, name)
         self.result = None
         self.autoproc_programs = None
-        self.current_autoproc_procedure = None
 
     def init(self):
         try:
@@ -118,7 +114,7 @@ class EMBLAutoProcessing(HardwareObject):
                     elif process_event == "image":
                         filename = params_dict["fileinfo"]["template"] % frame_number
                         end_of_line_to_execute = " %s %s/%s" % (
-                            params_dict["fileinfo"]["directory"],
+                            params_dict["fileinfo"]["archive_directory"],
                             params_dict["fileinfo"]["directory"],
                             filename,
                         )
@@ -136,10 +132,6 @@ class EMBLAutoProcessing(HardwareObject):
                         "EMBLAutoprocessing: No program to " + " execute found (%s)",
                         executable,
                     )
-
-    def autoproc_done(self, current_autoproc):
-        """Resets current gevent procedure"""
-        self.current_autoproc_procedure = None
 
     def create_autoproc_input(self, event, params):
         """Creates processing input xml
@@ -212,10 +204,8 @@ class EMBLAutoProcessing(HardwareObject):
                 gevent.sleep(xds_input_file_wait_resolution)
         if not xds_appeared:
             logging.error(
-                "EMBLAutoprocessing: XDS.INP file ({0}) failed "
-                + "to appear after {1} seconds".format(
-                    autoproc_xds_filename, xds_input_file_wait_timeout
-                )
+                "EMBLAutoprocessing: XDS.INP file %s failed " % autoproc_xds_filename
+                + "to appear after %d seconds" % xds_input_file_wait_timeout
             )
             return None, False
 
