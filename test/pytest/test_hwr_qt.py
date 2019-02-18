@@ -1,23 +1,16 @@
 from HardwareRepository import HardwareRepository
 
+HWR = None
+
 def test_hwr_qt(hwr_qt):
+    global HWR
+    HWR = HardwareRepository.getHardwareRepository(hwr_qt)
+    HWR.connect()
 
-    hwr = HardwareRepository.getHardwareRepository(hwr_qt)
-    hwr.connect()
+def test_energy():
+    energy_hwobj = HWR.getHardwareObject("energy-mockup")
 
-    """
-    blsetup_hwobj = hwr.getHardwareObject("beamline-setup")
-    role_list = ("transmission", "diffractometer", "omega_axis", "kappa_axis",
-                 "kappa_phi_axis", "sample_changer", "plate_manipulator",
-                 "resolution", "energy", "flux", "beam_info",
-                 "session", "lims_client", "data_analysis", "energyscan",
-                 "collect", "parallel_processing", "xrf_spectrum", "detector")
-    for role in role_list:
-        assert hasattr(blsetup_hwobj, "%s_hwobj" % role)
-    """
-    energy_hwobj = hwr.getHardwareObject("energy-mockup")
-
-    # Energy hwobj
+    assert not energy_hwobj is None, "Energy hardware objects is None (not initialized)"
     current_energy = energy_hwobj.get_current_energy()
     current_wavelength = energy_hwobj.get_current_wavelength()
     energy_limits = energy_hwobj.get_energy_limits()
@@ -33,3 +26,21 @@ def test_hwr_qt(hwr_qt):
     assert hasattr(energy_hwobj, "can_move_energy")
     assert hasattr(energy_hwobj, "move_energy")
     assert hasattr(energy_hwobj, "move_wavelength")
+
+def test_transmission():
+    pass
+
+def test_resolution():
+    pass
+
+def test_detector():
+    pass
+
+def test_diffractometer():
+    pass
+
+def test_beam_info():
+    pass
+
+def test_queue():
+    pass
