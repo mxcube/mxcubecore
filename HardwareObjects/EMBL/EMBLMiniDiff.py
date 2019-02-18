@@ -18,6 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+import gevent
 import logging
 
 from math import sqrt
@@ -32,7 +33,7 @@ except ImportError:
             "Could not find autocentring library, " + "automatic centring is disabled"
         )
 
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 from HardwareRepository.TaskUtils import task
 
 
@@ -43,7 +44,8 @@ __category__ = "General"
 class EMBLMiniDiff(GenericDiffractometer):
 
     AUTOMATIC_CENTRING_IMAGES = 6
-    CENTRING_METHOD_IMAGING = "Imaging"
+    CENTRING_METHOD_IMAGING = "3-click imaging"
+    CENTRING_METHOD_IMAGING_N = "n-click imaging"
 
     def __init__(self, *args):
         """
@@ -78,7 +80,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.use_sc = False
         self.omega_reference_par = None
         self.omega_reference_pos = [0, 0]
-        self.static_pixels_per_mm = None
+        self.imaging_pixels_per_mm = [0, 0]
 
     def init(self):
 
@@ -170,9 +172,13 @@ class EMBLMiniDiff(GenericDiffractometer):
         )
 
         # self.use_sc = self.getProperty("use_sample_changer")
+        self.imaging_pixels_per_mm = [1, 1]
         self.centring_methods[
             EMBLMiniDiff.CENTRING_METHOD_IMAGING
         ] = self.start_imaging_centring
+        self.centring_methods[
+            EMBLMiniDiff.CENTRING_METHOD_IMAGING_N
+        ] = self.start_imaging_centring_n
 
     def use_sample_changer(self):
         """Returns true if sample changer is used
@@ -304,22 +310,15 @@ class EMBLMiniDiff(GenericDiffractometer):
             reference_pos = self.omega_reference_motor.get_position()
             self.omega_reference_motor_moved(reference_pos)
 
-    def set_static_pixels_per_mm(self, pixels_per_mm):
-        self.static_pixels_per_mm = pixels_per_mm
-        self.pixels_per_mm_x = self.static_pixels_per_mm[0]
-        self.pixels_per_mm_y = self.static_pixels_per_mm[1]
-        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
-
     def update_pixels_per_mm(self, *args):
         """
         Descript. :
         """
-        if self.static_pixels_per_mm is not None:
-            self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
-            self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
-            self.emit(
-                "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
-            )
+        self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
+        self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
+        self.emit(
+             "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
+        )
 
     def set_phase(self, phase, timeout=80):
         """Sets diffractometer to the selected phase.
@@ -484,10 +483,13 @@ class EMBLMiniDiff(GenericDiffractometer):
         return centred_pos_dir
 
     def start_imaging_centring(self, sample_info=None, wait_result=None):
-        """
-        """
         self.emit_progress_message("Imaging based 3 click centring...")
         self.current_centring_procedure = gevent.spawn(self.imaging_centring)
+        self.current_centring_procedure.link(self.centring_done)
+
+    def start_imaging_centring_n(self, sample_info=None, wait_result=None):
+        self.emit_progress_message("Imaging based n click centring...")
+        self.current_centring_procedure = gevent.spawn(self.imaging_centring_n)
         self.current_centring_procedure.link(self.centring_done)
 
     def imaging_centring(self):
@@ -497,8 +499,25 @@ class EMBLMiniDiff(GenericDiffractometer):
             x, y = self.user_clicked_event.get()
             self.imaging_centring_hwobj.appendCentringDataPoint(
                 {
-                    "X": (x - self.beam_position[0]) / self.pixels_per_mm_x,
-                    "Y": (y - self.beam_position[1]) / self.pixels_per_mm_y,
+                    "X": (x - 1024.) / self.imaging_pixels_per_mm[0],
+                    "Y": (y - 1024.) / self.imaging_pixels_per_mm[1],
+                }
+            )
+            if click < 2:
+                self.motor_hwobj_dict["phi"].move_relative(90)
+            #print "rotate omega"
+        # self.omega_reference_add_constraint()
+        return self.imaging_centring_hwobj.centeredPosition(return_by_name=False)
+
+    def imaging_centring_n(self):
+        self.imaging_centring_hwobj.initCentringProcedure()
+        while True:
+            self.user_clicked_event = gevent.event.AsyncResult()
+            x, y = self.user_clicked_event.get()
+            self.imaging_centring_hwobj.appendCentringDataPoint(
+                {
+                    "X": (x - 1024.) / self.imaging_pixels_per_mm[0],
+                    "Y": (y - 1024.) / self.imaging_pixels_per_mm[1],
                 }
             )
         # self.omega_reference_add_constraint()
@@ -576,7 +595,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         Descript. :
         """
         try:
-            return self.move_kappa_and_phi_procedure(kappa, kappa_phi, wait=wait)
+            return self.move_kappa_and_phi_procedure(kappa, kappa_phi)
         except BaseException:
             logging.exception("Could not move kappa and kappa_phi")
 

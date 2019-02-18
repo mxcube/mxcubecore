@@ -20,10 +20,9 @@
 import logging
 import gevent
 
-from abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3"
 __category__ = "Motor"
 
 
@@ -106,11 +105,11 @@ class TINEMotor(AbstractMotor):
         """
         if self.connected():
             if signal == "stateChanged":
-                self.motor_state_changed()
+                self.motor_state_changed(self.get_state())
             elif signal == "limitsChanged":
-                self.motor_limits_changed(self.getLimits())
+                self.motor_limits_changed(self.get_limits())
             elif signal == "positionChanged":
-                self.motor_position_changed(self.getPosition())
+                self.motor_position_changed(self.get_position())
 
     def motor_limits_changed(self, limits):
         """Updates motor limits
@@ -176,10 +175,7 @@ class TINEMotor(AbstractMotor):
             self.emit("positionChanged", (position,))
             self.previous_position = position
 
-    def getMotorMnemonic(self):
-        """
-        Descript. :
-        """
+    def get_motor_mnemonic(self):
         return "TINEMotor"
 
     def wait_ready(self, timeout=None):

@@ -69,13 +69,14 @@ class EMBLPPUControl(Device):
         self.restart_running = status
 
     def file_info_changed(self, value):
+        value = (value)
         if len(value) == 2:
-            values = value[1]
+            value = value[1]
         else:
-            values = value[0]
+            value = value[0]
 
-        self.file_transfer_in_error = values[2] > 0
-        self.emit("fileTranferStatusChanged", (values))
+        self.file_transfer_in_error = value[2] > 0
+        self.emit("fileTranferStatusChanged", (value))
 
         self.is_error = (
             self.all_status.startswith(self.error_state) or self.file_transfer_in_error
