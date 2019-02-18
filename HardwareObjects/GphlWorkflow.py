@@ -626,7 +626,7 @@ class GphlWorkflow(HardwareObject, object):
                         qe, sweepSetting, sweepSetting.id
                     )
                 if self.getProperty('collect_centring_snapshots'):
-                    self.collect_centring_snapshots()
+                    self.collect_centring_snapshots(sweepSetting)
                 goniostatTranslations.append(translation)
                 recen_parameters['ref_xyz'] = tuple(
                     translation.axisSettings[x]
@@ -678,13 +678,14 @@ class GphlWorkflow(HardwareObject, object):
                 goniostatSweepSettings[requestedRotationId] = sweepSetting
                 # NB there is no provision for NOT making a new translation
                 # object if you are making no changes
-                qe = self.enqueue_sample_centring(
-                    goniostatRotation=sweepSetting)
-                queue_entries.append(
-                    (qe, sweepSetting, requestedRotationId)
-                )
+                if not (recen_parameters and self.getProperty('centre_before_sweep')):
+                    qe = self.enqueue_sample_centring(
+                        goniostatRotation=sweepSetting)
+                    queue_entries.append(
+                        (qe, sweepSetting, requestedRotationId)
+                    )
 
-        # NB, split in two loops to get all centrings on queue (and so visible) before execution
+        # Split in two loops to get all centrings on queue and visible before execution
 
         for qe, goniostatRotation, requestedRotationId in queue_entries:
             goniostatTranslations.append(
@@ -693,7 +694,7 @@ class GphlWorkflow(HardwareObject, object):
                 )
             )
             if self.getProperty('collect_centring_snapshots'):
-                self.collect_centring_snapshots()
+                self.collect_centring_snapshots(goniostatRotation)
 
         # Get wavelengths
         h_over_e = ConvertUtils.h_over_e
@@ -873,8 +874,13 @@ class GphlWorkflow(HardwareObject, object):
         sample = gphl_workflow_model.get_sample_node()
         # There will be exactly one for the kinds of collection we are doing
         crystal = sample.crystals[0]
-        data_collections = []
         snapshot_count = gphl_workflow_model.get_snapshot_count()
+        if (self.getProperty('centre_before_sweep') and
+                len(set(scan.sweep for scan in collection_proposal.scans)) > 1):
+            enqueue_centring = True
+        else:
+            enqueue_centring = False
+        data_collections = []
         for scan in collection_proposal.scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -917,21 +923,6 @@ class GphlWorkflow(HardwareObject, object):
             # Edna also sets screening_id
             # Edna also sets osc_end
 
-            goniostatRotation = sweep.goniostatSweepSetting
-            goniostatTranslation = goniostatRotation.translation
-            dd = dict((x, goniostatRotation.axisSettings[x])
-                      for x in self.rotation_axis_roles)
-
-            if goniostatTranslation is not None:
-                for tag in self.translation_axis_roles:
-                    val = goniostatTranslation.axisSettings.get(tag)
-                    if val is not None:
-                        dd[tag] = val
-            dd[goniostatRotation.scanAxis] = scan.start
-            acq_parameters.centred_position = (
-                queue_model_objects.CentredPosition(dd)
-            )
-
             # Path_template
             path_template = queue_model_objects.PathTemplate()
             # Naughty, but we want a clone, right?
@@ -973,6 +964,28 @@ class GphlWorkflow(HardwareObject, object):
             path_template.start_num = acq_parameters.first_image
             path_template.num_files = acq_parameters.num_images
 
+            goniostatRotation = sweep.goniostatSweepSetting
+            if enqueue_centring:
+                # Put centring on queue and collect using the resulting position
+                # NB this means that the actual translational axis positions
+                # will NOT be known to the workflow
+                dd = {}
+                self.enqueue_sample_centring(goniostatRotation)
+            else:
+                # Collect using precalculated centring position
+                dd = dict((x, goniostatRotation.axisSettings[x])
+                      for x in self.rotation_axis_roles)
+                goniostatTranslation = goniostatRotation.translation
+                if goniostatTranslation is not None:
+                    for tag in self.translation_axis_roles:
+                        val = goniostatTranslation.axisSettings.get(tag)
+                        if val is not None:
+                            dd[tag] = val
+            dd[goniostatRotation.scanAxis] = scan.start
+            acq_parameters.centred_position = (
+                queue_model_objects.CentredPosition(dd)
+            )
+
             data_collection = queue_model_objects.DataCollection([acq], crystal)
             data_collections.append(data_collection)
 
@@ -981,6 +994,8 @@ class GphlWorkflow(HardwareObject, object):
             data_collection.set_number(path_template.run_number)
             self._add_to_queue(new_dcg_model, data_collection)
 
+        if enqueue_centring:
+            logging.getLogger('user_level_log').info("Crystal must be centred before each scan")
         data_collection_entry = queue_manager.get_entry_with_model(
             new_dcg_model
         )
@@ -1246,8 +1261,9 @@ class GphlWorkflow(HardwareObject, object):
 
         return centring_entry
 
-    def collect_centring_snapshots(self):
+    def collect_centring_snapshots(self, goniostatRotation):
 
+        filename_template = "%s_%s_%s_%s_%s.jpeg"
 
         gphl_workflow_model = self._queue_entry.get_data_model()
         snapshot_directory = os.path.join(
@@ -1263,16 +1279,14 @@ class GphlWorkflow(HardwareObject, object):
             collect_hwobj = self.beamline_setup.getObjectByRole(
                 'collect'
             )
-            image_filename = gphl_workflow_model.path_template.get_image_file_name()
 
+            okp = tuple(int(goniostatRotation.axisSettings[x])
+                        for x in self.rotation_axis_roles)
             timestamp = datetime.datetime.now().isoformat().split('.')[0]
-            if image_filename.endswith('.gz'):
-                image_filename = image_filename[:-3]
-            image_filename = os.path.splitext(image_filename)[0] % 0
             for snapshot_index in range(number_of_snapshots):
-                snapshot_filename = os.path.join(snapshot_directory,
-                    "%s_%s_%s.jpeg" % (image_filename, timestamp, (snapshot_index + 1))
-                )
+                snapshot_filename = filename_template  % (okp + (timestamp,
+                                                                 snapshot_index + 1))
+                snapshot_filename = os.path.join(snapshot_directory, snapshot_filename)
                 logging.getLogger('HWR').debug('Centring snapshot stored at %s'
                                                % snapshot_filename)
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
