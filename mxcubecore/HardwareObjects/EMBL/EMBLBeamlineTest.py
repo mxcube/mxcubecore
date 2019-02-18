@@ -40,7 +40,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 #except BaseException:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
-import SimpleHTML
+from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
