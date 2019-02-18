@@ -93,11 +93,28 @@ class GphlWorkflowConnection(HardwareObject, object):
         pass
 
     def init(self):
-
         if self.hasObject('connection_parameters'):
             self._connection_parameters.update(
                 self['connection_parameters'].getProperties()
             )
+        if self.hasObject('ssh_options'):
+            # We are running through ssh - so we need python_address
+            # If not, we stick to default, which is localhost (127.0.0.1)
+            self._connection_parameters['python_address'] = socket.gethostname()
+
+        locations = next(self.getObjects('directory_locations')).getProperties()
+        paths = self.software_paths
+        props = self.java_properties
+        dd = next(self.getObjects('software_paths')).getProperties()
+        for tag, val in dd.items():
+            paths[tag] = val.format(**locations)
+        dd = next(self.getObjects('software_properties')).getProperties()
+        for tag, val in dd.items():
+            val = val.format(**locations)
+            paths[tag] = props[tag] = val
+        #
+        pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+        paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
     def get_state(self):
         """Returns a member of the General.States enumeration"""
@@ -118,30 +135,22 @@ class GphlWorkflowConnection(HardwareObject, object):
     def to_java_time(self, time):
         """Convert time in seconds since the epoch (python time) to Java time value"""
         return self._gateway.jvm.java.lang.Long(int(time*1000))
-
-    def _initialize_connection(self, gphl_workflow_hwobj):
-        """Set up parameters at start of first execution
-
-        NB This cannot be done in init() as it requires gphl_workflow_hwobj"""
-        locations = next(self.getObjects('directory_locations')).getProperties()
-        locations['LOCAL_SCRIPTS'] = gphl_workflow_hwobj.file_paths['scripts']
-        paths = self.software_paths
-        props = self.java_properties
-        dd = next(self.getObjects('software_paths')).getProperties()
-        for tag, val in dd.items():
-            paths[tag] = val.format(**locations)
-        dd = next(self.getObjects('software_properties')).getProperties()
-        for tag, val in dd.items():
-            val = val.format(**locations)
-            paths[tag] = props[tag] = val
-        #
-        pp = paths.get('co.gphl.wf.bin')
-        if pp:
-            locations['GPHL_INSTALLATION'] = pp
-        pp = (paths.get('co.gphl.wf.bdg_licence_dir')
-              or locations.get('GPHL_INSTALLATION'))
-        if pp:
-            paths['BDG_home'] = pp
+    #
+    # def _initialize_connection(self, gphl_workflow_hwobj):
+    #     """Set up parameters at start of first execution"""
+    #     locations = next(self.getObjects('directory_locations')).getProperties()
+    #     paths = self.software_paths
+    #     props = self.java_properties
+    #     dd = next(self.getObjects('software_paths')).getProperties()
+    #     for tag, val in dd.items():
+    #         paths[tag] = val.format(**locations)
+    #     dd = next(self.getObjects('software_properties')).getProperties()
+    #     for tag, val in dd.items():
+    #         val = val.format(**locations)
+    #         paths[tag] = props[tag] = val
+    #     #
+    #     pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
+    #     paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
 
     def get_executable(self, name):
@@ -149,7 +158,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         tag = 'co.gphl.wf.%s.bin' % name
         result = self.software_paths.get(tag)
         if not result:
-            result = os.path.join(self.software_paths['co.gphl.wf.bin'], name)
+            result = os.path.join(self.software_paths['GPHL_INSTALLATION'], name)
         #
         return result
 
@@ -199,6 +208,9 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def start_workflow(self, workflow_queue, workflow_model_obj):
 
+        # NBNB All command line option values are put in qquotes (repr) when
+        # the workflow is invoked remotely through ssh.
+
         self.workflow_queue = workflow_queue
 
         if self.get_state() != States.OFF:
@@ -209,23 +221,39 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = workflow_model_obj.get_type()
         params = workflow_model_obj.get_workflow_parameters()
 
-        commandList = [self.software_paths['java_binary']]
+        in_shell = self.hasObject('ssh_options')
+        if in_shell:
+            dd =  self['ssh_options'].getProperties()
+            #
+            host = dd.pop('Host')
+            command_list = ['ssh']
+            for tag, val in sorted(dd.items()):
+                command_list.extend(('-o',  '%s=%s' % (tag, val)))
+                # command_list.extend(('-o', tag, val))
+            command_list.append(host)
+        else:
+            command_list = []
+        command_list.append(self.software_paths['java_binary'])
 
         for keyword, value in params.get('invocation_properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
 
         params['invocation_options']['cp'] = self.software_paths[
             'gphl_java_classpath'
         ]
         for keyword, value in params.get('invocation_options',{}).items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
+            command_list.extend(ConvertUtils.command_option(keyword, value,
+                                                            quote_value=in_shell))
 
-        commandList.append(params['application'])
+        command_list.append(params['application'])
 
         for keyword, value in params.get('properties',{}).items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
         for keyword, value in self.java_properties.items():
-            commandList.extend(ConvertUtils.java_property(keyword, value))
+            command_list.extend(ConvertUtils.java_property(keyword, value,
+                                                           quote_value=in_shell))
 
         workflow_options = dict(params.get('options',{}))
         calibration_name = workflow_options.get('calibration')
@@ -243,7 +271,8 @@ class GphlWorkflowConnection(HardwareObject, object):
             self.getProperty('gphl_subdir')
         )
         for keyword, value in workflow_options.items():
-            commandList.extend(ConvertUtils.command_option(keyword, value))
+            command_list.extend(ConvertUtils.command_option(keyword, value,
+                                                            quote_value=in_shell))
         #
         wdir = workflow_options.get('wdir')
         # NB this creates the appdir as well (wdir is within appdir)
@@ -256,32 +285,49 @@ class GphlWorkflowConnection(HardwareObject, object):
                     "Could not create GPhL working directory: %s" % wdir
                 )
 
-        for ss in commandList:
+        for ss in command_list:
             ss = ss.split('=')[-1]
             if ss.startswith('/') and not '*' in ss and not os.path.exists(ss):
                 logging.getLogger('HWR').warning(
                     "File does not exist : %s" % ss
                 )
 
-        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(commandList))
+        logging.getLogger('HWR').info("GPhL execute :\n%s" % ' '.join(command_list))
 
         # Get environmental variables
-        envs = {}
+        envs = os.environ.copy()
+
+        # # Trick to allow unauthorised account (e.g. opid30) on ESRF to run GPhL programs
+        # # Any value is OK, just setting it is enough.
+        # envs['AutoPROCWorkFlowUser'] = '1'
+
         # These env variables are needed in some cases for wrapper scripts
         # Specifically for the stratcal wrapper.
-        # They may be unset depending on the config files
-        val = self.software_paths.get('BDG_home')
+        envs['GPHL_INSTALLATION'] = self.software_paths['GPHL_INSTALLATION']
+        # Hack to pass alternative installation dir for processing
+        val = self.software_paths.get('gphl_wf_processing_installation')
         if val:
-            envs['BDG_home'] = val
-        val = self.software_paths.get('co.gphl.wf.bin')
-        if val:
-            envs['GPHL_INSTALLATION'] = val
+            envs['GPHL_PROC_INSTALLATION'] = val
+        else:
+            envs['GPHL_PROC_INSTALLATION'] = envs['GPHL_INSTALLATION']
+        envs['BDG_home'] = self.software_paths['BDG_home']
+        logging.getLogger('HWR').info('Executing GPhL workflow, in environment %s' % envs)
+        ff = self.software_paths.get('gphl_wf_redirected_out')
+        if ff:
+            ff = os.path.join(path_template.process_directory, ff)
+            fp1 = open(ff, 'w')
+            fp2 = subprocess.STDOUT
+        else:
+            fp1 = fp2 = None
         try:
-            self._running_process = subprocess.Popen(commandList, env=envs,
-                                                     stdout=None, stderr=None)
+            self._running_process = subprocess.Popen(command_list, env=envs,
+                                                     stdout=fp1, stderr=fp2)
         except:
             logging.getLogger().error('Error in spawning workflow application')
             raise
+        finally:
+            if ff:
+                fp1.close()
 
         self.set_state(States.RUNNING)
 

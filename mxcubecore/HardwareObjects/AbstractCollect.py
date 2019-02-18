@@ -687,6 +687,18 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. : 
         """
+        dd = self.diffractometer_hwobj.get_positions()
+        logging.getLogger('HWR').debug(
+            'MOTORS-premove' + 
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+            
+        )
+        dd = self.current_dc_parameters['motors']
+        logging.getLogger('HWR').debug(
+            'MOTORS-target' + 
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+            
+        )
         positions_str = ""
         for motor, position in sorted(self.current_dc_parameters['motors'].items()):
             if position:
@@ -696,6 +708,11 @@ class AbstractCollect(HardwareObject, object):
                     positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
         self.current_dc_parameters['actualCenteringPosition'] = positions_str
         self.move_motors(self.current_dc_parameters['motors'])
+        dd = self.diffractometer_hwobj.get_positions()
+        logging.getLogger('HWR').debug(
+            'MOTORS-postmove' + 
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+        )
 
     @abc.abstractmethod
     @task
