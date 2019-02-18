@@ -58,8 +58,21 @@ class ALBAMiniDiff(GenericDiffractometer):
 
     def __init__(self, *args):
         GenericDiffractometer.__init__(self, *args)
+        self.calibration_hwobj = None
         self.centring_hwobj = None
         self.super_hwobj = None
+        self.chan_state = None
+        self.phi_motor_hwobj = None
+        self.phiz_motor_hwobj = None
+        self.phiy_motor_hwobj = None
+        self.zoom_motor_hwobj = None
+        self.focus_motor_hwobj = None
+        self.sample_x_motor_hwobj = None
+        self.sample_y_motor_hwobj = None
+        self.kappa_motor_hwobj = None
+        self.kappa_phi_motor_hwobj = None
+
+        self.omegaz_reference = None
 
     def init(self):
 
@@ -83,8 +96,6 @@ class ALBAMiniDiff(GenericDiffractometer):
 
         self.chan_state = self.getChannelObject("State")
         self.connect(self.chan_state, "update", self.state_changed)
-        # This is not used
-        self.cmd_start_auto_focus = self.getCommandObject('startAutoFocus')
 
         self.phi_motor_hwobj = self.getObjectByRole('phi')
         self.phiz_motor_hwobj = self.getObjectByRole('phiz')
@@ -269,48 +280,13 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         """
         self.update_pixels_per_mm()
-        # self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
-        # self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
-        # self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
 
-    # TODO: looks quite bizarre.
-    # Use parent method which uses sample_centring module
-#    def motor_positions_to_screen(self, centred_positions_dict):
-#        """
-#        Convert motor positions contained in a dictionary to screen (canvas) positions.
-#        Overrides GenericDiffractometer method.
-#
-#        @centered_positions_dict: dictionary to be converted
-#        @return: position
-#        """
-#        c = centred_positions_dict
-
-        # if self.head_type == GenericDiffractometer.HEAD_TYPE_MINIKAPPA:
-        #kappa = self.motor_hwobj_dict["kappa"]
-        # phi = self.motor_hwobj_dict["kappa_phi"]
-
-#        xy = self.centring_hwobj.centringToScreen(c)
-#        if xy is None:
-#           return None
-
-#        x = xy['X']  * self.pixels_per_mm_x + \
-#              self.zoom_centre['x']
-
-#        y = xy['Y']  * self.pixels_per_mm_y + \
-#              self.zoom_centre['y']
-
-        # logging.getLogger("HWR").debug("  motor_positions_to_screen ")
-        # logging.getLogger("HWR").debug(" positions = %s " % str(centred_positions_dict))
-        # logging.getLogger("HWR").debug(" x,y = %s, %s " % (x,y))
-
-#        return x,y
-
-    # TODO: Must be implemented correctly.
+    # TODO: Must be implemented.
     def get_centred_point_from_coord(self, x, y, return_by_names=None):
         """
-        Returns a dictionary with motors name ans positions centred.
+        Returns a dictionary with motors name and positions centred.
         It is expected in start_move_to_beam and move_to_beam methods in
-        GenericDIffractometer HwObj.
+        GenericDiffractometer HwObj.
 
         @return: dict
         """
@@ -564,9 +540,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         self.current_motor_positions["focus"] = pos
 
-    # TODO:  The command is not configured in the xml. Unused
     def start_auto_focus(self):
-        self.cmd_start_auto_focus()
+        pass
 
     def move_omega(self, pos, velocity=None):
         """
