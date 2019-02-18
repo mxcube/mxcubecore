@@ -1813,4 +1813,4 @@ class EMBLBeamlineTest(HardwareObject):
             return html_filename
 
     def test_method(self):
-        print "Test"
+        print("Test")
