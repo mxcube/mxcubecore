@@ -8,15 +8,17 @@ import os
 import tempfile
 
 try:
-  import lucid2 as lucid
+    #  !!!!!  ALBA  !!!!
+    import lucid_xaloc as lucid
 except ImportError:
-  try:
-      import lucid
-  except ImportError:
-      logging.warning("Could not find autocentring library, automatic centring is disabled")
+    try:
+      import lucid2 as lucid
+    except ImportError:
+      try:
+          import lucid
+      except ImportError:
+          logging.warning("Could not find autocentring library, automatic centring is disabled")
 
-#  !!!!!  ALBA  !!!!
-import lucid_xaloc as lucid
 
 
 def multiPointCentre(z,phis) :

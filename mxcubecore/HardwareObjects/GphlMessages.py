@@ -445,13 +445,6 @@ class PhasingWavelength(IdentifiedElement):
 
     def __init__(self, wavelength, role=None, id=None):
         IdentifiedElement.__init__(self, id)
-        # if role is None or role in WavelengthRoles:
-        #     self._role = role
-        # else:
-        #     raise ValueError(
-        #         "Wavelength role value %s not in supported values: %s"
-        #         % (repr(role), repr(WavelengthRoles))
-        #     )
         self._role = role
         self._wavelength = wavelength
 
@@ -541,6 +534,23 @@ class DetectorSetting(PositionerSetting):
     """Detector position setting"""
     pass
 
+class BcsDetectorSetting(DetectorSetting):
+    """Detector position setting with additional (beamline-side) resolution and orgxy"""
+    def __init__(self, resolution, id=None,  orgxy=(), **axisSettings):
+        PositionerSetting.__init__(self, id=id, **axisSettings)
+        self._resolution = resolution
+        self._orgxy = tuple(orgxy)
+
+    @property
+    def resolution(self):
+        """Resolution (in A) matching detector distance"""
+        return self._resolution
+
+    @property
+    def orgxy(self):
+        """Tuple, empty or of two floats; beam centre on detector """
+        return self._orgxy
+
 class BeamstopSetting(PositionerSetting):
     """Beamstop position setting"""
     pass
@@ -626,7 +636,7 @@ class UserProvidedInfo(MessageData):
 
     def __init__(self, scatterers=(), lattice=None, pointGroup=None,
                  spaceGroup=None, cell=None, expectedResolution=None,
-                 isAnisotropic=None, phasingWavelengths=()):
+                 isAnisotropic=None):
 
         self._scatterers = scatterers
         self._lattice = lattice
@@ -635,7 +645,6 @@ class UserProvidedInfo(MessageData):
         self._cell = cell
         self._expectedResolution = expectedResolution
         self._isAnisotropic = isAnisotropic
-        self._phasingWavelengths = frozenset(phasingWavelengths)
 
     @property
     def scatterers(self):
@@ -664,9 +673,6 @@ class UserProvidedInfo(MessageData):
     @property
     def isAnisotropic(self):
         return self._isAnisotropic
-    @property
-    def phasingWavelengths(self):
-        return self._phasingWavelengths
 
 class Sweep(IdentifiedElement):
     """Geometric strategy Sweep"""
@@ -774,13 +780,16 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
     _intent = 'COMMAND'
 
-    def __init__(self, isInterleaved, isUserModifiable, allowedWidths=(),
+    def __init__(self, isInterleaved, isUserModifiable, defaultDetectorSetting,
+                 defaultBeamSetting, allowedWidths=(),
                  defaultWidthIdx=None, sweeps=(), id=None):
 
         super(GeometricStrategy, self).__init__(id=id)
 
         self._isInterleaved = isInterleaved
         self._isUserModifiable = isUserModifiable
+        self._defaultDetectorSetting = defaultDetectorSetting
+        self._defaultBeamSetting = defaultBeamSetting
         self._defaultWidthIdx = defaultWidthIdx
         self._sweeps = frozenset(sweeps)
 
@@ -802,6 +811,14 @@ class GeometricStrategy(IdentifiedElement, Payload):
     @property
     def defaultWidthIdx(self):
         return self._defaultWidthIdx
+
+    @property
+    def defaultDetectorSetting(self):
+        return self._defaultDetectorSetting
+
+    @property
+    def defaultBeamSetting(self):
+        return self._defaultBeamSetting
 
     @property
     def allowedWidths(self):
@@ -929,8 +946,8 @@ class SampleCentred(Payload):
     _intent = 'DOCUMENT'
 
     def __init__(self, imageWidth, transmission, exposure, interleaveOrder='',
-                 wedgeWidth=None, beamstopSetting=None,
-                 goniostatTranslations=()):
+                 wedgeWidth=None, beamstopSetting=None, detectorSetting=None,
+                 goniostatTranslations=(), wavelengths=()):
 
         self._imageWidth = imageWidth
         self._transmission = transmission
@@ -938,9 +955,11 @@ class SampleCentred(Payload):
         self._interleaveOrder = interleaveOrder
         self._wedgeWidth = wedgeWidth
         self._beamstopSetting = beamstopSetting
+        self._detectorSetting = detectorSetting
         self._goniostatTranslations = frozenset(
             goniostatTranslations
         )
+        self._wavelengths = frozenset(wavelengths)
 
     @property
     def imageWidth(self):
@@ -967,5 +986,13 @@ class SampleCentred(Payload):
         return self._beamstopSetting
 
     @property
+    def detectorSetting(self):
+        return self._detectorSetting
+
+    @property
     def goniostatTranslations(self):
         return self._goniostatTranslations
+
+    @property
+    def wavelengths(self):
+        return self._wavelengths
