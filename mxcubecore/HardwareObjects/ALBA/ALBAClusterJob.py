@@ -83,6 +83,9 @@ class ALBAEdnaProcJob(ALBAClusterJob):
 
     def run(self, *args):
         collect_id, input_file, output_dir = args
+        logging.getLogger("HWR").debug("Creating EDNAproc job")
+        logging.getLogger("HWR").debug("Input file = %s" % input_file)
+        logging.getLogger("HWR").debug("Output dir = %s" % output_dir)
         self.job = XalocJob(
             "edna-ednaproc",
             str(collect_id),
@@ -90,6 +93,7 @@ class ALBAEdnaProcJob(ALBAClusterJob):
             input_file,
             output_dir,
             'SCRATCH')
+        logging.getLogger("HWR").debug("Submitting EDNAproc job")
         self.job.submit()
 
 
@@ -145,3 +149,15 @@ class ALBAStrategyJob(ALBAClusterJob):
             result = ""
 
         return result
+
+
+def test():
+
+    collect_id = 432
+    input_file = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1/EDNAprocInput_432.xml'
+    output_dir = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1'
+    job = ALBAEdnaProcJob().run(collect_id, input_file, output_dir)
+
+
+if __name__ == "__main__":
+    test()
