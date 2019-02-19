@@ -961,7 +961,11 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.diffractometer_hwobj = self.beamline_setup.diffractometer_hwobj
         self.shape_history = self.beamline_setup.shape_history_hwobj
         self.session = self.beamline_setup.session_hwobj
-        self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+
+        try:
+            self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+        except AttributeError:
+            self.parallel_processing_hwobj = None
 
         qc = self.get_queue_controller()
 
@@ -1091,7 +1095,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
                 else:
                     pos_dict = self.diffractometer_hwobj.getPositions()
                     cpos = queue_model_objects.CentredPosition(pos_dict)
-                    snapshot = self.shape_history.get_scene_snapshot()
+                    snapshot = self.shape_history.get_snapshot()
                     acq_1.acquisition_parameters.centred_position = cpos
                     acq_1.acquisition_parameters.centred_position.snapshot_image = (
                         snapshot
