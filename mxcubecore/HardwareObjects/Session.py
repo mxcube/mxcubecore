@@ -39,7 +39,7 @@ class Session(HardwareObject):
         self.base_archive_directory = None
 
         self.raw_data_folder_name = 'RAW_DATA'
-        self.processed_data_folder_name = 'PROCESSED_DATA'
+        self.processed_data_folder_name = 'PROCESS_DATA'
         self.archive_folder_name = 'ARCHIVE'
 
     # Framework-2 method, inherited from HardwareObject and called
