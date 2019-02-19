@@ -195,7 +195,7 @@ class GenericDiffractometer(HardwareObject):
         self.image_height = None
 
         self.current_state = None
-        self.current_phase = GenericDiffractometer.PHASE_CENTRING
+        self.current_phase = None
         self.transfer_mode = None
         self.current_centring_procedure = None
         self.current_centring_method = None
