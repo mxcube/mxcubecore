@@ -22,6 +22,25 @@ try:
     from sardana.taurus.core.tango.sardana import registerExtensions
     from taurus import Device, Attribute
     import taurus
+    from taurus.core.tango.enums import DevState
+    from taurus.core.tango.tangoattribute import TangoAttrValue
+    """
+    ON = 0
+    OFF = 1
+    CLOSE = 2
+    OPEN = 3
+    INSERT = 4
+    EXTRACT = 5
+    MOVING = 6
+    STANDBY = 7
+    FAULT = 8
+    INIT = 9
+    RUNNING = 10
+    ALARM = 11
+    DISABLE = 12
+    UNKNOWN = 13
+
+    """
 except:
     logging.getLogger('HWR').warning("Sardana is not available in this computer.")
 
@@ -87,6 +106,7 @@ class SardanaMacro(CommandObject, SardanaObject):
         self.door = None
         self.init_device()
         self.macrostate = SardanaMacro.INIT
+        # self.macrostate = DevState.INIT
         self.doorstate = None
         self.t0 = 0
       
@@ -108,6 +128,7 @@ class SardanaMacro(CommandObject, SardanaObject):
         if self.macroStatusAttr == None:
             self.macroStatusAttr = self.door.getAttribute("State")
             self.macroStatusAttr.addListener(self.objectListener)
+
 
     def __call__(self, *args, **kwargs):
 
@@ -133,12 +154,14 @@ class SardanaMacro(CommandObject, SardanaObject):
         try:
             import time
             self.t0 = time.time()
-            if (self.doorstate in ["ON","ALARM"]):
+            # if (self.doorstate in ["ON","ALARM"]):
+            if (self.doorstate in [DevState.ON, DevState.ALARM]):
                 self.door.runMacro( fullcmd.split()  )
                 self.macrostate = SardanaMacro.STARTED
                 self.emit('commandBeginWaitReply', (str(self.name()), ))
             else:
                 logging.getLogger('HWR').error("%s. Cannot execute. Door is not READY", str(self.name()) )
+                logging.getLogger('HWR').error("Door state is %s" % self.doorstate)
                 self.emit('commandFailed', (-1, self.name()))
         except TypeError:
             logging.getLogger('HWR').error("%s. Cannot properly format macro code. Format is: %s, args are %s", str(self.name()), self.macro_format, str(args)) 
@@ -165,14 +188,17 @@ class SardanaMacro(CommandObject, SardanaObject):
         data = event.event[2]
 
         try:
-            if type(data) != PyTango.DeviceAttribute:
+            if type(data) != PyTango.DeviceAttribute and type(data) != TangoAttrValue:
+                logging.getLogger('HWR').debug("***** Event type %s" % type(data))
+                logging.getLogger('HWR').debug("***** Event value %s" % str(data.value))
                   # Events different than a value changed on attribute.  Taurus sends an event with attribute info
                   # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
                   #logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
-                  return
+                return
 
             # Handling macro state changed event
-            doorstate = str(data.value)
+            # doorstate = str(data.value)
+            doorstate = data.value
             logging.getLogger('HWR').debug("doorstate changed. it is %s" % str(doorstate))
 
             if doorstate != self.doorstate:
@@ -181,22 +207,24 @@ class SardanaMacro(CommandObject, SardanaObject):
                 # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
                 self.emit('commandCanExecute', (self.canExecute(),))
 
-                if (doorstate in ["ON","ALARM"]):
+                # if (doorstate in ["ON","ALARM"]):
+                if (doorstate in [DevState.ON, DevState.ALARM]):
                     # logging.getLogger('HWR').debug("Macroserver ready for commands")
                     self.emit('commandReady', ())
                 else:
                     # logging.getLogger('HWR').debug("Macroserver busy ")
                     self.emit('commandNotReady', ())
             
-            if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
+            # if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
+            if self.macrostate == SardanaMacro.STARTED and doorstate == DevState.RUNNING:
                 # logging.getLogger('HWR').debug("Macro server is running")
                 self.macrostate = SardanaMacro.RUNNING
-            elif self.macrostate == SardanaMacro.RUNNING and (doorstate in ["ON", "ALARM"]):
+            elif self.macrostate == SardanaMacro.RUNNING and (doorstate in [DevState.ON, DevState.ALARM]):
                 logging.getLogger('HWR').debug("Macro execution finished")
                 self.macrostate = SardanaMacro.DONE
                 self.result = self.door.result
                 self.emit('commandReplyArrived', (self.result, str(self.name())))
-                if doorstate == "ALARM":
+                if doorstate == DevState.ALARM:
                     self.emit('commandAborted', (str(self.name()), ))
                 self._reply_arrived_event.set()
             elif self.macrostate == SardanaMacro.DONE or self.macrostate == SardanaMacro.INIT:
@@ -410,7 +438,10 @@ class SardanaChannel(ChannelObject, SardanaObject):
             if taurus.Release.version_info[0] == 3:
                 newvalue = data.value
             elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
-                newvalue = data.rvalue.magnitude
+                try:
+                    newvalue = data.rvalue.magnitude
+                except:
+                    newvalue = data.rvalue
 
             if newvalue == None:
                 newvalue = self.getValue()
