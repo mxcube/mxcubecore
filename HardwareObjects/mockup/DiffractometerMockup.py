@@ -53,6 +53,8 @@ class DiffractometerMockup(GenericDiffractometer):
         self.pixels_per_mm_y = 1.0 / self.y_calib
         self.beam_position = [318, 238]
 
+        self.current_phase = GenericDiffractometer.PHASE_CENTRING
+
         self.cancel_centring_methods = {}
         self.current_motor_positions = {
             "phiy": 1.0,
