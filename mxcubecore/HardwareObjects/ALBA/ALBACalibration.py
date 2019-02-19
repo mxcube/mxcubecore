@@ -18,67 +18,44 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name]
-ALBACalibration
+[Name] ALBACalibration
 
 [Description]
 HwObj used to grab the zoom/pixel size calibration from
 PySignal simulator (TangoDS).
 
-
-Example Hardware Object XML file :
-==================================
-<device class="ALBACalibration">
-  <username>Calibration</username>
-  <taurusname>bl13/ct/variables</taurusname>
-  <channel type="sardana" name="calibx">OAV_PIXELSIZE_X</channel>
-  <channel type="sardana" name="caliby">OAV_PIXELSIZE_Y</channel>
-  <interval>200</interval>
-  <threshold>0.001</threshold>
-</device>
+[Signals]
 """
 
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
 import logging
-import os
+from HardwareRepository import BaseHardwareObjects
 
-__author__ = "Jordi Andreu"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["ALBA Synchrotron"]
+__version__ = "2.3"
+__category__ = "General"
 
-__version__ = "2.2."
-__maintainer__ = "Jordi Andreu"
-__email__ = "jandreu[at]cells.es"
-__status__ = "Draft"
 
 class ALBACalibration(BaseHardwareObjects.Device):
 
-    def __init__(self,name):
-        BaseHardwareObjects.Device.__init__(self,name)
+    def __init__(self, name):
+        BaseHardwareObjects.Device.__init__(self, name)
+        self.chan_calib_x = None
+        self.chan_calib_y = None
 
     def init(self):
 
-        self.calibx = self.getChannelObject("calibx")
-        self.caliby = self.getChannelObject("caliby")
+        self.chan_calib_x = self.getChannelObject("calibx")
+        self.chan_calib_y = self.getChannelObject("caliby")
 
-        if self.calibx is not None and self.caliby is not None:
+        if self.chan_calib_x is not None and self.chan_calib_y is not None:
             logging.getLogger().info("Connected to pixel size calibration channels")
 
     def getCalibration(self):
-        calibx = self.calibx.getValue()
-        caliby = self.caliby.getValue()
-        logging.getLogger().debug("Returning calibration: x=%s, y=%s" % (calibx, caliby))
-        return [calibx , caliby]
+        calib_x = self.chan_calib_x.getValue()
+        calib_y = self.chan_calib_y.getValue()
+        logging.getLogger().debug("Calibration: x=%s, y=%s" % (calib_x, calib_y))
+        return [calib_x, calib_y]
 
-def test():
-  hwr_directory = os.environ["XML_FILES_PATH"]
 
-  print "Loading hardware repository from ", os.path.abspath(hwr_directory)
-  hwr = HardwareRepository.HardwareRepository(os.path.abspath(hwr_directory))
-  hwr.connect()
-
-  calib = hwr.getHardwareObject("/calibration")
-  print "Calibration is: ",calib.getCalibration()
-
-if __name__ == '__main__':
-   test()
+def test_hwo(hwo):
+    print "Calibration is: ", hwo.getCalibration()

@@ -129,6 +129,7 @@ class GphlWorkflow(HardwareObject, object):
         self.beamline_setup = beamline_setup
         workflow_connection = beamline_setup.getObjectByRole('gphl_connection')
         self._workflow_connection = workflow_connection
+
         # Set standard configurable file paths
         file_paths = self.file_paths
         ss = workflow_connection.software_paths['gphl_beamline_config']
@@ -196,7 +197,6 @@ class GphlWorkflow(HardwareObject, object):
         mx_workflow_options = acq_workflow_options.copy()
         mx_workflow_options.update(self['mx_workflow_options'].getProperties())
 
-
         for wf_node in self['workflows']:
             name = wf_node.name()
             strategy_type = wf_node.getProperty('strategy_type')
@@ -237,6 +237,7 @@ class GphlWorkflow(HardwareObject, object):
                         dd[wavelength.getProperty('role')] = (
                             wavelength.getProperty('value')
                         )
+
             wf_dict['properties'] = dd = properties.copy()
             if wf_node.hasObject('properties'):
                 dd.update(wf_node['properties'].getProperties())
@@ -656,6 +657,8 @@ class GphlWorkflow(HardwareObject, object):
                             )
                 if recen_parameters and sweepSetting.translation is None:
                     dd = self.calculate_recentring(okp, **recen_parameters)
+                    
+                    logging.getLogger('HWR').debug('@~@~ Recentring. okp, motors' + str(okp) + str(sorted(dd.items())))
 
                     # Creating the Translation adds it to the Rotation
                     GphlMessages.GoniostatTranslation(
@@ -1307,6 +1310,7 @@ class GphlWorkflow(HardwareObject, object):
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x])
                       for x in self.translation_axis_roles)
+            logging.getLogger('HWR').debug('@~@~ cenred: allmotors' + str(sorted(positionsDict.items())))
             return self.GphlMessages.GoniostatTranslation(
                 rotation=goniostatRotation,
                 requestedRotationId=requestedRotationId, **dd
