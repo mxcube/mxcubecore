@@ -1,5 +1,4 @@
 # pylint: disable=E
-
 #
 #  Project: MXCuBE
 #  https://github.com/mxcube
@@ -841,7 +840,8 @@ class ImageProcessingThread(threading.Thread):
         self.ff_applied = None
 
     def start(self):
-        self.thread_watcher = gevent.get_hub().loop.async()
+        #self.thread_watcher = gevent.get_hub().loop.async()
+        
         self.thread_done = gevent.event.Event()
         threading.Thread.start(self)
         return self.thread_done
@@ -854,7 +854,7 @@ class ImageProcessingThread(threading.Thread):
         return self.im_min, self.im_max
 
     def run(self):
-        self.thread_watcher.start(self.thread_done.set)
+        #self.thread_watcher.start(self.thread_done.set)
         logging.getLogger("GUI").info("Image processing started...")
         progress_step = 20
 
@@ -883,7 +883,7 @@ class ImageProcessingThread(threading.Thread):
             if index == self.image_count - 1:
                 logging.getLogger("GUI").info("Image processing finished")
                 break
-        self.thread_watcher.send()
+        #self.thread_watcher.send()
 
 class ImageReadingThread(threading.Thread):
     def __init__(self, raw_filename_list, ff_filename_list=[], ff_ssim=[]):
@@ -900,7 +900,7 @@ class ImageReadingThread(threading.Thread):
         self.ff_ssim = None
 
     def start(self):
-        self.thread_watcher = gevent.get_hub().loop.async()
+        #self.thread_watcher = gevent.get_hub().loop.async()
         self.thread_done = gevent.event.Event()
         threading.Thread.start(self)
         return self.thread_done
@@ -928,12 +928,12 @@ class ImageReadingThread(threading.Thread):
             return cv.imread(filename, cv.IMREAD_ANYDEPTH)
 
     def run(self):
-        self.thread_watcher.start(self.thread_done.set)
+        #self.thread_watcher.start(self.thread_done.set)
 
         logging.getLogger("GUI").info("Image reading started...")
         for index, filename in enumerate(self.ff_filename_list):
             if self.stopped:
-                self.thread_watcher.send()
+                #self.thread_watcher.send()
                 return
             self.ff_image_list[index] = self.read_image(filename)
 
@@ -941,7 +941,7 @@ class ImageReadingThread(threading.Thread):
 
         for index, filename in enumerate(self.raw_filename_list):
             if self.stopped:
-                self.thread_watcher.send()
+                #self.thread_watcher.send()
                 return
             self.raw_image_list[index] = self.read_image(filename)
             done_per = int(float(index) / len(self.raw_filename_list) * 100)
@@ -952,7 +952,7 @@ class ImageReadingThread(threading.Thread):
                 ff_index = 0
                 image_processing_queue.put((self.raw_image_list[index], self.ff_image_list[ff_index], index))
         logging.getLogger("GUI").info("Image reading finished")
-        self.thread_watcher.send()
+        #self.thread_watcher.send()
 
     def get_raw_image(self, index):
         return self.raw_image_list[index]
