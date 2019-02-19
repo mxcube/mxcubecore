@@ -223,6 +223,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def prepare_acquisition(self, dcpars):
 
         self.set_energy_threshold()
+        latency_time = self.get_latency_time()
 
         osc_seq = dcpars['oscillation_sequence'][0]
         file_pars = dcpars['fileinfo']
@@ -245,16 +246,16 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         logging.getLogger("HWR").debug("    /trigger_mode    : %s" % trig_mode)
         logging.getLogger("HWR").debug("    /acq_nb_frames   : %s" % nb_frames)
         logging.getLogger("HWR").debug("    /acq_expo_time   : %s" %
-                                       str(exp_time - self.latency_time))
-        logging.getLogger("HWR").debug("    /latency_time    : %s" % self.latency_time)
+                                       str(exp_time - latency_time))
+        logging.getLogger("HWR").debug("    /latency_time    : %s" % latency_time)
 
-        self.chan_saving_mode = 'AUTO_FRAME'
-        self.chan_saving_directory = basedir
-        self.chan_saving_prefix = prefix
-        self.chan_saving_format = fileformat
+        self.chan_saving_mode.setValue('AUTO_FRAME')
+        self.chan_saving_directory.setValue(basedir)
+        self.chan_saving_prefix.setValue(prefix)
+        self.chan_saving_format.setValue(fileformat)
 
-        self.chan_acq_trigger_mode = trig_mode
-        self.chan_acq_expo_time = exp_time - self.latency_time
+        self.chan_acq_trigger_mode.setValue(trig_mode)
+        self.chan_acq_expo_time.setValue(exp_time - latency_time)
 
         return True
 
@@ -262,8 +263,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         logging.getLogger("HWR").debug("Preparing collection")
         logging.getLogger("HWR").debug("# images = %s, first image number: %s" %
                                        (nb_frames, first_img_no))
-        self.chan_acq_nb_frames = nb_frames
-        self.chan_saving_next_number = first_img_no
+        self.chan_acq_nb_frames.setValue(nb_frames)
+        self.chan_saving_next_number.setValue(first_img_no)
         self.cmd_prepare_acq()
         return True
 
@@ -286,8 +287,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
         headers = list()
         for i, sa in enumerate(startangles_list):
-            header = "_array_data.header_convention PILATUS_1.2\n" \
-                "# Detector: PILATUS 6M, S/N 60-0108, Alba\n" \
+            # header = "_array_data.header_convention PILATUS_1.2\n" \
+            header ="# Detector: PILATUS 6M, S/N 60-0108, Alba\n" \
                 "# %s\n" \
                 "# Pixel_size 172e-6 m x 172e-6 m\n" \
                 "# Silicon sensor, thickness 0.000320 m\n" % time.strftime(
@@ -301,7 +302,7 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
                 header += "# %s %s\n" % (key, value)
             headers.append("%d : array_data/header_contents|%s;" % (i, header))
 
-        self.chan_saving_header_delimiter = ["|", ";", ":"]
+        self.chan_saving_header_delimiter.setValue(["|", ";", ":"])
         self.cmd_reset_common_header()
         self.cmd_reset_frame_headers()
         self.cmd_set_image_header(headers)
