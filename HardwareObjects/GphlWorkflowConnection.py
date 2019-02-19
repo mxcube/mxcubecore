@@ -123,7 +123,6 @@ class GphlWorkflowConnection(HardwareObject, object):
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = props[tag] = val2
-        #
         pp = props['co.gphl.wf.bin'] = paths['GPHL_INSTALLATION']
         paths['BDG_home'] = paths.get('co.gphl.wf.bdg_licence_dir') or pp
 
@@ -256,7 +255,6 @@ class GphlWorkflowConnection(HardwareObject, object):
         for keyword, value in params.get('invocation_properties',{}).items():
             command_list.extend(ConvertUtils.java_property(keyword, value,
                                                            quote_value=in_shell))
-
 
         # We must get hold of the options here, as we need wdir for a property
         workflow_options = dict(params.get('options',{}))
