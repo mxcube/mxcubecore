@@ -199,7 +199,9 @@ class ALBAAutoProcessing(HardwareObject):
         logging.getLogger("HWR").debug("    - output_dir    = %s " % output_dir)
 
         job = ALBAEdnaProcJob()
+
         input_file = self.input_file  # TODO
+        logging.getLogger("HWR").debug("    - input file    = %s " % input_file)
 
         job.run(dc_id, input_file, output_dir)
 

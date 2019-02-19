@@ -645,6 +645,8 @@ class GenericDiffractometer(HardwareObject):
         """
         self.emit_progress_message("Manual 3 click centring...")
         if self.use_sample_centring:
+            logging.getLogger('HWR').debug(
+                '***** Start manual centring: %s' % self.pixels_per_mm_x)
             self.current_centring_procedure = \
                  sample_centring.start({"phi": self.centring_phi,
                                         "phiy": self.centring_phiy,
@@ -666,6 +668,8 @@ class GenericDiffractometer(HardwareObject):
 
         while self.automatic_centring_try_count > 0:
               if self.use_sample_centring:
+
+                  logging.getLogger('HWR').debug('***** Start automatic centring: %s' % self.pixels_per_mm_x)
                   self.current_centring_procedure = \
                       sample_centring.start_auto(self.camera_hwobj,
                                                  {"phi": self.centring_phi,
@@ -737,7 +741,10 @@ class GenericDiffractometer(HardwareObject):
             self.emit_centring_moving()
 
             try:
-                logging.getLogger("HWR").debug("Centring finished. Moving motoros to position %s" % str(motor_pos))
+                # msg = ''
+                # for mot, pos in motor_pos.items():
+                #     msg += '%s = %s\n' % (str(mot.name()), pos)
+                logging.getLogger("HWR").debug("Centring finished")#. Moving motors to:\n%s" % msg)
                 self.move_to_motors_positions(motor_pos, wait=True)
             except:
                 logging.exception("Could not move to centred position")
@@ -1076,6 +1083,7 @@ class GenericDiffractometer(HardwareObject):
     def update_zoom_calibration(self):
         """
         """
+        logging.getLogger('HWR').debug('****** In update_zoom_calibration')
         self.pixels_per_mm_x = 1.0/self.channel_dict["CoaxCamScaleX"].getValue()
         self.pixels_per_mm_y = 1.0/self.channel_dict["CoaxCamScaleY"].getValue()
         self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y)))
