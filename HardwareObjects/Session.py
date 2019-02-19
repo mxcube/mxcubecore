@@ -241,6 +241,17 @@ class Session(HardwareObject):
 
         return prefix
 
+    def get_archive_directory(self):
+        archive_directory = os.path.join(self['file_info'].getProperty('archive_base_directory'),
+                                         self['file_info'].getProperty('archive_folder'))
+
+        if self.synchrotron_name == "EMBL-HH":
+            folders = self.get_base_data_directory().split('/')
+            archive_directory = os.path.join(archive_directory,
+                                             *folders[4:])
+        return archive_directory
+
+
     def get_proposal(self):
         """
         :returns: The proposal, 'local-user' if no proposal is

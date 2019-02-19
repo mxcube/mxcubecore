@@ -406,11 +406,20 @@ class __HardwareRepositoryClient:
                 else:
                     ho = self.loadHardwareObject(objectName)
 
-                #try:
-                #    print (111, self.hardwareObjects, objectName)
-                #    ho = self.hardwareObjects[objectName]
-                #except KeyError:
-                #    ho = self.loadHardwareObject(objectName)
+                if not ho and objectName ==  '/queue-model':
+                    # HACK to get hold of central singleton objects
+                    # also if moved to singleton_objects/
+                    #
+                    # NBNB This is BAD!
+                    # But there HAS to be a way to get the those objects
+                    # that does not depend on local directory structure
+                    # Please fix that before you remove the hack. rhfogh
+                    altName = '/singleton_objects' + objectName
+                    if altName in self.hardwareObjects:
+                        ho = self.hardwareObjects[altName]
+                    else:
+                        ho = self.loadHardwareObject(altName)
+
                 return ho
         except TypeError as err:
             logging.getLogger("HWR").exception("could not get Hardware Object %s", objectName)
@@ -622,6 +631,19 @@ class __HardwareRepositoryClient:
                     logging.getLogger("HWR").exception("an error occured while calling timer function")
         except:
             logging.getLogger("HWR").exception("an error occured inside the timerEvent")
+
+    def printReport(self):
+        longest_cols = [(max([len(str(row[i])) for row in self.hwobj_info_list]) + 3)
+                        for i in range(len(self.hwobj_info_list[0]))]
+        row_format = "| ".join(["{:<" + str(longest_col) + "}" for longest_col in longest_cols])
+
+        print "+","=" * (sum(longest_cols) + 5), "+"
+        print "| %s|" % row_format.format(*("Xml", "Class", "Load time", "Comment"))
+        print "+","=" * (sum(longest_cols) + 5), "+"
+
+        for row in sorted(self.hwobj_info_list):
+            print "| %s|" % row_format.format(*row)
+        print "+","=" * (sum(longest_cols) + 4), "+"
 
     def reloadHardwareObjects(self):
         """

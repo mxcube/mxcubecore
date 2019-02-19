@@ -69,9 +69,11 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
-        hwr_dir = HardwareRepository().getHardwareRepositoryPath()
-
-        with open(os.path.join(hwr_dir, self.edna_default_file), 'r') as f:
+        fp = HardwareRepository().findInRepository(self.edna_default_file)
+        if fp is None:
+            raise ValueError("File %s not found in repository"
+                             % self.edna_default_file)
+        with open(fp, 'r') as f:
             self.edna_default_input = ''.join(f.readlines())
 
     def get_html_report(self, edna_result):

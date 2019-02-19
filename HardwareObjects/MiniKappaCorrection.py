@@ -23,7 +23,7 @@ class MiniKappaCorrection(Device):
         Rk1=self.rotation_matrix(self.kappa, -kappa1)
         Rp =self.rotation_matrix(self.phi, phi2-phi1)
         
-	a=tk-np.dot(Rk1,(tk-x))
+        a=tk-np.dot(Rk1,(tk-x))
         b=tp-np.dot(Rp ,(tp-a))
         return tk-np.dot(Rk2,(tk-b))
  

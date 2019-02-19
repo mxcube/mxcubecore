@@ -31,6 +31,14 @@ class CollectEmulator(CollectMockup):
 
         self._counter = 1
 
+    def init(self):
+
+        CollectMockup.init(self)
+        # NB session hwobj is set in superclass init
+        session_hwobj = self.getObjectByRole("session")
+        if session_hwobj and self.hasObject('override_data_directories'):
+            dirs = self['override_data_directories'].getProperties()
+            session_hwobj.set_base_data_directories(**dirs)
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
         """Get ordered dict with simcal input from available data"""
@@ -83,12 +91,11 @@ class CollectEmulator(CollectMockup):
         setup_data['trans_y_axis'] = ll[3:6]
         setup_data['trans_z_axis'] = ll[6:]
         tags = ('cone_radius', 'cone_s_height', 'beam_stop_radius',
-                'beam_stop_s_length', 'beam_stop_s_distance', 'gain', 'background',)
+                'beam_stop_s_length', 'beam_stop_s_distance',)
         for tag in tags:
             val = instrument_data.get(remap.get(tag, tag))
             if val is not None:
                 setup_data[tag] = val
-
 
         # Add/overwrite parameters from emulator configuration
         conv = ConvertUtils.convert_string_value
@@ -123,22 +130,25 @@ class CollectEmulator(CollectMockup):
             setup_data['kappa_axis'] = ll[3:6]
             setup_data['phi_axis'] = ll[6:]
 
+        # get resolution limit and detector distance
+        detector_distance = data_collect_parameters.get('detdistance', 0.0)
+        if not detector_distance:
+            resolution = data_collect_parameters['resolution']['upper']
+            self.set_resolution(resolution)
+            detector_distance = self.get_detector_distance()
         # Add sweeps
         sweeps = []
         for osc in data_collect_parameters['oscillation_sequence']:
             motors = data_collect_parameters['motors']
-            # get resolution limit and detector distance
-            resolution = data_collect_parameters['resolution']['upper']
-            self.set_resolution(resolution)
             sweep = OrderedDict()
 
             sweep['lambda'] = (ConvertUtils.h_over_e
                                / data_collect_parameters['energy'])
-            sweep['res_limit'] = resolution
+            sweep['res_limit'] = setup_data['res_limit_def']
             sweep['exposure'] = osc['exposure_time']
             ll =  self.gphl_workflow_hwobj.translation_axis_roles
             sweep['trans_xyz'] = list(motors.get(x) or 0.0 for x in ll)
-            sweep['det_coord'] = self.get_detector_distance()
+            sweep['det_coord'] = detector_distance
             # NBNB hardwired for omega scan TODO
             sweep['axis_no'] = 3
             sweep['omega_deg'] = osc['start']
@@ -188,17 +198,17 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        logging.getLogger('HWR').debug("Emulator: nominal position "
-            + ', '.join('%s=%s' % (tt)
-                        for tt in sorted(data_collect_parameters['motors'].items())
-                        if tt[1] is not None)
-        )
-
-        logging.getLogger('HWR').debug("Emulator:  actual position "
-             + ', '.join('%s=%s' % tt
-                         for tt in sorted(self.diffractometer_hwobj.get_positions().items())
-                         if tt[1] is not None)
-        )
+        # logging.getLogger('HWR').debug("Emulator: nominal position "
+        #     + ', '.join('%s=%s' % (tt)
+        #                 for tt in sorted(data_collect_parameters['motors'].items())
+        #                 if tt[1] is not None)
+        # )
+        #
+        # logging.getLogger('HWR').debug("Emulator:  actual position "
+        #      + ', '.join('%s=%s' % tt
+        #                  for tt in sorted(self.diffractometer_hwobj.get_positions().items())
+        #                  if tt[1] is not None)
+        # )
 
         # Done here as there are what-happens-first conflicts
         # if you put it in init
@@ -252,6 +262,9 @@ class CollectEmulator(CollectMockup):
             )
         # in spite of the simcal_crystal_list name this returns an OrderdDict
         crystal_data = f90nml.read(crystal_file)['simcal_crystal_list']
+
+        if isinstance(crystal_data, list):
+            crystal_data = crystal_data[0]
 
         input_data = self._get_simcal_input(data_collect_parameters,
                                             crystal_data)
