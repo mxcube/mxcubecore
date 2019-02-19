@@ -69,7 +69,11 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         self.collect_obj = self.getObjectByRole("collect")
         self.start_edna_command = self.getProperty("edna_command")
         self.edna_default_file = self.getProperty("edna_default_file")
-        fp = HardwareRepository().findInRepository(self.edna_default_file)
+        if os.path.exists(self.edna_default_file):
+            fp = self.edna_default_file
+        else:
+            fp = HardwareRepository().findInRepository(self.edna_default_file)
+            self.edna_default_file = fp
         if fp is None:
             raise ValueError("File %s not found in repository"
                              % self.edna_default_file)
