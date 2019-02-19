@@ -417,7 +417,7 @@ class ALBACollect(AbstractCollect):
         self.image_headers["Phi"] = "%.4f deg." % self.chan_phi_pos.getValue()
 
         self.image_headers["Chi"] = "0 deg."
-        self.image_headers["Oscillation_axis"] = "X, CW"
+        self.image_headers["Oscillation_axis"] = "omega (X, CW)"
         self.image_headers["N_oscillations"] = '1'
         self.image_headers["Detector_2theta"] = "0.0000 deg"
 
