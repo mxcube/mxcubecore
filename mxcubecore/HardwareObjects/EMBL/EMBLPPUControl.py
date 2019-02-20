@@ -74,7 +74,7 @@ class EMBLPPUControl(Device):
         # of droped frames
 
         values = list(values)
-        if len(value) == 2:
+        if len(values) == 2:
             value = values[1]
         else:
             value = values[0]
