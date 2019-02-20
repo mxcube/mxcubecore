@@ -82,7 +82,7 @@ class EMBLCRL(HardwareObject):
     def convert_value(self, value):
         """Converts int to list of bits"""
         if value:
-            if type(value) in (list, tuple):
+            if isinstance(value, (list, tuple)):
                 lens_combination = 0
                 for index in range(self.lens_count):
                     lens_combination = lens_combination + value[index] * pow(2, index)
