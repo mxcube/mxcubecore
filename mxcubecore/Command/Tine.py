@@ -162,7 +162,7 @@ class TineChannel(ChannelObject):
         if cc == 0:
             self.callback_fail_counter = 0
             self.update(data_list)
-        elif str(cc) != 103 and self.attributeName != "dozor-pass":
+        elif str(cc) != 103 and self.attributeName not in ("dozor-pass", "ff-ssim"):
             self.callback_fail_counter = self.callback_fail_counter + 1
             logging.getLogger("HWR").error(
                 "Tine event callback error %s, Channel: %s, Server: %s/%s"

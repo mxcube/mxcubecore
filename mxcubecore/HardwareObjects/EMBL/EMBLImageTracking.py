@@ -38,9 +38,10 @@ class EMBLImageTracking(Device):
             "update", self.image_tracking_enable_state_changed
         )
         self.chan_filter_frames = self.getChannelObject("chanFilterFramesEnabled")
-        self.chan_filter_frames.connectSignal(
-            "update", self.filter_frames_enabled_changed
-        )
+        if self.chan_filter_frames is not None:
+            self.chan_filter_frames.connectSignal(
+                "update", self.filter_frames_enabled_changed
+            )
 
         self.chan_state = self.getChannelObject("chanState")
         self.chan_state.connectSignal("update", self.state_changed)

@@ -227,13 +227,6 @@ class EMBLBeamInfo(Equipment):
         self.evaluate_beam_info()
         self.emit_beam_info_change()
 
-    def get_beam_info(self):
-        """Returns beam info
-
-        :return: beam info dict
-        """
-        return self.evaluate_beam_info()
-
     def get_beam_size(self):
         """Returns beam size in microns
 

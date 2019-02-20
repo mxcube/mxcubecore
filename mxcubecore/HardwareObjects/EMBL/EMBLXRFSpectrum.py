@@ -20,11 +20,10 @@
 import logging
 import gevent
 
-from abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
+from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
 __category__ = "General"
 
 
@@ -81,8 +80,8 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
                 "update", self.spectrum_status_update
             )
         self.chan_spectrum_consts = self.getChannelObject("chanSpectrumConsts")
-
         self.config_filename = self.getProperty("configFile")
+        self.write_in_raw_data = False
 
     def can_spectrum(self):
         return True
@@ -120,7 +119,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
     def cancel_spectrum(self, *args):
         """Cancels acquisition"""
         if self.spectrum_running:
-            # self.doSpectrum.abort()
             self.ready_event.set()
 
     def adjust_transmission(self):

@@ -78,7 +78,7 @@ Example Hardware Object XML file :
 import time
 import gevent
 import logging
-import _tine as tine
+import tine
 from HardwareRepository.BaseHardwareObjects import Device
 
 
