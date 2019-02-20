@@ -20,7 +20,7 @@ class AbstractDetector(object):
         self.default_distance = None
         self.distance_limits = [None, None]
         self.distance_limits_static = [None, None]
-        self.binding_mode = None
+        self.binning_mode = 0
         self.roi_mode = None
         self.roi_modes_list = []
         self.status = None
@@ -85,13 +85,13 @@ class AbstractDetector(object):
         return
 
     def get_detector_mode(self):
-        return self.binding_mode
+        return self.binning_mode
 
     def set_detector_mode(self, value):
         """
         Descript. :
         """
-        self.binding_mode = value
+        self.binning_mode = value
 
     def prepare_acquisition(
         self,
