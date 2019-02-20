@@ -224,6 +224,7 @@ class Shapes(HardwareObject):
         :returns: The snapshot
         :rtype: str
         """
+        pass
 
     def select_shape_with_cpos(self, cpos):
         return
@@ -259,6 +260,15 @@ class Shapes(HardwareObject):
     def get_grid_data(self, key):
         shape = self.get_shape(key)
         return shape.get_result()
+
+    def inc_used_for_collection(self, cpos):
+        """
+        Not yet implemented
+
+        Signature added to be compatible with qt version of MXCuBE, where this
+        method increments a counter if a position is used for data collection.
+        """
+        pass
 
 
 class Shape(object):
