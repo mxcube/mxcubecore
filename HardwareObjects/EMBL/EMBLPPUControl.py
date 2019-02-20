@@ -68,14 +68,19 @@ class EMBLPPUControl(Device):
             self.restart_result = self.cmd_all_restart.get()  # status
         self.restart_running = status
 
-    def file_info_changed(self, value):
-        if len(value) == 2:
-            values = value[1]
-        else:
-            values = value[0]
+    def file_info_changed(self, values):
+        # Updated information about transfered frames 
+        # values is a list of 3 values, where the last one indicates the number
+        # of droped frames
 
-        self.file_transfer_in_error = values[2] > 0
-        self.emit("fileTranferStatusChanged", (values))
+        values = list(values)
+        if len(values) == 2:
+            value = values[1]
+        else:
+            value = values[0]
+
+        self.file_transfer_in_error = value[2] > 0
+        self.emit("fileTranferStatusChanged", (value))
 
         self.is_error = (
             self.all_status.startswith(self.error_state) or self.file_transfer_in_error

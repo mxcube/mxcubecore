@@ -18,9 +18,10 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+import gevent
 import logging
 
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
 
 __credits__ = ["EMBL Hamburg"]

@@ -81,16 +81,17 @@ class EMBLCRL(HardwareObject):
 
     def convert_value(self, value):
         """Converts int to list of bits"""
-        if type(value) in (list, tuple):
-            lens_combination = 0
-            for index in range(self.lens_count):
-                lens_combination = lens_combination + value[index] * pow(2, index)
-        else:
-            lens_combination = [0, 0, 0, 0, 0, 0]
-            for index in range(self.lens_count):
-                lens_combination[index] = (value & pow(2, index)) / pow(2, index)
+        if value:
+            if isinstance(value, (list, tuple)):
+                lens_combination = 0
+                for index in range(self.lens_count):
+                    lens_combination = lens_combination + value[index] * pow(2, index)
+            else:
+                lens_combination = [0, 0, 0, 0, 0, 0]
+                for index in range(self.lens_count):
+                    lens_combination[index] = (value & pow(2, index)) / pow(2, index)
 
-        return lens_combination
+            return lens_combination
 
     def get_modes(self):
         """Returns list with available CRL modes"""
@@ -157,17 +158,15 @@ class EMBLCRL(HardwareObject):
 
     def get_image_plane_distance(self, value):
         """Returns image plane distance"""
-        if isinstance(value, list):
-            lens_combination = self.convert_value(value)
-            # lens_combination = 0
-            # for x in range(6):
-            #    lens_combination = lens_combination + value[x] * pow(2, x)
-        else:
-            lens_combination = value
-        return 1.0 / (
-            2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
-            - 1 / 42.6696
-        )
+        if value:
+            if isinstance(value, list):
+                lens_combination = self.convert_value(value)
+            else:
+                lens_combination = value
+            return 1.0 / (
+                2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
+                - 1 / 42.6696
+            )
 
     def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
@@ -193,16 +192,16 @@ class EMBLCRL(HardwareObject):
         if value is not None:
             self.cmd_set_crl_value(value)
             self.cmd_set_trans_value(1)
-        logging.getLogger("GUI").info(
-            "Setting CRL image plane "
-            + "distance to %.2f" % self.get_image_plane_distance(value)
-        )
-
-        if timeout:
-            gevent.sleep(1)
-            with gevent.Timeout(timeout, Exception("Timeout waiting for CRL")):
-                while value != self.crl_value:
-                    gevent.sleep(0.1)
+            logging.getLogger("GUI").info(
+                "Setting CRL image plane "
+                + "distance to %.2f" % self.get_image_plane_distance(value)
+            )
+  
+            if timeout:
+                gevent.sleep(1)
+                with gevent.Timeout(timeout, Exception("Timeout waiting for CRL")):
+                    while value != self.crl_value:
+                        gevent.sleep(0.1)
 
     def get_crl_value(self):
         """Return crl combination"""

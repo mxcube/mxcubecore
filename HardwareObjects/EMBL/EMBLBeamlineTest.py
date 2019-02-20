@@ -35,12 +35,12 @@ from scipy.interpolate import interp1d
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-try:
-    import pdfkit
-except BaseException:
-    logging.getLogger("HWR").warning("pdfkit not available")
+#try:
+#    import pdfkit
+#except BaseException:
+#    logging.getLogger("HWR").warning("pdfkit not available")
 
-import SimpleHTML
+from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -1121,7 +1121,7 @@ class EMBLBeamlineTest(HardwareObject):
 
             active_mode, beam_size = self.get_focus_mode()
 
-            if active_mode == "Collimated":
+            if active_mode in ("Collimated", "Imaging"):
                 self.bl_hwobj.transmission_hwobj.setTransmission(
                     new_transmission, timeout=45
                 )
@@ -1138,7 +1138,7 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("progressStep", 3, "Opening slits to 1x1 mm")
 
             # GB: keep standard slits settings for double foucsed mode
-            if active_mode == "Collimated":
+            if active_mode in ("Collimated", "Imaging"):
                 slits_hwobj.set_gap("Hor", 1.0)
                 slits_hwobj.set_gap("Ver", 1.0)
 
@@ -1154,7 +1154,7 @@ class EMBLBeamlineTest(HardwareObject):
                 return
 
             # 5/6 For unfocused mode setting slits to 0.1 x 0.1 mm ---------------
-            if active_mode == "Collimated":
+            if active_mode in ("Collimated", "Imaging"):
                 msg = "5/6 : Setting slits to 0.1 x 0.1 mm"
                 progress_info["progress_msg"] = msg
                 log.info("Beam centering: %s" % msg)
@@ -1348,7 +1348,7 @@ class EMBLBeamlineTest(HardwareObject):
                         # log.debug("No beam detected")
                         return
 
-                    if active_mode == "Collimated":
+                    if active_mode in ("Collimated", "Imaging"):
                         delta_hor = (
                             beam_pos_displacement[0]
                             * self.scale_hor
@@ -1375,7 +1375,7 @@ class EMBLBeamlineTest(HardwareObject):
                         + "and %.4f mm vertical motor correction" % delta_ver
                     )
 
-                    if active_mode == "Collimated":
+                    if active_mode in ("Collimated", "Imaging"):
                         if abs(delta_hor) > 0.0001:
                             log.info("Moving horizontal by %.4f" % delta_hor)
                             self.horizontal_motor_hwobj.move_relative(
@@ -1796,13 +1796,13 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 
-        try:
-            pdfkit.from_url(html_filename, pdf_filename)
-            logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        except BaseException:
-            logging.getLogger("HWR").error(
-                "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
-            )
+        #try:
+        #    pdfkit.from_url(html_filename, pdf_filename)
+        #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
+        #except BaseException:
+        #    logging.getLogger("HWR").error(
+        #        "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
+        #    )
 
         self.emit("testFinished", html_filename)
 
@@ -1813,4 +1813,4 @@ class EMBLBeamlineTest(HardwareObject):
             return html_filename
 
     def test_method(self):
-        print "Test"
+        print("Test")
