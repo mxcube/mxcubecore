@@ -773,7 +773,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
             if self.last_image_index > image_index:
                 omega_relative *= -1
 
-            self.diffractometer_hwobj.move_omega_relative(omega_relative, timeout=5)
+            self.diffractometer_hwobj.move_omega_relative(omega_relative)
             self.last_image_index = image_index
 
     def move_omega_relative(self, relative_index):
