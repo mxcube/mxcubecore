@@ -1,7 +1,11 @@
-from ESRFMultiCollect import *
-from detectors.TacoMarDetector import Mar225
 import os
 import socket
+import gevent
+import logging
+
+from HardwareRepository.TaskUtils import task
+from ESRFMultiCollect import CcdDetector, ESRFMultiCollect, TunableEnergy
+from detectors.TacoMarDetector import Mar225
 
 
 class BM14MultiCollect(ESRFMultiCollect):
@@ -65,10 +69,9 @@ class BM14MultiCollect(ESRFMultiCollect):
                 adxv_notify_socket.connect(("cakenew.esrf.fr", 8100))
                 adxv_notify_socket.sendall("load_image %s\n" % image_filename)
                 adxv_notify_socket.close()
-        except Exception as err:
+        except Exception:
             logging.info("adxv_notify exception : %r", image_filename)
             # print Exception, err
-            pass
 
     @task
     def write_image(self, last_frame):

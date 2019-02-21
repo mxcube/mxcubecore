@@ -61,8 +61,12 @@ import os
 import time
 import logging
 from gevent import spawn
-from urllib2 import urlopen
+try:
+    from urllib2 import urlopen
+except:
+    from urllib.request import urlopen
 from datetime import datetime, timedelta
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

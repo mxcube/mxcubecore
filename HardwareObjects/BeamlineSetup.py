@@ -1,4 +1,3 @@
-import os
 import logging
 import jsonpickle
 
@@ -183,8 +182,9 @@ class BeamlineSetup(HardwareObject):
         exp_time = round(float(self[parent_key].getProperty("exposure_time")), 5)
         num_passes = int(self[parent_key].getProperty("number_of_passes"))
         shutterless = self.detector_has_shutterless()
+
         try:
-            detector_mode = self.detector_hwobj.default_mode()
+            detector_mode = self.detector_hwobj.get_detector_mode()
         except AttributeError:
             detector_mode = None
 

@@ -1,14 +1,16 @@
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractEnergyScan import *
-from gevent.event import AsyncResult
 import logging
 import time
 import os
 import os.path
 import shutil
-import httplib
 import math
+import gevent
 import PyChooch
+
+from HardwareRepository.TaskUtils import task
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from AbstractEnergyScan import AbstractEnergyScan
+
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
@@ -174,7 +176,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
         if self.dbConnection is None:
             return
         try:
-            session_id = int(self.energy_scan_parameters["sessionId"])
+            int(self.energy_scan_parameters["sessionId"])
         except Exception:
             return
 
@@ -230,7 +232,7 @@ class ESRFEnergyScan(AbstractEnergyScan, HardwareObject):
                         scan_data.append((x, y))
                         f.write("%f,%f\r\n" % (x, y))
                 f.close()
-            except IOError as e:
+            except IOError:
                 self.storeEnergyScan()
                 self.emit("energyScanFailed", ())
                 return

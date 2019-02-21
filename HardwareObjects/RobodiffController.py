@@ -1,6 +1,4 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-import os
-import sys
 
 
 class RobodiffController(HardwareObject):

@@ -69,7 +69,7 @@ class Oxford700(HardwareObject):
 
     def stop_action(self, phase="HOLD"):
         if phase in PHASE_ACTION:
-            action = getattr(self.ctrl, PHASE_ACTION[phase])
+            getattr(self.ctrl, PHASE_ACTION[phase])
 
     def pause(self, execute=True):
         self.ctrl.pause(execute)

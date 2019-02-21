@@ -1,4 +1,5 @@
-from ESRFMultiCollect import *
+from HardwareRepository.TaskUtils import task
+from ESRFMultiCollect import CcdDetector, ESRFMultiCollect, TunableEnergy
 
 
 class ID144MultiCollect(ESRFMultiCollect):

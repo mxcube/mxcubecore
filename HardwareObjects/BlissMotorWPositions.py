@@ -1,9 +1,5 @@
 from BlissMotor import BlissMotor
-import math
 import logging
-import time
-import gevent
-import types
 
 
 class BlissMotorWPositions(BlissMotor):

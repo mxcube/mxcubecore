@@ -1,9 +1,11 @@
-from ESRF.ESRFMultiCollect import *
-from detectors.LimaPilatusDetector import Pilatus
 import gevent
 import shutil
 import logging
 import os
+
+from HardwareRepository.TaskUtils import task
+from ESRF.ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
+from detectors.LimaPilatusDetector import Pilatus
 
 
 class ID29MultiCollect(ESRFMultiCollect):
@@ -31,7 +33,7 @@ class ID29MultiCollect(ESRFMultiCollect):
 
     @task
     def get_slit_gaps(self):
-        controller = self.getObjectByRole("controller")
+        self.getObjectByRole("controller")
 
         return (None, None)
 

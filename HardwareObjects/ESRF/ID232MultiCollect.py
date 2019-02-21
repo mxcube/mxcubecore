@@ -1,9 +1,11 @@
-from ESRF.ESRFMultiCollect import *
-from detectors.LimaPilatusDetector import Pilatus
 import gevent
 import shutil
 import logging
 import os
+
+from HardwareRepository.TaskUtils import task
+from ESRF.ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
+from detectors.LimaPilatusDetector import Pilatus
 
 
 class ID232MultiCollect(ESRFMultiCollect):
@@ -66,7 +68,7 @@ class ID232MultiCollect(ESRFMultiCollect):
     def move_motors(self, motors_to_move_dict):
         diffr = self.bl_control.diffractometer
         try:
-            cover_task = self.getObjectByRole("controller").detcover.set_out()
+            self.getObjectByRole("controller").detcover.set_out()
         except BaseException:
             pass
         try:

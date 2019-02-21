@@ -6,7 +6,6 @@ that information.
 """
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from queue_entry import QueueEntryContainer
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"

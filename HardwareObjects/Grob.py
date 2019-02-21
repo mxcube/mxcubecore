@@ -1,7 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import Device
 from grob import grob_control
-import logging
-import time
 
 
 class Grob(Device):

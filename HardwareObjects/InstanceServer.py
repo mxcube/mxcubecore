@@ -3,8 +3,6 @@ import logging
 import time
 import pickle
 import os
-import tempfile
-import operator
 import gevent
 import gevent.server
 import socket

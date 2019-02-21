@@ -4,7 +4,6 @@ import gevent
 import cPickle
 from abstract.AbstractSampleChanger import *
 from PyTango.gevent import DeviceProxy
-from HardwareRepository.BaseHardwareObjects import Equipment
 
 
 class Pin(Sample):

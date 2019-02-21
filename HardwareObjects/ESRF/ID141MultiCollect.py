@@ -1,4 +1,7 @@
-from ESRFMultiCollect import *
+import time
+
+from HardwareRepository.TaskUtils import task
+from ESRFMultiCollect import CcdDetector, ESRFMultiCollect, FixedEnergy
 
 
 class ID141MultiCollect(ESRFMultiCollect):

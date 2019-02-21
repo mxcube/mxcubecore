@@ -2,7 +2,6 @@ import os
 import subprocess
 import errno
 import time
-import sys
 import select
 import fcntl
 
@@ -66,8 +65,8 @@ class Popen(subprocess.Popen):
             if not r:
                 return self._close(which)
 
-            if self.universal_newlines:
-                r = self._translate_newlines(r)
+            if getattr(self, "universal_newlines"):
+                r = getattr(self, "_translate_newlines")(r)
             return r
         finally:
             if not conn.closed:

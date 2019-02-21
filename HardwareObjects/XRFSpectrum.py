@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import time
-import types
 import gevent.event
 import gevent
 

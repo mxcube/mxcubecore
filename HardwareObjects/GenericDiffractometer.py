@@ -31,11 +31,10 @@ import numpy
 import queue_model_objects
 
 try:
-   unicode
+    unicode
 except:
-   # A quick fix for python3
-   unicode = str
- 
+    # A quick fix for python3
+    unicode = str
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -606,6 +605,7 @@ class GenericDiffractometer(HardwareObject):
         self.current_motor_positions["beam_y"] = (
             self.beam_position[1] - self.zoom_centre["y"]
         ) / self.pixels_per_mm_x
+
         return self.current_motor_positions
 
     # def get_omega_position(self):
@@ -692,7 +692,7 @@ class GenericDiffractometer(HardwareObject):
                 # TODO... do we need this at all?
                 # fun = self.cancel_centring_methods[self.current_centring_method]
                 pass
-            except KeyError as diag:
+            except KeyError:
                 self.emit_centring_failed()
             else:
                 try:
