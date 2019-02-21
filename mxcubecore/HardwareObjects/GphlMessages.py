@@ -674,13 +674,11 @@ class PositionerSetting(IdentifiedElement):
 class DetectorSetting(PositionerSetting):
     """Detector position setting"""
 
-    pass
 
 
 class BeamstopSetting(PositionerSetting):
     """Beamstop position setting"""
 
-    pass
 
 
 class GoniostatRotation(PositionerSetting):

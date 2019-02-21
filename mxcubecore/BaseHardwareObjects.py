@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import sys
 import logging
 
 from HardwareRepository.dispatcher import dispatcher
@@ -475,11 +474,11 @@ class DeviceContainer:
     def getDevices(self):
         devices = []
 
-        for object in self:
-            if isinstance(object, Device):
+        for item in dir(self):
+            if isinstance(item, Device):
                 devices.append(object)
-            elif isinstance(object, DeviceContainer):
-                devices += object.getDevices()
+            elif isinstance(item, DeviceContainer):
+                devices += item.getDevices()
 
         return devices
 
@@ -491,10 +490,10 @@ class DeviceContainer:
                 return device
 
     def getDeviceByRole(self, role):
-        object = self.getObjectByRole(role)
+        item = self.getObjectByRole(role)
 
-        if isinstance(object, Device):
-            return object
+        if isinstance(item, Device):
+            return item
 
 
 class DeviceContainerNode(HardwareObjectNode, DeviceContainer):

@@ -31,11 +31,8 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-import os
 import time
 import gevent
-import tempfile
-from datetime import datetime
 
 from abstract.sample_changer import Crims
 from abstract.AbstractSampleChanger import *

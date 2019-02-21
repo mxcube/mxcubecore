@@ -17,20 +17,10 @@
 #   You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import copy
 import time
 import logging
-import tempfile
 import random
 import warnings
-
-try:
-    import lucid2
-except BaseException:
-    pass
-
-import queue_model_objects as qmo
 
 from GenericDiffractometer import GenericDiffractometer
 from gevent.event import AsyncResult
@@ -62,6 +52,8 @@ class DiffractometerMockup(GenericDiffractometer):
         self.pixels_per_mm_x = 1.0 / self.x_calib
         self.pixels_per_mm_y = 1.0 / self.y_calib
         self.beam_position = [318, 238]
+
+        self.current_phase = GenericDiffractometer.PHASE_CENTRING
 
         self.cancel_centring_methods = {}
         self.current_motor_positions = {

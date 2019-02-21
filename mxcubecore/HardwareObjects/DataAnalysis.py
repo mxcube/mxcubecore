@@ -1,7 +1,6 @@
 import os
 import logging
 import gevent.event
-import threading
 import subprocess
 from abstract import AbstractDataAnalysis
 
@@ -238,7 +237,6 @@ class DataAnalysis(AbstractDataAnalysis.AbstractDataAnalysis, HardwareObject):
         Allows to manipulate edna_input object before exporting it to file
         Example: to set a site specific output directory
         """
-        pass
 
     def run_edna(self, input_file, results_file, process_directory):
 

@@ -3,7 +3,6 @@ CATS maintenance mockup.
 """
 from HardwareRepository.BaseHardwareObjects import Equipment
 
-from PyTango import DeviceProxy
 
 
 TOOL_FLANGE, TOOL_UNIPUCK, TOOL_SPINE, TOOL_PLATE, TOOL_LASER, TOOL_DOUBLE_GRIPPER = (

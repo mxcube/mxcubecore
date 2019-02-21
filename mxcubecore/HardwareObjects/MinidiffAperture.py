@@ -1,5 +1,4 @@
 from HardwareRepository.HardwareObjects import MultiplePositions
-import logging
 
 
 class MinidiffAperture(MultiplePositions.MultiplePositions):

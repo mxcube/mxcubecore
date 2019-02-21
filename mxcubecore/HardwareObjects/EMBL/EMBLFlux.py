@@ -26,7 +26,7 @@ from copy import deepcopy
 from datetime import datetime
 from scipy.interpolate import interp1d
 
-from abstract.AbstractFlux import AbstractFlux
+from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -43,6 +43,7 @@ class EMBLFlux(AbstractFlux):
         self.measured_flux_list = None
         self.current_flux_dict = None
 
+        self.flux_value = 0
         # self.ampl_chan_index = None
         self.intensity_ranges = []
         self.intensity_value = None
@@ -212,7 +213,7 @@ class EMBLFlux(AbstractFlux):
             return 1
         """
 
-    def set_flux(self, flux_dict):
+    def set_flux(self, flux_value):
         #self.update_flux_value()
         self.flux_value = flux_value
         self.emit('fluxValueChanged', flux_value)
@@ -329,8 +330,6 @@ class EMBLFlux(AbstractFlux):
                 self.fast_shutter_hwobj.openShutter(wait=True)
 
                 self.measured_flux_list = []
-
-                self.measured_flux_list = []
                 for index, diameter_size in enumerate(
                     self.aperture_hwobj.get_diameter_list()
                 ):
@@ -352,6 +351,8 @@ class EMBLFlux(AbstractFlux):
                     )
                     gevent.sleep(1)
                 self.fast_shutter_hwobj.closeShutter(wait=True)
+
+                max_frame_rate = 25
 
                 self.emit("progressStep", 10, "Restoring original state")
                 self.print_log("GUI", "info", "Flux measurement results:")

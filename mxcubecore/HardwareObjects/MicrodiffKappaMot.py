@@ -1,6 +1,4 @@
-from HardwareRepository.BaseHardwareObjects import Device
 from MicrodiffMotor import MicrodiffMotor
-import math
 import logging
 import time
 import gevent

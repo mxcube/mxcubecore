@@ -1,18 +1,13 @@
+from __future__ import absolute_import
+
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
 
-if sys.version_info > (3, 0):
-    # This is bad practice, but presumably there is a good reason?
-    # replaced back, because it breaks for python3
-    from HardwareRepository import HardwareRepository
-else:
-    import HardwareRepository
+from HardwareRepository import HardwareRepository
 
-#
-# Add path to root BlissFramework directory
-#
+
 hwrpath = os.path.dirname(__file__)
 sys.path.insert(0, hwrpath)
 

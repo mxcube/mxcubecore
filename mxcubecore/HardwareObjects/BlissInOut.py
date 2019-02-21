@@ -1,6 +1,5 @@
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
-from bliss.controllers.actuator_inout import *
 
 
 class BlissInOut(Device):

@@ -1,5 +1,4 @@
 import math
-import logging
 import operator
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

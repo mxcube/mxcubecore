@@ -1,8 +1,7 @@
-import TacoDevice
 import time
 import logging
 import os
-from HardwareRepository.TaskUtils import task, cleanup, error_cleanup
+from HardwareRepository.TaskUtils import error_cleanup
 import gevent
 
 MAR_READ, MAR_CORRECT, MAR_WRITE, MAR_DEZINGER = 1, 2, 3, 4

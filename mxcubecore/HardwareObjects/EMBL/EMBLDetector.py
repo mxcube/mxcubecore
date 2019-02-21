@@ -19,7 +19,7 @@
 
 import gevent
 import logging
-from abstract.AbstractDetector import AbstractDetector
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import AbstractDetector
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

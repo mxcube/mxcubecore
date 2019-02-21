@@ -2,7 +2,6 @@
 """
 from HardwareRepository import BaseHardwareObjects
 import logging
-import os
 import PyTango
 
 # try:
