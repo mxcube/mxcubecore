@@ -1598,9 +1598,9 @@ class XrayImagingParameters(object):
         return copy.deepcopy(self)
 
     def as_dict(self):
-        return {'ff_num_images': self.ff_num_images, 
+        return {'ff_num_images': self.ff_num_images,
                 'ff_pre': self.ff_pre,
-                'ff_post': self.ff_post, 
+                'ff_post': self.ff_post,
                 'ff_apply': self.ff_apply,
                 'ff_ssim_enabled': self.ff_ssim_enabled,
                 'sample_offset_a': self.sample_offset_a,
