@@ -234,6 +234,10 @@ class ALBAMiniDiff(GenericDiffractometer):
             set_diffractometer_motor_names(
                 "phi", "phiy", "phiz", "sampx", "sampy", "kappa", "kappa_phi")
 
+        # TODO: review, should have updated values after channel creation.
+        # Added to make sure pixels_per_mm is initialised
+        self.update_pixels_per_mm()
+
     def state_changed(self, state):
         """
         Overides method to map Tango ON state to Difractaometer State Ready.
