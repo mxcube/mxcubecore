@@ -157,12 +157,24 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def cmdOut(self):
         self.close()
 
+    # TODO: Review, it is called twice after a collection (already in motion problem)
     def close(self):
-        self.chan_motor_pos.setValue(0)
+        logging.getLogger('HWR').debug("Closing the fast shutter")
+        logging.getLogger('HWR').debug("value = %s, state = %s" %
+                                       (self.chan_motor_pos.getValue(),
+                                        self.actuator_state))
+        if abs(self.chan_motor_pos.getValue()) > 0.01:
+            self.chan_motor_pos.setValue(0)
         self.set_ttl('High')
 
     def open(self):
-        self.chan_motor_pos.setValue(0)
+        logging.getLogger('HWR').debug("Opening the fast shutter")
+        logging.getLogger('HWR').debug("value = %s, state = %s" %
+                                       (self.chan_motor_pos.getValue(),
+                                        self.actuator_state))
+
+        if abs(self.chan_motor_pos.getValue()) > 0.01:
+            self.chan_motor_pos.setValue(0)
         self.set_ttl('Low')
 
     def set_ttl(self, value):
