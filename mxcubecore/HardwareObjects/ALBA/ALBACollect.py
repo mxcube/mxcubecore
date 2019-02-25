@@ -254,7 +254,8 @@ class ALBACollect(AbstractCollect):
         self.collection_finished()
 
     def data_collection_end(self):
-        self.fastshut_hwobj.cmdOut()
+        # The shutter is managed by data_collection_cleanup method from AbstractCollect class
+        # self.fastshut_hwobj.cmdOut()
         self.omega_hwobj.set_velocity(60)
         self.unconfigure_ni()
 
@@ -524,7 +525,8 @@ class ALBACollect(AbstractCollect):
         # data collection end (or abort)
         #
         logging.getLogger("HWR").info(" finishing data collection ")
-        self.fastshut_hwobj.cmdOut()
+        # managed by the AbstractCollection class
+        #self.fastshut_hwobj.cmdOut()
         self.emit("progressStop")
 
     def check_directory(self, basedir):
