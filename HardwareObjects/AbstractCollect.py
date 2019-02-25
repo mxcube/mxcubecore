@@ -243,7 +243,8 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
 
             # Motor positions debug output
-            ll = sorted(self.current_dc_parameters['motors'].items())
+            ll = sorted((tt[0] if isinstance(tt[0], str) else tt[0].name(), tt[1])
+                        for tt in self.current_dc_parameters['motors'].items())
             logging.getLogger('HWR').debug("MOTORTEST settings: "
                                            + ', '.join('%s=%s' % (tt) for tt in ll))
 

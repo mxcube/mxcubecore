@@ -883,7 +883,6 @@ class GphlWorkflow(HardwareObject, object):
             enqueue_centring = True
         else:
             enqueue_centring = False
-        data_collections = []
         for scan in collection_proposal.scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -919,9 +918,9 @@ class GphlWorkflow(HardwareObject, object):
             # acq_parameters.take_dark_current = True
             # acq_parameters.skip_existing_images = False
 
-            # Only snapshots before first scan
+            # Only snapshots before first scan OR NOT???
             acq_parameters.take_snapshots = snapshot_count
-            snapshot_count = 0
+            # snapshot_count = 0
 
             # Edna also sets screening_id
             # Edna also sets osc_end
@@ -990,15 +989,15 @@ class GphlWorkflow(HardwareObject, object):
             )
 
             data_collection = queue_model_objects.DataCollection([acq], crystal)
-            data_collections.append(data_collection)
-
             data_collection.set_enabled(True)
             data_collection.set_name(path_template.get_prefix())
             data_collection.set_number(path_template.run_number)
             self._add_to_queue(new_dcg_model, data_collection)
 
         if enqueue_centring:
-            logging.getLogger('user_level_log').info("Crystal must be centred before each scan")
+            logging.getLogger('user_level_log').info(
+                "The sample will be centred before each scan"
+            )
         data_collection_entry = queue_manager.get_entry_with_model(
             new_dcg_model
         )
