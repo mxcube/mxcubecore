@@ -847,7 +847,7 @@ class GenericDiffractometer(HardwareObject):
             self.wait_device_not_ready()
             self.wait_device_ready(10)
   
-    def move_motors(self, motor_positions, timeout=15):
+    def move_motors(self, motor_positions, timeout=30):
         """
         Moves diffractometer motors to the requested positions
 
