@@ -919,9 +919,9 @@ class GphlWorkflow(HardwareObject, object):
             # acq_parameters.take_dark_current = True
             # acq_parameters.skip_existing_images = False
 
-            # Only snapshots before first scan
+            # Only snapshots before first scan OR NOT???
             acq_parameters.take_snapshots = snapshot_count
-            snapshot_count = 0
+            # snapshot_count = 0
 
             # Edna also sets screening_id
             # Edna also sets osc_end
