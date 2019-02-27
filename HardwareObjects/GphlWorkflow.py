@@ -1309,7 +1309,7 @@ class GphlWorkflow(HardwareObject, object):
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x])
                       for x in self.translation_axis_roles)
-            logging.getLogger('HWR').debug('@~@~ cenred: allmotors' + str(sorted(positionsDict.items())))
+            logging.getLogger('HWR').debug('@~@~ centred: allmotors' + str(sorted(positionsDict.items())))
             return self.GphlMessages.GoniostatTranslation(
                 rotation=goniostatRotation,
                 requestedRotationId=requestedRotationId, **dd

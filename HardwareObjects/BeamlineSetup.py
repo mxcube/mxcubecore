@@ -381,17 +381,20 @@ class BeamlineSetup(HardwareObject):
 
     def get_confirm_dialog_configuration(self):
         parent_key = 'default_confirm_dialog_configuration'
-        props = self[parent_key].getProperties()  
+        if self.hasObject(parent_key):
+            props = self[parent_key].getProperties()
 
-        # make sure lists are lists
-        for ky in props:
-            val = props[ky]
-            if type(val) is str :
-                vals = val.split(',')
-                if len(vals) > 1:
-                   val = vals
-                props[ky] = val 
-        return props
+            # make sure lists are lists
+            for ky in props:
+                val = props[ky]
+                if type(val) is str :
+                    vals = val.split(',')
+                    if len(vals) > 1:
+                       val = vals
+                    props[ky] = val
+            return props
+        else:
+            return None
 
     def _get_energy(self):
         try:
