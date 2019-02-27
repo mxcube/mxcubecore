@@ -1344,13 +1344,18 @@ class GphlWorkflow(HardwareObject, object):
         if crystal_system:
             crystal_system = crystal_system.upper()
 
+        # NB Expected resolution is deprecated.
+        # It is set to the current resolution value, for now
+        collect_hwobj = self.beamline_setup.getObjectByRole(
+            'collect'
+        )
         userProvidedInfo = self.GphlMessages.UserProvidedInfo(
             scatterers=(),
             lattice=crystal_system,
             pointGroup=workflow_model.get_point_group(),
             spaceGroup=space_group,
             cell=unitCell,
-            expectedResolution=workflow_model.get_expected_resolution(),
+            expectedResolution=collect_hwobj.get_resolution(),
             isAnisotropic=None
         )
         ll = ['PriorInformation']
