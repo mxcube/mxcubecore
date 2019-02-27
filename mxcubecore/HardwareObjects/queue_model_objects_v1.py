@@ -1611,7 +1611,6 @@ class GphlWorkflow(TaskNode):
         self._number = 0
         self._beam_energies = OrderedDict()
         self._detector_resolution = None
-        self._expected_resolution = None
         self._space_group = None
         self._crystal_system = None
         self._point_group = None
@@ -1661,12 +1660,6 @@ class GphlWorkflow(TaskNode):
         logging.getLogger().warning(
             "Attempt to set unused attribute GphlWorkflow.number"
         )
-
-    # Expected resolution (optional float).
-    def get_expected_resolution(self):
-        return self._expected_resolution
-    def set_expected_resolution(self, value):
-        self._expected_resolution = value
 
     # Detector resolution (determines detector distance).
     def get_detector_resolution(self):
