@@ -8,7 +8,7 @@ from sample_changer.GenericSampleChanger import *
 class SampleChangerMockup(SampleChanger):
 
     __TYPE__ = "Mockup"
-    NO_OF_BASKETS = 17
+    NO_OF_BASKETS = 5
     NO_OF_SAMPLES_IN_BASKET = 10
     
     def __init__(self, *args, **kwargs):
