@@ -17,6 +17,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBASession
+
+[Description]
+Specific HwObj to control user configuration.
+
+[Emitted signals]
+- None
+"""
+
+from __future__ import print_function
+
 import os
 import time
 import logging
@@ -65,6 +78,7 @@ class ALBASession(Session.Session):
         try:
             more = parts[8:]
         except Exception as e:
+            logging.getLogger('HWR').debug("%s" % str(e))
             more = []
 
         archive_dir = os.path.join(
@@ -85,6 +99,6 @@ class ALBASession(Session.Session):
 
 
 def test_hwo(hwo):
-    print hwo.get_base_data_directory()
-    print hwo.get_process_directory()
-    print hwo.get_archive_directory()
+    print(hwo.get_base_data_directory())
+    print(hwo.get_process_directory())
+    print(hwo.get_archive_directory())

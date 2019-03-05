@@ -27,6 +27,8 @@ PySignal simulator (TangoDS).
 [Signals]
 """
 
+from __future__ import print_function
+
 import logging
 from HardwareRepository import BaseHardwareObjects
 
@@ -50,12 +52,12 @@ class ALBACalibration(BaseHardwareObjects.Device):
         if self.chan_calib_x is not None and self.chan_calib_y is not None:
             logging.getLogger().info("Connected to pixel size calibration channels")
 
-    def getCalibration(self):
+    def get_calibration(self):
         calib_x = self.chan_calib_x.getValue()
         calib_y = self.chan_calib_y.getValue()
-        logging.getLogger().debug("Calibration: x=%s, y=%s" % (calib_x, calib_y))
+        logging.getLogger().debug("Calibration: x = %s, y = %s" % (calib_x, calib_y))
         return [calib_x, calib_y]
 
 
 def test_hwo(hwo):
-    print "Calibration is: ", hwo.getCalibration()
+    print("Calibration is: ", hwo.get_calibration())

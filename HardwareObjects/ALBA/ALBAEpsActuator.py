@@ -16,7 +16,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tango Shutter Hardware Object
+
+"""
+[Name] ALBAEnergy
+
+[Description]
+Tango Shutter Hardware Object
 
 Public Interface:
    Commands:
@@ -46,10 +51,12 @@ Public Interface:
        cmdOut()
            Executes the command associated to the "Out" action
 
-   Signals:
+   [Signals]
        stateChanged
 
 """
+
+from __future__ import print_function
 
 import logging
 
@@ -91,7 +98,8 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             self.chan_actuator = self.getChannelObject('actuator')
             self.chan_actuator.connectSignal('update', self.stateChanged)
         except KeyError:
-            logging.getLogger().warning('%s: cannot report EPS Actuator State', self.name())
+            logging.getLogger().warning('%s: cannot report EPS Actuator State',
+                                        self.name())
 
         try:
             state_string = self.getProperty("states")
@@ -100,9 +108,8 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except BaseException:
-            import traceback
-            logging.getLogger("HWR").warning(traceback.format_exc())
+        except Exception as e:
+            logging.getLogger("HWR").warning("%s" % str(e))
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -152,6 +159,6 @@ class ALBAEpsActuator(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.getState())
+    print("Shutter status is: ", hwo.getStatus())

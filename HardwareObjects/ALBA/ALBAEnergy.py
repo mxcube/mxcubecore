@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAEnergy
+
+[Description]
+HwObj used to configure the beamline energy.
+
+[Signals]
+- energyChanged
+"""
+
+from __future__ import print_function
+
 import logging
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -101,7 +113,7 @@ class ALBAEnergy(Device):
 
 
 def test_hwo(hwo):
-    print "Energy is: ", hwo.get_energy()
-    print "Wavelength is: ", hwo.get_wavelength()
-    print "Energy limits are: ", hwo.get_energy_limits()
-    print "Wavelength limits are: ", hwo.get_wavelength_limits()
+    print("Energy is: ", hwo.get_energy())
+    print("Wavelength is: ", hwo.get_wavelength())
+    print("Energy limits are: ", hwo.get_energy_limits())
+    print("Wavelength limits are: ", hwo.get_wavelength_limits())

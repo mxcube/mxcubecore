@@ -16,6 +16,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAFrontLight
+
+[Description]
+HwObj used to control the diffractometer front light.
+
+[Signals]
+- levelChanged
+- stateChanged
+"""
+
+from __future__ import print_function
+
 import logging
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -55,8 +68,10 @@ class ALBAFrontLight(Device):
         if threshold is not None:
             try:
                 self.off_threshold = float(threshold)
-            except BaseException:
+            except Exception as e:
                 self.off_threshold = self.default_threshold
+                logging.getLogger('HWR').debug("Error reading frontlight threshold\n%s"
+                                               % str(e))
                 logging.getLogger("HWR").info("OFF Threshold for front light is not"
                                               "valid. Using %s" % self.off_threshold)
 
@@ -154,7 +169,7 @@ class ALBAFrontLight(Device):
 
 
 def test_hwo(hwo):
-    print "\nLight control for \"%s\"\n" % hwo.getUserName()
-    print "   Level limits are:", hwo.getLimits()
-    print "   Current level is:", hwo.getLevel()
-    print "   Current state is:", hwo.getState()
+    print("Light control for \"%s\"\n" % hwo.getUserName())
+    print("Level limits are:", hwo.getLimits())
+    print("Current level is:", hwo.getLevel())
+    print("Current state is:", hwo.getState())

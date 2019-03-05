@@ -24,7 +24,11 @@
 HwObj used to control the CATS sample changer via Tango.
 
 [Signals]
+- powerStateChanged
+- runningStateChanged
 """
+
+from __future__ import print_function
 
 import logging
 import time
@@ -84,10 +88,10 @@ class ALBACats(Cats90):
         self.auto_prepare_diff = self.getProperty("auto_prepare_diff")
 
         if self._chnPathRunning is not None:
-            self._chnPathRunning.connectSignal("update", self._updateRunningState)
+            self._chnPathRunning.connectSignal("update", self._update_running_state)
 
         if self._chnPowered is not None:
-            self._chnPowered.connectSignal("update", self._updatePoweredState)
+            self._chnPowered.connectSignal("update", self._update_powered_state)
 
     def isReady(self):
         """
@@ -103,9 +107,10 @@ class ALBACats(Cats90):
 
     def diff_send_transfer(self):
         """
-        Checks if beamline supervisor is in TRANSFER phase (i.e. sample changer in TRANSFER phase too).
-        If is not the case, It sends the sample changer to TRANFER phase.
-        Returns a boolean value indication if the sample changer is in TRANSFER phase.
+        Checks if beamline supervisor is in TRANSFER phase (i.e. sample changer in
+        TRANSFER phase too). If is not the case, It sends the sample changer to TRANSFER
+        phase. Returns a boolean value indication if the sample changer is in TRANSFER
+        phase.
 
         @return: boolean
         """
@@ -120,8 +125,8 @@ class ALBACats(Cats90):
 
     def diff_send_sampleview(self):
         """
-        Checks if beamline supervisor is in SAMPLE phase (i.e. sample changer in SAMPLE phase too).
-        If is not the case, It sends the sample changer to SAMPLE phase.
+        Checks if beamline supervisor is in SAMPLE phase (i.e. sample changer in SAMPLE
+        phase too). If is not the case, It sends the sample changer to SAMPLE phase.
         Returns a boolean value indication if the sample changer is in SAMPLE phase.
 
         @return: boolean
@@ -158,8 +163,8 @@ class ALBACats(Cats90):
 
     def _wait_phase_done(self, final_phase):
         """
-        Method to wait a phase change. When supervisor reaches the final phase, the diffracometer
-        returns True.
+        Method to wait a phase change. When supervisor reaches the final phase, the
+        diffracometer returns True.
 
         @final_phase: target phase
         @return: boolean
@@ -207,7 +212,8 @@ class ALBACats(Cats90):
 
     def read_super_phase(self):
         """
-        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor Tango DS)
+        Returns supervisor phase (CurrentPhase attribute from Beamline Supervisor
+        TangoDS)
 
         @return: str
         """
@@ -256,7 +262,8 @@ class ALBACats(Cats90):
 
     def unload(self, sample_slot=None, wait=False):
         """
-        Unload the sample. If sample_slot=None, unloads to the same slot the sample was loaded from.
+        Unload the sample. If sample_slot=None, unloads to the same slot the sample was
+        loaded from.
 
         @sample_slot:
         @wait:
@@ -285,7 +292,7 @@ class ALBACats(Cats90):
     # def hasLoadedSample(self):  # not used.  to use it remove _
      #   return self._chnSampleIsDetected.getValue()
 
-    def _updateRunningState(self, value):
+    def _update_running_state(self, value):
         """
         Emits signal with new Running State
 
@@ -293,7 +300,7 @@ class ALBACats(Cats90):
         """
         self.emit('runningStateChanged', (value, ))
 
-    def _updatePoweredState(self, value):
+    def _update_powered_state(self, value):
         """
         Emits signal with new Powered State
 
@@ -323,14 +330,14 @@ class ALBACats(Cats90):
         if ret is False:
             logging.getLogger("user_level_log").error(
                 "Supervisor cmd transfer phase returned an error.")
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._updateState()
             raise Exception(
                 "CATS cannot get to transfer phase. Aborting sample changer operation.")
 
-        # gevent.sleep(3)
         if not self._chnPowered.getValue():
             raise Exception(
-                "CATS power is not enabled. Please switch on arm power before transferring samples.")
+                "CATS power is not enabled. Please switch on arm power before"
+                "transferring samples.")
 
         # obtain mounting offsets from diffr
         shifts = self._get_shifts()
@@ -362,7 +369,7 @@ class ALBACats(Cats90):
 
         # some cancel cases
         if not use_ht and self.hasLoadedSample() and selected == self.getLoadedSample():
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._updateState()
             raise Exception("The sample " +
                             str(self.getLoadedSample().getAddress()) +
                             " is already loaded")
@@ -370,15 +377,16 @@ class ALBACats(Cats90):
         if not self.hasLoadedSample() and self.cats_sample_on_diffr() == 1:
             logging.getLogger("HWR").warning(
                 "  ==========CATS=== sample on diffr, loading aborted")
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._updateState()
             raise Exception("The sample " +
                             str(self.getLoadedSample().getAddress()) +
                             " is already loaded")
 
         if self.cats_sample_on_diffr() == -1:
-            self._updateState()  # remove transient states like Loading. Reflect hardware state
+            self._updateState()
             raise Exception(
-                "Conflicting info between diffractometer and on-magnet detection. Consider 'Clear'")
+                "Conflicting info between diffractometer and on-magnet detection."
+                "Consider 'Clear'")
 
         # end some cancel cases
 
@@ -393,7 +401,8 @@ class ALBACats(Cats90):
             if loaded_ht == -1:  # has loaded but it is not HT
                 # first unmount (non HT)
                 logging.getLogger("HWR").warning(
-                    "  ==========CATS=== mix load/unload dewar vs HT (NOT IMPLEMENTED YET)")
+                    "  ==========CATS=== mix load/unload dewar vs HT"
+                    " (NOT IMPLEMENTED YET)")
                 return
 
             argin = ["2", str(sample), "0", "0", xshift, yshift, zshift]
@@ -401,8 +410,8 @@ class ALBACats(Cats90):
                 "  ==========CATS=== about to load HT. %s" %
                 str(argin))
             if loaded_ht == 1:  # has ht loaded
-                cmd_ok = self._executeServerTask(
-                    self._cmdChainedLoadHT, argin, waitsafe=True)
+                cmd_ok = self._executeServerTask(self._cmdChainedLoadHT,
+                                                 argin, waitsafe=True)
             else:
                 cmd_ok = self._executeServerTask(self._cmdLoadHT, argin, waitsafe=False)
 
@@ -413,12 +422,9 @@ class ALBACats(Cats90):
             if loaded_ht == 1:  # has an HT sample mounted
                 # first unmount HT
                 logging.getLogger("HWR").warning(
-                    "  ==========CATS=== mix load/unload dewar vs HT (NOT IMPLEMENTED YET)")
+                    "  ==========CATS=== mix load/unload dewar vs HT"
+                    " (NOT IMPLEMENTED YET)")
                 return
-
-            # calculate CATS specific lid/sample number
-            #lid = ((selected.getBasketNo() - 1) / 3) + 1
-            #sample = (((selected.getBasketNo() - 1) % 3) * 10) + selected.getVialNo()
 
             basketno = selected.getBasketNo()
             sampleno = selected.getVialNo()
@@ -455,33 +461,39 @@ class ALBACats(Cats90):
                 zshift]
 
             if tool == 2:
-                read_barcode = self.read_datamatrix and self._cmdChainedLoadBarcode is not None
+                read_barcode = self.read_datamatrix and \
+                               self._cmdChainedLoadBarcode is not None
             else:
                 if self.read_datamatrix:
                     logging.getLogger("HWR").warning(
-                        "  ==========CATS=== reading barcode only possible with spine pucks")
+                        "  ==========CATS=== reading barcode only possible with spine"
+                        "pucks")
                 read_barcode = False
 
             if loaded_ht == -1:  # has a loaded but it is not an HT
 
                 if changing_tool:
                     raise Exception(
-                        "This operation requires a tool change. You should unload sample first")
+                        "This operation requires a tool change. You should unload"
+                        "sample first")
 
                 if read_barcode:
                     logging.getLogger("HWR").warning(
-                        "  ==========CATS=== chained load sample (barcode), sending to cats:  %s" % argin)
+                        "  ==========CATS=== chained load sample (barcode), sending"
+                        "to cats:  %s" % argin)
                     cmd_ok = self._executeServerTask(
                         self._cmdChainedLoadBarcode, argin, waitsafe=True)
                 else:
                     logging.getLogger("HWR").warning(
-                        "  ==========CATS=== chained load sample, sending to cats:  %s" % argin)
+                        "  ==========CATS=== chained load sample, sending to cats: %s"
+                        % argin)
                     cmd_ok = self._executeServerTask(
                         self._cmdChainedLoad, argin, waitsafe=True)
             elif loaded_ht == 0:
                 if read_barcode:
                     logging.getLogger("HWR").warning(
-                        "  ==========CATS=== load sample (barcode), sending to cats:  %s" % argin)
+                        "  ==========CATS=== load sample (barcode), sending to cats: %s"
+                        % argin)
                     cmd_ok = self._executeServerTask(
                         self._cmdLoadBarcode, argin, waitsafe=True)
                 else:
@@ -494,16 +506,17 @@ class ALBACats(Cats90):
             logging.getLogger("HWR").info("  LOAD Command failed on device server")
         elif self.auto_prepare_diff and not changing_tool:
             logging.getLogger("HWR").info(
-                "  AUTO_PREPARE_DIFF (On) sample changer is in safe state... preparing diff now")
+                "AUTO_PREPARE_DIFF (On) sample changer is in safe state... "
+                "preparing diff now")
             #ret = self.diff_send_sampleview()
             self._wait_super_ready()
             self.go_sampleview_cmd()
-            logging.getLogger("HWR").info("     restoring detector distance")
+            logging.getLogger("HWR").info("Restoring detector distance")
             self.restore_detdist_position()
             self._wait_phase_done('SAMPLE')
         else:
             logging.getLogger("HWR").info(
-                "  AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" %
+                "AUTO_PREPARE_DIFF (Off) sample loading done / or changing tool (%s)" %
                 changing_tool)
 
         # load commands are executed until path is safe. Then we have to wait for
@@ -612,7 +625,8 @@ class ALBACats(Cats90):
                 return int(sample)
             else:
                 return False
-        except BaseException:
+        except Exception as e:
+            logging.getLogger('HWR').debug("Cannot identify sample in hot tool")
             return False
 
     def tool_for_basket(self, basketno):
@@ -646,11 +660,11 @@ class ALBACats(Cats90):
 
 def test_hwo(hwo):
     hwo._updateCatsContents()
-    print(" Is path running? ", hwo.isPathRunning())
-    print(" Loading shifts:  ", hwo._get_shifts())
-    print(" Sample on diffr :  ", hwo.cats_sample_on_diffr())
-    print(" Baskets :  ", hwo.basket_presence)
-    print(" Baskets :  ", hwo.getBasketList())
+    print("Is path running? ", hwo.isPathRunning())
+    print("Loading shifts:  ", hwo._get_shifts())
+    print("Sample on diffr :  ", hwo.cats_sample_on_diffr())
+    print("Baskets :  ", hwo.basket_presence)
+    print("Baskets :  ", hwo.getBasketList())
     if hwo.hasLoadedSample():
-        print " Loaded is: ", hwo.getLoadedSample().getCoords()
-    print(" Is mounted sample: ", hwo.is_mounted_sample((1, 1)))
+        print("Loaded is: ", hwo.getLoadedSample().getCoords())
+    print("Is mounted sample: ", hwo.is_mounted_sample((1, 1)))

@@ -25,15 +25,12 @@ ALBAZoomMotorAutoBrightness
 Hardware Object is used to manipulate the zoom IOR and the
 paired backlight intensity (slave IOR)
 
-[Channels]
-- None
-
-[Commands]
-
-[Emited signals]
+[Emitted signals]
 - stateChanged
 - predefinedPositionChanged
 """
+
+from __future__ import print_function
 
 import logging
 
@@ -106,9 +103,9 @@ class ALBAZoomMotorAutoBrightness(BaseHardwareObjects.Device):
         return state == ALBAZoomMotorAutoBrightness.READY
 
 
-def test_hwo(hwo):
-    print "     Zoom position is : ", hwo.getPosition()
-    print "Zoom position name is : ", hwo.getCurrentPositionName()
-    print "               Moving : ", hwo.motorIsMoving()
-    print "                State : ", hwo.getState()
-    print "            Positions : ", hwo.getPredefinedPositionsList()
+def test_hwo(zoom):
+    print("Zoom position is : ", zoom.getPosition())
+    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("Moving : ", zoom.motorIsMoving())
+    print("State : ", zoom.getState())
+    print("Positions : ", zoom.getPredefinedPositionsList())

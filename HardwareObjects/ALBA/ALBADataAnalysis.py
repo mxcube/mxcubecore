@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBADataAnalysis
+
+[Description]
+Prepare files and launch strategy pipeline (online) to the ALBA cluster
+
+[Signals]
+- None
+"""
+
+from __future__ import print_function
+
 import os
 import time
 import logging
@@ -101,20 +113,22 @@ class ALBADataAnalysis(DataAnalysis):
         else:
             logging.getLogger("HWR").debug(
                 "EDNA Job finished without success / state was %s" %
-                (self.job.state))
+                self.job.state)
             result = ""
 
         return result
 
+    # TODO: Deprecated
     def fix_path(self, path):
-        outpath = path.replace('PROCESS_DATA', 'PROCESS_DATA/RESULTS')
+        out_path = path.replace('PROCESS_DATA', 'PROCESS_DATA/RESULTS')
         # dirname = os.path.dirname(path)
         # basename = os.path.basename(path)
         # outpath = os.path.join(dirname,'RESULTS',basename)
-        return outpath
+        return out_path
 
     def wait_done(self):
 
+        state = None
         logging.getLogger("HWR").debug("Polling for Job state")
         time.sleep(0.5)
         logging.getLogger("HWR").debug("Polling for Job state 2")
@@ -122,11 +136,9 @@ class ALBADataAnalysis(DataAnalysis):
         try:
             state = self.job.state
             logging.getLogger("HWR").debug("Job / is %s" % str(state))
-        except BaseException:
-            import traceback
+        except Exception as e:
             logging.getLogger("HWR").debug(
-                "Polling for Job state 3. exception happened")
-            logging.getLogger("HWR").debug("  %s " % traceback.format_exc())
+                "Polling for Job state 3. exception happened\n%s" % str(e))
 
         while state in ["RUNNING", "PENDING"]:
             logging.getLogger("HWR").debug("Job / is %s" % state)
@@ -141,17 +153,11 @@ class ALBADataAnalysis(DataAnalysis):
 
         jobstatus = self.job.status
 
-        #outname = self.input_file.replace("Input", "Output")
-        #outfile = os.path.join( self.edna_directory, outname)
-
         logging.getLogger("HWR").debug("Job / state is COMPLETED")
         logging.getLogger("HWR").debug("  job status dump: %s" % jobstatus)
         logging.getLogger("HWR").debug("  looking for file: %s" % self.results_file)
 
         if os.path.exists(self.results_file):
-            #job_output = open(outfile).read()
-            #logging.getLogger("HWR").debug("     EDNA results file found. loading it")
-            #open(self.results_file, "w").write(job_output)
             logging.getLogger("HWR").debug("     EDNA results file found 2")
             result = XSDataResultMXCuBE.parseFile(self.results_file)
             logging.getLogger("HWR").debug("     EDNA results file found 3")
@@ -168,6 +174,9 @@ class ALBADataAnalysis(DataAnalysis):
 def test_hwo(hwo):
     ofile = "/tmp/edna/edna_result"
     odir = "/tmp/edna"
-    test_input_file = "/beamlines/bl13/projects/cycle2018-I/2018012551-bcalisto/mx2018012551/DATA/20180131/PROCESS_DATA/characterisation_ref-Thrombin-TB-TTI1_A_run1_1/EDNAInput_2004391.xml"
+    test_input_file = "/beamlines/bl13/projects/cycle2018-I/2018012551-bcalisto/" \
+                      "mx2018012551/DATA/20180131/PROCESS_DATA/" \
+                      "characterisation_ref-Thrombin-TB-TTI1_A_run1_1/" \
+                      "EDNAInput_2004391.xml"
     result = hwo.run_edna(test_input_file, ofile, odir)
-    print result
+    print(result)

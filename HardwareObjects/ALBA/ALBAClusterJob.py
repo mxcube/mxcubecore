@@ -17,6 +17,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAClusterJob
+
+[Description]
+HwObj (module) used to define different pipeline objects running on the ALBA cluster.
+
+[Signals]
+- None
+"""
+
+from __future__ import print_function
+
 import os
 import time
 import logging
@@ -33,7 +45,7 @@ root = os.environ['POST_PROCESSING_SCRIPTS_ROOT']
 
 class ALBAClusterJob(object):
 
-    def __init__(self, *args):
+    def __init__(self):
         self.job = None
 
     def run(self, *args):
@@ -101,17 +113,22 @@ class ALBAStrategyJob(ALBAClusterJob):
 
     sls_script = os.path.join(root, 'edna-mx/strategy/mxcube/edna-mx.strategy.sl')
 
+    def __init__(self):
+        super(ALBAStrategyJob, self).__init__()
+        self.edna_directory = None
+        self.results_file = None
+
     def run(self, *args):
 
         logging.getLogger("HWR").debug("Starting StrategyJob - ")
 
         input_file, results_file, edna_directory = args
 
-        jobname = os.path.basename(os.path.dirname(edna_directory))
+        job_name = os.path.basename(os.path.dirname(edna_directory))
 
         self.job = XalocJob(
             "edna-strategy",
-            jobname,
+            job_name,
             self.sls_script,
             input_file,
             edna_directory,
@@ -144,8 +161,7 @@ class ALBAStrategyJob(ALBAClusterJob):
                 result = ""
         else:
             logging.getLogger("HWR").debug(
-                "EDNA Job finished without success / state was %s" %
-                (job.state))
+                "EDNA Job finished without success / state was %s" % self.job.state)
             result = ""
 
         return result
@@ -154,9 +170,12 @@ class ALBAStrategyJob(ALBAClusterJob):
 def test():
 
     collect_id = 432
-    input_file = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1/EDNAprocInput_432.xml'
-    output_dir = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1'
-    job = ALBAEdnaProcJob().run(collect_id, input_file, output_dir)
+    input_file = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/' \
+                 'PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1/' \
+                 'EDNAprocInput_432.xml'
+    output_dir = '/beamlines/bl13/projects/cycle2018-I/2018002222-ispybtest/20190218/' \
+                 'PROCESS_DATA/test_processing/ednaproc_mx2018002222_4_1'
+    ALBAEdnaProcJob().run(collect_id, input_file, output_dir)
 
 
 if __name__ == "__main__":

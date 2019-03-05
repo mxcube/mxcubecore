@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAISPyBClient
+
+[Description]
+HwObj used to interface the ISPyB database
+
+[Signals]
+- None
+"""
+
+from __future__ import print_function
+
 import logging
 
 import ISPyBClient2
@@ -45,7 +57,6 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 logging.getLogger("HWR").debug(
                     "  homeDirectory for user %s is %s" %
                     (login_name, home_dir))
-                #self.session_hwobj.set_base_data_directories(home_dir, home_dir, home_dir)
                 self.session_hwobj.set_ldap_homedir(home_dir)
         else:
             home_dir = '/tmp'
@@ -79,8 +90,8 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 logging.debug("ALBA ISPyBClient - %s is %s " % (prop, ispyb_path))
                 mx_collect_dict[prop] = ispyb_path
-            except BaseException:
-                pass
+            except BaseException as e:
+                logging.debug("Error when preparing collection for LIMS\n%s" % str(e))
 
     def prepare_image_for_lims(self, image_dict):
         for prop in ['jpegThumbnailFileFullPath', 'jpegFileFullPath']:
@@ -88,8 +99,8 @@ class ALBAISPyBClient(ISPyBClient2.ISPyBClient2):
                 path = image_dict[prop]
                 ispyb_path = self.session_hwobj.path_to_ispyb(path)
                 image_dict[prop] = ispyb_path
-            except BaseException:
-                pass
+            except BaseException as e:
+                logging.debug("Error when preparing image for LIMS\n%s" % str(e))
 
 
 def test_hwo(hwo):
@@ -99,10 +110,10 @@ def test_hwo(hwo):
     info = hwo.login(proposal, pasw)
     # info = hwo.get_proposal(proposal_code, proposal_number)
     # info = hwo.get_proposal_by_username("u2020000007")
-    print info['status']
+    print(info['status'])
 
-    print "Getting associated samples"
+    print("Getting associated samples")
     session_id = 58248
     proposal_id = 8250
     samples = hwo.get_samples(proposal_id, session_id)
-    print samples
+    print(samples)
