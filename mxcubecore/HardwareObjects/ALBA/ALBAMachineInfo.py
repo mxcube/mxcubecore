@@ -11,7 +11,7 @@
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the`
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
@@ -24,18 +24,12 @@ ALBAMachineInfo
 [Description]
 Hardware Object is used to get relevant machine information
 (machine current, time to next injection, status, etc)
-Based on EMBL HwObj
 
-[Channels]
-- MachineCurrent
-- TopUpRemaining
-- State
-
-[Commands]
-
-[Emited signals]
+[Emitted signals]
 - valuesChanged
 """
+
+from __future__ import print_function
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
@@ -49,10 +43,10 @@ class ALBAMachineInfo(Equipment):
 
     def __init__(self, name):
         Equipment.__init__(self, name)
-        self.logger = logging.getLogger("HWR MachineInfo")
-        self.logger.info("__init__()")
+        self.logger = logging.getLogger('HWR MachineInfo')
+        self.logger.info('__init__()')
 
-        self.values_dict = {}
+        self.values_dict = dict()
         self.values_dict['mach_current'] = None
         self.values_dict['mach_status'] = ""
         self.values_dict['topup_remaining'] = ""
@@ -87,7 +81,7 @@ class ALBAMachineInfo(Equipment):
             self.logger.debug('New machine current value=%smA' % value)
 
     def mach_status_changed(self, status):
-        self.values_dict['mach_status'] = str(status)
+        self.values_dict['mach_status'] = str(status).split('.')[-1]
         self.update_values()
         self.logger.debug('New machine status=%s' % status)
 
@@ -97,7 +91,7 @@ class ALBAMachineInfo(Equipment):
         self.logger.debug('New top-up remaining time=%ss' % value)
 
     def update_values(self):
-        values_to_send = []
+        values_to_send = list()
         values_to_send.append(self.values_dict['mach_current'])
         values_to_send.append(self.values_dict['mach_status'])
         values_to_send.append(self.values_dict['topup_remaining'])
@@ -106,11 +100,11 @@ class ALBAMachineInfo(Equipment):
         self.logger.debug("SIGNAL valuesChanged emitted")
 
     def get_mach_current(self):
-        value = 0
+        value = None
         try:
             value = self.chan_mach_current.getValue()
         except Exception as e:
-            self.logger.error('Cannot read machine current value, returning 0')
+            self.logger.error('Cannot read machine current value.\n%s' % str(e))
         finally:
             return value
 
@@ -118,7 +112,7 @@ class ALBAMachineInfo(Equipment):
         return self.get_mach_current()
 
     def get_message(self):
-        return "Machinfo status: %s" % str(self.get_mach_status()).split('.')[-1]
+        return 'Machine info status: %s' % str(self.get_mach_status()).split('.')[-1]
 
     def get_mach_status(self):
         return self.chan_mach_status.getValue()
@@ -128,6 +122,6 @@ class ALBAMachineInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print hwo.get_message()
-    print "Current = %s" % hwo.get_current()
-    print "Top-Up remaining = %s" % hwo.get_topup_remaining()
+    print(hwo.get_message())
+    print("Current = %s" % hwo.get_current())
+    print("Top-Up remaining = %s" % hwo.get_topup_remaining())

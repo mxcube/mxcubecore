@@ -26,8 +26,10 @@ It can include aperture, slits and/or other beam definer (lenses or other eq.)
 
 [Signals]
 beamInfoChanged
-beamPosChanged
+beamSizeChanged
 """
+
+from __future__ import print_function
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Equipment
@@ -86,7 +88,8 @@ class ALBABeamInfo(Equipment):
             default_beam_divergence_horizontal = int(
                 self.getProperty("beam_divergence_horizontal"))
         except Exception as e:
-            pass
+            logging.getLogger('HWR').debug("Cannot initialize default"
+                                           " beam divergence values\n%s" % str(e))
 
         self.default_beam_divergence = [
             default_beam_divergence_horizontal,
@@ -103,7 +106,8 @@ class ALBABeamInfo(Equipment):
         return self.default_beam_divergence[1]
 
     def get_beam_position(self):
-        self.beam_position = self.chan_beam_posx.getValue(), self.chan_beam_posy.getValue()
+        self.beam_position = self.chan_beam_posx.getValue(),\
+                             self.chan_beam_posy.getValue()
         return self.beam_position
 
     def get_slits_gap(self):
@@ -154,5 +158,5 @@ class ALBABeamInfo(Equipment):
 
 
 def test_hwo(hwo):
-    print hwo.get_beam_info()
-    print hwo.get_beam_position()
+    print(hwo.get_beam_info())
+    print(hwo.get_beam_position())

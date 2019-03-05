@@ -17,6 +17,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBATransmission
+
+[Description]
+Specific HwObj to setup the beamline transmission
+
+[Emitted signals]
+- attFactorChanged
+- attStateChanged
+"""
+
+from __future__ import print_function
+
 from HardwareRepository.BaseHardwareObjects import Device
 
 __credits__ = ["ALBA"]
@@ -74,5 +88,5 @@ class ALBATransmission(Device):
 
 
 def test_hwo(hwo):
-    print "Transmission is: ", hwo.get_value()
-    print "Transmission state is: ", hwo.getAttState()
+    print("Transmission is: ", hwo.get_value())
+    print("Transmission state is: ", hwo.getAttState())

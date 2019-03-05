@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAFlux
+
+[Description]
+HwObj used to get the flux
+
+[Signals]
+- None
+"""
+
+from __future__ import print_function
+
 import logging
 
 from HardwareRepository.BaseHardwareObjects import Device
@@ -47,7 +59,7 @@ class ALBAFlux(Device):
             if last_flux > 1e7:
                 return self.get_last_current() * self.get_transmission()
         except Exception as e:
-            pass
+            logging.getLogger("HWR").debug("Cannot read flux\n%s" % str(e))
 
         logging.getLogger("HWR").debug("Flux value abnormally low, "
                                        "returning default value")
@@ -66,6 +78,6 @@ class ALBAFlux(Device):
 
 
 def test_hwo(hwo):
-    print "Flux = %.4e" % hwo.get_flux()
-    print "Last current = %.4e" % hwo.get_last_current()
-    print "Transmission = %.2f" % hwo.get_transmission()
+    print("Flux = %.4e" % hwo.get_flux())
+    print("Last current = %.4e" % hwo.get_last_current())
+    print("Transmission = %.2f" % hwo.get_transmission())

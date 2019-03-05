@@ -17,6 +17,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBASupervisor
+
+[Description]
+Specific HwObj to interface the Beamline Supervisor TangoDS
+
+[Emitted signals]
+- stateChanged
+- phaseChanged
+"""
+
+from __future__ import print_function
+
 from HardwareRepository.BaseHardwareObjects import Device
 
 __credits__ = ["ALBA"]
@@ -101,7 +115,7 @@ class ALBASupervisor(Device):
 
 
 def test_hwo(hwo):
-    print "\nSupervisor control \"%s\"\n" % hwo.getUserName()
-    print "   Is Detector Cover open?:", hwo.is_detector_cover_opened()
-    print "   Current Phase is:", hwo.get_current_phase()
-    print "   Current State is:", hwo.get_state()
+    print("Supervisor control \"%s\"\n" % hwo.getUserName())
+    print("Is Detector Cover open?:", hwo.is_detector_cover_opened())
+    print("Current Phase is:", hwo.get_current_phase())
+    print("Current State is:", hwo.get_state())
