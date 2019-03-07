@@ -243,13 +243,13 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
 
             # Motor positions debug output
-            ll = sorted((tt[0] if isinstance(tt[0], str) else tt[0].name(), tt[1])
+            ll = sorted((tt[0] if isinstance(tt[0], (str, unicode)) else tt[0].name(), tt[1])
                         for tt in self.current_dc_parameters['motors'].items())
-            logging.getLogger('HWR').debug("MOTORTEST settings: "
+            logging.getLogger('HWR').debug("MOTORS ACQ target: "
                                            + ', '.join('%s=%s' % (tt) for tt in ll))
 
             ll = sorted(self.diffractometer_hwobj.get_positions().items())
-            logging.getLogger('HWR').debug("MOTORTEST positions: "
+            logging.getLogger('HWR').debug("MOTORS ACQ result: "
                                            + ', '.join('%s=%s' % (tt) for tt in ll))
             self.data_collection_hook()
 
@@ -700,13 +700,13 @@ class AbstractCollect(HardwareObject, object):
         """
         dd = self.diffractometer_hwobj.get_positions()
         logging.getLogger('HWR').debug(
-            'MOTORS-premove' + 
+            'MOTORS-premove ' +
             ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
             
         )
         dd = self.current_dc_parameters['motors']
         logging.getLogger('HWR').debug(
-            'MOTORS-target' + 
+            'MOTORS-target ' +
             ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
             
         )
@@ -721,7 +721,7 @@ class AbstractCollect(HardwareObject, object):
         self.move_motors(self.current_dc_parameters['motors'])
         dd = self.diffractometer_hwobj.get_positions()
         logging.getLogger('HWR').debug(
-            'MOTORS-postmove' + 
+            'MOTORS-postmove ' +
             ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
         )
 
