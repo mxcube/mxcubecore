@@ -732,6 +732,18 @@ class Sweep(IdentifiedElement):
         """Implementation method. *Only* to be called from Scan.__init__"""
         self._scans.add(scan)
 
+    def get_initial_settings(self):
+        """Get dictionary of rotation motor settings for start of sweep"""
+
+        sweepSetting = self.goniostatSweepSetting
+        result = dict(sweepSetting.axisSettings)
+        translation = sweepSetting.translation
+        if translation is not None:
+            result.update(translation.axisSettings)
+        result[sweepSetting.scanAxis] = self.start
+        #
+        return result
+
 class Scan(IdentifiedElement):
     """Collection strategy Scan"""
 
@@ -827,6 +839,25 @@ class GeometricStrategy(IdentifiedElement, Payload):
     @property
     def sweeps(self):
         return self._sweeps
+
+    def get_ordered_sweeps(self):
+        """Get sweeps in acquisition order.
+
+        WARNING we do not have the necessary information.
+        So we sort in increasing order by angles, in alphabetical name order,
+        (in pracite, 'kappa', 'kappa_phi', 'phi')
+        HORRIBLE HACK, but as it happens this will give
+        at least the first one correct mostly
+        and anyway is the best approximation we have
+
+        TODO get this right, once the workflow allows"""
+        ll = []
+        for sweep in self._sweeps:
+            dd = sweep.get_initial_settings()
+            ll.append((tuple(dd[x] for x in sorted(dd)), sweep))
+        #
+        return list(tt[1] for tt in sorted(ll))
+
 
 
 

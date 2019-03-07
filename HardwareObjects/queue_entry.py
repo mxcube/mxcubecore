@@ -737,7 +737,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         data_model = self.get_data_model()
 
         kappa = data_model.get_kappa()
-        phi = data_model.get_kappa_phi()
+        kappa_phi = data_model.get_kappa_phi()
 
 
         # kappa and kappa_phi settings are applied first, and assume that the
@@ -752,8 +752,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         dd = {}
         if kappa is not None:
             dd["kappa"] = kappa
-        if phi is not None:
-            dd["kappa_phi"] = phi
+        if kappa_phi is not None:
+            dd["kappa_phi"] = kappa_phi
         if dd:
             if (not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
                 or self.diffractometer_hwobj.in_kappa_mode()):

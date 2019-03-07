@@ -77,6 +77,9 @@ class GphlWorkflow(HardwareObject, object):
         # And as a place to get hold of other objects
         self._queue_entry = None
 
+        # Current data colelction group. Different for characterisation and collection
+        self._data_collection_group = None
+
         # event to handle waiting for parameter input
         self._return_parameters = None
 
@@ -94,6 +97,9 @@ class GphlWorkflow(HardwareObject, object):
 
         # Switch for 'move-to-fine-zoom' message for translational calibration
         self._use_fine_zoom = False
+
+        # Controls whether to centre immediately before data collection sweeps
+        self.centre_before_sweep = False
 
         # Configurable file paths
         self.file_paths = {}
@@ -270,6 +276,7 @@ class GphlWorkflow(HardwareObject, object):
         """
 
         self._queue_entry = None
+        self._data_collection_group = None
         # if not self._gevent_event.is_set():
         #     self._gevent_event.set()
         self.set_state(States.ON)
@@ -408,12 +415,11 @@ class GphlWorkflow(HardwareObject, object):
 
         orientations = OrderedDict()
         strategy_length = 0
-        for sweep in geometric_strategy.sweeps:
+        for sweep in geometric_strategy.get_ordered_sweeps():
             strategy_length += sweep.width
             rotation_id = sweep.goniostatSweepSetting.id
-            sweeps = orientations.get(rotation_id, [])
+            sweeps = orientations.setdefault(rotation_id, [])
             sweeps.append(sweep)
-            orientations[rotation_id] = sweeps
 
         lines = ["Geometric strategy   :"]
         if data_model.lattice_selected:
@@ -439,7 +445,7 @@ class GphlWorkflow(HardwareObject, object):
             lines.append("    - Total rotation : %7.1f degrees"
                          % strategy_length)
 
-        for rotation_id, sweeps in sorted(orientations.items()):
+        for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
             axis_settings = goniostatRotation.axisSettings
             scan_axis = goniostatRotation.scanAxis
@@ -572,9 +578,27 @@ class GphlWorkflow(HardwareObject, object):
     def setup_data_collection(self, payload, correlation_id):
         geometric_strategy = payload
 
+        gphl_workflow_model = self._queue_entry.get_data_model()
         collect_hwobj = self.beamline_setup.getObjectByRole(
             'collect'
         )
+
+        # enqueue data collection group
+        if gphl_workflow_model.lattice_selected:
+            # Data collection TODO: Use workflow info to distinguish
+            new_dcg_name = 'GPhL Data Collection'
+        else:
+            new_dcg_name = 'GPhL Characterisation'
+        new_dcg_model = queue_model_objects.TaskGroup()
+        new_dcg_model.set_enabled(True)
+        new_dcg_model.set_name(new_dcg_name)
+        new_dcg_model.set_number(
+            gphl_workflow_model.get_next_number_for_name(new_dcg_name)
+        )
+        self._data_collection_group = new_dcg_model
+        self._add_to_queue(gphl_workflow_model, new_dcg_model)
+
+        # Preset energy
         beamSetting = geometric_strategy.defaultBeamSetting
         if beamSetting:
             # First set beam_energy and give it time to settle,
@@ -585,6 +609,7 @@ class GphlWorkflow(HardwareObject, object):
         else:
             default_energy = collect_hwobj.get_energy()
 
+        # Preset detector distance and resolution
         detectorSetting = geometric_strategy.defaultDetectorSetting
         if detectorSetting:
             # NBNB If this is ever set to editable, distance and resolution
@@ -592,15 +617,14 @@ class GphlWorkflow(HardwareObject, object):
             collect_hwobj.move_detector(detectorSetting.axisSettings.get('Distance'))
         # TODO NBNB put in wait-till-ready to make sure value settles
         collect_hwobj.detector_hwobj.wait_ready()
-        resolution = collect_hwobj.get_resolution()
+        strategy_resolution = collect_hwobj.get_resolution()
+        # Put resolution value in workflow model object
+        gphl_workflow_model.set_detector_resolution(strategy_resolution)
 
-        # NB this call also asks for OK/abort of strategy, hence put first
+        # Get modified parameters and confirm acquisition
+        # Run before centring, as it also does confirm/abort
         parameters = self.query_collection_strategy(geometric_strategy, collect_hwobj,
                                                     default_energy)
-        # Put resolution value in workflow model object
-        gphl_workflow_model = self._queue_entry.get_data_model()
-        gphl_workflow_model.set_detector_resolution(resolution)
-
         user_modifiable = geometric_strategy.isUserModifiable
         if user_modifiable:
             # Query user for new rotationSetting and make it,
@@ -608,112 +632,133 @@ class GphlWorkflow(HardwareObject, object):
                 "User modification of sweep settings not implemented. Ignored"
             )
 
-        goniostatSweepSettings = {}
+        # Set up centring and recentring
         goniostatTranslations = []
         recen_parameters = {}
-        sweeps = list(geometric_strategy.sweeps)
-        sweepSetting = sweeps[0].goniostatSweepSetting
-        translation = sweepSetting.translation
-        startloop = 0
-        if translation is None:
-            recen_parameters = self.load_transcal_parameters()
-            if recen_parameters:
-                # Do first centring, by itself, so you can use the result for recen
-                startloop = 1
-                goniostatSweepSettings[sweepSetting.id] = sweepSetting
-                qe = self.enqueue_sample_centring(
-                    goniostatRotation=sweepSetting)
-                translation = self.execute_sample_centring(
-                        qe, sweepSetting, sweepSetting.id
-                    )
-                if self.getProperty('collect_centring_snapshots'):
-                    self.collect_centring_snapshots(sweepSetting)
-                goniostatTranslations.append(translation)
-                recen_parameters['ref_xyz'] = tuple(
-                    translation.axisSettings[x]
-                    for x in self.translation_axis_roles
-                )
-                recen_parameters['ref_okp'] = tuple(
-                    sweepSetting.axisSettings[x]
-                    for x in self.rotation_axis_roles
-                )
-                logging.getLogger('HWR').debug(
-                    "Recentring set-up. Parameters are: %s"
-                    % sorted(recen_parameters.items())
-                )
-
-            else:
-                logging.getLogger('HWR').info(
-                    "transcal.nml file not found - Automatic recentering skipped"
-                )
-
         queue_entries = []
-        for sweep in sweeps[startloop:]:
+        sweeps = geometric_strategy.get_ordered_sweeps()
+
+        # First sweep in list for a given sweepSetting
+        first_sweeps = []
+        aset = set()
+        for sweep in sweeps:
+            sweepSettingId = sweep.goniostatSweepSetting.id
+            if sweepSettingId not in aset:
+                first_sweeps.append(sweep)
+                aset.add(sweepSettingId)
+
+        # Decide whether to centre before individual sweeps
+        if self.getProperty('centre_before_sweep') and len(first_sweeps) > 1:
+            self.centre_before_sweep = True
+        else:
+            self.centre_before_sweep = False
+
+        # Loop over first sweep occurrences and (re)centre
+        # NB we do it reversed so the first to acquire is the last to centre
+        if self.getProperty('centre_at_start'):
+            # If we centre at start, we want teh fist one to eb sentred last
+            first_sweeps.reverse()
+        for sweep in first_sweeps:
             sweepSetting = sweep.goniostatSweepSetting
             requestedRotationId = sweepSetting.id
-            if requestedRotationId not in goniostatSweepSettings:
-                okp = tuple(sweepSetting.axisSettings[x]
-                            for x in self.rotation_axis_roles
-                            )
-                if recen_parameters and sweepSetting.translation is None:
-                    dd = self.calculate_recentring(okp, **recen_parameters)
-                    
-                    logging.getLogger('HWR').debug('@~@~ Recentring. okp, motors' + str(okp) + str(sorted(dd.items())))
+            translation = sweepSetting.translation
+            initial_settings = sweep.get_initial_settings()
 
+            if translation is not None:
+                # We already have a centring passed in (from stratcal, in practice)
+                if self.getProperty('centre_at_start'):
+                    qe = self.enqueue_sample_centring(
+                        motor_settings=initial_settings
+                    )
+                    queue_entries.append(
+                        (qe, sweepSetting, requestedRotationId, initial_settings)
+                    )
+
+            elif recen_parameters:
+                # We have parameters for recentring (from previous orientation)
+                okp = tuple(initial_settings[x] for x in self.rotation_axis_roles)
+                dd = self.calculate_recentring(okp, **recen_parameters)
+                logging.getLogger('HWR').debug('GPHL Recentring. okp, motors'
+                                               + str(okp) + str(sorted(dd.items())))
+                if self.getProperty('centre_at_start'):
+                    motor_settings = initial_settings.copy()
+                    motor_settings.update(dd)
+                    qe = self.enqueue_sample_centring(
+                        motor_settings=motor_settings
+                    )
+                    queue_entries.append(
+                        (qe, sweepSetting, requestedRotationId, motor_settings)
+                    )
+                else:
                     # Creating the Translation adds it to the Rotation
-                    GphlMessages.GoniostatTranslation(
+                    translation = GphlMessages.GoniostatTranslation(
                         rotation=sweepSetting,
                         requestedRotationId=requestedRotationId, **dd
                     )
                     logging.getLogger('HWR').debug("Recentring. okp=%s, %s"
                                                    % (okp, sorted(dd.items())))
-                else:
-                    if sweepSetting.translation is None:
-                        xx = "No translation settings."
-                    else:
-                        xx = sorted(
-                            sweepSetting.translation.axisSettings.items()
+                    goniostatTranslations.append(translation)
+
+            else:
+                # No centring or recentring info
+                qe = self.enqueue_sample_centring(
+                    motor_settings=initial_settings
+                )
+                rp = self.load_transcal_parameters()
+                if rp:
+                    # We can make recentring parameters. Centre now regardless
+                    recen_parameters = rp
+                    translation = self.execute_sample_centring(
+                            qe, sweepSetting, requestedRotationId
                         )
+                    if self.getProperty('collect_centring_snapshots'):
+                        dd = dict((x, initial_settings[x])
+                                  for x in self.rotation_axis_roles)
+                        self.collect_centring_snapshots(dd)
+                    goniostatTranslations.append(translation)
+                    recen_parameters['ref_xyz'] = tuple(
+                        translation.axisSettings[x]
+                        for x in self.translation_axis_roles
+                    )
+                    recen_parameters['ref_okp'] = tuple(
+                        initial_settings[x] for x in self.rotation_axis_roles
+                    )
                     logging.getLogger('HWR').debug(
-                        "No recentring. okp=%s, %s" % (okp, xx)
+                        "Recentring set-up. Parameters are: %s"
+                        % sorted(recen_parameters.items())
                     )
-
-                goniostatSweepSettings[requestedRotationId] = sweepSetting
-                # NB there is no provision for NOT making a new translation
-                # object if you are making no changes
-                if not (recen_parameters and self.getProperty('centre_before_sweep')):
-                    qe = self.enqueue_sample_centring(
-                        goniostatRotation=sweepSetting)
+                else:
+                    # Put on recentring queue
                     queue_entries.append(
-                        (qe, sweepSetting, requestedRotationId)
+                        (qe, sweepSetting, requestedRotationId, initial_settings)
                     )
 
-        # Split in two loops to get all centrings on queue and visible before execution
-
-        for qe, goniostatRotation, requestedRotationId in queue_entries:
+        for qe, goniostatRotation, requestedRotationId, settings in queue_entries:
             goniostatTranslations.append(
                 self.execute_sample_centring(
                     qe, goniostatRotation, requestedRotationId
                 )
             )
             if self.getProperty('collect_centring_snapshots'):
-                self.collect_centring_snapshots(goniostatRotation)
+                dd = dict((x, settings[x]) for x in self.rotation_axis_roles)
+                self.collect_centring_snapshots(dd)
 
-        # Get wavelengths
+        # Set beamline to match parameters, and return SampleCentred message
+        # get wavelengths
         h_over_e = ConvertUtils.h_over_e
         beam_energies = parameters.pop('beam_energies')
         wavelengths = list(
             GphlMessages.PhasingWavelength(wavelength=h_over_e/val, role=tag)
             for tag, val in beam_energies.items()
         )
-        # Set to wavelength of first energy
-        # Necessary to that resolution setting below gives right detector distance
+        # set to wavelength of first energy
+        # necessary so that resolution setting below gives right detector distance
         collect_hwobj.set_wavelength(wavelengths[0].wavelength)
         # TODO ensure that move is finished before resolution is set
 
         # get BcsDetectorSetting
         new_resolution = parameters.pop('resolution')
-        if new_resolution == resolution:
+        if new_resolution == strategy_resolution:
             id_ = detectorSetting.id
         else:
             collect_hwobj.set_resolution(new_resolution)
@@ -865,24 +910,19 @@ class GphlWorkflow(HardwareObject, object):
         master_path_template = gphl_workflow_model.path_template
         relative_image_dir = collection_proposal.relativeImageDir
 
-        new_dcg_name = 'GPhL Data Collection'
-        new_dcg_model = queue_model_objects.TaskGroup()
-        new_dcg_model.set_enabled(True)
-        new_dcg_model.set_name(new_dcg_name)
-        new_dcg_model.set_number(
-            gphl_workflow_model.get_next_number_for_name(new_dcg_name)
-        )
-        self._add_to_queue(gphl_workflow_model, new_dcg_model)
-
         sample = gphl_workflow_model.get_sample_node()
         # There will be exactly one for the kinds of collection we are doing
         crystal = sample.crystals[0]
         snapshot_count = gphl_workflow_model.get_snapshot_count()
-        if (self.getProperty('centre_before_sweep') and
-                len(set(scan.sweep for scan in collection_proposal.scans)) > 1):
+        if (self.centre_before_sweep
+            and (gphl_workflow_model.lattice_selected
+                or 'calibration' in gphl_workflow_model.get_type().lower())):
             enqueue_centring = True
         else:
             enqueue_centring = False
+        data_collections = []
+        snapshot_counts = dict()
+        found_orientations = set()
         for scan in collection_proposal.scans:
             sweep = scan.sweep
             acq = queue_model_objects.Acquisition()
@@ -918,10 +958,6 @@ class GphlWorkflow(HardwareObject, object):
             # acq_parameters.take_dark_current = True
             # acq_parameters.skip_existing_images = False
 
-            # Only snapshots before first scan OR NOT???
-            acq_parameters.take_snapshots = snapshot_count
-            # snapshot_count = 0
-
             # Edna also sets screening_id
             # Edna also sets osc_end
 
@@ -949,17 +985,15 @@ class GphlWorkflow(HardwareObject, object):
             ss = filename_params.get('run')
             path_template.run_number = int(ss) if ss else 1
             prefix = filename_params.get('prefix', '')
-            ib_component = filename_params.get('inverse_beam_component_sign',
-                                               '')
+            ib_component = filename_params.get('inverse_beam_component_sign', '')
             ll = []
             if prefix:
                 ll.append(prefix)
             if ib_component:
                 ll.append(ib_component)
             path_template.base_prefix = '_'.join(ll)
-            path_template.mad_prefix = (
-                filename_params.get('beam_setting_index') or ''
-            )
+            beam_setting_index = filename_params.get('beam_setting_index') or ''
+            path_template.mad_prefix = beam_setting_index
             path_template.wedge_prefix = (
                 filename_params.get('gonio_setting_index') or ''
             )
@@ -967,41 +1001,46 @@ class GphlWorkflow(HardwareObject, object):
             path_template.num_files = acq_parameters.num_images
 
             goniostatRotation = sweep.goniostatSweepSetting
-            if enqueue_centring:
+            if enqueue_centring and goniostatRotation.id not in found_orientations:
                 # Put centring on queue and collect using the resulting position
                 # NB this means that the actual translational axis positions
                 # will NOT be known to the workflow
-                dd = {}
-                self.enqueue_sample_centring(goniostatRotation)
+                self.enqueue_sample_centring(motor_settings=sweep.get_initial_settings())
             else:
                 # Collect using precalculated centring position
-                dd = dict((x, goniostatRotation.axisSettings[x])
-                      for x in self.rotation_axis_roles)
-                goniostatTranslation = goniostatRotation.translation
-                if goniostatTranslation is not None:
-                    for tag in self.translation_axis_roles:
-                        val = goniostatTranslation.axisSettings.get(tag)
-                        if val is not None:
-                            dd[tag] = val
-            dd[goniostatRotation.scanAxis] = scan.start
-            acq_parameters.centred_position = (
-                queue_model_objects.CentredPosition(dd)
-            )
+                dd = sweep.get_initial_settings()
+                dd[goniostatRotation.scanAxis] = scan.start
+                acq_parameters.centred_position = (
+                    queue_model_objects.CentredPosition(dd)
+                )
+            found_orientations.add(goniostatRotation.id)
+
+            count = snapshot_counts.get(sweep, snapshot_count)
+            acq_parameters.take_snapshots = count
+            if (ib_component or beam_setting_index
+                or not gphl_workflow_model.lattice_selected):
+                # Only snapshots first time a sweep is encountered
+                # When doing inverse beam or wavelength interleaving
+                # or canned strategies
+                snapshot_counts[sweep] = 0
 
             data_collection = queue_model_objects.DataCollection([acq], crystal)
+            data_collections.append(data_collection)
+
             data_collection.set_enabled(True)
             data_collection.set_name(path_template.get_prefix())
             data_collection.set_number(path_template.run_number)
-            self._add_to_queue(new_dcg_model, data_collection)
+            self._add_to_queue(self._data_collection_group, data_collection)
 
         if enqueue_centring:
             logging.getLogger('user_level_log').info(
-                "The sample will be centred before each scan"
+                "The sample must be centred before each scan"
             )
         data_collection_entry = queue_manager.get_entry_with_model(
-            new_dcg_model
+            self._data_collection_group
         )
         queue_manager.execute_entry(data_collection_entry)
+        self._data_collection_group = None
 
         if data_collection_entry.status == QUEUE_ENTRY_STATUS.FAILED:
             # TODO NBNB check if these status codes are corerct
@@ -1193,7 +1232,6 @@ class GphlWorkflow(HardwareObject, object):
             # We are moving to having recentered positions -
             # Set or prompt for fine zoom
             self._use_fine_zoom = True
-            # TODO Check correct way to get hold of zoom motor
             zoom_motor = self.beamline_setup.getObjectByRole('zoom')
             if zoom_motor:
                 # Zoom to the last predefined position
@@ -1228,7 +1266,9 @@ class GphlWorkflow(HardwareObject, object):
                 dummy = self._return_parameters.get()
                 self._return_parameters = None
 
-        centring_queue_entry = self.enqueue_sample_centring(goniostatRotation)
+        centring_queue_entry = self.enqueue_sample_centring(
+            motor_settings=goniostatRotation.axisSettings
+        )
         goniostatTranslation = self.execute_sample_centring(centring_queue_entry,
                                                             goniostatRotation)
 
@@ -1243,27 +1283,19 @@ class GphlWorkflow(HardwareObject, object):
             goniostatTranslation=goniostatTranslation
         )
 
-    def enqueue_sample_centring(self, goniostatRotation):
+    def enqueue_sample_centring(self, motor_settings):
 
         queue_manager = self._queue_entry.get_queue_controller()
 
-        goniostatTranslation = goniostatRotation.translation
-
-        dd = dict((x, goniostatRotation.axisSettings[x])
-                  for x in self.rotation_axis_roles)
-        if goniostatTranslation is not None:
-            for tag in self.translation_axis_roles:
-                val = goniostatTranslation.axisSettings.get(tag)
-                if val is not None:
-                    dd[tag] = val
-
-        centring_model = queue_model_objects.SampleCentring(motor_positions=dd)
-        self._add_to_queue(self._queue_entry.get_data_model(), centring_model)
+        centring_model = queue_model_objects.SampleCentring(
+            name='Centring (GPhL)', motor_positions=motor_settings
+        )
+        self._add_to_queue(self._data_collection_group, centring_model)
         centring_entry = queue_manager.get_entry_with_model(centring_model)
 
         return centring_entry
 
-    def collect_centring_snapshots(self, goniostatRotation):
+    def collect_centring_snapshots(self, motor_settings):
 
         filename_template = "%s_%s_%s_%s_%s.jpeg"
 
@@ -1278,24 +1310,26 @@ class GphlWorkflow(HardwareObject, object):
                 "Post-centring: Taking %d sample snapshot(s)"
                 % number_of_snapshots
             )
-            collect_hwobj = self.beamline_setup.getObjectByRole(
-                'collect'
-            )
-
-            okp = tuple(int(goniostatRotation.axisSettings[x])
+            collect_hwobj = self.beamline_setup.getObjectByRole('collect')
+            # settings = goniostatRotation.axisSettings
+            collect_hwobj.move_motors(motor_settings)
+            okp = tuple(int(motor_settings[x])
                         for x in self.rotation_axis_roles)
             timestamp = datetime.datetime.now().isoformat().split('.')[0]
+            summed_angle = 0.0
             for snapshot_index in range(number_of_snapshots):
+                if snapshot_index:
+                    collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
+                    summed_angle += 90
                 snapshot_filename = filename_template  % (okp + (timestamp,
                                                                  snapshot_index + 1))
                 snapshot_filename = os.path.join(snapshot_directory, snapshot_filename)
                 logging.getLogger('HWR').debug('Centring snapshot stored at %s'
                                                % snapshot_filename)
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
-                if number_of_snapshots > 1:
-                    collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
-            for ii in range(4 - number_of_snapshots):
-                collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
+            if summed_angle:
+                collect_hwobj.diffractometer_hwobj.move_omega_relative(-summed_angle)
+
 
 
     def execute_sample_centring(self, centring_entry, goniostatRotation,
@@ -1309,7 +1343,6 @@ class GphlWorkflow(HardwareObject, object):
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x])
                       for x in self.translation_axis_roles)
-            logging.getLogger('HWR').debug('@~@~ centred: allmotors' + str(sorted(positionsDict.items())))
             return self.GphlMessages.GoniostatTranslation(
                 rotation=goniostatRotation,
                 requestedRotationId=requestedRotationId, **dd
