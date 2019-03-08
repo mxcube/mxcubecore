@@ -24,17 +24,12 @@ ALBAZoomMotor
 [Description]
 Hardware Object is used to manipulate the zoom of the OAV camera.
 
-[Channels]
-- position
-- state
-- labels
-
-[Commands]
-
-[Emited signals]
+[Emitted signals]
 - stateChanged
 - predefinedPositionChanged
 """
+
+from __future__ import print_function
 
 import logging
 
@@ -123,7 +118,7 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
             logging.getLogger("HWR").debug("getCurrentPositionName: %s" % repr(value))
             return value
         except Exception as e:
-            logging.getLogger("HWR").debug("cannot get name zoom value")
+            logging.getLogger("HWR").debug("cannot get name zoom value\n%s" % str(e))
             return None
 
     def stateChanged(self, state):
@@ -148,10 +143,8 @@ class ALBAZoomMotor(BaseHardwareObjects.Device):
 
 
 def test_hwo(zoom):
-
-    print type(zoom.getState())
-    print "     Zoom position is : ", zoom.getPosition()
-    print "Zoom position name is : ", zoom.getCurrentPositionName()
-    print "               Moving : ", zoom.motorIsMoving()
-    print "                State : ", zoom.getState()
-    print "            Positions : ", zoom.getPredefinedPositionsList()
+    print("Zoom position is : ", zoom.getPosition())
+    print("Zoom position name is : ", zoom.getCurrentPositionName())
+    print("Moving : ", zoom.motorIsMoving())
+    print("State : ", zoom.getState())
+    print("Positions : ", zoom.getPredefinedPositionsList())

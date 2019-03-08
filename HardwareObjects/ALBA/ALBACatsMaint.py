@@ -21,10 +21,13 @@
 [Name] ALBACatsMaint
 
 [Description]
-HwObj used to control the CATS sample changer via Tango maintenance operations
+HwObj used to operate the CATS sample changer via Tango in maintenance mode
 
 [Signals]
+- None
 """
+
+from __future__ import print_function
 
 from sample_changer.CatsMaint import CatsMaint
 
@@ -70,15 +73,6 @@ class ALBACatsMaint(CatsMaint):
         self._cmdReset()
         self._doResetMemory()
 
-    def _doOperationCommand(self, cmd, pars):
-        """
-        Send a CATS command
-
-        @cmd: command
-        @pars: command arguments
-        """
-        CatsMaint._doOperationCommand(self)
-
     def _get_shifts(self):
         """
         Get the mounting position from the Diffractometer DS.
@@ -93,4 +87,4 @@ class ALBACatsMaint(CatsMaint):
 
 
 def test_hwo(hwo):
-    print hwo._get_shifts()
+    print(hwo._get_shifts())

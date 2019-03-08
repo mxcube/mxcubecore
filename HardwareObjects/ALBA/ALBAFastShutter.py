@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBAFastShutter
+
+[Description]
+HwObj used to operate the Fast Shutter
+
+[Signals]
+- fastStateChanged
+"""
+
+from __future__ import print_function
+
 import logging
 
 from HardwareRepository import BaseHardwareObjects
@@ -80,9 +92,8 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
             else:
                 states = state_string.split(",")
                 self.state_strings = states[1].strip(), states[0].strip()
-        except BaseException:
-            import traceback
-            logging.getLogger("HWR").warning(traceback.format_exc())
+        except Exception as e:
+            logging.getLogger("HWR").warning("%s" % str(e))
             self.state_strings = self.default_state_strings
 
     def getState(self):
@@ -157,12 +168,24 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
     def cmdOut(self):
         self.close()
 
+    # TODO: Review, it is called twice after a collection (already in motion problem)
     def close(self):
-        self.chan_motor_pos.setValue(0)
+        logging.getLogger('HWR').debug("Closing the fast shutter")
+        logging.getLogger('HWR').debug("value = %s, state = %s" %
+                                       (self.chan_motor_pos.getValue(),
+                                        self.actuator_state))
+        if abs(self.chan_motor_pos.getValue()) > 0.01:
+            self.chan_motor_pos.setValue(0)
         self.set_ttl('High')
 
     def open(self):
-        self.chan_motor_pos.setValue(0)
+        logging.getLogger('HWR').debug("Opening the fast shutter")
+        logging.getLogger('HWR').debug("value = %s, state = %s" %
+                                       (self.chan_motor_pos.getValue(),
+                                        self.actuator_state))
+
+        if abs(self.chan_motor_pos.getValue()) > 0.01:
+            self.chan_motor_pos.setValue(0)
         self.set_ttl('Low')
 
     def set_ttl(self, value):
@@ -184,9 +207,8 @@ class ALBAFastShutter(BaseHardwareObjects.Device):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
-    print "Motor position is: ", hwo.getMotorPosition()
-    print "Motor state is: ", hwo.getMotorState()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.getState())
+    print("Shutter status is: ", hwo.getStatus())
+    print("Motor position is: ", hwo.getMotorPosition())
+    print("Motor state is: ", hwo.getMotorState())

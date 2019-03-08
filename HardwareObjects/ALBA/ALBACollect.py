@@ -16,6 +16,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name] ALBACollect
+
+[Description]
+Specific implementation of the collection methods for ALBA synchrotron.
+
+[Signals]
+- progressInit
+- collectConnected
+- collectStarted
+- collectReady
+- progressStop
+- collectOscillationFailed
+"""
+
+from __future__ import print_function
+
 import os
 import sys
 import time
@@ -32,7 +49,7 @@ __category__ = "General"
 
 
 class ALBACollect(AbstractCollect):
-    """Main data collection class. Inherited from AbstractMulticollect
+    """Main data collection class. Inherited from AbstractMulticollect class
        Collection is done by setting collection parameters and
        executing collect command
     """
@@ -203,9 +220,10 @@ class ALBACollect(AbstractCollect):
 
         osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
 
-        image_range = osc_seq['range']
+        # Unused variables
+        # image_range = osc_seq['range']
         nb_images = osc_seq['number_of_images']
-        total_range = image_range * nb_images
+        # total_range = image_range * nb_images
 
         ready = self.prepare_acquisition()
 
@@ -254,7 +272,6 @@ class ALBACollect(AbstractCollect):
         self.collection_finished()
 
     def data_collection_end(self):
-        self.fastshut_hwobj.cmdOut()
         self.omega_hwobj.set_velocity(60)
         self.unconfigure_ni()
 
@@ -331,10 +348,12 @@ class ALBACollect(AbstractCollect):
         logging.getLogger("HWR").info("  prepare detector  was not ok.")
         self.write_image_headers(start_angle)
 
-        logging.getLogger("HWR").info("  nb_images: %s / img_range: %s / exp_time: %s / total_distance: %s / speed: %s" %
-                                      (nb_images, img_range, exp_time, total_dist, omega_speed))
+        logging.getLogger("HWR").info("nb_images: %s / img_range: %s / exp_time: %s /"
+                                      " total_distance: %s / speed: %s" %
+                                      (nb_images, img_range, exp_time, total_dist,
+                                       omega_speed))
         logging.getLogger("HWR").info(
-            "  setting omega velocity to 60 to go to intial position")
+            "  setting omega velocity to 60 to go to initial position")
         self.omega_hwobj.set_velocity(60)
 
         omega_acceltime = self.omega_hwobj.get_acceleration()
@@ -423,8 +442,8 @@ class ALBACollect(AbstractCollect):
 
         self.image_headers["Image_path"] = ': %s' % basedir
 
-        self.image_headers["Threshold_setting"] = '%0f eV' % self.detector_hwobj.get_threshold(
-        )
+        self.image_headers["Threshold_setting"] = '%0f eV' %\
+                                                  self.detector_hwobj.get_threshold()
         self.image_headers["Gain_setting"] = '%s' % str(
             self.detector_hwobj.get_threshold_gain())
 
@@ -439,10 +458,10 @@ class ALBACollect(AbstractCollect):
 
     def wait_collection_done(self, nb_images, first_image_no):
 
-        osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
-
-        #first_image_no = osc_seq['start_image_number']
-        #nb_images = osc_seq['number_of_images']
+        # Deprecated
+        # osc_seq = self.current_dc_parameters['oscillation_sequence'][0]
+        # first_image_no = osc_seq['start_image_number']
+        # nb_images = osc_seq['number_of_images']
         last_image_no = first_image_no + nb_images - 1
 
         if nb_images > 1:
@@ -457,20 +476,21 @@ class ALBACollect(AbstractCollect):
         template = fileinfo['template']
 
         filename = template % frame_number
-        fullpath = os.path.join(basedir, filename)
+        full_path = os.path.join(basedir, filename)
 
         start_wait = time.time()
 
-        logging.getLogger("HWR").debug("   waiting for image on disk: %s" % fullpath)
+        logging.getLogger("HWR").debug("   waiting for image on disk: %s" % full_path)
 
-        while not os.path.exists(fullpath):
+        while not os.path.exists(full_path):
+            # TODO: review next line for NFTS related issues.
             dirlist = os.listdir(basedir)  # forces directory flush ?
             if (time.time() - start_wait) > timeout:
                 logging.getLogger("HWR").debug("   giving up waiting for image")
                 return False
             time.sleep(0.2)
 
-        self.last_saved_image = fullpath
+        # self.last_saved_image = fullpath
 
         # generate thumbnails
         archive_dir = fileinfo['archive_directory']
@@ -484,10 +504,10 @@ class ALBACollect(AbstractCollect):
 
         logging.getLogger("HWR").debug(
             "   creating thumbnails for  %s in: %s and %s" %
-            (fullpath, jpeg_fullpath, thumb_fullpath))
-        cmd = "adxv_thumb 0.4 %s %s" % (fullpath, jpeg_fullpath)
+            (full_path, jpeg_fullpath, thumb_fullpath))
+        cmd = "adxv_thumb 0.4 %s %s" % (full_path, jpeg_fullpath)
         os.system(cmd)
-        cmd = "adxv_thumb 0.1 %s %s" % (fullpath, thumb_fullpath)
+        cmd = "adxv_thumb 0.1 %s %s" % (full_path, thumb_fullpath)
         os.system(cmd)
 
         logging.getLogger("HWR").debug("   writing thumbnails info in LIMS")
@@ -524,7 +544,6 @@ class ALBACollect(AbstractCollect):
         # data collection end (or abort)
         #
         logging.getLogger("HWR").info(" finishing data collection ")
-        self.fastshut_hwobj.cmdOut()
         self.emit("progressStop")
 
     def check_directory(self, basedir):
@@ -621,19 +640,15 @@ class ALBACollect(AbstractCollect):
 
         # prepare ALL shutters
 
-        # close fast shutter
         if self.fastshut_hwobj.getState() != 0:
             self.fastshut_hwobj.close()
 
-           # open slow shutter
         if self.slowshut_hwobj.getState() != 1:
             self.slowshut_hwobj.open()
 
-           # open photon shutter
         if self.photonshut_hwobj.getState() != 1:
             self.photonshut_hwobj.open()
 
-           # open front end
         if self.frontend_hwobj.getState() != 0:
             self.frontend_hwobj.open()
 
@@ -642,9 +657,10 @@ class ALBACollect(AbstractCollect):
 
     def open_fast_shutter(self):
         # self.fastshut_hwobj.open()
-        #   this function is empty for ALBA. we are not opening the fast shutter.
-        #   on the contrary open_safety_shutter (equivalent to prepare_shutters in original
-        #   collect macro will first close the fast shutter and open the other three
+        # this function is empty for ALBA. we are not opening the fast shutter.
+        # on the contrary open_safety_shutter (equivalent to prepare_shutters in
+        # original collect macro will first close the fast shutter and open the
+        # other three
         pass
 
     def close_fast_shutter(self):
@@ -655,7 +671,7 @@ class ALBACollect(AbstractCollect):
         pass
 
     def close_detector_cover(self):
-        #  we will not close detcover during collections
+        #  we will not close detector cover during collections
         #  self.supervisor.close_detector_cover()
         pass
 
@@ -751,9 +767,8 @@ class ALBACollect(AbstractCollect):
                 if e.errno != errno.EEXIST:
                     raise
             """
-            #os.symlink(files_directory, os.path.join(process_directory, "img"))
-        except BaseException:
-            logging.exception("Could not create processing file directory")
+        except Exception as e:
+            logging.exception("Could not create processing file directory\n%s" % str(e))
             return
 
         # save directory names in current_dc_parameters. They will later be used
@@ -856,7 +871,8 @@ class ALBACollect(AbstractCollect):
                     return und_gaps
                 else:
                     return (und_gaps)
-        except BaseException:
+        except BaseException as e:
+            logging.getLogger('HWR').debug("Get undulator gaps error\n%s" % str(e))
             pass
         return {}
 
@@ -906,15 +922,13 @@ class ALBACollect(AbstractCollect):
             return self.machine_info_hwobj.get_message()
         else:
             return ''
-
+    # TODO: implement fill mode
     def get_machine_fill_mode(self):
         """
         Descript. :
         """
         if self.machine_info_hwobj:
             return "FillMode not/impl"
-            #fill_mode = str(self.machine_info_hwobj.get_message())
-            # return fill_mode[:20]
         else:
             return ''
 
@@ -931,12 +945,12 @@ class ALBACollect(AbstractCollect):
 
 
 def test_hwo(hwo):
-    print "Energy: ", hwo.get_energy()
-    print "Transm: ", hwo.get_transmission()
-    print "Resol: ", hwo.get_resolution()
-    print "Shutters (ready for collect): ", hwo.check_shutters()
-    print "Supervisor(collect phase): ", hwo.is_collect_phase()
+    print("Energy: ", hwo.get_energy())
+    print("Transmission: ", hwo.get_transmission())
+    print("Resolution: ", hwo.get_resolution())
+    print("Shutters (ready for collect): ", hwo.check_shutters())
+    print("Supervisor(collect phase): ", hwo.is_collect_phase())
 
-    print "Flux ", hwo.get_flux()
-    print "Kappa ", hwo.kappapos_chan.getValue()
-    print "Phi ", hwo.phipos_chan.getValue()
+    print("Flux ", hwo.get_flux())
+    print("Kappa ", hwo.kappapos_chan.getValue())
+    print("Phi ", hwo.phipos_chan.getValue())

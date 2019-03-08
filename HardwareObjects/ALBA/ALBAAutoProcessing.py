@@ -17,6 +17,20 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBAAutoProcessing
+
+[Description]
+Hardware Object used to prepare and start the autoprocessing
+pipelines for ALBA beamlines.
+
+[Emitted signals]
+- None
+"""
+
+from __future__ import print_function
+
 import os
 import math
 import logging
@@ -87,6 +101,9 @@ class ALBAAutoProcessing(HardwareObject):
         data_range_finish_num = start_img_num + nb_images - 1
         background_range_start_num = start_img_num
         spot_range_start_num = start_img_num
+        minimum_range = 0
+        background_range_finish_num = 0
+        spot_range_finish_num = 0
 
         if angle_increment != 0:
             minimum_range = int(round(20 / angle_increment))
@@ -104,8 +121,8 @@ class ALBAAutoProcessing(HardwareObject):
         test_low_res = 8.
         largest_vector = 0.172 * ((max(beamx, 2463 - beamx))**2 +
                                   (max(beamy, 2527 - beamy))**2)**0.5
-        test_high_res = round(wavelength / (2 * math.sin(0.5 * math.atan(largest_vector /
-                                                                         detsamdis))), 2)
+        test_high_res = round(wavelength / (2 * math.sin(0.5 * math.atan(
+            largest_vector / detsamdis))), 2)
         low_res = 50.
         high_res = test_high_res
         data_filename = prefix + '_' + str(runno) + '_????'

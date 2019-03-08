@@ -17,6 +17,20 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBABackLight
+
+[Description]
+Hardware Object used to operate the diffractometer backlight.
+
+[Emitted signals]
+- levelChanged
+- stateChanged
+"""
+
+from __future__ import print_function
+
 import time
 import logging
 import gevent
@@ -178,8 +192,7 @@ class ALBABackLight(Device):
 
 def test_hwo(hwo):
 
-    print "\nLight control for \"%s\"\n" % hwo.getUserName()
-    print "   Level limits are:", hwo.getLimits()
-    print "   Current level is:", hwo.getLevel()
-    print "   Current state is:", hwo.getState()
-    print "   Setting backlight in"
+    print("Light control for \"%s\"\n" % hwo.getUserName())
+    print("Level limits are:", hwo.getLimits())
+    print("Current level is:", hwo.getLevel())
+    print("Current state is:", hwo.getState())

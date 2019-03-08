@@ -24,18 +24,17 @@ ALBAMiniDiff
 [Description]
 Specific HwObj for M2D2 diffractometer @ ALBA
 
-[Channels]
-- N/A
-
-[Commands]
-- N/A
-
-[Emited signals]
+[Emitted signals]
 - pixelsPerMmChanged
+- kappaMotorMoved
 - phiMotorMoved
 - stateChanged
 - zoomMotorPredefinedPositionChanged
+- minidiffStateChanged
+- minidiffPhaseChanged
 """
+
+from __future__ import print_function
 
 import logging
 import time
@@ -224,7 +223,8 @@ class ALBAMiniDiff(GenericDiffractometer):
                     logging.getLogger("HWR").debug(
                         "Setting omegaz reference position to {0}".format(
                             self.omegaz_reference['position']))
-                    self.centring_phiz.reference_position = self.omegaz_reference['position']
+                    self.centring_phiz.reference_position = \
+                        self.omegaz_reference['position']
                 except BaseException:
                     logging.getLogger("HWR").warning(
                         "Invalid value for omegaz reference!")
@@ -235,11 +235,12 @@ class ALBAMiniDiff(GenericDiffractometer):
                 "phi", "phiy", "phiz", "sampx", "sampy", "kappa", "kappa_phi")
 
         # TODO: Explicit update would not be necessary, but it is.
+        # Added to make sure pixels_per_mm is initialised
         self.update_pixels_per_mm()
 
     def state_changed(self, state):
         """
-        Overides method to map Tango ON state to Difractaometer State Ready.
+        Overwrites method to map Tango ON state to Diffractometer State Ready.
 
         @state: Taurus state but string for Ready state
         """
@@ -260,7 +261,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         @offset: Unused
         @return: 2-tuple float
         """
-        calibx, caliby = self.calibration_hwobj.getCalibration()
+        calibx, caliby = self.calibration_hwobj.get_calibration()
         return 1000.0 / caliby, 1000.0 / caliby
         # return 1000./self.md2.CoaxCamScaleX, 1000./self.md2.CoaxCamScaleY
 
@@ -269,7 +270,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         Returns the pixel/mm for x and y. Overrides GenericDiffractometer method.
         """
         px_x, px_y = self.getCalibrationData()
-        return (px_x, px_y)
+        return px_x, px_y
 
     def update_pixels_per_mm(self, *args):
         """
@@ -301,8 +302,6 @@ class ALBAMiniDiff(GenericDiffractometer):
 
         @update_beam_callback: callback method passed as argument.
         """
-        calibx, caliby = self.calibration_hwobj.getCalibration()
-
         size_x = self.getChannelObject("beamInfoX").getValue() / 1000.0
         size_y = self.getChannelObject("beamInfoY").getValue() / 1000.0
 
@@ -385,8 +384,8 @@ class ALBAMiniDiff(GenericDiffractometer):
         while True:
             super_state = self.super_hwobj.get_state()
             logging.getLogger("HWR").debug(
-                'ALBAMinidiff: waiting for go_sample_view done (supervisor state is %s)' %
-                super_state)
+                'ALBAMinidiff: waiting for go_sample_view done (supervisor state is %s)'
+                % super_state)
             if super_state != DevState.MOVING:
                 logging.getLogger("HWR").debug(
                     'ALBAMinidiff: go_sample_view done (%s)' %
@@ -415,9 +414,7 @@ class ALBAMiniDiff(GenericDiffractometer):
         Emit phiMotorMoved signal with position value.
         """
         self.current_motor_positions["phi"] = pos
-        # self.emit_diffractometer_moved()
         self.emit("phiMotorMoved", pos)
-        #self.emit('stateChanged', (self.current_motor_states["phi"], ))
 
     def phi_motor_state_changed(self, state):
         """
@@ -430,9 +427,6 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         """
         self.current_motor_positions["phiz"] = pos
-        # if time.time() - self.centring_time > 3.0:
-        #    self.invalidate_centring()
-        # self.emit_diffractometer_moved()
 
     def phiz_motor_state_changed(self, state):
         """
@@ -450,9 +444,6 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         """
         self.current_motor_positions["phiy"] = pos
-        # if time.time() - self.centring_time > 3.0:
-        #    self.invalidate_centring()
-        # self.emit_diffractometer_moved()
 
     def zoom_position_changed(self, value):
         """
@@ -484,9 +475,6 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         """
         self.current_motor_positions["sampx"] = pos
-        # if time.time() - self.centring_time > 3.0:
-        #    self.invalidate_centring()
-        # self.emit_diffractometer_moved()
 
     def sampleX_motor_state_changed(self, state):
         """
@@ -499,9 +487,6 @@ class ALBAMiniDiff(GenericDiffractometer):
         """
         """
         self.current_motor_positions["sampy"] = pos
-        # if time.time() - self.centring_time > 3.0:
-        #    self.invalidate_centring()
-        # self.emit_diffractometer_moved()
 
     def sampleY_motor_state_changed(self, state):
         """
@@ -590,4 +575,4 @@ class ALBAMiniDiff(GenericDiffractometer):
 
 
 def test_hwo(hwo):
-    print hwo.get_phase_list()
+    print(hwo.get_phase_list())
