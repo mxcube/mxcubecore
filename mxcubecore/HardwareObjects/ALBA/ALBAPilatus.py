@@ -17,6 +17,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+[Name]
+ALBAPilatus
+
+[Description]
+Specific HwObj to interface the Pilatus2 6M detector
+
+[Emitted signals]
+- None
+"""
+
+from __future__ import print_function
+
 import logging
 import time
 
@@ -138,6 +151,9 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
     def wait_move_distance_done(self):
         self.distance_motor_hwobj.wait_end_of_move()
 
+    def wait_ready(self):
+        self.wait_move_distance_done()
+
     def get_distance_limits(self):
         """Returns detector distance limits"""
         if self.distance_motor_hwobj is not None:
@@ -162,8 +178,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         try:
             beam_x = self.chan_beam_x.getValue()
             beam_y = self.chan_beam_y.getValue()
-        except BaseException:
-            pass
+        except BaseException as e:
+            logging.getLogger('HWR').debug("Cannot load beam channels\n%s" % str(e))
         return beam_x, beam_y
 
     def get_manufacturer(self):
@@ -195,7 +211,10 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         try:
             current_energy = self.chan_eugap.getValue()
         except Exception as e:
+            logging.getLogger('HWR').debug("Error getting energy\n%s" % str(e))
             current_energy = 12.6
+            logging.getLogger('HWR').debug("Setting default energy = %s" %
+                                           current_energy)
 
         det_energy = self.get_threshold()
 
@@ -215,7 +234,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         t0 = time.time()
         while self.chan_cam_state == 'STANDBY':
             if time.time() - t0 > timeout:
-                print "timeout waiting for Pilatus to be on STANDBY"
+                logging.getLogger('HWR').debug("timeout waiting for Pilatus to be on"
+                                               "STANDBY")
                 return False
             time.sleep(0.1)
         return True
@@ -231,7 +251,8 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
         basedir = file_pars['directory']
         prefix = "%s_%s_" % (file_pars['prefix'], file_pars['run_number'])
 
-        first_img_no = osc_seq['start_image_number']
+        #TODO: deprecated
+        # first_img_no = osc_seq['start_image_number']
         nb_frames = osc_seq['number_of_images']
         exp_time = osc_seq['exposure_time']
 
@@ -309,6 +330,5 @@ class ALBAPilatus(AbstractDetector, HardwareObject):
 
 
 def test_hwo(hwo):
-    # Print channel values
     for chan in hwo.getChannels():
-        print "%s = %s" % (chan.userName(), chan.getValue())
+        print("%s = %s" % (chan.userName(), chan.getValue()))

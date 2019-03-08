@@ -1,9 +1,26 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube.
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import absolute_import
 
 import logging
 import os
-import time
-import types
 from .. import saferef
 
 import gevent
@@ -15,8 +32,6 @@ from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
 
 from PyTango import DevFailed, ConnectionFailed
 import PyTango
-
-#from HardwareRepository.TaskUtils import task
 
 try:
     from sardana.taurus.core.tango.sardana import registerExtensions
@@ -41,14 +56,15 @@ try:
     UNKNOWN = 13
 
     """
-except:
-    logging.getLogger('HWR').warning("Sardana is not available in this computer.")
+except Exception as e:
+    logging.getLogger('HWR').warning("%s" % str(e))
 
 monkey.patch_all(thread=False, subprocess=False)
 
-def processSardanaEvents():
 
-   while not SardanaObject._eventsQueue.empty():
+def process_sardana_events():
+
+    while not SardanaObject._eventsQueue.empty():
 
         try:
             ev = SardanaObject._eventsQueue.get_nowait()
@@ -56,79 +72,71 @@ def processSardanaEvents():
             break
         else:
             try:
-                receiverCbRef = SardanaObject._eventReceivers[id(ev)]
-                receiverCb = receiverCbRef()
-                if receiverCb is not None:
+                receiver_cb_ref = SardanaObject._eventReceivers[id(ev)]
+                receiver_cb = receiver_cb_ref()
+                if receiver_cb is not None:
                     try:
-                        gevent.spawn(receiverCb, ev)
+                        gevent.spawn(receiver_cb, ev)
                     except AttributeError:
                         pass
             except KeyError:
                 pass
 
-def waitEndOfCommand( cmdobj ):
-     while cmdobj.macrostate ==  SardanaMacro.RUNNING or cmdobj.macrostate == SardanaMacro.STARTED:
-        gevent.sleep(0.05)
-     return cmdobj.door.result
 
-def endOfMacro( macobj ):
-    macobj._reply_arrived_event.wait()
+# def waitEndOfCommand(cmd_obj):
+#     while (cmd_obj.macrostate == SardanaMacro.RUNNING or
+#            cmd_obj.macrostate == SardanaMacro.STARTED):
+#         gevent.sleep(0.05)
+#     return cmd_obj.door.result
+
+
+def end_of_macro(macro_obj):
+    macro_obj._reply_arrived_event.wait()
+
 
 class AttributeEvent:
     def __init__(self, event):
         self.event = event
 
+
 class SardanaObject(object):
     _eventsQueue = Queue.Queue()
     _eventReceivers = {}
     _eventsProcessingTimer = gevent.get_hub().loop.async()
+    _eventsProcessingTimer.start(process_sardana_events)
 
-    # start Sardana events processing timer
-    _eventsProcessingTimer.start(processSardanaEvents)
-
-    def objectListener(self, *args):
+    def listener_obj(self, *args):
         ev = AttributeEvent(args)
         SardanaObject._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
         SardanaObject._eventsQueue.put(ev)
         SardanaObject._eventsProcessingTimer.send()
+
 
 class SardanaMacro(CommandObject, SardanaObject):
 
     macroStatusAttr = None
     INIT, STARTED, RUNNING, DONE = range(4)
 
-    def __init__(self, name, macro, doorname = None, username = None, **kwargs):
-        super(SardanaMacro,self).__init__(name,username,**kwargs)
+    def __init__(self, name, macro, doorname=None, username=None, **kwargs):
+        super(SardanaMacro, self).__init__(name, username, **kwargs)
 
         self._reply_arrived_event = Event()
         self.macro_format = macro   
-        self.doorname = doorname  
+        self.door_name = doorname
         self.door = None
         self.init_device()
-        self.macrostate = SardanaMacro.INIT
-        # self.macrostate = DevState.INIT
-        self.doorstate = None
+        self.macro_state = SardanaMacro.INIT
+        self.door_state = None
         self.t0 = 0
-      
+        self.result = None
+
     def init_device(self): 
-        self.door = Device(self.doorname)
+        self.door = Device(self.door_name)
         self.door.set_timeout_millis(10000)
 
-        # 
-        # DIRTY FIX to make compatible taurus listeners and existence of Tango channels/commands
-        # as defined in Command/Tango.py
-        # 
-        #if self.door.__class__ == taurus.core.tango.tangodevice.TangoDevice:
-        #    dp = self.door.getHWObj()
-        #    try:
-        #        dp.subscribe_event = dp._subscribe_event
-        #    except AttributeError:
-        #        pass
-
-        if self.macroStatusAttr == None:
+        if self.macroStatusAttr is None:
             self.macroStatusAttr = self.door.getAttribute("State")
-            self.macroStatusAttr.addListener(self.objectListener)
-
+            self.macroStatusAttr.addListener(self.listener_obj)
 
     def __call__(self, *args, **kwargs):
 
@@ -140,45 +148,54 @@ class SardanaMacro(CommandObject, SardanaObject):
         if self.door is None:
             self.init_device()
 
-        logging.getLogger('HWR').debug("Executing sardana macro: %s" % self.macro_format)
-        logging.getLogger('HWR').debug("   args=%s / kwargs=%s" % (str(args), str(kwargs)))
+        logging.getLogger('HWR').debug("Running Sardana macro: %s" % self.macro_format)
+        logging.getLogger('HWR').debug("args=%s / kwargs=%s" % (str(args), str(kwargs)))
         
         try:
-            fullcmd = self.macro_format + " " + " ".join([str(a) for a in args])
-        except:
+            full_cmd = self.macro_format + " " + " ".join([str(a) for a in args])
+        except Exception as e:
             import traceback
-            logging.getLogger('HWR').info(traceback.format_exc())
-            logging.getLogger('HWR').info("  - Wrong format for macro arguments. Macro is %s / args are (%s)" % (self.macro_format, str(args)))
+            logging.getLogger('HWR').info("%s" % str(e))
+            logging.getLogger('HWR').info("Wrong format for macro arguments."
+                                          "Macro is %s / args are (%s)" %
+                                          (self.macro_format, str(args)))
             return
    
         try:
             import time
             self.t0 = time.time()
-            # if (self.doorstate in ["ON","ALARM"]):
-            if (self.doorstate in [DevState.ON, DevState.ALARM]):
-                self.door.runMacro( fullcmd.split()  )
-                self.macrostate = SardanaMacro.STARTED
+            if self.door_state in [DevState.ON, DevState.ALARM]:
+                self.door.runMacro(full_cmd.split())
+                self.macro_state = SardanaMacro.STARTED
                 self.emit('commandBeginWaitReply', (str(self.name()), ))
             else:
-                logging.getLogger('HWR').error("%s. Cannot execute. Door is not READY", str(self.name()) )
-                logging.getLogger('HWR').error("Door state is %s" % self.doorstate)
+                logging.getLogger('HWR').error("%s. Cannot execute. Door is not READY",
+                                               str(self.name()) )
+                logging.getLogger('HWR').error("Door state is %s" % self.door_state)
                 self.emit('commandFailed', (-1, self.name()))
         except TypeError:
-            logging.getLogger('HWR').error("%s. Cannot properly format macro code. Format is: %s, args are %s", str(self.name()), self.macro_format, str(args)) 
+            logging.getLogger('HWR').error("%s. Cannot properly format macro code."
+                                           "Format is: %s, args are %s",
+                                           str(self.name()),
+                                           self.macro_format, str(args))
             self.emit('commandFailed', (-1, self.name()))
-        except DevFailed, error_dict:
-            logging.getLogger('HWR').error("%s: Cannot run macro. %s", str(self.name()), error_dict) 
+        except DevFailed as e:
+            logging.getLogger('HWR').error("%s: Cannot run macro. %s",
+                                           str(self.name()), str(e))
             self.emit('commandFailed', (-1, self.name()))
-        except AttributeError, error_dict:
-            logging.getLogger('HWR').error("%s: MacroServer not running?, %s", str(self.name()), error_dict) 
+        except AttributeError as e:
+            logging.getLogger('HWR').error("%s: MacroServer not running?, %s",
+                                           str(self.name()), str(e))
             self.emit('commandFailed', (-1, self.name()))
-        except:
-            logging.getLogger('HWR').exception("%s: an error occured when calling Tango command %s", str(self.name()), self.macro_format)
+        except Exception as e:
+            logging.getLogger('HWR').exception("%s: an error occurred when calling"
+                                               "Tango command %s", str(self.name()),
+                                               self.macro_format)
             self.emit('commandFailed', (-1, self.name()))
 
         if wait:
             logging.getLogger('HWR').debug("... start waiting...")
-            t=gevent.spawn(endOfMacro, self)
+            t = gevent.spawn(end_of_macro, self)
             t.get()
             logging.getLogger('HWR').debug("... end waiting...")
 
@@ -189,87 +206,80 @@ class SardanaMacro(CommandObject, SardanaObject):
 
         try:
             if type(data) != PyTango.DeviceAttribute and type(data) != TangoAttrValue:
-                logging.getLogger('HWR').debug("***** Event type %s" % type(data))
-                logging.getLogger('HWR').debug("***** Event value %s" % str(data.value))
-                  # Events different than a value changed on attribute.  Taurus sends an event with attribute info
-                  # logging.getLogger('HWR').debug("==========. Got an event, but it is not an attribute . it is %s" % type(data))
-                  #logging.getLogger('HWR').debug("doorstate event. type is %s" % str(type(data)))
+                # logging.getLogger('HWR').debug("*** Event type %s" % type(data))
+                # logging.getLogger('HWR').debug("*** Event value %s" % str(data.value))
                 return
 
             # Handling macro state changed event
-            # doorstate = str(data.value)
-            doorstate = data.value
-            logging.getLogger('HWR').debug("doorstate changed. it is %s" % str(doorstate))
+            door_state = data.rvalue
+            logging.getLogger('HWR').debug("doorstate changed, now is %s"
+                                           % str(door_state))
 
-            if doorstate != self.doorstate:
-                self.doorstate = doorstate
-
-                # logging.getLogger('HWR').debug("self.doorstate is %s" % self.canExecute())
+            if door_state != self.door_state:
+                self.door_state = door_state
                 self.emit('commandCanExecute', (self.canExecute(),))
 
-                # if (doorstate in ["ON","ALARM"]):
-                if (doorstate in [DevState.ON, DevState.ALARM]):
-                    # logging.getLogger('HWR').debug("Macroserver ready for commands")
+                if door_state in [DevState.ON, DevState.ALARM]:
                     self.emit('commandReady', ())
                 else:
-                    # logging.getLogger('HWR').debug("Macroserver busy ")
                     self.emit('commandNotReady', ())
             
-            # if self.macrostate == SardanaMacro.STARTED and doorstate == "RUNNING":
-            if self.macrostate == SardanaMacro.STARTED and doorstate == DevState.RUNNING:
-                # logging.getLogger('HWR').debug("Macro server is running")
-                self.macrostate = SardanaMacro.RUNNING
-            elif self.macrostate == SardanaMacro.RUNNING and (doorstate in [DevState.ON, DevState.ALARM]):
+            if (self.macro_state == SardanaMacro.STARTED and
+                    door_state == DevState.RUNNING):
+                self.macro_state = SardanaMacro.RUNNING
+            elif (self.macro_state == SardanaMacro.RUNNING and
+                  (door_state in [DevState.ON, DevState.ALARM])):
                 logging.getLogger('HWR').debug("Macro execution finished")
-                self.macrostate = SardanaMacro.DONE
+                self.macro_state = SardanaMacro.DONE
                 self.result = self.door.result
                 self.emit('commandReplyArrived', (self.result, str(self.name())))
-                if doorstate == DevState.ALARM:
+                if door_state == DevState.ALARM:
                     self.emit('commandAborted', (str(self.name()), ))
                 self._reply_arrived_event.set()
-            elif self.macrostate == SardanaMacro.DONE or self.macrostate == SardanaMacro.INIT:
+            elif (self.macro_state == SardanaMacro.DONE or
+                  self.macro_state == SardanaMacro.INIT):
                 # already handled in the general case above
                 pass
             else:
                 logging.getLogger('HWR').debug("Macroserver state changed")
                 self.emit('commandFailed', (-1, str(self.name())))
         except ConnectionFailed:
-            logging.getLogger('HWR').debug("Cannot connect to door %s" % self.doorname)
+            logging.getLogger('HWR').debug("Cannot connect to door %s" % self.door_name)
             self.emit('commandFailed', (-1, str(self.name())))
-        except:
-            import traceback
-            logging.getLogger('HWR').debug("SardanaMacro / event handling problem. Uggh. %s" % traceback.format_exc())
+        except Exception as e:
+            logging.getLogger('HWR').debug("Sardana Macro / event handling problem. %s"
+                                           % str(e))
             self.emit('commandFailed', (-1, str(self.name())))
 
     def abort(self):
         if self.door is not None:
-            logging.getLogger('HWR').debug("SardanaMacro / aborting macro")
+            logging.getLogger('HWR').debug("Sardana Macro / aborting macro")
             self.door.abortMacro()
-            #self.emit('commandReady', ())
-        
+
     def isConnected(self):
         return self.door is not None
 
     def canExecute(self):
-        return self.door is not None and ( self.doorstate in ["ON", "ALARM"] )
+        return self.door is not None and (self.door_state in ["ON", "ALARM"])
 
     
 class SardanaCommand(CommandObject):
 
-    def __init__(self, name, command, taurusname = None, username = None, **kwargs):
+    def __init__(self, name, command, taurusname=None, username=None, **kwargs):
         CommandObject.__init__(self, name, username, **kwargs)
         
         self.command = command
-        self.taurusname = taurusname
+        self.taurus_name = taurusname
         self.device = None    
 
     def init_device(self): 
 
         try:
-            self.device = Device(self.taurusname)
-        except DevFailed, traceback:
-            last_error = traceback[-1]
-            logging.getLogger('HWR').error("%s: %s", str(self.name()), last_error['desc'])
+            self.device = Device(self.taurus_name)
+        except DevFailed as e:
+            last_error = e[-1]
+            logging.getLogger('HWR').error("%s: %s",
+                                           str(self.name()), last_error['desc'])
             self.device = None
         else:
             try:
@@ -286,12 +296,14 @@ class SardanaCommand(CommandObject):
             self.init_device()
 
         try:
-            cmdObject = getattr(self.device, self.command)
-            ret = cmdObject(*args) 
-        except DevFailed, error_dict:
-            logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), error_dict)
-        except:
-            logging.getLogger('HWR').exception("%s: an error occured when calling Tango command %s", str(self.name()), self.command)
+            cmd_object = getattr(self.device, self.command)
+            ret = cmd_object(*args)
+        except DevFailed as e:
+            logging.getLogger('HWR').error("%s: Tango, %s", str(self.name()), str(e))
+        except Exception as e:
+            logging.getLogger('HWR').exception("%s: an error occurred when calling"
+                                               " Sardana command %s", str(self.name()),
+                                               self.command)
         else:
             self.emit('commandReplyArrived', (ret, str(self.name())))
             return ret
@@ -302,19 +314,21 @@ class SardanaCommand(CommandObject):
         
     def isConnected(self):
         return self.device is not None
-    
+
+
 class SardanaChannel(ChannelObject, SardanaObject):
 
-    def __init__(self, name, attribute_name, username=None, uribase = None, polling=None, **kwargs):
+    def __init__(self, name, attribute_name, username=None, uribase=None, polling=None,
+                 **kwargs):
 
-        super(SardanaChannel, self).__init__(name,username,**kwargs)
+        super(SardanaChannel, self).__init__(name, username, **kwargs)
  
         class ChannelInfo(object):
             def __init__(self):
                 super(ChannelInfo, self).__init__()
 
         self.attributeName = attribute_name
-        self.model = os.path.join( uribase, attribute_name )
+        self.model = os.path.join(uribase, attribute_name)
         self.attribute = None
 
         self.value = None
@@ -327,24 +341,11 @@ class SardanaChannel(ChannelObject, SardanaObject):
         self.init_device()
 
     def init_device(self):
-
-       
         try:
             self.attribute = Attribute(self.model)
-            # 
-            # DIRTY FIX to make compatible taurus listeners and existence of Tango channels/commands
-            # as defined in Command/Tango.py
-            # 
-            #if self.attribute.__class__ == taurus.core.tango.tangoattribute.TangoAttribute:
-            #    dev = self.attribute.getParentObj()
-            #    dp = dev.getHWObj()
-            #    try:
-            #        dp.subscribe_event = dp._subscribe_event
-            #    except AttributeError:
-            #        pass
-            #logging.getLogger("HWR").debug("initialized")
-        except DevFailed, traceback:
-            self.imported = False
+
+        except DevFailed as e:
+            logging.getLogger('HWR').error('Cannot create attribute\n%s' % str(e))
             return
         
         # read information
@@ -358,98 +359,86 @@ class SardanaChannel(ChannelObject, SardanaObject):
             elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
                 try:
                     range = getattr(self.attribute, 'range')
-                    self.info.minval = range[0].magnitude
-                    self.info.maxval = range[1].magnitude
-                except:
-                    pass
-                    # logging.getLogger("HWR").debug(
-                    #    "Attribute {0} has not range attribute defined".format(self.attribute.fullname))
-        except:
-            import traceback
+                    if all(range):
+                        self.info.minval = range[0].magnitude
+                        self.info.maxval = range[1].magnitude
+                except Exception as ee:
+                    logging.getLogger("HWR").error("Exception trying to get range\n%s" %
+                                                   str(ee))
+        except Exception as e:
             logging.getLogger("HWR").info("info initialized. Cannot get limits")
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+            logging.getLogger("HWR").info("%s" % str(e))
 
         # prepare polling
-        # if the polling value is a number set it as the taurus polling period
-
         if self.polling:
-             if type(self.polling) == types.IntType:
-                  self.attribute.changePollingPeriod(self.polling)
+            if isinstance(self.polling, int):
+                self.attribute.changePollingPeriod(self.polling)
              
-             self.attribute.addListener(self.objectListener)
+            self.attribute.addListener(self.listener_obj)
                   
     def getValue(self):
         return self._readValue()
 
-    def setValue(self, newValue):
-        self._writeValue(newValue)
+    def setValue(self, new_value):
+        self._writeValue(new_value)
  
-    def _writeValue(self, newValue):
-        self.attribute.write(newValue)
+    def _writeValue(self, new_value):
+        self.attribute.write(new_value)
             
     def _readValue(self):
+        value = None
         if taurus.Release.version_info[0] == 3:
             value = self.attribute.read().value
         elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
             try:
                 magnitude = getattr(self.attribute.rvalue, 'magnitude')
                 value = magnitude
-            except:
+            except Exception:
                 value = self.attribute.rvalue
         return value
             
-    # def getInfo(self):
-    #     try:
-    #         b=dir(self.attribute)
-    #         self.info.minval, self.info.maxval = self.attribute._TangoAttribute__attr_config.getLimits()
-    #     except:
-    #         import traceback
-    #         logging.getLogger("HWR").info("%s" % traceback.format_exc())
-    #     return self.info
-
     def getInfo(self):
         try:
             if taurus.Release.version_info[0] == 3:
                 ranges = self.attribute.getConfig().getRanges()
                 if ranges is not None and ranges[0] != "Not specified":
-                    self.info.minval = float(ranges[0])
+                    self.info.min_val = float(ranges[0])
                 if ranges is not None and ranges[-1] != "Not specified":
-                    self.info.maxval = float(ranges[-1])
+                    self.info.max_val = float(ranges[-1])
             elif taurus.Release.version_info[0] > 3:   # taurus 4 and beyond
                 try:
                     range = getattr(self.attribute, 'range')
-                    self.info.minval = range[0].magnitude
-                    self.info.maxval = range[1].magnitude
-                except:
-                    logging.getLogger("HWR").debug(
-                        "Attribute <range> not defined for {0}".format(self.attribute.fullname))
-        except:
-            import traceback
-            logging.getLogger("HWR").info("info initialized. Cannot get limits")
-            logging.getLogger("HWR").info("%s" % traceback.format_exc())
+                    self.info.min_val = range[0].magnitude
+                    self.info.max_val = range[1].magnitude
+                except Exception as e:
+                    logging.getLogger("HWR").debug("Range not defined for {0}".
+                                                   format(self.attribute.fullname))
+                    logging.getLogger("HWR").info("%s" % str(e))
 
+        except Exception as e:
+            logging.getLogger("HWR").info("info initialized. Cannot get limits")
+            logging.getLogger("HWR").info("%s" % str(e))
         return self.info
 
     def update(self, event):
-
         data = event.event[2]
-        
+        new_value = None
         try:
             if taurus.Release.version_info[0] == 3:
-                newvalue = data.value
+                new_value = data.value
             elif taurus.Release.version_info[0] > 3:  # taurus 4 and beyond
                 try:
-                    newvalue = data.rvalue.magnitude
-                except:
-                    newvalue = data.rvalue
+                    new_value = data.rvalue.magnitude
+                except Exception:
+                    new_value = data.rvalue
 
-            if newvalue == None:
-                newvalue = self.getValue()
+            if new_value is None:
+                new_value = self.getValue()
     
-            if type(newvalue) == types.TupleType:
-                newvalue = list(newvalue)
+            if isinstance(new_value, ()):
+                new_value = list(new_value)
     
-            self.value = newvalue
+            self.value = new_value
             self.emit('update', self.value)
         except AttributeError:
             # No value in data... this is probably a connection error
@@ -457,9 +446,3 @@ class SardanaChannel(ChannelObject, SardanaObject):
 
     def isConnected(self):
         return self.attribute is not None
-
-    #def channelListener(self,*args):
-        #ev = AttributeEvent(args)
-        #SardanaChannel._eventReceivers[id(ev)] = saferef.safe_ref(self.update)
-        #SardanaChannel._eventsQueue.put(ev)
-        #SardanaChannel._eventsProcessingTimer.send()

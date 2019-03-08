@@ -25,7 +25,12 @@ where the command to open/close is done on a different channel than the
 reading of the shutter state.
 
 The interface is otherwise exactly the same as the ALBAEpsActuator
+
+[Signals]
+- None
 """
+
+from __future__ import print_function
 
 from ALBAEpsActuator import ALBAEpsActuator
 
@@ -55,6 +60,6 @@ class ALBAFrontEnd(ALBAEpsActuator):
 
 
 def test_hwo(hwo):
-    print "Name is: ", hwo.getUserName()
-    print "Shutter state is: ", hwo.getState()
-    print "Shutter status is: ", hwo.getStatus()
+    print("Name is: ", hwo.getUserName())
+    print("Shutter state is: ", hwo.getState())
+    print("Shutter status is: ", hwo.getStatus())
