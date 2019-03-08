@@ -234,6 +234,7 @@ class ALBAMiniDiff(GenericDiffractometer):
             set_diffractometer_motor_names(
                 "phi", "phiy", "phiz", "sampx", "sampy", "kappa", "kappa_phi")
 
+        # TODO: Explicit update would not be necessary, but it is.
         self.update_pixels_per_mm()
 
     def state_changed(self, state):
