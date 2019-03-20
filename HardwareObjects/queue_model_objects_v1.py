@@ -1616,6 +1616,7 @@ class GphlWorkflow(TaskNode):
         self._point_group = None
         self._cell_parameters = None
         self._snapshot_count = None
+        self._centre_before_sweep = None
 
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
@@ -1642,12 +1643,6 @@ class GphlWorkflow(TaskNode):
         return self._interleave_order
     def set_interleave_order(self, value):
         self._interleave_order = value
-
-    # Number of snapshots to take at start of data collection.
-    def get_snapshot_count(self):
-        return self._snapshot_count
-    def set_snapshot_count(self, value):
-        self._snapshot_count = value
 
     # Starting run number. Unnecessary.
     # Left in as it is modified by signal when edited.
@@ -1703,6 +1698,18 @@ class GphlWorkflow(TaskNode):
                                  % value)
         else:
             self._cell_parameters = None
+
+    # Number of snapshots to take at start of data collection.
+    def get_snapshot_count(self):
+        return self._snapshot_count
+    def set_snapshot_count(self, value):
+        self._snapshot_count = value
+
+    # (Re)centre before each sweep?.
+    def get_centre_before_sweep(self):
+        return self._centre_before_sweep
+    def set_centre_before_sweep(self, value):
+        self._centre_before_sweep = bool(value)
 
     def get_path_template(self):
         return self.path_template
