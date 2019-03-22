@@ -56,6 +56,7 @@ def command_option(keyword, value, prefix="-", quote_value=False):
 def to_ascii(text):
     """Rough-and-ready conversion to bytes, intended for ascii contexts"""
 
+
     if hasattr(text, "encode"):
         return text.encode("utf8", "replace")
     else:

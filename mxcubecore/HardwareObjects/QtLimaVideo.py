@@ -110,10 +110,9 @@ class QtLimaVideo(AbstractVideoDevice):
 
         AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
-    """ Overloading of AbstractVideoDevice methods """
-
-    def get_raw_image_size(self):
-        if self.cam_type == "prosilica":
+    """ Overloading of GenericVideoDevice methods """
+    def get_image_dimensions(self):
+        if self.cam_type == 'prosilica':
             return list(self.camera.getMaxWidthHeight())
         elif self.cam_type == "basler":
             width = self.camera.getRoi().getSize().getWidth()

@@ -21,6 +21,8 @@
   <!--<object href="/gphl-workflow" role="gphl_workflow"/>-->
   <!--<object href="/gphl-setup" role="gphl_connection"/>-->
   <!--<object href="/workflow-mockup" role="workflow"/> -->
+  <object href="/gphl_beamline_config/gphl-workflow" role="gphl_workflows"/>
+  <object href="/gphl_beamline_config/gphl-connection" role="gphl_connection"/>
  
   <!-- Procedures and routines -->
   <object href="/energyscan-mockup" role="energyscan"/>

@@ -175,6 +175,9 @@ class GenericDiffractometer(HardwareObject):
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
 
+        self.delay_state_polling = None # time to delay for state polling for controllers
+                                        # not updating state inmediately after cmd started
+
         self.delay_state_polling = (
             None
         )  # time to delay for state polling for controllers
@@ -948,14 +951,14 @@ class GenericDiffractometer(HardwareObject):
         for motor in motor_positions.keys():
             position = motor_positions[motor]
             """
-            if isinstance(motor, str):
+            if isinstance(motor, (str, unicode)):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
             else:
                 logging.getLogger("HWR").debug(
                     " Moving %s to %s" % (str(motor.name()), position)
                 )
             """
-            if type(motor) in (str, unicode):
+            if isinstance(motor, (str, unicode)):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
                 #del motor_positions[motor_role]

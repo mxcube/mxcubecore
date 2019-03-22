@@ -609,13 +609,13 @@ class SampleChanger(Container.Container, Equipment):
 
     # ########################    PROTECTED    #########################
 
-    def _executeTask(self, task, wait, method, *args):
+    def _executeTask(self, task, wait, method, *args **kwargs):
         self.assertCanExecuteTask()
         logging.debug("Start " + SampleChangerState.tostring(task))
         self.task = task
         self.task_error = None
         self._setState(task)
-        ret = self._run(task, method, wait=False, *args)
+        ret = self._run(task, method, wait=False, *args, **kwargs)
         self.task_proc = ret
 
         ret.link(self._onTaskEnded)
@@ -625,7 +625,7 @@ class SampleChanger(Container.Container, Equipment):
             return ret
 
     @task
-    def _run(self, task, method, *args):
+    def _run(self, task, method, *args, **kwargs):
         """
         method(self,*arguments)
         exeption=None
@@ -640,7 +640,7 @@ class SampleChanger(Container.Container, Equipment):
         exception = None
         ret = None
         try:
-            ret = method(*args)
+            ret = method(*args, **kwargs)
         except Exception as ex:
             exception = ex
         # if self.getState()==self.task:
