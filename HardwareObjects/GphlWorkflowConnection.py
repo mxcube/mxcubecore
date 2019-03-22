@@ -63,7 +63,7 @@ except ImportError:
         saferef.safe_ref = saferef.safeRef
         robustapply.robust_apply = robustapply.robustApply
 
-__copyright__ = """ Copyright © 2016 - 2018 by Global Phasing Ltd. """
+__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
