@@ -769,7 +769,7 @@ class GraphicsItemGrid(GraphicsItem):
                   self.grid_direction['fast'][1] * self.__spacing_mm[1] * (self.__num_rows - 1))
         slow_mm = abs(self.grid_direction['slow'][0] * self.__spacing_mm[0] * (self.__num_cols - 1) + \
                   self.grid_direction['slow'][1] * self.__spacing_mm[1] * (self.__num_rows - 1))
-        return (fast_mm, slow_mm) 
+        return (fast_mm, slow_mm)
 
     def get_grid_size_mm(self):
         return (

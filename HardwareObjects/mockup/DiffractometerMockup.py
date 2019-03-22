@@ -116,6 +116,9 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         return "ready"
 
+    def wait_device_not_ready(self, timeout=5):
+        return
+
     def execute_server_task(self, method, timeout=30, *args):
         return
 

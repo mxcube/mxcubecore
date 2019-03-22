@@ -574,13 +574,6 @@ class PhasingWavelength(IdentifiedElement):
 
     def __init__(self, wavelength, role=None, id=None):
         IdentifiedElement.__init__(self, id)
-        # if role is None or role in WavelengthRoles:
-        #     self._role = role
-        # else:
-        #     raise ValueError(
-        #         "Wavelength role value %s not in supported values: %s"
-        #         % (repr(role), repr(WavelengthRoles))
-        #     )
         self._role = role
         self._wavelength = wavelength
 
@@ -676,6 +669,23 @@ class DetectorSetting(PositionerSetting):
 
 
 
+class BcsDetectorSetting(DetectorSetting):
+    """Detector position setting with additional (beamline-side) resolution and orgxy"""
+    def __init__(self, resolution, id=None,  orgxy=(), **axisSettings):
+        PositionerSetting.__init__(self, id=id, **axisSettings)
+        self._resolution = resolution
+        self._orgxy = tuple(orgxy)
+
+    @property
+    def resolution(self):
+        """Resolution (in A) matching detector distance"""
+        return self._resolution
+
+    @property
+    def orgxy(self):
+        """Tuple, empty or of two floats; beam centre on detector """
+        return self._orgxy
+
 class BeamstopSetting(PositionerSetting):
     """Beamstop position setting"""
 
@@ -768,7 +778,6 @@ class UserProvidedInfo(MessageData):
         cell=None,
         expectedResolution=None,
         isAnisotropic=None,
-        phasingWavelengths=(),
     ):
 
         self._scatterers = scatterers
@@ -778,7 +787,6 @@ class UserProvidedInfo(MessageData):
         self._cell = cell
         self._expectedResolution = expectedResolution
         self._isAnisotropic = isAnisotropic
-        self._phasingWavelengths = frozenset(phasingWavelengths)
 
     @property
     def scatterers(self):
@@ -807,10 +815,6 @@ class UserProvidedInfo(MessageData):
     @property
     def isAnisotropic(self):
         return self._isAnisotropic
-
-    @property
-    def phasingWavelengths(self):
-        return self._phasingWavelengths
 
 
 class Sweep(IdentifiedElement):
@@ -880,6 +884,18 @@ class Sweep(IdentifiedElement):
         """Implementation method. *Only* to be called from Scan.__init__"""
         self._scans.add(scan)
 
+    def get_initial_settings(self):
+        """Get dictionary of rotation motor settings for start of sweep"""
+
+        sweepSetting = self.goniostatSweepSetting
+        result = dict(sweepSetting.axisSettings)
+        translation = sweepSetting.translation
+        if translation is not None:
+            result.update(translation.axisSettings)
+        result[sweepSetting.scanAxis] = self.start
+        #
+        return result
+
 
 class Scan(IdentifiedElement):
     """Collection strategy Scan"""
@@ -934,6 +950,8 @@ class GeometricStrategy(IdentifiedElement, Payload):
         self,
         isInterleaved,
         isUserModifiable,
+        defaultDetectorSetting,
+        defaultBeamSetting,
         allowedWidths=(),
         defaultWidthIdx=None,
         sweeps=(),
@@ -944,6 +962,8 @@ class GeometricStrategy(IdentifiedElement, Payload):
 
         self._isInterleaved = isInterleaved
         self._isUserModifiable = isUserModifiable
+        self._defaultDetectorSetting = defaultDetectorSetting
+        self._defaultBeamSetting = defaultBeamSetting
         self._defaultWidthIdx = defaultWidthIdx
         self._sweeps = frozenset(sweeps)
 
@@ -967,12 +987,39 @@ class GeometricStrategy(IdentifiedElement, Payload):
         return self._defaultWidthIdx
 
     @property
+    def defaultDetectorSetting(self):
+        return self._defaultDetectorSetting
+
+    @property
+    def defaultBeamSetting(self):
+        return self._defaultBeamSetting
+
+    @property
     def allowedWidths(self):
         return self._allowedWidths
 
     @property
     def sweeps(self):
         return self._sweeps
+
+    def get_ordered_sweeps(self):
+        """Get sweeps in acquisition order.
+
+        WARNING we do not have the necessary information.
+        So we sort in increasing order by angles, in alphabetical name order,
+        (in pracite, 'kappa', 'kappa_phi', 'phi')
+        HORRIBLE HACK, but as it happens this will give
+        at least the first one correct mostly
+        and anyway is the best approximation we have
+
+        TODO get this right, once the workflow allows"""
+        ll = []
+        for sweep in self._sweeps:
+            dd = sweep.get_initial_settings()
+            ll.append((tuple(dd[x] for x in sorted(dd)), sweep))
+        #
+        return list(tt[1] for tt in sorted(ll))
+
 
 
 class CollectionProposal(IdentifiedElement, Payload):
@@ -1101,7 +1148,9 @@ class SampleCentred(Payload):
         interleaveOrder="",
         wedgeWidth=None,
         beamstopSetting=None,
+        detectorSetting=None,
         goniostatTranslations=(),
+        wavelengths=(),
     ):
 
         self._imageWidth = imageWidth
@@ -1110,7 +1159,9 @@ class SampleCentred(Payload):
         self._interleaveOrder = interleaveOrder
         self._wedgeWidth = wedgeWidth
         self._beamstopSetting = beamstopSetting
+        self._detectorSetting = detectorSetting
         self._goniostatTranslations = frozenset(goniostatTranslations)
+        self._wavelengths = frozenset(wavelengths)
 
     @property
     def imageWidth(self):
@@ -1137,5 +1188,13 @@ class SampleCentred(Payload):
         return self._beamstopSetting
 
     @property
+    def detectorSetting(self):
+        return self._detectorSetting
+
+    @property
     def goniostatTranslations(self):
         return self._goniostatTranslations
+
+    @property
+    def wavelengths(self):
+        return self._wavelengths
