@@ -7,7 +7,6 @@ access and manipulate this information.
 import os
 import time
 import socket
-import logging
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 import queue_model_objects
@@ -44,7 +43,6 @@ class Session(HardwareObject):
 
         self.raw_data_folder_name = default_raw_data_folder
         self.processed_data_folder_name = default_processed_data_folder
-        self.archive_folder_name = default_archive_folder
 
 
     # Framework-2 method, inherited from HardwareObject and called
@@ -74,9 +72,11 @@ class Session(HardwareObject):
         if folder_name and folder_name.strip():
             self.processed_data_folder_name = folder_name
 
-        folder_name = self["file_info"].getProperty('archive_folder')
-        if folder_name and folder_name.strip():
-            self.archive_folder_name = folder_name
+        archive_folder = self["file_info"].getProperty('archive_folder')
+        if archive_folder:
+            archive_folder = archive_folder.strip()
+        if not archive_folder:
+            archive_folder = default_archive_folder
         try:
             inhouse_proposals = self["inhouse_users"]["proposal"]
             for prop in inhouse_proposals:
@@ -96,15 +96,12 @@ class Session(HardwareObject):
             except (TypeError, IndexError):
                 pass
 
-        queue_model_objects.PathTemplate.\
-           set_path_template_style(self.synchrotron_name, self.template)
-
         self.set_base_data_directories( base_directory,
                                         base_process_directory,
                                         base_archive_directory,
                                         raw_folder=self.raw_data_folder_name,
                                         process_folder=self.processed_data_folder_name,
-                                        archive_folder=self.archive_folder_name)
+                                        archive_folder=archive_folder)
 
         precision = self.default_precision
 
@@ -116,24 +113,33 @@ class Session(HardwareObject):
             pass
 
         queue_model_objects.PathTemplate.set_precision(precision)
+        queue_model_objects.PathTemplate.set_path_template_style(
+            self.synchrotron_name, self.template
+        )
 
-    def set_base_data_directories(self, base_directory, base_process_directory, base_archive_directory,
-              raw_folder="RAW_DATA", process_folder="PROCESS_DATA", archive_folder="ARCHIVE"):
+    def set_base_data_directories(
+        self,
+        base_directory,
+        base_process_directory,
+        base_archive_directory,
+        raw_folder="RAW_DATA",
+        process_folder="PROCESSED_DATA",
+        archive_folder="ARCHIVE",
+    ):
 
         self.base_directory = base_directory
         self.base_process_directory = base_process_directory
         self.base_archive_directory = base_archive_directory
 
         self.raw_data_folder_name = raw_folder
-        self.process_data_folder_name = process_folder
-        self.archive_data_folder_name = archive_folder
+        self.processed_data_folder_name = process_folder
 
         if self.base_directory is not None:
             queue_model_objects.PathTemplate.set_data_base_path(self.base_directory)
 
         if self.base_archive_directory is not None:
             queue_model_objects.PathTemplate.set_archive_path(
-               self.base_archive_directory, self.archive_folder_name)
+               self.base_archive_directory, archive_folder)
 
     def get_base_data_directory(self):
         """

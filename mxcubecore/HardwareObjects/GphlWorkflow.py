@@ -51,7 +51,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-__copyright__ = """ Copyright © 2016 - 2018 by Global Phasing Ltd. """
+__copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
@@ -184,8 +184,6 @@ class GphlWorkflow(HardwareObject, object):
         """Get list of workflow description dictionaries."""
 
         # TODO this could be cached for speed
-
-        instcfgout_dir = self.getProperty("instcfgout_dir")
 
         result = OrderedDict()
         if self.hasObject("workflow_properties"):
@@ -516,7 +514,7 @@ class GphlWorkflow(HardwareObject, object):
                 "uiLabel":"Exposure Time (s)",
                 "type":"text",
                 "defaultValue":str(acq_parameters.exp_time),
-                # NBNB TODO fill in from config
+                # NBNB TODO fill in from config ??
                 "lowerBound":0.003,
                 "upperBound":6000,
             }
@@ -1389,19 +1387,20 @@ class GphlWorkflow(HardwareObject, object):
             collect_hwobj = self.beamline_setup.getObjectByRole("collect")
             # settings = goniostatRotation.axisSettings
             collect_hwobj.move_motors(motor_settings)
-            okp = tuple(int(motor_settings[x])
-                        for x in self.rotation_axis_roles)
+            okp = tuple(int(motor_settings[x]) for x in self.rotation_axis_roles)
             timestamp = datetime.datetime.now().isoformat().split(".")[0]
             summed_angle = 0.0
             for snapshot_index in range(number_of_snapshots):
                 if snapshot_index:
                     collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
                     summed_angle += 90
-                snapshot_filename = filename_template  % (okp + (timestamp,
-                                                                 snapshot_index + 1))
+                snapshot_filename = filename_template  % (
+                        okp + (timestamp, snapshot_index + 1)
+                )
                 snapshot_filename = os.path.join(snapshot_directory, snapshot_filename)
-                logging.getLogger("HWR").debug("Centring snapshot stored at %s"
-                                               % snapshot_filename)
+                logging.getLogger("HWR").debug(
+                    "Centring snapshot stored at %s" % snapshot_filename
+                )
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
                 collect_hwobj.diffractometer_hwobj.move_omega_relative(-summed_angle)
