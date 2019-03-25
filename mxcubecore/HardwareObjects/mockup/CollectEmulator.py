@@ -37,7 +37,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-__copyright__ = """ Copyright © 2017 - 2018 by Global Phasing Ltd. """
+__copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
 
