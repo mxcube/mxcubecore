@@ -1,4 +1,4 @@
-from MD2Motor import MD2Motor
+from HardwareRepository.HardwareObjects.MD2Motor import MD2Motor
 import logging
 import math
 

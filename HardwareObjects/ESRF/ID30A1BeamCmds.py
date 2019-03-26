@@ -1,4 +1,4 @@
-import ID30BeamCmds
+from . import ID30BeamCmds
 
 
 class ID30A1BeamCmds(ID30BeamCmds.ID30BeamCmds):

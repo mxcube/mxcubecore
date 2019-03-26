@@ -45,7 +45,9 @@ import numpy as np
 
 import PyTango
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 
 class QtTangoLimaVideo(AbstractVideoDevice):

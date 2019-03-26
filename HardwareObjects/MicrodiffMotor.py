@@ -1,6 +1,6 @@
 import time
 from gevent import Timeout
-from AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class MD2TimeoutError(Exception):

@@ -2,9 +2,9 @@ import os
 import logging
 import gevent.event
 import subprocess
-from abstract import AbstractDataAnalysis
+from HardwareRepository.HardwareObjects.abstract import AbstractDataAnalysis
 
-import queue_model_enumerables as qme
+from HardwareRepository.HardwareObjects import queue_model_enumerables as qme
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import getHardwareRepository

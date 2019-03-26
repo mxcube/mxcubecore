@@ -34,9 +34,10 @@ import gevent.monkey
 import gevent.event
 from py4j import clientserver
 
-import ConvertUtils
-import GphlMessages
-from queue_model_enumerables import States
+from HardwareRepository import ConvertUtils
+from HardwareRepository.HardwareObjects import GphlMessages
+# NB MUST be imported via full path to match imports elsewhere:
+from HardwareRepository.HardwareObjects.queue_model_enumerables import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import getHardwareRepository
 
@@ -337,28 +338,13 @@ class GphlWorkflowConnection(HardwareObject, object):
         envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
         envs["BDG_home"] = self.software_paths["BDG_home"]
         logging.getLogger("HWR").info("Executing GPhL workflow, in environment %s" % envs)
-        log_template = self.getProperty("gphl_logfile_template")
-        if log_template:
-            # Remove ms part before using
-            ss = datetime.datetime.now().isoformat()
-            ff = log_template % ss.split(".")[0]
-            ff = os.path.join(wdir, ff)
-            logging.getLogger("HWR").info("Redirecting GPhL output to  %s" % ff)
-            fp1 = open(ff, "w")
-            fp2 = subprocess.STDOUT
-        else:
-            fp1 = fp2 = None
         try:
-            self._running_process = subprocess.Popen(
-                command_list, env=envs, stdout=fp1, stderr=fp2
-            )
+            self._running_process = subprocess.Popen(command_list, env=envs)
         except BaseException:
             logging.getLogger().error("Error in spawning workflow application")
             raise
-        finally:
-            if fp1 is not None:
-                fp1.close()
 
+        logging.getLogger('py4j.clientserver').setLevel(logging.WARNING)
         self.set_state(States.RUNNING)
 
         logging.getLogger("HWR").debug(

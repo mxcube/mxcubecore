@@ -47,9 +47,9 @@ import math
 import logging
 from datetime import datetime
 
-import QtImport
+from gui.utils import QtImport
 
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow

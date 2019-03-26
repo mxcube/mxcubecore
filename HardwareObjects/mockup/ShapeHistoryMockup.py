@@ -19,9 +19,7 @@ between two Point objects.
 
 import logging
 import os
-import traceback
-import queue_model_objects
-import types
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

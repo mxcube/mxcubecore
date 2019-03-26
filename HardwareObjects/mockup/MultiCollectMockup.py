@@ -1,17 +1,12 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from abstract.AbstractMultiCollect import AbstractMultiCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import (
+    AbstractMultiCollect
+)
 from HardwareRepository.TaskUtils import task
 import logging
 import time
 import os
-import sys
-import math
 import gevent
-
-if sys.version_info > (3, 0):
-    import http.client as httplib
-else:
-    import httplib
 
 
 class MultiCollectMockup(AbstractMultiCollect, HardwareObject):

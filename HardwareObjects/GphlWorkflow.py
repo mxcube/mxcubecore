@@ -34,17 +34,16 @@ import f90nml
 import gevent
 import gevent.event
 import gevent._threading
-from dispatcher import dispatcher
 
-import ConvertUtils
+import api
+from HardwareRepository.dispatcher import dispatcher
+from HardwareRepository import ConvertUtils
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from HardwareRepository.HardwareRepository import getHardwareRepository
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_enumerables
+from HardwareRepository.HardwareObjects.queue_entry import QUEUE_ENTRY_STATUS
 
-import queue_model_objects
-import queue_model_enumerables
-from queue_entry import QUEUE_ENTRY_STATUS
-
-import GphlMessages
+from HardwareRepository.HardwareObjects import GphlMessages
 
 try:
     from collections import OrderedDict
@@ -69,7 +68,7 @@ class GphlWorkflow(HardwareObject, object):
     # NB, by the time the code gets here, HardwareObjects is on the PYTHONPATH
     # as is HardwareRepository
     # NB accessed as self.GphlMessages
-    import GphlMessages
+    from HardwareRepository.HardwareObjects import GphlMessages
 
     # object states
     valid_states = [
@@ -85,10 +84,6 @@ class GphlWorkflow(HardwareObject, object):
 
         # HO that handles connection to GPhL workflow runner
         self._workflow_connection = None
-
-        # NB Must be set externally *after* the HO is created but *before* it is used
-        # Cannot be set during init because of circular HO loading problems
-        self.beamline_setup = None
 
         # Needed to allow methods to put new actions on the queue
         # And as a place to get hold of other objects
@@ -140,19 +135,13 @@ class GphlWorkflow(HardwareObject, object):
             "WorkflowFailed": self.workflow_failed,
         }
 
-    def setup_workflow_object(self, beamline_setup):
+    def setup_workflow_object(self):
         """Necessary as this set-up cannot be done at init,
-        when the hwobj are still incomplete. Must be called externally"""
-
-        # NBNB This must be done here to avoid infinite loop when getting beamline-setup
-        # beamline_setup = HardwareRepository().getHardwareObject('beamline-setup')
-        self.beamline_setup = beamline_setup
-        workflow_connection = beamline_setup.getObjectByRole('gphl_connection')
-        self._workflow_connection = workflow_connection
+        when the hwobj are still incomplete. Must be called externally TODO This still necessary?"""
 
         # Set standard configurable file paths
         file_paths = self.file_paths
-        ss = workflow_connection.software_paths['gphl_beamline_config']
+        ss = api.gphl_connection.software_paths['gphl_beamline_config']
         file_paths['gphl_beamline_config'] = ss
         file_paths['transcal_file'] = os.path.join(ss, 'transcal.nml')
         file_paths['diffractcal_file'] = os.path.join(ss, 'diffractcal.nml')
@@ -164,18 +153,17 @@ class GphlWorkflow(HardwareObject, object):
         self.translation_axis_roles = dd['gonio_centring_axis_names']
 
     def pre_execute(self, queue_entry):
+        print('@~@~ WF HO pre-execxute',  self.get_state() )
 
         self._queue_entry = queue_entry
 
         if self.get_state() == States.OFF:
-            # If not already active (i.e. first time),turn ON
-            # self._workflow_connection._initialize_connection(self)
-            self._workflow_connection._open_connection()
+            api.gphl_connection._open_connection()
             self.set_state(States.ON)
 
     def shutdown(self):
         """Shut down workflow and connection. Triggered on program quit."""
-        workflow_connection = self._workflow_connection
+        workflow_connection = api.gphl_connection
         if workflow_connection is not None:
             workflow_connection._workflow_ended()
             workflow_connection._close_connection()
@@ -199,7 +187,7 @@ class GphlWorkflow(HardwareObject, object):
             all_workflow_options = self['all_workflow_options'].getProperties()
             if 'beamline' in all_workflow_options:
                 pass
-            elif self._workflow_connection.hasObject('ssh_options'):
+            elif api.gphl_connection.hasObject('ssh_options'):
                 # We are running workflow through ssh - set beamline url
                 all_workflow_options['beamline'] = 'py4j:%s:' % socket.gethostname()
             else:
@@ -210,8 +198,7 @@ class GphlWorkflow(HardwareObject, object):
         acq_workflow_options = all_workflow_options.copy()
         acq_workflow_options.update(self['acq_workflow_options'].getProperties())
         # Add options for target directories:
-        session_hwobj = self.beamline_setup.getObjectByRole('session')
-        process_root = session_hwobj.get_base_process_directory()
+        process_root = api.session.get_base_process_directory()
         acq_workflow_options['appdir'] = process_root
 
         mx_workflow_options = acq_workflow_options.copy()
@@ -278,6 +265,7 @@ class GphlWorkflow(HardwareObject, object):
         return self._state
 
     def set_state(self, value):
+        print ('@~@~ set_state', value)
         if value in self.valid_states:
             self._state = value
             self.emit("stateChanged", (value,))
@@ -293,28 +281,28 @@ class GphlWorkflow(HardwareObject, object):
         self._data_collection_group = None
         # if not self._gevent_event.is_set():
         #     self._gevent_event.set()
+        print ('@~@~ WF end - state to ON)')
         self.set_state(States.ON)
         self._server_subprocess_names.clear()
-        workflow_connection = self._workflow_connection
-        if workflow_connection is not None:
-            workflow_connection._workflow_ended()
+        if api.gphl_connection is not None:
+            api.gphl_connection._workflow_ended()
 
     def abort(self, message=None):
         logging.getLogger("HWR").info("MXCuBE aborting current GPhL workflow")
-        workflow_connection = self._workflow_connection
-        if workflow_connection is not None:
-            workflow_connection.abort_workflow(message=message)
+        if api.gphl_connection is not None:
+            api.gphl_connection.abort_workflow(message=message)
 
     def execute(self):
+
+        print ('@~@~ WF exec, state to RUNNING')
 
         try:
             self.set_state(States.RUNNING)
 
             workflow_queue = gevent._threading.Queue()
             # Fork off workflow server process
-            workflow_connection = self._workflow_connection
-            if workflow_connection is not None:
-                workflow_connection.start_workflow(
+            if api.gphl_connection is not None:
+                api.gphl_connection.start_workflow(
                     workflow_queue, self._queue_entry.get_data_model()
                 )
 
@@ -351,8 +339,7 @@ class GphlWorkflow(HardwareObject, object):
 
     def _add_to_queue(self, parent_model_obj, child_model_obj):
         # There should be a better way, but apparently there isn't
-        qmo = getHardwareRepository().getHardwareObject("/queue-model")
-        qmo.add_child(parent_model_obj, child_model_obj)
+        api.queue_model.add_child(parent_model_obj, child_model_obj)
 
     # Message handlers:
 
@@ -480,7 +467,7 @@ class GphlWorkflow(HardwareObject, object):
         info_text = "\n".join(lines)
 
         acq_parameters = (
-            self.beamline_setup.get_default_acquisition_parameters()
+            api.beamline_setup.get_default_acquisition_parameters()
         )
         # For now return default values
 
@@ -645,9 +632,7 @@ class GphlWorkflow(HardwareObject, object):
         geometric_strategy = payload
 
         gphl_workflow_model = self._queue_entry.get_data_model()
-        collect_hwobj = self.beamline_setup.getObjectByRole(
-            "collect"
-        )
+        collect_hwobj = api.collect
 
         # enqueue data collection group
         if gphl_workflow_model.lattice_selected:
@@ -905,9 +890,9 @@ class GphlWorkflow(HardwareObject, object):
         f90nml.write(indata, infile, force=True)
 
         # Get program locations
-        recen_executable = self._workflow_connection.get_executable("recen")
+        recen_executable = api.gphl_connection.get_executable("recen")
         # Get environmental variables
-        envs = {"BDG_home": self._workflow_connection.software_paths["BDG_home"]}
+        envs = {"BDG_home": api.gphl_connection.software_paths["BDG_home"]}
         # Run recen
         command_list = [
             recen_executable,
@@ -963,8 +948,6 @@ class GphlWorkflow(HardwareObject, object):
 
     def collect_data(self, payload, correlation_id):
         collection_proposal = payload
-
-        beamline_setup_hwobj = self.beamline_setup
         queue_manager = self._queue_entry.get_queue_controller()
 
         # NBNB creation and use of master_path_template is NOT in testing version yet
@@ -993,7 +976,7 @@ class GphlWorkflow(HardwareObject, object):
             acq = queue_model_objects.Acquisition()
 
             # Get defaults, even though we override most of them
-            acq_parameters = beamline_setup_hwobj.get_default_acquisition_parameters()
+            acq_parameters = api.beamline_setup.get_default_acquisition_parameters()
             acq.acquisition_parameters = acq_parameters
 
             acq_parameters.first_image = scan.imageStartNum
@@ -1301,7 +1284,7 @@ class GphlWorkflow(HardwareObject, object):
             # We are moving to having recentered positions -
             # Set or prompt for fine zoom
             self._use_fine_zoom = True
-            zoom_motor = self.beamline_setup.getObjectByRole('zoom')
+            zoom_motor = api.beamline_setup.getObjectByRole('zoom')
             if zoom_motor:
                 # Zoom to the last predefined position
                 # - that should be the largest magnification
@@ -1359,6 +1342,8 @@ class GphlWorkflow(HardwareObject, object):
 
     def enqueue_sample_centring(self, motor_settings):
 
+        print ('@~@~ enqueue_sample_centring', sorted(motor_settings.items()))
+
         queue_manager = self._queue_entry.get_queue_controller()
 
         centring_model = queue_model_objects.SampleCentring(
@@ -1384,7 +1369,7 @@ class GphlWorkflow(HardwareObject, object):
                 "Post-centring: Taking %d sample snapshot(s)"
                 % number_of_snapshots
             )
-            collect_hwobj = self.beamline_setup.getObjectByRole("collect")
+            collect_hwobj = api.collect
             # settings = goniostatRotation.axisSettings
             collect_hwobj.move_motors(motor_settings)
             okp = tuple(int(motor_settings[x]) for x in self.rotation_axis_roles)
@@ -1414,6 +1399,8 @@ class GphlWorkflow(HardwareObject, object):
 
         centring_result = centring_entry.get_data_model().get_centring_result()
         if centring_result:
+            print ('@~@~ translation axes', self.translation_axis_roles)
+            print ('@~@~ centring_result', sorted(centring_result.as_dict()))
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x]) for x in self.translation_axis_roles)
             return self.GphlMessages.GoniostatTranslation(
@@ -1451,9 +1438,6 @@ class GphlWorkflow(HardwareObject, object):
         if crystal_system:
             crystal_system = crystal_system.upper()
 
-        collect_hwobj = self.beamline_setup.getObjectByRole(
-            "collect"
-        )
         # NB Expected resolution is deprecated.
         # It is set to the current resolution value, for now
         userProvidedInfo = self.GphlMessages.UserProvidedInfo(
@@ -1462,7 +1446,7 @@ class GphlWorkflow(HardwareObject, object):
             pointGroup=workflow_model.get_point_group(),
             spaceGroup=space_group,
             cell=unitCell,
-            expectedResolution=collect_hwobj.get_resolution(),
+            expectedResolution=api.collect.get_resolution(),
             isAnisotropic=None
         )
         ll = ["PriorInformation"]
@@ -1496,8 +1480,7 @@ class GphlWorkflow(HardwareObject, object):
         else:
             sampleId = uuid.uuid1()
 
-        session_hwobj = getHardwareRepository().getHardwareObject("session")
-        image_root = session_hwobj.get_base_image_directory()
+        image_root = api.session.get_base_image_directory()
 
         if not os.path.isdir(image_root):
             # This direstory must exist by the time the WF software checks for it

@@ -10,7 +10,7 @@ from saferef import *
 from Poller import *
 
 # from .CommandContainer import CommandObject, ChannelObject
-from CommandContainer import CommandObject, ChannelObject
+from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 
 try:
     import epics

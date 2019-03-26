@@ -1,7 +1,7 @@
 from xaloc import XalocJob
 from XSDataCommon import XSDataFile, XSDataString
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
-from DataAnalysis import DataAnalysis
+from HardwareRepository.HardwareObjects.DataAnalysis import DataAnalysis
 from PyTango import DeviceProxy
 import os
 import time

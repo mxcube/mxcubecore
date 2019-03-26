@@ -872,6 +872,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
             # Create a centred positions of the current position
             pos_dict = self.diffractometer_hwobj.getPositions()
+            print ('@~@~ pos_dict', sorted(pos_dict.items()))
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)
@@ -1837,13 +1838,13 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        logging.getLogger("queue_exec").debug(
-            "GphlWorkflowQueueEntry.execute WF state is %s"
-            % self.workflow_hwobj.get_state()
+        state = self.workflow_hwobj.get_state()
+        logging.getLogger("queue_exec").info(
+            "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
         )
 
         # Start execution of a new workflow
-        if self.workflow_hwobj.get_state() != States.ON:
+        if state != States.ON:
             # TODO Add handling of potential conflicts.
             # NBNB GPhL workflow cannot have multiple users
             # unless they use separate persistence layers

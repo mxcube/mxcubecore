@@ -45,7 +45,9 @@ Example Hardware Object XML file :
 """
 import logging
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 try:
     from Lima import Core

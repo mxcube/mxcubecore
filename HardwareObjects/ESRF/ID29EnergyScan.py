@@ -1,4 +1,4 @@
-from ESRF.ESRFEnergyScan import ESRFEnergyScan, TunableEnergy, task
+from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy, task
 from datetime import datetime
 
 

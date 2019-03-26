@@ -5,11 +5,14 @@ import numpy as np
 from pymba import *
 
 try:
-   from QtImport import QImage, QPixmap
+   from gui.utils.QtImport import QImage, QPixmap
 except:
    pass
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
+
 
 
 class VimbaVideo(AbstractVideoDevice):

@@ -9,7 +9,9 @@ Example xml file:
 """
 import logging
 
-from abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator
+)
 from HardwareRepository.TaskUtils import task
 
 
