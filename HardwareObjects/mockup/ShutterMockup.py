@@ -33,7 +33,6 @@ class ShutterMockup(AbstractShutter):
         self.current_state = ShutterMockup.STATE.OPEN
 
     def value_changed(self, value):
-        time.sleep(random.uniform(0.1, 1.0))
         self.current_state = ShutterMockup.STATE(value)
         self.emit("shutterStateChanged", self.current_state.name)
 
@@ -43,11 +42,16 @@ class ShutterMockup(AbstractShutter):
     def is_open(self):
         return self.current_state == ShutterMockup.STATE.OPEN
 
-    def is_ok(self):
+    def is_valid(self):
         return self.current_state.name in dir(ShutterMockup.STATE)
 
     def open(self):
-        self.value_changed(ShutterMockup.STATE.OPEN.value)
+        self.set_state(ShutterMockup.STATE.OPEN)
 
     def close(self):
-        self.value_changed(ShutterMockup.STATE.CLOSED.value)
+        self.set_state(ShutterMockup.STATE.CLOSED)
+
+    def set_state(self, state, wait=False, timeout=None):
+        time.sleep(random.uniform(0.1, 1.0))
+        self.current_state = state
+        self.value_changed(state.value)

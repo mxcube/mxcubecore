@@ -25,7 +25,7 @@ def test_shutter_is_ok(shutter_list):
     for shutter in shutter_list:
         shutter.close()
 
-        assert shutter.is_ok()
+        assert shutter.is_valid()
 
         try:
             shutter.current_state = None
@@ -34,4 +34,4 @@ def test_shutter_is_ok(shutter_list):
 
         shutter.open()
 
-        assert shutter.is_ok()
+        assert shutter.is_valid()

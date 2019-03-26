@@ -53,8 +53,19 @@ class AbstractNState(object):
         return
 
     @abc.abstractmethod
-    def is_ok(self):
+    def is_valid(self):
         """ Checks if the shutter is in one of its predefined states """
+        return
+
+    @abc.abstractmethod
+    def set_state(self, state, wait=False, timeout=None):
+        """
+        Args:
+            state: (enum) The state to transition to
+            wait: (bool) Wait for state transition to complete before returning
+            timeout: (float) Raises TimeoutException if transition takes longer
+                     than timeout seconds  
+        """
         return
 
 
@@ -80,11 +91,11 @@ class AbstractShutter(HardwareObject, AbstractNState):
         HardwareObject.__init__(self, name)
 
     @abc.abstractmethod
-    def open(self):
+    def open(self, wait=False, timeout=None):
         """Opens shutter"""
         return
 
     @abc.abstractmethod
-    def close(self):
+    def close(self, wait=False, timeout=None):
         """Closes shutter"""
         return
