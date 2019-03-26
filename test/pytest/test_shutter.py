@@ -21,7 +21,7 @@ def test_shutter_open_close(shutter_list):
         assert shutter.state() == AbstractShutter.STATE.OPEN.name
 
 
-def test_shutter_is_ok(shutter_list):
+def test_shutter_is_valid(shutter_list):
     for shutter in shutter_list:
         shutter.close()
 
