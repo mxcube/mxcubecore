@@ -22,7 +22,7 @@ Defines the interface for N state devices
 """
 
 import abc
-from enum import Enum, unique
+from enum import IntEnum, unique
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -70,7 +70,7 @@ class AbstractNState(object):
 
 
 @unique
-class ShutterState(Enum):
+class ShutterState(IntEnum):
     """
     Defines the valid Shutter states
     """
