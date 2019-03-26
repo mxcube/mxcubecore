@@ -1,4 +1,4 @@
-import MiniDiff
+from HardwareRepository.HardwareObjects import MiniDiff
 
 
 class GrobDiff(MiniDiff.MiniDiff):

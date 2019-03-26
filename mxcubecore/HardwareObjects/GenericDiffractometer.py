@@ -25,10 +25,10 @@ import copy
 import time
 import gevent
 import logging
-import sample_centring
+from HardwareRepository.HardwareObjects import sample_centring
 import math
 import numpy
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 try:
     unicode

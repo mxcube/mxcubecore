@@ -19,7 +19,7 @@
 
 import time
 
-from abstract.AbstractEnergy import AbstractEnergy
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergy import AbstractEnergy
 
 
 class EnergyMockup(AbstractEnergy):

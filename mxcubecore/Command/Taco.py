@@ -4,7 +4,7 @@ import copy
 
 from .. import saferef
 from .. import Poller
-from ..CommandContainer import CommandObject, ChannelObject
+from HardwareRepository.CommandContainer import CommandObject, ChannelObject
 from .. import TacoDevice_MTSafe as TacoDevice
 
 

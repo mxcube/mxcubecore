@@ -1,21 +1,21 @@
 import gevent
-
-try:
-    from Qub.Tools import QubImageSave
-except ImportError:
-    pass
-from HardwareRepository.BaseHardwareObjects import Equipment
-from HardwareRepository.TaskUtils import task
 import tempfile
 import logging
 import math
 import os
 import time
-from HardwareRepository import HardwareRepository
 import copy
-import sample_centring
 import numpy
-import queue_model_objects as qmo
+from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.TaskUtils import task
+from HardwareRepository import HardwareRepository
+from HardwareRepository.HardwareObjects import sample_centring
+from HardwareRepository.HardwareObjects import queue_model_objects as qmo
+
+try:
+    from Qub.Tools import QubImageSave
+except ImportError:
+    pass
 
 
 class myimage:

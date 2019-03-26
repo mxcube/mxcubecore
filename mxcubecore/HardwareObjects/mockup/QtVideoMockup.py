@@ -19,12 +19,13 @@
 
 import os
 import time
-import gevent
 import numpy as np
 
-from QtImport import *
+from gui.utils.QtImport import *
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 
 class QtVideoMockup(AbstractVideoDevice):

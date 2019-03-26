@@ -1,5 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from BeamCmds import ControllerCommand, HWObjActuatorCommand
+from .BeamCmds import ControllerCommand, HWObjActuatorCommand
 
 
 class ID29BeamCmds(HardwareObject):

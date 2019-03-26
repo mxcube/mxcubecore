@@ -1,7 +1,7 @@
 from HardwareRepository import BaseHardwareObjects
 import logging
 
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 try:
     import PyTango

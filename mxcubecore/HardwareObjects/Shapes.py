@@ -13,7 +13,7 @@ import copy
 
 from functools import reduce
 
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

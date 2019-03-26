@@ -9,7 +9,7 @@ import time
 import socket
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 default_raw_data_folder = "RAW_DATA"
 default_processed_data_folder = 'PROCESSED_DATA'
@@ -103,14 +103,10 @@ class Session(HardwareObject):
                                         process_folder=self.processed_data_folder_name,
                                         archive_folder=archive_folder)
 
-        precision = self.default_precision
-
         try:
-            precision = eval(
-                self["file_info"].getProperty("precision", self.default_precision)
-            )
-        except BaseException:
-            pass
+            precision = int(self["file_info"].getProperty("precision",""))
+        except ValueError:
+            precision = self.default_precision
 
         queue_model_objects.PathTemplate.set_precision(precision)
         queue_model_objects.PathTemplate.set_path_template_style(

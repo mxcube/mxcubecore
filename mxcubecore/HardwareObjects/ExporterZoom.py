@@ -1,4 +1,4 @@
-from ExporterMotor import ExporterMotor
+from HardwareRepository.HardwareObjects.ExporterMotor import ExporterMotor
 import math
 
 

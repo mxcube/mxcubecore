@@ -47,7 +47,7 @@ try:
 except:
     import _pickle as pickle
 
-import QtImport
+from gui.utils import QtImport
 
 from copy import deepcopy
 from scipy import ndimage, interpolate, signal
@@ -64,7 +64,7 @@ except ImportError:
         pass
 
 # import AutoMesh
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 

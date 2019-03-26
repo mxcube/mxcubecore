@@ -6,8 +6,9 @@ import time
 from HardwareRepository.Command.Tango import DeviceProxy
 
 
-from Cats90 import Cats90, SampleChangerState
-from Cats90 import BASKET_UNIPUCK
+from HardwareRepository.HardwareObjects.Cats90 import (
+    Cats90, SampleChangerState, BASKET_UNIPUCK
+)
 
 from PX1Environment import EnvironmentPhase
 

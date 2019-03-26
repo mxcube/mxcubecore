@@ -2,7 +2,7 @@
 
   <!-- First part must mirror mxcollect.xml -->
   <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/graphics" role="graphics_manager"/>
   <object href="/lims-client-mockup" role="lims_client"/>
 
   <object href="/energy-mockup" role="energy"/>

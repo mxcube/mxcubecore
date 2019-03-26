@@ -1,5 +1,5 @@
 
-import SpecMotor
+from HardwareRepository.HardwareObjects import SpecMotor
 import logging
 
 

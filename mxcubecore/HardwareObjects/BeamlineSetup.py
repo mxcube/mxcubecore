@@ -1,8 +1,8 @@
 import logging
 import jsonpickle
 
-import queue_model_objects
-import queue_model_enumerables
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_enumerables
 
 from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 

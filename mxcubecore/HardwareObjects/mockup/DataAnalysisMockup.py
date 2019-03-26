@@ -18,7 +18,9 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import edna_test_data
-from abstract.AbstractDataAnalysis import AbstractDataAnalysis
+from HardwareRepository.HardwareObjects.abstract.AbstractDataAnalysis import (
+    AbstractDataAnalysis
+)
 
 from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 

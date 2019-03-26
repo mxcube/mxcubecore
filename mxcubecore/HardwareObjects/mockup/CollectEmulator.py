@@ -27,10 +27,10 @@ import subprocess
 import logging
 import re
 import f90nml
-import ConvertUtils
-from CollectMockup import CollectMockup
+from HardwareRepository import ConvertUtils
+from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
 from HardwareRepository.HardwareRepository import getHardwareRepository
-from TaskUtils import task
+from HardwareRepository.TaskUtils import task
 
 try:
     from collections import OrderedDict
