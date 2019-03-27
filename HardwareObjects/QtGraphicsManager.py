@@ -47,8 +47,6 @@ try:
 except:
     import _pickle as pickle
 
-import QtImport
-
 from copy import deepcopy
 from scipy import ndimage, interpolate, signal
 
@@ -63,8 +61,9 @@ except ImportError:
     except ImportError:
         pass
 
-# import AutoMesh
-import queue_model_objects
+from gui.utils import QtImport
+
+from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 
@@ -174,12 +173,12 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_select_tool_item.hide()
         self.graphics_beam_define_item = GraphicsLib.GraphicsItemBeamDefine(self)
         self.graphics_beam_define_item.hide()
-        self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
-        self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
-            self, "right"
-        )
-        self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
-        self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
+        #self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
+        #self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
+        #    self, "right"
+        #)
+        #self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
+        #self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
         self.graphics_magnification_item = GraphicsLib.GraphicsMagnificationItem(self)
         self.graphics_magnification_item.hide()
 
@@ -196,10 +195,10 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_area_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_select_tool_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_define_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_magnification_item)
 
         self.graphics_view.scene().mouseClickedSignal.connect(self.mouse_clicked)
@@ -326,7 +325,8 @@ class QtGraphicsManager(HardwareObject):
             self.auto_grid_size_mm = eval(self.getProperty("auto_grid_size_mm"))
         except BaseException:
             self.auto_grid_size_mm = (0.2, 0.2)
-
+ 
+        """
         self.graphics_move_up_item.setVisible(
             self.getProperty("enable_move_buttons") is True
         )
@@ -338,7 +338,8 @@ class QtGraphicsManager(HardwareObject):
         )
         self.graphics_move_left_item.setVisible(
             self.getProperty("enable_move_buttons") is True
-        )
+        ) 
+        """
 
         # self.set_scrollbars_off(\
         #     self.getProperty("scrollbars_always_off") is True)
@@ -583,7 +584,7 @@ class QtGraphicsManager(HardwareObject):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
-            self.update_histogram()
+            #self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -682,6 +683,7 @@ class QtGraphicsManager(HardwareObject):
         :param pixels_per_mm: two floats for scaling
         :type pixels_per_mm: list with two floats
         """
+
         if type(pixels_per_mm) in (list, tuple):
             if pixels_per_mm != self.pixels_per_mm:
                 self.pixels_per_mm = pixels_per_mm
@@ -1080,6 +1082,7 @@ class QtGraphicsManager(HardwareObject):
         self.shape_dict[shape.get_display_name()] = shape
         self.graphics_view.graphics_scene.addItem(shape)
 
+        print(111, emit, shape )
         if isinstance(shape, GraphicsLib.GraphicsItemPoint):
             if emit:
                 self.emit("shapeCreated", shape, "Point")
@@ -1087,6 +1090,7 @@ class QtGraphicsManager(HardwareObject):
             self.emit("infoMsg", "Centring %s created" % shape.get_full_name())
         elif isinstance(shape, GraphicsLib.GraphicsItemLine):
             if emit:
+                print(222)
                 self.emit("shapeCreated", shape, "Line")
             self.emit("infoMsg", "%s created" % shape.get_full_name())
 

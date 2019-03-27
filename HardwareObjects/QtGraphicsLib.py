@@ -47,9 +47,9 @@ import math
 import logging
 from datetime import datetime
 
-import QtImport
+from gui.utils import QtImport
 
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow
@@ -87,9 +87,10 @@ class GraphicsItem(QtImport.QGraphicsItem):
         self.setPos(position_x, position_y)
         # self.setMatrix = QMatrix()
 
+        self.custom_pen_color = QtImport.Qt.white
         self.custom_pen = QtImport.QPen(SOLID_LINE_STYLE)
         self.custom_pen.setWidth(1)
-        self.custom_pen.setColor(QtImport.Qt.white)
+        self.custom_pen.setColor(self.custom_pen_color)
 
         self.custom_brush = QtImport.QBrush(SOLID_PATTERN_STYLE)
         # self.custom_gradient = QRadialGradient(0, 0, 100)
@@ -221,7 +222,9 @@ class GraphicsItem(QtImport.QGraphicsItem):
             self.setToolTip(self.get_full_name() + "\n" + tooltip)
         else:
             self.setToolTip(self.get_full_name())
-
+ 
+    def set_custom_pen_color(self, color):
+        self.custom_pen_color = color
 
 class GraphicsItemBeam(GraphicsItem):
     """Beam base class
@@ -1381,41 +1384,43 @@ class GraphicsItemScale(GraphicsItem):
                vertical scale is two times shorter.
     """
 
-    HOR_LINE_LEN = [300, 200, 100, 50]
+    HOR_LINE_LEN_MICRONS = (300, 200, 100, 50)
+    HOR_LINE_LEN_MM = (10, 5, 2, 1)
 
     def __init__(self, parent, position_x=0, position_y=0):
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
+        self.__scale_len_pix = 0
+        self.__scale_unit = u"\u00B5"
         self.__display_grid = False
 
-    def paint(self, painter, option, widget):
-        # TODO move to set_pixels_per_mm
-        hor_scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len / 1000)
-        ver_scale_len_pix = int(self.pixels_per_mm[1] * self.__scale_len / 1000 / 2)
+        self.custom_pen_color = SELECTED_COLOR
+        self.custom_pen.setWidth(3)
+        self.custom_pen.setColor(self.custom_pen_color)
 
+    def paint(self, painter, option, widget):
         scene_width = self.scene().width()
         scene_height = self.scene().height()
 
-        self.custom_pen.setStyle(SOLID_LINE_STYLE)
-        self.custom_pen.setWidth(3)
-        self.custom_pen.setColor(SELECTED_COLOR)
+        #self.custom_pen.setStyle(SOLID_LINE_STYLE)
+        #self.custom_pen.setColor(self.custom_pen_color)
         painter.setPen(self.custom_pen)
 
         painter.drawLine(
-            7, self.start_coord[1] - 15, 7 + hor_scale_len_pix, self.start_coord[1] - 15
+            7, self.start_coord[1] - 15, 7 + self.__scale_len_pix, self.start_coord[1] - 15
         )
         painter.drawText(
-            hor_scale_len_pix - 18,
+            self.__scale_len_pix - 18,
             self.start_coord[1] - 20,
-            "%d %s" % (self.__scale_len, u"\u00B5"),
+            "%d %s" % (self.__scale_len, self.__scale_unit),
         )
         painter.drawLine(
-            7, self.start_coord[1] - 15, 7, self.start_coord[1] - 15 - ver_scale_len_pix
+            7, self.start_coord[1] - 15, 7, self.start_coord[1] - 15 - self.__scale_len_pix / 2
         )
         painter.drawText(
             12,
-            self.start_coord[1] - 7 - ver_scale_len_pix,
-            "%d %s" % (self.__scale_len / 2, u"\u00B5"),
+            self.start_coord[1] - 7 - self.__scale_len_pix / 2,
+            "%d %s" % (self.__scale_len / 2, self.__scale_unit),
         )
 
         if self.__display_grid:
@@ -1469,10 +1474,20 @@ class GraphicsItemScale(GraphicsItem):
 
     def set_pixels_per_mm(self, pixels_per_mm):
         self.pixels_per_mm = pixels_per_mm
-        for line_len in GraphicsItemScale.HOR_LINE_LEN:
-            if self.pixels_per_mm[0] * line_len / 1000 <= 200:
+        for line_len in GraphicsItemScale.HOR_LINE_LEN_MICRONS:
+            if self.pixels_per_mm[0] * line_len / 1000 <= 200 and \
+               self.pixels_per_mm[0] * line_len / 1000 > 50:
                 self.__scale_len = line_len
-                break
+                self.__scale_unit = u"\u00B5"
+                self.__scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len / 1000)
+                return
+
+        for line_len in GraphicsItemScale.HOR_LINE_LEN_MM:
+            if self.pixels_per_mm[0] * line_len <= 200:
+                self.__scale_len = line_len
+                self.__scale_unit = "mm"
+                self.__scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len)
+                return
 
     def set_start_position(self, position_x, position_y):
         if position_x is not None and position_y is not None:
@@ -1732,11 +1747,12 @@ class GraphicsItemMeasureDistance(GraphicsItem):
         GraphicsItem.__init__(self, parent)
 
         self.setFlags(QtImport.QGraphicsItem.ItemIsSelectable)
-        self.do_measure = None
+        self.do_measure = None 
+        self.measure_unit = u"\u00B5"
         self.measure_points = None
         self.measured_distance = None
-
-        self.custom_pen.setColor(SELECTED_COLOR)
+        self.custom_pen_color = SELECTED_COLOR
+        self.custom_pen.setColor(self.custom_pen_color)
 
     def paint(self, painter, option, widget):
         painter.setPen(self.custom_pen)
@@ -1744,7 +1760,7 @@ class GraphicsItemMeasureDistance(GraphicsItem):
         painter.drawText(
             self.measure_points[1].x() + 15,
             self.measure_points[1].y() + 10,
-            "%.2f %s" % (self.measured_distance, u"\u00B5"),
+            "%.2f %s" % (self.measured_distance, self.measure_unit),
         )
 
     def set_start_position(self, position_x, position_y):
@@ -1772,12 +1788,26 @@ class GraphicsItemMeasureDistance(GraphicsItem):
                 )
                 * 1000
             )
+            if self.measured_distance > 1000:
+                self.measured_distance /= 1000
+                self.measure_unit = "mm" 
+            else:
+                self.measure_unit = u"\u00B5"
             self.scene().update()
 
     def store_coord(self, position_x, position_y):
-        if len(self.measure_points) == 3:
+        if len(self.measure_points) == 2:
+            measured_pixels = (
+                math.sqrt(
+                    pow((self.measure_points[0].x() - self.measure_points[1].x()), 2)
+                    + pow((self.measure_points[0].y() - self.measure_points[1].y()), 2)
+                )
+            )
+            self.scene().measureItemChanged.emit(self.measure_points, int(measured_pixels))
+        elif len(self.measure_points) == 3:
             self.measure_points = []
             self.measure_points.append(QtImport.QPoint(position_x, position_y))
+ 
         self.measure_points.append(QtImport.QPoint(position_x, position_y))
 
 
@@ -2180,6 +2210,7 @@ class GraphicsScene(QtImport.QGraphicsScene):
     itemDoubleClickedSignal = QtImport.pyqtSignal(GraphicsItem)
     itemClickedSignal = QtImport.pyqtSignal(GraphicsItem, bool)
     moveItemClickedSignal = QtImport.pyqtSignal(str)
+    measureItemChanged = QtImport.pyqtSignal(list, int)
 
     def __init__(self, parent=None):
         super(GraphicsScene, self).__init__(parent)
