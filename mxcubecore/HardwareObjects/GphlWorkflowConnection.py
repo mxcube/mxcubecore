@@ -28,7 +28,6 @@ import subprocess
 import uuid
 import signal
 import time
-import datetime
 
 import gevent.monkey
 import gevent.event
@@ -358,6 +357,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             return
 
         logging.getLogger("HWR").debug("GPhL workflow ended")
+        self.set_state(States.OFF)
         if self._await_result is not None:
             # We are awaiting an answer - give an abort
             self._await_result.append((GphlMessages.BeamlineAbort(), None))
@@ -367,7 +367,6 @@ class GphlWorkflowConnection(HardwareObject, object):
         self._workflow_name = None
         self.workflow_queue = None
         self._await_result = None
-        self.set_state(States.OFF)
 
         xx = self._running_process
         self._running_process = None
@@ -520,22 +519,27 @@ class GphlWorkflowConnection(HardwareObject, object):
             # Requests:
             self._await_result = []
             self.set_state(States.OPEN)
-            if self.workflow_queue is not None:
-                # Could happen if we have ended the workflow
+            if self.workflow_queue is None:
+                # Could be None if we have ended the workflow
+                return self._response_to_server(
+                    GphlMessages.BeamlineAbort(), correlation_id
+                )
+            else:
                 self.workflow_queue.put_nowait(
                     (message_type, payload, correlation_id, self._await_result)
                 )
-            while not self._await_result:
-                time.sleep(0.1)
-            result, correlation_id = self._await_result.pop(0)
-            self._await_result = None
-            self.set_state(States.RUNNING)
+                while not self._await_result:
+                    time.sleep(0.1)
+                result, correlation_id = self._await_result.pop(0)
+                self._await_result = None
+                if self.get_state() == States.OPEN:
+                    self.set_state(States.RUNNING)
 
-            logging.getLogger("HWR").debug(
-                "GPhL - response=%s jobId=%s messageId=%s"
-                % (result.__class__.__name__, enactment_id, correlation_id)
-            )
-            return self._response_to_server(result, correlation_id)
+                logging.getLogger("HWR").debug(
+                    "GPhL - response=%s jobId=%s messageId=%s"
+                    % (result.__class__.__name__, enactment_id, correlation_id)
+                )
+                return self._response_to_server(result, correlation_id)
 
         elif message_type in ("WorkflowAborted", "WorkflowCompleted", "WorkflowFailed"):
             if self.workflow_queue is not None:

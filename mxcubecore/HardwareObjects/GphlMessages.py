@@ -21,11 +21,7 @@ along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import uuid
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 from collections import namedtuple
 
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """

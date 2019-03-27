@@ -137,7 +137,8 @@ class GphlWorkflow(HardwareObject, object):
 
     def setup_workflow_object(self):
         """Necessary as this set-up cannot be done at init,
-        when the hwobj are still incomplete. Must be called externally TODO This still necessary?"""
+        when the hwobj are still incomplete. Must be called externally
+        TODO This still necessary?"""
 
         # Set standard configurable file paths
         file_paths = self.file_paths
@@ -153,7 +154,6 @@ class GphlWorkflow(HardwareObject, object):
         self.translation_axis_roles = dd['gonio_centring_axis_names']
 
     def pre_execute(self, queue_entry):
-        print('@~@~ WF HO pre-execxute',  self.get_state() )
 
         self._queue_entry = queue_entry
 
@@ -265,7 +265,6 @@ class GphlWorkflow(HardwareObject, object):
         return self._state
 
     def set_state(self, value):
-        print ('@~@~ set_state', value)
         if value in self.valid_states:
             self._state = value
             self.emit("stateChanged", (value,))
@@ -281,7 +280,6 @@ class GphlWorkflow(HardwareObject, object):
         self._data_collection_group = None
         # if not self._gevent_event.is_set():
         #     self._gevent_event.set()
-        print ('@~@~ WF end - state to ON)')
         self.set_state(States.ON)
         self._server_subprocess_names.clear()
         if api.gphl_connection is not None:
@@ -293,8 +291,6 @@ class GphlWorkflow(HardwareObject, object):
             api.gphl_connection.abort_workflow(message=message)
 
     def execute(self):
-
-        print ('@~@~ WF exec, state to RUNNING')
 
         try:
             self.set_state(States.RUNNING)
@@ -510,6 +506,14 @@ class GphlWorkflow(HardwareObject, object):
             data_model.lattice_selected
             or "calibration" in data_model.get_type().lower()
         ):
+            field_list.append(
+                {
+                    "variableName":"centre_at_start",
+                    "uiLabel":"(Re)centre crystal before acquisition start?",
+                    "type":"boolean",
+                    "defaultValue":bool(self.getProperty("centre_at_start")),
+                }
+            )
             if len(orientations) > 1:
                 field_list.append(
                     {
@@ -519,14 +523,6 @@ class GphlWorkflow(HardwareObject, object):
                         "defaultValue":bool(self.getProperty("centre_before_sweep")),
                     }
                 )
-            field_list.append(
-                {
-                    "variableName":"centre_at_start",
-                    "uiLabel":"(Re)centre crystal before acquisition start?",
-                    "type":"boolean",
-                    "defaultValue":bool(self.getProperty("centre_at_start")),
-                }
-            )
             if data_model.get_snapshot_count():
                 field_list.append(
                     {
@@ -537,7 +533,7 @@ class GphlWorkflow(HardwareObject, object):
                     }
                 )
 
-        field_list[-1]["NEW_COLUMN"] = True
+        field_list[-1]["NEW_COLUMN"] = 'True'
 
         field_list.append(
             {
@@ -688,6 +684,7 @@ class GphlWorkflow(HardwareObject, object):
         recen_parameters = {}
         queue_entries = []
         sweeps = geometric_strategy.get_ordered_sweeps()
+        transcal_parameters = self.load_transcal_parameters()
 
         # First sweep in list for a given sweepSetting
         first_sweeps = []
@@ -699,11 +696,12 @@ class GphlWorkflow(HardwareObject, object):
                 aset.add(sweepSettingId)
 
         # Decide whether to centre before individual sweeps
-        gphl_workflow_model.set_centre_before_sweep(
-            parameters.pop("centre_before_sweep", False)
-        )
         centre_at_start = parameters.pop("centre_at_start", False)
         centring_snapshots = parameters.pop("centring_snapshots", False)
+        centre_before_sweep = parameters.pop("centre_before_sweep", False)
+        gphl_workflow_model.set_centre_before_sweep(centre_before_sweep)
+        if not (centre_before_sweep or centre_at_start or transcal_parameters):
+            centre_at_start = True
 
         # Loop over first sweep occurrences and (re)centre
         # NB we do it reversed so the first to acquire is the last to centre
@@ -753,10 +751,10 @@ class GphlWorkflow(HardwareObject, object):
             else:
                 # No centring or recentring info
                 qe = self.enqueue_sample_centring(motor_settings=initial_settings)
-                rp = self.load_transcal_parameters()
-                if rp:
-                    # We can make recentring parameters. Centre now regardless
-                    recen_parameters = rp
+                if transcal_parameters:
+                    # We can make recentring parameters.
+                    # Centre now regardless and use parametters for successive sweeps
+                    recen_parameters = transcal_parameters
                     translation = self.execute_sample_centring(
                             qe, sweepSetting, requestedRotationId
                         )
@@ -776,7 +774,7 @@ class GphlWorkflow(HardwareObject, object):
                         "Recentring set-up. Parameters are: %s"
                         % sorted(recen_parameters.items())
                     )
-                else:
+                elif centre_at_start:
                     # Put on recentring queue
                     queue_entries.append(
                         (qe, sweepSetting, requestedRotationId, initial_settings)
@@ -1319,7 +1317,8 @@ class GphlWorkflow(HardwareObject, object):
                         RuntimeError("Signal 'gphlParametersNeeded' is not connected")
                     )
 
-                dummy = self._return_parameters.get()
+                # We do not need the result, just to end they waiting
+                self._return_parameters.get()
                 self._return_parameters = None
 
         centring_queue_entry = self.enqueue_sample_centring(
@@ -1341,8 +1340,6 @@ class GphlWorkflow(HardwareObject, object):
         )
 
     def enqueue_sample_centring(self, motor_settings):
-
-        print ('@~@~ enqueue_sample_centring', sorted(motor_settings.items()))
 
         queue_manager = self._queue_entry.get_queue_controller()
 
@@ -1399,8 +1396,6 @@ class GphlWorkflow(HardwareObject, object):
 
         centring_result = centring_entry.get_data_model().get_centring_result()
         if centring_result:
-            print ('@~@~ translation axes', self.translation_axis_roles)
-            print ('@~@~ centring_result', sorted(centring_result.as_dict()))
             positionsDict = centring_result.as_dict()
             dd = dict((x, positionsDict[x]) for x in self.translation_axis_roles)
             return self.GphlMessages.GoniostatTranslation(

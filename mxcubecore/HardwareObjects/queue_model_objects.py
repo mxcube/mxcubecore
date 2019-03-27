@@ -6,11 +6,7 @@ the QueueModel.
 import copy
 import os
 import logging
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
 
@@ -1175,9 +1171,6 @@ class SampleCentring(TaskNode):
         self.kappa = kappa
         self.kappa_phi = kappa_phi
 
-        print ('@~@~ k,p,...', kappa, kappa_phi,
-               sorted( self._other_motor_positions.items()))
-
     def add_task(self, task_node):
         self._tasks.append(task_node)
 
@@ -1652,7 +1645,6 @@ class CentredPosition(object):
 
     @staticmethod
     def set_diffractometer_motor_names(*names):
-        print ('@~@~ set_diffractometer_motor_names', names)
         CentredPosition.DIFFRACTOMETER_MOTOR_NAMES = names[:]
 
     def __init__(self, motor_dict=None):
@@ -1665,11 +1657,8 @@ class CentredPosition(object):
             setattr(self, motor_name, None)
 
         if motor_dict is not None:
-            print ('@~@~ __init__', sorted(motor_dict.items()))
             for motor_name, position in motor_dict.items():
                 setattr(self, motor_name, position)
-        else:
-            print ('@~@~ __init__ motor_dict is None')
 
     def as_dict(self):
         result = dict(
@@ -1682,10 +1671,6 @@ class CentredPosition(object):
             )
         )
         #
-        print ('@~@~ as_dict', CentredPosition.DIFFRACTOMETER_MOTOR_NAMES, [
-                    getattr(self, motor_name)
-                    for motor_name in CentredPosition.DIFFRACTOMETER_MOTOR_NAMES
-                ])
         return result
 
     def set_from_dict(self, params_dict):
