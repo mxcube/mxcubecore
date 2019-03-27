@@ -872,7 +872,6 @@ class SampleCentringQueueEntry(BaseQueueEntry):
 
             # Create a centred positions of the current position
             pos_dict = self.diffractometer_hwobj.getPositions()
-            print ('@~@~ pos_dict', sorted(pos_dict.items()))
             cpos = queue_model_objects.CentredPosition(pos_dict)
 
         self._data_model.set_centring_result(cpos)

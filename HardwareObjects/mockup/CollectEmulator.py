@@ -31,11 +31,7 @@ from HardwareRepository import ConvertUtils
 from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
 from HardwareRepository.HardwareRepository import getHardwareRepository
 from HardwareRepository.TaskUtils import task
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -43,7 +39,6 @@ __author__ = "Rasmus H Fogh"
 
 
 class CollectEmulator(CollectMockup):
-
     TEST_SAMPLE_PREFIX = "emulate-"
 
     def __init__(self, name):
@@ -295,7 +290,7 @@ class CollectEmulator(CollectMockup):
         if sample:
             ss = sample.getName()
             if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name = ss[len(self.TEST_SAMPLE_PREFIX) :]
+                sample_name = ss[len(self.TEST_SAMPLE_PREFIX):]
 
         sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
         if not sample_dir:

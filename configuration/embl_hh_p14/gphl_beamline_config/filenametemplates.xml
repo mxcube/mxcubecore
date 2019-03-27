@@ -109,9 +109,9 @@ The following restrictions must be adhered to:
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>4</maxWidth>
+            <maxWidth>5</maxWidth>
             <minWidth>
-                <width>4</width>
+                <width>5</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -168,9 +168,9 @@ The following restrictions must be adhered to:
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>4</maxWidth>
+            <maxWidth>5</maxWidth>
             <minWidth>
-                <width>4</width>
+                <width>5</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -233,9 +233,9 @@ The following restrictions must be adhered to:
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>4</maxWidth>
+            <maxWidth>5</maxWidth>
             <minWidth>
-                <width>4</width>
+                <width>5</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
@@ -287,9 +287,9 @@ The following restrictions must be adhered to:
         </element>
 
         <element xsi:type="tet:ImageNumberMask">
-            <maxWidth>4</maxWidth>
+            <maxWidth>5</maxWidth>
             <minWidth>
-                <width>4</width>
+                <width>5</width>
                 <leftJustify>false</leftJustify>
                 <padding>0</padding>
             </minWidth>
