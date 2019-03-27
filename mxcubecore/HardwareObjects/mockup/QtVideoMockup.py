@@ -22,7 +22,12 @@ import time
 import gevent
 import numpy as np
 
-from QtImport import *
+try:
+    from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush
+    from PyQt5.QtCore import Qt
+except:
+    from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush
+    from PyQt4.QtCore import Qt
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
