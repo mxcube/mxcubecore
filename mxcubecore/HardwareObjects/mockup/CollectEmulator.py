@@ -59,8 +59,8 @@ class CollectEmulator(CollectMockup):
     def init(self):
         CollectMockup.init(self)
         session_hwobj = self.getObjectByRole("session")
-        if session_hwobj and self.hasObject('override_data_directories'):
-            dirs = self['override_data_directories'].getProperties()
+        if session_hwobj and self.hasObject("override_data_directories"):
+            dirs = self["override_data_directories"].getProperties()
             session_hwobj.set_base_data_directories(**dirs)
 
     def _get_simcal_input(self, data_collect_parameters, crystal_data):
@@ -290,7 +290,7 @@ class CollectEmulator(CollectMockup):
         if sample:
             ss = sample.getName()
             if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name = ss[len(self.TEST_SAMPLE_PREFIX):]
+                sample_name = ss[len(self.TEST_SAMPLE_PREFIX) :]
 
         sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
         if not sample_dir:
