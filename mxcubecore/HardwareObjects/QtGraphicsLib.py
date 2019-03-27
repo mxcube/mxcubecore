@@ -49,7 +49,7 @@ from datetime import datetime
 
 from gui.utils import QtImport
 
-from HardwareRepository.HardwareObjects import queue_model_objects
+from . import queue_model_objects
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow
@@ -328,6 +328,12 @@ class GraphicsItemInfo(GraphicsItem):
     """
 
     def __init__(self, parent, position_x=0, position_y=0):
+        """
+        Init
+        :param parent:
+        :param position_x: int
+        :param position_y: int
+        """
 
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.beam_is_rectangle = True
@@ -374,7 +380,13 @@ class GraphicsItemInfo(GraphicsItem):
                     self.hide()
 
     def display_info(self, msg, pos_x, pos_y, hide_msg=True):
-        """Shows message on pos_x, pos_y
+        """
+        Shows message on the view
+        :param msg: str
+        :param pos_x: int
+        :param pos_y: int
+        :param hide_msg: bool. Hide msg after 5 sec timeout
+        :return:
         """
         self.__msg = msg
         self.__pos_x = pos_x
@@ -475,6 +487,13 @@ class GraphicsItemPoint(GraphicsItem):
         self.__centred_position = centred_position
 
     def paint(self, painter, option, widget):
+        """
+        Main pain method
+        :param painter:
+        :param option:
+        :param widget:
+        :return:
+        """
         self.custom_pen.setWidth(1)
         if self.used_count > 0:
             self.custom_pen.setColor(QtImport.Qt.red)
@@ -537,6 +556,11 @@ class GraphicsItemLine(GraphicsItem):
     """Line class"""
 
     def __init__(self, cp_start, cp_end):
+        """
+        Init
+        :param cp_start:
+        :param cp_end:
+        """
         GraphicsItem.__init__(self)
 
         self.setFlags(QtImport.QGraphicsItem.ItemIsSelectable)
@@ -676,6 +700,13 @@ class GraphicsItemGrid(GraphicsItem):
     """
 
     def __init__(self, parent, beam_info, spacing_mm, pixels_per_mm):
+        """
+        Init
+        :param parent:
+        :param beam_info:
+        :param spacing_mm:
+        :param pixels_per_mm:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.setFlags(QtImport.QGraphicsItem.ItemIsSelectable)
@@ -1546,6 +1577,12 @@ class GraphicsItemScale(GraphicsItem):
     HOR_LINE_LEN_MM = (10, 5, 2, 1)
 
     def __init__(self, parent, position_x=0, position_y=0):
+        """
+        Init
+        :param parent:
+        :param position_x: int
+        :param position_y: int
+        """
         GraphicsItem.__init__(self, parent, position_x=0, position_y=0)
         self.__scale_len = 0
         self.__scale_len_pix = 0
@@ -1651,7 +1688,9 @@ class GraphicsItemScale(GraphicsItem):
                self.pixels_per_mm[0] * line_len / 1000 > 50:
                 self.__scale_len = line_len
                 self.__scale_unit = u"\u00B5"
-                self.__scale_len_pix = int(self.pixels_per_mm[0] * self.__scale_len / 1000)
+                self.__scale_len_pix = int(
+                    self.pixels_per_mm[0] * self.__scale_len / 1000
+                )
                 return
 
         for line_len in GraphicsItemScale.HOR_LINE_LEN_MM:
@@ -1685,6 +1724,10 @@ class GraphicsItemOmegaReference(GraphicsItem):
     """Reference line of the rotation axis"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
         self.phi_position = None
 
@@ -1736,6 +1779,12 @@ class GraphicsItemText(GraphicsItem):
     """Reference line of the rotation axis"""
 
     def __init__(self, parent, pos_x=0, pos_y=0):
+        """
+        Init
+        :param parent:
+        :param pos_x: int
+        :param pos_y: int
+        """
         GraphicsItem.__init__(self, parent)
 
         self.pos_x = pos_x
@@ -1765,6 +1814,10 @@ class GraphicsSelectTool(GraphicsItem):
     """Draws a rectangle and selects centring points"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.custom_pen.setColor(SELECTED_COLOR)
@@ -1790,6 +1843,10 @@ class GraphicsItemCentringLines(GraphicsItem):
     """Centring lines are displayed during the 3-click centering"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.custom_pen.setColor(NORMAL_COLOR)
@@ -1848,6 +1905,10 @@ class GraphicsItemHistogram(GraphicsItem):
     """Centring lines are displayed during the 3-click centering"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
         self.hor_painter_path = None
         self.ver_painter_path = None
@@ -1894,6 +1955,10 @@ class GraphicsItemMoveBeamMark(GraphicsItem):
     """Tool to move beam mark to a new location"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.custom_pen.setColor(SELECTED_COLOR)
@@ -1932,6 +1997,10 @@ class GraphicsItemBeamDefine(GraphicsItem):
     """
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.center_coord = [0, 0]
@@ -2009,6 +2078,10 @@ class GraphicsItemMeasureDistance(GraphicsItem):
     """
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.setFlags(QtImport.QGraphicsItem.ItemIsSelectable)
@@ -2092,7 +2165,9 @@ class GraphicsItemMeasureDistance(GraphicsItem):
                     + pow((self.measure_points[0].y() - self.measure_points[1].y()), 2)
                 )
             )
-            self.scene().measureItemChanged.emit(self.measure_points, int(measured_pixels))
+            self.scene().measureItemChanged.emit(
+                self.measure_points, int(measured_pixels)
+            )
         elif len(self.measure_points) == 3:
             self.measure_points = []
             self.measure_points.append(QtImport.QPoint(position_x, position_y))
@@ -2105,6 +2180,10 @@ class GraphicsItemMeasureAngle(GraphicsItem):
     """
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.measure_points = None
@@ -2179,6 +2258,10 @@ class GraphicsItemMeasureArea(GraphicsItem):
     """
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.measured_area = None
@@ -2322,6 +2405,11 @@ class GraphicsItemMoveButton(GraphicsItem):
     """
 
     def __init__(self, parent, direction):
+        """
+        Init
+        :param parent:
+        :param direction:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.setAcceptHoverEvents(True)
@@ -2403,6 +2491,10 @@ class GraphicsMagnificationItem(GraphicsItem):
     """Magnification tool"""
 
     def __init__(self, parent):
+        """
+        Init
+        :param parent:
+        """
         GraphicsItem.__init__(self, parent)
 
         self.graphics_pixmap = QtImport.QPixmap()
@@ -2472,11 +2564,19 @@ class GraphicsMagnificationItem(GraphicsItem):
 
 
 class GraphicsView(QtImport.QGraphicsView):
+    """
+    Custom GraphicsView
+    """
+
     mouseMovedSignal = QtImport.pyqtSignal(int, int)
     keyPressedSignal = QtImport.pyqtSignal(str)
     wheelSignal = QtImport.pyqtSignal(int)
 
     def __init__(self, parent=None):
+        """
+        Init
+        :param parent:
+        """
         super(GraphicsView, self).__init__(parent)
 
         self.graphics_scene = GraphicsScene(self)
@@ -2604,6 +2704,10 @@ class GraphicsScene(QtImport.QGraphicsScene):
     measureItemChanged = QtImport.pyqtSignal(list, int)
 
     def __init__(self, parent=None):
+        """
+        Init
+        :param parent:
+        """
         super(GraphicsScene, self).__init__(parent)
 
         self.image_scale = 1
@@ -2615,6 +2719,10 @@ class GraphicsCameraFrame(QtImport.QGraphicsPixmapItem):
     """
 
     def __init__(self, parent=None):
+        """
+        Init
+        :param parent:
+        """
         super(GraphicsCameraFrame, self).__init__(parent)
 
     def mousePressEvent(self, event):
