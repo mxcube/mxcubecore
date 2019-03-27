@@ -664,10 +664,10 @@ class DetectorSetting(PositionerSetting):
     """Detector position setting"""
 
 
-
 class BcsDetectorSetting(DetectorSetting):
     """Detector position setting with additional (beamline-side) resolution and orgxy"""
-    def __init__(self, resolution, id=None,  orgxy=(), **axisSettings):
+
+    def __init__(self, resolution, id=None, orgxy=(), **axisSettings):
         PositionerSetting.__init__(self, id=id, **axisSettings)
         self._resolution = resolution
         self._orgxy = tuple(orgxy)
@@ -682,9 +682,9 @@ class BcsDetectorSetting(DetectorSetting):
         """Tuple, empty or of two floats; beam centre on detector """
         return self._orgxy
 
+
 class BeamstopSetting(PositionerSetting):
     """Beamstop position setting"""
-
 
 
 class GoniostatRotation(PositionerSetting):
@@ -1015,7 +1015,6 @@ class GeometricStrategy(IdentifiedElement, Payload):
             ll.append((tuple(dd[x] for x in sorted(dd)), sweep))
         #
         return list(tt[1] for tt in sorted(ll))
-
 
 
 class CollectionProposal(IdentifiedElement, Payload):

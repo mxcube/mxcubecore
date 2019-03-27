@@ -159,5 +159,5 @@ class QtLimaVideo(AbstractVideoDevice):
 
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print ("Image dimensions: %s" % hwo.get_image_dimensions())
+    print ("Live Mode: %s" % hwo.get_video_live())

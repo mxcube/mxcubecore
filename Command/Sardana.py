@@ -12,7 +12,9 @@ from gevent import monkey
 import Queue
 
 from HardwareRepository.CommandContainer import (
-    CommandObject, ChannelObject, ConnectionError
+    CommandObject,
+    ChannelObject,
+    ConnectionError,
 )
 
 from PyTango import DevFailed, ConnectionFailed

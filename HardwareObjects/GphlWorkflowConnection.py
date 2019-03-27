@@ -35,6 +35,7 @@ from py4j import clientserver
 
 from HardwareRepository import ConvertUtils
 from HardwareRepository.HardwareObjects import GphlMessages
+
 # NB MUST be imported via full path to match imports elsewhere:
 from HardwareRepository.HardwareObjects.queue_model_enumerables import States
 from HardwareRepository.BaseHardwareObjects import HardwareObject
@@ -163,8 +164,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
     def to_java_time(self, time):
         """Convert time in seconds since the epoch (python time) to Java time value"""
-        return self._gateway.jvm.java.lang.Long(int(time*1000))
-
+        return self._gateway.jvm.java.lang.Long(int(time * 1000))
 
     def get_executable(self, name):
         """Get location of executable binary for program called 'name'"""
@@ -262,12 +262,13 @@ class GphlWorkflowConnection(HardwareObject, object):
             )
 
         # We must get hold of the options here, as we need wdir for a property
-        workflow_options = dict(params.get("options",{}))
+        workflow_options = dict(params.get("options", {}))
         calibration_name = workflow_options.get("calibration")
         if calibration_name:
             # Expand calibration base name - to simplify identification.
-            workflow_options["calibration"] = (
-                "%s_%s" % (calibration_name,  workflow_model_obj.get_name())
+            workflow_options["calibration"] = "%s_%s" % (
+                calibration_name,
+                workflow_model_obj.get_name(),
             )
         path_template = workflow_model_obj.get_path_template()
         if "prefix" in workflow_options:
@@ -276,8 +277,10 @@ class GphlWorkflowConnection(HardwareObject, object):
             path_template.process_directory, self.getProperty("gphl_subdir")
         )
         # Hardcoded - location for log output
-        command_list.extend(ConvertUtils.java_property(
-            "co.gphl.wf.wdir", workflow_options["wdir"], quote_value=in_shell)
+        command_list.extend(
+            ConvertUtils.java_property(
+                "co.gphl.wf.wdir", workflow_options["wdir"], quote_value=in_shell
+            )
         )
 
         ll = ConvertUtils.command_option(
@@ -287,15 +290,14 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         command_list.append(params["application"])
 
-        for keyword, value in params.get("properties",{}).items():
+        for keyword, value in params.get("properties", {}).items():
             command_list.extend(
                 ConvertUtils.java_property(keyword, value, quote_value=in_shell)
             )
         for keyword, value in self.java_properties.items():
             command_list.extend(
-                ConvertUtils.java_property(keyword, value,quote_value=in_shell)
+                ConvertUtils.java_property(keyword, value, quote_value=in_shell)
             )
-
 
         for keyword, value in workflow_options.items():
             command_list.extend(
@@ -336,14 +338,16 @@ class GphlWorkflowConnection(HardwareObject, object):
         # Specifically for the stratcal wrapper.
         envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
         envs["BDG_home"] = self.software_paths["BDG_home"]
-        logging.getLogger("HWR").info("Executing GPhL workflow, in environment %s" % envs)
+        logging.getLogger("HWR").info(
+            "Executing GPhL workflow, in environment %s" % envs
+        )
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
         except BaseException:
             logging.getLogger().error("Error in spawning workflow application")
             raise
 
-        logging.getLogger('py4j.clientserver').setLevel(logging.WARNING)
+        logging.getLogger("py4j.clientserver").setLevel(logging.WARNING)
         self.set_state(States.RUNNING)
 
         logging.getLogger("HWR").debug(
@@ -1019,7 +1023,8 @@ class GphlWorkflowConnection(HardwareObject, object):
         cls = self._gateway.jvm.astra.messagebus.messages.information.SampleCentredImpl
 
         if sampleCentred.interleaveOrder:
-            result = cls(float(sampleCentred.imageWidth),
+            result = cls(
+                float(sampleCentred.imageWidth),
                 sampleCentred.wedgeWidth,
                 float(sampleCentred.exposure),
                 float(sampleCentred.transmission),
@@ -1028,17 +1033,18 @@ class GphlWorkflowConnection(HardwareObject, object):
                     self._PhasingWavelength_to_java(x)
                     for x in sampleCentred.wavelengths
                 ),
-                self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting)
+                self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting),
             )
         else:
-            result = cls(float(sampleCentred.imageWidth),
+            result = cls(
+                float(sampleCentred.imageWidth),
                 float(sampleCentred.exposure),
                 float(sampleCentred.transmission),
                 list(
                     self._PhasingWavelength_to_java(x)
                     for x in sampleCentred.wavelengths
                 ),
-                self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting)
+                self._BcsDetectorSetting_to_java(sampleCentred.detectorSetting),
             )
 
         beamstopSetting = sampleCentred.beamstopSetting
@@ -1166,8 +1172,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         orgxy_array = self._gateway.new_array(self._gateway.jvm.double, 2)
         orgxy_array[0] = orgxy[0]
         orgxy_array[1] = orgxy[1]
-        axisSettings = dict(((x, float(y))
-                             for x,y in bcsDetectorSetting.axisSettings.items()))
+        axisSettings = dict(
+            ((x, float(y)) for x, y in bcsDetectorSetting.axisSettings.items())
+        )
         javaUuid = self._gateway.jvm.java.util.UUID.fromString(
             str(bcsDetectorSetting.id)
         )
