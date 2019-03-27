@@ -4,14 +4,11 @@ import numpy as np
 from pymba import *
 
 try:
-   import cv2
+    import cv2
 except ImportError:
-   pass
+    pass
 
-try:
-   from gui.utils.QtImport import QImage, QPixmap
-except ImportError:
-   pass
+from gui.utils.QtImport import QImage, QPixmap
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
@@ -21,7 +18,7 @@ class VimbaVideo(AbstractVideoDevice):
         AbstractVideoDevice.__init__(self, name)
 
         self.camera = None
-        self.camera_id = str
+        self.camera_index = 0
         self.qimage = None
         self.qpixmap = None
         self.use_qt = False
