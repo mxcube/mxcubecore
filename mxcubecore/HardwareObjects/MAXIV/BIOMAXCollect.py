@@ -23,7 +23,7 @@ import sys
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from EigerDataSet import EigerDataSet
 

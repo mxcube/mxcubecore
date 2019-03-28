@@ -8,7 +8,7 @@ import logging
 import binascii
 
 # import threading
-from XMLRPCServer import SecureXMLRpcRequestHandler
+from HardwareRepository.HardwareObjects.XMLRPCServer import SecureXMLRpcRequestHandler
 
 try:
     from httplib import HTTPConnection

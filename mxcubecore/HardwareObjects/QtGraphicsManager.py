@@ -68,7 +68,7 @@ from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __category__ = "Graphics"
 
 
@@ -375,7 +375,7 @@ class QtGraphicsManager(HardwareObject):
         """Saves graphical objects in the file
         """
 
-        return 
+        return
         """
         graphics_config_file.write(pickle.dumps(self.dump_shapes()))
         if self.graphics_config_filename is None:

@@ -1,4 +1,4 @@
-from AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class MicrodiffLight(AbstractMotor):

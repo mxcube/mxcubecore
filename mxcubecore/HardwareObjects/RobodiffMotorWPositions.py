@@ -1,4 +1,4 @@
-from RobodiffMotor import RobodiffMotor
+from HardwareRepository.HardwareObjects.RobodiffMotor import RobodiffMotor
 import logging
 
 

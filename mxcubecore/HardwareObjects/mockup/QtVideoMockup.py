@@ -29,7 +29,9 @@ except ImportError:
     from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush
     from PyQt4.QtCore import Qt
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 
 class QtVideoMockup(AbstractVideoDevice):

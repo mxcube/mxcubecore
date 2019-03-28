@@ -1,7 +1,7 @@
 import logging
 from gevent import Timeout, sleep
 from warnings import warn
-from abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 
 class MD2TimeoutError(Exception):

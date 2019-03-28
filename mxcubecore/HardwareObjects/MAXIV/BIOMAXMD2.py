@@ -6,7 +6,7 @@ import time
 import logging
 import math
 
-from GenericDiffractometer import *
+from HardwareRepository.HardwareObjects.GenericDiffractometer import *
 
 
 class BIOMAXMD2(GenericDiffractometer):

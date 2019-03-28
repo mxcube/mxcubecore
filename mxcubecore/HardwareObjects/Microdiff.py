@@ -1,9 +1,9 @@
 import logging
 import math
 import time
-import MiniDiff
+from HardwareRepository.HardwareObjects import MiniDiff
 import gevent
-import sample_centring
+from HardwareRepository.HardwareObjects import sample_centring
 
 MICRODIFF = None
 

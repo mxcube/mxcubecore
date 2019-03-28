@@ -1,7 +1,8 @@
 import logging
 import gevent.event
-from abstract.AbstractDataAnalysis import AbstractDataAnalysis
-
+from HardwareRepository.HardwareObjects.abstract.AbstractDataAnalysis import (
+    AbstractDataAnalysis
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 

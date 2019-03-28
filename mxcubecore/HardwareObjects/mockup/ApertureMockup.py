@@ -18,7 +18,9 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from abstract.AbstractAperture import AbstractAperture
+from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
+    AbstractAperture
+)
 
 
 __credits__ = ["MXCuBE colaboration"]

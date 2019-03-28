@@ -259,8 +259,9 @@ class AbstractCollect(HardwareObject, object):
                 )
                 self.set_energy(self.current_dc_parameters["energy"])
 
-            if "resolution" in self.current_dc_parameters:
-                resolution = self.current_dc_parameters["resolution"]["upper"]
+            dd = self.current_dc_parameters.get("resolution")
+            if dd and dd.get('upper'):
+                resolution = dd["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
 
@@ -277,6 +278,16 @@ class AbstractCollect(HardwareObject, object):
             # In order to call the hook with original parameters
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
+
+            # Motor positions debug output
+            ll = sorted((tt[0] if isinstance(tt[0], (str, unicode)) else tt[0].name(), tt[1])
+                        for tt in self.current_dc_parameters['motors'].items())
+            logging.getLogger('HWR').debug("MOTORS ACQ target: "
+                                           + ', '.join('%s=%s' % (tt) for tt in ll))
+
+            ll = sorted(self.diffractometer_hwobj.get_positions().items())
+            logging.getLogger('HWR').debug("MOTORS ACQ result: "
+                                           + ', '.join('%s=%s' % (tt) for tt in ll))
             self.data_collection_hook()
 
             # ----------------------------------------------------------------
@@ -770,6 +781,18 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
+        dd = self.diffractometer_hwobj.get_positions()
+        logging.getLogger('HWR').debug(
+            'MOTORS-premove ' +
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+
+        )
+        dd = self.current_dc_parameters['motors']
+        logging.getLogger('HWR').debug(
+            'MOTORS-target ' +
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+
+        )
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
             if position:
@@ -779,6 +802,11 @@ class AbstractCollect(HardwareObject, object):
                     positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
         self.current_dc_parameters["actualCenteringPosition"] = positions_str
         self.move_motors(self.current_dc_parameters["motors"])
+        dd = self.diffractometer_hwobj.get_positions()
+        logging.getLogger('HWR').debug(
+            'MOTORS-postmove ' +
+            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+        )
 
     @abc.abstractmethod
     @task

@@ -19,7 +19,7 @@
 
 import logging
 from HardwareRepository.BaseHardwareObjects import Device
-from abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __author__ = "Jan Meyer"
 __email__ = "jan.meyer@desy.de"

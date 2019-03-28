@@ -19,7 +19,9 @@
 
 
 import gevent
-from abstract.AbstractAttenuators import AbstractAttenuators
+from HardwareRepository.HardwareObjects.abstract.AbstractAttenuators import (
+    AbstractAttenuators
+)
 
 
 class Attenuators(AbstractAttenuators):

@@ -13,7 +13,9 @@ Example xml file:
 
 import logging
 import time
-from abstract.AbstractActuator import AbstractActuator
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator
+)
 from HardwareRepository.TaskUtils import task
 
 
@@ -107,7 +109,7 @@ class MicrodiffActuator(AbstractActuator):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
             except Exception as e:
-                print e
+                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s in", self.username
                 )
@@ -126,7 +128,7 @@ class MicrodiffActuator(AbstractActuator):
                     self._wait_ready(timeout)
                 self.value_changed(self.state_attr.getValue())
             except Exception as e:
-                print e
+                print (e)
                 logging.getLogger("user_level_log").error(
                     "Cannot put %s out", self.username
                 )
