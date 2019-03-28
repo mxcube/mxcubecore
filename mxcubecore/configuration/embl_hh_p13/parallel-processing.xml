@@ -1,4 +1,4 @@
-<object class="ParallelProcessing">
+<object class="DozorParallelProcessing">
   <object href="/mxcollect" role="collect"/>
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/eh1/diff-beamstop" role="beamstop"/> 

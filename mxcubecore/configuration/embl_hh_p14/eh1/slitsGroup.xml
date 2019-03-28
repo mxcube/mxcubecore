@@ -1,0 +1,58 @@
+<device class="EMBLMotorsGroup">
+    <username>slitsMotors</username>	
+    <serverAddr>/P14/P14Atto</serverAddr>
+    <groupAddr>/Sl4Out</groupAddr>
+    <positionAddr>Position</positionAddr>
+    <statusAddr>status</statusAddr>			
+    <motors>
+	<motor>
+          <motorName>Out</motorName>
+	  <motorAddr>Sl4Out</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>0</index>
+          <velocity>None</velocity>
+          <updateTolerance>99.</updateTolerance>
+	  <evalTolerance>9999999.</evalTolerance>
+	  <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Collimated': -42000, 'Double': -131442, 'Imaging': -293679}</focusingModes>
+	</motor>
+	<motor>
+          <motorName>In</motorName>
+	  <motorAddr>Sl4In</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>1</index>
+          <velocity>None</velocity>
+          <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Collimated': 259500, 'Double': -1000000, 'Imaging':  7950}</focusingModes>
+        </motor>
+	<motor>
+          <motorName>Top</motorName>
+	  <motorAddr>Sl4Top</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>2</index>
+          <velocity>None</velocity>
+	  <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+	  <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Collimated': 199500, 'Double': 115750, 'Imaging':  11520}</focusingModes>
+        </motor>
+	<motor>
+          <motorName>But</motorName>
+	  <motorAddr>Sl4But</motorAddr>
+	  <setCmd>MOVE.start</setCmd>
+	  <stopCmd>MOVE.stop</stopCmd>
+          <index>3</index>
+          <velocity>None</velocity>
+	  <updateTolerance>99.</updateTolerance>
+          <evalTolerance>9999999.</evalTolerance>
+          <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
+          <focusingModes>{'Collimated': -295000, 'Double': -253729, 'Imaging': -484874}</focusingModes>
+        </motor>
+    </motors>
+</device>
+

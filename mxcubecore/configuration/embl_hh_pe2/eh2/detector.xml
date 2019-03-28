@@ -1,6 +1,8 @@
 <object class="EMBLDetector">
   <object hwrid="/eh2/detector-distance" role="distance_motor"/>
 
+
+  <!-- 
   <channel type="tine" name="chanTemperature" tinename="/PE2/detector/eiger4m">temperature</channel>
   <channel type="tine" name="chanHumidity" tinename="/PE2/detector/eiger4m">humidity</channel>
   <channel type="tine" name="chanStatus" tinename="/PE2/detector/eiger4m">status</channel>
@@ -10,8 +12,32 @@
   <channel type="tine" name="chanActualFrameRate" tinename="/PE2/tioga/tioga">average-speed</channel>
   <command type="tine" name="cmdRestartDaq" tinename="/PE2/detector/eiger4m">initialize</command>
 
-  <!--type>pilatus</type>
-  <model>6M_F</model>
+  <type>Eiger</type>
+  <model>4M</model>
+  <manufacturer>Dectris</manufacturer>
+  <px>0.075</px>
+  <py>0.075</py>
+  <hasShutterless>True</hasShutterless>
+  <fileSuffix>cbf</fileSuffix>
+  <bindingMode>Unbinned</bindingMode>
+  <defaultDistance>0</defaultDistance>
+  <px_min>0</px_min>
+  <px_max>64000</px_max>
+  <collectName>eiger4m</collectName>
+  <roiModes>["0"]</roiModes>
+
+  -->
+
+  <channel type="tine" name="chanTemperature" tinename="/PE2/detector/pilatus2m">temperature</channel>
+  <channel type="tine" name="chanHumidity" tinename="/PE2/detector/pilatus2m">humidity</channel>
+  <channel type="tine" name="chanStatus" tinename="/PE2/detector/pilatus2m">status</channel>
+  <channel type="tine" name="chanRoiMode" tinename="/PE2/detector/pilatus2m" attach="datachange">detector-mode</channel>
+  <channel type="tine" name="chanFrameRate" tinename="/PE2/detector/pilatus2m">frame-rate</channel>
+  <channel type="tine" name="chanBeamXY" tinename="/PE2/detector/pilatus2m">beam-xy</channel> 
+  <command type="tine" name="cmdRestartDaq" tinename="/PE2/detector/pilatus2m">initialize</command>
+
+  <type>pilatus</type>
+  <model>2M</model>
   <manufacturer>DECTRIS</manufacturer>
   <px>0.172</px>
   <py>0.172</py>
@@ -21,22 +47,8 @@
   <defaultDistance>0</defaultDistance>
   <px_min>-1</px_min>
   <px_max>64000</px_max>
-  <collectName>pilatus6m</collectName>
-  <roiModes>("0", "C18", "C2")</roiModes-->
-
-  <type>Eiger</type>
-  <model>4M</model>
-  <manufacturer>Dectris</manufacturer>
-  <px>0.075</px>
-  <py>0.075</py>
-  <hasShutterless>True</hasShutterless>
-  <fileSuffix>cbf</fileSuffix>
-  <bindingMode>Unbinned</bindingMode>
-  <defaultDistance>0</defaultDistance> 
-  <px_min>0</px_min>
-  <px_max>64000</px_max>
-  <collectName>eiger4m</collectName>
-  <roiModes>["0"]</roiModes>
+  <collectName>pilatus2m</collectName>
+  <roiModes>("0")</roiModes>
 
   <shutterName>shutter</shutterName>
   <tempThreshold>33.5</tempThreshold>

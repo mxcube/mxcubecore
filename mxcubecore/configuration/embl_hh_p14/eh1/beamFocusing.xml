@@ -2,8 +2,8 @@
     <focusModes>
 	<focusMode>
 	   <modeName>Collimated</modeName>
-           <lensCombination>[0,0,1,1,1,0]</lensCombination>
-           <lensModes>['Automatic', 'Manual']</lensModes>
+           <lensCombination>[0,1,1,1,1,0]</lensCombination>
+           <lensModes>['Automatic','Manual']</lensModes>
 	   <size>(9999, 9999) </size>
            <divergence>(20, 10)</divergence>
 	   <message>'Collimated mode. \nCrystal life time will be ~100 sec. \nBeam size will be defined by the slits within 0.020-0.300 mm.'</message>
@@ -18,12 +18,23 @@
            <message>'Double microfocued mode. \nCrystal life time will be ~0.3 sec.\n Beam size will be 0.005x0.010 mm.'</message>
            <aperture>150</aperture> 
         </focusMode>
+        <focusMode>
+           <modeName>Imaging</modeName>
+           <lensCombination>[0,0,0,0,0,0]</lensCombination>
+           <lensModes>['Manual']</lensModes>
+           <size>(9999, 9999) </size>
+           <divergence>(20, 10)</divergence>
+           <message>'Imaging mode. \n Will set the imaging camera on the beam'</message>
+           <aperture>1400</aperture>
+        </focusMode>
     </focusModes>
-    <focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI', 'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans', 'P14DetHor1', 'P14DetHor2', 'P14DetVer', 'P14DetTilt']</focusMotors>
+    <focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI', 'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans', 'P14DetHor1', 'P14DetHor2', 'P14DetVer', 'P14DetTilt', 'ShutterTrans']</focusMotors>
+
+    <!--focusMotors>['ExTblVUp', 'ExTblHUp', 'ExTblHDwn', 'ExTblVerDwnI', 'ExTblVerDwnO', 'VFM_VerTrans', 'HFM_HorTrans']</focusMotors-->
     <object hwrid="/eh1/beamFocusingMotors/P14ExpTbl" role="P14ExpTbl"/>
     <object hwrid="/eh1/beamFocusingMotors/P14KB" role="P14KB"/>
     <object hwrid="/eh1/beamFocusingMotors/P14BCU" role="P14BCU"/>
-    <object hwrid="/eh1/beamFocusingMotors/P14DetTrans" role="P14DetTrans"/>
+    <object hwrid="/eh1/beamFocusingMotors/P14DetTrans" role="P14DetTrans"/> 
     <object hwrid="/eh1/slitsMotors/slitsGroup" role="slitsMotors"/> 	 
     <object hwrid="/eh1/diff-aperture" role="aperture"/> 
 

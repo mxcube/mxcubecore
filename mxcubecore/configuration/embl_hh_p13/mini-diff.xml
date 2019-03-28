@@ -6,6 +6,7 @@
   <channel type="exporter" name="CurrentPhase">CurrentPhase</channel>
   <channel type="exporter" name="FastShutterIsOpen">FastShutterIsOpen</channel>
   <channel type="exporter" name="State">State</channel>
+  <channel type="exporter" name="Status">Status</channel>
   <channel type="exporter" name="ScintillatorPosition">ScintillatorPosition</channel>
   <channel type="exporter" name="CapillaryPosition">CapillaryPosition</channel>
 
@@ -23,7 +24,7 @@
   <object href="/eh1/diff-sampy" role="sampy"/>
   <object href="/eh1/diff-kappa" role="kappa"/>
   <object href="/eh1/diff-kappaphi" role="kappa_phi"/>
-  <object href="/Qt4_video" role="camera"/>
+  <object href="/camera" role="camera"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/centring-math" role="centring"/>
   <object href="/minikappa-correction" role="minikappa_correction"/>
@@ -33,7 +34,7 @@
 
   <!-- Alignment Z -->
   <!-- old value -0.101 -->
-  <omega_reference>{"motor_name": "phiz", "position": -0.165, "camera_axis":"y","direction": -1}</omega_reference>
+  <omega_reference>{"motor_name": "phiz", "position": -0.152, "camera_axis":"y","direction": -1}</omega_reference>
   <grid_direction>{"fast": (1, 0), "slow": (0, -1), "omega_ref" : 0.0}</grid_direction>
   <reversing_rotation>True</reversing_rotation>
 </object>
