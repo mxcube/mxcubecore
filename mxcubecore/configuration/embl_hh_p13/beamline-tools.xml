@@ -1,5 +1,6 @@
 <object class="BeamlineTools">
    <object href="/beamline-test" role="beamline_test"/>
+   <object href="/flux" role="flux"/>
    <tools>
       <tool>
        <hwobj>beamline_test</hwobj>
@@ -8,9 +9,9 @@
        <icon>QuickRealign</icon>
      </tool> 
      <tool>
-       <hwobj>beamline_test</hwobj>
-       <display>Measure intensity</display>
-       <method>measure_intensity</method>
+       <hwobj>flux</hwobj>
+       <display>Measure flux</display>
+       <method>measure_flux</method>
        <icon>Sun</icon>
      </tool>
    </tools>

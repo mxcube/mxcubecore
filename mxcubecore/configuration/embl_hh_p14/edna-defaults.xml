@@ -14,10 +14,10 @@
             <value>0.5</value>
         </aimedResolution>
         <complexity>
-            <value>min</value>
+            <value>none</value>
         </complexity>
         <maxExposureTimePerDataCollection>
-            <value>6000</value>
+            <value>600</value>
         </maxExposureTimePerDataCollection>
         <goniostatMaxOscillationSpeed>
            <value>160</value>

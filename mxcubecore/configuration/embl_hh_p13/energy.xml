@@ -10,6 +10,7 @@
   <command type="tine" name="cmdEnergyCtrlByte" tinename="/P13/Energy/P13Energy" timeout="5000">EnergyCtrlByte</command>
   <command type="tine" name="cmdReleaseBreakBragg" tinename="/P13/MonoBragg/Device 0">ReleaseBreakBragg</command>
   <command type="tine" name="cmdSetBreakBragg" tinename="/P13/MonoBragg/Device 0">SetBreakBragg</command>  
+  <command type="tine" name="cmdResetPerp" tinename="/P13/p13mono/perp">reset</command>
 
 
   <tunableEnergy>True</tunableEnergy>

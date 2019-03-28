@@ -1,4 +1,4 @@
-<device class="MotorsGroup">
+<device class="EMBLMotorsGroup">
     <username>P14BCU</username>
     <serverAddr>/P14/P14BCU</serverAddr>
     <groupAddr>/ShutterTrans</groupAddr>
@@ -15,7 +15,7 @@
           <updateTolerance>0.005</updateTolerance>
 	  <evalTolerance>0.005</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': 0.400, 'Horizontal': 0.400, 'Vertical': 0.400, 'Double': 0.400}</focusingModes>
+          <focusingModes>{'Collimated': -0.015, 'Double': -0.050, 'Imaging': -0.015}</focusingModes>
         </motor>
     </motors>
 </device>
