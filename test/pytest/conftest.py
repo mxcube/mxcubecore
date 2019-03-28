@@ -23,7 +23,14 @@ hwr_web = HardwareRepository.getHardwareRepository(hwr_web_path)
 hwr_qt.connect()
 hwr_web.connect()
 
+
 @pytest.fixture(scope="session")
 def energy_list():
     return (hwr_qt.getHardwareObject("energy-mockup"),
             hwr_web.getHardwareObject("energy-mockup"))
+
+
+@pytest.fixture(scope="session")
+def shutter_list():
+    return (hwr_qt.getHardwareObject("shutter-mockup"),
+            hwr_web.getHardwareObject("shutter-mockup"))
