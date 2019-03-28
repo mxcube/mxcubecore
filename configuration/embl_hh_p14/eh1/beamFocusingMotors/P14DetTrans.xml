@@ -1,4 +1,4 @@
-<device class="MotorsGroup">
+<device class="EMBLMotorsGroup">
     <username>P14DetTrans</username>
     <serverAddr>/P14/P14DetTrans</serverAddr>
     <groupAddr>/P14DetHor1</groupAddr>
@@ -11,11 +11,11 @@
           <setCmd>MOVE.start</setCmd>
 	  <stopCmd>MOVE.stop</stopCmd>
           <index>0</index>
-          <velocity>1</velocity>
-          <updateTolerance>0.005</updateTolerance>
-	  <evalTolerance>9990.1005</evalTolerance>
+          <velocity>20</velocity>
+          <updateTolerance>0.05</updateTolerance>
+	  <evalTolerance>10.0</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused':-79.96, 'Horizontal': -64.15, 'Vertical': -79.79, 'Double': -64.150}</focusingModes>
+          <focusingModes>{'Collimated':-77.200, 'Double': -62.615, 'Imaging': 181.2250}</focusingModes>
         </motor>
         <motor>
           <motorName>P14DetHor2</motorName>
@@ -23,11 +23,11 @@
           <setCmd>MOVE.start</setCmd>
 	  <stopCmd>MOVE.stop</stopCmd>
           <index>1</index>
-          <velocity>1</velocity>
-          <updateTolerance>0.005</updateTolerance>
-	  <evalTolerance>9990.105</evalTolerance>
+          <velocity>20</velocity>
+          <updateTolerance>0.05</updateTolerance>
+	  <evalTolerance>10.0</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': -75.660, 'Horizontal': -63.100 , 'Vertical': -75.280, 'Double': -63.1}</focusingModes>
+          <focusingModes>{'Collimated': -73.665, 'Double': -62.670, 'Imaging': 184.760}</focusingModes>
         </motor>
         <motor>
           <motorName>P14DetVer</motorName>
@@ -36,10 +36,10 @@
 	  <stopCmd>MOVe.stop</stopCmd>
           <index>2</index>
           <velocity>0.9</velocity>
-          <updateTolerance>0.005</updateTolerance>
-	  <evalTolerance>9990.105</evalTolerance>
+          <updateTolerance>0.05</updateTolerance>
+	  <evalTolerance>30.05</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': -10.5, 'Horizontal': -10.500, 'Vertical': 0.0, 'Double': 0.00}</focusingModes>
+          <focusingModes>{'Collimated': -11.700, 'Double': -0.860, 'Imaging': -11.065}</focusingModes>
         </motor>
         <motor>
           <motorName>P14DetTilt</motorName>
@@ -48,10 +48,10 @@
 	  <stopCmd>MOVE.stop</stopCmd>
           <index>3</index>
           <velocity>0.1</velocity>
-          <updateTolerance>0.5</updateTolerance>
-	  <evalTolerance>0.5</evalTolerance>
+          <updateTolerance>0.05</updateTolerance>
+	  <evalTolerance>20.05</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': -0.065, 'Horizontal': -0.065, 'Vertical': 0.375, 'Double': 0.375}</focusingModes>
+          <focusingModes>{'Collimated': 0.4500, 'Double': 1.7990, 'Imaging': 0.4500}</focusingModes>
         </motor>
     </motors>
 </device>

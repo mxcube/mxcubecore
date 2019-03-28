@@ -1,0 +1,55 @@
+<object class="EMBLXrayImaging">
+  <object href="/eh1/beamFocusing" role="beam_focusing"/>
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/graphics" role="graphics_manager"/>
+  <object href="/safshut" role="safety_shutter"/>
+  <object href="/beam-info" role="beam_info"/>
+  <object href="/mach-info" role="machine_info"/>
+  <object href="/energy" role="energy"/>
+  <object href="/flux" role="flux"/>
+  <object href="/eh1/detector" role="detector"/>
+  <object href="/eh1/resolution" role="resolution"/>
+  <object href="/attenuators" role="transmission"/>
+  <object href="/dbconnection" role="lims_client"/>
+  <object href="/session" role="session"/>
+
+  <!-- <channel type="tine" name="chanFrame" tinename="/P14/arapaho/arapaho" attach="event">frame</channel> 
+
+  <channel type="tine" name="chanFrameCount" tinename="/P14/arapaho/arapaho" attach="datachange" timeout="100">frame-count</channel>
+  <channel type="tine" name="chanFFSSIM" tinename="/P14/arapaho/arapaho">ff-ssim</channel>
+
+  <channel type="tine" name="collectStatus" tinename="/P14/collection/mx-standard" attach="event">status</channel>
+  <channel type="tine" name="collectError" tinename="/P14/collection/mx-standard" attach="event">error</channel>
+
+  <channel type="tine" name="cameraWarning" tinename="/P14/pco-camera/pco-camera">warning</channel>
+  <channel type="tine" name="cameraError" tinename="/P14/pco-camera/pco-camera">error</channel>
+
+  <command type="tine" name="collectDetector" tinename="/P14/collection/mx-standard">detector</command>
+  <command type="tine" name="collectDirectory" tinename="/P14/collection/mx-standard">directory</command>
+  <command type="tine" name="collectExposureTime" tinename="/P14/collection/mx-standard">exposure-time</command>
+  <command type="tine" name="collectInQueue" tinename="/P14/collection/mx-standard">in-queue</command>
+  <command type="tine" name="collectNumImages" tinename="/P14/collection/mx-standard">num-images</command>
+  <command type="tine" name="collectRange" tinename="/P14/collection/mx-standard">range</command>
+  <command type="tine" name="collectScanType" tinename="/P14/collection/mx-standard">scan-type</command>
+  <command type="tine" name="collectShutter" tinename="/P14/collection/mx-standard">shutter</command>
+  <command type="tine" name="collectStartAngle" tinename="/P14/collection/mx-standard">start-angle</command>
+  <command type="tine" name="collectTemplate" tinename="/P14/collection/mx-standard">template</command>
+
+  <command type="tine" name="collectStart" tinename="/P14/collection/mx-standard">collect</command>
+  <command type="tine" name="collectAbort"   tinename="/P14/collection/mx-standard">abort</command>
+  <command type="tine" name="cmdSetCallibrationName"   tinename="/P14/collection/distance">calibration</command>
+
+  <command type="tine" name="collectFFNumImages" tinename="/P14/collection/mx-standard">ff-num-images</command>
+  <command type="tine" name="collectFFOffset" tinename="/P14/collection/mx-standard">ff-offset</command>
+  <command type="tine" name="collectFFPre" tinename="/P14/collection/mx-standard">ff-pre</command>
+  <command type="tine" name="collectFFPost" tinename="/P14/collection/mx-standard">ff-post</command>
+
+  <command type="tine" name="cameraTrigger" tinename="/P14/pco-camera/pco-camera">trigger</command>
+  <command type="tine" name="cameraWriteData" tinename="/P14/pco-camera/pco-camera">write-data</command>
+  <command type="tine" name="cameraLiveView" tinename="/P14/pco-camera/pco-camera">ff-live-view</command>
+  <command type="tine" name="cameraFFSSIM" tinename="/P14/pco-camera/pco-camera">ff-ssim</command>
+
+  <command type="tine" name="collectAbort"   tinename="/P14/collection/mx-standard">abort</command> -->
+
+  <interval>40</interval>
+</object>     

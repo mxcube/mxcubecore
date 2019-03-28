@@ -1,8 +1,19 @@
 <object class="EMBLFlux">
-   <object href="/attenuators" role="transmission"/>
-   <object href="/beam-info" role="beam_info"/>
-
+   <object href="/eh1/diff-backLight" role="backlight" />
+   <object href="/beam-info" role="beam_info" />
+   <object href="/eh1/diff-beamstop" role="beamstop"/>
+   <object href="/eh1/detector" role="detector" />
+   <object href="/eh1/detector-distance" role="detector_distance"/>
+   <object href="/mini-diff" role="diffractometer"/>
+   <object href="/energy" role="energy" />
+   <object href="/fast-shut" role="fast_shutter" />
+   <object href="/attenuators" role="transmission" />
+   <object href="/session" role="session" />
+   <object href="/safshut" role="safety_shutter"/>
    
+   <channel type="tine" name="intensMean" tinename="/P14/BCUIntensity/Device0" timeout="100">ChannelsMean.get</channel>
+   <channel type="tine" name="intensRange" tinename="/P14/BCUIntensity/Device0">CurrentRange.set</channel>
+ 
    <intensity>
         <shutterOpenValue>opened</shutterOpenValue>
         <valueOnClose>1e-9</valueOnClose>

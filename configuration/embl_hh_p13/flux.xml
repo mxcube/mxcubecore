@@ -1,7 +1,17 @@
 <object class="EMBLFlux">
+   <object href="/mini-diff" role="diffractometer"/>
    <object href="/attenuators" role="transmission"/>
    <object href="/beam-info" role="beam_info"/>
-   <defaultFlux>2.3e+12</defaultFlux>
+   <object href="/eh1/diff-beamstop" role="beamstop"/>
+   <object href="/eh1/diff-backLight" role="backlight"/>
+   <object href="/eh1/detector" role="detector"/>
+   <object href="/energy" role="energy"/>
+   <object href="/fast-shut" role="fast_shutter"/>
+   <object href="/safshut" role="safety_shutter"/>
+   <object href="/session" role="session"/>
+
+   <channel type="tine" name="intensMean" tinename="/P13/BCUIntensity/Device0">ChannelsMean.get</channel>
+   <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel>
 
    <intensity>
         <shutterOpenValue>opened</shutterOpenValue>

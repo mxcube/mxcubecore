@@ -7,11 +7,11 @@
     <object href="/beamline-setup" role="beamline_setup"/>
     <object href="/crl" role="crl"/>
 
-    <channel type="tine" name="intensMean" tinename="/P14/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
+    <!-- <channel type="tine" name="intensMean" tinename="/P14/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
     <channel type="tine" name="intensRange" tinename="/P14/BCUIntensity/Device0">CurrentRange.set</channel>
     <command type="tine" name="setIntensResolution" tinename="/P14/BCUIntensity/Device0" timeout="3000">ADCResolution.set</command>
     <command type="tine" name="setIntensAcqTime" tinename="/P14/BCUIntensity/Device0" timeout="3000">AcquisitionTime.set</command>
-    <command type="tine" name="setIntensRange" tinename="/P14/BCUIntensity/Device0" timeout="3000">CurrentRange.set</command>
+    <command type="tine" name="setIntensRange" tinename="/P14/BCUIntensity/Device0" timeout="3000">CurrentRange.set</command> -->
 
     <channel type="tine" name="chanPitchScanStatus" tinename="/P14/p14mono.cdi/ScanStatus" attach="datachange">RECV</channel>
     <channel type="tine" name="chanEncoderAr" tinename="/P14/p14mono.cdi/EncAr">RECV</channel>

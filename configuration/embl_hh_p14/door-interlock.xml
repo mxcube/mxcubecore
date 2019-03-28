@@ -12,4 +12,5 @@
   <!-- <beforeUnlockCommandsPresent>True</beforeUnlockCommandsPresent>
   <beforeUnlockCommands>[{"address":"/P14/MD3/MD3_0","property":"startSetPhase","type":"query","argument":"Transfer"}]</beforeUnlockCommands>
   -->
+   <useDoorInterlock>True</useDoorInterlock>
 </device>

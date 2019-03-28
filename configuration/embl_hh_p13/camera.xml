@@ -1,6 +1,4 @@
-<device class="Qt4_VimbaVideo">
-   <type>prosilica</type>
-   <address>169.254.1.3</address>
+<device class="VimbaVideo">
    <mirror>(False, False)</mirror>
    <!-- <scaleFactor>1.50</scaleFactor> -->
    <interval>30</interval>
