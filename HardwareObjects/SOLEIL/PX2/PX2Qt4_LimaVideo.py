@@ -110,7 +110,7 @@ class PX2Qt4_LimaVideo(Qt4_LimaVideo):
 
 
 def test_hwo():
-    from QtImport import *
+    from gui.utils.QtImport import *
     import time
 
     from HardwareRepository.HardwareRepository import getHardwareRepository

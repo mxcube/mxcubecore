@@ -39,17 +39,16 @@ example xml:
 from __future__ import print_function
 import os
 import math
-import gevent
 import logging
-import numpy as np
 try:
     import cPickle as pickle
 except:
     import _pickle as pickle
 
-import QtImport
-
 from copy import deepcopy
+
+import gevent
+import numpy as np
 from scipy import ndimage, interpolate, signal
 
 from matplotlib import cm
@@ -63,13 +62,13 @@ except ImportError:
     except ImportError:
         pass
 
-# import AutoMesh
-import queue_model_objects
+from gui.utils import QtImport
+
+from HardwareRepository.HardwareObjects import queue_model_objects
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects import QtGraphicsLib as GraphicsLib
 
 __credits__ = ["MXCuBE colaboration"]
-__version__ = "2.3"
 __category__ = "Graphics"
 
 
@@ -121,10 +120,12 @@ class QtGraphicsManager(HardwareObject):
         self.temp_animation_dir = None
         self.omega_move_delta = None
         self.cursor = None
+        self.get_snapshot = None
 
         self.graphics_view = None
         self.graphics_camera_frame = None
         self.graphics_beam_item = None
+        self.graphics_info_item = None
         self.graphics_scale_item = None
         self.graphics_omega_reference_item = None
         self.graphics_centring_lines_item = None
@@ -174,12 +175,12 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_select_tool_item.hide()
         self.graphics_beam_define_item = GraphicsLib.GraphicsItemBeamDefine(self)
         self.graphics_beam_define_item.hide()
-        self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
-        self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
-            self, "right"
-        )
-        self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
-        self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
+        #self.graphics_move_up_item = GraphicsLib.GraphicsItemMoveButton(self, "up")
+        #self.graphics_move_right_item = GraphicsLib.GraphicsItemMoveButton(
+        #    self, "right"
+        #)
+        #self.graphics_move_down_item = GraphicsLib.GraphicsItemMoveButton(self, "down")
+        #self.graphics_move_left_item = GraphicsLib.GraphicsItemMoveButton(self, "left")
         self.graphics_magnification_item = GraphicsLib.GraphicsMagnificationItem(self)
         self.graphics_magnification_item.hide()
 
@@ -196,10 +197,10 @@ class QtGraphicsManager(HardwareObject):
         self.graphics_view.graphics_scene.addItem(self.graphics_measure_area_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_select_tool_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_beam_define_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
-        self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_up_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_right_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_down_item)
+        #self.graphics_view.graphics_scene.addItem(self.graphics_move_left_item)
         self.graphics_view.graphics_scene.addItem(self.graphics_magnification_item)
 
         self.graphics_view.scene().mouseClickedSignal.connect(self.mouse_clicked)
@@ -327,6 +328,7 @@ class QtGraphicsManager(HardwareObject):
         except BaseException:
             self.auto_grid_size_mm = (0.2, 0.2)
 
+        """
         self.graphics_move_up_item.setVisible(
             self.getProperty("enable_move_buttons") is True
         )
@@ -338,7 +340,8 @@ class QtGraphicsManager(HardwareObject):
         )
         self.graphics_move_left_item.setVisible(
             self.getProperty("enable_move_buttons") is True
-        )
+        ) 
+        """
 
         # self.set_scrollbars_off(\
         #     self.getProperty("scrollbars_always_off") is True)
@@ -372,8 +375,9 @@ class QtGraphicsManager(HardwareObject):
         """Saves graphical objects in the file
         """
 
-        graphics_config_file.write(pickle.dumps(self.dump_shapes()))
+        return 
         """
+        graphics_config_file.write(pickle.dumps(self.dump_shapes()))
         if self.graphics_config_filename is None:
             return
 
@@ -583,7 +587,7 @@ class QtGraphicsManager(HardwareObject):
 
             self.show_all_items()
             self.graphics_view.graphics_scene.update()
-            self.update_histogram()
+            #self.update_histogram()
             self.emit("diffractometerReady", True)
         else:
             self.hide_all_items()
@@ -682,6 +686,7 @@ class QtGraphicsManager(HardwareObject):
         :param pixels_per_mm: two floats for scaling
         :type pixels_per_mm: list with two floats
         """
+
         if type(pixels_per_mm) in (list, tuple):
             if pixels_per_mm != self.pixels_per_mm:
                 self.pixels_per_mm = pixels_per_mm
@@ -1372,7 +1377,7 @@ class QtGraphicsManager(HardwareObject):
         Y = np.arange(0, image_array.shape[1])
         X, Y = np.meshgrid(X, Y)
 
-        surf = ax.plot_surface(
+        ax.plot_surface(
             X,
             Y,
             np.transpose(image_array),
@@ -1638,19 +1643,21 @@ class QtGraphicsManager(HardwareObject):
     def create_line(self, start_point=None, end_point=None, emit=True):
         """Creates helical line if two centring points selected
         """
+        line = None
         selected_points = (start_point, end_point)
+
         if None in selected_points:
             selected_points = self.get_selected_points()
         if len(selected_points) > 1:
             line = GraphicsLib.GraphicsItemLine(selected_points[0], selected_points[1])
             self.add_shape(line, emit)
-            return line
         else:
             msg = (
                 "Please select two points (with same kappa and phi) "
                 + "to create a helical line"
             )
             logging.getLogger("GUI").error(msg)
+        return line
 
     def create_auto_line(self, cpos=None):
         """Creates a automatic helical line
@@ -1751,8 +1758,11 @@ class QtGraphicsManager(HardwareObject):
         # spawn(self.auto_grid_procedure)
 
     def auto_grid_procedure(self):
+        """Test
+        """
         logging.getLogger("user_level_log").info("Auto grid procedure started...")
-
+        temp_grid = None
+        """
         self.diffractometer_hwobj.move_omega(0)
         self.diffractometer_hwobj.move_sample_out()
         background_image = self.get_raw_snapshot(bw=True, return_as_array=True)
@@ -1811,7 +1821,7 @@ class QtGraphicsManager(HardwareObject):
 
         self.diffractometer_state_changed()
         logging.getLogger("user_level_log").info("Auto grid created")
-
+        """
         return temp_grid
 
     def update_grid_motor_positions(self, grid_object):
@@ -1884,6 +1894,7 @@ class QtGraphicsManager(HardwareObject):
         """
         self.graphics_view.scale(image_scale, image_scale)
         return
+        """
         scene_size = self.graphics_scene_size
         if image_scale == 1:
             use_scale = False
@@ -1899,6 +1910,7 @@ class QtGraphicsManager(HardwareObject):
         )
         self.graphics_view.toggle_scrollbars_enable(self.image_scale > 1)
         self.emit("imageScaleChanged", self.image_scale)
+        """
 
     def get_image_scale(self):
         """Returns current scale factor of image
@@ -1970,14 +1982,14 @@ class QtGraphicsManager(HardwareObject):
                 object_shape_dict["width"] = int(hor_roots[-1] - hor_roots[0])
                 object_shape_dict["height"] = int(ver_roots[-1] - ver_roots[0])
 
-            beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
-            beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
+            #beam_spl_x = (hor_roots[0] + hor_roots[1]) / 2.0
+            #beam_spl_y = (ver_roots[0] + ver_roots[1]) / 2.0
         except BaseException:
             logging.getLogger("user_level_log").debug(
                 "QtGraphicsManager: " + "Unable to detect object shape"
             )
-            beam_spl_x = 0
-            beam_spl_y = 0
+            #beam_spl_x = 0
+            #beam_spl_y = 0
 
         f = interpolate.interp1d(np.arange(0, hor_sum.size, 1), hor_sum)
         xx = np.arange(0, hor_sum.size, 1)
@@ -2126,7 +2138,9 @@ class QtGraphicsManager(HardwareObject):
     def set_magnification_mode(self, mode):
         """Display or hide magnification tool"""
         if mode:
-            QtImport.QApplication.setOverrideCursor(QtImport.QCursor(QtImport.Qt.ClosedHandCursor))
+            QtImport.QApplication.setOverrideCursor(
+               QtImport.QCursor(QtImport.Qt.ClosedHandCursor)
+            )
         else:
             self.set_cursor_busy(False)
         self.graphics_magnification_item.setVisible(mode)

@@ -273,7 +273,7 @@ ignore-mixin-members=yes
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=email,numpy,scipy,matplotlib,PyMca4,PyMca5,tine
+ignored-modules=email,numpy,scipy,matplotlib,PyMca4,PyMca5,tine,gui.utils,gui.utils.QtImport
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work
@@ -326,7 +326,7 @@ max-statements=50
 max-parents=7
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=30
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=2
