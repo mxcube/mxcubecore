@@ -98,6 +98,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         self.workflow_queue = None
         self._await_result = None
         self._running_process = None
+        self.collect_emulator_process = None
 
         self._state = States.OFF
 
@@ -366,14 +367,20 @@ class GphlWorkflowConnection(HardwareObject, object):
             # We are awaiting an answer - give an abort
             self._await_result.append((GphlMessages.BeamlineAbort(), None))
             time.sleep(0.2)
+        elif self._running_process is not None:
+            self._running_process = None
+            # NBNB TODO how do we close down the workflow if there is no answer pending?
+
 
         self._enactment_id = None
         self._workflow_name = None
         self.workflow_queue = None
         self._await_result = None
 
-        xx = self._running_process
-        self._running_process = None
+        # xx = self._running_process
+        # self._running_process = None
+        xx = self.collect_emulator_process
+        self.collect_emulator_process = None
         if xx is not None:
             try:
                 if xx.poll() is None:
