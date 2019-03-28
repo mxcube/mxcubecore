@@ -49,7 +49,7 @@ from datetime import datetime
 
 from gui.utils import QtImport
 
-from . import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow
