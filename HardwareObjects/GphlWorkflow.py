@@ -736,11 +736,11 @@ class GphlWorkflow(HardwareObject, object):
 
             else:
                 # No centring or recentring info
-                qe = self.enqueue_sample_centring(motor_settings=initial_settings)
                 if transcal_parameters:
                     # We can make recentring parameters.
                     # Centre now regardless and use parametters for successive sweeps
                     recen_parameters = transcal_parameters
+                    qe = self.enqueue_sample_centring(motor_settings=initial_settings)
                     translation = self.execute_sample_centring(
                         qe, sweepSetting, requestedRotationId
                     )
@@ -762,6 +762,7 @@ class GphlWorkflow(HardwareObject, object):
                     )
                 elif centre_at_start:
                     # Put on recentring queue
+                    qe = self.enqueue_sample_centring(motor_settings=initial_settings)
                     queue_entries.append(
                         (qe, sweepSetting, requestedRotationId, initial_settings)
                     )

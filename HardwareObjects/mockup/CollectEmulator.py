@@ -369,14 +369,14 @@ class CollectEmulator(CollectMockup):
 
         logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
         # NBNB TODO put in time-out, somehow
-        if running_process is not None:
-            return_code = running_process.wait()
-            self.gphl_connection_hwobj.collect_emulator_process = None
-            if return_code:
-                raise RuntimeError(
-                    "simcal process terminated with return code %s" % return_code
-                )
-            else:
-                logging.getLogger("HWR").info("Simcal collection emulation successful")
+        return_code = running_process.wait()
+        process = self.gphl_connection_hwobj.collect_emulator_process
+        self.gphl_connection_hwobj.collect_emulator_process = None
+        if return_code and process != 'ABORTED':
+            raise RuntimeError(
+                "simcal process terminated with return code %s" % return_code
+            )
+        else:
+            logging.getLogger("HWR").info("Simcal collection emulation successful")
 
         return

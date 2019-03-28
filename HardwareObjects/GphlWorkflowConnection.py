@@ -380,8 +380,8 @@ class GphlWorkflowConnection(HardwareObject, object):
         # xx = self._running_process
         # self._running_process = None
         xx = self.collect_emulator_process
-        self.collect_emulator_process = None
         if xx is not None:
+            self.collect_emulator_process = 'ABORTED'
             try:
                 if xx.poll() is None:
                     xx.send_signal(signal.SIGINT)
