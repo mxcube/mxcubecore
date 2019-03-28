@@ -1,5 +1,5 @@
 from HardwareRepository.TaskUtils import task
-from ESRF.ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
+from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 from datetime import datetime
 
 

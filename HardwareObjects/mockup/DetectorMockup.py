@@ -1,5 +1,6 @@
-import logging
-from abstract.AbstractDetector import AbstractDetector
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
@@ -51,7 +52,10 @@ class DetectorMockup(AbstractDetector, HardwareObject):
         return True
 
     def get_beam_centre(self):
-        return 0, 0
+        """Get approx detector centre (default to Pilatus values)"""
+        xval = self.getProperty('width', 2463)/2. + 0.4
+        yval = self.getProperty('height', 2527)/2. + 0.4
+        return  xval, yval
 
     def update_values(self):
         self.emit("detectorModeChanged", (self.roi_mode,))

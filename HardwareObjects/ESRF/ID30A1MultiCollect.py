@@ -6,8 +6,8 @@ import time
 
 
 from HardwareRepository.TaskUtils import task
-from ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from detectors.LimaPilatusDetector import Pilatus
+from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
+from HardwareRepository.HardwareObjects.LimaPilatusDetector import Pilatus
 
 
 class ID30A1MultiCollect(ESRFMultiCollect):

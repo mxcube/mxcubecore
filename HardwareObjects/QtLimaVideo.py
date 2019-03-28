@@ -45,7 +45,9 @@ Example Hardware Object XML file :
 """
 import logging
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 try:
     from Lima import Core
@@ -110,10 +112,9 @@ class QtLimaVideo(AbstractVideoDevice):
 
         AbstractVideoDevice.set_cam_encoding(self, cam_encoding)
 
-    """ Overloading of AbstractVideoDevice methods """
-
-    def get_raw_image_size(self):
-        if self.cam_type == "prosilica":
+    """ Overloading of GenericVideoDevice methods """
+    def get_image_dimensions(self):
+        if self.cam_type == 'prosilica':
             return list(self.camera.getMaxWidthHeight())
         elif self.cam_type == "basler":
             width = self.camera.getRoi().getSize().getWidth()
@@ -158,5 +159,5 @@ class QtLimaVideo(AbstractVideoDevice):
 
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print ("Image dimensions: %s" % hwo.get_image_dimensions())
+    print ("Live Mode: %s" % hwo.get_video_live())

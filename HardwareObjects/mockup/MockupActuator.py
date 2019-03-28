@@ -9,8 +9,9 @@ Example xml file:
 </device>
 """
 
-from abstract.AbstractActuator import AbstractActuator
-
+from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
+    AbstractActuator
+)
 
 class MockupActuator(AbstractActuator):
     def __init__(self, name):

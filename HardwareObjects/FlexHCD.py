@@ -1,8 +1,6 @@
 import base64
-import logging
-import gevent
 import cPickle
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 from PyTango.gevent import DeviceProxy
 
 

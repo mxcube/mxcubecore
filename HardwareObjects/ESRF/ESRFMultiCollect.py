@@ -1,13 +1,12 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractMultiCollect import *
-from gevent.event import AsyncResult
+from HardwareRepository.HardwareObjects.abstract.AbstractMultiCollect import *
 import logging
 import time
 import os
 import httplib
 import urllib
 import math
-from queue_model_objects import PathTemplate
+from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
 
 from ESRFMetadataManagerClient import MXCuBEMetadataClient
 

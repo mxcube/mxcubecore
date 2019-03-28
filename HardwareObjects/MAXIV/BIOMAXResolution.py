@@ -1,6 +1,5 @@
 import logging
-from HardwareRepository import HardwareRepository
-import Resolution
+from HardwareRepository.HardwareObjects import Resolution
 import math
 
 

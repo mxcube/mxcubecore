@@ -22,7 +22,9 @@ import logging
 import random
 import warnings
 
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer
+)
 from gevent.event import AsyncResult
 
 
@@ -115,6 +117,9 @@ class DiffractometerMockup(GenericDiffractometer):
         Descript. :
         """
         return "ready"
+
+    def wait_device_not_ready(self, timeout=5):
+        return
 
     def execute_server_task(self, method, timeout=30, *args):
         return

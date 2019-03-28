@@ -18,7 +18,9 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from GenericParallelProcessing import GenericParallelProcessing
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
+    GenericParallelProcessing
+)
 
 from XSDataCommon import XSDataBoolean
 from XSDataCommon import XSDataDouble
