@@ -357,6 +357,7 @@ class CollectEmulator(CollectMockup):
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
+            self.gphl_connection_hwobj.collect_emulator_process = running_process
         except BaseException:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
@@ -370,6 +371,7 @@ class CollectEmulator(CollectMockup):
         # NBNB TODO put in time-out, somehow
         if running_process is not None:
             return_code = running_process.wait()
+            self.gphl_connection_hwobj.collect_emulator_process = None
             if return_code:
                 raise RuntimeError(
                     "simcal process terminated with return code %s" % return_code
