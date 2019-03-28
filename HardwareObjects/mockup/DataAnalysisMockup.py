@@ -27,7 +27,7 @@ from XSDataMXCuBEv1_3 import XSDataResultMXCuBE
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3"
 
 

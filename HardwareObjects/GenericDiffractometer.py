@@ -38,7 +38,7 @@ except:
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 __version__ = "2.2."
 __status__ = "Draft"
@@ -175,8 +175,9 @@ class GenericDiffractometer(HardwareObject):
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
 
-        self.delay_state_polling = None # time to delay for state polling for controllers
-                                        # not updating state inmediately after cmd started
+        # time to delay for state polling for controllers
+        # not updating state inmediately after cmd started
+        self.delay_state_polling = None
 
         self.delay_state_polling = (
             None

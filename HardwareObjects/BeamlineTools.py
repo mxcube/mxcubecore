@@ -23,7 +23,7 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Ivars Karpics"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __version__ = "2.2."
 
 

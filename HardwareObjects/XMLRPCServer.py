@@ -30,7 +30,7 @@ else:
 
 __author__ = "Marcus Oskarsson, Matias Guijarro"
 __copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["MxCuBE colaboration"]
+__credits__ = ["MxCuBE collaboration"]
 
 __version__ = ""
 __maintainer__ = "Marcus Oskarsson"

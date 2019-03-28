@@ -22,7 +22,7 @@ import abc
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __version__ = "2.3"
 
 
