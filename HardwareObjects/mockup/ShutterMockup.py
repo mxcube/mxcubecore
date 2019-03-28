@@ -17,9 +17,9 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from abstract.AbstractNState import AbstractShutter
 import time
 import random
+from abstract.AbstractNState import AbstractShutter
 
 
 class ShutterMockup(AbstractShutter):
@@ -33,25 +33,32 @@ class ShutterMockup(AbstractShutter):
         self.current_state = ShutterMockup.STATE.OPEN
 
     def value_changed(self, value):
+        """See AbstractShutter"""
         self.current_state = ShutterMockup.STATE(value)
         self.emit("shutterStateChanged", self.current_state.name)
 
     def state(self):
+        """See AbstractShutter"""
         return self.current_state.name
 
     def is_open(self):
+        """See AbstractShutter"""
         return self.current_state == ShutterMockup.STATE.OPEN
 
     def is_valid(self):
+        """See AbstractShutter"""
         return self.current_state.name in dir(ShutterMockup.STATE)
 
     def open(self):
+        """See AbstractShutter"""
         self.set_state(ShutterMockup.STATE.OPEN)
 
     def close(self):
+        """See AbstractShutter"""
         self.set_state(ShutterMockup.STATE.CLOSED)
 
     def set_state(self, state, wait=False, timeout=None):
+        """See AbstractShutter"""
         time.sleep(random.uniform(0.1, 1.0))
         self.current_state = state
         self.value_changed(state.value)
