@@ -19,7 +19,6 @@
 
 import os
 import time
-import gevent
 import numpy as np
 
 try:
