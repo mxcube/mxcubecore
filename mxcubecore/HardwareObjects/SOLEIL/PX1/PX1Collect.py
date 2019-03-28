@@ -20,7 +20,7 @@ from HardwareRepository.HardwareObjects.abstract.AbstractCollect import Abstract
 from SOLEILMergeImage import merge as merge_images
 
 __author__ = "Vicente Rey Bakaikoa"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __version__ = "2.3"
 
 

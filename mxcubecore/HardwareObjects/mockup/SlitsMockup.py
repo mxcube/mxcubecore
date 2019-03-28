@@ -21,7 +21,7 @@
 from HardwareRepository.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 
 class SlitsMockup(AbstractSlits):

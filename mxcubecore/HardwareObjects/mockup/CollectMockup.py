@@ -22,7 +22,7 @@ from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 
 class CollectMockup(AbstractCollect):

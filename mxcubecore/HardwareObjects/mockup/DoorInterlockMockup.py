@@ -24,7 +24,7 @@ DoorInterlockMockup
 import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 
 class DoorInterlockMockup(HardwareObject):

@@ -196,9 +196,6 @@ class Basket(Container):
     def getNumberOfSamples(self):
         return self.samples_num
 
-    getNumberSamples = getNumberOfSamples
-
-
     def clearInfo(self):
         # self.getContainer()._reset_basket_info(self.getIndex()+1)
         self.getContainer()._triggerInfoChangedEvent()
