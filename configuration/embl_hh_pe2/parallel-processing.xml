@@ -1,3 +1,16 @@
+<object class="DozorParallelProcessing">
+  <object href="/mxcollect" role="collect"/>
+  <object href="/mini-diff" role="diffractometer"/>
+  <object href="/eh2/diff-beamstop" role="beamstop"/>
+  <processing_command>/opt/embl-hh/bin/edna_dozor.sh</processing_command>
+
+  <grid_properties>[{"grid_num_col": 6, "grid_num_row": 6, "comp_num_row": 24, "comp_num_col": 24, "inverted_rows": True},
+                    {"grid_num_col": 8, "grid_num_row": 8, "comp_num_row": 20, "comp_num_col": 20, "inverted_rows": True}]</grid_properties>
+</object>
+
+
+<!--
+
 <object class="EMBLParallelProcessing">
   <object href="/mxcollect" role="collect"/>
   <object href="/mini-diff" role="diffractometer"/>
@@ -5,5 +18,9 @@
   <channel type="tine" name="chanDozorPass" tinename="/PE2/tioga/tioga" attach="event">dozor-pass</channel>
   <channel type="tine" name="chanFrameCount" tinename="/PE2/tioga/tioga" attach="timer" timeout="100">frame-count</channel>
 
-  <grid_properties>{"grid_num_col": 6, "grid_num_row": 6, "comp_num_row": 24, "comp_num_col": 24}</grid_properties>
+  <grid_properties>[{"grid_num_col": 6, "grid_num_row": 6, "comp_num_row": 24, "comp_num_col": 24, "inverted_rows": True},
+                    {"grid_num_col": 8, "grid_num_row": 8, "comp_num_row": 20, "comp_num_col": 20, "inverted_rows": True}]</grid_properties>
 </object>
+
+-->
+

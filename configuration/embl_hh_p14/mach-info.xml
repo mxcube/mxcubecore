@@ -1,38 +1,11 @@
 <equipment class="EMBLMachineInfo">
     <object href="/flux" role="flux"/>
+    <object href="/session" role="session"/>
 
     <updateIntervalS>120</updateIntervalS>		
     <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>
     <hutchTempAddress>G47cS9:K:KL:P14EH1RaTIW_ai</hutchTempAddress>
     <hutchHumAddress>G47cS9:K:KL:P14EH1RaF_ai</hutchHumAddress>
-
-
-    <intensity>
-        <shutterOpenValue>opened</shutterOpenValue>
-	<valueOnClose>1e-9</valueOnClose>
-	<initialResolution>1</initialResolution>
-        <updateRelativeTolerance>0.1</updateRelativeTolerance>
-        <acqTimeOnCloseMs>1000</acqTimeOnCloseMs>
-        <acqTimeOnOpenMs>100</acqTimeOnOpenMs>
-	<ranges>
-	    <range>
-		<CurMax>2.5e-9</CurMax>
-		<CurOffset>-7.53517e-12</CurOffset>
-		<CurIndex>2</CurIndex>
-	    </range>
-            <range>
-                <CurMax>6.4e-6</CurMax>
-                <CurOffset>1.6e-10</CurOffset>
-                <CurIndex>1</CurIndex>
-            </range>
-            <range>
-                <CurMax>10e-2</CurMax>
-                <CurOffset>-3.42607e-05</CurOffset>
-                <CurIndex>0</CurIndex>
-            </range>
-	</ranges>
-    </intensity>	
-    <amplChannelIndex>0</amplChannelIndex>	   
 
     <object href="/safshut" role="shutter"/>
     <channel type="tine" name="machStateText" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">MachineStateText</channel>
@@ -43,11 +16,5 @@
     <channel type="tine" name="scLowLevelAlarm" tinename="/P14/P14Cryojet.CDI/LowLevelAlarm">RECV</channel>
     <channel type="tine" name="scOverflowAlarm" tinename="/P14/P14Cryojet.CDI/OverflowAlarm">RECV</channel>
     <channel type="tine" name="frontEndStatus" tinename="/PETRA/ARCHIVER/PS_0" attach="datachange">P14.Stellung</channel>
-
-    <!-- <channel type="tine" name="intensMean" tinename="/P14/BCUIntensity/Device0">ChannelsMean.get</channel>
-    <channel type="tine" name="intensRange" tinename="/P14/BCUIntensity/Device0">CurrentRange.set</channel>
-    <command type="tine" name="setIntensResolution" tinename="/P14/BCUIntensity/Device0" timeout="3000">ADCResolution.set</command>
-    <command type="tine" name="setIntensAcqTime" tinename="/P14/BCUIntensity/Device0" timeout="3000">AcquisitionTime.set</command>
-    <command type="tine" name="setIntensRange" tinename="/P14/BCUIntensity/Device0" timeout="3000">CurrentRange.set</command> -->
-
+    <channel type="tine" name="chanUndulatorGap" tinename="/P14/Energy/P14Energy">Gap</channel>
 </equipment>

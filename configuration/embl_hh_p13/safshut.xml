@@ -13,5 +13,5 @@
   <channel type="tine" name="chanCmdOpenError" tinename="/P13/ics/shutter-secondary" attach="datachange" timeout="100">open</channel>
 
   
-  <useShutter>True</useShutter>
+  <useShutter>False</useShutter>
 </device>

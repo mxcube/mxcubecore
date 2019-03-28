@@ -1,6 +1,6 @@
 <object class="EMBLCollect">
   <object href="/mini-diff" role="diffractometer"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/graphics" role="graphics_manager"/>
   <object href="/safshut" role="safety_shutter"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/mach-info" role="machine_info"/>

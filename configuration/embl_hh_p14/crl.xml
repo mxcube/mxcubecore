@@ -4,5 +4,5 @@
   <channel type="tine" name="chanCrlValue" tinename="/P14/P14CRLs.CDI/LensInBeamLimit" size="6">RECV</channel>
   <object hwrid="/energy" role="energy"/>
   <object hwrid="/eh1/beamFocusing" role="beam_focusing"/>
-  <focal_length>28.0</focal_length>
+  <focal_length>25.0</focal_length>
 </object>
