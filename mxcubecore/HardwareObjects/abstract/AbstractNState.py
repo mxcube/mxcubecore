@@ -48,7 +48,7 @@ class AbstractNState(object):
     def state(self):
         """
         Returns:
-           str: The current state name 
+           str: The current state name
         """
         return
 
@@ -64,7 +64,7 @@ class AbstractNState(object):
             state: (enum) The state to transition to
             wait: (bool) Wait for state transition to complete before returning
             timeout: (float) Raises TimeoutException if transition takes longer
-                     than timeout seconds  
+                     than timeout seconds
         """
         return
 
@@ -85,6 +85,9 @@ class ShutterState(IntEnum):
 
 
 class AbstractShutter(HardwareObject, AbstractNState):
+    """
+    Defines the common interface for shutters
+    """
     STATE = ShutterState
 
     def __init__(self, name):
