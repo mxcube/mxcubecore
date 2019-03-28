@@ -19,7 +19,7 @@
 
 import time
 import random
-from abstract.AbstractNState import AbstractShutter
+from HardwareRepository.HardwareObjects.abstract.AbstractNState import AbstractShutter
 
 
 class ShutterMockup(AbstractShutter):
