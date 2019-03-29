@@ -32,14 +32,11 @@ __category__ = "General"
 
 class EMBLEnergy(Device):
     """
-    Defines inerface to energy server
+    Defines interface to the Tine energy server
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
+
         Device.__init__(self, name)
 
         self.ready_event = None
@@ -68,10 +65,7 @@ class EMBLEnergy(Device):
         self.cmd_reset_perp = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
+
         self.moving = False
         self.ready_event = gevent.event.Event()
 

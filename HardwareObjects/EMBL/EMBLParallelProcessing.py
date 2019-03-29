@@ -52,14 +52,10 @@ __category__ = "Motor"
 
 class EMBLParallelProcessing(GenericParallelProcessing):
     """
-    EMBLParallelProcessing
+    EMBLParallelProcessing obtains Dozor on the fly processing results
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
         GenericParallelProcessing.__init__(self, name)
 
         self.chan_dozor_pass = None
@@ -67,10 +63,6 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.display_task = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
 
         GenericParallelProcessing.init(self)
 

@@ -33,18 +33,10 @@ class EMBLExporterClient(HardwareObject):
     """EMBLExport client"""
 
     def __init__(self, *args):
-        """
-        init
-        :param args:
-        """
         HardwareObject.__init__(self, *args)
         self.exporter_client = None
 
     def init(self):
-        """
-        init
-        :return:
-        """
         for client in Exporter.exporter_clients:
             self.exporter_client = Exporter.exporter_clients[client]
             return

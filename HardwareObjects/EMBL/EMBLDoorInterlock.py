@@ -38,7 +38,6 @@ class EMBLDoorInterlock(Device):
     }
 
     def __init__(self, name):
-        """__init__"""
 
         Device.__init__(self, name)
 
@@ -64,7 +63,6 @@ class EMBLDoorInterlock(Device):
         self.getState = self.get_state
 
     def init(self):
-        """init"""
 
         self.door_interlock_state = "unknown"
 

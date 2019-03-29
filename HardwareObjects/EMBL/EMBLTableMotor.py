@@ -37,10 +37,6 @@ class EMBLTableMotor(AbstractMotor):
     """
 
     def __init__(self, name):
-        """
-        Base on AbstractMotor
-        :param name: str
-        """
         AbstractMotor.__init__(self, name)
 
         self.direction = None

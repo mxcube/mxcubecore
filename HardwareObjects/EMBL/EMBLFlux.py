@@ -40,10 +40,6 @@ class EMBLFlux(AbstractFlux):
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
 
         AbstractFlux.__init__(self, name)
 

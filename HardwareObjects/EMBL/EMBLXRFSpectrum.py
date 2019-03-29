@@ -31,16 +31,8 @@ __category__ = "Task"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
-    """
-    EMBLXRFSpectrum
-    """
 
     def __init__(self, name):
-        """
-        init
-        :param name:
-        """
-
         AbstractXRFSpectrum.__init__(self)
         HardwareObject.__init__(self, name)
 
@@ -63,10 +55,6 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.cmd_adjust_transmission = None
 
     def init(self):
-        """
-        init
-        :return:
-        """
         self.ready_event = gevent.event.Event()
 
         self.energy_hwobj = self.getObjectByRole("energy")

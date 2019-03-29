@@ -37,10 +37,6 @@ class EMBLImageTracking(Device):
     """
 
     def __init__(self, *args):
-        """
-        init
-        :param args:
-        """
         Device.__init__(self, *args)
 
         self.target_ip = None
@@ -55,10 +51,7 @@ class EMBLImageTracking(Device):
         self.cmd_load_image = None
 
     def init(self):
-        """
-        init
-        :return:
-        """
+
         self.chan_enable_image_tracking = self.getChannelObject(
             "chanImageTrackingEnabled"
         )

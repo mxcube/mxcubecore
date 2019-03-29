@@ -58,10 +58,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
     """
 
     def __init__(self, *args):
-        """
-        Init
-        :param args:
-        """
         QtGraphicsManager.__init__(self, *args)
         AbstractCollect.__init__(self, *args)
 
@@ -134,10 +130,6 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.session_hwobj = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
         AbstractCollect.init(self)
         self.ready_event = gevent.event.Event()
         self.image_dimension = (2048, 2048)

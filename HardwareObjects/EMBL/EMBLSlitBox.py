@@ -92,11 +92,6 @@ class EMBLSlitBox(AbstractSlits):
     """
 
     def __init__(self, *args):
-        """
-        Init
-        :param args:
-        """
-
         AbstractSlits.__init__(self, *args)
 
         self.decimal_places = None
@@ -110,10 +105,6 @@ class EMBLSlitBox(AbstractSlits):
         self.ver_gap_enabled = False
 
     def init(self):
-        """
-        Init
-        :return:
-        """
         self.decimal_places = 6
         self.gaps_dict = {}
         self.gaps_dict["Hor"] = self["gapH"].getProperties()

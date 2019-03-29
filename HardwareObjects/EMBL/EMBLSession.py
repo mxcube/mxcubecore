@@ -41,9 +41,6 @@ class EMBLSession(Session):
     """
 
     def __init__(self, name):
-        """
-        init
-        """
         Session.__init__(self, name)
         self.start_time = time.strftime("%Y%m%d")
 

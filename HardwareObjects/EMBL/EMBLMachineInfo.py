@@ -50,10 +50,7 @@ class EMBLMachineInfo(HardwareObject):
     """
 
     def __init__(self, name):
-        """
-        init
-        :param name:
-        """
+
         HardwareObject.__init__(self, name)
 
         self.update_interval = None
@@ -141,10 +138,7 @@ class EMBLMachineInfo(HardwareObject):
         self.ppu_control_hwobj = None
 
     def init(self):
-        """
-        init
-        :return:
-        """
+
         self.update_interval = int(self.getProperty("updateIntervalS"))
         self.limits_dict = eval(self.getProperty("limits"))
         self.hutch_temp_addr = self.getProperty("hutchTempAddress")

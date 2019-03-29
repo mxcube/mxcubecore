@@ -96,10 +96,6 @@ class EMBLMotorsGroup(Device):
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
 
         Device.__init__(self, name)
         self.server_address = None
@@ -113,10 +109,6 @@ class EMBLMotorsGroup(Device):
         self.chan_status = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
         self.motors_group_position_dict = {}
         self.motors_group_status_dict = {}
         self.motors_group_foc_mode_dict = {}

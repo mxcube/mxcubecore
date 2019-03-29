@@ -37,7 +37,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     """
 
     def __init__(self, name):
-        """__init__"""
 
         AbstractDetector.__init__(self)
         HardwareObject.__init__(self, name)
@@ -72,7 +71,6 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.distance_motor_hwobj = None
 
     def init(self):
-        """init"""
 
         self.cover_state = "unknown"
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")

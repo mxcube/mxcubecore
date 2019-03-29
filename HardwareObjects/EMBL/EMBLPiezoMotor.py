@@ -32,24 +32,17 @@ __category__ = "Motor"
 
 class EMBLPiezoMotor(TINEMotor):
     """
-    Based on the TineMotor
+    Based on the TineMotor. After the move command executes additional
+    commands.
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
         TINEMotor.__init__(self, name)
 
         self.cmd_move_first = None
         self.cmd_move_second = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
         TINEMotor.init(self)
         self.cmd_move_first = self.getCommandObject("cmdMoveFirst")
         self.cmd_move_second = self.getCommandObject("cmdMoveSecond")
