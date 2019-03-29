@@ -37,8 +37,15 @@ __category__ = "General"
 
 class EMBLSession(Session):
     """
-    EMBLSEssion
+    EMBLSession
     """
+
+    def __init__(self, name):
+        """
+        init
+        """
+        Session.__init__(self, name)
+        self.start_time = time.strftime("%Y%m%d")
 
     def get_base_data_directory(self):
         """
@@ -49,21 +56,14 @@ class EMBLSession(Session):
         :returns: The base data path.
         :rtype: str
         """
-
-        if self.session_start_date:
-            start_time = self.session_start_date.split(" ")[0].replace("-", "")
-        else:
-            start_time = time.strftime("%Y%m%d")
-
         if os.getenv("SUDO_USER"):
             user = os.getenv("SUDO_USER")
         else:
             user = os.getenv("USER")
         return os.path.join(
             self.base_directory,
-            # str(os.getuid()) + "_" + str(os.getgid()),
             user,
-            start_time,
+            self.start_time,
         )
 
     """
