@@ -17,13 +17,18 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
+"""EMBLDetector"""
+
 import logging
-from HardwareRepository.HardwareObjects.abstract.AbstractDetector import AbstractDetector
+import gevent
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector,
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
@@ -32,6 +37,8 @@ class EMBLDetector(AbstractDetector, HardwareObject):
     """
 
     def __init__(self, name):
+        """__init__"""
+
         AbstractDetector.__init__(self)
         HardwareObject.__init__(self, name)
 
@@ -57,11 +64,17 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.temperature = None
         self.humidity = None
         self.actual_frame_rate = None
+        self.pixel_min = None
+        self.pixel_max = None
+        self.roi_modes_list = []
+        self.roi_mode = None
+
+        self.distance_motor_hwobj = None
 
     def init(self):
+        """init"""
 
         self.cover_state = "unknown"
-
         self.distance_motor_hwobj = self.getObjectByRole("distance_motor")
 
         self.chan_cover_state = self.getChannelObject("chanCoverState", optional=True)
@@ -120,8 +133,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         """Returns detector distance limits"""
         if self.distance_motor_hwobj is not None:
             return self.distance_motor_hwobj.getLimits()
-        else:
-            return self.default_distance_limits
+        return self.default_distance_limits
 
     def has_shutterless(self):
         """Return True if has shutterless mode"""
@@ -196,6 +208,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         self.emit("expTimeLimitsChanged", (self.exposure_time_limits,))
 
     def actual_frame_rate_changed(self, value):
+        """Updates actual frame rate"""
         self.actual_frame_rate = value
         self.emit("frameRateChanged", value)
 
@@ -223,7 +236,7 @@ class EMBLDetector(AbstractDetector, HardwareObject):
         :param state: guillotine state (close, opened, ..)
         :type state: str
         """
-        if type(state) in (list, tuple):
+        if isinstance(state, (list, tuple)):
             state = state[1]
 
         if state == 0:

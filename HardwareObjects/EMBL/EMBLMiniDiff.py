@@ -33,7 +33,9 @@ except ImportError:
             "Could not find autocentring library, " + "automatic centring is disabled"
         )
 
-from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer,
+)
 from HardwareRepository.TaskUtils import task
 
 
@@ -81,6 +83,8 @@ class EMBLMiniDiff(GenericDiffractometer):
         self.omega_reference_par = None
         self.omega_reference_pos = [0, 0]
         self.imaging_pixels_per_mm = [0, 0]
+
+        self.current_phase = None
 
     def init(self):
 
@@ -316,9 +320,7 @@ class EMBLMiniDiff(GenericDiffractometer):
         """
         self.pixels_per_mm_x = 1.0 / self.chan_calib_x.getValue()
         self.pixels_per_mm_y = 1.0 / self.chan_calib_y.getValue()
-        self.emit(
-             "pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),)
-        )
+        self.emit("pixelsPerMmChanged", ((self.pixels_per_mm_x, self.pixels_per_mm_y),))
 
     def set_phase(self, phase, timeout=80):
         """Sets diffractometer to the selected phase.
@@ -499,13 +501,13 @@ class EMBLMiniDiff(GenericDiffractometer):
             x, y = self.user_clicked_event.get()
             self.imaging_centring_hwobj.appendCentringDataPoint(
                 {
-                    "X": (x - 1024.) / self.imaging_pixels_per_mm[0],
-                    "Y": (y - 1024.) / self.imaging_pixels_per_mm[1],
+                    "X": (x - 1024.0) / self.imaging_pixels_per_mm[0],
+                    "Y": (y - 1024.0) / self.imaging_pixels_per_mm[1],
                 }
             )
             if click < 2:
                 self.motor_hwobj_dict["phi"].move_relative(90)
-            #print "rotate omega"
+            # print "rotate omega"
         # self.omega_reference_add_constraint()
         return self.imaging_centring_hwobj.centeredPosition(return_by_name=False)
 
@@ -516,8 +518,8 @@ class EMBLMiniDiff(GenericDiffractometer):
             x, y = self.user_clicked_event.get()
             self.imaging_centring_hwobj.appendCentringDataPoint(
                 {
-                    "X": (x - 1024.) / self.imaging_pixels_per_mm[0],
-                    "Y": (y - 1024.) / self.imaging_pixels_per_mm[1],
+                    "X": (x - 1024.0) / self.imaging_pixels_per_mm[0],
+                    "Y": (y - 1024.0) / self.imaging_pixels_per_mm[1],
                 }
             )
         # self.omega_reference_add_constraint()

@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,20 +15,31 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import gevent
 
-from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import AbstractXRFSpectrum
+from HardwareRepository.HardwareObjects.abstract.AbstractXRFSpectrum import (
+    AbstractXRFSpectrum,
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __credits__ = ["EMBL Hamburg"]
-__category__ = "General"
+__license__ = "LGPLv3+"
+__category__ = "Task"
 
 
 class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
+    """
+    EMBLXRFSpectrum
+    """
+
     def __init__(self, name):
+        """
+        init
+        :param name:
+        """
 
         AbstractXRFSpectrum.__init__(self)
         HardwareObject.__init__(self, name)
@@ -47,10 +58,15 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
         self.chan_spectrum_status = None
         self.chan_spectrum_consts = None
+        self.chan_scan_error = None
         self.cmd_spectrum_start = None
         self.cmd_adjust_transmission = None
 
     def init(self):
+        """
+        init
+        :return:
+        """
         self.ready_event = gevent.event.Event()
 
         self.energy_hwobj = self.getObjectByRole("energy")
@@ -75,15 +91,20 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         self.cmd_adjust_transmission = self.getCommandObject("cmdAdjustTransmission")
 
         self.chan_spectrum_status = self.getChannelObject("chanSpectrumStatus")
-        if self.chan_spectrum_status is not None:
-            self.chan_spectrum_status.connectSignal(
-                "update", self.spectrum_status_update
-            )
+        self.chan_spectrum_status.connectSignal("update", self.spectrum_status_update)
         self.chan_spectrum_consts = self.getChannelObject("chanSpectrumConsts")
+
+        self.chan_scan_error = self.getChannelObject("chanSpectrumError")
+        self.chan_scan_error.connectSignal("update", self.scan_error_update)
+
         self.config_filename = self.getProperty("configFile")
         self.write_in_raw_data = False
 
     def can_spectrum(self):
+        """
+        Returns True if one can run spectrum command
+        :return:
+        """
         return True
 
     def execute_spectrum_command(self, count_sec, filename, adjust_transmission=True):
@@ -99,7 +120,7 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
 
     def spectrum_status_update(self, status):
         """Controls execution"""
-        if self.spectrum_running == True:
+        if self.spectrum_running:
             if status == "scaning":
                 logging.getLogger("HWR").info("XRF spectrum in progress...")
             elif status == "ready":
@@ -125,3 +146,13 @@ class EMBLXRFSpectrum(AbstractXRFSpectrum, HardwareObject):
         """Adjusts transmission before executing XRF spectrum"""
         if self.cmd_adjust_transmission is not None:
             self.cmd_adjust_transmission()
+
+    def scan_error_update(self, error_msg):
+        """Prints error message
+
+        :param error_msg: error message
+        :type error_msg: str
+        :return: None
+        """
+        if len(error_msg) > 0 and self.spectrum_running:
+            logging.getLogger("GUI").error("Energy scan: %s" % error_msg)

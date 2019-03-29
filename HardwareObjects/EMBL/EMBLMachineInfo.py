@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name] EMBLMachineInfo
@@ -24,54 +24,24 @@
 Hardware Object is used to get relevant machine information
 (current, intensity, hutch temperature and humidity, and data storage disc
 information). Value limits are included
-
-[Channels]
-- chanMachCurr
-- chanStateText
-
-[Commands]
-- cmdSetIntensResolution
-- cmdSetIntensAcqTime
-- cmdSetIntensRange
-
-[Emited signals]
-- valuesChanged
-- inRangeChanged
-
-[Functions]
-- mach_current_changed()
-- machStateTextChanged()
-- updateValues()
-- setInitialIntens()
-- setExternalValues()
-
-
-[Included Hardware Objects]
-
-Example Hardware Object XML file :
-==================================
-<device class="MachineInfo">
-    <updateIntervalS>120</updateIntervalS>
-    <discPath>/home</discPath>
-    <limits>{'current':90, 'temp': 25, 'hum': 60, 'intens': 0.1,
-             'discSizeGB': 20}</limits>
-</device>
 """
 import os
 import time
 import logging
-from gevent import spawn
+
 try:
     from urllib2 import urlopen
-except:
+except ImportError:
     from urllib.request import urlopen
+
 from datetime import datetime, timedelta
+from gevent import spawn
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
@@ -80,6 +50,10 @@ class EMBLMachineInfo(HardwareObject):
     """
 
     def __init__(self, name):
+        """
+        init
+        :param name:
+        """
         HardwareObject.__init__(self, name)
 
         self.update_interval = None
@@ -110,26 +84,26 @@ class EMBLMachineInfo(HardwareObject):
         # temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = None
         temp_dict["in_range"] = True
         temp_dict["title"] = "Machine state"
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = None
         temp_dict["in_range"] = True
-        temp_dict["title"] = "Front End / Undulator gap"
+        temp_dict["title"] = "Front End, undulator gap"
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = ""
         temp_dict["value_str"] = ""
         temp_dict["in_range"] = None
         temp_dict["title"] = "Hutch temperature and humidity"
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = 1
         temp_dict["value_str"] = "Remeasure flux!"
         temp_dict["in_range"] = False
@@ -137,13 +111,13 @@ class EMBLMachineInfo(HardwareObject):
         # temp_dict['align'] = "left"
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = "???"
         temp_dict["in_range"] = None
         temp_dict["title"] = "Cryoject in place"
         self.values_list.append(temp_dict)
 
-        temp_dict = {}
+        temp_dict.clear()
         temp_dict["value"] = "Dewar level in range"
         temp_dict["in_range"] = True
         temp_dict["title"] = "Sample changer"
@@ -156,6 +130,7 @@ class EMBLMachineInfo(HardwareObject):
         self.chan_mach_curr = None
         self.chan_mach_energy = None
         self.chan_bunch_count = None
+        self.chan_frontend_status = None
         self.chan_undulator_gap = None
         self.chan_state_text = None
         self.chan_cryojet_in = None
@@ -166,6 +141,10 @@ class EMBLMachineInfo(HardwareObject):
         self.ppu_control_hwobj = None
 
     def init(self):
+        """
+        init
+        :return:
+        """
         self.update_interval = int(self.getProperty("updateIntervalS"))
         self.limits_dict = eval(self.getProperty("limits"))
         self.hutch_temp_addr = self.getProperty("hutchTempAddress")
@@ -175,8 +154,9 @@ class EMBLMachineInfo(HardwareObject):
         if self.chan_mach_curr is not None:
             self.chan_mach_curr.connectSignal("update", self.mach_current_changed)
         self.chan_state_text = self.getChannelObject("machStateText")
-        if self.chan_state_text is not None:
-            self.chan_state_text.connectSignal("update", self.state_text_changed)
+        self.chan_state_text.connectSignal("update", self.state_text_changed)
+        self.state_text_changed(self.chan_state_text.getValue())
+
         self.chan_mach_energy = self.getChannelObject("machEnergy")
         if self.chan_mach_energy is not None:
             self.chan_mach_energy.connectSignal("update", self.mach_energy_changed)
@@ -230,10 +210,6 @@ class EMBLMachineInfo(HardwareObject):
 
         self.flux_hwobj = self.getObjectByRole("flux")
         self.connect(self.flux_hwobj, "fluxInfoChanged", self.flux_info_changed)
-        # self.connect(self.flux_hwobj,
-        #             'fluxValueChanged',
-        #             self.flux_value_changed)
-
         self.temp_hum_polling = spawn(
             self.get_temp_hum_values, self.getProperty("updateIntervalS")
         )
@@ -311,11 +287,21 @@ class EMBLMachineInfo(HardwareObject):
         self.update_machine_state()
 
     def frontend_status_changed(self, value):
+        """
+        Update front end status
+        :param value:
+        :return:
+        """
         self.frontend_is_open = value[2] == 2
         self.update_machine_state()
 
     def undulator_gap_changed(self, value):
-        if type(value) in (list, tuple):
+        """
+        Update undulator gaps
+        :param value: float
+        :return:
+        """
+        if isinstance(value, (list, tuple)):
             value = value[0]
         self.undulator_gap = value / 1000
 
@@ -333,9 +319,9 @@ class EMBLMachineInfo(HardwareObject):
         else:
             self.values_list[2]["in_range"] = True
         if self.frontend_is_open:
-            self.values_list[2]["value_str"] = "Opened / %d mm" % self.undulator_gap
+            self.values_list[2]["value_str"] = "Opened, %d mm" % self.undulator_gap
         else:
-            self.values_list[2]["value_str"] = "Closed / %d mm" % self.undulator_gap
+            self.values_list[2]["value_str"] = "Closed, %d mm" % self.undulator_gap
 
         self.update_values()
 
@@ -350,6 +336,13 @@ class EMBLMachineInfo(HardwareObject):
         self.update_sc_alarm()
 
     def file_transfer_status_changed(self, total, pending, failed):
+        """
+        Updates info about file beeing transfered
+        :param total: int
+        :param pending: int
+        :param failed: int
+        :return:
+        """
         self.values_list[-1]["value"] = "%d  -  %d  -  %d" % (total, pending, failed)
         self.values_list[-1]["in_range"] = failed == 0
 
@@ -382,46 +375,34 @@ class EMBLMachineInfo(HardwareObject):
 
     def flux_info_changed(self, flux_info):
         """Sets flux value"""
-        msg_str = "Flux: %.2E ph/s\n" % flux_info["current"]["flux"]
-        msg_str += "%d%% transmission, %dx%d beam" % (
-            flux_info["current"]["transmission"],
-            flux_info["current"]["beam_size"][0] * 1000,
-            flux_info["current"]["beam_size"][1] * 1000,
-        )
 
-        self.values_list[4]["value"] = flux_info["current"]["flux"]
-        self.values_list[4]["value_str"] = msg_str
-        self.values_list[4]["in_range"] = flux_info["current"]["flux"] > 1e6
+        if flux_info["measured"] is None:
+            self.values_list[4]["value"] = 0
+            self.values_list[4]["value_str"] = "Beamline mode changed\nRemeasure flux!"
+            self.values_list[4]["in_range"] = False
+        else:
+            msg_str = "Flux: %.2E ph/s\n" % flux_info["measured"]["flux"]
+            msg_str += "%d%% transmission, %dx%d beam" % (
+                flux_info["measured"]["transmission"],
+                flux_info["measured"]["size_x"] * 1000,
+                flux_info["measured"]["size_y"] * 1000,
+            )
+
+            self.values_list[4]["value"] = flux_info["measured"]["flux"]
+            self.values_list[4]["value_str"] = msg_str
+            self.values_list[4]["in_range"] = flux_info["measured"]["flux"] > 1e6
         self.update_values()
 
     def flux_value_changed(self, flux_value):
+        """
+        Updates flux value
+        :param flux_value:
+        :return:
+        """
         self.values_list[4]["value"] = flux_value
         self.values_list[4]["value_str"] = "%.2E ph/s" % flux_value
         self.values_list[4]["in_range"] = flux_value > 1e6
         self.update_values()
-
-    def get_flux(self, beam_info=None, transmission=None):
-        """Returns flux value"""
-
-        """
-        if beam_info:
-            if beam_info['shape'] == 'ellipse':
-                flux_area = 3.141592 * pow(beam_info['size_x'] / 2, 2)
-            else:
-                flux_area = beam_info['size_x'] * beam_info['size_y']
-
-        new_flux_value = self.values_list[3]['value']
-        if self.flux_area:
-            new_flux_value = self.values_list[3]['value'] * (flux_area / self.flux_area)
-        if self.last_transmission is not None:
-            new_flux_value = new_flux_value * (transmission / self.last_transmission)
-
-        self.values_list[3]['value'] = new_flux_value
-        self.values_list[3]['value_str'] = "%.2e ph/s" % new_flux_value
-        self.values_list[3]['in_range'] = new_flux_value > 0
-        self.update_values()
-        """
-        return self.values_list[3]["value"]
 
     def update_values(self):
         """Emits list of values"""
@@ -449,7 +430,8 @@ class EMBLMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_current(self):
-        "Returns current" ""
+        """Returns current
+        """
         return self.values_list[0]["value"]
 
     def get_current_value(self):
@@ -537,6 +519,11 @@ class EMBLMachineInfo(HardwareObject):
         return last_value
 
     def update_ramdisk_size(self, sleep_time):
+        """
+        Updates ramdisk size
+        :param sleep_time:
+        :return:
+        """
         while True:
             total, free, perc = self.get_ramdisk_size()
             if None in (total, free, perc):
@@ -554,6 +541,10 @@ class EMBLMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_ramdisk_size(self):
+        """
+        Gets ramdisk size
+        :return:
+        """
         data_dir = "/ramdisk/"
         # p = '/' + data_dir.split('/')[1]
         # data_dir = str(p)
