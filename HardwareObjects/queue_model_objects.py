@@ -1502,8 +1502,8 @@ class AcquisitionParameters(object):
         self.energy = float()
         self.centred_position = CentredPosition()
         self.resolution = float()
-        # detector_distance ('detdistance') used if resolution is 0 or None
-        self.detdistance = float()
+        # detector_distance used if resolution is 0 or None
+        self.detector_distance = float()
         self.transmission = float()
         self.inverse_beam = False
         self.shutterless = False
@@ -1546,7 +1546,7 @@ class AcquisitionParameters(object):
             "num_lines": self.num_lines,
             "energy": self.energy,
             "resolution": self.resolution,
-            "detdistance": self.detdistance,
+            "detector_distance": self.detector_distance,
             "transmission": self.transmission,
             "inverse_beam": self.inverse_beam,
             "shutterless": self.shutterless,
@@ -1661,7 +1661,7 @@ class CentredPosition(object):
                 setattr(self, motor_name, position)
 
     def as_dict(self):
-        result = dict(
+        return dict(
             zip(
                 CentredPosition.DIFFRACTOMETER_MOTOR_NAMES,
                 [
@@ -1670,8 +1670,6 @@ class CentredPosition(object):
                 ],
             )
         )
-        #
-        return result
 
     def set_from_dict(self, params_dict):
         for dict_item in params_dict.items():
@@ -1980,7 +1978,7 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "residues": proc_params.num_residues,
             "dark": acq_params.take_dark_current,
             "resolution": {"upper": acq_params.resolution or 0.0},
-            "detdistance": acq_params.detdistance,
+            "detector_distance": acq_params.detector_distance,
             "transmission": acq_params.transmission,
             "energy": acq_params.energy,
             "oscillation_sequence": [

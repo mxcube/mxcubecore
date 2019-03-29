@@ -265,12 +265,12 @@ class AbstractCollect(HardwareObject, object):
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
 
-            elif "detdistance" in self.current_dc_parameters:
+            elif "detector_distance" in self.current_dc_parameters:
                 log.info(
                     "Collection: Moving detector to %.2f",
                     self.current_dc_parameters["detdistance"],
                 )
-                self.move_detector(self.current_dc_parameters["detdistance"])
+                self.move_detector(self.current_dc_parameters["detector_distance"])
 
             # ----------------------------------------------------------------
             # Site specific implementation of a data collection
@@ -279,15 +279,16 @@ class AbstractCollect(HardwareObject, object):
             # before update_data_collection_in_lims changes them
             # TODO check why this happens
 
-            # Motor positions debug output
-            ll = sorted((tt[0] if isinstance(tt[0], (str, unicode)) else tt[0].name(), tt[1])
-                        for tt in self.current_dc_parameters['motors'].items())
-            logging.getLogger('HWR').debug("MOTORS ACQ target: "
-                                           + ', '.join('%s=%s' % (tt) for tt in ll))
+            # # Motor positions debug output
+            # ll = sorted((tt[0] if isinstance(tt[0], (str, unicode)) else tt[0].name(), tt[1])
+            #             for tt in self.current_dc_parameters['motors'].items())
+            # logging.getLogger('HWR').debug("MOTORS ACQ target: "
+            #                                + ', '.join('%s=%s' % (tt) for tt in ll))
+            #
+            # ll = sorted(self.diffractometer_hwobj.get_positions().items())
+            # logging.getLogger('HWR').debug("MOTORS ACQ result: "
+            #                                + ', '.join('%s=%s' % (tt) for tt in ll))
 
-            ll = sorted(self.diffractometer_hwobj.get_positions().items())
-            logging.getLogger('HWR').debug("MOTORS ACQ result: "
-                                           + ', '.join('%s=%s' % (tt) for tt in ll))
             self.data_collection_hook()
 
             # ----------------------------------------------------------------

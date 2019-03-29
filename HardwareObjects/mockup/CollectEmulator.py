@@ -175,7 +175,7 @@ class CollectEmulator(CollectMockup):
             setup_data["phi_axis"] = ll[6:]
 
         # get resolution limit and detector distance
-        detector_distance = data_collect_parameters.get("detdistance", 0.0)
+        detector_distance = data_collect_parameters.get("detector_distance", 0.0)
         if not detector_distance:
             resolution = data_collect_parameters["resolution"]["upper"]
             self.set_resolution(resolution)
@@ -241,24 +241,6 @@ class CollectEmulator(CollectMockup):
         """Spawns data emulation using gphl simcal"""
 
         data_collect_parameters = self.current_dc_parameters
-
-        # logging.getLogger("HWR").debug(
-        #     "Emulator: nominal position "
-        #     + ", ".join(
-        #         "%s=%s" % (tt)
-        #         for tt in sorted(data_collect_parameters["motors"].items())
-        #         if tt[1] is not None
-        #     )
-        # )
-
-        # logging.getLogger("HWR").debug(
-        #     "Emulator:  actual position "
-        #     + ", ".join(
-        #         "%s=%s" % tt
-        #         for tt in sorted(self.diffractometer_hwobj.get_positions().items())
-        #         if tt[1] is not None
-        #     )
-        # )
 
         # Done here as there are what-happens-first conflicts
         # if you put it in init
