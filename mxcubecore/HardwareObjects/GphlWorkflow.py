@@ -988,7 +988,7 @@ class GphlWorkflow(HardwareObject, object):
             # acq_parameters.overlap = overlap
             acq_parameters.exp_time = scan.exposure.time
             acq_parameters.num_passes = 1
-            acq_parameters.detdistance = sweep.detectorSetting.axisSettings.get(
+            acq_parameters.detector_distance = sweep.detectorSetting.axisSettings.get(
                 "Distance"
             )
             acq_parameters.resolution = 0.0  # Use detector distance
