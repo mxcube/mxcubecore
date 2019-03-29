@@ -145,7 +145,7 @@ class EMBLBSD(GenericDiffractometer):
         self.emit("statusMessage", ("diffractometer", state, "busy"))
 
     def zoom_position_changed(self, value):
-        """Updates pixels per mm"""
+        """After the zoom change updates pixels per mm"""
         self.update_pixels_per_mm()
         self.current_motor_positions["zoom"] = value
 
@@ -203,7 +203,7 @@ class EMBLBSD(GenericDiffractometer):
             self.cmd_start_set_phase(phase)
 
     def start_auto_focus(self, timeout=None):
-        """Autofocus methos"""
+        """Autofocus method"""
         if timeout:
             self.ready_event.clear()
             gevent.spawn(self.execute_server_task, self.cmd_start_auto_focus(), timeout)
