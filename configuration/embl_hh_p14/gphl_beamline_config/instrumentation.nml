@@ -1,36 +1,35 @@
 &sdcp_instrument_list
-! Values from Roeland Boer 20180312
+! Values based on P14 config files 20190329 and Gleb email 20170410
 
 calibration_name= 'Initial'
-beamline_name= 'XALOC13'
+beamline_name= 'P14'
 coord_sys_name= 'UNKNOWN'
-! Changed from RB input, but necessary to get images
-nominal_beam_dir= 0.0  -1.0  0.0
+nominal_beam_dir= 0.0  0.0  1.0
 
 beam_sd_deg= 0.03 0.03
-! lambd_sd is a reasonable default (WP), but not specifically determined
 lambda_sd= 0.0002
 pol_plane_n= 0.0 0.0 1.0
 pol_frac= 0.99
 
-det_name= "PILATUS6M"
+det_name= "eiger16m"
 det_x_axis= 1.0  0.0  0.0
-det_y_axis= 0.0  0.0  1.0
-det_qx= 0.172000
-det_qy= 0.172000
+det_y_axis= 0.0  1.0  0.0
+det_qx= 0.075000
+det_qy= 0.075000
 
-det_nx= 2463
-det_ny= 2527
-det_org_x= 1236.0
-det_org_y= 1307.0
+det_nx= 4150
+det_ny= 4371
+det_org_x= 2078.0
+det_org_y= 2180.0
 det_org_dist= 240.581970
+d_sensor= 0.45
 
-! NB nothing given by Ronald Boer in this block
 det_gonio_axis_dirs=  0.0  0.0  1.0
+ ! Detector movement axis
  ! Actual value is irrelevant, since axis is (nominally) parallel to beam
  ! and we don't refine its direction
 det_gonio_axis_datum_settings= 500
-det_gonio_axis_limits= 195 1000
+det_gonio_axis_limits= 0 1000
 det_gonio_axis_names= 'Distance'
 det_gonio_axis_types= 'Translation'
 det_gonio_axis_calibratable = 'False'
@@ -39,28 +38,23 @@ det_gonio_axis_calibratable = 'False'
 det_filename_suffix= '.cbf'
 
 gonio_name= "MiniKappa"
-gonio_axis_dirs= 1.0 0.0 0.0,
+gonio_axis_dirs= 0.0, -1.0, 0.0,
    ! Normalised to sum to 1.0000000 exactly
-   0.915811981182143  -0.2841353  0.28382309,
-   1.0 0.0 0.0
-! NB datum settings given incorrectly in info email
+   0.186051,-0.9135454938310407,0.36169,
+   0.0, -1.0, 0.0,
 gonio_axis_datum_settings= 0 0 0
-gonio_axis_limits= , , 0, 255, , ,
+gonio_axis_limits= , , -5, 240, , ,
 gonio_axis_names= 'phi' 'kappa' 'kappa_phi'
 gonio_axis_scannable= 'True' 'False' 'False'
 gonio_axis_calibratable= 'False' 'True' 'True'
 
-! Nominal centring axis directions with correct signs
-gonio_centring_axis_dirs=  1.0,  0.0,  0.0,
-                           0.0, -1.0,  0.0,
-                           0.0,  0.0,  1.0
+! Nominal centring axis directions
+gonio_centring_axis_dirs=  0.0,  1.0,  0.0,
+                          -0.281085,  0, 0.959683,
+                           0.959683,  0, 0.281085
 ! Actual limits on centring axes
-gonio_centring_axis_limits=  -1.5, 21.55, -2.2, 2.2, -2.55, 2.55
-! NB renamed version is WRONG for ALBA, butnecessary to fit with mock objects
-! gonio_centring_axis_names= 'omegax', 'centx', 'centy'
+gonio_centring_axis_limits=   ,  ,  ,  ,  ,
 gonio_centring_axis_names= 'phiy', 'sampx', 'sampy'
-! At omega=0: centx antiparallel to beam, centy perpendicular.
-! omegax parallel to omega
 
 !? FIXME! Sort out ID30B beamstop on the fly (or delete it?) 
 ! Need beamstop for I04 for now, to get a realistic beamstop shadow
