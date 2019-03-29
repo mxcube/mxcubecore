@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,17 +15,25 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+"""EMBLSafetyShutter"""
 
 import logging
+
 from HardwareRepository.BaseHardwareObjects import Device
 
 
-__version__ = "2.3."
+__credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
 class EMBLSafetyShutter(Device):
+    """
+    EMBLSafetyShutter
+    """
+
     shutter_state_list = {
         3: "unknown",
         1: "closed",
@@ -38,6 +46,10 @@ class EMBLSafetyShutter(Device):
     }
 
     def __init__(self, name):
+        """
+        init
+        :param name:
+        """
         Device.__init__(self, name)
 
         self.use_shutter = None
@@ -45,7 +57,9 @@ class EMBLSafetyShutter(Device):
         self.shutter_can_open = None
         self.shutter_state = None
         self.shutter_state_open = None
-        self.shutter_state_closed = None
+        # GB 20190304: per misteriously disappearing first update of
+        # shutter_state_closed:
+        self.shutter_state_closed = True
         self.shutter_can_open = None
 
         self.chan_collection_state = None
@@ -64,16 +78,20 @@ class EMBLSafetyShutter(Device):
         self.getWagoState = self.getShutterState
 
     def init(self):
+        """
+        init
+        :return:
+        """
         self.chan_collection_state = self.getChannelObject("chanCollectStatus")
         if self.chan_collection_state:
             self.chan_collection_state.connectSignal(
                 "update", self.data_collection_state_changed
             )
 
-        self.chan_state_open = self.getChannelObject("chanStateOpen")
-        self.chan_state_open.connectSignal("update", self.state_open_changed)
         self.chan_state_closed = self.getChannelObject("chanStateClosed")
         self.chan_state_closed.connectSignal("update", self.state_closed_changed)
+        self.chan_state_open = self.getChannelObject("chanStateOpen")
+        self.chan_state_open.connectSignal("update", self.state_open_changed)
 
         self.chan_state_open_permission = self.getChannelObject(
             "chanStateOpenPermission"
@@ -105,9 +123,17 @@ class EMBLSafetyShutter(Device):
         self.state_open_changed(self.chan_state_open.getValue())
 
     def connected(self):
+        """
+        Sets is ready
+        :return:
+        """
         self.setIsReady(True)
 
     def disconnected(self):
+        """
+        Sets not ready
+        :return:
+        """
         self.setIsReady(False)
 
     def data_collection_state_changed(self, state):
@@ -127,6 +153,7 @@ class EMBLSafetyShutter(Device):
         :type state: str
         :return: None
         """
+
         self.shutter_state_open = state
         self.getShutterState()
 
@@ -190,7 +217,9 @@ class EMBLSafetyShutter(Device):
         else:
             self.shutter_state = "unknown"
 
-        if self.shutter_state_closed and not self.shutter_can_open:
+        # GB 20190304: per misteriously disappearing first update of shutter_state_closed:
+        # if self.shutter_state_closed and not self.shutter_can_open:
+        if not self.shutter_state_open and not self.shutter_can_open:
             self.shutter_state = "noperm"
             msg = "No permission"
 
@@ -202,9 +231,14 @@ class EMBLSafetyShutter(Device):
             self.shutter_state = self.shutter_state_list[0]
 
         self.emit("shutterStateChanged", (self.shutter_state, msg))
+
         return self.shutter_state
 
     def is_opened(self):
+        """
+        Returns True if shutter is opened
+        :return:
+        """
         return self.shutter_state_open
 
     def openShutter(self):

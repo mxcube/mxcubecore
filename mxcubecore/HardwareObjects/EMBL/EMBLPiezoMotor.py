@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,27 +15,41 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+"""
+EMBLPiezoMotor
+"""
 
 import logging
-import gevent
 
 from TINEMotor import TINEMotor
 
-
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3"
+__license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
 class EMBLPiezoMotor(TINEMotor):
+    """
+    Based on the TineMotor
+    """
+
     def __init__(self, name):
+        """
+        Init
+        :param name:
+        """
         TINEMotor.__init__(self, name)
 
         self.cmd_move_first = None
         self.cmd_move_second = None
 
     def init(self):
+        """
+        Init
+        :return:
+        """
         TINEMotor.init(self)
         self.cmd_move_first = self.getCommandObject("cmdMoveFirst")
         self.cmd_move_second = self.getCommandObject("cmdMoveSecond")

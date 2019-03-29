@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -23,7 +23,7 @@ from HardwareRepository.BaseHardwareObjects import Device
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
@@ -38,6 +38,8 @@ class EMBLDoorInterlock(Device):
     }
 
     def __init__(self, name):
+        """__init__"""
+
         Device.__init__(self, name)
 
         self.use_door_interlock = None
@@ -62,6 +64,8 @@ class EMBLDoorInterlock(Device):
         self.getState = self.get_state
 
     def init(self):
+        """init"""
+
         self.door_interlock_state = "unknown"
 
         self.detector_distance_hwobj = self.getObjectByRole("detector_distance")
@@ -125,9 +129,11 @@ class EMBLDoorInterlock(Device):
         self.setIsReady(True)
 
     def disconnected(self):
+        """Sets not ready"""
         self.setIsReady(False)
 
     def state_breakable_changed(self, state):
+        """Updates door interlock state"""
         self.door_interlock_breakabled = state
         self.get_state()
 
@@ -208,4 +214,5 @@ class EMBLDoorInterlock(Device):
             logging.getLogger("HWR").info("Door is Interlocked")
 
     def update_values(self):
+        """Updates state"""
         self.get_state()

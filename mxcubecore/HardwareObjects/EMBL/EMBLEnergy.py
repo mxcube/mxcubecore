@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,20 +15,31 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
+"""EMBLEnergy"""
+
 import logging
+import gevent
+
 from HardwareRepository.BaseHardwareObjects import Device
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
 class EMBLEnergy(Device):
+    """
+    Defines inerface to energy server
+    """
+
     def __init__(self, name):
+        """
+        Init
+        :param name:
+        """
         Device.__init__(self, name)
 
         self.ready_event = None
@@ -56,10 +67,11 @@ class EMBLEnergy(Device):
         self.cmd_release_break_bragg = None
         self.cmd_reset_perp = None
 
-        self.get_energy_limits = self.getEnergyLimits
-        self.get_wavelength_limits = self.getWavelengthLimits
-
     def init(self):
+        """
+        Init
+        :return:
+        """
         self.moving = False
         self.ready_event = gevent.event.Event()
 
@@ -67,7 +79,7 @@ class EMBLEnergy(Device):
         self.cmd_energy_ctrl_byte = self.getCommandObject("cmdEnergyCtrlByte")
         self.cmd_set_break_bragg = self.getCommandObject("cmdSetBreakBragg")
         self.cmd_release_break_bragg = self.getCommandObject("cmdReleaseBreakBragg")
-        self.cmd_reset_perp = self.getCommandObject('cmdResetPerp')
+        self.cmd_reset_perp = self.getCommandObject("cmdResetPerp")
 
         self.chan_energy = self.getChannelObject("chanEnergy")
         if self.chan_energy is not None:
@@ -118,22 +130,37 @@ class EMBLEnergy(Device):
             self.energy_position_changed(self.default_en * 1000)
 
     def can_move_energy(self):
-        """Returns True if possible to change energy"""
+        """
+        Returns True if possible to change energy
+        """
         return self.tunable
 
-    def isConnected(self):
-        """Returns True if connected"""
+    def is_connected(self):
+        """
+        Returns True if connected
+        """
         return True
 
-    def isReady(self):
-        """Returns always True"""
+    def is_ready(self):
+        """
+        Returns always True
+        """
         return True
 
     def set_do_beam_alignment(self, state):
+        """
+        Enables/disable beam alignment after changing the energy
+        :param state: boolean
+        :return:
+        """
         self.do_beam_alignment = state
 
-    def getCurrentEnergy(self):
-        """Returns current energy in keV"""
+    def get_current_energy(self):
+        """
+        Returns current energy in keV
+        :return: float
+        """
+
         value = self.default_en
         if self.chan_energy is not None:
             try:
@@ -146,14 +173,23 @@ class EMBLEnergy(Device):
                 return None
         return value
 
-    def getCurrentWavelength(self):
-        """Returns current wavelength in A"""
-        current_en = self.getCurrentEnergy()
-        if current_en is not None:
-            return 12.3984 / current_en
+    def get_current_wavelength(self):
+        """
+        Returns current wavelength in A
+        :return: float
+        """
+        current_en = self.get_current_energy()
+        current_wav = None
 
-    def getEnergyLimits(self):
-        """Returns energy limits as list of two floats"""
+        if current_en is not None:
+            current_wav = 12.3984 / current_en
+        return current_wav
+
+    def get_energy_limits(self):
+        """
+        Returns energy limits as list of two floats
+        :return: (float, float)
+        """
         if self.chan_limit_low is not None and self.chan_limit_high is not None:
             try:
                 self.en_lims[0] = self.chan_limit_low.getValue()
@@ -164,8 +200,11 @@ class EMBLEnergy(Device):
                 )
         return self.en_lims
 
-    def getWavelengthLimits(self):
-        """Returns wavelength limits as list of two floats"""
+    def get_wavelength_limits(self):
+        """
+        Returns wavelength limits as list of two floats
+        :return: (float, float)
+        """
         lims = None
         self.en_lims = self.getEnergyLimits()
         if self.en_lims is not None:
@@ -173,53 +212,92 @@ class EMBLEnergy(Device):
         return lims
 
     def move_energy_started(self):
+        """
+        Emits moveEnergyStarted signal
+        :return:
+        """
         self.emit("moveEnergyStarted", ())
 
     def move_energy_failed(self):
+        """
+        Emits moveEnergyFailedsignal
+        :return:
+        """
         self.moving = False
         self.emit("moveEnergyFailed", ())
 
     def move_energy_aborted(self):
+        """
+        Emits moveEnergyFailed signal
+        :return:
+        """
         self.moving = False
         self.emit("moveEnergyFailed", ())
 
     def move_energy_finished(self, result):
+        """
+        Emits moveEnergyFinished signal
+        :param result:
+        :return:
+        """
         self.moving = False
         self.emit("moveEnergyFinished", ())
 
     def check_limits(self, value):
-        """Checks given value if it is within limits"""
+        """
+        Checks given value if it is within limits
+        """
         logging.getLogger("HWR").info("Checking the move limits")
-        if value >= self.en_lims[0] and value <= self.en_lims[1]:
+        result = False
+
+        if self.en_lims[0] <= value <= self.en_lims[1]:
             logging.getLogger("HWR").info("Limits ok")
-            return True
-        logging.getLogger("GUI").info("Energy: Requested value is out of limits")
-        return False
+            result = True
+        else:
+            logging.getLogger("GUI").info("Energy: Requested value is out of limits")
+        return result
 
     def start_move_wavelength(self, value, wait=True):
+        """
+        Starts wavelength change
+        :param value: float
+        :param wait: boolean
+        :return:
+        """
         logging.getLogger("HWR").info("Moving wavelength to (%s)" % value)
         return self.move_energy(12.3984 / value, wait)
         # return self.startMoveEnergy(value, wait)
 
     def cancel_move_energy(self):
+        """
+        Cancels energy change
+        :return:
+        """
         logging.getLogger("user_level_log").info("Energy: Cancel move")
         # self.moveEnergy.abort()
 
     def move_energy(self, energy, wait=True):
-        """In our case we set energy in keV"""
+        """
+        In our case we set energy in keV
+        """
         # gevent.spawn(self.move_energy_task(energy))
         self.move_energy_task(energy)
 
     def move_energy_task(self, energy):
-        current_en = self.getCurrentEnergy()
+        """
+        Actual energy change task
+        :param energy: in keV, float
+        :return:
+        """
+        current_en = self.get_current_energy()
         pos = abs(current_en - energy)
         self.delta = pos
         if pos < 0.001:
             self.emit("stateChanged", ("ready",))
         else:
-            #if energy <= 6: 
+            # if energy <= 6:
             #    self.cmd_energy_ctrl_byte(self.ctrl_bytes[0])
-            #else:
+            # else:
             #    self.cmd_energy_ctrl_byte(self.ctrl_bytes[1])
             if self.cmd_energy_ctrl_byte is not None:
                 if pos > 0.1:
@@ -241,11 +319,22 @@ class EMBLEnergy(Device):
                 self.energy_position_changed([energy * 1000])
 
     def move_wavelength(self, value, wait=True):
+        """
+        Changes wavelength
+        :param value:
+        :param wait:
+        :return:
+        """
         self.move_energy(12.3984 / value, wait)
 
     def energy_position_changed(self, pos):
+        """
+        Event called when energy value has been changed
+        :param pos: float
+        :return:
+        """
         # self.moveEnergyCmdFinished(True)
-        if type(pos) in (list, tuple):
+        if isinstance(pos, (list, tuple)):
             pos = pos[0]
         energy = pos / 1000
         if abs(energy - self.current_energy) > 1e-3:
@@ -256,10 +345,20 @@ class EMBLEnergy(Device):
                 self.emit("valueChanged", (self.current_energy,))
 
     def energy_limits_changed(self, limits):
+        """
+        Updates energy limits
+        :param limits: (float, float)
+        :return:
+        """
         limits = self.getEnergyLimits()
         self.emit("energyLimitsChanged", (limits,))
 
     def energy_state_changed(self, state):
+        """
+        Updates energy status
+        :param state: int
+        :return:
+        """
         # logging.getLogger('HWR').info("Energy: State changed to %s" % str(state))
         self.energy_server_check_for_errors(state)
         state = int(state[0])
@@ -268,7 +367,7 @@ class EMBLEnergy(Device):
                 self.moving = False
                 self.set_break_bragg()
                 if self.cmd_reset_perp is not None:
-                    logging.getLogger('HWR').info("Energy: Perp reset sent")
+                    logging.getLogger("HWR").info("Energy: Perp reset sent")
                     self.cmd_reset_perp()
             self.move_energy_finished(0)
             self.emit("stateChanged", "ready")
@@ -281,12 +380,22 @@ class EMBLEnergy(Device):
             self.move_energy_started()
             self.emit("stateChanged", "busy")
 
-    def wait_ready(self, timeout=10):
-        with gevent.Timeout(20, Exception("Energy: Timeout waiting for energy ready")):
+    def wait_ready(self, timeout=20):
+        """
+        Waits till energy change is done
+        :param timeout: sec in int
+        :return:
+        """
+        with gevent.Timeout(timeout, Exception("Energy: Timeout waiting for ready")):
             while self.chan_status.getValue()[0] != 0:
                 gevent.sleep(0.1)
 
     def energy_server_check_for_errors(self, state):
+        """
+        Displays error message if the energy change fails
+        :param state: list of ints
+        :return:
+        """
         if state[0] == 1.0 or state[1] == 63:
             return
         elems = ["hdm1", "hdm2", "roll", "undulator", "bragg", "perp"]
@@ -300,27 +409,53 @@ class EMBLEnergy(Device):
         self.emit("statusInfoChanged", message)
 
     def bragg_break_status_changed(self, status):
+        """
+        Updates braff break status
+        :param status:
+        :return:
+        """
         self.bragg_break_status = status
 
     def get_value(self):
-        return self.getCurrentEnergy()
+        """
+        Returns current energy
+        :return:
+        """
+        return self.get_current_energy()
 
     def update_values(self):
+        """
+        Reemits signals
+        :return:
+        """
         self.emit("energyChanged", (self.current_energy, self.current_wav))
         self.emit("valueChanged", (self.current_energy,))
 
     def undulator_gaps_changed(self, value):
-        if type(value) in (list, tuple):
+        """
+        Updates undulator gaps
+        :param value:
+        :return:
+        """
+        if isinstance(value, (list, tuple)):
             self.undulator_gaps = [value[0]]
         else:
             self.undulator_gaps = [value]
 
     def get_undulator_gaps(self):
+        """
+        Returns undulator gaps
+        :return:
+        """
         if self.chan_undulator_gaps:
             self.undulator_gaps_changed(self.chan_undulator_gaps.getValue())
         return self.undulator_gaps
 
     def set_break_bragg(self):
+        """
+        Sets bragg breaks
+        :return:
+        """
         if self.chan_status_bragg_break.getValue() != 0:
             logging.getLogger("GUI").warning("Energy: Setting bragg brake...")
             self.emit("statusInfoChanged", "Setting Bragg break...")
@@ -355,6 +490,10 @@ class EMBLEnergy(Device):
             logging.getLogger("GUI").info("Energy: Bragg brake already set")
 
     def release_break_bragg(self):
+        """
+        Released bragg breaks
+        :return:
+        """
         if self.chan_status_bragg_break.getValue() != 1:
             logging.getLogger("GUI").warning("Energy: Releasing bragg brake...")
             self.emit("statusInfoChanged", "Releasing Bragg break...")

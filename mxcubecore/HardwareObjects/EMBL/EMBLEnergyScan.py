@@ -27,11 +27,14 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository import TaskUtils
-from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import AbstractEnergyScan
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
+    AbstractEnergyScan,
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 

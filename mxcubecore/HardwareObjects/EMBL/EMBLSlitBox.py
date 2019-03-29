@@ -18,48 +18,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] BeamSlitBox
-
-[Description]
 The BeamSlitBox Hardware Object is used to operate slits.
-
-[Channels] -
-
-[Commands] -
-
-[Emited signals]
-- statusChanged
-- focModeChanged
-- gapLimitsChanged
-- gapSizeChanged
-
-[Functions]
-- getShape()
-- getStepSizes()
-- getMinGaps()
-- getMaxGaps()
-- getGapLimits()
-- changeMotorPos()
-- mGroupStatusChanged()
-- mGroupPosChanged()
-- getGapHor()
-- getGapVer()
-- setGap()
-- stopGapHorChange()
-- setFocusingMode()
-- focusModeChanged()
-- setGapLimits()
-
-[Hardware Objects]
------------------------------------------------------------------------
-| name         | signals             | functions
-|----------------------------------------------------------------------
-| MotorsGroup  | mGroupPosChanged    | setMotorPosition()
-|              | mGroupStatusChanged | stopMotor()
-|	       |		     | setMotorFocMode()
-|----------------------------------------------------------------------
-| BeamFocusing | focusModeChanged    |
------------------------------------------------------------------------
 
 Example Hardware Object XML file :
 ==================================
@@ -109,12 +68,13 @@ Example Hardware Object XML file :
 </equipment>
 """
 
-import gevent
 import logging
+
 from HardwareRepository.HardwareObjects.abstract.AbstractSlits import AbstractSlits
 
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
@@ -132,6 +92,10 @@ class EMBLSlitBox(AbstractSlits):
     """
 
     def __init__(self, *args):
+        """
+        Init
+        :param args:
+        """
 
         AbstractSlits.__init__(self, *args)
 
@@ -146,6 +110,10 @@ class EMBLSlitBox(AbstractSlits):
         self.ver_gap_enabled = False
 
     def init(self):
+        """
+        Init
+        :return:
+        """
         self.decimal_places = 6
         self.gaps_dict = {}
         self.gaps_dict["Hor"] = self["gapH"].getProperties()
@@ -229,7 +197,7 @@ class EMBLSlitBox(AbstractSlits):
                 return
 
     def motors_group_status_changed(self, new_status_dict):
-        """Methof called if motors group status is changed"""
+        """Method called if motors group status is changed"""
         for motor in new_status_dict:
             if motor in self.motors_dict:
                 self.motors_dict[motor]["status"] = new_status_dict[motor]
@@ -290,9 +258,22 @@ class EMBLSlitBox(AbstractSlits):
         self.set_gap_by_name("Hor", new_gap, timeout)
 
     def set_vertical_gap(self, new_gap, timeout=None):
+        """
+        Sets vertical gap
+        :param new_gap: float
+        :param timeout: int
+        :return:
+        """
         self.set_gap_by_name("Ver", new_gap, timeout)
 
     def set_gap_by_name(self, gap_name, new_gap, timeout=None):
+        """
+        Sets gap by its name
+        :param gap_name: Hor or Ver
+        :param new_gap: float
+        :param timeout: int
+        :return:
+        """
         old_gap = self.gaps_dict[gap_name]["value"]
         if abs(old_gap - new_gap) > self.gaps_dict[gap_name]["updateTolerance"]:
             for motor in self.motors_dict:
@@ -316,9 +297,17 @@ class EMBLSlitBox(AbstractSlits):
                             break
 
     def stop_horizontal_gap_move(self):
+        """
+        Stops the movement of horizontal gap
+        :return:
+        """
         self.stop_gap_move("Hor")
 
     def stop_vertical_gap_move(self):
+        """
+        Stops the movement of vertical gap
+        :return:
+        """
         self.stop_gap_move("Ver")
 
     def stop_gap_move(self, gap_name):
