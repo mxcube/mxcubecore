@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,13 +15,14 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
-import gevent
 import logging
 import subprocess
+
+import gevent
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -39,6 +40,7 @@ __category__ = "General"
 
 
 class EMBLEnergyScan(AbstractEnergyScan, HardwareObject):
+
     def __init__(self, name):
 
         AbstractEnergyScan.__init__(self)

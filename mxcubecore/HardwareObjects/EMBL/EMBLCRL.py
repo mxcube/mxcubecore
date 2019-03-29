@@ -35,7 +35,6 @@ class EMBLCRL(HardwareObject):
     """Controls CRLs"""
 
     def __init__(self, name):
-        """Inherited from HardwareObject"""
 
         HardwareObject.__init__(self, name)
 

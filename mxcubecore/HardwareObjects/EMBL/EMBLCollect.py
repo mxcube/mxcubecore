@@ -36,10 +36,6 @@ class EMBLCollect(AbstractCollect):
     """
 
     def __init__(self, name):
-        """
-        :param name: name of the object
-        :type name: string
-        """
 
         AbstractCollect.__init__(self, name)
         self._previous_collect_status = None
@@ -426,7 +422,7 @@ class EMBLCollect(AbstractCollect):
         self.diffractometer_hwobj.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
-        """Prepares xds and directories"""
+        """Prepares xds directory"""
         i = 1
         while True:
             xds_input_file_dirname = "xds_%s_%s_%d" % (
@@ -443,17 +439,7 @@ class EMBLCollect(AbstractCollect):
             i += 1
 
         self.current_dc_parameters["xds_dir"] = xds_directory
-        """
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
-            self.current_dc_parameters["fileinfo"]["prefix"],
-            self.current_dc_parameters["fileinfo"]["run_number"],
-            i,
-        )
-        mosflm_directory = os.path.join(
-            self.current_dc_parameters["fileinfo"]["process_directory"],
-            mosflm_input_file_dirname,
-        )
-        """
+
         return xds_directory, ""
 
     def get_wavelength(self):

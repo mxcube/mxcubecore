@@ -31,7 +31,7 @@ __category__ = "General"
 
 class EMBLSafetyShutter(Device):
     """
-    EMBLSafetyShutter
+    EMBLSafetyShutter defines interface to DESY ics
     """
 
     shutter_state_list = {
@@ -46,10 +46,6 @@ class EMBLSafetyShutter(Device):
     }
 
     def __init__(self, name):
-        """
-        init
-        :param name:
-        """
         Device.__init__(self, name)
 
         self.use_shutter = None
@@ -78,10 +74,6 @@ class EMBLSafetyShutter(Device):
         self.getWagoState = self.getShutterState
 
     def init(self):
-        """
-        init
-        :return:
-        """
         self.chan_collection_state = self.getChannelObject("chanCollectStatus")
         if self.chan_collection_state:
             self.chan_collection_state.connectSignal(

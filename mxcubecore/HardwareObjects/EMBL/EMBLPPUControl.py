@@ -9,14 +9,10 @@ __category__ = "General"
 
 class EMBLPPUControl(Device):
     """
-    EMBLPPUControl
+    Allows to restart processes on PPU
     """
 
     def __init__(self, name):
-        """
-        Init
-        :param name:
-        """
         Device.__init__(self, name)
 
         self.all_status = None
@@ -41,10 +37,6 @@ class EMBLPPUControl(Device):
         self.execution_state = None
 
     def init(self):
-        """
-        Init
-        :return:
-        """
         self.all_status = ""
         self.status_result = ""
         self.restart_result = ""
