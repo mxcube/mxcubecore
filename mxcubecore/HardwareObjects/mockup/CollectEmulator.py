@@ -354,7 +354,7 @@ class CollectEmulator(CollectMockup):
         return_code = running_process.wait()
         process = self.gphl_connection_hwobj.collect_emulator_process
         self.gphl_connection_hwobj.collect_emulator_process = None
-        if return_code and process != 'ABORTED':
+        if return_code and process != "ABORTED":
             raise RuntimeError(
                 "simcal process terminated with return code %s" % return_code
             )
