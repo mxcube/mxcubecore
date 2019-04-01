@@ -203,11 +203,9 @@ class EMBLFlux(AbstractFlux):
 
         self.connect(self.beam_info_hwobj, "beamInfoChanged", self.beam_info_changed)
         self.connect(self.transmission_hwobj, "valueChanged", self.transmission_changed)
-        """
         self.connect(
             self.aperture_hwobj, "diameterIndexChanged", self.aperture_diameter_changed
         )
-        """
         self.beam_focusing_hwobj = self.getObjectByRole("beam_focusing")
         if self.beam_focusing_hwobj is not None:
             self.connect(
