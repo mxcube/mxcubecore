@@ -78,7 +78,7 @@ def getHardwareRepository(xml_dir=None):
         if _hwrserver is None:
             if xml_dir is None:
                 # Default to environment variable
-                hwrserver = os.path.abspath(os.environ["XML_FILES_PATH"])
+                xml_dir = os.path.abspath(os.environ["XML_FILES_PATH"])
 
             setHardwareRepositoryServer(xml_dir)
 

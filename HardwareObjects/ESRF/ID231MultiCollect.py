@@ -1,5 +1,5 @@
-from ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy, task, time
-from detectors.LimaPilatusDetector import Pilatus
+from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy, task, time
+from HardwareRepository.HardwareObjects.LimaPilatusDetector import Pilatus
 import shutil
 import logging
 import os

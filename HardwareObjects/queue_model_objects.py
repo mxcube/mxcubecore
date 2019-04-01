@@ -6,11 +6,7 @@ the QueueModel.
 import copy
 import os
 import logging
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from HardwareRepository.HardwareObjects import queue_model_enumerables
 
@@ -1506,6 +1502,8 @@ class AcquisitionParameters(object):
         self.energy = float()
         self.centred_position = CentredPosition()
         self.resolution = float()
+        # detector_distance used if resolution is 0 or None
+        self.detector_distance = float()
         self.transmission = float()
         self.inverse_beam = False
         self.shutterless = False
@@ -1548,6 +1546,7 @@ class AcquisitionParameters(object):
             "num_lines": self.num_lines,
             "energy": self.energy,
             "resolution": self.resolution,
+            "detector_distance": self.detector_distance,
             "transmission": self.transmission,
             "inverse_beam": self.inverse_beam,
             "shutterless": self.shutterless,
@@ -1611,7 +1610,7 @@ class XrayImagingParameters(object):
                 'camera_write_data': self.camera_write_data,
                 'detector_distance': self.camera_write_data
         }
- 
+
 class Crystal(object):
     def __init__(self):
         object.__init__(self)
@@ -1690,7 +1689,7 @@ class CentredPosition(object):
     def __eq__(self, cpos):
         eq = len(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES) * [False]
         for i, motor_name in enumerate(CentredPosition.DIFFRACTOMETER_MOTOR_NAMES):
-            
+
             self_pos = getattr(self, motor_name)
             if not hasattr(cpos, motor_name):
                 continue
@@ -1752,12 +1751,12 @@ class GphlWorkflow(TaskNode):
         self._number = 0
         self._beam_energies = OrderedDict()
         self._detector_resolution = None
-        self._expected_resolution = None
         self._space_group = None
         self._crystal_system = None
         self._point_group = None
         self._cell_parameters = None
         self._snapshot_count = None
+        self._centre_before_sweep = None
 
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
@@ -1788,13 +1787,6 @@ class GphlWorkflow(TaskNode):
     def set_interleave_order(self, value):
         self._interleave_order = value
 
-    # Number of snapshots to take at start of data collection.
-    def get_snapshot_count(self):
-        return self._snapshot_count
-
-    def set_snapshot_count(self, value):
-        self._snapshot_count = value
-
     # Starting run number. Unnecessary.
     # Left in as it is modified by signal when edited.
     def get_number(self):
@@ -1807,13 +1799,6 @@ class GphlWorkflow(TaskNode):
         logging.getLogger().warning(
             "Attempt to set unused attribute GphlWorkflow.number"
         )
-
-    # Expected resolution (optional float).
-    def get_expected_resolution(self):
-        return self._expected_resolution
-
-    def set_expected_resolution(self, value):
-        self._expected_resolution = value
 
     # Detector resolution (determines detector distance).
     def get_detector_resolution(self):
@@ -1862,6 +1847,18 @@ class GphlWorkflow(TaskNode):
                 raise ValueError("cell_parameters %s does not have length six" % value)
         else:
             self._cell_parameters = None
+
+    # Number of snapshots to take at start of data collection.
+    def get_snapshot_count(self):
+        return self._snapshot_count
+    def set_snapshot_count(self, value):
+        self._snapshot_count = value
+
+    # (Re)centre before each sweep?.
+    def get_centre_before_sweep(self):
+        return self._centre_before_sweep
+    def set_centre_before_sweep(self, value):
+        self._centre_before_sweep = bool(value)
 
     def get_path_template(self):
         return self.path_template
@@ -1980,7 +1977,8 @@ def to_collect_dict(data_collection, session, sample, centred_pos=None):
             "processing_parallel": data_collection.run_processing_parallel,
             "residues": proc_params.num_residues,
             "dark": acq_params.take_dark_current,
-            "resolution": {"upper": acq_params.resolution},
+            "resolution": {"upper": acq_params.resolution or 0.0},
+            "detector_distance": acq_params.detector_distance,
             "transmission": acq_params.transmission,
             "energy": acq_params.energy,
             "oscillation_sequence": [

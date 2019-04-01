@@ -1,7 +1,7 @@
 import math
 import logging
 
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 
 class WagoCounter(TacoDevice.TacoDevice):

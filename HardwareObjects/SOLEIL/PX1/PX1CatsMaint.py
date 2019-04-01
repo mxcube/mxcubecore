@@ -1,5 +1,5 @@
 #
-from CatsMaint import CatsMaint
+from HardwareRepository.HardwareObjects.CatsMaint import CatsMaint
 
 import logging
 import time

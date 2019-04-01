@@ -1,6 +1,8 @@
 import logging
 import time
-from abstract.AbstractMotor import AbstractMotor, MotorStates
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import (
+    AbstractMotor, MotorStates
+)
 from gevent import Timeout
 
 """
@@ -307,7 +309,6 @@ class SardanaMotor(AbstractMotor):
 
 
 def test_hwo(hwo):
-    newpos = 90
     print("Position for %s is: %s" % (hwo.username, hwo.getPosition()))
     print("Velocity for %s is: %s" % (hwo.username, hwo.get_velocity()))
     print("Acceleration for %s is: %s" % (hwo.username, hwo.get_acceleration()))

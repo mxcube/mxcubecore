@@ -15,7 +15,7 @@ from PIL import Image
 import io
 import math
 
-from GenericDiffractometer import *
+from HardwareRepository.HardwareObjects.GenericDiffractometer import *
 
 
 class BIOMAXMD3(GenericDiffractometer):

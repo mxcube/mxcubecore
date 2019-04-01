@@ -1,5 +1,5 @@
 import logging
-from Resolution import Resolution
+from HardwareRepository.HardwareObjects.Resolution import Resolution
 from resolution import resolution
 from beam_center import beam_center
 

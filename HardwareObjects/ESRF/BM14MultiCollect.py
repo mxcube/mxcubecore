@@ -4,8 +4,8 @@ import gevent
 import logging
 
 from HardwareRepository.TaskUtils import task
-from ESRFMultiCollect import CcdDetector, ESRFMultiCollect, TunableEnergy
-from detectors.TacoMarDetector import Mar225
+from .ESRFMultiCollect import CcdDetector, ESRFMultiCollect, TunableEnergy
+from HardwareRepository.HardwareObjects.TacoMarDetector import Mar225
 
 
 class BM14MultiCollect(ESRFMultiCollect):

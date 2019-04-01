@@ -3,8 +3,8 @@
 import jsonpickle
 import inspect
 import logging
-import queue_model_objects
-import queue_model_enumerables
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_enumerables
 
 xmlrpc_prefix = ""
 

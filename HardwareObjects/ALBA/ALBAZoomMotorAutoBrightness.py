@@ -56,7 +56,7 @@ import os
 import PyTango
 
 __author__ = "Jordi Andreu"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 __version__ = "2.2."
 __maintainer__ = "Jordi Andreu"

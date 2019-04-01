@@ -21,7 +21,9 @@ from __future__ import print_function
 import logging
 import time
 
-from AbstractDetector import AbstractDetector
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 from PyTango.gevent import DeviceProxy

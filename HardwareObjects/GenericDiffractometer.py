@@ -25,10 +25,10 @@ import copy
 import time
 import gevent
 import logging
-import sample_centring
+from HardwareRepository.HardwareObjects import sample_centring
 import math
 import numpy
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 try:
     unicode
@@ -38,7 +38,7 @@ except:
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 __version__ = "2.2."
 __status__ = "Draft"
@@ -174,6 +174,10 @@ class GenericDiffractometer(HardwareObject):
 
         # flag for using sample_centring hwobj or not
         self.use_sample_centring = None
+
+        # time to delay for state polling for controllers
+        # not updating state inmediately after cmd started
+        self.delay_state_polling = None
 
         self.delay_state_polling = (
             None
@@ -948,14 +952,14 @@ class GenericDiffractometer(HardwareObject):
         for motor in motor_positions.keys():
             position = motor_positions[motor]
             """
-            if isinstance(motor, str):
+            if isinstance(motor, (str, unicode)):
                 logging.getLogger("HWR").debug(" Moving %s to %s" % (motor, position))
             else:
                 logging.getLogger("HWR").debug(
                     " Moving %s to %s" % (str(motor.name()), position)
                 )
             """
-            if type(motor) in (str, unicode):
+            if isinstance(motor, (str, unicode)):
                 motor_role = motor
                 motor = self.motor_hwobj_dict.get(motor_role)
                 #del motor_positions[motor_role]

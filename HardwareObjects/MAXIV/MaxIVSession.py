@@ -13,8 +13,8 @@ try:
 except BaseException:
     raise Exception("Cannot import SDM library.")
 
-from Session import Session
-import queue_model_objects
+from HardwareRepository.HardwareObjects.Session import Session
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 
 class MaxIVSession(Session):

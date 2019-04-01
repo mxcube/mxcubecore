@@ -22,7 +22,7 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 
 class BeamstopMockup(HardwareObject):

@@ -7,7 +7,7 @@ import types
 import gevent
 import gevent.event
 
-from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
+from HardwareRepository.CommandContainer import CommandObject, ChannelObject, ConnectionError
 from .. import Poller
 from .. import saferef
 

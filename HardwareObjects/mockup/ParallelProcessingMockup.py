@@ -18,9 +18,10 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy
-import gevent
 
-from GenericParallelProcessing import GenericParallelProcessing
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
+    GenericParallelProcessing
+)
 
 
 __license__ = "LGPLv3"

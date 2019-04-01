@@ -2,7 +2,7 @@
 
   <!-- First part must mirror mxcollect.xml -->
   <object href="/mini-diff-mockup" role="diffractometer"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/graphics" role="graphics_manager"/>
   <object href="/lims-client-mockup" role="lims_client"/>
 
   <object href="/energy-mockup" role="energy"/>
@@ -26,6 +26,9 @@
     <base_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_directory>
     <base_process_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_process_directory>
     <base_archive_directory>/scratch_fs1/rhfogh/mxcube_base_dir</base_archive_directory>
+    <!--<base_directory>/mnt/scratch/rhfogh/mxcube_data</base_directory>-->
+    <!--<base_process_directory>/mnt/scratch/rhfogh/mxcube_data</base_process_directory>-->
+    <!--<base_archive_directory>/mnt/scratch/rhfogh/mxcube_data</base_archive_directory>-->
   </override_data_directories>
 
   <directory_prefix>emulator</directory_prefix>
@@ -41,7 +44,7 @@
     <!-- Simcal bacground noise level -->
     <background>1.0</background>
     <!-- Number of rays for simcal ray tracing (2000 minimum for testing, 5000 for use-->
-    <n_rays>5001</n_rays>
+    <n_rays>2001</n_rays>
     <!--<n_rays>5001</n_rays>-->
     <!-- Unit cell orientation mode. 1 is calculate-from-cell, real-space -->
     <!-- -1 is from-cell, reciprocal-space. Default is 0 (CELL_AXIS vectors) -->

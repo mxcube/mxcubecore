@@ -1,8 +1,6 @@
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
-
-from abstract.sample_changer.CatsMaint import CatsMaint
-import logging
+from HardwareRepository.HardwareObjects.abstract.sample_changer.CatsMaint import (
+    CatsMaint
+)
 
 
 class ALBACatsMaint(CatsMaint):

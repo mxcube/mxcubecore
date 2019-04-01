@@ -821,7 +821,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         data_model = self.get_data_model()
 
         kappa = data_model.get_kappa()
-        phi = data_model.get_kappa_phi()
+        kappa_phi = data_model.get_kappa_phi()
 
         # kappa and kappa_phi settings are applied first, and assume that the
         # beamline does have axes with exactly these names
@@ -835,8 +835,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         dd = {}
         if kappa is not None:
             dd["kappa"] = kappa
-        if phi is not None:
-            dd["kappa_phi"] = phi
+        if kappa_phi is not None:
+            dd["kappa_phi"] = kappa_phi
         if dd:
             if (
                 not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
@@ -1837,13 +1837,13 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        logging.getLogger("queue_exec").debug(
-            "GphlWorkflowQueueEntry.execute WF state is %s"
-            % self.workflow_hwobj.get_state()
+        state = self.workflow_hwobj.get_state()
+        logging.getLogger("queue_exec").info(
+            "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
         )
 
         # Start execution of a new workflow
-        if self.workflow_hwobj.get_state() != States.ON:
+        if state != States.ON:
             # TODO Add handling of potential conflicts.
             # NBNB GPhL workflow cannot have multiple users
             # unless they use separate persistence layers
@@ -2316,6 +2316,7 @@ def mount_sample(
                     view.setText(1, "Centring done !")
                     log.info("Centring saved")
                 else:
+                    view.setText(1, "Centring failed !")
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                         raise QueueSkippEntryException(
                             "Could not center sample, skipping", ""
