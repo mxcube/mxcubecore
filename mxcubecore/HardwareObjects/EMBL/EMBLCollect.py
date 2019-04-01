@@ -193,11 +193,10 @@ class EMBLCollect(AbstractCollect):
 
             if self.cmd_collect_processing is not None:
                 self.cmd_collect_processing(True)
-                """ GB 2019030: no idea why this could be unset.....
-                    self.current_dc_parameters["processing_parallel"]
-                    in (True, "MeshScan", "XrayCentering")
-                )
-                """
+                # GB 2019030: no idea why this could be unset.....
+                #    self.current_dc_parameters["processing_parallel"]
+                #    in (True, "MeshScan", "XrayCentering")
+                #
 
             # GB 2018-05-16 : Workaround a fuzzy mesh scan interface of MD3
             # if self.current_dc_parameters['experiment_type'] == 'Mesh':
@@ -505,6 +504,4 @@ class EMBLCollect(AbstractCollect):
         self.run_autoprocessing = status
 
     def create_file_directories(self):
-        # GB: this will not create anything; only assign the names
-        xds_directory = self.prepare_input_files()
-        return
+        self.prepare_input_files()

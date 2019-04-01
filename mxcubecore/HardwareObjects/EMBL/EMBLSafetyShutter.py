@@ -209,8 +209,6 @@ class EMBLSafetyShutter(Device):
         else:
             self.shutter_state = "unknown"
 
-        # GB 20190304: per misteriously disappearing first update of shutter_state_closed:
-        # if self.shutter_state_closed and not self.shutter_can_open:
         if not self.shutter_state_open and not self.shutter_can_open:
             self.shutter_state = "noperm"
             msg = "No permission"

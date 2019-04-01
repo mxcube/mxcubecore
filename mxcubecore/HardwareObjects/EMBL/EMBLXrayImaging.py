@@ -84,6 +84,7 @@ class EMBLXrayImaging(QtGraphicsManager, AbstractCollect):
         self.mouse_coord = [0, 0]
         self.centering_started = 0
 
+        self.current_dc_parameters = None
         self._previous_collect_status = None
         self._actual_collect_status = None
         self._failed = False

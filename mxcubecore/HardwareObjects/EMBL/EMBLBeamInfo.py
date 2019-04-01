@@ -301,8 +301,8 @@ class EMBLBeamInfo(Equipment):
 
             if (
                 self.chan_beam_size_microns is not None
-                and self.beam_info_dict["size_x"] < 1.3
-                and self.beam_info_dict["size_y"] < 1.3
+                    and self.beam_info_dict["size_x"] < 1.3
+                    and self.beam_info_dict["size_y"] < 1.3
             ):
                 self.chan_beam_size_microns.setValue(
                     (
