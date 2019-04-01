@@ -1,4 +1,4 @@
-def test_energy(energy_list):
+def test_energy_atributes(energy_list):
     for energy in energy_list:
         assert not energy is None, "Energy hardware objects is None (not initialized)"
         current_energy = energy.get_current_energy()
@@ -16,3 +16,9 @@ def test_energy(energy_list):
         assert hasattr(energy, "can_move_energy")
         assert hasattr(energy, "move_energy")
         assert hasattr(energy, "move_wavelength")
+
+def test_energy_methods(energy_list):
+    for energy in energy_list:
+        target = 12.7
+        energy.move_energy(target)
+        assert energy.get_current_energy() == target
