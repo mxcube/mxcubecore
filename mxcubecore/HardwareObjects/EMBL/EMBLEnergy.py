@@ -137,7 +137,7 @@ class EMBLEnergy(Device):
 
     def is_ready(self):
         """
-        Returns always True
+        In this case device is always ready 
         """
         return True
 
@@ -272,7 +272,7 @@ class EMBLEnergy(Device):
 
     def move_energy(self, energy, wait=True):
         """
-        In our case we set energy in keV
+        Sets energy in keV
         """
         # gevent.spawn(self.move_energy_task(energy))
         self.move_energy_task(energy)
@@ -314,9 +314,9 @@ class EMBLEnergy(Device):
 
     def move_wavelength(self, value, wait=True):
         """
-        Changes wavelength
-        :param value:
-        :param wait:
+        Changes wavelength (in Angstroms)
+        :param value: wavelength in Angstroms (float)
+        :param wait: boolean
         :return:
         """
         self.move_energy(12.3984 / value, wait)
@@ -404,7 +404,7 @@ class EMBLEnergy(Device):
 
     def bragg_break_status_changed(self, status):
         """
-        Updates braff break status
+        Updates status of bragg breaks
         :param status:
         :return:
         """
@@ -485,7 +485,7 @@ class EMBLEnergy(Device):
 
     def release_break_bragg(self):
         """
-        Released bragg breaks
+        Release bragg breaks
         :return:
         """
         if self.chan_status_bragg_break.getValue() != 1:
