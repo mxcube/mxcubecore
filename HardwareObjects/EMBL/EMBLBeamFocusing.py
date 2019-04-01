@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -17,14 +17,16 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
 import logging
+
+import gevent
+
 from tine import query as tinequery
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
@@ -245,20 +247,19 @@ class EMBLBeamFocusing(HardwareObject):
         :param focus_mode: requested focusing mode
         :type focus_mode: str
         """
-
         if focus_mode and self.cmd_set_phase:
-            # TODO put a try with error handling
-            logging.getLogger("GUI").warning(
-                "Focusing: Setting diffractometer to BeamLocation phase..."
-            )
-
             # Waits for diffractometer to be ready
             self.aperture_hwobj.wait_ready()
-            tinequery(
-                self.cmd_set_phase["address"],
-                self.cmd_set_phase["property"],
-                self.cmd_set_phase["argument"],
-            )
+            if focus_mode != "Imaging":
+                logging.getLogger("GUI").warning(
+                    "Focusing: Setting diffractometer to BeamLocation phase..."
+                )
+
+                tinequery(
+                    self.cmd_set_phase["address"],
+                    self.cmd_set_phase["property"],
+                    self.cmd_set_phase["argument"],
+                )
 
             logging.getLogger("GUI").warning("Focusing: Setting focusing motors...")
             if self.motors_groups:
