@@ -17,19 +17,25 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""EMBLCRL"""
+
 import math
-import gevent
 import logging
+import gevent
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
 class EMBLCRL(HardwareObject):
+    """Controls CRLs"""
+
     def __init__(self, name):
+
         HardwareObject.__init__(self, name)
 
         self.focal_length = None
@@ -51,6 +57,8 @@ class EMBLCRL(HardwareObject):
         self.at_startup = None
 
     def init(self):
+        """Inits all variables"""
+
         self.focal_length = self.getProperty("focal_length")
         self.lens_count = 6
 
@@ -81,17 +89,15 @@ class EMBLCRL(HardwareObject):
 
     def convert_value(self, value):
         """Converts int to list of bits"""
-        if value:
-            if isinstance(value, (list, tuple)):
-                lens_combination = 0
-                for index in range(self.lens_count):
-                    lens_combination = lens_combination + value[index] * pow(2, index)
-            else:
-                lens_combination = [0, 0, 0, 0, 0, 0]
-                for index in range(self.lens_count):
-                    lens_combination[index] = (value & pow(2, index)) / pow(2, index)
-
-            return lens_combination
+        if isinstance(value, (list, tuple)):
+            lens_combination = 0
+            for index in range(self.lens_count):
+                lens_combination = lens_combination + value[index] * pow(2, index)
+        else:
+            lens_combination = [0, 0, 0, 0, 0, 0]
+            for index in range(self.lens_count):
+                lens_combination[index] = (value & pow(2, index)) / pow(2, index)
+        return lens_combination
 
     def get_modes(self):
         """Returns list with available CRL modes"""
@@ -158,15 +164,14 @@ class EMBLCRL(HardwareObject):
 
     def get_image_plane_distance(self, value):
         """Returns image plane distance"""
-        if value:
-            if isinstance(value, list):
-                lens_combination = self.convert_value(value)
-            else:
-                lens_combination = value
-            return 1.0 / (
-                2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
-                - 1 / 42.6696
-            )
+        if isinstance(value, list):
+            lens_combination = self.convert_value(value)
+        else:
+            lens_combination = value
+        return 1.0 / (
+            2 * 341.52 * lens_combination / 2000 / (self.energy_value ** 2)
+            - 1 / 42.6696
+        )
 
     def focusing_mode_requested(self, focusing_mode):
         """Sets CRL combination based on the focusing mode"""
@@ -186,7 +191,7 @@ class EMBLCRL(HardwareObject):
         """Sets CRL lens combination. If integer passed then
            converts value to the bit list
         """
-        if type(value) not in (list, tuple):
+        if not isinstance(value, (list, tuple)):
             value = self.convert_value(value)
 
         if value is not None:
@@ -196,7 +201,7 @@ class EMBLCRL(HardwareObject):
                 "Setting CRL image plane "
                 + "distance to %.2f" % self.get_image_plane_distance(value)
             )
-  
+
             if timeout:
                 gevent.sleep(1)
                 with gevent.Timeout(timeout, Exception("Timeout waiting for CRL")):

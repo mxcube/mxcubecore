@@ -18,15 +18,9 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-[Name] EMBLBeamInfo
-
-[Description]
+EMBLBeamInfo
 Hardware object is used to define final beam size and shape.
 It can include aperture, slits and/or beam focusing hwobj
-
-[Emited signals]
-beamInfoChanged
-
 """
 
 import logging
@@ -34,12 +28,16 @@ from HardwareRepository.BaseHardwareObjects import Equipment
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
 class EMBLBeamInfo(Equipment):
+    """Hardware object is used to define final beam size and shape"""
+
     def __init__(self, *args):
+        """Defines all variables"""
+
         Equipment.__init__(self, *args)
 
         self.aperture_hwobj = None
@@ -61,6 +59,7 @@ class EMBLBeamInfo(Equipment):
         self.chan_beam_shape_ellipse = None
 
     def init(self):
+        """Initialized all variables"""
 
         self.beam_size_slits = [9999, 9999]
         self.beam_size_aperture = [9999, 9999]
@@ -199,8 +198,7 @@ class EMBLBeamInfo(Equipment):
 
         :return: position name as str
         """
-        if self.aperture_hwobj:
-            return self.aperture_hwobj.get_current_pos_name()
+        return self.aperture_hwobj.get_current_pos_name()
 
     def slits_gap_changed(self, size):
         """Method when slits gap changes. Evaluates beam mark position
@@ -303,8 +301,8 @@ class EMBLBeamInfo(Equipment):
 
             if (
                 self.chan_beam_size_microns is not None
-                and self.beam_info_dict["size_x"] < 3
-                and self.beam_info_dict["size_y"] < 3
+                    and self.beam_info_dict["size_x"] < 1.3
+                    and self.beam_info_dict["size_y"] < 1.3
             ):
                 self.chan_beam_size_microns.setValue(
                     (

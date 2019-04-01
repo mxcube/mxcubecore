@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,7 +15,7 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import gevent
@@ -23,11 +23,20 @@ import gevent
 from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
 class TINEMotor(AbstractMotor):
+    """
+    TINEMotor
+    """
+
     def __init__(self, name):
+        """
+        init
+        :param name:
+        """
         AbstractMotor.__init__(self, name)
 
         self.previous_position = None
@@ -44,7 +53,10 @@ class TINEMotor(AbstractMotor):
         self.step_limits = None
 
     def init(self):
-
+        """
+        Init
+        :return:
+        """
         self.chan_limits = self.getChannelObject("axisLimits", optional=True)
         if self.chan_limits is not None:
             self.chan_limits.connectSignal("update", self.motor_limits_changed)
@@ -88,15 +100,17 @@ class TINEMotor(AbstractMotor):
 
     def connected(self):
         """
-        Descript. :
+        Sets ready
+        :return:
         """
         self.set_ready(True)
 
     def disconnected(self):
         """
-        Descript. :
+        Sets not ready
+        :return:
         """
-        self.set_ready(True)
+        self.set_ready(False)
 
     def connectNotify(self, signal):
         """
@@ -132,7 +146,11 @@ class TINEMotor(AbstractMotor):
 
     def move(self, target, wait=None, timeout=None):
         """
-        Descript. :
+        Main move method
+        :param target: float
+        :param wait: int
+        :param timeout: boolean
+        :return:
         """
         if self.chan_state is not None:
             self.set_state(self.motor_states.MOVING)
@@ -176,19 +194,36 @@ class TINEMotor(AbstractMotor):
             self.previous_position = position
 
     def get_motor_mnemonic(self):
+        """
+        Returns motor mnemonic
+        :return:
+        """
         return "TINEMotor"
 
     def wait_ready(self, timeout=None):
+        """
+        Whaits till device is ready
+        :param timeout: sec (int)
+        :return:
+        """
         with gevent.Timeout(timeout, Exception("Timeout waiting for device ready")):
             while not self.is_ready():
                 gevent.sleep(0.05)
 
     def enable_motor(self):
+        """
+        Enables motor
+        :return:
+        """
         if self.cmd_set_online:
             self.cmd_set_online(1)
             gevent.sleep(2)
 
     def disable_motor(self):
+        """
+        Disables motor
+        :return:
+        """
         if self.cmd_set_online:
             self.cmd_set_online(0)
             gevent.sleep(2)

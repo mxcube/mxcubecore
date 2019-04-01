@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -35,9 +35,9 @@ from scipy.interpolate import interp1d
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-#try:
+# try:
 #    import pdfkit
-#except BaseException:
+# except BaseException:
 #    logging.getLogger("HWR").warning("pdfkit not available")
 
 from HardwareRepository.HardwareObjects import SimpleHTML
@@ -82,7 +82,6 @@ class EMBLBeamlineTest(HardwareObject):
         self.current_test_procedure = None
         self.beamline_name = None
         self.test_directory = None
-        self.test_directory = None
         self.test_filename = None
 
         self.scale_hor = None
@@ -105,15 +104,10 @@ class EMBLBeamlineTest(HardwareObject):
         self.chan_qbpm_ar = None
         self.chan_pitch_position_ar = None
         self.chan_pitch_scan_status = None
-        self.chan_intens_range = None
-        self.chan_intens_mean = None
         self.cmd_set_pitch_position = None
         self.cmd_set_pitch = None
         self.cmd_start_pitch_scan = None
         self.cmd_set_vmax_pitch = None
-        self.cmd_set_intens_acq_time = None
-        self.cmd_set_intens_range = None
-        self.cmd_set_intens_resolution = None
 
         self.bl_hwobj = None
         self.crl_hwobj = None
@@ -238,9 +232,11 @@ class EMBLBeamlineTest(HardwareObject):
         self.connect(
             self.graphics_manager_hwobj, "imageDoubleClicked", self.image_double_clicked
         )
-        self.connect(self.bl_hwobj.energy_hwobj,
-                     "beamAlignmentRequested",
-                     self.center_beam_report)
+        self.connect(
+            self.bl_hwobj.energy_hwobj,
+            "beamAlignmentRequested",
+            self.center_beam_report,
+        )
 
         if hasattr(self.bl_hwobj.beam_info_hwobj, "beam_focusing_hwobj"):
             self.beam_focusing_hwobj = self.bl_hwobj.beam_info_hwobj.beam_focusing_hwobj
@@ -297,26 +293,6 @@ class EMBLBeamlineTest(HardwareObject):
 
         if self.getProperty("run_tests_at_startup") == True:
             gevent.spawn_later(5, self.start_test_queue, self.startup_test_list)
-
-        self.intensity_ranges = []
-        self.intensity_measurements = []
-        if self.getProperty("intensity"):
-            for intens_range in self["intensity"]["ranges"]:
-                temp_intens_range = {}
-                temp_intens_range["max"] = intens_range.CurMax
-                temp_intens_range["index"] = intens_range.CurIndex
-                temp_intens_range["offset"] = intens_range.CurOffset
-                self.intensity_ranges.append(temp_intens_range)
-            self.intensity_ranges = sorted(
-                self.intensity_ranges, key=lambda item: item["max"]
-            )
-
-        self.chan_intens_mean = self.getChannelObject("intensMean")
-        self.chan_intens_range = self.getChannelObject("intensRange")
-
-        self.cmd_set_intens_resolution = self.getCommandObject("setIntensResolution")
-        self.cmd_set_intens_acq_time = self.getCommandObject("setIntensAcqTime")
-        self.cmd_set_intens_range = self.getCommandObject("setIntensRange")
 
         self.cmd_set_qbmp_range = self.getCommandObject("cmdQBPMRangeSet")
 
@@ -528,15 +504,16 @@ class EMBLBeamlineTest(HardwareObject):
             self.bl_hwobj.ppu_control_hwobj.restart_all()
 
     def pitch_scan(self):
-        # self.cmd_set_pitch_position(0)
-        # self.cmd_set_pitch(1)
-        # sleep(0.2)
+        self.cmd_set_pitch_position(0)
+        self.cmd_set_pitch(1)
+        sleep(3)
         self.cmd_start_pitch_scan(1)
-        sleep(30.0)
+        # sleep(30.0)
         with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
             while self.chan_pitch_scan_status.getValue() != 0:
                 gevent.sleep(0.1)
         self.cmd_set_vmax_pitch(1)
+        sleep(3)
 
     def test_sc_stats(self):
         result = {}
@@ -1052,8 +1029,10 @@ class EMBLBeamlineTest(HardwareObject):
         log = logging.getLogger("GUI")
 
         if not self.bl_hwobj.safety_shutter_hwobj.is_opened():
-            log.error("Beam centering failed! Safety shutter is closed! " + \
-                      "Open the shutter to continue.")
+            log.error(
+                "Beam centering failed! Safety shutter is closed! "
+                + "Open the shutter to continue."
+            )
             self.ready_event.set()
             return
 
@@ -1103,7 +1082,7 @@ class EMBLBeamlineTest(HardwareObject):
             new_transmission = round(energy_transm(current_energy), 2)
 
         if self.bl_hwobj.session_hwobj.beamline_name == "P13":
-            self.bl_hwobj.transmission_hwobj.setTransmission(
+            self.bl_hwobj.transmission_hwobj.set_value(  # Transmission(
                 new_transmission, timeout=45
             )
             self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
@@ -1122,13 +1101,15 @@ class EMBLBeamlineTest(HardwareObject):
             active_mode, beam_size = self.get_focus_mode()
 
             if active_mode in ("Collimated", "Imaging"):
-                self.bl_hwobj.transmission_hwobj.setTransmission(
+                self.bl_hwobj.transmission_hwobj.set_value(  # Transmission(
                     new_transmission, timeout=45
                 )
                 self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 4")
             else:
                 # 2% transmission for beam centering in double foucused mode
-                self.bl_hwobj.transmission_hwobj.setTransmission(2, timeout=45)
+                self.bl_hwobj.transmission_hwobj.set_value(
+                    2, timeout=45
+                )  # Transmission(2, timeout=45)
                 self.bl_hwobj.diffractometer_hwobj.set_zoom("Zoom 8")
 
             msg = "3/6 : Opening slits to 1 x 1 mm"
@@ -1139,8 +1120,8 @@ class EMBLBeamlineTest(HardwareObject):
 
             # GB: keep standard slits settings for double foucsed mode
             if active_mode in ("Collimated", "Imaging"):
-                slits_hwobj.set_gap("Hor", 1.0)
-                slits_hwobj.set_gap("Ver", 1.0)
+                slits_hwobj.set_vertical_gap(1.0)  # "Hor", 1.0)
+                slits_hwobj.set_horizontal_gap(1.0)  # "Ver", 1.0)
 
             # self.graphics_manager_hwobj.save_scene_snapshot(beam_image_filename)
 
@@ -1160,8 +1141,8 @@ class EMBLBeamlineTest(HardwareObject):
                 log.info("Beam centering: %s" % msg)
                 self.emit("testProgress", (5, progress_info))
 
-                slits_hwobj.set_gap("Hor", 0.1)
-                slits_hwobj.set_gap("Ver", 0.1)
+                slits_hwobj.set_horizontal_gap(0.1)  # "Hor", 0.1)
+                slits_hwobj.set_vertical_gap(0.1)  # "Ver", 0.1)
                 sleep(3)
 
             # 6/6 Update position of the beam mark position ----------------------
@@ -1172,7 +1153,9 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("testProgress", (6, progress_info))
             self.graphics_manager_hwobj.move_beam_mark_auto()
 
-        self.bl_hwobj.transmission_hwobj.setTransmission(current_transmission)
+        self.bl_hwobj.transmission_hwobj.set_value(
+            current_transmission
+        )  # Transmission(current_transmission)
 
         """
         self.graphics_manager_hwobj.save_scene_snapshot(\
@@ -1232,9 +1215,9 @@ class EMBLBeamlineTest(HardwareObject):
             # TODO fix this
             gevent.sleep(0.2)
             self.cmd_start_pitch_scan(1)
-            #log.info("start wait...")
-            #gevent.sleep(30.0)
-            #log.info("finish wait")
+            # log.info("start wait...")
+            # gevent.sleep(30.0)
+            # log.info("finish wait")
 
             gevent.sleep(3)
             with gevent.Timeout(10, Exception("Timeout waiting for pitch scan ready")):
@@ -1249,7 +1232,9 @@ class EMBLBeamlineTest(HardwareObject):
                 self.emit("progressStop", ())
                 return
 
-            self.emit("progressStep", 4, "Detecting beam position and centering the beam")
+            self.emit(
+                "progressStep", 4, "Detecting beam position and centering the beam"
+            )
 
             for i in range(3):
                 with gevent.Timeout(10, False):
@@ -1541,12 +1526,13 @@ class EMBLBeamlineTest(HardwareObject):
 
     def measure_flux(self):
         """Measures intesity"""
-        #self.start_test_queue(["measure_intensity"])
-        #gevent.spawn(self.test_measure_intensity)
         self.bl_hwobj.flux_hwobj.measure_flux()
 
+    """
     def test_measure_intensity(self):
-        """Measures intensity and generates report"""
+        # GB: 2019/03/02 dumping to avoid detector exposure w/o guillotine
+        #self.intensity_value = 3e12
+        #return
         result = {}
         result["result_bit"] = False
         result["result_details"] = []
@@ -1563,6 +1549,21 @@ class EMBLBeamlineTest(HardwareObject):
                 result["result_short"] = "Measure intensity failed. " + \
                      "Detector cover was open."
                 self.ready_event.set()
+                self.emit("progressStop", ())
+                return result
+
+            if not self.bl_hwobj.safety_shutter_hwobj.is_opened():
+                log.error("Beam centering failed! Safety shutter is closed! " + \
+                          "Open the shutter to continue.")
+                self.ready_event.set()
+                self.emit("progressStop", ())
+                return result
+
+            if self.bl_hwobj.detector_hwobj.get_distance() > 501:
+
+                self.print_log("GUI", "error", "Detector is too far away for flux measurements. Move to 500 mm or closer.")
+                self.ready_event.set()
+                self.emit("progressStop", ())
                 return result
 
             #self.bl_hwobj.detector_hwobj.close_cover(wait=True)
@@ -1600,10 +1601,10 @@ class EMBLBeamlineTest(HardwareObject):
 
             #5. open the fast shutter --------------------------------------------
             gevent.sleep(1)
-            self.emit("progressStep", 4, "Opening the fast shutter") 
+            self.emit("progressStep", 4, "Opening the fast shutter")
             self.bl_hwobj.fast_shutter_hwobj.openShutter(wait=True)
             logging.getLogger("HWR").debug("Measure flux: Fast shutter opened")
-            gevent.sleep(0.3)
+            gevent.sleep(1.3)
 
             #6. measure mean intensity
             self.ampl_chan_index = 0
@@ -1611,13 +1612,14 @@ class EMBLBeamlineTest(HardwareObject):
             self.emit("progressStep", 5, "Measuring the intensity")
             intens_value = self.chan_intens_mean.getValue()
             intens_range_now = self.chan_intens_range.getValue()
-            
+            print "intens value: ", intens_value
+
             #TODO: repair this
             #GB 2018-03-30 09:45:25 : following loop that encodes current offset is broken as self.intensity_ranges = []
-            #hard coding 
+            #hard coding
 
             self.intensity_value = intens_value[0] + 2.780e-6
-            
+
             #for intens_range in self.intensity_ranges:
             #    if intens_range['index'] is intens_range_now:
             #        self.intensity_value = intens_value[self.ampl_chan_index] - \
@@ -1634,6 +1636,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.emit("progressStep", 6, "Closing fast shutter")
         #7. close the fast shutter -------------------------------------------
         self.bl_hwobj.fast_shutter_hwobj.closeShutter(wait=True)
+        logging.getLogger("HWR").debug("Measure flux: Fast shutter closed")
 
         # 7/7 set back original phase ----------------------------------------
         self.emit("progressStep", 7, "Restoring diffractometer to %s phase" % current_phase)
@@ -1714,6 +1717,7 @@ class EMBLBeamlineTest(HardwareObject):
         self.ready_event.set()
         self.emit("progressStop", ())
         return result
+    """
 
     def test_file_system(self):
         result = {}
@@ -1796,10 +1800,10 @@ class EMBLBeamlineTest(HardwareObject):
                 "BeamlineTest: Unable to generate html report file %s" % html_filename
             )
 
-        #try:
+        # try:
         #    pdfkit.from_url(html_filename, pdf_filename)
         #    logging.getLogger("GUI").info("PDF report %s generated" % pdf_filename)
-        #except BaseException:
+        # except BaseException:
         #    logging.getLogger("HWR").error(
         #        "BeamlineTest: Unable to generate pdf report file %s" % pdf_filename
         #    )
