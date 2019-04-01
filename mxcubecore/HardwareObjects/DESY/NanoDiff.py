@@ -29,7 +29,7 @@ import math
 import lucid
 
 
-import queue_model_objects as qmo
+from HardwareRepository.HardwareObjects import queue_model_objects as qmo
 
 from gevent.event import AsyncResult
 from HardwareRepository.TaskUtils import task

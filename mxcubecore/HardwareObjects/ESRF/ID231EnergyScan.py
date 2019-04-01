@@ -1,5 +1,5 @@
 from HardwareRepository.TaskUtils import task
-from ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
+from .ESRFEnergyScan import ESRFEnergyScan, TunableEnergy
 
 
 class ID231EnergyScan(ESRFEnergyScan):

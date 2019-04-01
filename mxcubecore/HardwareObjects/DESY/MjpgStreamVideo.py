@@ -29,8 +29,7 @@ import json
 import logging
 
 # from PyQt4.QtGui import QImage, QPixmap
-from QtImport import QImage, QPixmap
-from HardwareRepository.BaseHardwareObjects import Device
+from gui.utils.QtImport import QImage, QPixmap
 from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
 
 

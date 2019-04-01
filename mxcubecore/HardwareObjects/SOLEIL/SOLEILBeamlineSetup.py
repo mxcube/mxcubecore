@@ -1,6 +1,6 @@
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
-from BeamlineSetup import BeamlineSetup
+from HardwareRepository.HardwareObjects.BeamlineSetup import BeamlineSetup
 
 
 class SOLEILBeamlineSetup(BeamlineSetup):

@@ -1,4 +1,4 @@
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 CRYO_STATUS = ["OFF", "SATURATED", "READY", "WARNING", "FROZEN", "UNKNOWN"]
 

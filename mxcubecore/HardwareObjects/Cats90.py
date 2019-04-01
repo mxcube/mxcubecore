@@ -24,7 +24,7 @@ import time
 import PyTango
 import logging
 
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 
 __author__ = "Michael Hellmig, Jie Nan, Bixente Rey"
 __credits__ = ["The MXCuBE collaboration"]

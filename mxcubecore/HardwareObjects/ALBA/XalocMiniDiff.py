@@ -1,11 +1,10 @@
 import logging
 import time
-import math
-import numpy
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer
+)
 from gevent.event import AsyncResult
 import gevent
-import PyTango
 
 
 class XalocMiniDiff(GenericDiffractometer):

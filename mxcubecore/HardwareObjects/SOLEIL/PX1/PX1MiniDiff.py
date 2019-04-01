@@ -2,8 +2,10 @@ import logging
 import gevent
 import time
 
-from GenericDiffractometer import GenericDiffractometer
-import sample_centring
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer
+)
+from HardwareRepository.HardwareObjects import sample_centring
 
 
 class PX1MiniDiff(GenericDiffractometer):
@@ -208,7 +210,7 @@ class PX1MiniDiff(GenericDiffractometer):
                             and target values.
         :type motors_dict: dict
         """
-        from queue_model_objects import CentredPosition
+        from HardwareRepository.HardwareObjects.queue_model_objects import CentredPosition
 
         if isinstance(motor_positions, CentredPosition):
             motor_positions = motor_positions.as_dict()

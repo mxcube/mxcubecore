@@ -1,4 +1,4 @@
-from queue_entry import *
+from HardwareRepository.HardwareObjects.queue_entry import *
 
 
 class PX2DataCollectionQueueEntry(DataCollectionQueueEntry):

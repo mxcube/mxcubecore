@@ -23,7 +23,7 @@ At first look there is no direct conversion from vapory scene to qimage.
 import time
 import gevent
 import vapory
-from QtImport import QImage
+from gui.utils.QtImport import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 

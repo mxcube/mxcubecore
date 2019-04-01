@@ -25,7 +25,7 @@ import logging
 import sys
 import gevent
 from HardwareRepository.TaskUtils import task
-from AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 
 __author__ = "Vicente Rey Bakaikoa"

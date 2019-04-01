@@ -22,7 +22,7 @@ import logging
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3"
 
 

@@ -21,7 +21,7 @@ import logging
 import gevent
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from omega_scan import omega_scan
 from inverse_scan import inverse_scan

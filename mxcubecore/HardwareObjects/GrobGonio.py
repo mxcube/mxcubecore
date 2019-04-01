@@ -1,4 +1,4 @@
-import GrobMotor
+from HardwareRepository.HardwareObjects import GrobMotor
 
 
 class GrobGonio(GrobMotor.GrobMotor):

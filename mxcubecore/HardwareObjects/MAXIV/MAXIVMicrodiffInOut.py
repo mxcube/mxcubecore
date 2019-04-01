@@ -1,4 +1,4 @@
-import MicrodiffInOut
+from HardwareRepository.HardwareObjects import MicrodiffInOut
 import gevent
 import time
 

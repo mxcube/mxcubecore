@@ -1,4 +1,4 @@
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 
 class AdscTemperature(TacoDevice.TacoDevice):

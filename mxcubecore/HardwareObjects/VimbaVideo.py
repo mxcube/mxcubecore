@@ -9,6 +9,9 @@ except ImportError:
     pass
 
 from gui.utils.QtImport import QImage, QPixmap
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
