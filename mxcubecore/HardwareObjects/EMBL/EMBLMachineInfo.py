@@ -81,26 +81,26 @@ class EMBLMachineInfo(HardwareObject):
         # temp_dict['history'] = True
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = None
         temp_dict["in_range"] = True
         temp_dict["title"] = "Machine state"
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = None
         temp_dict["in_range"] = True
         temp_dict["title"] = "Front End, undulator gap"
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = ""
         temp_dict["value_str"] = ""
         temp_dict["in_range"] = None
         temp_dict["title"] = "Hutch temperature and humidity"
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = 1
         temp_dict["value_str"] = "Remeasure flux!"
         temp_dict["in_range"] = False
@@ -108,13 +108,13 @@ class EMBLMachineInfo(HardwareObject):
         # temp_dict['align'] = "left"
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = "???"
         temp_dict["in_range"] = None
         temp_dict["title"] = "Cryoject in place"
         self.values_list.append(temp_dict)
 
-        temp_dict.clear()
+        temp_dict = {}
         temp_dict["value"] = "Dewar level in range"
         temp_dict["in_range"] = True
         temp_dict["title"] = "Sample changer"
@@ -404,8 +404,7 @@ class EMBLMachineInfo(HardwareObject):
 
     def get_values(self):
         """Returns list of values"""
-        val = dict(self.values_list)
-        return val
+        return self.values_list
 
     def get_temp_hum_values(self, sleep_time):
         """Updates temperatur and humidity values"""
@@ -424,12 +423,12 @@ class EMBLMachineInfo(HardwareObject):
             time.sleep(sleep_time)
 
     def get_current(self):
-        """Returns current
+        """Returns machine current in mA
         """
         return self.values_list[0]["value"]
 
     def get_current_value(self):
-        """Returns current"""
+        """Returns machine current in mA"""
         return self.values_list[0]["value"]
 
     def get_message(self):
@@ -514,8 +513,9 @@ class EMBLMachineInfo(HardwareObject):
 
     def update_ramdisk_size(self, sleep_time):
         """
-        Updates ramdisk size
-        :param sleep_time:
+        In the loop updates information about ramdisk size.
+        Method gets total and free disc space and in Gb and formats a readable string
+        :param sleep_time: sec between update cycles
         :return:
         """
         while True:
@@ -536,8 +536,8 @@ class EMBLMachineInfo(HardwareObject):
 
     def get_ramdisk_size(self):
         """
-        Gets ramdisk size
-        :return:
+        Gets ramdisk size in bytes
+        :return: total, free disc size in bytes and free disc in perc
         """
         data_dir = "/ramdisk/"
         # p = '/' + data_dir.split('/')[1]
