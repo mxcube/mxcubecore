@@ -137,7 +137,7 @@ class EMBLEnergy(Device):
 
     def is_ready(self):
         """
-        In this case device is always ready 
+        In this case device is always ready
         """
         return True
 

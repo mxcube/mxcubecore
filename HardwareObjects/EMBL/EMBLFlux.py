@@ -295,7 +295,7 @@ class EMBLFlux(AbstractFlux):
 
             self.current_flux_dict = deepcopy(self.measured_flux_dict)
             if int(self.transmission_value) != int(
-                self.measured_flux_dict["transmission"]
+                    self.measured_flux_dict["transmission"]
             ):
                 self.current_flux_dict["flux"] = (
                     self.measured_flux_dict["flux"]
@@ -350,11 +350,9 @@ class EMBLFlux(AbstractFlux):
 
         if self.session_hwobj.beamline_name == "P14":
             if self.detector_distance_hwobj.get_position() > 501:
-                self.print_log(
-                    "GUI",
-                    "error",
-                    "Detector is too far away for flux measurements. Move to 500 mm or closer.",
-                )
+                msg = "Detector is too far away for flux measurements." +\
+                      "Move to 500 mm or closer."
+                self.print_log("GUI", "error", msg)
                 return
 
         self.measuring = True
