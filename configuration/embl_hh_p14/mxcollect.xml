@@ -1,6 +1,6 @@
 <object class="EMBLCollect">
   <object href="/mini-diff" role="diffractometer"/>
-  <object href="/Qt4_graphics-manager" role="graphics_manager"/>
+  <object href="/graphics" role="graphics_manager"/>
   <object href="/safshut" role="safety_shutter"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/mach-info" role="machine_info"/>
@@ -48,7 +48,6 @@
   <command type="tine" name="collectStart" tinename="/P14/collection/mx-standard">collect</command>
   <command type="tine" name="collectAbort"   tinename="/P14/collection/mx-standard">abort</command>
 
-  <command type="tine" name="cmdCloseGuillotine"   tinename="/P14/collection/shutter">close</command>
   <command type="tine" name="cmdSetCallibrationName"   tinename="/P14/collection/distance">calibration</command>
 
   <input_files_server>localhost:5698</input_files_server>

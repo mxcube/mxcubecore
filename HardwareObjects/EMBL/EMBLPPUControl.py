@@ -1,5 +1,4 @@
 import logging
-from gevent import spawn_later
 from HardwareRepository.BaseHardwareObjects import Device
 
 
@@ -9,6 +8,10 @@ __category__ = "General"
 
 
 class EMBLPPUControl(Device):
+    """
+    Allows to restart processes on PPU
+    """
+
     def __init__(self, name):
         Device.__init__(self, name)
 
@@ -23,11 +26,15 @@ class EMBLPPUControl(Device):
         self.cmd_all_status = None
         self.cmd_furka_restart = None
         self.cmd_all_restart = None
+        self.chan_all_status = None
+        self.chan_file_info = None
+        self.chan_all_restart = None
 
         self.msg = ""
 
         self.status_running = None
         self.restart_running = None
+        self.execution_state = None
 
     def init(self):
         self.all_status = ""
@@ -58,20 +65,34 @@ class EMBLPPUControl(Device):
         self.connect(self.chan_all_restart, "update", self.all_restart_changed)
 
     def all_status_changed(self, status):
+        """
+        Updates status
+        :param status: str
+        :return:
+        """
         if self.status_running and not status:
             self.all_status = self.cmd_all_status.get()  # status
             self.update_status()
         self.status_running = status
 
     def all_restart_changed(self, status):
+        """
+        Updates status after all process restart
+        :param status:
+        :return:
+        """
         if self.restart_running and not status:
             self.restart_result = self.cmd_all_restart.get()  # status
         self.restart_running = status
 
     def file_info_changed(self, values):
-        # Updated information about transfered frames 
-        # values is a list of 3 values, where the last one indicates the number
-        # of droped frames
+        """
+        Updated information about transfered frames
+        values is a list of 3 values, where the last one indicates the number
+        of droped frames
+        :param values:
+        :return:
+        """
 
         values = list(values)
         if len(values) == 2:
@@ -90,10 +111,18 @@ class EMBLPPUControl(Device):
             self.emit("ppuStatusChanged", self.is_error, "File tansfer in error")
 
     def get_status(self):
+        """
+        Returns status
+        :return: boolean, str
+        """
         self.cmd_all_status("")
         return self.is_error, self.all_status
 
     def update_status(self):
+        """
+        Update status method
+        :return:
+        """
         self.is_error = (
             self.all_status.startswith(self.error_state) or self.file_transfer_in_error
         )
@@ -118,9 +147,17 @@ class EMBLPPUControl(Device):
         return self.is_error, self.all_status
 
     def restart_all(self):
+        """
+        Restarts all processes
+        :return:
+        """
         self.emit("ppuStatusChanged", False, "Restarting.... ")
         self.cmd_all_restart("")
         self.get_status()
 
     def update_values(self):
+        """
+        Reemits signals
+        :return:
+        """
         self.emit("ppuStatusChanged", self.is_error, self.msg)

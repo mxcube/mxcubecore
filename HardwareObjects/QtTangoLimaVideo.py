@@ -45,7 +45,9 @@ import numpy as np
 
 import PyTango
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 
 class QtTangoLimaVideo(AbstractVideoDevice):
@@ -151,5 +153,5 @@ class QtTangoLimaVideo(AbstractVideoDevice):
 
 
 def test_hwo(hwo):
-    print "Image dimensions: ", hwo.get_image_dimensions()
-    print "Live Mode: ", hwo.get_video_live()
+    print ("Image dimensions: %s" % hwo.get_image_dimensions())
+    print ("Live Mode: %s" % hwo.get_video_live())

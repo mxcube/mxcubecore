@@ -9,7 +9,8 @@ import PyChooch
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractEnergyScan import AbstractEnergyScan
+from HardwareRepository.HardwareObjects.abstract.AbstractEnergyScan import (
+    AbstractEnergyScan)
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg

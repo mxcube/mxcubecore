@@ -714,11 +714,11 @@ class AbstractMultiCollect(object):
                 "Setting resolution to %f", resolution
             )
             self.set_resolution(resolution)
-        elif "detdistance" in oscillation_parameters:
+        elif "detector_distance" in oscillation_parameters:
             logging.getLogger("user_level_log").info(
-                "Moving detector to %f", data_collect_parameters["detdistance"]
+                "Moving detector to %f", data_collect_parameters["detector_distance"]
             )
-            self.move_detector(oscillation_parameters["detdistance"])
+            self.move_detector(oscillation_parameters["detector_distance"])
 
         # 0: software binned, 1: unbinned, 2:hw binned
         self.set_detector_mode(data_collect_parameters["detector_mode"])

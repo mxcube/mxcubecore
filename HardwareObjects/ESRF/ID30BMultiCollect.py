@@ -4,8 +4,8 @@ import logging
 import os
 
 from HardwareRepository.TaskUtils import task
-from ESRF.ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
-from detectors.LimaPilatusDetector import Pilatus
+from .ESRFMultiCollect import ESRFMultiCollect, PixelDetector, TunableEnergy
+from HardwareRepository.HardwareObjects.LimaPilatusDetector import Pilatus
 
 
 class ID30BMultiCollect(ESRFMultiCollect):

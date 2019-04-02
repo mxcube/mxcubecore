@@ -1,21 +1,21 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
 #  MXCuBE is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+#  it under the terms of the GNU Lesser General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  MXCuBE is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
 """
 [Name] EMBLMotorsGroup
@@ -72,23 +72,31 @@ Example Hardware Object XML file :
           'Vertical': 0.22, 'Double': 0.22}</focusingModes>
         </motor>
     </motors>
-</device>"""
+</device>
+"""
 
 
 import time
-import gevent
 import logging
+
+import gevent
+
 import tine
 from HardwareRepository.BaseHardwareObjects import Device
 
 
 __credits__ = ["EMBL Hamburg"]
-__version__ = "2.3."
+__license__ = "LGPLv3+"
 __category__ = "Motor"
 
 
 class EMBLMotorsGroup(Device):
+    """
+    EMBLMotorsGroup
+    """
+
     def __init__(self, name):
+
         Device.__init__(self, name)
         self.server_address = None
         self.group_address = None
@@ -108,7 +116,7 @@ class EMBLMotorsGroup(Device):
         self.server_address = self.serverAddr
         self.group_address = self.groupAddr
         self.motors_list = []
-        temp_dict = {}
+
         for motor in self["motors"]:
             temp_dict = {}
             temp_dict["motorName"] = motor.motorName
@@ -294,6 +302,10 @@ class EMBLMotorsGroup(Device):
             self.emit("mGroupFocModeChanged", self.motors_group_foc_mode_dict)
 
     def get_detected_foc_mode(self):
+        """
+        Returns focus mode
+        :return: str
+        """
         return self.detected_foc_mode
 
     def status_changed(self, status):
@@ -326,6 +338,10 @@ class EMBLMotorsGroup(Device):
                 return motor["status"] == motor["statusModes"]["Ready"]
 
     def update_values(self):
+        """
+        Reemits all signals
+        :return:
+        """
         self.emit("mGroupPosChanged", self.motors_group_position_dict)
         self.emit("mGroupFocModeChanged", self.motors_group_foc_mode_dict)
         self.emit("mGroupStatusChanged", self.motors_group_status_dict)

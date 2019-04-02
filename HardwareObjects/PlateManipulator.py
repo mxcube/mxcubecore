@@ -34,8 +34,8 @@ each drop could have several crystals.
 import time
 import gevent
 
-from abstract.sample_changer import Crims
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.sample_changer import Crims
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 
 
 class Xtal(Sample):

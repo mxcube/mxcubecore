@@ -1,6 +1,6 @@
 """Lakeshore Hardware Object
 """
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 import logging
 import time
 

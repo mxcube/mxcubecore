@@ -1,10 +1,9 @@
 import os
 import time
 import logging
-from HardwareRepository import HardwareRepository
 
-import Session
-import queue_model_objects
+from HardwareRepository.HardwareObjects import Session
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 
 class ALBASession(Session.Session):

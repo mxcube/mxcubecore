@@ -46,18 +46,16 @@ Specific HwObj for M2D2 diffractometer @ ALBA
 
 import logging
 import time
-import math
-import numpy
-from GenericDiffractometer import GenericDiffractometer, DiffractometerState
-from gevent.event import AsyncResult
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer, DiffractometerState
+)
 import gevent
-import PyTango
 
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 
 __author__ = "Jordi Andreu"
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 __version__ = "2.2."
 __maintainer__ = "Jordi Andreu"

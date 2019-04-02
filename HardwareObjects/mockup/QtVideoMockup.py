@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -19,12 +19,18 @@
 
 import os
 import time
-import gevent
 import numpy as np
 
-from QtImport import *
+try:
+    from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
+    from PyQt5.QtCore import Qt
+except ImportError:
+    from PyQt4.QtGui import QPainter, QPixmap, QPen, QBrush, QImage
+    from PyQt4.QtCore import Qt
 
-from abstract.AbstractVideoDevice import AbstractVideoDevice
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 
 class QtVideoMockup(AbstractVideoDevice):

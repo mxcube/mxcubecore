@@ -2,8 +2,8 @@ import math
 import numpy
 import logging
 
-import Microdiff
-from sample_centring import CentringMotor
+from HardwareRepository.HardwareObjects import Microdiff
+from HardwareRepository.HardwareObjects.sample_centring import CentringMotor
 
 
 class MD3UP(Microdiff.Microdiff):

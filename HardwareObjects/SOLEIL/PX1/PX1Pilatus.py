@@ -20,7 +20,9 @@
 import logging
 import time
 
-from AbstractDetector import AbstractDetector
+from HardwareRepository.HardwareObjects.abstract.AbstractDetector import (
+    AbstractDetector
+)
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Vicente Rey"

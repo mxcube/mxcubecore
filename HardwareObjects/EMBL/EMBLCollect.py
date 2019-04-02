@@ -17,6 +17,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+"""EMBLCollect - defines osc, helical and mesh collections"""
+
 import os
 
 from HardwareRepository.TaskUtils import task
@@ -34,10 +36,6 @@ class EMBLCollect(AbstractCollect):
     """
 
     def __init__(self, name):
-        """
-        :param name: name of the object
-        :type name: string
-        """
 
         AbstractCollect.__init__(self, name)
         self._previous_collect_status = None
@@ -194,19 +192,19 @@ class EMBLCollect(AbstractCollect):
                 self.cmd_collect_num_images(osc_seq["number_of_images"])
 
             if self.cmd_collect_processing is not None:
-                self.cmd_collect_processing(
-                    self.current_dc_parameters["processing_parallel"]
-                    in (True, "MeshScan", "XrayCentering")
-                )
+                self.cmd_collect_processing(True)
+                # GB 2019030: no idea why this could be unset.....
+                #    self.current_dc_parameters["processing_parallel"]
+                #    in (True, "MeshScan", "XrayCentering")
+                #
 
-            # print "Experiment type::::::::::", self.current_dc_parameters['experiment_type']
             # GB 2018-05-16 : Workaround a fuzzy mesh scan interface of MD3
             # if self.current_dc_parameters['experiment_type'] == 'Mesh':
-            #   _do_start = osc_seq['start'] - 0.5 * osc_seq['range']*osc_seq['number_of_images']/float(osc_seq['number_of_lines'])
+            #   _do_start = osc_seq['start'] - 0.5 * osc_seq['range']*
+            # osc_seq['number_of_images']/float(osc_seq['number_of_lines'])
             #   print _do_start, ' Here'
             # else:
             #   _do_start = osc_seq['start']
-            # print "Oscillation Start::::::::::::::::::::", _do_start
 
             self.cmd_collect_start_angle(osc_seq["start"])
             # self.cmd_collect_start_angle(_do_start)
@@ -290,6 +288,7 @@ class EMBLCollect(AbstractCollect):
             )
 
     def collection_finished(self):
+        """Additionaly sets break bragg if it was previously released"""
         AbstractCollect.collection_finished(self)
         if (
             self.current_dc_parameters["in_queue"] is False
@@ -316,7 +315,7 @@ class EMBLCollect(AbstractCollect):
                 self.emit("progressStep", (int(float(frame) / number_of_images * 100)))
                 self.emit("collectImageTaken", frame)
 
-    def store_image_in_lims_by_frame_num(self, frame, motor_position_id=None):
+    def store_image_in_lims_by_frame_num(self, frame_number):
         """Store image in lims
 
         :param frame: dict with frame parameters
@@ -324,9 +323,8 @@ class EMBLCollect(AbstractCollect):
         :param motor_position_id: position id
         :type motor_position_id: int
         """
-        self.trigger_auto_processing("image", frame)
-
-        return self.store_image_in_lims(frame)
+        self.trigger_auto_processing("image", frame_number)
+        return self.store_image_in_lims(frame_number)
 
     def trigger_auto_processing(self, process_event, frame_number):
         """Starts autoprocessing"""
@@ -334,7 +332,7 @@ class EMBLCollect(AbstractCollect):
             process_event,
             self.current_dc_parameters,
             frame_number,
-            self.run_processing_after,
+            self.current_dc_parameters["processing_after"],
         )
 
     def stopCollect(self, owner="MXCuBE"):
@@ -369,12 +367,14 @@ class EMBLCollect(AbstractCollect):
         """Sets mesh parameters"""
         self.cmd_collect_raster_lines(num_lines)
         self.cmd_collect_num_images(num_total_frames / num_lines)
-        self.cmd_collect_raster_range(mesh_range)
+        # GB collection server interface assumes the order: fast, slow for mesh
+        # range. Need reversal at P14:
+        self.cmd_collect_raster_range(mesh_range[::-1])
 
     @task
-    def _take_crystal_snapshot(self, filename):
+    def _take_crystal_snapshot(self, snapshot_filename):
         """Saves crystal snapshot"""
-        self.graphics_manager_hwobj.save_scene_snapshot(filename)
+        self.graphics_manager_hwobj.save_scene_snapshot(snapshot_filename)
 
     @task
     def _take_crystal_animation(self, animation_filename, duration_sec=1):
@@ -413,8 +413,7 @@ class EMBLCollect(AbstractCollect):
         :param roi_mode: roi mode
         :type roi_mode: str (0, C2, ..)
         """
-        if self.detector_hwobj is not None:
-            self.detector_hwobj.set_collect_mode(roi_mode)
+        self.detector_hwobj.set_collect_mode(roi_mode)
 
     @task
     def move_motors(self, motor_position_dict):
@@ -422,7 +421,7 @@ class EMBLCollect(AbstractCollect):
         self.diffractometer_hwobj.move_motors(motor_position_dict)
 
     def prepare_input_files(self):
-        """Prepares xds and mosfl directories"""
+        """Prepares xds directory"""
         i = 1
         while True:
             xds_input_file_dirname = "xds_%s_%s_%d" % (
@@ -437,56 +436,40 @@ class EMBLCollect(AbstractCollect):
             if not os.path.exists(xds_directory):
                 break
             i += 1
+
         self.current_dc_parameters["xds_dir"] = xds_directory
 
-        mosflm_input_file_dirname = "mosflm_%s_run%s_%d" % (
-            self.current_dc_parameters["fileinfo"]["prefix"],
-            self.current_dc_parameters["fileinfo"]["run_number"],
-            i,
-        )
-        mosflm_directory = os.path.join(
-            self.current_dc_parameters["fileinfo"]["process_directory"],
-            mosflm_input_file_dirname,
-        )
-
-        return xds_directory, mosflm_directory, ""
+        return xds_directory, ""
 
     def get_wavelength(self):
         """Returns wavelength"""
-        if self.energy_hwobj is not None:
-            return self.energy_hwobj.getCurrentWavelength()
+        return self.energy_hwobj.getCurrentWavelength()
 
     def get_detector_distance(self):
         """Returns detector distance in mm"""
-        if self.detector_hwobj is not None:
-            return self.detector_hwobj.get_distance()
+        return self.detector_hwobj.get_distance()
 
     def get_detector_distance_limits(self):
         """Returns detector distance limits"""
-        if self.detector_hwobj is not None:
-            return self.detector_hwobj.get_distance_limits()
+        return self.detector_hwobj.get_distance_limits()
 
     def get_resolution(self):
         """Returns resolution in A"""
-        if self.resolution_hwobj is not None:
-            return self.resolution_hwobj.getPosition()
+        return self.resolution_hwobj.getPosition()
 
     def get_transmission(self):
         """Returns transmision in %"""
-        if self.transmission_hwobj is not None:
-            return self.transmission_hwobj.get_value()
+        return self.transmission_hwobj.get_value()
 
     def get_undulators_gaps(self):
         """Return triplet with gaps. In our case we have one gap,
         """
+        und_gaps = {}
         if self.chan_undulator_gap:
             und_gaps = self.chan_undulator_gap.getValue()
-            if type(und_gaps) in (list, tuple):
-                return und_gaps
-            else:
-                return und_gaps
-        else:
-            return {}
+            if not isinstance(und_gaps, (list, tuple)):
+                und_gaps = list(und_gaps)
+        return und_gaps
 
     def get_measured_intensity(self):
         """Returns flux"""
@@ -494,26 +477,16 @@ class EMBLCollect(AbstractCollect):
 
     def get_machine_current(self):
         """Returns flux"""
-
-        if self.machine_info_hwobj:
-            return self.machine_info_hwobj.get_current()
-        else:
-            return 0
+        return self.machine_info_hwobj.get_current()
 
     def get_machine_message(self):
         """Returns machine message"""
-        if self.machine_info_hwobj:
-            return self.machine_info_hwobj.get_message()
-        else:
-            return ""
+        return self.machine_info_hwobj.get_message()
 
     def get_machine_fill_mode(self):
         """Returns machine filling mode"""
-        if self.machine_info_hwobj:
-            fill_mode = str(self.machine_info_hwobj.get_message())
-            return fill_mode[:20]
-        else:
-            return ""
+        fill_mode = str(self.machine_info_hwobj.get_message())
+        return fill_mode[:20]
 
     def getBeamlineConfiguration(self, *args):
         """Returns beamline config"""
@@ -523,9 +496,12 @@ class EMBLCollect(AbstractCollect):
         """Returns flux"""
         return self.get_measured_intensity()
 
+    def get_total_absorbed_dose(self):
+        return float("%.3e" % self.flux_hwobj.get_total_absorbed_dose())
+
     def set_run_autoprocessing(self, status):
         """Enables or disables autoprocessing after a collection"""
         self.run_autoprocessing = status
 
     def create_file_directories(self):
-        return
+        self.prepare_input_files()

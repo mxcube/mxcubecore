@@ -1,6 +1,6 @@
 import time
 from gevent import Timeout
-from abstract.AbstractMotor import AbstractMotor
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import AbstractMotor
 
 """
 Example xml file:

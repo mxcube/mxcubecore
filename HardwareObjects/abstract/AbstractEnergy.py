@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConvertUtils import h_over_e
+from HardwareRepository.ConvertUtils import h_over_e
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 

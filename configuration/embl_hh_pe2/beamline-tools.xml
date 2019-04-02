@@ -1,6 +1,6 @@
 <object class="BeamlineTools">
    <object href="/mini-diff" role="diffractometer"/>
-   <object href="/Qt4_graphics-manager" role="shape_history"/>
+   <object href="/graphics" role="shape_history"/>
 
    <tools>
      <tool>

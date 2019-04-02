@@ -7,6 +7,7 @@
     <channel type="tine" name="machEnergy" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">Energy</channel>
     <channel type="tine" name="machBunchCount" tinename="/PETRA/ARCHIVER/keyword" attach="datachange">NBunches</channel>
     <channel type="tine" name="frontEndStatus" tinename="/PETRA/ARCHIVER/PS_0" attach="datachange">P14.Stellung</channel>
+    <channel type="tine" name="chanUndulatorGap" tinename="/P14/Energy/P14Energy">Gap</channel>
 
     <updateIntervalS>60</updateIntervalS>
     <limits>{'current':75, 'temp': 25, 'hum': 60, 'intens': 5e-8}</limits>

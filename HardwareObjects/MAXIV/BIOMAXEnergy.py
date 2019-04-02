@@ -1,6 +1,6 @@
 import logging
 import gevent
-import Energy
+from HardwareRepository.HardwareObjects import Energy
 
 
 class BIOMAXEnergy(Energy.Energy):

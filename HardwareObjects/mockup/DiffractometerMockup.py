@@ -22,7 +22,9 @@ import logging
 import random
 import warnings
 
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer
+)
 from gevent.event import AsyncResult
 
 

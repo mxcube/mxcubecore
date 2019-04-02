@@ -1,6 +1,6 @@
 import logging
 
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 
 class WagoPneu(TacoDevice.TacoDevice):

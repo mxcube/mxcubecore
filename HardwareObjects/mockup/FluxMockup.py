@@ -17,9 +17,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from random import random
-from abstract.AbstractFlux import AbstractFlux
+from HardwareRepository.HardwareObjects.abstract.AbstractFlux import AbstractFlux
 
 
 __credits__ = ["MXCuBE collaboration"]

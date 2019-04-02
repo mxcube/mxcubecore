@@ -1,7 +1,7 @@
-import Session
+from HardwareRepository.HardwareObjects import Session
 import os
 import time
-import queue_model_objects
+from HardwareRepository.HardwareObjects import queue_model_objects
 
 
 class ESRFSession(Session.Session):

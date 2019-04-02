@@ -13,7 +13,7 @@ from PyQt4.QtGui import QApplication
 # from qt import qApp
 
 import numpy
-from AbstractMotor import MotorStates
+from HardwareRepository.HardwareObjects.abstract.AbstractMotor import MotorStates
 
 
 class TangoDCMotor(Device):

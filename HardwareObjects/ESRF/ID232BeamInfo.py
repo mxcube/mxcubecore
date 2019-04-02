@@ -1,5 +1,4 @@
-from HardwareRepository import HardwareRepository
-import BeamInfo
+from HardwareRepository.HardwareObjects import BeamInfo
 
 
 class ID232BeamInfo(BeamInfo.BeamInfo):

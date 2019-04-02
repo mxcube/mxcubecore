@@ -1,0 +1,9 @@
+<device class = "TINEMotor">
+  <channel type="tine" name="axisPosition" tinename="/P14/P14KB/HFM_Pitch" attach="datachange">position</channel>
+  <channel type="tine" name="axisState" tinename="/P14/P14KB/HFM_Pitch">status</channel>
+  <command type="tine" name="setPosition" tinename="/P14/P14KB/HFM_Pitch">MOVE.Start</command>
+  <!-- <command type="tine" name="setOnline" tinename="/P14/P14KB/HFM_Pitch">OnLine</command> -->
+
+  <username>HFMpitch</username>
+  <stepLimits>[0.0005, 0.0013]</stepLimits>
+</device>

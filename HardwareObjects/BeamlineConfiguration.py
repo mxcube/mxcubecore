@@ -9,7 +9,7 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 
 __author__ = "Marcus Oskarsson"
 __copyright__ = "Copyright 2012, ESRF"
-__credits__ = ["My great coleagues", "The MxCuBE colaboration"]
+__credits__ = ["My great coleagues", "The MxCuBE collaboration"]
 
 __version__ = "0.1"
 __maintainer__ = "Marcus Oskarsson"

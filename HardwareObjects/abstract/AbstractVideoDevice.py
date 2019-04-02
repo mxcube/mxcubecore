@@ -51,7 +51,10 @@ modulenames = ["qt", "PyQt5", "PyQt4"]
 
 if any(mod in sys.modules for mod in modulenames):
     USEQT = True
-    from QtImport import QImage, QPixmap
+    try:
+        from PyQt5.QtGui import QImage, QPixmap
+    except ImportError:
+        from PyQt4.QtGui import QImage, QPixmap
 else:
     USEQT = False
     from PIL import Image

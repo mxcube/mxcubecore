@@ -1,9 +1,4 @@
-import logging
-from HardwareRepository import HardwareRepository
-import BeamInfo
-import gevent
-import time
-import copy
+from HardwareRepository.HardwareObjects import BeamInfo
 
 
 class BIOMAXBeamInfo(BeamInfo.BeamInfo):

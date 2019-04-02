@@ -1,8 +1,8 @@
 from __future__ import print_function
-from HardwareRepository import HardwareRepository
-from HardwareRepository import BaseHardwareObjects
 
-from Cats90 import Cats90, SampleChangerState, TOOL_SPINE
+from HardwareRepository.HardwareObjects.Cats90 import (
+    Cats90, SampleChangerState, TOOL_SPINE
+)
 
 import logging
 import time

@@ -5,8 +5,8 @@ import cPickle as pickle
 
 from HardwareRepository.TaskUtils import task
 
-from ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
-from detectors.LimaEigerDetector import Eiger
+from .ESRFMultiCollect import ESRFMultiCollect, FixedEnergy, PixelDetector
+from HardwareRepository.HardwareObjects.LimaEigerDetector import Eiger
 from PyTango.gevent import DeviceProxy
 
 
