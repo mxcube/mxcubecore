@@ -1,4 +1,4 @@
-<device class="MotorsGroup">
+<device class="EMBLMotorsGroup">
     <username>P14KB</username>
     <serverAddr>/P14/P14KB</serverAddr>
     <groupAddr>/HFM_Pitch</groupAddr>
@@ -13,9 +13,9 @@
           <index>6</index>
           <velocity>0.1</velocity>
           <updateTolerance>0.010</updateTolerance>
-	  <evalTolerance>10.010</evalTolerance>
+	  <evalTolerance>0.10</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': -1.0, 'Horizontal': -1.0, 'Vertical': 0, 'Double': 0 }</focusingModes>
+          <focusingModes>{'Collimated': 0.15000, 'Double': 0.9280, 'Imaging': 0.15000}</focusingModes>
         </motor>
         <motor>
           <motorName>HFM_HorTrans</motorName>
@@ -27,7 +27,7 @@
           <updateTolerance>0.010</updateTolerance>
 	  <evalTolerance>0.100</evalTolerance>
           <statusModes>{'Move': 1, 'Ready': 0}</statusModes>
-          <focusingModes>{'Unfocused': 1.6, 'Horizontal': 0.391, 'Vertical': 1.6, 'Double': 0.4196}</focusingModes>
+          <focusingModes>{'Collimated': 1.500, 'Double': 0.1163, 'Imaging': 1.500}</focusingModes>
         </motor>
     </motors>
 </device>

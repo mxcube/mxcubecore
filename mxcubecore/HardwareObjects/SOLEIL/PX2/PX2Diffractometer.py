@@ -33,7 +33,9 @@ except ImportError:
             "Could not find autocentring library, " + "automatic centring is disabled"
         )
 
-from GenericDiffractometer import GenericDiffractometer
+from HardwareRepository.HardwareObjects.GenericDiffractometer import (
+    GenericDiffractometer
+)
 from HardwareRepository.TaskUtils import task
 
 

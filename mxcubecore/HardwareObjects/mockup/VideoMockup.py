@@ -4,7 +4,7 @@ Descript. :
 import os
 import time
 import gevent
-from qt import QImage
+from gui.utils.QtImport import QImage
 from HardwareRepository import BaseHardwareObjects
 from HardwareRepository.HardwareObjects.Camera import JpegType
 

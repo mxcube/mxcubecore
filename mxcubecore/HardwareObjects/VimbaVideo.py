@@ -1,13 +1,17 @@
 import time
-import cv2
 import atexit
 import numpy as np
 from pymba import *
 
 try:
-   from QtImport import QImage, QPixmap
-except:
-   pass
+    import cv2
+except ImportError:
+    pass
+
+from gui.utils.QtImport import QImage, QPixmap
+from HardwareRepository.HardwareObjects.abstract.AbstractVideoDevice import (
+    AbstractVideoDevice
+)
 
 from abstract.AbstractVideoDevice import AbstractVideoDevice
 
@@ -17,7 +21,7 @@ class VimbaVideo(AbstractVideoDevice):
         AbstractVideoDevice.__init__(self, name)
 
         self.camera = None
-        self.camera_id = str
+        self.camera_index = 0
         self.qimage = None
         self.qpixmap = None
         self.use_qt = False
@@ -25,8 +29,7 @@ class VimbaVideo(AbstractVideoDevice):
 
     def init(self):
         # start Vimba
-        self.camera_id = u"%s" % self.getProperty("camera_id")
-
+        self.camera_index = self.getProperty("camera_index", 0)
         self.use_qt = self.getProperty('use_qt', True)
              
         atexit.register(self.close_camera)
@@ -45,7 +48,7 @@ class VimbaVideo(AbstractVideoDevice):
             cameraIds = vimba.getCameraIds()
 
             # self.camera = vimba.getCamera(self.camera_id)
-            self.camera = vimba.getCamera(cameraIds[-1])
+            self.camera = vimba.getCamera(cameraIds[self.camera_index])
             self.camera.openCamera(cameraAccessMode=2)
             self.camera.framerate = 1
             self.frame0 = self.camera.getFrame()  # creates a frame

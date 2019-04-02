@@ -10,10 +10,10 @@ documentation for the queue_entry module for more information.
 import logging
 import gevent
 import gevent.event
-import queue_entry
+from HardwareRepository.HardwareObjects import queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from queue_entry import QueueEntryContainer
+QueueEntryContainer = queue_entry.QueueEntryContainer
 
 """
 logger = logging.getLogger('queue_exec')

@@ -9,8 +9,10 @@
   <command type="tine" name="cmdReleaseBreakBragg" tinename="/P14/Mono/Device 0">ReleaseBreakBragg</command>
   <command type="tine" name="cmdSetBreakBragg" tinename="/P14/Mono/Device 0">SetBreakBragg</command> 
 
+  <command type="tine" name="cmdResetPerp" tinename="/P14/p14MonoMotor/perp">reset</command>
+
   <tunableEnergy>True</tunableEnergy>
-  <!-- Configuration with undulators -->
+  <!-- Configuration with undulators was 15 for all, 7 for all apart roll2 -->
   <ctrlBytes>(5, 15)</ctrlBytes>
 
   <!-- 

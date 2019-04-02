@@ -18,13 +18,11 @@
 
 import os
 import time
-import logging
-import gevent
 from HardwareRepository.TaskUtils import task
-from abstract.AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 
-__credits__ = ["MXCuBE colaboration"]
+__credits__ = ["MXCuBE collaboration"]
 
 
 class CollectMockup(AbstractCollect):

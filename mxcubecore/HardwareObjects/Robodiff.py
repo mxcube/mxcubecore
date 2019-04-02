@@ -1,4 +1,4 @@
-from abstract.AbstractSampleChanger import *
+from HardwareRepository.HardwareObjects.abstract.AbstractSampleChanger import *
 import gevent
 
 

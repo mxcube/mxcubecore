@@ -23,7 +23,7 @@ import sys
 
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
 
 from EigerDataSet import EigerDataSet
 
@@ -360,13 +360,13 @@ class BIOMAXCollect(AbstractCollect, HardwareObject):
                 )
                 raise Exception("[COLLECT] Error setting resolution: %s" % ex)
 
-        elif "detdistance" in self.current_dc_parameters:
+        elif "detector_distance" in self.current_dc_parameters:
             try:
                 log.info(
                     "Collection: Moving detector to %f",
-                    self.current_dc_parameters["detdistance"],
+                    self.current_dc_parameters["detector_distance"],
                 )
-                self.move_detector(self.current_dc_parameters["detdistance"])
+                self.move_detector(self.current_dc_parameters["detector_distance"])
             except Exception as ex:
                 log.error("Collection: cannot set detector distance.")
                 logging.getLogger("HWR").error(

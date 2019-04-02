@@ -821,7 +821,7 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         data_model = self.get_data_model()
 
         kappa = data_model.get_kappa()
-        phi = data_model.get_kappa_phi()
+        kappa_phi = data_model.get_kappa_phi()
 
         # kappa and kappa_phi settings are applied first, and assume that the
         # beamline does have axes with exactly these names
@@ -835,8 +835,8 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         dd = {}
         if kappa is not None:
             dd["kappa"] = kappa
-        if phi is not None:
-            dd["kappa_phi"] = phi
+        if kappa_phi is not None:
+            dd["kappa_phi"] = kappa_phi
         if dd:
             if (
                 not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
@@ -1837,13 +1837,13 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
     def execute(self):
         BaseQueueEntry.execute(self)
 
-        logging.getLogger("queue_exec").debug(
-            "GphlWorkflowQueueEntry.execute WF state is %s"
-            % self.workflow_hwobj.get_state()
+        state = self.workflow_hwobj.get_state()
+        logging.getLogger("queue_exec").info(
+            "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
         )
 
         # Start execution of a new workflow
-        if self.workflow_hwobj.get_state() != States.ON:
+        if state != States.ON:
             # TODO Add handling of potential conflicts.
             # NBNB GPhL workflow cannot have multiple users
             # unless they use separate persistence layers
@@ -2172,13 +2172,43 @@ class XrayImagingQueueEntry(BaseQueueEntry):
 
     def execute(self):
         BaseQueueEntry.execute(self)
+        self.beamline_setup.xray_imaging_hwobj.execute(self.get_data_model())
 
     def pre_execute(self):
         BaseQueueEntry.pre_execute(self)
 
+        qc = self.get_queue_controller()
+        qc.connect(self.beamline_setup.xray_imaging_hwobj, "collectImageTaken", self.image_taken)
+        qc.connect(self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed)
+
+        self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
+
     def post_execute(self):
         BaseQueueEntry.post_execute(self)
+        self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
 
+        qc = self.get_queue_controller()
+        qc.disconnect(self.beamline_setup.xray_imaging_hwobj, "collectImageTaken", self.image_taken)
+        qc.disconnect(self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed)
+
+    def stop(self):
+        BaseQueueEntry.stop(self)
+        self.beamline_setup.xray_imaging_hwobj.stop_collect()
+
+    def collect_failed(self, message):
+        # this is to work around the remote access problem
+        dispatcher.send("collect_finished")
+        self.get_view().setText(1, "Failed")
+        self.status = QUEUE_ENTRY_STATUS.FAILED
+        logging.getLogger("queue_exec").error(message.replace("\n", " "))
+        raise QueueExecutionException(message.replace("\n", " "), self)
+
+    def image_taken(self, image_number):
+        if image_number > 0:
+            num_images = (
+                self.get_data_model().acquisition.acquisition_parameters.num_images
+            )
+            self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
 def mount_sample(
     beamline_setup_hwobj, view, data_model, centring_done_cb, async_result
@@ -2286,6 +2316,7 @@ def mount_sample(
                     view.setText(1, "Centring done !")
                     log.info("Centring saved")
                 else:
+                    view.setText(1, "Centring failed !")
                     if centring_method == CENTRING_METHOD.FULLY_AUTOMATIC:
                         raise QueueSkippEntryException(
                             "Could not center sample, skipping", ""

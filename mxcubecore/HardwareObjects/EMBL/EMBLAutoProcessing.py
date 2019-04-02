@@ -29,6 +29,7 @@ from HardwareRepository.HardwareObjects.XSDataAutoprocv1_0 import XSDataAutoproc
 
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "General"
 
 
@@ -104,30 +105,27 @@ class EMBLAutoProcessing(HardwareObject):
         for program in self.autoproc_programs:
             if process_event == program.getProperty("event"):
                 executable = program.getProperty("executable")
-                if os.path.isfile(executable):
-                    will_execute = True
-                    if process_event == "after":
-                        end_of_line_to_execute = " " + params_dict["xds_dir"]
-                    elif process_event == "image":
-                        filename = params_dict["fileinfo"]["template"] % frame_number
-                        end_of_line_to_execute = " %s %s/%s" % (
-                            params_dict["fileinfo"]["archive_directory"],
-                            params_dict["fileinfo"]["directory"],
-                            filename,
-                        )
-                    if will_execute:
-                        subprocess.Popen(
-                            str(executable + end_of_line_to_execute),
-                            shell=True,
-                            stdin=None,
-                            stdout=None,
-                            stderr=None,
-                            close_fds=True,
-                        )
-                else:
-                    logging.getLogger().error(
-                        "EMBLAutoprocessing: No program to " + " execute found (%s)",
-                        executable,
+
+                will_execute = True
+                if process_event == "after":
+                    will_execute = run_processing
+                    end_of_line_to_execute = " %s %s " % (
+                        params_dict["xds_dir"], params_dict.get("collection_id"))
+                elif process_event == "image":
+                    filename = params_dict["fileinfo"]["template"] % frame_number
+                    end_of_line_to_execute = " %s %s/%s" % (
+                        params_dict["fileinfo"]["archive_directory"],
+                        params_dict["fileinfo"]["directory"],
+                        filename,
+                    )
+                if will_execute:
+                    subprocess.Popen(
+                        str(executable + end_of_line_to_execute),
+                        shell=True,
+                        stdin=None,
+                        stdout=None,
+                        stderr=None,
+                        close_fds=True,
                     )
 
     def create_autoproc_input(self, event, params):

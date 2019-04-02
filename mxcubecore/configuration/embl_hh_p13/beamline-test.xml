@@ -8,8 +8,8 @@
     <channel type="tine" name="intensMean" tinename="/P13/BCUIntensity/Device0" timeout="100" >ChannelsMean.get</channel>
     <channel type="tine" name="intensRange" tinename="/P13/BCUIntensity/Device0">CurrentRange.set</channel>
 
-    <channel type="tine" name="chanPitchScanStatus" tinename="/P13/p13mono.cdi/ScanStatus" attach="datachange">ScanStatus</channel>
-    <!--channel type="tine" name="chanQBPMAr" tinename="/P13/p13mono.cdi/QBPMAr">RECV</channel-->
+    <channel type="tine" name="chanPitchScanStatus" tinename="/P13/p13mono.cdi/PitchScanStat" attach="datachange">PitchScanStat</channel>
+    <channel type="tine" name="chanQBPMAr" tinename="/P13/p13mono.cdi/QBPMAr">RECV</channel>
     <channel type="tine" name="chanPitchPositionAr" tinename="/P13/p13mono.cdi/PitchPos">RECV</channel>
 
     <command type="tine" name="cmdSetPitchPosition" tinename="/P13/p13mono.cdi/PitchPos">SEND</command>

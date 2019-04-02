@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,14 +15,19 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+"""Inherited from AbstracAperture"""
 
 import gevent
-from HardwareRepository.HardwareObjects.abstract.AbstractAperture import AbstractAperture
+from HardwareRepository.HardwareObjects.abstract.AbstractAperture import (
+    AbstractAperture,
+)
 
 __credits__ = ["EMBL Hamburg"]
+__license__ = "LGPLv3+"
 __category__ = "General"
-__license__ = "LGPLv3"
+
 
 DEFAULT_POSITION_LIST = ("BEAM", "OFF", "PARK")
 
@@ -33,7 +38,7 @@ class EMBLAperture(AbstractAperture):
     """
 
     def __init__(self, name):
-        """Inherited from Device"""
+        """Inherited from AbstractAperture"""
         AbstractAperture.__init__(self, name)
 
         self.chan_diameter_index = None
@@ -129,6 +134,7 @@ class EMBLAperture(AbstractAperture):
         self.chan_position.setValue("OFF")
 
     def wait_ready(self, timeout=20):
+        """Waits till aperture is ready"""
         with gevent.Timeout(timeout, Exception("Timeout waiting for status ready")):
             while self.chan_state.getValue() != "Ready":
                 gevent.sleep(0.1)

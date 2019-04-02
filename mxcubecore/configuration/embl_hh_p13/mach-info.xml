@@ -15,6 +15,8 @@
     <channel type="tine" name="machEnergy" tinename="/PETRA/ARCHIVER/keyword">Energy</channel> 
     <channel type="tine" name="machBunchCount" tinename="/PETRA/ARCHIVER/keyword">NBunches</channel>
     <channel type="tine" name="cryojetIn" tinename="/P13/P13Cryojet.CDI/CryojetIn">RECV</channel>
-    <channel type="tine" name="scLowLevelAlarm" tinename="/P13/P13Cryojet.CDI/BigDewarLevel">BigDewarLevel</channel>
+    <channel type="tine" name="scLowLevelAlarm" tinename="/P13/P13Cryojet.CDI/LowLevelAlarm">RECV</channel>
     <channel type="tine" name="scOverflowAlarm" tinename="/P13/P13Cryojet.CDI/OverflowAlarm">OverflowAlarm</channel>
+    <channel type="tine" name="frontEndStatus" tinename="/PETRA/ARCHIVER/PS_0" attach="datachange">P13.Stellung</channel>
+    <channel type="tine" name="chanUndulatorGap" tinename="/P13/Energy/P13Energy">Gap</channel>
 </object>

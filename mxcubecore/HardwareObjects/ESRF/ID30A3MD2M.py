@@ -1,4 +1,4 @@
-import MiniDiff
+from HardwareRepository.HardwareObjects import MiniDiff
 
 
 class ID30A3MD2M(MiniDiff.MiniDiff):

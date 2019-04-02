@@ -11,7 +11,11 @@ from gevent.event import Event
 from gevent import monkey
 import Queue
 
-from ..CommandContainer import CommandObject, ChannelObject, ConnectionError
+from HardwareRepository.CommandContainer import (
+    CommandObject,
+    ChannelObject,
+    ConnectionError,
+)
 
 from PyTango import DevFailed, ConnectionFailed
 import PyTango

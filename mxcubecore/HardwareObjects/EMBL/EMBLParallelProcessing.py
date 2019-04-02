@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,32 +15,55 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+
+"""
+EMBLParallelProcessing
+"""
 
 import os
-import time
-import numpy
-import gevent
 import logging
 
-from HardwareRepository.HardwareObjects.GenericParallelProcessing import GenericParallelProcessing
+import numpy
+import gevent
 
-from HardwareRepository.HardwareObjects.XSDataCommon import XSDataBoolean, XSDataDouble, XSDataInteger, XSDataString
-from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import XSDataInputControlDozor, XSDataResultControlDozor, XSDataControlImageDozor
+from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
+    GenericParallelProcessing,
+)
+
+from HardwareRepository.HardwareObjects.XSDataCommon import (
+    XSDataBoolean,
+    XSDataDouble,
+    XSDataInteger,
+    XSDataString,
+)
+from HardwareRepository.HardwareObjects.XSDataControlDozorv1_1 import (
+    XSDataInputControlDozor,
+    XSDataResultControlDozor,
+    XSDataControlImageDozor,
+)
 
 
-
+__credits__ = ["EMBL Hamburg"]
 __license__ = "LGPLv3+"
+__category__ = "Motor"
 
 
 class EMBLParallelProcessing(GenericParallelProcessing):
+    """
+    EMBLParallelProcessing obtains Dozor on the fly processing results
+    """
+
     def __init__(self, name):
         GenericParallelProcessing.__init__(self, name)
 
         self.chan_dozor_pass = None
         self.chan_frame_count = None
+        self.display_task = None
 
     def init(self):
+
         GenericParallelProcessing.init(self)
 
         self.chan_dozor_pass = self.getChannelObject("chanDozorPass")
@@ -97,12 +120,21 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         self.display_task = gevent.spawn(self.update_map)
 
     def frame_count_changed(self, frame_count):
+        """
+        Finishes processing if the last frame is processed
+        :param frame_count:
+        :return:
+        """
         if self.started:
             self.emit("processingFrame", frame_count)
             if frame_count >= self.params_dict["images_num"] - 1:
                 self.set_processing_status("Success")
 
     def smooth(self):
+        """
+        Smooths the resolution
+        :return:
+        """
         good_index = numpy.where(self.results_raw["spots_resolution"] > 1 / 46.0)[0]
         good = self.results_aligned["spots_resolution"][good_index]
         if self.results_raw["spots_resolution"].size > 200:
@@ -166,6 +198,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             #   self.smooth()
 
     def update_map(self):
+        """
+        Emits heat map update signal
+        :return:
+        """
         gevent.sleep(1)
         while self.started:
             self.emit("processingResultsUpdate", False)
@@ -184,6 +220,11 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         GenericParallelProcessing.set_processing_status(self, status)
 
     def store_processing_results(self, status):
+        """
+        Stors processing results
+        :param status: str
+        :return:
+        """
         GenericParallelProcessing.store_processing_results(self, status)
         self.display_task.kill()
         gevent.spawn(self.store_result_xml)
@@ -192,6 +233,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
             self.start_crystfel_autoproc()
 
     def store_result_xml(self):
+        """
+        Stores results in xml for further usage
+        :return:
+        """
         processing_xml_filename = os.path.join(
             self.params_dict["process_directory"], "dozor_result.xml"
         )
@@ -213,6 +258,10 @@ class EMBLParallelProcessing(GenericParallelProcessing):
         )
 
     def start_crystfel_autoproc(self):
+        """
+        Start crystfel processing
+        :return:
+        """
         acq_params = self.data_collection.acquisitions[0].acquisition_parameters
         proc_params = self.data_collection.processing_parameters
 

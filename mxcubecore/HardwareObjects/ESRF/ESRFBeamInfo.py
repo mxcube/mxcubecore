@@ -1,4 +1,4 @@
-import BeamInfo
+from HardwareRepository.HardwareObjects import BeamInfo
 
 """
 XML example file

@@ -6,27 +6,33 @@
   <object href="/eh1/detector" role="detector"/>
   <object href="/eh1/diff-backLight" role="back_light"/>
   <object href="/eh1/diff-beamstop" role="beamstop"/>
+  <object href="/eh1/detector-distance" role="detector_distance"/>
 
   <object href="/attenuators" role="transmission"/>
   <object href="/beam-info" role="beam_info"/>
   <object href="/flux" role="flux"/>
   <object href="/energy" role="energy"/>
+  <object href="/door-interlock" role="door_interlock"/>
+
   <object href="/mini-diff" role="diffractometer"/>
   <object href="/mxcollect" role="collect"/>
   <object href="/safshut" role="safety_shutter"/>
   <object href="/fast-shut" role="fast_shutter"/>
   <object href="/sc-generic" role="sample_changer"/>
   <object href="/session" role="session"/>
+  <object href="/mach-info" role="machine_info"/>
   
   <object href="/xrf-spectrum" role="xrf_spectrum"/>
   <object href="/energyscan" role="energyscan"/>
   <object href="/dbconnection" role="lims_client"/>
-  <object href="/Qt4_graphics-manager" role="shape_history"/>
+  <object href="/graphics" role="shape_history"/>
 
   <object href="/data-analysis" role="data_analysis"/>
   <object href="/parallel-processing" role="parallel_processing"/>
   <object href="/image-tracking" role="image_tracking"/>
   <object href="/ppu-control" role="ppu_control"/>
+  <object href="/auto-processing" role="auto_processing"/>
+  <object href="/image-tracking" role="image_tracking"/>
 
   <!-- advanced methods are defined as a list with method names.
        Each name is then converted to class name.
@@ -35,7 +41,7 @@
        then queue skip exception will be raised.
   -->
   <advancedMethods>["MeshScan", "XrayCentering"]</advancedMethods>
-  <autoprocessingMethods>["EDNAproc", "Xia2Dials", "AutoProc"]</autoprocessingMethods>
+  <autoprocessingMethods>["EDNAproc", "Xia2Dials", "autoPROC"]</autoprocessingMethods>
 
   <!-- Is it possible to change the beam wavelentgh.
        Should perhaps be associated with the diffractometer -->

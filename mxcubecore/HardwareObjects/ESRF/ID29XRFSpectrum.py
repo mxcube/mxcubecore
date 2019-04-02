@@ -2,7 +2,7 @@ import logging
 import numpy
 import os.path
 
-from XRFSpectrum import XRFSpectrum
+from HardwareRepository.HardwareObjects.XRFSpectrum import XRFSpectrum
 
 try:
     from PyMca import ConfigDict

@@ -7,7 +7,7 @@ template:
     <interval>polling interval (in ms.)</interval>
   </device>
 """
-import TacoDevice
+from HardwareRepository.HardwareObjects import TacoDevice
 
 
 class XCamera(TacoDevice.TacoDevice):
