@@ -268,7 +268,7 @@ class AbstractCollect(HardwareObject, object):
             elif "detector_distance" in self.current_dc_parameters:
                 log.info(
                     "Collection: Moving detector to %.2f",
-                    self.current_dc_parameters["detdistance"],
+                    self.current_dc_parameters["detector_distance"],
                 )
                 self.move_detector(self.current_dc_parameters["detector_distance"])
 
