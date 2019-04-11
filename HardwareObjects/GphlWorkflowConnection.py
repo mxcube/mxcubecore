@@ -20,6 +20,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 
 import logging
 import os
@@ -126,16 +128,16 @@ class GphlWorkflowConnection(HardwareObject, object):
         locations = next(self.getObjects("directory_locations")).getProperties()
         paths = self.software_paths
         props = self.java_properties
-        dd = next(self.getObjects("software_paths")).getProperties()
-        for tag, val in dd.items():
+        dd0 = next(self.getObjects("software_paths")).getProperties()
+        for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
                 val2 = getHardwareRepository().findInRepository(val)
                 if val2 is None:
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = val2
-        dd = next(self.getObjects("software_properties")).getProperties()
-        for tag, val in dd.items():
+        dd0 = next(self.getObjects("software_properties")).getProperties()
+        for tag, val in dd0.items():
             val2 = val.format(**locations)
             if not os.path.isabs(val2):
                 val2 = getHardwareRepository().findInRepository(val)
@@ -143,8 +145,8 @@ class GphlWorkflowConnection(HardwareObject, object):
                     raise ValueError("File path %s not recognised" % val)
             paths[tag] = props[tag] = val2
         #
-        pp = props["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
-        paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp
+        pp0 = props["co.gphl.wf.bin"] = paths["GPHL_INSTALLATION"]
+        paths["BDG_home"] = paths.get("co.gphl.wf.bdg_licence_dir") or pp0
 
     def get_state(self):
         """Returns a member of the General.States enumeration"""
@@ -163,9 +165,9 @@ class GphlWorkflowConnection(HardwareObject, object):
         """Name of currently executing workflow"""
         return self._workflow_name
 
-    def to_java_time(self, time):
+    def to_java_time(self, time_in):
         """Convert time in seconds since the epoch (python time) to Java time value"""
-        return self._gateway.jvm.java.lang.Long(int(time * 1000))
+        return self._gateway.jvm.java.lang.Long(int(time_in * 1000))
 
     def get_executable(self, name):
         """Get location of executable binary for program called 'name'"""
@@ -176,7 +178,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         #
         return result
 
-    def _open_connection(self):
+    def open_connection(self):
 
         params = self._connection_parameters
 
@@ -197,8 +199,8 @@ class GphlWorkflowConnection(HardwareObject, object):
             java_parameters["port"] = val
 
         logging.getLogger("HWR").debug(
-            "GPhL Open connection: %s "
-            % (", ".join("%s:%s" % tt for tt in sorted(params.items())))
+            "GPhL Open connection: %s ",
+            (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items())))
         )
 
         # set sockets and threading to standard before running py4j
@@ -238,11 +240,11 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         in_shell = self.hasObject("ssh_options")
         if in_shell:
-            dd = self["ssh_options"].getProperties()
+            dd0 = self["ssh_options"].getProperties()
             #
-            host = dd.pop("Host")
+            host = dd0.pop("Host")
             command_list = ["ssh"]
-            for tag, val in sorted(dd.items()):
+            for tag, val in sorted(dd0.items()):
                 command_list.extend(("-o", "%s=%s" % (tag, val)))
                 # command_list.extend(('-o', tag, val))
             command_list.append(host)
@@ -254,12 +256,12 @@ class GphlWorkflowConnection(HardwareObject, object):
         # import socket
         # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # sock.connect(("8.8.8.8", 80))
-        # ss = "-agentlib:jdwp=transport=dt_socket,address=%s:8050,server=y,suspend=y"
-        # command_list.append(ss % sock.getsockname()[0])
+        # ss0 = "-agentlib:jdwp=transport=dt_socket,address=%s:8050,server=y,suspend=y"
+        # command_list.append(ss0 % sock.getsockname()[0])
 
-        for kw, val in sorted(params.get("invocation_properties", {}).items()):
+        for tag, val in sorted(params.get("invocation_properties", {}).items()):
             command_list.extend(
-                ConvertUtils.java_property(kw, val, quote_value=in_shell)
+                ConvertUtils.java_property(tag, val, quote_value=in_shell)
             )
 
         # We must get hold of the options here, as we need wdir for a property
@@ -284,10 +286,10 @@ class GphlWorkflowConnection(HardwareObject, object):
             )
         )
 
-        ll = ConvertUtils.command_option(
+        ll0 = ConvertUtils.command_option(
             "cp", self.software_paths["gphl_java_classpath"], quote_value=in_shell
         )
-        command_list.extend(ll)
+        command_list.extend(ll0)
 
         command_list.append(params["application"])
 
@@ -313,20 +315,20 @@ class GphlWorkflowConnection(HardwareObject, object):
             except BaseException:
                 # No need to raise error - program will fail downstream
                 logging.getLogger("HWR").error(
-                    "Could not create GPhL working directory: %s" % wdir
+                    "Could not create GPhL working directory: %s", wdir
                 )
 
-        for ss in command_list:
-            ss = ss.split("=")[-1]
-            if ss.startswith("/") and "*" not in ss and not os.path.exists(ss):
-                logging.getLogger("HWR").warning("File does not exist : %s" % ss)
+        for ss0 in command_list:
+            ss0 = ss0.split("=")[-1]
+            if ss0.startswith("/") and "*" not in ss0 and not os.path.exists(ss0):
+                logging.getLogger("HWR").warning("File does not exist : %s" % ss0)
 
-        logging.getLogger("HWR").info("GPhL execute :\n%s" % " ".join(command_list))
+        logging.getLogger("HWR").info("GPhL execute :\n%s", " ".join(command_list))
 
         # Get environmental variables
         envs = os.environ.copy()
 
-        # # Trick to allow unauthorised account (e.g. opid30) on ESRF to run GPhL programs
+        # # Trick to allow unauthorised account (e.g. ESRF: opid30) to run GPhL programs
         # # Any value is OK, just setting it is enough.
         # envs["AutoPROCWorkFlowUser"] = "1"
 
@@ -340,7 +342,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         envs["GPHL_INSTALLATION"] = self.software_paths["GPHL_INSTALLATION"]
         envs["BDG_home"] = self.software_paths["BDG_home"]
         logging.getLogger("HWR").info(
-            "Executing GPhL workflow, in environment %s" % envs
+            "Executing GPhL workflow, in environment %s", envs
         )
         try:
             self._running_process = subprocess.Popen(command_list, env=envs)
@@ -356,7 +358,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             % (self._running_process.pid, self._running_process.returncode)
         )
 
-    def _workflow_ended(self):
+    def workflow_ended(self):
         if self.get_state() == States.OFF:
             # No workflow to abort
             return
@@ -377,38 +379,38 @@ class GphlWorkflowConnection(HardwareObject, object):
         self.workflow_queue = None
         self._await_result = None
 
-        # xx = self._running_process
+        # xx0 = self._running_process
         # self._running_process = None
-        xx = self.collect_emulator_process
-        if xx is not None:
+        xx0 = self.collect_emulator_process
+        if xx0 is not None:
             self.collect_emulator_process = 'ABORTED'
             try:
-                if xx.poll() is None:
-                    xx.send_signal(signal.SIGINT)
+                if xx0.poll() is None:
+                    xx0.send_signal(signal.SIGINT)
                     time.sleep(3)
-                    if xx.poll() is None:
-                        xx.terminate()
+                    if xx0.poll() is None:
+                        xx0.terminate()
                         time.sleep(9)
-                        if xx.poll() is None:
-                            xx.kill()
+                        if xx0.poll() is None:
+                            xx0.kill()
             except BaseException:
                 logging.getLogger("HWR").info(
-                    "Exception while terminating external workflow process %s" % xx
+                    "Exception while terminating external workflow process %s", xx0
                 )
                 logging.getLogger("HWR").info("Error was:", exc_info=True)
 
-    def _close_connection(self):
+    def close_connection(self):
 
         logging.getLogger("HWR").debug("GPhL Close connection ")
-        xx = self._gateway
+        xx0 = self._gateway
         self._gateway = None
-        if xx is not None:
+        if xx0 is not None:
             try:
                 # Exceptions 'can easily happen' (py4j docs)
-                # We could catch them here than to have them caught and echoed downstream
-                # but it seems to keep the program open (??)
-                # xx.shutdown(raise_exception=True)
-                xx.shutdown()
+                # We could catch them here rather than have them caught and echoed
+                # downstream, but it seems to keep the program open (??)
+                # xx0.shutdown(raise_exception=True)
+                xx0.shutdown()
             except BaseException:
                 logging.getLogger("HWR").debug(
                     "Exception during py4j gateway shutdown. Ignored"
@@ -417,30 +419,31 @@ class GphlWorkflowConnection(HardwareObject, object):
     def abort_workflow(self, message=None):
         """Abort workflow - may be called from controller in any state"""
 
-        logging.getLogger("HWR").info("Aborting workflow: %s" % message)
+        logging.getLogger("HWR").info("Aborting workflow: %s", message)
         logging.getLogger("user_level_log").info("Aborting workflow ...")
-
         if self._await_result is not None:
             # Workflow waiting for answer - send abort
             self._await_result = [(GphlMessages.BeamlineAbort(), None)]
 
         # Shut down hardware object
-        qu = self.workflow_queue
-        if qu is None:
-            self._workflow_ended()
+        que = self.workflow_queue
+        if que is None:
+            self.workflow_ended()
         else:
             # If the queue is running,
             # workflow_ended will be called from post_execute
-            qu.put_nowait(StopIteration)
+            que.put_nowait(StopIteration)
 
-    def processText(self, py4jMessage):
+    def processText(self, py4j_message):
         """Receive and process info message from workflow server
-        Return goes to server"""
-        xx = self._decode_py4j_message(py4jMessage)
-        message_type = xx.message_type
-        payload = xx.payload
-        correlation_id = xx.correlation_id
-        enactment_id = xx.enactment_id
+        Return goes to server
+
+        NB Callled freom external java) workflow"""
+        xx0 = self._decode_py4j_message(py4j_message)
+        message_type = xx0.message_type
+        payload = xx0.payload
+        correlation_id = xx0.correlation_id
+        enactment_id = xx0.enactment_id
 
         if not payload:
             logging.getLogger("HWR").warning(
@@ -455,7 +458,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             elif self._enactment_id != enactment_id:
                 logging.getLogger("HWR").warning(
                     "Workflow enactment I(D %s != info message enactment ID %s."
-                    % (self._enactment_id, enactment_id)
+                   % (self._enactment_id, enactment_id)
                 )
             if self.workflow_queue is not None:
                 # Could happen if we have ended the workflow
@@ -467,15 +470,17 @@ class GphlWorkflowConnection(HardwareObject, object):
         #
         return None
 
-    def processMessage(self, py4jMessage):
+    def processMessage(self, py4j_message):
         """Receive and process message from workflow server
-        Return goes to server"""
+        Return goes to server
 
-        xx = self._decode_py4j_message(py4jMessage)
-        message_type = xx.message_type
-        payload = xx.payload
-        correlation_id = xx.correlation_id
-        enactment_id = xx.enactment_id
+        NB Callled freom external java) workflow"""
+
+        xx0 = self._decode_py4j_message(py4j_message)
+        message_type = xx0.message_type
+        payload = xx0.payload
+        correlation_id = xx0.correlation_id
+        enactment_id = xx0.enactment_id
 
         if not enactment_id:
             logging.getLogger("HWR").error(
@@ -564,45 +569,45 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         else:
             logging.getLogger("HWR").error(
-                "GPhL Unknown message type: %s - aborting" % message_type
+                "GPhL Unknown message type: %s - aborting", message_type
             )
             return self._response_to_server(
                 GphlMessages.BeamlineAbort(), correlation_id
             )
 
-    def _extractResponse(self, responses, message_type):
-        result = abort_message = None
-
-        validResponses = [tt for tt in responses if tt[1] is not None]
-        if not validResponses:
-            abort_message = "No valid response to %s request" % message_type
-        elif len(validResponses) == 1:
-            result = validResponses[0][1]
-        else:
-            abort_message = "Too many responses to %s request" % message_type
-        #
-        return result, abort_message
+    # def _extractResponse(self, responses, message_type):
+    #     result = abort_message = None
+    #
+    #     validResponses = [tt0 for tt0 in responses if tt0[1] is not None]
+    #     if not validResponses:
+    #         abort_message = "No valid response to %s request" % message_type
+    #     elif len(validResponses) == 1:
+    #         result = validResponses[0][1]
+    #     else:
+    #         abort_message = "Too many responses to %s request" % message_type
+    #     #
+    #     return result, abort_message
 
     # Conversion to Python
 
-    def _decode_py4j_message(self, py4jMessage):
+    def _decode_py4j_message(self, py4j_message):
         """Extract messageType and convert py4J object to python object"""
 
         # Determine message type
-        message_type = py4jMessage.getPayloadClass().getSimpleName()
+        message_type = py4j_message.getPayloadClass().getSimpleName()
 
-        xx = py4jMessage.getEnactmentId()
-        enactment_id = xx and xx.toString()
+        xx0 = py4j_message.getEnactmentId()
+        enactment_id = xx0 and xx0.toString()
 
-        xx = py4jMessage.getCorrelationId()
-        correlation_id = xx and xx.toString()
+        xx0 = py4j_message.getCorrelationId()
+        correlation_id = xx0 and xx0.toString()
         logging.getLogger("HWR").debug(
             "GPhL incoming: message=%s, jobId=%s,  messageId=%s"
             % (message_type, enactment_id, correlation_id)
         )
 
         if message_type == "String":
-            payload = py4jMessage.getPayload()
+            payload = py4j_message.getPayload()
 
         else:
             if message_type.endswith("Impl"):
@@ -621,10 +626,10 @@ class GphlWorkflowConnection(HardwareObject, object):
             else:
                 try:
                     # Convert to Python objects
-                    payload = converter(py4jMessage.getPayload())
+                    payload = converter(py4j_message.getPayload())
                 except NotImplementedError:
                     logging.getLogger("HWR").error(
-                        "Processing of GPhL message %s not implemented" % message_type
+                        "Processing of GPhL message %s not implemented", message_type
                     )
                     payload = None
         #
@@ -664,7 +669,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             defaultBeamSetting=beamSetting,
             defaultDetectorSetting=detectorSetting,
             sweeps=sweeps,
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     def _SubprocessStarted_to_python(self, py4jSubprocessStarted):
@@ -674,11 +679,11 @@ class GphlWorkflowConnection(HardwareObject, object):
         return GphlMessages.SubprocessStopped()
 
     def _ChooseLattice_to_python(self, py4jChooseLattice):
-        format_ = py4jChooseLattice.getFormat().toString()
+        lattice_format = py4jChooseLattice.getFormat().toString()
         solutions = py4jChooseLattice.getSolutions()
         lattices = py4jChooseLattice.getLattices()
         return GphlMessages.ChooseLattice(
-            format=format_, solutions=solutions, lattices=lattices
+            lattice_format=lattice_format, solutions=solutions, lattices=lattices
         )
 
     def _CollectionProposal_to_python(self, py4jCollectionProposal):
@@ -686,7 +691,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         strategy = self._GeometricStrategy_to_python(
             py4jCollectionProposal.getStrategy()
         )
-        id2Sweep = dict((str(x.id), x) for x in strategy.sweeps)
+        id2Sweep = dict((str(x.id_), x) for x in strategy.sweeps)
         scans = []
         for py4jScan in py4jCollectionProposal.getScans():
             sweep = id2Sweep[py4jScan.getSweep().getId().toString()]
@@ -695,7 +700,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             relativeImageDir=py4jCollectionProposal.getRelativeImageDir(),
             strategy=strategy,
             scans=scans,
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     def __WorkflowDone_to_python(self, py4jWorkflowDone, cls):
@@ -743,11 +748,11 @@ class GphlWorkflowConnection(HardwareObject, object):
         if isSweepSetting:
             scanAxis = py4jGoniostatRotation.getScanAxis()
             result = GphlMessages.GoniostatSweepSetting(
-                id=uuid.UUID(uuidString), scanAxis=scanAxis, **axisSettings
+                id_=uuid.UUID(uuidString), scanAxis=scanAxis, **axisSettings
             )
         else:
             result = GphlMessages.GoniostatRotation(
-                id=uuid.UUID(uuidString), **axisSettings
+                id_=uuid.UUID(uuidString), **axisSettings
             )
 
         py4jGoniostatTranslation = py4jGoniostatRotation.getTranslation()
@@ -756,7 +761,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             translationUuidString = py4jGoniostatTranslation.getId().toString()
             # Next line creates Translation and links it to Rotation
             GphlMessages.GoniostatTranslation(
-                id=uuid.UUID(translationUuidString),
+                id_=uuid.UUID(translationUuidString),
                 rotation=result,
                 **translationAxisSettings
             )
@@ -768,7 +773,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         uuidString = py4jBeamstopSetting.getId().toString()
         axisSettings = py4jBeamstopSetting.getAxisSettings()
         #
-        return GphlMessages.BeamstopSetting(id=uuid.UUID(uuidString), **axisSettings)
+        return GphlMessages.BeamstopSetting(id_=uuid.UUID(uuidString), **axisSettings)
 
     def _DetectorSetting_to_python(self, py4jDetectorSetting):
         if py4jDetectorSetting is None:
@@ -776,7 +781,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         uuidString = py4jDetectorSetting.getId().toString()
         axisSettings = py4jDetectorSetting.getAxisSettings()
         #
-        return GphlMessages.DetectorSetting(id=uuid.UUID(uuidString), **axisSettings)
+        return GphlMessages.DetectorSetting(id_=uuid.UUID(uuidString), **axisSettings)
 
     def _BeamSetting_to_python(self, py4jBeamSetting):
         if py4jBeamSetting is None:
@@ -784,7 +789,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         uuidString = py4jBeamSetting.getId().toString()
         #
         return GphlMessages.BeamSetting(
-            id=uuid.UUID(uuidString), wavelength=py4jBeamSetting.getWavelength()
+            id_=uuid.UUID(uuidString), wavelength=py4jBeamSetting.getWavelength()
         )
 
     def _GoniostatSweepSetting_to_python(self, py4jGoniostatSweepSetting):
@@ -812,7 +817,7 @@ class GphlWorkflowConnection(HardwareObject, object):
                 py4jSweep.getBeamstopSetting()
             ),
             sweepGroup=py4jSweep.getSweepGroup(),
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     def _ScanExposure_to_python(self, py4jScanExposure):
@@ -820,7 +825,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         return GphlMessages.ScanExposure(
             time=py4jScanExposure.getTime(),
             transmission=py4jScanExposure.getTransmission(),
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     def _ScanWidth_to_python(self, py4jScanWidth):
@@ -828,7 +833,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         return GphlMessages.ScanWidth(
             imageWidth=py4jScanWidth.getImageWidth(),
             numImages=py4jScanWidth.getNumImages(),
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     def _Scan_to_python(self, py4jScan, sweep):
@@ -840,7 +845,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             start=py4jScan.getStart(),
             sweep=sweep,
             filenameParams=py4jScan.getFilenameParams(),
-            id=uuid.UUID(uuidString),
+            id_=uuid.UUID(uuidString),
         )
 
     # Conversion to Java
@@ -885,7 +890,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         # |NB @~@~for test only
         test_payload = GphlMessages.ChooseLattice(
-            format="IDXREF",
+            lattice_format="IDXREF",
             crystalSystem="m",
             lattices=["tP", "aP"],
             solutions="""
@@ -958,7 +963,6 @@ class GphlWorkflowConnection(HardwareObject, object):
             self.workflow_queue.put_nowait(
                 ("ChooseLattice", test_payload, "9999999", None)
             )
-        print("@~@~ end lattice selection test")
 
     def _response_to_server(self, payload, correlation_id):
         """Create py4j message from py4j wrapper and current ids"""
@@ -988,8 +992,9 @@ class GphlWorkflowConnection(HardwareObject, object):
             return response
 
     def _CentringDone_to_java(self, centringDone):
-        return self._gateway.jvm.astra.messagebus.messages.information.CentringDoneImpl(
-            self._gateway.jvm.co.gphl.beamline.v2_unstable.instrumentation.CentringStatus.valueOf(
+        jvm = self._gateway.jvm
+        return jvm.astra.messagebus.messages.information.CentringDoneImpl(
+            jvm.co.gphl.beamline.v2_unstable.instrumentation.CentringStatus.valueOf(
                 centringDone.status
             ),
             self.to_java_time(centringDone.timestamp),
@@ -997,7 +1002,8 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
 
     def _ConfigurationData_to_java(self, configurationData):
-        return self._gateway.jvm.astra.messagebus.messages.information.ConfigurationDataImpl(
+        jvm = self._gateway.jvm
+        return jvm.astra.messagebus.messages.information.ConfigurationDataImpl(
             self._gateway.jvm.java.io.File(configurationData.location)
         )
 
@@ -1007,23 +1013,23 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
 
     def _PriorInformation_to_java(self, priorInformation):
-
-        builder = self._gateway.jvm.astra.messagebus.messages.information.PriorInformationImpl.Builder(
-            self._gateway.jvm.java.util.UUID.fromString(str(priorInformation.sampleId))
+        jvm = self._gateway.jvm
+        buildr = jvm.astra.messagebus.messages.information.PriorInformationImpl.Builder(
+            jvm.java.util.UUID.fromString(str(priorInformation.sampleId))
         )
-        xx = priorInformation.sampleName
-        if xx:
-            builder = builder.sampleName(xx)
-        xx = priorInformation.rootDirectory
-        if xx:
-            builder = builder.rootDirectory(xx)
+        xx0 = priorInformation.sampleName
+        if xx0:
+            buildr = buildr.sampleName(xx0)
+        xx0 = priorInformation.rootDirectory
+        if xx0:
+            buildr = buildr.rootDirectory(xx0)
         # images not implemented yet - awaiting uses
         # indexingResults not implemented yet - awaiting uses
-        builder = builder.userProvidedInfo(
+        buildr = buildr.userProvidedInfo(
             self._UserProvidedInfo_to_java(priorInformation.userProvidedInfo)
         )
         #
-        return builder.build()
+        return buildr.build()
 
     def _SampleCentred_to_java(self, sampleCentred):
 
@@ -1067,19 +1073,19 @@ class GphlWorkflowConnection(HardwareObject, object):
         return result
 
     def _CollectionDone_to_java(self, collectionDone):
-        proposalId = self._gateway.jvm.java.util.UUID.fromString(
-            str(collectionDone.proposalId)
-        )
-        return self._gateway.jvm.astra.messagebus.messages.information.CollectionDoneImpl(
+        jvm = self._gateway.jvm
+        proposalId = jvm.java.util.UUID.fromString(str(collectionDone.proposalId))
+        return jvm.astra.messagebus.messages.information.CollectionDoneImpl(
             proposalId, collectionDone.imageRoot, collectionDone.status
         )
 
     def _SelectedLattice_to_java(self, selectedLattice):
-        javaFormat = self._gateway.jvm.co.gphl.beamline.v2_unstable.domain_types.IndexingFormat.valueOf(
-            selectedLattice.format
+        jvm = self._gateway.jvm
+        frmt = jvm.co.gphl.beamline.v2_unstable.domain_types.IndexingFormat.valueOf(
+            selectedLattice.lattice_format
         )
-        return self._gateway.jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
-            javaFormat, selectedLattice.solution
+        return jvm.astra.messagebus.messages.information.SelectedLatticeImpl(
+            frmt, selectedLattice.solution
         )
 
     def _BeamlineAbort_to_java(self, beamlineAbort):
@@ -1088,61 +1094,61 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
 
     def _UserProvidedInfo_to_java(self, userProvidedInfo):
+        jvm = self._gateway.jvm
 
         if userProvidedInfo is None:
             return None
 
         builder = (
-            self._gateway.jvm.astra.messagebus.messages.information.UserProvidedInfoImpl.Builder()
+            jvm.astra.messagebus.messages.information.UserProvidedInfoImpl.Builder()
         )
 
         for scatterer in userProvidedInfo.scatterers:
             builder = builder.addScatterer(self._AnomalousScatterer_to_java(scatterer))
         if userProvidedInfo.lattice:
             builder = builder.lattice(
-                self._gateway.jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalSystem.valueOf(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.CrystalSystem.valueOf(
                     userProvidedInfo.lattice
                 )
             )
         # NB The Java point groups are anenumeration: 'PG1', 'PG422' etc.
-        xx = userProvidedInfo.pointGroup
-        if xx:
+        xx0 = userProvidedInfo.pointGroup
+        if xx0:
             builder = builder.pointGroup(
-                self._gateway.jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
-                    "PG%s" % xx
+               jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
+                    "PG%s" % xx0
                 )
             )
-        xx = userProvidedInfo.spaceGroup
-        if xx:
-            builder = builder.spaceGroup(xx)
-        xx = userProvidedInfo.cell
-        if xx is not None:
-            builder = builder.cell(self._UnitCell_to_java(xx))
+        xx0 = userProvidedInfo.spaceGroup
+        if xx0:
+            builder = builder.spaceGroup(xx0)
+        xx0 = userProvidedInfo.cell
+        if xx0 is not None:
+            builder = builder.cell(self._UnitCell_to_java(xx0))
         if userProvidedInfo.expectedResolution:
             builder = builder.expectedResolution(
                 float(userProvidedInfo.expectedResolution)
             )
-        xx = userProvidedInfo.isAnisotropic
-        if xx is not None:
-            builder = builder.anisotropic(xx)
+        xx0 = userProvidedInfo.isAnisotropic
+        if xx0 is not None:
+            builder = builder.anisotropic(xx0)
         #
         return builder.build()
 
     def _AnomalousScatterer_to_java(self, anomalousScatterer):
+        jvm = self._gateway.jvm
 
         if anomalousScatterer is None:
             return None
 
-        jvm_beamline = self._gateway.jvm.co.gphl.beamline.v2_unstable
-
-        py4jElement = jvm_beamline.domain_types.ChemicalElement.valueOf(
+        element = jvm.co.gphl.beamline.v2_unstable.domain_types.ChemicalElement.valueOf(
             anomalousScatterer.element
         )
-        py4jEdge = jvm_beamline.domain_types.AbsorptionEdge.valueOf(
+        edge = jvm.co.gphl.beamline.v2_unstable.domain_types.AbsorptionEdge.valueOf(
             anomalousScatterer.edge
         )
-        return self._gateway.jvm.astra.messagebus.messages.domain_types.AnomalousScattererImpl(
-            py4jElement, py4jEdge
+        return jvm.astra.messagebus.messages.domain_types.AnomalousScattererImpl(
+            element, edge
         )
 
     def _UnitCell_to_java(self, unitCell):
@@ -1157,18 +1163,20 @@ class GphlWorkflowConnection(HardwareObject, object):
         )
 
     def _PhasingWavelength_to_java(self, phasingWavelength):
+        jvm = self._gateway.jvm
 
         if phasingWavelength is None:
             return None
 
         javaUuid = self._gateway.jvm.java.util.UUID.fromString(
-            str(phasingWavelength.id)
+            str(phasingWavelength.id_)
         )
-        return self._gateway.jvm.astra.messagebus.messages.information.PhasingWavelengthImpl(
+        return jvm.astra.messagebus.messages.information.PhasingWavelengthImpl(
             javaUuid, float(phasingWavelength.wavelength), phasingWavelength.role
         )
 
     def _BcsDetectorSetting_to_java(self, bcsDetectorSetting):
+        jvm = self._gateway.jvm
 
         if bcsDetectorSetting is None:
             return None
@@ -1176,66 +1184,73 @@ class GphlWorkflowConnection(HardwareObject, object):
         orgxy = bcsDetectorSetting.orgxy
         # Need (temporarily?) because there is a primitive array, not a list,
         # on the other side
-        orgxy_array = self._gateway.new_array(self._gateway.jvm.double, 2)
+        orgxy_array = self._gateway.new_array(jvm.double, 2)
         orgxy_array[0] = orgxy[0]
         orgxy_array[1] = orgxy[1]
         axisSettings = dict(
             ((x, float(y)) for x, y in bcsDetectorSetting.axisSettings.items())
         )
-        javaUuid = self._gateway.jvm.java.util.UUID.fromString(
-            str(bcsDetectorSetting.id)
+        javaUuid = jvm.java.util.UUID.fromString(
+            str(bcsDetectorSetting.id_)
         )
-        return self._gateway.jvm.astra.messagebus.messages.instrumentation.BcsDetectorSettingImpl(
+        return jvm.astra.messagebus.messages.instrumentation.BcsDetectorSettingImpl(
             float(bcsDetectorSetting.resolution), orgxy_array, axisSettings, javaUuid
         )
 
     def _GoniostatTranslation_to_java(self, goniostatTranslation):
+        jvm = self._gateway.jvm
 
         if goniostatTranslation is None:
             return None
 
         gts = goniostatTranslation
-        javaUuid = self._gateway.jvm.java.util.UUID.fromString(str(gts.id))
-        javaRotationId = self._gateway.jvm.java.util.UUID.fromString(
+        javaUuid = jvm.java.util.UUID.fromString(str(gts.id_))
+        javaRotationId = jvm.java.util.UUID.fromString(
             str(gts.requestedRotationId)
         )
         axisSettings = dict(((x, float(y)) for x, y in gts.axisSettings.items()))
         newRotation = gts.newRotation
         if newRotation:
             javaNewRotation = self._GoniostatRotation_to_java(newRotation)
-            return self._gateway.jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
-                axisSettings, javaUuid, javaRotationId, javaNewRotation
+            return (
+                jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
+                    axisSettings, javaUuid, javaRotationId, javaNewRotation
+                )
             )
         else:
-            return self._gateway.jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
-                axisSettings, javaUuid, javaRotationId
+            return (
+                jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
+                    axisSettings, javaUuid, javaRotationId
+                )
             )
 
     def _GoniostatRotation_to_java(self, goniostatRotation):
+        jvm = self._gateway.jvm
 
         if goniostatRotation is None:
             return None
 
         grs = goniostatRotation
-        javaUuid = self._gateway.jvm.java.util.UUID.fromString(str(grs.id))
+        javaUuid = jvm.java.util.UUID.fromString(str(grs.id_))
         axisSettings = dict(((x, float(y)) for x, y in grs.axisSettings.items()))
         # NBNB The final None is necessary because there is no non-deprecated
         # constructor that takes two UUIDs. Eventually the deprecated
         # constructor will disappear and we can remove the None
-        return self._gateway.jvm.astra.messagebus.messages.instrumentation.GoniostatRotationImpl(
+        return jvm.astra.messagebus.messages.instrumentation.GoniostatRotationImpl(
             axisSettings, javaUuid, None
         )
 
     def _BeamstopSetting_to_java(self, beamStopSetting):
+        jvm = self._gateway.jvm
 
         if beamStopSetting is None:
             return None
 
-        javaUuid = self._gateway.jvm.java.util.UUID.fromString(str(beamStopSetting.id))
+        javaUuid = jvm.java.util.UUID.fromString(str(beamStopSetting.id_))
         axisSettings = dict(
             ((x, float(y)) for x, y in beamStopSetting.axisSettings.items())
         )
-        return self._gateway.jvm.astra.messagebus.messages.instrumentation.BeamstopSettingImpl(
+        return jvm.astra.messagebus.messages.instrumentation.BeamstopSettingImpl(
             axisSettings, javaUuid
         )
 
