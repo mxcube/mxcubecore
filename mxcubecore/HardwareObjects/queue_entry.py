@@ -832,26 +832,26 @@ class SampleCentringQueueEntry(BaseQueueEntry):
         # Since setting one motor can change the position of another
         # (on ESRF ID30B setting kappa and kappa_phi changes the translation motors)
         # the order is important.
-        dd = {}
+        dd0 = {}
         if kappa is not None:
-            dd["kappa"] = kappa
+            dd0["kappa"] = kappa
         if kappa_phi is not None:
-            dd["kappa_phi"] = kappa_phi
-        if dd:
+            dd0["kappa_phi"] = kappa_phi
+        if dd0:
             if (
                 not hasattr(self.diffractometer_hwobj, "in_kappa_mode")
                 or self.diffractometer_hwobj.in_kappa_mode()
             ):
-                self.diffractometer_hwobj.move_motors(dd)
+                self.diffractometer_hwobj.move_motors(dd0)
 
         motor_positions = data_model.get_other_motor_positions()
-        dd = dict(
-            tt
-            for tt in data_model.get_other_motor_positions().items()
-            if tt[1] is not None
+        dd0 = dict(
+            tt0
+            for tt0 in data_model.get_other_motor_positions().items()
+            if tt0[1] is not None
         )
         if motor_positions:
-            self.diffractometer_hwobj.move_motors(dd)
+            self.diffractometer_hwobj.move_motors(dd0)
 
         log.warning(
             "Please center a new or select an existing point and press continue."
