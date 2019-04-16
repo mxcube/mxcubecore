@@ -280,14 +280,21 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
 
             # # Motor positions debug output
-            # ll0 = sorted((tt0[0] if isinstance(tt0[0], (str, unicode)) else tt0[0].name(), tt0[1])
-            #             for tt0 in self.current_dc_parameters['motors'].items())
-            # logging.getLogger('HWR').debug("MOTORS ACQ target: "
-            #                                + ', '.join('%s=%s' % (tt0) for tt0 in ll0))
+            # ll0 = sorted(
+            #     (
+            #         tt0[0] if isinstance(tt0[0], (str, unicode))
+            #         else tt0[0].name(), tt0[1]
+            #     )
+            #     for tt0 in self.current_dc_parameters['motors'].items()
+            # )
+            # logging.getLogger('HWR').debug(
+            #     "MOTORS ACQ target: " + ', '.join('%s=%s' % (tt0) for tt0 in ll0)
+            # )
             #
             # ll0 = sorted(self.diffractometer_hwobj.get_positions().items())
-            # logging.getLogger('HWR').debug("MOTORS ACQ result: "
-            #                                + ', '.join('%s=%s' % (tt0) for tt0 in ll0))
+            # logging.getLogger('HWR').debug(
+            #     "MOTORS ACQ result: " + ', '.join('%s=%s' % (tt0) for tt0 in ll0)
+            # )
 
             self.data_collection_hook()
 
