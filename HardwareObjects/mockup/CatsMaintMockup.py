@@ -194,7 +194,7 @@ class CatsMaintMockup(Equipment):
         except Exception as ex:
             exception = ex
         if exception is not None:
-            raise exception
+            raise exception # pylint: disable-msg=E0702
         return ret
 
     #########################           PRIVATE           #########################
