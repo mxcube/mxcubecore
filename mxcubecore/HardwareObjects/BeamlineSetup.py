@@ -216,11 +216,11 @@ class BeamlineSetup(HardwareObject):
         :returns: A CharacterisationsParameters object with default parameters.
         """
         input_fname = self.data_analysis_hwobj.edna_default_file
-        fp0 = getHardwareRepository().findInRepository(input_fname)
-        if fp0 is None:
+        fpath = getHardwareRepository().findInRepository(input_fname)
+        if fpath is None:
             raise ValueError("File %s not found in repository" % input_fname)
-        with open(fp0, "r") as f:
-            edna_default_input = "".join(f.readlines())
+        with open(fpath, "r") as fp0:
+            edna_default_input = "".join(fp0.readlines())
 
         edna_input = XSDataInputMXCuBE.parseString(edna_default_input)
         diff_plan = edna_input.getDiffractionPlan()

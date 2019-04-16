@@ -312,7 +312,7 @@ class CollectEmulator(CollectMockup):
         self._counter += 1
         hklfile = os.path.join(sample_dir, "sample.hkli")
         if not os.path.isfile(hklfile):
-            raise ValueError("Emulator hkli file %s does not exist", hklfile)
+            raise ValueError("Emulator hkli file %s does not exist" % hklfile)
         command_list = [
             simcal_executive,
             "--input",
