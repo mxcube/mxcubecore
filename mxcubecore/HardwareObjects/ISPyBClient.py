@@ -133,8 +133,8 @@ def utf_encode(res_d):
 
 
 def utf_decode(res_d):
-    for key in res_d.iterkeys():
-        if isinstance(res_d[key], dict):
+    for key, value in res_d.items():
+        if isinstance(value, dict):
             utf_decode(res_d)
 
         try:
