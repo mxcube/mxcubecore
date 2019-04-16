@@ -105,9 +105,9 @@ def in_greenlet(fun):
 
 
 def utf_encode(res_d):
-    for key in res_d.iterkeys():
-        if isinstance(res_d[key], dict):
-            utf_encode(res_d)
+    for key, value in res_d.items():
+        if isinstance(value, dict):
+            utf_encode(value)
 
         if type(res_d[key]) in (int, float, bool, str):
             # Ignore primitive types
@@ -122,10 +122,10 @@ def utf_encode(res_d):
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
             try:
-                res_d[key] = utf_encode(asdict(res_d[key]))
+                res_d[key] = utf_encode(asdict(value))
             except BaseException:
                 try:
-                    res_d[key] = str(res_d[key])
+                    res_d[key] = str(value)
                 except BaseException:
                     res_d[key] = "ISPyBClient: could not encode value"
 
@@ -135,10 +135,9 @@ def utf_encode(res_d):
 def utf_decode(res_d):
     for key, value in res_d.items():
         if isinstance(value, dict):
-            utf_decode(res_d)
-
+            utf_decode(value)
         try:
-            res_d[key] = res_d[key].decode('utf8', 'ignore')
+            res_d[key] = value.decode('utf8', 'ignore')
         except BaseException:
             pass
 
