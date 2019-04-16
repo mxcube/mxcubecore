@@ -1,5 +1,5 @@
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-from abstract.AbstractMCA import AbstractMCA
+from HardwareRepository.HardwareObjects.abstract.AbstractMCA import AbstractMCA
 from HardwareRepository.TaskUtils import task
 
 
