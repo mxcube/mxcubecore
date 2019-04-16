@@ -19,13 +19,13 @@
 import os
 import time
 from HardwareRepository.TaskUtils import task
-from HardwareRepository.HardwareObjects.abstract.AbstractCollect import AbstractCollect
+from HardwareRepository.HardwareObjects.abstract import AbstractCollect
 
 
 __credits__ = ["MXCuBE collaboration"]
 
 
-class CollectMockup(AbstractCollect):
+class CollectMockup(AbstractCollect.AbstractCollect):
     """
     """
 
@@ -36,7 +36,7 @@ class CollectMockup(AbstractCollect):
         :type name: string
         """
 
-        AbstractCollect.__init__(self, name)
+        AbstractCollect.AbstractCollect.__init__(self, name)
 
         self.aborted_by_user = False
         self.graphics_manager_hwobj = None
@@ -45,7 +45,7 @@ class CollectMockup(AbstractCollect):
         """Main init method
         """
 
-        AbstractCollect.init(self)
+        AbstractCollect.AbstractCollect.init(self)
 
         self.graphics_manager_hwobj = self.getObjectByRole("graphics_manager")
 

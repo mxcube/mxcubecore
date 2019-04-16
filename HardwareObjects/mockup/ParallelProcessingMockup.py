@@ -1,6 +1,6 @@
 #
 #  Project: MXCuBE
-#  https://github.com/mxcube.
+#  https://github.com/mxcube
 #
 #  This file is part of MXCuBE software.
 #
@@ -15,8 +15,10 @@
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
 
+
+import time
 import numpy
 
 from HardwareRepository.HardwareObjects.GenericParallelProcessing import (
@@ -89,6 +91,7 @@ class ParallelProcessingMockup(GenericParallelProcessing):
             (self.params_dict, self.results_raw, self.results_aligned),
         )
 
+        step = 10
         for index in range(self.params_dict["images_num"]):
             if index > 0 and not index % step:
                 self.align_processing_results(index - step, index)

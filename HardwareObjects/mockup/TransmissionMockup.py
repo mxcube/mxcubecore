@@ -14,14 +14,6 @@ class TransmissionMockup(Device):
     def init(self):
         pass
 
-    def getAtteConfig(self):
-        self.attno = len(self["atte"])
-
-        for att_i in range(self.attno):
-            obj = self["atte"][att_i]
-            self.labels.append(obj.label)
-            self.bits.append(obj.bits)
-
     def getAttState(self):
         return 0
 

@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository import HardwareRepository
 import gevent
@@ -66,7 +68,7 @@ class Oxford700Mockup(HardwareObject):
     def stop_action(self, phase="RAMP"):
         if phase in PHASE_ACTION:
             action = PHASE_ACTION[phase]
-            print action
+            print(action)
 
     def get_state(self):
         STATE = ["UNKNOWN", "IDLE", "RUNNING", "HOLD"]
@@ -88,15 +90,15 @@ class OxfordDummy:
 
     def get_temperature(self):
         self.temp = random.uniform(0, 100)
-        print self.temp
+        print(self.temp)
         return self.temp
 
     def ramp(self, temp, rate):
-        print "ramp ", temp
-        print rate
+        print("ramp ", temp)
+        print(rate)
 
     def set(self, temp):
-        print "set ", temp
+        print("set ", temp)
 
     def hold(self):
-        print "hold called"
+        print("hold called")
