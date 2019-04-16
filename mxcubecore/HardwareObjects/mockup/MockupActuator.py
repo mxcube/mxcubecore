@@ -9,6 +9,9 @@ Example xml file:
 </device>
 """
 
+import logging
+
+from HardwareRepository.TaskUtils import task
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator
 )

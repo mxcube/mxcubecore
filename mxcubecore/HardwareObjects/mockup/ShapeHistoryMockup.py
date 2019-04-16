@@ -100,7 +100,7 @@ class ShapeHistoryMockup(HardwareObject):
         cwd = os.getcwd()
         path = os.path.join(cwd, "./test/HardwareObjectsMockup.xml/")
         img_path = os.path.join(path, "mxcube_sample_snapshot.jpeg")
-        img = open(qimg_path, "rb").read()
+        img = open(img_path, "rb").read()
 
         return img
 

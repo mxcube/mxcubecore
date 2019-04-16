@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 import gevent
 import time
 import subprocess
