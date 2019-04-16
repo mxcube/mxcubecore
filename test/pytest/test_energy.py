@@ -13,9 +13,6 @@ def test_energy_atributes(energy_list):
         assert not None in energy_limits, "One or several energy limits is None"
         assert not None in wavelength_limits, "One or several wavelength limits is None"
         assert energy_limits[0] < energy_limits[1], "First value of energy limits has to be the low limit"
-        assert hasattr(energy, "can_move_energy")
-        assert hasattr(energy, "move_energy")
-        assert hasattr(energy, "move_wavelength")
 
 def test_energy_methods(energy_list):
     for energy in energy_list:
