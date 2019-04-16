@@ -132,6 +132,19 @@ def utf_encode(res_d):
     return res_d
 
 
+def utf_decode(res_d):
+    for key in res_d.iterkeys():
+        if isinstance(res_d[key], dict):
+            utf_decode(res_d)
+
+        try:
+            res_d[key] = res_d[key].decode('utf8', 'ignore')
+        except BaseException:
+            pass
+
+    return res_d
+
+
 class ISPyBClient(HardwareObject):
     """
     Web-service client for ISPyB.
@@ -1382,7 +1395,9 @@ class ISPyBClient(HardwareObject):
                 except BaseException:
                     pass
 
-                session = self._collection.service.storeOrUpdateSession(session_dict)
+                # return data to original codification
+                decoded_dict = utf_decode(session_dict)
+                session = self._collection.service.storeOrUpdateSession(decoded_dict)
 
                 # changing back to string representation of the dates,
                 # since the session_dict is used after this method is called,
