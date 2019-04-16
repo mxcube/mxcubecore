@@ -109,16 +109,9 @@ def utf_encode(res_d):
         if isinstance(value, dict):
             utf_encode(value)
 
-        if type(res_d[key]) in (int, float, bool, str):
-            # Ignore primitive types
-            pass
-        elif isinstance(res_d[key], suds.sax.text.Text):
-            # utf-8 encode Text data
-            try:
-                res_d[key] = res_d[key].encode("utf8", "ignore")
-            except BaseException:
-                pass
-        else:
+        try:
+            res_d[key] = value.encode("utf8", "ignore")
+        except BaseException:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
             try:
