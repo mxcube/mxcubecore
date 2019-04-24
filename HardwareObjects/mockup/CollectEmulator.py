@@ -43,8 +43,6 @@ class CollectEmulator(CollectMockup):
 
     def __init__(self, name):
         CollectMockup.__init__(self, name)
-        self.gphl_connection_hwobj = None
-        self.gphl_workflow_hwobj = None
 
         # # TODO get appropriate value
         # # We must have a value for functions to work
@@ -58,6 +56,7 @@ class CollectEmulator(CollectMockup):
 
     def init(self):
         CollectMockup.init(self)
+        # NBNB you get an error if you use 'api.session'
         session_hwobj = self.getObjectByRole("session")
         if session_hwobj and self.hasObject("override_data_directories"):
             dirs = self["override_data_directories"].getProperties()
@@ -71,7 +70,7 @@ class CollectEmulator(CollectMockup):
         setup_data = result["setup_list"] = crystal_data
 
         # update with instrument data
-        fp0 = self.gphl_workflow_hwobj.file_paths.get("instrumentation_file")
+        fp0 = api.gphl_workflow.file_paths.get("instrumentation_file")
         instrument_input = f90nml.read(fp0)
 
         instrument_data = instrument_input["sdcp_instrument_list"]
@@ -162,7 +161,7 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp0 = self.gphl_workflow_hwobj.file_paths.get("diffractcal_file")
+        fp0 = api.gphl_workflow.file_paths.get("diffractcal_file")
         if os.path.isfile(fp0):
             diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
             for tag in setup_data.keys():
@@ -189,7 +188,7 @@ class CollectEmulator(CollectMockup):
             sweep["lambda"] = ConvertUtils.H_OVER_E / data_collect_parameters["energy"]
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll0 = self.gphl_workflow_hwobj.translation_axis_roles
+            ll0 = api.gphl_workflow.translation_axis_roles
             sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
@@ -242,23 +241,18 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        # Done here as there are what-happens-first conflicts
-        # if you put it in init
-        if self.gphl_workflow_hwobj is None:
-            self.gphl_workflow_hwobj = api.gphl_workflow_hwobj
-        if not self.gphl_workflow_hwobj:
+        if not api.gphl_workflow:
             raise ValueError("Emulator requires GPhL workflow installation")
-        if self.gphl_connection_hwobj is None:
-            self.gphl_connection_hwobj = api.gphl_connection_hwobj
-        if not self.gphl_connection_hwobj:
+        gphl_connection = api.gphl_connection
+        if not gphl_connection:
             raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
-        simcal_executive = self.gphl_connection_hwobj.get_executable("simcal")
+        simcal_executive = gphl_connection.get_executable("simcal")
         # Get environmental variables
         envs = {
-            "BDG_home": self.gphl_connection_hwobj.software_paths["BDG_home"],
-            "GPHL_INSTALLATION": self.gphl_connection_hwobj.software_paths[
+            "BDG_home": gphl_connection.software_paths["BDG_home"],
+            "GPHL_INSTALLATION": gphl_connection.software_paths[
                 "GPHL_INSTALLATION"
             ],
         }
@@ -273,7 +267,7 @@ class CollectEmulator(CollectMockup):
             if ss0 and ss0.startswith(self.TEST_SAMPLE_PREFIX):
                 sample_name = ss0[len(self.TEST_SAMPLE_PREFIX) :]
 
-        sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
+        sample_dir = gphl_connection.software_paths.get("gphl_test_samples")
         if not sample_dir:
             raise ValueError("Emulator requires gphl_test_samples dir specified")
         sample_dir = os.path.join(sample_dir, sample_name)
@@ -338,7 +332,7 @@ class CollectEmulator(CollectMockup):
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
-            self.gphl_connection_hwobj.collect_emulator_process = running_process
+            gphl_connection.collect_emulator_process = running_process
         except BaseException:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
@@ -351,8 +345,8 @@ class CollectEmulator(CollectMockup):
         logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
         # NBNB TODO put in time-out, somehow
         return_code = running_process.wait()
-        process = self.gphl_connection_hwobj.collect_emulator_process
-        self.gphl_connection_hwobj.collect_emulator_process = None
+        process = gphl_connection.collect_emulator_process
+        gphl_connection.collect_emulator_process = None
         if process == 'ABORTED':
             logging.getLogger("HWR").info("Simcal collection emulation aborted")
         elif return_code:

@@ -1228,13 +1228,13 @@ class GphlWorkflow(HardwareObject, object):
             else:
                 raise ValueError("Substring 'BRAVAIS-' missing in %s indexing solution")
 
-            for indx, line in enumerate(lines):
+            for line in lines[indx:]:
                 ss0 = line.strip()
                 if ss0:
                     # we are skipping blank line at the start
                     if solutions or ss0[0] == "*":
                         # First real line will start with a '*
-                        # Subsequent non=-empty lines will also be used
+                        # Subsequent non-empty lines will also be used
                         solutions.append(line)
                 elif solutions:
                     # we have finished - empty non-initial line
