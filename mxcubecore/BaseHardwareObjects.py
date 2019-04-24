@@ -4,6 +4,7 @@ import logging
 
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.CommandContainer import CommandContainer
+from HardwareRepository.ConvertUtils import string_types
 
 
 class PropertySet(dict):
@@ -94,7 +95,7 @@ class HardwareObjectNode:
             self.__dict__[attr] = value
 
     def __getitem__(self, key):
-        if isinstance(key, str):
+        if isinstance(key, string_types):
             objectName = key
 
             try:
@@ -338,7 +339,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
     def connect(self, sender, signal, slot=None):
         if slot is None:
             # if type(sender) == bytes:
-            if isinstance(sender, str):
+            if isinstance(sender, string_types):
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
@@ -362,7 +363,7 @@ class HardwareObject(HardwareObjectNode, CommandContainer):
         if slot is None:
             # TODO 2to3
             # if type(sender) == bytes:
-            if isinstance(sender, str):
+            if isinstance(sender, string_types):
                 # provides syntactic sugar ; for
                 # self.connect(self, "signal", slot)
                 # it is possible to do
