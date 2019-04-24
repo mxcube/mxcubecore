@@ -19,6 +19,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with MXCuBE.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 
 import uuid
 from collections import OrderedDict
@@ -31,23 +33,13 @@ __author__ = "Rasmus H Fogh"
 
 # Enumerations
 
-# MessageIntents = ('INSTRUCTION', 'QUERY', 'RESPONSE', 'ACKNOWLEDGEMENT',
-#                   'INFO', )
-_MessageIntents = ["DOCUMENT", "COMMAND", "EVENT"]
+MESSAGE_INTENTS = {"DOCUMENT", "COMMAND", "EVENT"}
 
-MessageIntents = dict((x, x) for x in _MessageIntents)
+INDEXING_FORMATS = ("IDXREF",)
 
-IndexingFormats = ("IDXREF",)
+ABSORPTION_EDGES = ("K", "LI", "LII", "LIII", "MI", "MII", "MIII", "MIV", "MV")
 
-AbsorptionEdges = ("K", "LI", "LII", "LIII", "MI", "MII", "MIII", "MIV", "MV")
-# # Currently not used
-# WavelengthRoles = OrderedDict((('PEAK','Peak'),('REMOTE','Remote'),
-#                                ('RINF','Rising inflection'),
-#                                ('FINF','Falling inflection'),
-#                                ('HREM','High-energy remote'),
-#                               ))
-
-ChemicalElements = OrderedDict(
+CHEMICAL_ELEMENTS = OrderedDict(
     (
         ("H", "hydrogen"),
         ("HE", "helium"),
@@ -168,9 +160,7 @@ ChemicalElements = OrderedDict(
     )
 )
 
-CentringStatus = ("NEXT", "DONE")
-
-CrystalSystems = (
+CRYSTAL_SYSTEMS = (
     "TRICLINIC",
     "MONOCLINIC",
     "ORTHORHOMBIC",
@@ -181,9 +171,9 @@ CrystalSystems = (
 )
 # Map from single letter code tro Crystal system name
 # # NB trigonal and hexagonal DO both have code 'h'
-crystalSystemMap = dict(zip("amothhc", CrystalSystems))
+CRYSTAL_SYSTEM_MAP = dict(zip("amothhc", CRYSTAL_SYSTEMS))
 
-PointGroups = ("1", "2", "222", "4", "422", "6", "622", "32", "23", "432")
+POINT_GROUPS = ("1", "2", "222", "4", "422", "6", "622", "32", "23", "432")
 
 ParsedMessage = namedtuple(
     "ParsedMessage", ("message_type", "payload", "enactment_id", "correlation_id")
@@ -202,32 +192,32 @@ class MessageData(object):
 class Payload(MessageData):
     """Payload - top level message object"""
 
-    _intent = None
+    INTENT = None
 
     def __init__(self):
 
         # This class is abstract
-        intent = self.__class__._intent
-        if intent not in MessageIntents:
+        intent = self.__class__.INTENT
+        if intent not in MESSAGE_INTENTS:
             if intent is None:
                 raise RuntimeError("Attempt to instantiate abstract class Payload")
             else:
                 raise RuntimeError(
                     "Programming error - "
                     "Payload subclass %s intent %s must be one of: %s"
-                    % (self.__class__.__name__, intent, sorted(MessageIntents.keys))
+                    % (self.__class__.__name__, intent, sorted(MESSAGE_INTENTS))
                 )
 
     @property
     def intent(self):
         """Message intent - class-level property"""
-        return self.__class__._intent
+        return self.__class__.INTENT
 
 
 class IdentifiedElement(MessageData):
     """Object with persistent uuid"""
 
-    def __init__(self, id=None):
+    def __init__(self, id_=None):
 
         # This class is abstract
         if self.__class__.__name__ == "IdentifiedElement":
@@ -236,15 +226,15 @@ class IdentifiedElement(MessageData):
             )
 
         self._id = None
-        self.__setId(id)
+        self.__set_id(id_)
 
     @property
-    def id(self):
+    def id_(self):
         """Unique identifier (UUID) for IdentifiedElement.
         Defaults to new, time-based uuid"""
         return self._id
 
-    def __setId(self, value):
+    def __set_id(self, value):
         """Setter for uuid - accessible only within this class"""
         if value is None:
             self._id = uuid.uuid1()
@@ -271,42 +261,43 @@ class IdentifiedElement(MessageData):
 class RequestConfiguration(Payload):
     """Configuration request message"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
 
 class ObtainPriorInformation(Payload):
     """Prior information request"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
 
 class PrepareForCentring(Payload):
     """Prior information request"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
 
 class ReadyForCentring(Payload):
     """Prior information request"""
 
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
 
 class SubprocessStopped(Payload):
     """Subprocess Stopped request message"""
 
-    _intent = "EVENT"
+    INTENT = "EVENT"
 
 
 class ConfigurationData(Payload):
     """Configuration Data message"""
 
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
     # NB coded as mandatory, even if not explicitly non-null
     # (but raises MalformedUrlException) in Java.
 
     def __init__(self, location):
+        super(ConfigurationData, self).__init__()
         self._location = location
 
     @property
@@ -319,9 +310,10 @@ class ConfigurationData(Payload):
 class SubprocessStarted(Payload):
     """Subprocess Started message"""
 
-    _intent = "EVENT"
+    INTENT = "EVENT"
 
     def __init__(self, name):
+        super(SubprocessStarted, self).__init__()
         self._name = name
 
     @property
@@ -333,15 +325,16 @@ class SubprocessStarted(Payload):
 class ChooseLattice(Payload):
     """Choose lattice instruction"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
-    def __init__(self, format, solutions, crystalSystem=None, lattices=None):
-        if format in IndexingFormats:
-            self._format = format
+    def __init__(self, lattice_format, solutions, crystalSystem=None, lattices=None):
+        super(ChooseLattice, self).__init__()
+        if lattice_format in INDEXING_FORMATS:
+            self._lattice_format = lattice_format
         else:
             raise ValueError(
                 "Indexing format %s not in supported formats: %s"
-                % (format, IndexingFormats)
+                % (lattice_format, INDEXING_FORMATS)
             )
         if not lattices:
             self._lattices = ()
@@ -354,9 +347,9 @@ class ChooseLattice(Payload):
         self._crystalSystem = crystalSystem
 
     @property
-    def format(self):
+    def lattice_format(self):
         """format of solutions string"""
-        return self._format
+        return self._lattice_format
 
     @property
     def crystalSystem(self):
@@ -377,22 +370,22 @@ class ChooseLattice(Payload):
 class SelectedLattice(MessageData):
     """Lattice selected message"""
 
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
-    def __init__(self, format, solution):
-        if format in IndexingFormats:
-            self._format = format
+    def __init__(self, lattice_format, solution):
+        if lattice_format in INDEXING_FORMATS:
+            self._lattice_format = lattice_format
         else:
             raise ValueError(
                 "Indexing format %s not in supported formats: %s"
-                % (format, IndexingFormats)
+                % (lattice_format, INDEXING_FORMATS)
             )
         self._solution = tuple(solution)
 
     @property
-    def format(self):
+    def lattice_format(self):
         """format of solutions string"""
-        return self._format
+        return self._lattice_format
 
     @property
     def solution(self):
@@ -403,7 +396,7 @@ class SelectedLattice(MessageData):
 class CollectionDone(MessageData):
     """Collection Done message"""
 
-    _intent = "EVENT"
+    INTENT = "EVENT"
 
     def __init__(self, proposalId, status, imageRoot=None):
         self._proposalId = proposalId
@@ -433,7 +426,7 @@ class CollectionDone(MessageData):
 class WorkflowDone(Payload):
     """End-of-workflow message"""
 
-    _intent = "EVENT"
+    INTENT = "EVENT"
 
     def __init__(self, issues=None):
 
@@ -443,9 +436,9 @@ class WorkflowDone(Payload):
             raise RuntimeError("Attempt to instantiate abstract class WorkflowDone")
 
         if issues:
-            ll = list(x for x in issues if not isinstance(x, Issue))
-            if ll:
-                raise ValueError("issues parameter contains non-issues: %s" % ll)
+            ll0 = list(x for x in issues if not isinstance(x, Issue))
+            if ll0:
+                raise ValueError("issues parameter contains non-issues: %s" % ll0)
             else:
                 self._issues = tuple(issues)
 
@@ -472,7 +465,7 @@ class WorkflowFailed(WorkflowDone):
 class BeamlineAbort(Payload):
     """Abort workflow from beamline"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
 
 # Simple data objects
@@ -481,12 +474,12 @@ class BeamlineAbort(Payload):
 class AnomalousScatterer(MessageData):
     def __init__(self, element, edge):
 
-        if element in ChemicalElements:
+        if element in CHEMICAL_ELEMENTS:
             self._element = element
         else:
             raise ValueError("Chemical element code %s not recognised" % element)
 
-        if edge in AbsorptionEdges:
+        if edge in ABSORPTION_EDGES:
             self._edge = edge
         else:
             raise ValueError("Absorption edge code %s not recognised" % edge)
@@ -543,8 +536,8 @@ class UnitCell(MessageData):
 class Issue(IdentifiedElement):
     """Issue (status information returned with WorkflowDone messages)"""
 
-    def __init__(self, component, message, code=None, id=None):
-        IdentifiedElement.__init__(self, id)
+    def __init__(self, component, message, code=None, id_=None):
+        IdentifiedElement.__init__(self, id_)
         self._component = component
         self._message = message
         self._code = code
@@ -568,8 +561,8 @@ class Issue(IdentifiedElement):
 class PhasingWavelength(IdentifiedElement):
     """Phasing Wavelength"""
 
-    def __init__(self, wavelength, role=None, id=None):
-        IdentifiedElement.__init__(self, id)
+    def __init__(self, wavelength, role=None, id_=None):
+        IdentifiedElement.__init__(self, id_)
         self._role = role
         self._wavelength = wavelength
 
@@ -587,8 +580,8 @@ class PhasingWavelength(IdentifiedElement):
 class BeamSetting(IdentifiedElement):
     """Beam setting"""
 
-    def __init__(self, wavelength, id=None):
-        IdentifiedElement.__init__(self, id)
+    def __init__(self, wavelength, id_=None):
+        IdentifiedElement.__init__(self, id_)
         self._wavelength = wavelength
 
     @property
@@ -600,8 +593,8 @@ class BeamSetting(IdentifiedElement):
 class ScanExposure(IdentifiedElement):
     """Scan Exposure"""
 
-    def __init__(self, time, transmission, id=None):
-        IdentifiedElement.__init__(self, id)
+    def __init__(self, time, transmission, id_=None):
+        IdentifiedElement.__init__(self, id_)
         self._time = time
         self._transmission = transmission
 
@@ -619,8 +612,8 @@ class ScanExposure(IdentifiedElement):
 class ScanWidth(IdentifiedElement):
     """Scan Width"""
 
-    def __init__(self, imageWidth, numImages, id=None):
-        IdentifiedElement.__init__(self, id)
+    def __init__(self, imageWidth, numImages, id_=None):
+        IdentifiedElement.__init__(self, id_)
         self._imageWidth = imageWidth
         self._numImages = numImages
 
@@ -641,14 +634,15 @@ class PositionerSetting(IdentifiedElement):
     Has a uuid and a settings dictionary of axisName:value
     """
 
-    def __init__(self, id=None, **axisSettings):
+    def __init__(self, id_=None, **axisSettings):
 
-        super(PositionerSetting, self).__init__(id=id)
+        super(PositionerSetting, self).__init__(id_=id_)
 
         if self.__class__.__name__ == "PositionerSetting":
             # This class is abstract
             raise RuntimeError(
-                "Programming error - attempt to instantiate abstract class PositionerSetting"
+                "Programming error -"
+                " attempt to instantiate abstract class PositionerSetting"
             )
 
         self._axisSettings = axisSettings.copy()
@@ -667,8 +661,8 @@ class DetectorSetting(PositionerSetting):
 class BcsDetectorSetting(DetectorSetting):
     """Detector position setting with additional (beamline-side) resolution and orgxy"""
 
-    def __init__(self, resolution, id=None, orgxy=(), **axisSettings):
-        PositionerSetting.__init__(self, id=id, **axisSettings)
+    def __init__(self, resolution, id_=None, orgxy=(), **axisSettings):
+        super(BcsDetectorSetting, self).__init__(id_=id_, **axisSettings)
         self._resolution = resolution
         self._orgxy = tuple(orgxy)
 
@@ -690,8 +684,8 @@ class BeamstopSetting(PositionerSetting):
 class GoniostatRotation(PositionerSetting):
     """Goniostat Rotation setting"""
 
-    def __init__(self, id=None, **axisSettings):
-        PositionerSetting.__init__(self, id=id, **axisSettings)
+    def __init__(self, id_=None, **axisSettings):
+        PositionerSetting.__init__(self, id_=id_, **axisSettings)
         self._translation = None
 
     @property
@@ -705,8 +699,8 @@ class GoniostatRotation(PositionerSetting):
 class GoniostatSweepSetting(GoniostatRotation):
     """Goniostat Sweep setting"""
 
-    def __init__(self, scanAxis, id=None, **axisSettings):
-        GoniostatRotation.__init__(self, id=id, **axisSettings)
+    def __init__(self, scanAxis, id_=None, **axisSettings):
+        GoniostatRotation.__init__(self, id_=id_, **axisSettings)
         self._scanAxis = scanAxis
 
     @property
@@ -723,14 +717,14 @@ class GoniostatTranslation(PositionerSetting):
     object attributes. rotation is taken to be newRotation, except that:
 
     if ( rotation is not None and
-          (requestedRotationId is None or requestedRotationId == rotation.id):
-        self.requestedRotationId = rotation.id
+          (requestedRotationId is None or requestedRotationId == rotation.id_):
+        self.requestedRotationId = rotation.id_
         self.newRotation = None"""
 
     def __init__(
-        self, rotation=None, requestedRotationId=None, id=None, **axisSettings
+        self, rotation=None, requestedRotationId=None, id_=None, **axisSettings
     ):
-        PositionerSetting.__init__(self, id=id, **axisSettings)
+        PositionerSetting.__init__(self, id_=id_, **axisSettings)
 
         if rotation is None:
             if requestedRotationId is None:
@@ -739,9 +733,9 @@ class GoniostatTranslation(PositionerSetting):
                 self._newRotation = None
                 self._requestedRotationId = requestedRotationId
         else:
-            if requestedRotationId is None or requestedRotationId == rotation.id:
+            if requestedRotationId is None or requestedRotationId == rotation.id_:
                 self._newRotation = None
-                self._requestedRotationId = rotation.id
+                self._requestedRotationId = rotation.id_
             else:
                 self._newRotation = rotation
                 self._requestedRotationId = requestedRotationId
@@ -825,10 +819,10 @@ class Sweep(IdentifiedElement):
         width,
         beamstopSetting=None,
         sweepGroup=None,
-        id=None,
+        id_=None,
     ):
 
-        super(Sweep, self).__init__(id=id)
+        super(Sweep, self).__init__(id_=id_)
 
         self._scans = set()
 
@@ -876,7 +870,7 @@ class Sweep(IdentifiedElement):
         It is populated when the Scan objects are created"""
         return frozenset(self._scans)
 
-    def _addScan(self, scan):
+    def _add_scan(self, scan):
         """Implementation method. *Only* to be called from Scan.__init__"""
         self._scans.add(scan)
 
@@ -897,10 +891,10 @@ class Scan(IdentifiedElement):
     """Collection strategy Scan"""
 
     def __init__(
-        self, width, exposure, imageStartNum, start, sweep, filenameParams, id=None
+        self, width, exposure, imageStartNum, start, sweep, filenameParams, id_=None
     ):
 
-        super(Scan, self).__init__(id=id)
+        super(Scan, self).__init__(id_=id_)
 
         self._filenameParams = dict(filenameParams)
 
@@ -909,7 +903,7 @@ class Scan(IdentifiedElement):
         self._imageStartNum = imageStartNum
         self._start = start
 
-        sweep._addScan(self)
+        sweep._add_scan(self)
         self._sweep = sweep
 
     @property
@@ -940,7 +934,7 @@ class Scan(IdentifiedElement):
 class GeometricStrategy(IdentifiedElement, Payload):
     """Geometric strategy """
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
     def __init__(
         self,
@@ -951,10 +945,10 @@ class GeometricStrategy(IdentifiedElement, Payload):
         allowedWidths=(),
         defaultWidthIdx=None,
         sweeps=(),
-        id=None,
+        id_=None,
     ):
 
-        super(GeometricStrategy, self).__init__(id=id)
+        super(GeometricStrategy, self).__init__(id_=id_)
 
         self._isInterleaved = isInterleaved
         self._isUserModifiable = isUserModifiable
@@ -1009,22 +1003,22 @@ class GeometricStrategy(IdentifiedElement, Payload):
         and anyway is the best approximation we have
 
         TODO get this right, once the workflow allows"""
-        ll = []
+        ll0 = []
         for sweep in self._sweeps:
-            dd = sweep.get_initial_settings()
-            ll.append((tuple(dd[x] for x in sorted(dd)), sweep))
+            dd0 = sweep.get_initial_settings()
+            ll0.append((tuple(dd0[x] for x in sorted(dd0)), sweep))
         #
-        return list(tt[1] for tt in sorted(ll))
+        return list(tt0[1] for tt0 in sorted(ll0))
 
 
 class CollectionProposal(IdentifiedElement, Payload):
     """Collection proposal """
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
-    def __init__(self, relativeImageDir, strategy, scans, id=None):
+    def __init__(self, relativeImageDir, strategy, scans, id_=None):
 
-        super(CollectionProposal, self).__init__(id=id)
+        super(CollectionProposal, self).__init__(id_=id_)
 
         self._relativeImageDir = relativeImageDir
         self._strategy = strategy
@@ -1046,11 +1040,13 @@ class CollectionProposal(IdentifiedElement, Payload):
 class PriorInformation(Payload):
     """Prior information to workflow calculation"""
 
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
     def __init__(
         self, sampleId, sampleName=None, rootDirectory=None, userProvidedInfo=None
     ):
+
+        super(PriorInformation, self).__init__()
 
         if isinstance(sampleId, uuid.UUID):
             self._sampleId = sampleId
@@ -1087,9 +1083,10 @@ class PriorInformation(Payload):
 class RequestCentring(Payload):
     """Request for centering"""
 
-    _intent = "COMMAND"
+    INTENT = "COMMAND"
 
     def __init__(self, currentSettingNo, totalRotations, goniostatRotation):
+        super(RequestCentring, self).__init__()
         self._currentSettingNo = currentSettingNo
         self._totalRotations = totalRotations
         self._goniostatRotation = goniostatRotation
@@ -1110,9 +1107,10 @@ class RequestCentring(Payload):
 class CentringDone(Payload):
     """Centering-done message"""
 
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
     def __init__(self, status, timestamp, goniostatTranslation):
+        super(CentringDone, self).__init__()
         self._status = status
         self._timestamp = timestamp
         self._goniostatTranslation = goniostatTranslation
@@ -1133,7 +1131,7 @@ class CentringDone(Payload):
 
 
 class SampleCentred(Payload):
-    _intent = "DOCUMENT"
+    INTENT = "DOCUMENT"
 
     def __init__(
         self,
@@ -1148,6 +1146,7 @@ class SampleCentred(Payload):
         wavelengths=(),
     ):
 
+        super(SampleCentred, self).__init__()
         self._imageWidth = imageWidth
         self._transmission = transmission
         self._exposure = exposure

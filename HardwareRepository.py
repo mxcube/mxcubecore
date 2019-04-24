@@ -317,13 +317,6 @@ class __HardwareRepositoryClient:
             )
         )
 
-        # # Temporary help to get hold of superclasses
-        # import inspect
-        # for cls in inspect.getmro(hwobj_instance.__class__)[1:]:
-        #     tt = ('super', cls.__name__, "0 ms", '@~@~')
-        #     if tt not in  self.hwobj_info_list:
-        #         self.hwobj_info_list.append(tt)
-
         return hwobj_instance
 
     def discardHardwareObject(self, hoName):

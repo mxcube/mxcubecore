@@ -25,11 +25,9 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-import os
+import logging
 import time
 import gevent
-import tempfile
-from datetime import datetime
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
 from HardwareRepository.HardwareObjects.abstract.sample_changer import Container, Crims, Sample
@@ -218,6 +216,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. : state change callback. Based on diffractometer state
                     sets PlateManipulatorMockup state.
         """
+        SampleChangerState = AbstractSampleChanger.SampleChangerState
         if state is None:
             self._setState(SampleChangerState.Unknown)
         else:
@@ -268,9 +267,9 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         Descript. :
         """
-        if mode == SampleChangerMode.Charging:
+        if mode == AbstractSampleChanger.SampleChangerMode.Charging:
             self._set_phase("Transfer")
-        elif mode == SampleChangerMode.Normal:
+        elif mode == AbstractSampleChanger.SampleChangerMode.Normal:
             self._set_phase("Centring")
 
     def _doLoad(self, sample=None):
@@ -382,7 +381,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
             if len(component > 2):
                 pos_x = component[2]
                 pos_y = component[3]
-            cell = self.getComponentByAddress(Cell._getCellAddress(row, column))
+            cell = self.getComponentByAddress(Cell._getCellAddress(row, col))
             cell._setSelected(True)
         else:
             raise Exception("Invalid selection")

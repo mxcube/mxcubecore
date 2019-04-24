@@ -21,8 +21,8 @@ __date__ = "19/06/17"
 
 # Constants
 
-# Conversion from kEv to A, wavelength = h_over_e/energy
-h_over_e = 12.3984
+# Conversion from kEv to A, wavelength = H_OVER_E/energy
+H_OVER_E = 12.3984
 
 
 # Enumerations:
@@ -58,9 +58,8 @@ def to_ascii(text):
 
 
     if hasattr(text, "encode"):
-        return text.encode("utf8", "replace")
-    else:
-        return text
+        text = text.encode("utf8", "replace")
+    return text
 
 
 def convert_string_value(text):

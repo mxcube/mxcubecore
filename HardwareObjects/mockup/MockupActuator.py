@@ -8,6 +8,8 @@ Example xml file:
   <private_state>{'OUT': 'PARK',  'IN': 'SCINTILLATOR'}</private_state>
 </device>
 """
+import logging
+from HardwareRepository.TaskUtils import task
 
 from HardwareRepository.HardwareObjects.abstract.AbstractActuator import (
     AbstractActuator
