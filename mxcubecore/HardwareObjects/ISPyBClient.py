@@ -105,29 +105,34 @@ def in_greenlet(fun):
 
 
 def utf_encode(res_d):
-    for key in res_d.iterkeys():
-        if isinstance(res_d[key], dict):
-            utf_encode(res_d)
+    for key, value in res_d.items():
+        if isinstance(value, dict):
+            utf_encode(value)
 
-        if type(res_d[key]) in (int, float, bool, str):
-            # Ignore primitive types
-            pass
-        elif isinstance(res_d[key], suds.sax.text.Text):
-            # utf-8 encode Text data
-            try:
-                res_d[key] = res_d[key].encode("utf8", "ignore")
-            except BaseException:
-                pass
-        else:
+        try:
+            res_d[key] = value.encode("utf8", "ignore")
+        except BaseException:
             # If not primitive or Text data, complext type, try to convert to
             # dict or str if the first fails
             try:
-                res_d[key] = utf_encode(asdict(res_d[key]))
+                res_d[key] = utf_encode(asdict(value))
             except BaseException:
                 try:
-                    res_d[key] = str(res_d[key])
+                    res_d[key] = str(value)
                 except BaseException:
                     res_d[key] = "ISPyBClient: could not encode value"
+
+    return res_d
+
+
+def utf_decode(res_d):
+    for key, value in res_d.items():
+        if isinstance(value, dict):
+            utf_decode(value)
+        try:
+            res_d[key] = value.decode('utf8', 'ignore')
+        except BaseException:
+            pass
 
     return res_d
 
@@ -1382,7 +1387,9 @@ class ISPyBClient(HardwareObject):
                 except BaseException:
                     pass
 
-                session = self._collection.service.storeOrUpdateSession(session_dict)
+                # return data to original codification
+                decoded_dict = utf_decode(session_dict)
+                session = self._collection.service.storeOrUpdateSession(decoded_dict)
 
                 # changing back to string representation of the dates,
                 # since the session_dict is used after this method is called,
