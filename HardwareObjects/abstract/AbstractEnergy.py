@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Lesser Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
-from HardwareRepository.ConvertUtils import h_over_e
+from HardwareRepository.ConvertUtils import H_OVER_E
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 
@@ -64,7 +64,7 @@ class AbstractEnergy(HardwareObject):
 
     def get_current_wavelength(self):
         if self._energy_value is not None:
-            return h_over_e / self._energy_value
+            return H_OVER_E / self._energy_value
         else:
             return None
 
@@ -78,8 +78,8 @@ class AbstractEnergy(HardwareObject):
         lims = None
         if self._energy_limits is not None:
             lims = (
-                h_over_e / self._energy_limits[1],
-                h_over_e / self._energy_limits[0],
+                H_OVER_E / self._energy_limits[1],
+                H_OVER_E / self._energy_limits[0],
             )
         return lims
 
@@ -88,7 +88,7 @@ class AbstractEnergy(HardwareObject):
         self.update_values()
 
     def move_wavelength(self, value, wait=True):
-        self.move_energy(h_over_e / value, wait)
+        self.move_energy(H_OVER_E / value, wait)
 
     def update_values(self):
-        self.emit("energyChanged", self._energy_value, h_over_e / self._energy_value)
+        self.emit("energyChanged", self._energy_value, H_OVER_E / self._energy_value)

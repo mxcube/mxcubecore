@@ -258,10 +258,10 @@ class GenericDiffractometer(HardwareObject):
         self.back_light_swtich = self.getObjectByRole("backlightswtich")
 
         # Channels -----------------------------------------------------------
-        ss = self.getProperty("used_channels")
-        if ss:
+        ss0 = self.getProperty("used_channels")
+        if ss0:
             try:
-                self.used_channels_list = eval(ss)
+                self.used_channels_list = eval(ss0)
             except BaseException:
                 pass  # used the default value
 
