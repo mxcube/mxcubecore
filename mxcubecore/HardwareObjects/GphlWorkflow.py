@@ -551,9 +551,6 @@ class GphlWorkflow(HardwareObject, object):
                     "upperBound": 20.0,
                 }
             )
-        if data_model.lattice_selected:
-            # TODO NBNB temporary hack pending fixing of wavelength and det_dist
-            ll0[0]["readOnly"] = True
         field_list.extend(ll0)
 
         self._return_parameters = gevent.event.AsyncResult()
