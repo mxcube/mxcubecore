@@ -7,6 +7,7 @@ import httplib
 import urllib
 import math
 from HardwareRepository.HardwareObjects.queue_model_objects import PathTemplate
+from HardwareRepository.ConvertUtils import string_types
 
 from ESRFMetadataManagerClient import MXCuBEMetadataClient
 
@@ -518,7 +519,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
     def move_motors(self, motor_position_dict):
         for motor in motor_position_dict.keys():  # iteritems():
             position = motor_position_dict[motor]
-            if isinstance(motor, str) or isinstance(motor, unicode):
+            if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
                 motor = self.bl_control.diffractometer.getDeviceByRole(motor_role)
@@ -532,7 +533,7 @@ class ESRFMultiCollect(AbstractMultiCollect, HardwareObject):
             )
             motor.move(position)
 
-        while any([motor.motorIsMoving() for motor in motor_position_dict.iterkeys()]):
+        while any([motor.motorIsMoving() for motor in motor_position_dict]):
             logging.getLogger("HWR").info("Waiting for end of motors motion")
             time.sleep(0.02)
 

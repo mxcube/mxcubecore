@@ -42,6 +42,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from HardwareRepository.HardwareObjects import SimpleHTML
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
 
 
 __credits__ = ["EMBL Hamburg"]
@@ -1451,7 +1452,7 @@ class EMBLBeamlineTest(HardwareObject):
 
         for tine_prop in self["tine_props"]:
             prop_names = eval(tine_prop.getProperty("prop_names"))
-            if isinstance(prop_names, str):
+            if isinstance(prop_names, string_types):
                 cell_str_list = []
                 cell_str_list.append(tine_prop.getProperty("prop_device"))
                 cell_str_list.append(prop_names)
