@@ -43,12 +43,8 @@ each drop could have several crystals.
 -----------------------------------------------------------------------
 """
 
-import os
-import time
-import tempfile
 import logging
-from datetime import datetime
-
+import time
 import gevent
 
 from HardwareRepository.HardwareObjects.abstract import AbstractSampleChanger
@@ -235,6 +231,7 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. : state change callback. Based on diffractometer state
                     sets PlateManipulatorMockup state.
         """
+        SampleChangerState = AbstractSampleChanger.SampleChangerState
         if state is None:
             self._setState(AbstractSampleChanger.SampleChangerState.Unknown)
         else:
