@@ -12,6 +12,8 @@ import traceback
 from email.mime.text import MIMEText
 import smtplib
 
+from HardwareRepository.ConvertUtils import string_types
+
 
 class MetadataManagerClient(object):
 
@@ -419,12 +421,12 @@ class MXCuBEMetadataClient(object):
         # Motor positions
         motorNames = ""
         motorPositions = ""
-        for motor, position in data_collect_parameters["motors"].iteritems():
-            if isinstance(motor, str):
+        for motor, position in data_collect_parameters["motors"].items():
+            if isinstance(motor, string_types):
                 motorName = motor
             else:
                 nameAttribute = getattr(motor, "name")
-                if isinstance(nameAttribute, str):
+                if isinstance(nameAttribute, string_types):
                     motorName = nameAttribute
                 else:
                     motorName = nameAttribute()

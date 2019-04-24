@@ -26,6 +26,8 @@ import uuid
 from collections import OrderedDict
 from collections import namedtuple
 
+from HardwareRepository.ConvertUtils import string_types
+
 __copyright__ = """ Copyright © 2016 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
 __author__ = "Rasmus H Fogh"
@@ -338,7 +340,7 @@ class ChooseLattice(Payload):
             )
         if not lattices:
             self._lattices = ()
-        elif isinstance(lattices, str):
+        elif isinstance(lattices, string_types):
             # Allows you to pass in lattices as a string without silly errors
             self._lattices = frozenset((lattices,))
         else:

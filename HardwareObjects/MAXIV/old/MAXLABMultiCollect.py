@@ -1,6 +1,4 @@
 # JN, 20150629, mxcube-qt4 version
-from HardwareRepository.BaseHardwareObjects import HardwareObject
-from AbstractMultiCollect import *
 from gevent.event import AsyncResult
 import logging
 import time
@@ -8,6 +6,10 @@ import os
 import httplib
 import urllib
 import math
+
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
+from AbstractMultiCollect import *
 
 
 class FixedEnergy:
@@ -485,7 +487,7 @@ class MAXLABMultiCollect(AbstractMultiCollect, HardwareObject):
     def move_motors(self, motor_position_dict):
         for motor in motor_position_dict.keys():  # iteritems():
             position = motor_position_dict[motor]
-            if isinstance(motor, str) or isinstance(motor, unicode):
+            if isinstance(motor, string_types):
                 # find right motor object from motor role in diffractometer obj.
                 motor_role = motor
                 motor = self.bl_control.diffractometer.getDeviceByRole(motor_role)
