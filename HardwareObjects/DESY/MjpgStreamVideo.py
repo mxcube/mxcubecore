@@ -31,7 +31,7 @@ import logging
 # from PyQt4.QtGui import QImage, QPixmap
 from gui.utils.QtImport import QImage, QPixmap
 from HardwareRepository.HardwareObjects.GenericVideoDevice import GenericVideoDevice
-
+from HardwareRepository.ConvertUtils import string_types
 
 class MjpgStreamVideo(GenericVideoDevice):
     """
@@ -354,7 +354,7 @@ class MjpgStreamVideo(GenericVideoDevice):
         except BaseException:
             option = value
             value = None
-            if isinstance(option, str):
+            if isinstance(option, string_types):
                 info = self.get_cmd_info(cmd, group)
                 if info and "menu" in info and option in info["menu"].values():
                     value = str(

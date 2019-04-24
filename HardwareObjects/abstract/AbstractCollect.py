@@ -33,6 +33,7 @@ import gevent
 import gevent.event
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -804,7 +805,7 @@ class AbstractCollect(HardwareObject, object):
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
             if position:
-                if isinstance(motor, str):
+                if isinstance(motor, string_types):
                     positions_str += " %s=%f" % (motor, position)
                 else:
                     positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)

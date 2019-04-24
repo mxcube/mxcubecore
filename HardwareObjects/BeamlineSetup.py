@@ -8,6 +8,7 @@ from XSDataMXCuBEv1_3 import XSDataInputMXCuBE
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareRepository import getHardwareRepository
+from HardwareRepository.ConvertUtils import string_types
 
 
 class BeamlineSetup(HardwareObject):
@@ -344,7 +345,7 @@ class BeamlineSetup(HardwareObject):
             return limits
 
         if exp_time_limit is not None:
-            if isinstance(exp_time_limit, str):
+            if isinstance(exp_time_limit, string_types):
                 try:
                     exp_time_limit = "%f, 1000" % float(exp_time_limit)
                 except ValueError:
