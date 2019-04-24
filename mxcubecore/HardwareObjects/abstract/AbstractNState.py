@@ -45,7 +45,7 @@ class AbstractNState(object):
         return
 
     @abc.abstractmethod
-    def state(self):
+    def get_state(self):
         """
         Returns:
            str: The current state name
@@ -102,3 +102,8 @@ class AbstractShutter(HardwareObject, AbstractNState):
     def close(self, wait=False, timeout=None):
         """Closes shutter"""
         return
+
+
+    def update_values(self):
+        """Reemits signals"""
+        self.emit("shutterStateChanged", self.current_state.name)

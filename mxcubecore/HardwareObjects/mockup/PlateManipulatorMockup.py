@@ -1,3 +1,21 @@
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [Name] PlateManipulatorMockup
 
@@ -54,9 +72,6 @@ class Xtal(Sample.Sample):
 
     def _setName(self, value):
         self._setProperty(self.__NAME_PROPERTY__, value)
-
-    def getName(self):
-        return self.getProperty(self.__NAME_PROPERTY__)
 
     def _setLogin(self, value):
         self._setProperty(self.__LOGIN_PROPERTY__, value)
@@ -218,23 +233,23 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         """
         SampleChangerState = AbstractSampleChanger.SampleChangerState
         if state is None:
-            self._setState(SampleChangerState.Unknown)
+            self._setState(AbstractSampleChanger.SampleChangerState.Unknown)
         else:
             if state == "Alarm":
-                self._setState(SampleChangerState.Alarm)
+                self._setState(AbstractSampleChanger.SampleChangerState.Alarm)
             elif state == "Fault":
-                self._setState(SampleChangerState.Fault)
+                self._setState(AbstractSampleChanger.SampleChangerState.Fault)
             elif state == "Moving" or state == "Running":
-                self._setState(SampleChangerState.Moving)
+                self._setState(AbstractSampleChanger.SampleChangerState.Moving)
             elif state == "Ready":
                 if self.current_phase == "Transfer":
-                    self._setState(SampleChangerState.Charging)
+                    self._setState(AbstractSampleChanger.SampleChangerState.Charging)
                 elif self.current_phase == "Centring":
-                    self._setState(SampleChangerState.Ready)
+                    self._setState(AbstractSampleChanger.SampleChangerState.Ready)
                 else:
-                    self._setState(SampleChangerState.StandBy)
+                    self._setState(AbstractSampleChanger.SampleChangerState.StandBy)
             elif state == "Initializing":
-                self._setState(SampleChangerState.Initializing)
+                self._setState(AbstractSampleChanger.SampleChangerState.Initializing)
 
     def _initSCContents(self):
         """
@@ -289,9 +304,6 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         Descript. : function to move to plate location.
                     Location is estimated by sample location and reference positions.
         """
-        gevent.spawn(self.load_sample_task, sample_location)
-
-    def load_sample_task(self, sample_location):
         row = sample_location[0] - 1
         col = (sample_location[1] - 1) / self.num_drops
         drop = sample_location[1] - self.num_drops * col
@@ -305,10 +317,23 @@ class PlateManipulatorMockup(AbstractSampleChanger.SampleChanger):
         old_sample = self.getLoadedSample()
         new_sample = drop.getSample()
         if old_sample != new_sample:
+            msg = "Moving to position %s:%d" % ((chr(65 + row), col))
+            logging.getLogger("user_level_log").warning(
+                "Plate Manipulator: %s Please wait..." % msg
+            )
+            self.emit("progressInit", (msg, 100))
+            for step in range(50):
+                self.emit("progressStep", step * 2)
+                time.sleep(0.02)
+            self.emit("progressStop", ())
+
             if old_sample is not None:
                 old_sample._setLoaded(False, True)
             if new_sample is not None:
                 new_sample._setLoaded(True, True)
+            self.updateInfo()
+            logging.getLogger("user_level_log").info("Plate Manipulator: Sample loaded")
+            
 
     def _doUnload(self, sample_slot=None):
         """
