@@ -28,9 +28,53 @@ __category__ = "General"
 class FluxMockup(AbstractFlux):
     def __init__(self, name):
         AbstractFlux.__init__(self, name)
-        self._value = 7e12
+
+        self.beam_info_hwobj = None
+        self.transmission_hwobj = None
+
+        self.measured_flux_list = []
+        self.measured_flux_dict = {}
+        self.current_flux_dict = {}
+
+    def init(self):
+        self.beam_info_hwobj = self.getObjectByRole("beam_info")
+        self.transmission_hwobj = self.getObjectByRole("transmission")
+
+        self.measure_flux()  
+
+    def get_flux(self):
+        return self.current_flux_dict["flux"]
 
     def measure_flux(self):
         """Measures intesity"""
-        self._value = 1e12 + random() * 1e12
-        self.emit("fluxValueChanged", self._value)
+        beam_size = self.beam_info_hwobj.get_beam_size()
+        transmission = self.transmission_hwobj.getAttFactor()
+        flux = 1e12 + random() * 1e12
+
+        self.measured_flux_list = [{"size_x": beam_size[0],
+                                    "size_y": beam_size[1],
+                                    "transmission": transmission,
+                                    "flux": flux}]
+
+        self.measured_flux_dict = self.measured_flux_list[0]
+        self.current_flux_dict = self.measured_flux_list[0]
+
+        self.emit(
+            "fluxInfoChanged",
+            {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
+        )
+
+    def get_flux_info_list(self):
+        return self.measured_flux_list
+
+    def set_flux_info_list(self, flux_info_list):
+        self.measured_flux_list = flux_info_list
+        self.measured_flux_dict = self.measured_flux_list[0]
+        #TODO Udjust to beamsize and transmission
+        self.current_flux_dict = self.measured_flux_list[0]
+        self.emit(
+            "fluxInfoChanged",
+            {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
+        )
+        
+          

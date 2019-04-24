@@ -179,7 +179,7 @@ class CatsMaintMockup(Equipment):
     #########################          PROTECTED          #########################
 
     def _executeTask(self, wait, method, *args):
-        ret = self._run(method, wait=False, *args)
+        ret = self._run(method, *args)
         if wait:
             return ret.get()
         else:
@@ -194,7 +194,7 @@ class CatsMaintMockup(Equipment):
         except Exception as ex:
             exception = ex
         if exception is not None:
-            raise exception
+            raise exception # pylint: disable-msg=E0702
         return ret
 
     #########################           PRIVATE           #########################
@@ -385,7 +385,7 @@ class CatsMaintMockup(Equipment):
                 raise Exception("Cannot detect type of TOOL in Cats. Command ignored")
 
         if cmdname == "soak":
-            if tool in [TOOL_DOUBLE, TOOL_UNIPUCK]:
+            if tool in [TOOL_DOUBLE_GRIPPER, TOOL_UNIPUCK]:
                 args = [str(tool), str(lid)]
             else:
                 raise Exception("Can SOAK only when UNIPUCK tool is mounted")

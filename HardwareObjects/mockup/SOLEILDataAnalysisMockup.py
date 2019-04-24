@@ -1,9 +1,14 @@
 import logging
 import gevent.event
+
+from HardwareRepository.HardwareObjects import edna_test_data
+from HardwareRepository.BaseHardwareObjects import HardwareObject
 from HardwareRepository.HardwareObjects.abstract.AbstractDataAnalysis import (
     AbstractDataAnalysis
 )
-from HardwareRepository.BaseHardwareObjects import HardwareObject
+
+from HardwareRepository.HardwareObjects.XSDataMXCuBEv1_3 import XSDataResultMXCuBE
+
 
 
 class SOLEILDataAnalysisMockup(
@@ -33,7 +38,7 @@ class SOLEILDataAnalysisMockup(
         logging.getLogger("queue_exec").info(msg)
 
         self.processing_done_event.set()
-        self.result = XSDataResultMXCuBE.parseFile(edna_results_file)
+        self.result = XSDataResultMXCuBE.parseString(edna_test_data.EDNA_RESULT_DATA)
 
         return self.result
 

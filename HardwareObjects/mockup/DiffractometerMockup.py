@@ -250,9 +250,8 @@ class DiffractometerMockup(GenericDiffractometer):
         """
         Descript. :
         """
-        return
         try:
-            return self.move_to_centred_position(centred_position, wait=wait)
+            return self.move_to_centred_position(centred_position)
         except BaseException:
             logging.exception("Could not move to centred position")
 
