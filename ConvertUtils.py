@@ -27,9 +27,15 @@ H_OVER_E = 12.3984
 
 # Enumerations:
 
+# Python 2-3 conversion utilities
+
+try:
+    string_types = (basestring,)
+except NameError:
+    string_types = (str,)
+
 
 # Utility functions:
-
 
 def java_property(keyword, value, quote_value=False):
     """Return argument list for command line invocation setting java property"""

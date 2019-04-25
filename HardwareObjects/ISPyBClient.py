@@ -3,7 +3,6 @@ import traceback
 from pprint import pformat
 from collections import namedtuple
 from datetime import datetime
-from HardwareRepository.BaseHardwareObjects import HardwareObject
 try:
     from urlparse import urljoin
     from urllib2 import URLError
@@ -19,6 +18,8 @@ import json
 import time
 import itertools
 import os
+from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
 
 """
 A client for ISPyB Webservices.
@@ -1617,7 +1618,7 @@ class ISPyBClient(HardwareObject):
         if self._collection:
 
             try:
-                if isinstance(xfespectrum_dict["startTime"], str):
+                if isinstance(xfespectrum_dict["startTime"], string_types):
                     xfespectrum_dict["startTime"] = datetime.strptime(
                         xfespectrum_dict["startTime"], "%Y-%m-%d %H:%M:%S"
                     )
@@ -2050,7 +2051,7 @@ class ISPyBValueFactory:
         try:
             detector_manufacturer = bl_config.detector_manufacturer
 
-            if isinstance(detector_manufacturer, str):
+            if isinstance(detector_manufacturer, string_types):
                 detector_manufacturer = detector_manufacturer.upper()
         except BaseException:
             detector_manufacturer = ""
