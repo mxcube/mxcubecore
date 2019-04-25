@@ -762,7 +762,6 @@ class Characterisation(TaskNode):
 
     @staticmethod
     def set_char_compression(state):
-        print("setttt ", state)
         Characterisation.diff_plan_compression = state
 
     def get_name(self):
