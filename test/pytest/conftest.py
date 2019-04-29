@@ -34,3 +34,8 @@ def energy_list():
 def shutter_list():
     return (hwr_qt.getHardwareObject("shutter-mockup"),
             hwr_web.getHardwareObject("shutter-mockup"))
+
+@pytest.fixture(scope="session")
+def detector_list():
+    return (hwr_qt.getHardwareObject("detector-mockup"),
+            hwr_web.getHardwareObject("detector-mockup"))

@@ -27,6 +27,7 @@ except ImportError:
 from . import BaseHardwareObjects
 from . import HardwareObjectFileParser
 from HardwareRepository.dispatcher import dispatcher
+from HardwareRepository.ConvertUtils import string_types
 
 __author__ = "Matias Guijarro"
 __version__ = 1.3
@@ -249,7 +250,7 @@ class __HardwareRepositoryClient:
         if len(xml_data) > 0:
             try:
                 hwobj_instance = self.parseXML(xml_data, hwobj_name)
-                if isinstance(hwobj_instance, str):
+                if isinstance(hwobj_instance, string_types):
                     return self.loadHardwareObject(hwobj_instance)
             except BaseException:
                 comment = "Cannot parse xml"
@@ -316,13 +317,6 @@ class __HardwareRepositoryClient:
                 comment,
             )
         )
-
-        # # Temporary help to get hold of superclasses
-        # import inspect
-        # for cls in inspect.getmro(hwobj_instance.__class__)[1:]:
-        #     tt = ('super', cls.__name__, "0 ms", '@~@~')
-        #     if tt not in  self.hwobj_info_list:
-        #         self.hwobj_info_list.append(tt)
 
         return hwobj_instance
 

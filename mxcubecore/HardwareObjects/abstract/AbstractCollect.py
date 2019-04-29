@@ -33,6 +33,7 @@ import gevent
 import gevent.event
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
 
 
 __credits__ = ["MXCuBE collaboration"]
@@ -259,16 +260,16 @@ class AbstractCollect(HardwareObject, object):
                 )
                 self.set_energy(self.current_dc_parameters["energy"])
 
-            dd = self.current_dc_parameters.get("resolution")
-            if dd and dd.get('upper'):
-                resolution = dd["upper"]
+            dd0 = self.current_dc_parameters.get("resolution")
+            if dd0 and dd0.get('upper'):
+                resolution = dd0["upper"]
                 log.info("Collection: Setting resolution to %.3f", resolution)
                 self.set_resolution(resolution)
 
             elif "detector_distance" in self.current_dc_parameters:
                 log.info(
                     "Collection: Moving detector to %.2f",
-                    self.current_dc_parameters["detdistance"],
+                    self.current_dc_parameters["detector_distance"],
                 )
                 self.move_detector(self.current_dc_parameters["detector_distance"])
 
@@ -280,14 +281,21 @@ class AbstractCollect(HardwareObject, object):
             # TODO check why this happens
 
             # # Motor positions debug output
-            # ll = sorted((tt[0] if isinstance(tt[0], (str, unicode)) else tt[0].name(), tt[1])
-            #             for tt in self.current_dc_parameters['motors'].items())
-            # logging.getLogger('HWR').debug("MOTORS ACQ target: "
-            #                                + ', '.join('%s=%s' % (tt) for tt in ll))
+            # ll0 = sorted(
+            #     (
+            #         tt0[0] if isinstance(tt0[0], (str, unicode))
+            #         else tt0[0].name(), tt0[1]
+            #     )
+            #     for tt0 in self.current_dc_parameters['motors'].items()
+            # )
+            # logging.getLogger('HWR').debug(
+            #     "MOTORS ACQ target: " + ', '.join('%s=%s' % (tt0) for tt0 in ll0)
+            # )
             #
-            # ll = sorted(self.diffractometer_hwobj.get_positions().items())
-            # logging.getLogger('HWR').debug("MOTORS ACQ result: "
-            #                                + ', '.join('%s=%s' % (tt) for tt in ll))
+            # ll0 = sorted(self.diffractometer_hwobj.get_positions().items())
+            # logging.getLogger('HWR').debug(
+            #     "MOTORS ACQ result: " + ', '.join('%s=%s' % (tt0) for tt0 in ll0)
+            # )
 
             self.data_collection_hook()
 
@@ -782,31 +790,31 @@ class AbstractCollect(HardwareObject, object):
         """
         Descript. :
         """
-        dd = self.diffractometer_hwobj.get_positions()
+        dd0 = self.diffractometer_hwobj.get_positions()
         logging.getLogger('HWR').debug(
             'MOTORS-premove ' +
-            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
 
         )
-        dd = self.current_dc_parameters['motors']
+        dd0 = self.current_dc_parameters['motors']
         logging.getLogger('HWR').debug(
             'MOTORS-target ' +
-            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
 
         )
         positions_str = ""
         for motor, position in self.current_dc_parameters["motors"].items():
             if position:
-                if isinstance(motor, str):
+                if isinstance(motor, string_types):
                     positions_str += " %s=%f" % (motor, position)
                 else:
                     positions_str += " %s=%f" % (motor.getMotorMnemonic(), position)
         self.current_dc_parameters["actualCenteringPosition"] = positions_str
         self.move_motors(self.current_dc_parameters["motors"])
-        dd = self.diffractometer_hwobj.get_positions()
+        dd0 = self.diffractometer_hwobj.get_positions()
         logging.getLogger('HWR').debug(
             'MOTORS-postmove ' +
-            ', '.join('%s:%s' % tt for tt in sorted(dd.items()))
+            ', '.join('%s:%s' % tt0 for tt0 in sorted(dd0.items()))
         )
 
     @abc.abstractmethod

@@ -14,11 +14,11 @@ def test_shutter_open_close(shutter_list):
     for shutter in shutter_list:
         shutter.close()
 
-        assert shutter.state() == AbstractShutter.STATE.CLOSED.name
+        assert shutter.get_state() == AbstractShutter.STATE.CLOSED.name
 
         shutter.open()
 
-        assert shutter.state() == AbstractShutter.STATE.OPEN.name
+        assert shutter.get_state() == AbstractShutter.STATE.OPEN.name
 
 
 def test_shutter_is_valid(shutter_list):
