@@ -75,7 +75,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
         """
         QueueEntryContainer.enqueue(self, queue_entry)
 
-    def execute(self, wait=False):
+    def execute(self):
         """
         Starts execution of the queue.
         """
@@ -83,10 +83,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             self.emit("statusMessage", ("status", "Queue running", "running"))
             self._is_stopped = False
             self._set_in_queue_flag()
-            if wait:
-                self.__execute_task()
-            else:
-                self._root_task = gevent.spawn(self.__execute_task)
+            self._root_task = gevent.spawn(self.__execute_task)
 
     def _set_in_queue_flag(self):
         """
