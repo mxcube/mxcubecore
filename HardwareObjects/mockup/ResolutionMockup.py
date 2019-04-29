@@ -45,7 +45,7 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
         return self.energy.getCurrentWavelength()
 
     def wavelengthChanged(self, pos=None):
-        self.recalculateResolution(pos)
+        self.recalculateResolution()
 
     def energyChanged(self, energy):
         self.wavelengthChanged(12.3984 / energy)

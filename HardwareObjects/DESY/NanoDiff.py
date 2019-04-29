@@ -34,6 +34,7 @@ from HardwareRepository.HardwareObjects import queue_model_objects as qmo
 from gevent.event import AsyncResult
 from HardwareRepository.TaskUtils import task
 from HardwareRepository.BaseHardwareObjects import HardwareObject
+from HardwareRepository.ConvertUtils import string_types
 
 # from HardwareRepository.HardwareObjects.GenericDiffractometer import GenericDiffractometer
 
@@ -1142,7 +1143,7 @@ class NanoDiff(HardwareObject):
         """
         for motor in motor_position_dict.keys():
             position = motor_position_dict[motor]
-            if isinstance(motor, str) or isinstance(motor, unicode):
+            if isinstance(motor, string_types):
                 motor_role = motor
                 motor = self.get_motor_hwobj(motor_role)
                 del motor_position_dict[motor_role]
@@ -1151,7 +1152,7 @@ class NanoDiff(HardwareObject):
                 motor_position_dict[motor] = position
             # logging.getLogger("HWR").info("Moving motor '%s' to %f", motor.getMotorMnemonic(), position)
             motor.move(position)
-        while any([motor.motorIsMoving() for motor in motor_position_dict.iterkeys()]):
+        while any([motor.motorIsMoving() for motor in motor_position_dict]):
             time.sleep(0.5)
         """with gevent.Timeout(15):
              while not all([m.getState() == m.READY for m in motors_positions if m is not None]):

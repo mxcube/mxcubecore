@@ -50,6 +50,7 @@ from datetime import datetime
 from gui.utils import QtImport
 
 from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.ConvertUtils import string_types
 
 SELECTED_COLOR = QtImport.Qt.green
 NORMAL_COLOR = QtImport.Qt.yellow
@@ -396,7 +397,7 @@ class GraphicsItemInfo(GraphicsItem):
             self.__created_time = datetime.now()
         else:
             self.__created_time = None
-        if isinstance(msg, str):
+        if isinstance(msg, string_types):
             height = 25
         else:
             height = 20 * len(msg)

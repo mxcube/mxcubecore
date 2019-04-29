@@ -26,12 +26,12 @@ import os
 import subprocess
 import logging
 import re
+from collections import OrderedDict
 import f90nml
+import api
 from HardwareRepository import ConvertUtils
 from HardwareRepository.HardwareObjects.mockup.CollectMockup import CollectMockup
-from HardwareRepository.HardwareRepository import getHardwareRepository
 from HardwareRepository.TaskUtils import task
-from collections import OrderedDict
 
 __copyright__ = """ Copyright © 2017 - 2019 by Global Phasing Ltd. """
 __license__ = "LGPLv3+"
@@ -43,8 +43,6 @@ class CollectEmulator(CollectMockup):
 
     def __init__(self, name):
         CollectMockup.__init__(self, name)
-        self.gphl_connection_hwobj = None
-        self.gphl_workflow_hwobj = None
 
         # # TODO get appropriate value
         # # We must have a value for functions to work
@@ -58,6 +56,7 @@ class CollectEmulator(CollectMockup):
 
     def init(self):
         CollectMockup.init(self)
+        # NBNB you get an error if you use 'api.session'
         session_hwobj = self.getObjectByRole("session")
         if session_hwobj and self.hasObject("override_data_directories"):
             dirs = self["override_data_directories"].getProperties()
@@ -71,8 +70,8 @@ class CollectEmulator(CollectMockup):
         setup_data = result["setup_list"] = crystal_data
 
         # update with instrument data
-        fp = self.gphl_workflow_hwobj.file_paths.get("instrumentation_file")
-        instrument_input = f90nml.read(fp)
+        fp0 = api.gphl_workflow.file_paths.get("instrumentation_file")
+        instrument_input = f90nml.read(fp0)
 
         instrument_data = instrument_input["sdcp_instrument_list"]
         segments = instrument_input["segment_list"]
@@ -84,14 +83,14 @@ class CollectEmulator(CollectMockup):
         sweep_count = len(data_collect_parameters["oscillation_sequence"])
 
         # Move beamstop settings to top level
-        ll = instrument_data.get("beamstop_param_names")
-        ll2 = instrument_data.get("beamstop_param_vals")
-        if ll and ll2:
-            for tag, val in zip(ll, ll2):
+        ll0 = instrument_data.get("beamstop_param_names")
+        ll1 = instrument_data.get("beamstop_param_vals")
+        if ll0 and ll1:
+            for tag, val in zip(ll0, ll1):
                 instrument_data[tag.lower()] = val
 
         # Setting parameters in order (may not be necessary, but ...)
-        # Misssing: *mu*
+        # Missing: *mu*
         remap = {
             "beam": "nominal_beam_dir",
             "det_coord_def": "det_org_dist",
@@ -121,14 +120,14 @@ class CollectEmulator(CollectMockup):
             if val is not None:
                 setup_data[tag] = val
 
-        ll = instrument_data["gonio_axis_dirs"]
-        setup_data["omega_axis"] = ll[:3]
-        setup_data["kappa_axis"] = ll[3:6]
-        setup_data["phi_axis"] = ll[6:]
-        ll = instrument_data["gonio_centring_axis_dirs"]
-        setup_data["trans_x_axis"] = ll[:3]
-        setup_data["trans_y_axis"] = ll[3:6]
-        setup_data["trans_z_axis"] = ll[6:]
+        ll0 = instrument_data["gonio_axis_dirs"]
+        setup_data["omega_axis"] = ll0[:3]
+        setup_data["kappa_axis"] = ll0[3:6]
+        setup_data["phi_axis"] = ll0[6:]
+        ll0 = instrument_data["gonio_centring_axis_dirs"]
+        setup_data["trans_x_axis"] = ll0[:3]
+        setup_data["trans_y_axis"] = ll0[3:6]
+        setup_data["trans_z_axis"] = ll0[6:]
         tags = (
             "cone_radius",
             "cone_s_height",
@@ -162,17 +161,17 @@ class CollectEmulator(CollectMockup):
 
         # update with diffractcal data
         # TODO check that this works also for updating segment list
-        fp = self.gphl_workflow_hwobj.file_paths.get("diffractcal_file")
-        if os.path.isfile(fp):
-            diffractcal_data = f90nml.read(fp)["sdcp_instrument_list"]
+        fp0 = api.gphl_workflow.file_paths.get("diffractcal_file")
+        if os.path.isfile(fp0):
+            diffractcal_data = f90nml.read(fp0)["sdcp_instrument_list"]
             for tag in setup_data.keys():
                 val = diffractcal_data.get(tag)
                 if val is not None:
                     setup_data[tag] = val
-            ll = diffractcal_data["gonio_axis_dirs"]
-            setup_data["omega_axis"] = ll[:3]
-            setup_data["kappa_axis"] = ll[3:6]
-            setup_data["phi_axis"] = ll[6:]
+            ll0 = diffractcal_data["gonio_axis_dirs"]
+            setup_data["omega_axis"] = ll0[:3]
+            setup_data["kappa_axis"] = ll0[3:6]
+            setup_data["phi_axis"] = ll0[6:]
 
         # get resolution limit and detector distance
         detector_distance = data_collect_parameters.get("detector_distance", 0.0)
@@ -186,11 +185,11 @@ class CollectEmulator(CollectMockup):
             motors = data_collect_parameters["motors"]
             sweep = OrderedDict()
 
-            sweep["lambda"] = ConvertUtils.h_over_e / data_collect_parameters["energy"]
+            sweep["lambda"] = ConvertUtils.H_OVER_E / data_collect_parameters["energy"]
             sweep["res_limit"] = setup_data["res_limit_def"]
             sweep["exposure"] = osc["exposure_time"]
-            ll = self.gphl_workflow_hwobj.translation_axis_roles
-            sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll)
+            ll0 = api.gphl_workflow.translation_axis_roles
+            sweep["trans_xyz"] = list(motors.get(x) or 0.0 for x in ll0)
             sweep["det_coord"] = detector_distance
             # NBNB hardwired for omega scan TODO
             sweep["axis_no"] = 3
@@ -206,8 +205,8 @@ class CollectEmulator(CollectMockup):
             # Extract format statement from template,
             # and convert to fortran format
             template = data_collect_parameters["fileinfo"]["template"]
-            ss = str(re.search("(%[0-9]+d)", template).group(0))
-            template = template.replace(ss, "?" * int(ss[1:-1]))
+            ss0 = str(re.search("(%[0-9]+d)", template).group(0))
+            template = template.replace(ss0, "?" * int(ss0[1:-1]))
             name_template = os.path.join(
                 data_collect_parameters["fileinfo"]["directory"],
                 template
@@ -242,24 +241,18 @@ class CollectEmulator(CollectMockup):
 
         data_collect_parameters = self.current_dc_parameters
 
-        # Done here as there are what-happens-first conflicts
-        # if you put it in init
-        bl_setup_hwobj = getHardwareRepository().getHardwareObject("beamline-setup")
-        if self.gphl_workflow_hwobj is None:
-            self.gphl_workflow_hwobj = bl_setup_hwobj.gphl_workflow_hwobj
-        if not self.gphl_workflow_hwobj:
+        if not api.gphl_workflow:
             raise ValueError("Emulator requires GPhL workflow installation")
-        if self.gphl_connection_hwobj is None:
-            self.gphl_connection_hwobj = bl_setup_hwobj.gphl_connection_hwobj
-        if not self.gphl_connection_hwobj:
+        gphl_connection = api.gphl_connection
+        if not gphl_connection:
             raise ValueError("Emulator requires GPhL connection installation")
 
         # Get program locations
-        simcal_executive = self.gphl_connection_hwobj.get_executable("simcal")
+        simcal_executive = gphl_connection.get_executable("simcal")
         # Get environmental variables
         envs = {
-            "BDG_home": self.gphl_connection_hwobj.software_paths["BDG_home"],
-            "GPHL_INSTALLATION": self.gphl_connection_hwobj.software_paths[
+            "BDG_home": gphl_connection.software_paths["BDG_home"],
+            "GPHL_INSTALLATION": gphl_connection.software_paths[
                 "GPHL_INSTALLATION"
             ],
         }
@@ -270,11 +263,11 @@ class CollectEmulator(CollectMockup):
         sample_name = self.getProperty("default_sample_name")
         sample = self.sample_changer_hwobj.getLoadedSample()
         if sample:
-            ss = sample.getName()
-            if ss and ss.startswith(self.TEST_SAMPLE_PREFIX):
-                sample_name = ss[len(self.TEST_SAMPLE_PREFIX) :]
+            ss0 = sample.getName()
+            if ss0 and ss0.startswith(self.TEST_SAMPLE_PREFIX):
+                sample_name = ss0[len(self.TEST_SAMPLE_PREFIX) :]
 
-        sample_dir = self.gphl_connection_hwobj.software_paths.get("gphl_test_samples")
+        sample_dir = gphl_connection.software_paths.get("gphl_test_samples")
         if not sample_dir:
             raise ValueError("Emulator requires gphl_test_samples dir specified")
         sample_dir = os.path.join(sample_dir, sample_name)
@@ -326,7 +319,7 @@ class CollectEmulator(CollectMockup):
 
         for tag, val in self["simcal_options"].getProperties().items():
             command_list.extend(ConvertUtils.command_option(tag, val, prefix="--"))
-        logging.getLogger("HWR").info("Executing command: %s" % command_list)
+        logging.getLogger("HWR").info("Executing command: %s", command_list)
         logging.getLogger("HWR").info(
             "Executing environment: %s" % sorted(envs.items())
         )
@@ -339,7 +332,7 @@ class CollectEmulator(CollectMockup):
             running_process = subprocess.Popen(
                 command_list, stdout=fp1, stderr=fp2, env=envs
             )
-            self.gphl_connection_hwobj.collect_emulator_process = running_process
+            gphl_connection.collect_emulator_process = running_process
         except BaseException:
             logging.getLogger("HWR").error("Error in spawning workflow application")
             raise
@@ -352,9 +345,11 @@ class CollectEmulator(CollectMockup):
         logging.getLogger("HWR").info("Waiting for simcal collection emulation.")
         # NBNB TODO put in time-out, somehow
         return_code = running_process.wait()
-        process = self.gphl_connection_hwobj.collect_emulator_process
-        self.gphl_connection_hwobj.collect_emulator_process = None
-        if return_code and process != 'ABORTED':
+        process = gphl_connection.collect_emulator_process
+        gphl_connection.collect_emulator_process = None
+        if process == 'ABORTED':
+            logging.getLogger("HWR").info("Simcal collection emulation aborted")
+        elif return_code:
             raise RuntimeError(
                 "simcal process terminated with return code %s" % return_code
             )
