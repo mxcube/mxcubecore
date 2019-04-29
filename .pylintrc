@@ -1,4 +1,7 @@
 [MASTER]
+
+init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
+
 # Specify a configuration file.
 #rcfile=
 
@@ -379,7 +382,3 @@ exclude-protected=_asdict,_fields,_replace,_source,_make
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
 overgeneral-exceptions=Exception
-
-init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
-
-#TEST
