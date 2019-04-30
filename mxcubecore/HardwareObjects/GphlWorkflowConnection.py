@@ -200,7 +200,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         logging.getLogger("HWR").debug(
             "GPhL Open connection: %s ",
-            (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items())))
+            (", ".join("%s:%s" % tt0 for tt0 in sorted(params.items()))),
         )
 
         # set sockets and threading to standard before running py4j
@@ -373,7 +373,6 @@ class GphlWorkflowConnection(HardwareObject, object):
             self._running_process = None
             # NBNB TODO how do we close down the workflow if there is no answer pending?
 
-
         self._enactment_id = None
         self._workflow_name = None
         self.workflow_queue = None
@@ -383,7 +382,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         # self._running_process = None
         xx0 = self.collect_emulator_process
         if xx0 is not None:
-            self.collect_emulator_process = 'ABORTED'
+            self.collect_emulator_process = "ABORTED"
             try:
                 if xx0.poll() is None:
                     xx0.send_signal(signal.SIGINT)
@@ -458,7 +457,7 @@ class GphlWorkflowConnection(HardwareObject, object):
             elif self._enactment_id != enactment_id:
                 logging.getLogger("HWR").warning(
                     "Workflow enactment I(D %s != info message enactment ID %s."
-                   % (self._enactment_id, enactment_id)
+                    % (self._enactment_id, enactment_id)
                 )
             if self.workflow_queue is not None:
                 # Could happen if we have ended the workflow
@@ -1115,7 +1114,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         xx0 = userProvidedInfo.pointGroup
         if xx0:
             builder = builder.pointGroup(
-               jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
+                jvm.co.gphl.beamline.v2_unstable.domain_types.PointGroup.valueOf(
                     "PG%s" % xx0
                 )
             )
@@ -1190,9 +1189,7 @@ class GphlWorkflowConnection(HardwareObject, object):
         axisSettings = dict(
             ((x, float(y)) for x, y in bcsDetectorSetting.axisSettings.items())
         )
-        javaUuid = jvm.java.util.UUID.fromString(
-            str(bcsDetectorSetting.id_)
-        )
+        javaUuid = jvm.java.util.UUID.fromString(str(bcsDetectorSetting.id_))
         return jvm.astra.messagebus.messages.instrumentation.BcsDetectorSettingImpl(
             float(bcsDetectorSetting.resolution), orgxy_array, axisSettings, javaUuid
         )
@@ -1205,23 +1202,17 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         gts = goniostatTranslation
         javaUuid = jvm.java.util.UUID.fromString(str(gts.id_))
-        javaRotationId = jvm.java.util.UUID.fromString(
-            str(gts.requestedRotationId)
-        )
+        javaRotationId = jvm.java.util.UUID.fromString(str(gts.requestedRotationId))
         axisSettings = dict(((x, float(y)) for x, y in gts.axisSettings.items()))
         newRotation = gts.newRotation
         if newRotation:
             javaNewRotation = self._GoniostatRotation_to_java(newRotation)
-            return (
-                jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
-                    axisSettings, javaUuid, javaRotationId, javaNewRotation
-                )
+            return jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
+                axisSettings, javaUuid, javaRotationId, javaNewRotation
             )
         else:
-            return (
-                jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
-                    axisSettings, javaUuid, javaRotationId
-                )
+            return jvm.astra.messagebus.messages.instrumentation.GoniostatTranslationImpl(
+                axisSettings, javaUuid, javaRotationId
             )
 
     def _GoniostatRotation_to_java(self, goniostatRotation):
