@@ -462,26 +462,31 @@ class GphlWorkflow(HardwareObject, object):
             {
                 "variableName": "resolution",
                 "uiLabel": "Detector resolution (A)",
-                "type": "text",
-                "defaultValue": str(resolution),
+                "type": "floatstring",
+                "defaultValue": resolution,
+                "lowerBound": 0.0,
+                "upperBound": 9.0,
+                "decimals":3,
             },
             # NB Transmission is in % in UI, but in 0-1 in workflow
             {
                 "variableName": "transmission",
                 "uiLabel": "Transmission (%)",
-                "type": "text",
-                "defaultValue": str(acq_parameters.transmission),
+                "type": "floatstring",
+                "defaultValue": acq_parameters.transmission,
                 "lowerBound": 0.0,
                 "upperBound": 100.0,
+                "decimals":1,
             },
             {
                 "variableName": "exposure",
                 "uiLabel": "Exposure Time (s)",
-                "type": "text",
-                "defaultValue": str(acq_parameters.exp_time),
+                "type": "floatstring",
+                "defaultValue": acq_parameters.exp_time,
                 # NBNB TODO fill in from config ??
                 "lowerBound": 0.003,
                 "upperBound": 6000,
+                "decimals":4,
             },
         ]
         if (
@@ -532,10 +537,11 @@ class GphlWorkflow(HardwareObject, object):
                 {
                     "variableName": "wedgeWidth",
                     "uiLabel": "Images per wedge",
-                    "type": "text",
-                    "defaultValue": "10",
+                    "type": "floatstring",
+                    "defaultValue": 10,
                     "lowerBound": 0,
                     "upperBound": 1000,
+                    "decimals":1,
                 }
             )
 
@@ -545,10 +551,11 @@ class GphlWorkflow(HardwareObject, object):
                 {
                     "variableName": tag,
                     "uiLabel": "%s beam energy (keV)" % tag,
-                    "type": "text",
-                    "defaultValue": str(val),
+                    "type": "floatstring",
+                    "defaultValue": val,
                     "lowerBound": 4.0,
                     "upperBound": 20.0,
+                    "decimals":4,
                 }
             )
         field_list.extend(ll0)
