@@ -34,6 +34,9 @@ try:
 except NameError:
     string_types = (str,)
 
+def foo():
+    return
+
 
 # Utility functions:
 
