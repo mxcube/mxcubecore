@@ -308,7 +308,7 @@ class GphlWorkflow(HardwareObject, object):
                 if func is None:
                     logging.getLogger("HWR").error(
                         "GPhL message %s not recognised by MXCuBE. Terminating...",
-                        message_type
+                        message_type,
                     )
                     break
                 else:
@@ -363,9 +363,7 @@ class GphlWorkflow(HardwareObject, object):
         logging.info("%s : FINISHED", name)
 
     def get_configuration_data(self, payload, correlation_id):
-        return GphlMessages.ConfigurationData(
-            self.file_paths["gphl_beamline_config"]
-        )
+        return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
     def query_collection_strategy(
         self, geometric_strategy, collect_hwobj, default_energy
@@ -466,7 +464,7 @@ class GphlWorkflow(HardwareObject, object):
                 "defaultValue": resolution,
                 "lowerBound": 0.0,
                 "upperBound": 9.0,
-                "decimals":3,
+                "decimals": 3,
             },
             # NB Transmission is in % in UI, but in 0-1 in workflow
             {
@@ -476,7 +474,7 @@ class GphlWorkflow(HardwareObject, object):
                 "defaultValue": acq_parameters.transmission,
                 "lowerBound": 0.0,
                 "upperBound": 100.0,
-                "decimals":1,
+                "decimals": 1,
             },
             {
                 "variableName": "exposure",
@@ -486,7 +484,7 @@ class GphlWorkflow(HardwareObject, object):
                 # NBNB TODO fill in from config ??
                 "lowerBound": 0.003,
                 "upperBound": 6000,
-                "decimals":4,
+                "decimals": 4,
             },
         ]
         if (
@@ -541,7 +539,7 @@ class GphlWorkflow(HardwareObject, object):
                     "defaultValue": 10,
                     "lowerBound": 0,
                     "upperBound": 1000,
-                    "decimals":1,
+                    "decimals": 1,
                 }
             )
 
@@ -555,7 +553,7 @@ class GphlWorkflow(HardwareObject, object):
                     "defaultValue": val,
                     "lowerBound": 4.0,
                     "upperBound": 20.0,
-                    "decimals":4,
+                    "decimals": 4,
                 }
             )
         field_list.extend(ll0)
@@ -759,7 +757,7 @@ class GphlWorkflow(HardwareObject, object):
                     )
                     logging.getLogger("HWR").debug(
                         "Recentring set-up. Parameters are: %s",
-                        sorted(recen_parameters.items())
+                        sorted(recen_parameters.items()),
                     )
                 elif centre_at_start:
                     # Put on recentring queue
@@ -1150,7 +1148,9 @@ class GphlWorkflow(HardwareObject, object):
             del ll0[0]
         #
         self._queue_entry.get_data_model().lattice_selected = True
-        return GphlMessages.SelectedLattice(lattice_format=solution_format, solution=ll0)
+        return GphlMessages.SelectedLattice(
+            lattice_format=solution_format, solution=ll0
+        )
 
     def parse_indexing_solution(self, solution_format, text):
 

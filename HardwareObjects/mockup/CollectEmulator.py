@@ -252,9 +252,7 @@ class CollectEmulator(CollectMockup):
         # Get environmental variables
         envs = {
             "BDG_home": gphl_connection.software_paths["BDG_home"],
-            "GPHL_INSTALLATION": gphl_connection.software_paths[
-                "GPHL_INSTALLATION"
-            ],
+            "GPHL_INSTALLATION": gphl_connection.software_paths["GPHL_INSTALLATION"],
         }
         for tag, val in self["environment_variables"].getProperties().items():
             envs[str(tag)] = str(val)
@@ -347,7 +345,7 @@ class CollectEmulator(CollectMockup):
         return_code = running_process.wait()
         process = gphl_connection.collect_emulator_process
         gphl_connection.collect_emulator_process = None
-        if process == 'ABORTED':
+        if process == "ABORTED":
             logging.getLogger("HWR").info("Simcal collection emulation aborted")
         elif return_code:
             raise RuntimeError(
