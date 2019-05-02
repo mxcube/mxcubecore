@@ -244,6 +244,8 @@ class GphlWorkflowConnection(HardwareObject, object):
             #
             host = dd0.pop("Host")
             command_list = ["ssh"]
+            if "ConfigFile" in dd0:
+                command_list.extend(("-F", dd0.pop("ConfigFile")))
             for tag, val in sorted(dd0.items()):
                 command_list.extend(("-o", "%s=%s" % (tag, val)))
                 # command_list.extend(('-o', tag, val))
