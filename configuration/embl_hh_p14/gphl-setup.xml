@@ -12,12 +12,14 @@
 
     <!-- If set, run workflow through ssh with selected options -->
     <!-- NB The  Host option is mandatory -->
-    <!--<ssh_options>-->
+    <!-- ConfigFile is the ssh configuratino file, passed to ssh with the -F option -->
+    <ssh_options>
         <Host>p14dd01</Host>
         <IdentityFile>????????</IdentityFile>
         <User>p3l-gleb1</User>
         <StrictHostKeyChecking>no</StrictHostKeyChecking>
-    <!--</ssh_options>-->
+        <!--<ConfigFile>/path/to/ssh/config/file</ConfigFile>-->
+    </ssh_options>
 
     <!-- NB Non-absolute file names are interpreted relative to one of the  -->
     <!-- HardwareRepository directories on the lookup path -->
