@@ -556,8 +556,9 @@ class GphlWorkflow(HardwareObject, object):
                     "decimals": 4,
                 }
             )
+        if self.getProperty("disable_energy_change", False):
+            ll0["readOnly"] = True
         field_list.extend(ll0)
-
         self._return_parameters = gevent.event.AsyncResult()
         responses = dispatcher.send(
             "gphlParametersNeeded", self, field_list, self._return_parameters
