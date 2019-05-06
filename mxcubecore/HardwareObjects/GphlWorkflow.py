@@ -366,7 +366,7 @@ class GphlWorkflow(HardwareObject, object):
         return GphlMessages.ConfigurationData(self.file_paths["gphl_beamline_config"])
 
     def query_collection_strategy(
-        self, geometric_strategy, collect_hwobj, default_energy
+        self, geometric_strategy, default_energy
     ):
         """Display collection strategy for user approval,
         and query parameters needed"""
@@ -449,7 +449,7 @@ class GphlWorkflow(HardwareObject, object):
         acq_parameters = api.beamline_setup.get_default_acquisition_parameters()
         # For now return default values
 
-        resolution = collect_hwobj.get_resolution()
+        resolution = api.resolution.get_position()
         field_list = [
             {
                 "variableName": "_info",
@@ -535,8 +535,8 @@ class GphlWorkflow(HardwareObject, object):
                 {
                     "variableName": "wedgeWidth",
                     "uiLabel": "Images per wedge",
-                    "type": "floatstring",
-                    "defaultValue": 10,
+                    "type": "text",
+                    "defaultValue": "10",
                     "lowerBound": 0,
                     "upperBound": 1000,
                     "decimals": 1,
@@ -636,27 +636,25 @@ class GphlWorkflow(HardwareObject, object):
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
             # TODO NBNB put in wait-till ready to make sure value settles
-            collect_hwobj.set_energy(default_energy)
+            api.energy.move_energy(default_energy)
         else:
-            default_energy = collect_hwobj.get_energy()
+            default_energy = api.energy.get_current_energy()
 
         # Preset detector distance and resolution
         detectorSetting = geometric_strategy.defaultDetectorSetting
         if detectorSetting:
             # NBNB If this is ever set to editable, distance and resolution
             # must be varied in sync
-            collect_hwobj.move_detector(detectorSetting.axisSettings.get("Distance"))
+            api.detector.set_distance(detectorSetting.axisSettings.get("Distance"))
         # TODO NBNB put in wait-till-ready to make sure value settles
-        collect_hwobj.detector_hwobj.wait_ready()
-        strategy_resolution = collect_hwobj.get_resolution()
+        api.detector.wait_ready()
+        strategy_resolution = api.resolution.get_position()
         # Put resolution value in workflow model object
         gphl_workflow_model.set_detector_resolution(strategy_resolution)
 
         # Get modified parameters and confirm acquisition
         # Run before centring, as it also does confirm/abort
-        parameters = self.query_collection_strategy(
-            geometric_strategy, collect_hwobj, default_energy
-        )
+        parameters = self.query_collection_strategy(geometric_strategy, default_energy)
         user_modifiable = geometric_strategy.isUserModifiable
         if user_modifiable:
             # Query user for new rotationSetting and make it,
@@ -784,7 +782,7 @@ class GphlWorkflow(HardwareObject, object):
         )
         # set to wavelength of first energy
         # necessary so that resolution setting below gives right detector distance
-        collect_hwobj.set_wavelength(wavelengths[0].wavelength)
+        api.energy.move_wavelength(wavelengths[0].wavelength)
         # TODO ensure that move is finished before resolution is set
 
         # get BcsDetectorSetting
@@ -792,8 +790,10 @@ class GphlWorkflow(HardwareObject, object):
         if new_resolution == strategy_resolution:
             id_ = detectorSetting.id_
         else:
-            collect_hwobj.set_resolution(new_resolution)
-            collect_hwobj.detector_hwobj.wait_ready()
+            # TODO Clarify if set_position does not ahve a built-in wait
+            # TODO whether you need towait for somethign else too, ...
+            api.resolution.set_position(new_resolution)
+            api.detector.wait_ready()
             # NBNB Wait till value has settled
             id_ = None
         orgxy = collect_hwobj.get_beam_centre()
@@ -801,7 +801,7 @@ class GphlWorkflow(HardwareObject, object):
             new_resolution,
             id_=id_,
             orgxy=orgxy,
-            Distance=collect_hwobj.get_detector_distance(),
+            Distance=api.detector.get_distance(),
         )
 
         sampleCentred = GphlMessages.SampleCentred(
@@ -1357,13 +1357,13 @@ class GphlWorkflow(HardwareObject, object):
             )
             collect_hwobj = api.collect
             # settings = goniostatRotation.axisSettings
-            collect_hwobj.move_motors(motor_settings)
+            api.diffractomer.move_motors(motor_settings)
             okp = tuple(int(motor_settings[x]) for x in self.rotation_axis_roles)
             timestamp = datetime.datetime.now().isoformat().split(".")[0]
             summed_angle = 0.0
             for snapshot_index in range(number_of_snapshots):
                 if snapshot_index:
-                    collect_hwobj.diffractometer_hwobj.move_omega_relative(90)
+                    api.diffractomer.move_omega_relative(90)
                     summed_angle += 90
                 snapshot_filename = filename_template % (
                     okp + (timestamp, snapshot_index + 1)
@@ -1374,7 +1374,7 @@ class GphlWorkflow(HardwareObject, object):
                 )
                 collect_hwobj._take_crystal_snapshot(snapshot_filename)
             if summed_angle:
-                collect_hwobj.diffractometer_hwobj.move_omega_relative(-summed_angle)
+                api.diffractomer.move_omega_relative(-summed_angle)
 
     def execute_sample_centring(
         self, centring_entry, goniostatRotation, requestedRotationId=None
