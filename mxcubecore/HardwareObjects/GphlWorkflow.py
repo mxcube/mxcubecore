@@ -59,6 +59,7 @@ States = queue_model_enumerables.States
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
 
+
 class GphlWorkflow(HardwareObject, object):
     """Global Phasing workflow runner.
     """
@@ -105,14 +106,6 @@ class GphlWorkflow(HardwareObject, object):
 
         # Configurable file paths
         self.file_paths = {}
-
-        self.dose_budgets = OrderedDict(
-            (
-                ("Sensitive Crystal:  5.0 MGy", 5.0),
-                ("Standard Crystal: 10.0 MGy", 10.0),
-                ("Robust Crystal:  20.0 MGy", 20.0),
-            )
-        )
 
     def _init(self):
         pass
@@ -411,12 +404,11 @@ class GphlWorkflow(HardwareObject, object):
             sweeps = orientations.setdefault(rotation_id, [])
             sweeps.append(sweep)
 
-        max_dose_rate = 0.0
         lines = ["Geometric strategy   :"]
         if data_model.lattice_selected:
             # Data collection TODO: Use workflow info to distinguish
+            total_width = 0
             beam_energies = data_model.get_beam_energies()
-            total_strategy_length = strategy_length * len(beam_energies)
             # NB We no longer use the actual energies, only the tags
             # TODO clean up the configs to match
             energies = [default_energy, default_energy + 0.01, default_energy - 0.01]
@@ -426,22 +418,12 @@ class GphlWorkflow(HardwareObject, object):
             for tag, energy in beam_energies.items():
                 # NB beam_energies is an ordered dictionary
                 lines.append("- %-18s %6.1f degrees" % (tag, strategy_length))
-            lines.append(
-                "%-18s:  %6.1f degrees" % ("Total rotation", total_strategy_length)
-            )
-
+                total_width += strategy_length
+            lines.append("%-18s:  %6.1f degrees" % ("Total rotation", total_width))
         else:
             # Charcterisation TODO: Use workflow info to distinguish h_o
             beam_energies = OrderedDict((("Characterisation", default_energy),))
             lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
-            total_strategy_length = strategy_length
-
-        # For calculating dose-budget transmission
-        flux_hwobj = api.flux
-        if hasattr(flux_hwobj, "get_dose_rate"):
-            max_dose_rate = api.flux.get_dose_rate(transmission=100.0)
-            # Convert from KGy/s to MGy/s
-            max_dose_rate /= 1000
 
         for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -467,50 +449,7 @@ class GphlWorkflow(HardwareObject, object):
         acq_parameters = api.beamline_setup.get_default_acquisition_parameters()
         # For now return default values
 
-        default_image_width = float(allowed_widths[default_width_index])
-        default_exposure = acq_parameters.exp_time
-        default_dose_budget = data_model.get_dose_budget()
-        exposure_limits = api.detector.get_exposure_time_limits()
-        if max_dose_rate:
-            experiment_time = (
-                    total_strategy_length * default_exposure / default_image_width
-            )
-            transmission = (
-                100.0 * default_dose_budget / (max_dose_rate * experiment_time)
-            )
-            transmission = min(transmission, 100.0)
-
-            def  update_function(field_widget):
-                """Function to update rotation_rate and budget_used fields
-                In parameter popup"""
-                parameters = field_widget.get_parameters_map()
-                exposure_time = float(parameters.get("exposure", 0))
-                image_width = float(parameters.get("imageWidth", 0))
-                if image_width and exposure_time:
-                    rotation_rate = image_width/exposure_time
-                else:
-                    rotation_rate = 0.0
-                experiment_length = float(parameters.get("experiment_length", 0))
-                dose_budget = float(parameters.get("dose_budget", 0))
-                transmission = float(parameters.get("transmission", 0))
-                xx0 = dose_budget * rotation_rate
-                if xx0:
-                    budget_required = (
-                        experiment_length * max_dose_rate * transmission / xx0
-                    )
-                else:
-                    budget_required = 0
-
-                dd0 = {
-                    "rotation_rate":rotation_rate,
-                    "budget_required":budget_required,
-                }
-                field_widget.set_values(dd0)
-
-        else:
-            update_function = None
-            transmission = (acq_parameters.transmission,)
-
+        resolution = api.resolution.get_position()
         field_list = [
             {
                 "variableName": "_info",
@@ -519,77 +458,6 @@ class GphlWorkflow(HardwareObject, object):
                 "defaultValue": info_text,
             },
             {
-                "variableName": "imageWidth",
-                "uiLabel": "Oscillation range",
-                "type": "combo",
-                "defaultValue": str(default_image_width),
-                "textChoices": [str(x) for x in allowed_widths],
-                "update_function":update_function,
-            },
-            {
-                "variableName": "exposure",
-                "uiLabel": "Exposure Time (s)",
-                "type": "floatstring",
-                "defaultValue": default_exposure,
-                # NBNB TODO fill in from config ??
-                "lowerBound": exposure_limits[0],
-                "upperBound": exposure_limits[1],
-                "decimals": 4,
-                "update_function":update_function,
-            },
-            # NB Transmission is in % in UI, but in 0-1 in workflow
-            {
-                "variableName": "transmission",
-                "uiLabel": "Transmission (%)",
-                "type": "floatstring",
-                "defaultValue": transmission,
-                "lowerBound": 0.0,
-                "upperBound": 100.0,
-                "decimals": 2,
-                "update_function":update_function,
-            },
-            {
-                "variableName": "experiment_length",
-                "uiLabel": "Experiment length (deg)",
-                "type": "floatstring",
-                "defaultValue": total_strategy_length,
-                "decimals": 1,
-                "readOnly":True
-            },
-            {
-                "variableName": "rotation_rate",
-                "uiLabel": "Rotation speed (deg/s)",
-                "type": "floatstring",
-                "defaultValue": (float(default_image_width/default_exposure)),
-                "decimals": 1,
-                "readOnly":True
-            },
-            {
-                "variableName": "dose_budget",
-                "uiLabel": "Dose budget (MGy)",
-                "type": "floatstring",
-                "defaultValue": default_dose_budget,
-                "lowerBound": 0.0,
-                "decimals": 1,
-                "readOnly":True
-            },
-            {
-                "variableName": "budget_required",
-                "uiLabel": "% of dose budget required",
-                "type": "floatstring",
-                "defaultValue": 0.0,
-                "lowerBound": 0.0,
-                "upperBound": 100.0,
-                "decimals": 2,
-                "readOnly":True
-            },
-        ]
-
-        field_list[-1]["NEW_COLUMN"] = "True"
-
-        resolution = api.resolution.get_position()
-        field_list.append(
-            {
                 "variableName": "resolution",
                 "uiLabel": "Detector resolution (A)",
                 "type": "floatstring",
@@ -597,46 +465,32 @@ class GphlWorkflow(HardwareObject, object):
                 "lowerBound": 0.0,
                 "upperBound": 9.0,
                 "decimals": 3,
-            }
-        )
-
-        ll0 = []
-        for tag, val in beam_energies.items():
-            ll0.append(
-                {
-                    "variableName": tag,
-                    "uiLabel": "%s beam energy (keV)" % tag,
-                    "type": "floatstring",
-                    "defaultValue": val,
-                    "lowerBound": 4.0,
-                    "upperBound": 20.0,
-                    "decimals": 4,
-                }
-            )
-        if self.getProperty("disable_energy_change", False):
-            # Use current energy and disallow changes
-            ll0[0]["defaultValue"] = api.energy.get_current_energy()
-            ll0[0]["readOnly"] = True
-        field_list.extend(ll0)
-
+            },
+            # NB Transmission is in % in UI, but in 0-1 in workflow
+            {
+                "variableName": "transmission",
+                "uiLabel": "Transmission (%)",
+                "type": "floatstring",
+                "defaultValue": acq_parameters.transmission,
+                "lowerBound": 0.0,
+                "upperBound": 100.0,
+                "decimals": 1,
+            },
+            {
+                "variableName": "exposure",
+                "uiLabel": "Exposure Time (s)",
+                "type": "floatstring",
+                "defaultValue": acq_parameters.exp_time,
+                # NBNB TODO fill in from config ??
+                "lowerBound": 0.003,
+                "upperBound": 6000,
+                "decimals": 4,
+            },
+        ]
         if (
             data_model.lattice_selected
             or "calibration" in data_model.get_type().lower()
         ):
-
-            if isInterleaved and data_model.get_interleave_order() not in ("gs", ""):
-                field_list.append(
-                    {
-                        "variableName": "wedgeWidth",
-                        "uiLabel": "Images per wedge",
-                        "type": "text",
-                        "defaultValue": "10",
-                        "lowerBound": 0,
-                        "upperBound": 1000,
-                        "decimals": 1,
-                    }
-            )
-
             field_list.append(
                 {
                     "variableName": "centre_at_start",
@@ -645,7 +499,6 @@ class GphlWorkflow(HardwareObject, object):
                     "defaultValue": bool(self.getProperty("centre_at_start")),
                 }
             )
-
             if len(orientations) > 1:
                 field_list.append(
                     {
@@ -664,6 +517,46 @@ class GphlWorkflow(HardwareObject, object):
                         "defaultValue": False,
                     }
                 )
+
+        field_list[-1]["NEW_COLUMN"] = "True"
+
+        field_list.append(
+            {
+                "variableName": "imageWidth",
+                "uiLabel": "Oscillation range",
+                "type": "combo",
+                "defaultValue": str(allowed_widths[default_width_index]),
+                "textChoices": [str(x) for x in allowed_widths],
+            }
+        )
+
+        if isInterleaved and data_model.get_interleave_order() not in ("gs", ""):
+            field_list.append(
+                {
+                    "variableName": "wedgeWidth",
+                    "uiLabel": "Images per wedge",
+                    "type": "text",
+                    "defaultValue": "10",
+                    "lowerBound": 0,
+                    "upperBound": 1000,
+                    "decimals": 1,
+                }
+            )
+
+        ll0 = []
+        for tag, val in beam_energies.items():
+            ll0.append(
+                {
+                    "variableName": tag,
+                    "uiLabel": "%s beam energy (keV)" % tag,
+                    "type": "floatstring",
+                    "defaultValue": val,
+                    "lowerBound": 4.0,
+                    "upperBound": 20.0,
+                    "decimals": 4,
+                }
+            )
+        field_list.extend(ll0)
 
         self._return_parameters = gevent.event.AsyncResult()
         responses = dispatcher.send(
@@ -738,7 +631,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Preset energy
         beamSetting = geometric_strategy.defaultBeamSetting
-        if beamSetting and not self.getProperty("disable_energy_change"):
+        if beamSetting:
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
@@ -1371,6 +1264,19 @@ class GphlWorkflow(HardwareObject, object):
         goniostatRotation = request_centring.goniostatRotation
         # goniostatTranslation = goniostatRotation.translation
         #
+
+        if self._data_collection_group is None:
+            gphl_workflow_model = self._queue_entry.get_data_model()
+            new_dcg_name = "GPhL Translational calibration"
+            new_dcg_model = queue_model_objects.TaskGroup()
+            new_dcg_model.set_enabled(True)
+            new_dcg_model.set_name(new_dcg_name)
+            new_dcg_model.set_number(
+                gphl_workflow_model.get_next_number_for_name(new_dcg_name)
+            )
+            self._data_collection_group = new_dcg_model
+            self._add_to_queue(gphl_workflow_model, new_dcg_model)
+
 
         if request_centring.currentSettingNo < 2:
             # Start without fine zoom setting
