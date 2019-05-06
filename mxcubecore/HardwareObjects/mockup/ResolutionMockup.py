@@ -84,10 +84,13 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def equipmentNotReady(self):
         self.emit("deviceNotReady")
 
-    def getPosition(self):
+    def get_position(self):
         if self.currentResolution is None:
             self.recalculateResolution()
         return self.currentResolution
+
+    # NBNB Remove getPosition altogether
+    getPosition = get_position
 
     def get_value(self):
         return self.getPosition()
@@ -113,8 +116,10 @@ class ResolutionMockup(BaseHardwareObjects.Equipment):
     def getLimits(self, callback=None, error_callback=None):
         return (0, 20)
 
-    def move(self, pos, wait=True):
+    def set_position(self, pos, wait=True):
         self.dtox.move(self.res2dist(pos), wait=wait)
+
+    move = set_position
 
     def motorIsMoving(self):
         return self.dtox.motorIsMoving() or self.energy.moving
