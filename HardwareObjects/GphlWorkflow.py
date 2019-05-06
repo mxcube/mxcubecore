@@ -557,7 +557,9 @@ class GphlWorkflow(HardwareObject, object):
                 }
             )
         if self.getProperty("disable_energy_change", False):
-            ll0["readOnly"] = True
+            # Use current energy and disallow changes
+            ll0[0]["defaultValue"] = api.energy.get_current_energy()
+            ll0[0]["readOnly"] = True
         field_list.extend(ll0)
         self._return_parameters = gevent.event.AsyncResult()
         responses = dispatcher.send(
@@ -632,7 +634,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Preset energy
         beamSetting = geometric_strategy.defaultBeamSetting
-        if beamSetting:
+        if beamSetting and not self.getProperty("disable_energy_change"):
             # First set beam_energy and give it time to settle,
             # so detector distance will trigger correct resolution later
             default_energy = ConvertUtils.H_OVER_E / beamSetting.wavelength
