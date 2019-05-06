@@ -59,6 +59,11 @@ States = queue_model_enumerables.States
 # Used to pass to priorInformation when no wavelengths are set (DiffractCal)
 DUMMY_WAVELENGTH = 999.999
 
+# Parameter to calculate default transmission values
+# C
+# Default crystal dose budget for enitre acquisition, in MGy.
+DEFAULT_DOSE_BUDGET = 10.0
+
 
 class GphlWorkflow(HardwareObject, object):
     """Global Phasing workflow runner.
@@ -404,11 +409,12 @@ class GphlWorkflow(HardwareObject, object):
             sweeps = orientations.setdefault(rotation_id, [])
             sweeps.append(sweep)
 
+        max_dose_rate = 0.0
         lines = ["Geometric strategy   :"]
         if data_model.lattice_selected:
             # Data collection TODO: Use workflow info to distinguish
-            total_width = 0
             beam_energies = data_model.get_beam_energies()
+            total_strategy_length = strategy_length * len(beam_energies)
             # NB We no longer use the actual energies, only the tags
             # TODO clean up the configs to match
             energies = [default_energy, default_energy + 0.01, default_energy - 0.01]
@@ -418,12 +424,20 @@ class GphlWorkflow(HardwareObject, object):
             for tag, energy in beam_energies.items():
                 # NB beam_energies is an ordered dictionary
                 lines.append("- %-18s %6.1f degrees" % (tag, strategy_length))
-                total_width += strategy_length
-            lines.append("%-18s:  %6.1f degrees" % ("Total rotation", total_width))
+            lines.append(
+                "%-18s:  %6.1f degrees" % ("Total rotation", total_strategy_length)
+            )
+
+            # For calculating dose-budget transmission
+            flux_hwobj = api.flux
+            if hasattr(flux_hwobj, "get_dose_rate"):
+                max_dose_rate = api.flux.get_dose_rate(transmission=100.0)
+
         else:
             # Charcterisation TODO: Use workflow info to distinguish h_o
             beam_energies = OrderedDict((("Characterisation", default_energy),))
             lines.append("    - Total rotation : %7.1f degrees" % strategy_length)
+            total_strategy_length = strategy_length
 
         for rotation_id, sweeps in orientations.items():
             goniostatRotation = sweeps[0].goniostatSweepSetting
@@ -449,6 +463,19 @@ class GphlWorkflow(HardwareObject, object):
         acq_parameters = api.beamline_setup.get_default_acquisition_parameters()
         # For now return default values
 
+        if False:
+        # if max_dose_rate:
+            image_width = 0.1
+            exposure_time = 0.04
+            experiment_time = total_strategy_length * exposure_time / image_width
+            transmission = (
+                100.0 * DEFAULT_DOSE_BUDGET / (max_dose_rate * experiment_time)
+            )
+            print ('@~@~', total_strategy_length, experiment_time,
+                   100*DEFAULT_DOSE_BUDGET/max_dose_rate)
+        else:
+            transmission = (acq_parameters.transmission,)
+
         resolution = api.resolution.get_position()
         field_list = [
             {
@@ -471,10 +498,10 @@ class GphlWorkflow(HardwareObject, object):
                 "variableName": "transmission",
                 "uiLabel": "Transmission (%)",
                 "type": "floatstring",
-                "defaultValue": acq_parameters.transmission,
+                "defaultValue": transmission,
                 "lowerBound": 0.0,
                 "upperBound": 100.0,
-                "decimals": 1,
+                "decimals": 2,
             },
             {
                 "variableName": "exposure",
