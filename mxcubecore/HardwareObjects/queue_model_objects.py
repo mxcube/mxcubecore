@@ -1758,6 +1758,8 @@ class GphlWorkflow(TaskNode):
         self._snapshot_count = None
         self._centre_before_sweep = None
 
+        self._dose_budget = None
+
         # HACK - to differentiate between characterisation and acquisition
         # TODO remove when workflow gives relevant information
         self.lattice_selected = False
@@ -1834,6 +1836,13 @@ class GphlWorkflow(TaskNode):
 
     def set_point_group(self, value):
         self._point_group = value
+
+    # Dose budget (MGy, float).
+    def get_dose_budget(self):
+        return self._dose_budget
+
+    def set_dose_budget(self, value):
+        self._dose_budget = value
 
     # Cell parameters - sequence of six floats (a,b,c,alpha,beta,gamma)
     def get_cell_parameters(self):
