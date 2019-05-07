@@ -76,5 +76,14 @@ class FluxMockup(AbstractFlux):
             "fluxInfoChanged",
             {"measured": self.measured_flux_dict, "current": self.current_flux_dict},
         )
+
+    def get_dose_rate(self, transmission=None):
+        """ DOse rate in KGy/s
+
+        TODO - couple to flux; make  more realistic"""
+
+        if transmission is None:
+            transmission = 100.0
+        return 2.0 *transmission
         
           
