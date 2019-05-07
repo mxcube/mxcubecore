@@ -1265,6 +1265,19 @@ class GphlWorkflow(HardwareObject, object):
         # goniostatTranslation = goniostatRotation.translation
         #
 
+        if self._data_collection_group is None:
+            gphl_workflow_model = self._queue_entry.get_data_model()
+            new_dcg_name = "GPhL Translational calibration"
+            new_dcg_model = queue_model_objects.TaskGroup()
+            new_dcg_model.set_enabled(True)
+            new_dcg_model.set_name(new_dcg_name)
+            new_dcg_model.set_number(
+                gphl_workflow_model.get_next_number_for_name(new_dcg_name)
+            )
+            self._data_collection_group = new_dcg_model
+            self._add_to_queue(gphl_workflow_model, new_dcg_model)
+
+
         if request_centring.currentSettingNo < 2:
             # Start without fine zoom setting
             self._use_fine_zoom = False
