@@ -38,12 +38,15 @@ except NameError:
 # Utility functions:
 
 def java_property(keyword, value, quote_value=False):
-    """Return argument list for command line invocation setting java property"""
+    """Return argument list for command line invocation setting java property
+
+    keyword, value are stringtypes"""
     if value is None:
         return ["-D" + keyword]
     else:
         if value and quote_value:
-            value = repr(value)
+            # The extra (str) is to handle unicode in Python 2
+            value = repr(str(value))
         return ["-D%s=%s" % (keyword, value)]
 
 
@@ -53,7 +56,8 @@ def command_option(keyword, value, prefix="-", quote_value=False):
         return [prefix + keyword]
     else:
         if value and quote_value:
-            value = repr(value)
+            # The extra (str) is to handle unicode in Python 2
+            value = repr(str(value))
         else:
             value = str(value)
         return [prefix + keyword, value]

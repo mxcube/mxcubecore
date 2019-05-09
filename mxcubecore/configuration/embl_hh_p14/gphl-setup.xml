@@ -15,7 +15,7 @@
     <!-- ConfigFile is the ssh configuratino file, passed to ssh with the -F option -->
     <ssh_options>
         <Host>p14dd01</Host>
-        <IdentityFile>????????</IdentityFile>
+        <IdentityFile>/home/p3l-gleb1/.ssh/id_rsa</IdentityFile>
         <User>p3l-gleb1</User>
         <StrictHostKeyChecking>no</StrictHostKeyChecking>
         <!--<ConfigFile>/path/to/ssh/config/file</ConfigFile>-->
