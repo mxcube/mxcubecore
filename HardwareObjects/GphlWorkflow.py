@@ -480,29 +480,29 @@ class GphlWorkflow(HardwareObject, object):
             )
             transmission = min(transmission, 100.0)
 
-            def  update_function(field_widget):
+            def  update_function(field_widget, experiment_length=total_strategy_length):
                 """Function to update rotation_rate and budget_used fields
                 In parameter popup"""
                 parameters = field_widget.get_parameters_map()
                 exposure_time = float(parameters.get("exposure", 0))
                 image_width = float(parameters.get("imageWidth", 0))
-                if image_width and exposure_time:
-                    rotation_rate = image_width/exposure_time
-                else:
-                    rotation_rate = 0.0
-                experiment_length = float(parameters.get("experiment_length", 0))
                 dose_budget = float(parameters.get("dose_budget", 0))
                 transmission = float(parameters.get("transmission", 0))
-                xx0 = dose_budget * rotation_rate
-                if xx0:
+                if image_width and exposure_time:
+                    rotation_rate = image_width/exposure_time
+                    experiment_time = experiment_length / rotation_rate
+                else:
+                    rotation_rate = experiment_time = 0.0
+                if dose_budget:
                     budget_required = (
-                        experiment_length * max_dose_rate * transmission / xx0
+                            experiment_time * max_dose_rate * transmission / dose_budget
                     )
                 else:
                     budget_required = 0
 
                 dd0 = {
                     "rotation_rate":rotation_rate,
+                    "experiment_time":experiment_time,
                     "budget_required":budget_required,
                 }
                 field_widget.set_values(dd0)
@@ -549,10 +549,10 @@ class GphlWorkflow(HardwareObject, object):
                 "update_function":update_function,
             },
             {
-                "variableName": "experiment_length",
-                "uiLabel": "Experiment length (deg)",
+                "variableName": "experiment_time",
+                "uiLabel": "Experiment duration (s)",
                 "type": "floatstring",
-                "defaultValue": total_strategy_length,
+                "defaultValue": experiment_time ,
                 "decimals": 1,
                 "readOnly":True
             },
@@ -897,7 +897,7 @@ class GphlWorkflow(HardwareObject, object):
         if new_resolution == strategy_resolution:
             id_ = detectorSetting.id_
         else:
-            # TODO Clarify if set_position does not ahve a built-in wait
+            # TODO Clarify if set_position does not have a built-in wait
             # TODO whether you need towait for somethign else too, ...
             api.resolution.set_position(new_resolution)
             api.detector.wait_ready()
@@ -1369,7 +1369,7 @@ class GphlWorkflow(HardwareObject, object):
 
         # Rotate sample to RotationSetting
         goniostatRotation = request_centring.goniostatRotation
-        # goniostatTranslation = goniostatRotation.translation
+        goniostatTranslation = goniostatRotation.translation
         #
 
         if self._data_collection_group is None:
@@ -1431,9 +1431,10 @@ class GphlWorkflow(HardwareObject, object):
                 self._return_parameters.get()
                 self._return_parameters = None
 
-        centring_queue_entry = self.enqueue_sample_centring(
-            motor_settings=goniostatRotation.axisSettings
-        )
+        settings = goniostatRotation.axisSettings.copy()
+        if goniostatTranslation is not None:
+            settings.update(goniostatTranslation.axisSettings)
+        centring_queue_entry = self.enqueue_sample_centring(motor_settings=settings)
         goniostatTranslation = self.execute_sample_centring(
             centring_queue_entry, goniostatRotation
         )

@@ -240,7 +240,7 @@ class GphlWorkflowConnection(HardwareObject, object):
 
         in_shell = self.hasObject("ssh_options")
         if in_shell:
-            dd0 = self["ssh_options"].getProperties()
+            dd0 = self["ssh_options"].getProperties().copy()
             #
             host = dd0.pop("Host")
             command_list = ["ssh"]
