@@ -41,6 +41,8 @@ class XrayImagingQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
         BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
 
+        self.status = QUEUE_ENTRY_STATUS.SUCCESS
+
     def execute(self):
         BaseQueueEntry.execute(self)
 
@@ -56,7 +58,9 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             self.image_taken,
         )
         queue_controller.connect(
-            self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed
+            self.beamline_setup.xray_imaging_hwobj,
+            "collectFailed",
+            self.collect_failed
         )
 
         self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
@@ -73,7 +77,9 @@ class XrayImagingQueueEntry(BaseQueueEntry):
             self.image_taken,
         )
         queue_controller.disconnect(
-            self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed
+            self.beamline_setup.xray_imaging_hwobj,
+            "collectFailed",
+            self.collect_failed
         )
 
     def stop(self):

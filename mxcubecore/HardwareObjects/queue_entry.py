@@ -39,10 +39,10 @@ CharacterisationQueueEntry, EnergyScanQueueEntry are concrete
 implementations of tasks.
 """
 
-import time
 import os
 import time
 import logging
+from copy import copy
 
 import gevent
 
@@ -64,6 +64,8 @@ __category__ = "General"
 class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
+
+        self.collect_hwobj = None
         self.lims_client_hwobj = None
         self.session_hwobj = None
         self.interleave_task = None
