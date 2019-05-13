@@ -49,8 +49,18 @@ import gevent
 from HardwareRepository import HardwareRepository
 from HardwareRepository.dispatcher import dispatcher
 from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects.queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD
-from HardwareRepository.HardwareObjects.base_queue_entry import BaseQueueEntry, QUEUE_ENTRY_STATUS
+from HardwareRepository.HardwareObjects.queue_model_enumerables import (
+    EXPERIMENT_TYPE,
+    COLLECTION_ORIGIN_STR,
+    CENTRING_METHOD,
+)
+from HardwareRepository.HardwareObjects.base_queue_entry import (
+    BaseQueueEntry,
+    QUEUE_ENTRY_STATUS,
+    QueueSkippEntryException,
+    QueueExecutionException,
+    QueueAbortedException,
+)
 from HardwareRepository.HardwareObjects.Gphl import GphlQueueEntry
 from HardwareRepository.HardwareObjects.EMBL import EMBLQueueEntry
 from HardwareRepository.HardwareObjects import autoprocessing
@@ -372,9 +382,9 @@ class SampleQueueEntry(BaseQueueEntry):
                             self.centring_done,
                             self.sample_centring_result,
                         )
-                        #self.beamline_setup.diffractometer_hwobj.close_kappa_task()
-                        #self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
-                        #time.sleep(2)
+                        # self.beamline_setup.diffractometer_hwobj.close_kappa_task()
+                        # self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
+                        # time.sleep(2)
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = (
@@ -641,7 +651,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.session = self.beamline_setup.session_hwobj
 
         try:
-            self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+            self.parallel_processing_hwobj = (
+                self.beamline_setup.parallel_processing_hwobj
+            )
         except AttributeError:
             self.parallel_processing_hwobj = None
 
@@ -881,7 +893,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def processing_finished(self):
         dispatcher.send("collect_finished")
         self.processing_task = None
-        #self.get_view().setText(1, "Done")
+        # self.get_view().setText(1, "Done")
         logging.getLogger("user_level_log").info("Processing: Done")
 
     def processing_failed(self):
@@ -1613,9 +1625,14 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
-        reference_image_collection.grid = self.beamline_setup.shape_history_hwobj.create_auto_grid()
-        reference_image_collection.acquisitions[0].acquisition_parameters.centred_position = \
+        reference_image_collection.grid = (
+            self.beamline_setup.shape_history_hwobj.create_auto_grid()
+        )
+        reference_image_collection.acquisitions[
+            0
+        ].acquisition_parameters.centred_position = (
             reference_image_collection.grid.get_centred_position()
+        )
 
         # Trick to make sure that the reference collection has a sample.
         reference_image_collection._parent = xray_centering.get_parent()
@@ -1637,9 +1654,9 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
             self.get_view(), reference_image_collection, view_set_queue_entry=False
         )
 
-        #helical_model = helical_qe.get_data_model()
-        #@helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
-        #@helical_model.grid = None
+        # helical_model = helical_qe.get_data_model()
+        # @helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
+        # @helical_model.grid = None
 
         acq_two = queue_model_objects.Acquisition()
         helical_model.acquisitions.append(acq_two)

@@ -40,7 +40,7 @@ class QueueExecutionException(Exception):
 
 class QueueAbortedException(QueueExecutionException):
     def __init__(self, message, origin):
-        Exception.__init__(self, message, origin)
+        QueueExecutionException.__init__(self, message, origin)
         self.origin = origin
         self.message = message
         self.stack_trace = traceback.format_exc()
@@ -48,7 +48,7 @@ class QueueAbortedException(QueueExecutionException):
 
 class QueueSkippEntryException(QueueExecutionException):
     def __init__(self, message, origin):
-        Exception.__init__(self, message, origin)
+        QueueExecutionException.__init__(self, message, origin)
         self.origin = origin
         self.message = message
         self.stack_trace = traceback.format_exc()
@@ -110,8 +110,8 @@ class QueueEntryContainer(object):
             result = self._queue_entry_list.pop(index)
 
         log = logging.getLogger("queue_exec")
-        log.info("dequeue called with: " + str(queue_entry))
-        # log.info('Queue is :' + str(self.get_queue_controller()))
+        msg = "dequeue called with: " + str(queue_entry)
+        log.info(msg)
 
         return result
 
@@ -148,8 +148,11 @@ class QueueEntryContainer(object):
             self._queue_entry_list[index_b] = temp
 
         log = logging.getLogger("queue_exec")
-        log.info("swap called with: " + str(queue_entry_a) + ", " + str(queue_entry_b))
-        log.info("Queue is :" + str(self.get_queue_controller()))
+        msg = "swap called with: " + str(queue_entry_a) + ", " + str(queue_entry_b)
+        log.info(msg)
+
+        msg = "Queue is :" + str(self.get_queue_controller())
+        log.info(msg)
 
     def set_queue_controller(self, queue_controller):
         """
@@ -302,7 +305,7 @@ class BaseQueueEntry(QueueEntryContainer):
         Procedure to be done after execute, and execute of all
         children of this entry.
         """
-        msg = "Calling post_execute on: " + str(self) 
+        msg = "Calling post_execute on: " + str(self)
         logging.getLogger("queue_exec").info(msg)
         view = self.get_view()
 
@@ -341,12 +344,12 @@ class BaseQueueEntry(QueueEntryContainer):
                 view.set_background_color(3)
 
     def __str__(self):
-        s = "<%s object at %s> [" % (self.__class__.__name__, hex(id(self)))
+        info_str = "<%s object at %s> [" % (self.__class__.__name__, hex(id(self)))
 
         for entry in self._queue_entry_list:
-            s += str(entry)
+            info_str += str(entry)
 
-        return s + "]"
+        return info_str + "]"
 
     def get_type_str(self):
         return self.type_str
