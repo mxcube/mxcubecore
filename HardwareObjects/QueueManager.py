@@ -9,34 +9,10 @@ documentation for the queue_entry module for more information.
 """
 import logging
 import gevent
-import gevent.event
-from HardwareRepository.HardwareObjects import queue_entry
+from HardwareRepository.HardwareObjects import base_queue_entry, queue_entry
 
 from HardwareRepository.BaseHardwareObjects import HardwareObject
-QueueEntryContainer = queue_entry.QueueEntryContainer
-
-"""
-logger = logging.getLogger('queue_exec')
-try:
-    formatter = \
-              logging.Formatter('%(asctime)s |%(levelname)-7s| %(message)s')
-    root_logger = logging.getLogger()
-    for handler in root_logger.handlers:
-      if isinstance(handler, TimedRotatingFileHandler):
-         filename = handler.baseFilename
-         hdlr = logging.FileHandler(os.path.join(os.path.dirname(filename), 'queue_exec.log'))
-         break
-    else:
-        hdlr = logging.StreamHandler(sys.stdout)
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-except:
-    pass
-
-logger.setLevel(logging.INFO)
-logger = logging.getLogger('queue_exec').\
-         info("Module load, probably application start")
-"""
+QueueEntryContainer = base_queue_entry.QueueEntryContainer
 
 
 class QueueManager(HardwareObject, QueueEntryContainer):
@@ -146,14 +122,14 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             for qe in self._queue_entry_list:
                 try:
                     self.__execute_entry(qe)
-                except (queue_entry.QueueAbortedException, Exception) as ex:
+                except (base_queue_entry.QueueAbortedException, Exception) as ex:
                     try:
                         qe.handle_exception(ex)
                         self.stop()
                     except gevent.GreenletExit:
                         pass
 
-                    if isinstance(ex, queue_entry.QueueAbortedException):
+                    if isinstance(ex, base_queue_entry.QueueAbortedException):
                         logging.getLogger("user_level_log").warning(
                             "Queue execution was aborted, " + str(ex)
                         )
@@ -206,13 +182,13 @@ class QueueManager(HardwareObject, QueueEntryContainer):
             else:
                 self.emit("queue_entry_execute_finished", (entry, "Successful"))
                 self.emit("statusMessage", ("status", "", "ready"))
-        except queue_entry.QueueSkippEntryException:
+        except base_queue_entry.QueueSkippEntryException:
             # Queue entry, failed, skipp.
             self.emit("queue_entry_execute_finished", (entry, "Skipped"))
-        except queue_entry.QueueExecutionException as ex:
+        except base_queue_entry.QueueExecutionException as ex:
             self.emit("queue_entry_execute_finished", (entry, "Failed"))
             self.emit("statusMessage", ("status", "Queue execution failed", "error"))
-        except (queue_entry.QueueAbortedException, Exception) as ex:
+        except (base_queue_entry.QueueAbortedException, Exception) as ex:
             # Queue entry was aborted in a controlled, way.
             # or in the exception case:
             # Definetly not good state, but call post_execute
@@ -242,7 +218,7 @@ class QueueManager(HardwareObject, QueueEntryContainer):
                     self.emit("queue_entry_execute_finished", (qe, "Aborted"))
                     qe.stop()
                     qe.post_execute()
-                except queue_entry.QueueAbortedException:
+                except base_queue_entry.QueueAbortedException:
                     pass
                 except BaseException:
                     pass
