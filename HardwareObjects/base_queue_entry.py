@@ -1,9 +1,33 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 from collections import namedtuple
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]
 QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
 QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3)
+
+
+__credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
+__category__ = "General"
 
 
 class QueueExecutionException(Exception):
@@ -178,13 +202,9 @@ class BaseQueueEntry(QueueEntryContainer):
         self.status = QUEUE_ENTRY_STATUS.SUCCESS
         self.type_str = ""
 
-    # def __getstate__(self):
-    #     return QueueEntryContainer.__getstate__(self)
-
-    # def __setstate__(self, d):
-    #     return QueueEntryContainer.__setstate__(self, d)
-
     def is_failed(self):
+        """Returns True if failed
+        """
         return self.status == QUEUE_ENTRY_STATUS.FAILED
 
     def enqueue(self, queue_entry):
