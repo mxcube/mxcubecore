@@ -1,8 +1,39 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Module contains Gphl specific queue entries
+"""
+
+
 import logging
 
 from HardwareRepository.HardwareObjects.queue_model_enumerables import States
-from HardwareRepository.HardwareObjects.base_queue_entry import BaseQueueEntry, QueueAbortedException
+from HardwareRepository.HardwareObjects.base_queue_entry import (
+    BaseQueueEntry,
+    QueueAbortedException,
+)
 
+
+__credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
+__category__ = "queue"
 
 
 class GphlWorkflowQueueEntry(BaseQueueEntry):
@@ -58,7 +89,9 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         queue_controller = self.get_queue_controller()
         self.workflow_hwobj = self.beamline_setup.getObjectByRole("gphl_workflow")
 
-        queue_controller.connect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
+        queue_controller.connect(
+            self.workflow_hwobj, "stateChanged", self.workflow_state_handler
+        )
 
         self.workflow_hwobj.pre_execute(self)
 
@@ -70,7 +103,9 @@ class GphlWorkflowQueueEntry(BaseQueueEntry):
         msg = "Finishing workflow %s" % (self.get_data_model()._type)
         logging.getLogger("user_level_log").info(msg)
         self.workflow_hwobj.workflow_end()
-        queue_controller.disconnect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
+        queue_controller.disconnect(
+            self.workflow_hwobj, "stateChanged", self.workflow_state_handler
+        )
 
     def stop(self):
         BaseQueueEntry.stop(self)
