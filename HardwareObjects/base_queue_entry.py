@@ -1,4 +1,3 @@
-#
 #  Project: MXCuBE
 #  https://github.com/mxcube
 #
@@ -18,6 +17,7 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import traceback
 from collections import namedtuple
 
 status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]
@@ -207,7 +207,7 @@ class BaseQueueEntry(QueueEntryContainer):
         """
         return self.status == QUEUE_ENTRY_STATUS.FAILED
 
-    def enqueue(self, queue_entry):
+    def enqueue(self, queue_entry, queue_controller=None):
         """
         Method inherited from QueueEntryContainer, a derived class
         should newer need to override this method.
@@ -283,13 +283,15 @@ class BaseQueueEntry(QueueEntryContainer):
         The default executer calls excute on all child entries after
         this method but before post_execute.
         """
-        logging.getLogger("queue_exec").info("Calling execute on: " + str(self))
+        msg = "Calling execute on: " + str(self)
+        logging.getLogger("queue_exec").info(msg)
 
     def pre_execute(self):
         """
         Procedure to be done before execute.
         """
-        logging.getLogger("queue_exec").info("Calling pre_execute on: " + str(self))
+        msg = "Calling pre_execute on: " + str(self)
+        logging.getLogger("queue_exec").info(msg)
         self.beamline_setup = self.get_queue_controller().getObjectByRole(
             "beamline_setup"
         )
@@ -300,7 +302,8 @@ class BaseQueueEntry(QueueEntryContainer):
         Procedure to be done after execute, and execute of all
         children of this entry.
         """
-        logging.getLogger("queue_exec").info("Calling post_execute on: " + str(self))
+        msg = "Calling post_execute on: " + str(self) 
+        logging.getLogger("queue_exec").info(msg)
         view = self.get_view()
 
         view.setHighlighted(True)
@@ -315,14 +318,6 @@ class BaseQueueEntry(QueueEntryContainer):
         view = self.get_view()
 
         if self.get_data_model().is_executed():
-            """
-            if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
-                view.setBackgroundColor(widget_colors.LIGHT_GREEN)
-            elif self.status == QUEUE_ENTRY_STATUS.WARNING:
-                view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
-            elif self.status == QUEUE_ENTRY_STATUS.FAILED:
-                view.setBackgroundColor(widget_colors.LIGHT_RED)
-            """
             view.set_background_color(self.status + 1)
         else:
             view.set_background_color(0)
@@ -334,7 +329,8 @@ class BaseQueueEntry(QueueEntryContainer):
         external resources, cancel all pending processes and so on.
         """
         self.get_view().setText(1, "Stopped")
-        logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
+        msg = "Calling stop on: " + str(self)
+        logging.getLogger("queue_exec").info(msg)
 
     def handle_exception(self, ex):
         view = self.get_view()
