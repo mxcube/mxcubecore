@@ -1,3 +1,22 @@
+#
+#  Project: MXCuBE
+#  https://github.com/mxcube
+#
+#  This file is part of MXCuBE software.
+#
+#  MXCuBE is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  MXCuBE is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with MXCuBE. If not, see <http://www.gnu.org/licenses/>.
+
 """
 Contains following classes:
 * QueueEntryContainer
@@ -20,374 +39,43 @@ CharacterisationQueueEntry, EnergyScanQueueEntry are concrete
 implementations of tasks.
 """
 
-import gevent
-import traceback
-import logging
-import time
 import os
-import autoprocessing
+import time
+import logging
 from copy import copy
-from collections import namedtuple
 
-from HardwareRepository.HardwareObjects import queue_model_objects
-from HardwareRepository.HardwareObjects. queue_model_enumerables import EXPERIMENT_TYPE, COLLECTION_ORIGIN_STR, CENTRING_METHOD, States
-from HardwareRepository.dispatcher import dispatcher
+import gevent
+
 from HardwareRepository import HardwareRepository
-
-status_list = ["SUCCESS", "WARNING", "FAILED", "SKIPPED"]
-QueueEntryStatusType = namedtuple("QueueEntryStatusType", status_list)
-QUEUE_ENTRY_STATUS = QueueEntryStatusType(0, 1, 2, 3)
-
-
-class QueueExecutionException(Exception):
-    def __init__(self, message, origin):
-        Exception.__init__(self, message, origin)
-        self.message = message
-        self.origin = origin
-        self.stack_trace = traceback.format_exc()
-
-
-class QueueAbortedException(QueueExecutionException):
-    def __init__(self, message, origin):
-        Exception.__init__(self, message, origin)
-        self.origin = origin
-        self.message = message
-        self.stack_trace = traceback.format_exc()
-
-
-class QueueSkippEntryException(QueueExecutionException):
-    def __init__(self, message, origin):
-        Exception.__init__(self, message, origin)
-        self.origin = origin
-        self.message = message
-        self.stack_trace = traceback.format_exc()
-
-
-class QueueEntryContainer(object):
-    """
-    A QueueEntryContainer has a list of queue entries, classes
-    inheriting BaseQueueEntry, and a Queue object. The Queue object
-    controls/handles the execution of the queue entries.
-    """
-
-    def __init__(self):
-        object.__init__(self)
-        self._queue_entry_list = []
-        self._queue_controller = None
-        self._parent_container = None
-
-    def get_queue_entry_list(self):
-        return self._queue_entry_list
-
-    def enqueue(self, queue_entry, queue_controller=None):
-        # A queue entry container has a QueueController object
-        # which controls the execution of the tasks in the
-        # container. The container is set to be its own controller
-        # if none is given.
-        if queue_controller:
-            queue_entry.set_queue_controller(queue_controller)
-        else:
-            queue_entry.set_queue_controller(self)
-
-        queue_entry.set_container(self)
-        self._queue_entry_list.append(queue_entry)
-
-    def dequeue(self, queue_entry):
-        """
-        Dequeues the QueueEntry <queue_entry> and returns the
-        dequeued entry.
-
-        Throws ValueError if the queue_entry is not in the queue.
-
-        :param queue_entry: The queue entry to dequeue/remove.
-        :type queue_entry: QueueEntry
-
-        :returns: The dequeued entry.
-        :rtype: QueueEntry
-        """
-        result = None
-        index = None
-        queue_entry.set_queue_controller(None)
-        queue_entry.set_container(None)
-
-        try:
-            index = self._queue_entry_list.index(queue_entry)
-        except ValueError:
-            raise
-
-        if index is not None:
-            result = self._queue_entry_list.pop(index)
-
-        log = logging.getLogger("queue_exec")
-        log.info("dequeue called with: " + str(queue_entry))
-        # log.info('Queue is :' + str(self.get_queue_controller()))
-
-        return result
-
-    def swap(self, queue_entry_a, queue_entry_b):
-        """
-        Swaps places between the two queue entries <queue_entry_a> and
-        <queue_entry_b>.
-
-        Throws a ValueError if one of the entries does not exist in the
-        queue.
-
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
-
-        :param queue_entry: Queue entry to swap
-        :type queue_entry: QueueEntry
-        """
-        index_a = None
-        index_b = None
-
-        try:
-            index_a = self._queue_entry_list.index(queue_entry_a)
-        except ValueError:
-            raise
-
-        try:
-            index_b = self._queue_entry_list.index(queue_entry_b)
-        except ValueError:
-            raise
-
-        if (index_a is not None) and (index_b is not None):
-            temp = self._queue_entry_list[index_a]
-            self._queue_entry_list[index_a] = self._queue_entry_list[index_b]
-            self._queue_entry_list[index_b] = temp
-
-        log = logging.getLogger("queue_exec")
-        log.info("swap called with: " + str(queue_entry_a) + ", " + str(queue_entry_b))
-        log.info("Queue is :" + str(self.get_queue_controller()))
-
-    def set_queue_controller(self, queue_controller):
-        """
-        Sets the queue controller, the object that controls execution
-        of this QueueEntryContainer.
-
-        :param queue_controller: The queue controller object.
-        :type queue_controller: QueueController
-        """
-        self._queue_controller = queue_controller
-
-    def get_queue_controller(self):
-        """
-        :returns: The queue controller
-        :type queue_controller: QueueController
-        """
-        return self._queue_controller
-
-    def set_container(self, queue_entry_container):
-        """
-        Sets the parent queue entry to <queue_entry_container>
-
-        :param queue_entry_container:
-        :type queue_entry_container: QueueEntryContainer
-        """
-        self._parent_container = queue_entry_container
-
-    def get_container(self):
-        """
-        :returns: The parent QueueEntryContainer.
-        :rtype: QueueEntryContainer
-        """
-        return self._parent_container
-
-
-class BaseQueueEntry(QueueEntryContainer):
-    """
-    Base class for queue entry objects. Defines the overall
-    interface and behaviour for a queue entry.
-    """
-
-    def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
-        QueueEntryContainer.__init__(self)
-        self._data_model = None
-        self._view = None
-        self.set_data_model(data_model)
-        self.set_view(view, view_set_queue_entry)
-        self._checked_for_exec = False
-        self.beamline_setup = None
-        self.status = QUEUE_ENTRY_STATUS.SUCCESS
-        self.type_str = ""
-
-    # def __getstate__(self):
-    #     return QueueEntryContainer.__getstate__(self)
-
-    # def __setstate__(self, d):
-    #     return QueueEntryContainer.__setstate__(self, d)
-
-    def is_failed(self):
-        return self.status == QUEUE_ENTRY_STATUS.FAILED
-
-    def enqueue(self, queue_entry):
-        """
-        Method inherited from QueueEntryContainer, a derived class
-        should newer need to override this method.
-        """
-        QueueEntryContainer.enqueue(self, queue_entry, self.get_queue_controller())
-
-    def set_data_model(self, data_model):
-        """
-        Sets the model node of this queue entry to <data_model>
-
-        :param data_model: The data model node.
-        :type data_model: TaskNode
-        """
-        self._data_model = data_model
-
-    def get_data_model(self):
-        """
-        :returns: The data model of this queue entry.
-        :rtype: TaskNode
-        """
-        return self._data_model
-
-    def set_view(self, view, view_set_queue_entry=True):
-        """
-        Sets the view of this queue entry to <view>. Makes the
-        correspodning bi-directional connection if view_set_queue_entry
-        is set to True. Which is normaly case, it can be usefull with
-        'uni-directional' connection in some rare cases.
-
-        :param view: The view to associate with this entry
-        :type view: ViewItem
-
-        :param view_set_queue_entry: Bi- or uni-directional
-                                     connection to view.
-        :type view_set_queue_entry: bool
-        """
-        if view:
-            self._view = view
-
-            if view_set_queue_entry:
-                view.set_queue_entry(self)
-
-    def get_view(self):
-        """
-        :returns the view:
-        :rtype: ViewItem
-        """
-        return self._view
-
-    def is_enabled(self):
-        """
-        :returns: True if this item is enabled.
-        :rtype: bool
-        """
-        return self._checked_for_exec
-
-    def set_enabled(self, state):
-        """
-        Enables or disables this entry, controls wether this item
-        should be executed (enabled) or not (disabled)
-
-        :param state: Enabled if state is True otherwise disabled.
-        :type state: bool
-        """
-        self._checked_for_exec = state
-
-    def execute(self):
-        """
-        Execute method, should be overriden my subclasses, defines
-        the main body of the procedure to be performed when the entry
-        is executed.
-
-        The default executer calls excute on all child entries after
-        this method but before post_execute.
-        """
-        logging.getLogger("queue_exec").info("Calling execute on: " + str(self))
-
-    def pre_execute(self):
-        """
-        Procedure to be done before execute.
-        """
-        logging.getLogger("queue_exec").info("Calling pre_execute on: " + str(self))
-        self.beamline_setup = self.get_queue_controller().getObjectByRole(
-            "beamline_setup"
-        )
-        self.get_data_model().set_running(True)
-
-    def post_execute(self):
-        """
-        Procedure to be done after execute, and execute of all
-        children of this entry.
-        """
-        logging.getLogger("queue_exec").info("Calling post_execute on: " + str(self))
-        view = self.get_view()
-
-        view.setHighlighted(True)
-        view.setOn(False)
-        self.get_data_model().set_executed(True)
-        self.get_data_model().set_running(False)
-        self.get_data_model().set_enabled(False)
-        self.set_enabled(False)
-        self._set_background_color()
-
-    def _set_background_color(self):
-        view = self.get_view()
-
-        if self.get_data_model().is_executed():
-            """
-            if self.status == QUEUE_ENTRY_STATUS.SUCCESS:
-                view.setBackgroundColor(widget_colors.LIGHT_GREEN)
-            elif self.status == QUEUE_ENTRY_STATUS.WARNING:
-                view.setBackgroundColor(widget_colors.LIGHT_YELLOW)
-            elif self.status == QUEUE_ENTRY_STATUS.FAILED:
-                view.setBackgroundColor(widget_colors.LIGHT_RED)
-            """
-            view.set_background_color(self.status + 1)
-        else:
-            view.set_background_color(0)
-            # view.setBackgroundColor(widget_colors.WHITE)
-
-    def stop(self):
-        """
-        Stops the execution of this entry, should free
-        external resources, cancel all pending processes and so on.
-        """
-        self.get_view().setText(1, "Stopped")
-        logging.getLogger("queue_exec").info("Calling stop on: " + str(self))
-
-    def handle_exception(self, ex):
-        view = self.get_view()
-
-        if view and isinstance(ex, QueueExecutionException):
-            if ex.origin is self:
-                # view.setBackgroundColor(widget_colors.LIGHT_RED)
-                view.set_background_color(3)
-
-    def __str__(self):
-        s = "<%s object at %s> [" % (self.__class__.__name__, hex(id(self)))
-
-        for entry in self._queue_entry_list:
-            s += str(entry)
-
-        return s + "]"
-
-    def get_type_str(self):
-        return self.type_str
-
-
-class DummyQueueEntry(BaseQueueEntry):
-    def __init__(self, view=None, data_model=None):
-        BaseQueueEntry.__init__(self, view, data_model)
-
-    def execute(self):
-        BaseQueueEntry.execute(self)
-        self.get_view().setText(1, "Sleeping 5 s")
-        time.sleep(5)
-
-    def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
+from HardwareRepository.dispatcher import dispatcher
+from HardwareRepository.HardwareObjects import queue_model_objects
+from HardwareRepository.HardwareObjects.queue_model_enumerables import (
+    EXPERIMENT_TYPE,
+    COLLECTION_ORIGIN_STR,
+    CENTRING_METHOD,
+)
+from HardwareRepository.HardwareObjects.base_queue_entry import (
+    BaseQueueEntry,
+    QUEUE_ENTRY_STATUS,
+    QueueSkippEntryException,
+    QueueExecutionException,
+    QueueAbortedException,
+)
+from HardwareRepository.HardwareObjects.Gphl import GphlQueueEntry
+from HardwareRepository.HardwareObjects.EMBL import EMBLQueueEntry
+from HardwareRepository.HardwareObjects import autoprocessing
+
+
+__credits__ = ["MXCuBE collaboration"]
+__license__ = "LGPLv3+"
+__category__ = "General"
 
 
 class TaskGroupQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
+
+        self.collect_hwobj = None
         self.lims_client_hwobj = None
         self.session_hwobj = None
         self.interleave_task = None
@@ -694,9 +382,9 @@ class SampleQueueEntry(BaseQueueEntry):
                             self.centring_done,
                             self.sample_centring_result,
                         )
-                        #self.beamline_setup.diffractometer_hwobj.close_kappa_task()
-                        #self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
-                        #time.sleep(2)
+                        # self.beamline_setup.diffractometer_hwobj.close_kappa_task()
+                        # self.beamline_setup.shape_history_hwobj.start_auto_centring(wait=True)
+                        # time.sleep(2)
                     except Exception as e:
                         self._view.setText(1, "Error loading")
                         msg = (
@@ -963,7 +651,9 @@ class DataCollectionQueueEntry(BaseQueueEntry):
         self.session = self.beamline_setup.session_hwobj
 
         try:
-            self.parallel_processing_hwobj = self.beamline_setup.parallel_processing_hwobj
+            self.parallel_processing_hwobj = (
+                self.beamline_setup.parallel_processing_hwobj
+            )
         except AttributeError:
             self.parallel_processing_hwobj = None
 
@@ -1203,7 +893,7 @@ class DataCollectionQueueEntry(BaseQueueEntry):
     def processing_finished(self):
         dispatcher.send("collect_finished")
         self.processing_task = None
-        #self.get_view().setText(1, "Done")
+        # self.get_view().setText(1, "Done")
         logging.getLogger("user_level_log").info("Processing: Done")
 
     def processing_failed(self):
@@ -1828,81 +1518,6 @@ class XRFSpectrumQueueEntry(BaseQueueEntry):
         return "XRF spectrum"
 
 
-class GphlWorkflowQueueEntry(BaseQueueEntry):
-    def __init__(self, view=None, data_model=None):
-        BaseQueueEntry.__init__(self, view, data_model)
-        self.workflow_hwobj = None
-        self.workflow_running = False
-
-    def execute(self):
-        BaseQueueEntry.execute(self)
-
-        state = self.workflow_hwobj.get_state()
-        logging.getLogger("queue_exec").info(
-            "GphlWorkflowQueueEntry.execute, WF_hwobj state is %s" % state
-        )
-
-        # Start execution of a new workflow
-        if state != States.ON:
-            # TODO Add handling of potential conflicts.
-            # NBNB GPhL workflow cannot have multiple users
-            # unless they use separate persistence layers
-            raise RuntimeError(
-                "Cannot execute workflow - GphlWorkflow HardwareObject is not idle"
-            )
-
-        msg = "Starting workflow (%s), please wait." % (self.get_data_model()._type)
-        logging.getLogger("user_level_log").info(msg)
-        # TODO add parameter and data transfer.
-        # workflow_params = self.get_data_model().params_list
-        # Add the current node id to workflow parameters
-        # group_node_id = self._parent_container._data_model._node_id
-        # workflow_params.append("group_node_id")
-        # workflow_params.append("%d" % group_node_id)
-        self.workflow_hwobj.execute()
-
-    def workflow_state_handler(self, state):
-        if isinstance(state, tuple):
-            state = str(state[0])
-        else:
-            state = str(state)
-
-        if state == "ON":
-            self.workflow_running = False
-        elif state == "RUNNING":
-            self.workflow_running = True
-        elif state == "OPEN":
-            msg = "Workflow waiting for input, verify parameters and press continue."
-            logging.getLogger("user_level_log").warning(msg)
-            self.get_queue_controller().show_workflow_tab()
-
-    def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-        qc = self.get_queue_controller()
-        self.workflow_hwobj = self.beamline_setup.getObjectByRole("gphl_workflow")
-
-        qc.connect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
-
-        self.workflow_hwobj.pre_execute(self)
-
-        logging.getLogger("HWR").debug("Done GphlWorkflowQueueEntry.pre_execute")
-
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
-        qc = self.get_queue_controller()
-        msg = "Finishing workflow %s" % (self.get_data_model()._type)
-        logging.getLogger("user_level_log").info(msg)
-        self.workflow_hwobj.workflow_end()
-        qc.disconnect(self.workflow_hwobj, "stateChanged", self.workflow_state_handler)
-
-    def stop(self):
-        BaseQueueEntry.stop(self)
-        logging.getLogger("queue_exec").debug("In GphlWorkflowQueueEntry.stop")
-        self.workflow_hwobj.abort()
-        self.get_view().setText(1, "Stopped")
-        raise QueueAbortedException("Queue stopped", self)
-
-
 class GenericWorkflowQueueEntry(BaseQueueEntry):
     def __init__(self, view=None, data_model=None):
         BaseQueueEntry.__init__(self, view, data_model)
@@ -2010,9 +1625,14 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
         BaseQueueEntry.pre_execute(self)
         xray_centering = self.get_data_model()
         reference_image_collection = xray_centering.reference_image_collection
-        reference_image_collection.grid = self.beamline_setup.shape_history_hwobj.create_auto_grid()
-        reference_image_collection.acquisitions[0].acquisition_parameters.centred_position = \
+        reference_image_collection.grid = (
+            self.beamline_setup.shape_history_hwobj.create_auto_grid()
+        )
+        reference_image_collection.acquisitions[
+            0
+        ].acquisition_parameters.centred_position = (
             reference_image_collection.grid.get_centred_position()
+        )
 
         # Trick to make sure that the reference collection has a sample.
         reference_image_collection._parent = xray_centering.get_parent()
@@ -2034,9 +1654,9 @@ class XrayCenteringQueueEntry(BaseQueueEntry):
             self.get_view(), reference_image_collection, view_set_queue_entry=False
         )
 
-        #helical_model = helical_qe.get_data_model()
-        #@helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
-        #@helical_model.grid = None
+        # helical_model = helical_qe.get_data_model()
+        # @helical_model.set_experiment_type(EXPERIMENT_TYPE.HELICAL)
+        # @helical_model.grid = None
 
         acq_two = queue_model_objects.Acquisition()
         helical_model.acquisitions.append(acq_two)
@@ -2162,53 +1782,6 @@ class OpticalCentringQueueEntry(BaseQueueEntry):
     def get_type_str(self):
         return "Optical automatic centering"
 
-
-class XrayImagingQueueEntry(BaseQueueEntry):
-    """
-    """
-
-    def __init__(self, view=None, data_model=None, view_set_queue_entry=True):
-        BaseQueueEntry.__init__(self, view, data_model, view_set_queue_entry)
-
-    def execute(self):
-        BaseQueueEntry.execute(self)
-        self.beamline_setup.xray_imaging_hwobj.execute(self.get_data_model())
-
-    def pre_execute(self):
-        BaseQueueEntry.pre_execute(self)
-
-        qc = self.get_queue_controller()
-        qc.connect(self.beamline_setup.xray_imaging_hwobj, "collectImageTaken", self.image_taken)
-        qc.connect(self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed)
-
-        self.beamline_setup.xray_imaging_hwobj.pre_execute(self.get_data_model())
-
-    def post_execute(self):
-        BaseQueueEntry.post_execute(self)
-        self.beamline_setup.xray_imaging_hwobj.post_execute(self.get_data_model())
-
-        qc = self.get_queue_controller()
-        qc.disconnect(self.beamline_setup.xray_imaging_hwobj, "collectImageTaken", self.image_taken)
-        qc.disconnect(self.beamline_setup.xray_imaging_hwobj, "collectFailed", self.collect_failed)
-
-    def stop(self):
-        BaseQueueEntry.stop(self)
-        self.beamline_setup.xray_imaging_hwobj.stop_collect()
-
-    def collect_failed(self, message):
-        # this is to work around the remote access problem
-        dispatcher.send("collect_finished")
-        self.get_view().setText(1, "Failed")
-        self.status = QUEUE_ENTRY_STATUS.FAILED
-        logging.getLogger("queue_exec").error(message.replace("\n", " "))
-        raise QueueExecutionException(message.replace("\n", " "), self)
-
-    def image_taken(self, image_number):
-        if image_number > 0:
-            num_images = (
-                self.get_data_model().acquisition.acquisition_parameters.num_images
-            )
-            self.get_view().setText(1, str(image_number) + "/" + str(num_images))
 
 def mount_sample(
     beamline_setup_hwobj, view, data_model, centring_done_cb, async_result
@@ -2367,6 +1940,6 @@ MODEL_QUEUE_ENTRY_MAPPINGS = {
     queue_model_objects.TaskGroup: TaskGroupQueueEntry,
     queue_model_objects.Workflow: GenericWorkflowQueueEntry,
     queue_model_objects.XrayCentering: XrayCenteringQueueEntry,
-    queue_model_objects.GphlWorkflow: GphlWorkflowQueueEntry,
-    queue_model_objects.XrayImaging: XrayImagingQueueEntry,
+    queue_model_objects.GphlWorkflow: GphlQueueEntry.GphlWorkflowQueueEntry,
+    queue_model_objects.XrayImaging: EMBLQueueEntry.XrayImagingQueueEntry,
 }
