@@ -504,6 +504,9 @@ class AbstractCollect(HardwareObject, object):
         else:
             return None, None
 
+    def get_beam_centre_pix(self):
+        return self.detector_hwobj.get_beam_centre_pix()
+
     def get_resolution_at_corner(self):
         """
         Descript. :
@@ -644,6 +647,7 @@ class AbstractCollect(HardwareObject, object):
         if self.lims_client_hwobj and not self.current_dc_parameters["in_interleave"]:
             self.current_dc_parameters["flux"] = self.get_flux()
             self.current_dc_parameters["flux_end"] = self.get_flux()
+            # self.current_dc_parameters["totalAbsorbedDose"] = self.get_total_absorbed_dose()
             self.current_dc_parameters["wavelength"] = self.get_wavelength()
             self.current_dc_parameters[
                 "detectorDistance"

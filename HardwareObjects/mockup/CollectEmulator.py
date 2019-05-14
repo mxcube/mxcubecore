@@ -204,15 +204,18 @@ class CollectEmulator(CollectMockup):
 
             # Extract format statement from template,
             # and convert to fortran format
-            template = data_collect_parameters["fileinfo"]["template"]
-            ss0 = str(re.search("(%[0-9]+d)", template).group(0))
+            text_type =  ConvertUtils.text_type
+            template = text_type(
+                data_collect_parameters["fileinfo"]["template"]
+            )
+            ss0 = re.search("(%[0-9]+d)", template).group(0)
             template = template.replace(ss0, "?" * int(ss0[1:-1]))
             name_template = os.path.join(
-                data_collect_parameters["fileinfo"]["directory"],
+                text_type(data_collect_parameters["fileinfo"]["directory"]),
                 template
                 # data_collect_parameters['fileinfo']['template']
             )
-            sweep["name_template"] = ConvertUtils.to_ascii(name_template)
+            sweep["name_template"] = name_template
 
             # Overwrite kappa and phi from motors - if set
             val = motors.get("kappa")
@@ -254,8 +257,9 @@ class CollectEmulator(CollectMockup):
             "BDG_home": gphl_connection.software_paths["BDG_home"],
             "GPHL_INSTALLATION": gphl_connection.software_paths["GPHL_INSTALLATION"],
         }
+        text_type = ConvertUtils.text_type
         for tag, val in self["environment_variables"].getProperties().items():
-            envs[str(tag)] = str(val)
+            envs[text_type(tag)] = text_type(val)
 
         # get crystal data
         sample_name = self.getProperty("default_sample_name")
