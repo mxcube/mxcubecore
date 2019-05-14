@@ -25,9 +25,8 @@ __date__ = "19/06/17"
 
 
 # 'Borrowed' from six, pending installation as a dependency
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
-if PY3:
+PYVERSION = sys.version_info[0]
+if PYVERSION > 2:
     string_types = str,
     text_type = str
     binary_type = bytes
@@ -133,8 +132,8 @@ def ensure_text(s, encoding='utf-8', errors='strict'):
 #     """
 #     if not isinstance(s, (text_type, binary_type)):
 #         raise TypeError("not expecting type '%s'" % type(s))
-#     if PY2 and isinstance(s, text_type):
+#     if PYVERSION < 3 and isinstance(s, text_type):
 #         s = s.encode(encoding, errors)
-#     elif PY3 and isinstance(s, binary_type):
+#     elif PYVERSION > 2 and isinstance(s, binary_type):
 #         s = s.decode(encoding, errors)
 #     return s
