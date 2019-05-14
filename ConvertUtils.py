@@ -27,13 +27,13 @@ __date__ = "19/06/17"
 # 'Borrowed' from six, pending installation as a dependency
 PYVERSION = sys.version_info[0]
 if PYVERSION > 2:
-    string_types = str,
+    string_types = (str,)
     text_type = str
     binary_type = bytes
 
     MAXSIZE = sys.maxsize
 else:
-    string_types = basestring,
+    string_types = (basestring,)
     text_type = unicode
     binary_type = str
 
@@ -41,6 +41,7 @@ else:
 H_OVER_E = 12.3984
 
 # Utility functions:
+
 
 def java_property(keyword, value, quote_value=False):
     """Return argument list for command line invocation setting java property"""
@@ -63,6 +64,7 @@ def command_option(keyword, value, prefix="-", quote_value=False):
             value = str(value)
         return [prefix + keyword, value]
 
+
 def quoted_string(text):
     """Return quoted value of a (single-line) string
 
@@ -73,16 +75,18 @@ def quoted_string(text):
     """
     result = ensure_text(text)
     if not '"' in result:
-        result = ''.join(('"',result,'"'))
+        result = "".join(('"', result, '"'))
     elif not "'" in result:
-        result = ''.join(("'",result,"'"))
+        result = "".join(("'", result, "'"))
     else:
         result = repr(result)
-    for ind in range(len(result)):
-        if result[ind] in ('"', "'"):
+    ind = 0
+    for ind, char in enumerate(result):
+        if char in ('"', "'"):
             break
     #
     return result[ind:]
+
 
 # def to_ascii(text):
 #     """Rough-and-ready conversion to bytes, intended for ascii contexts"""
@@ -103,9 +107,10 @@ def convert_string_value(text):
         except ValueError:
             return text
 
+
 # 'Borrowed' from six, pending installation as a dependency
-def ensure_text(s, encoding='utf-8', errors='strict'):
-    """Coerce *s* to six.text_type.
+def ensure_text(chars, encoding="utf-8", errors="strict"):
+    """Coerce *chars* to six.text_type.
     For Python 2:
       - `unicode` -> `unicode`
       - `str` -> `unicode`
@@ -113,15 +118,16 @@ def ensure_text(s, encoding='utf-8', errors='strict'):
       - `str` -> `str`
       - `bytes` -> decoded to `str`
     """
-    if isinstance(s, binary_type):
-        return s.decode(encoding, errors)
-    elif isinstance(s, text_type):
-        return s
+    if isinstance(chars, binary_type):
+        return chars.decode(encoding, errors)
+    elif isinstance(chars, text_type):
+        return chars
     else:
-        raise TypeError("not expecting type '%s'" % type(s))
+        raise TypeError("not expecting type '%s'" % type(chars))
+
 
 # # 'Borrowed' from six, pending installation as a dependency
-# def ensure_str(s, encoding='utf-8', errors='strict'):
+# def ensure_str(chars, encoding='utf-8', errors='strict'):
 #     """Coerce *s* to `str`.
 #     For Python 2:
 #       - `unicode` -> encoded to `str`
@@ -130,10 +136,10 @@ def ensure_text(s, encoding='utf-8', errors='strict'):
 #       - `str` -> `str`
 #       - `bytes` -> decoded to `str`
 #     """
-#     if not isinstance(s, (text_type, binary_type)):
-#         raise TypeError("not expecting type '%s'" % type(s))
-#     if PYVERSION < 3 and isinstance(s, text_type):
-#         s = s.encode(encoding, errors)
-#     elif PYVERSION > 2 and isinstance(s, binary_type):
-#         s = s.decode(encoding, errors)
-#     return s
+#     if not isinstance(chars, (text_type, binary_type)):
+#         raise TypeError("not expecting type '%chars'" % type(s))
+#     if PYVERSION < 3 and isinstance(chars, text_type):
+#         chars = chars.encode(encoding, errors)
+#     elif PYVERSION > 2 and isinstance(chars, binary_type):
+#         chars = chars.decode(encoding, errors)
+#     return chars
